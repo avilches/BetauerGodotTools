@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Scenes/MyTileset.tres" type="TileSet" id=1]
+
+[node name="World2" type="Node2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource( 1 )
+cell_size = Vector2( 16, 16 )
+cell_y_sort = true
+compatibility_mode = true
+format = 1
+tile_data = PoolIntArray( 0, 0, 196608, 1, 0, 196610, 65539, 0, 3, 131073, 0, 196608, 131074, 0, 196609, 131075, 0, 196615 )
+__meta__ = {
+"_editor_description_": ""
+}
