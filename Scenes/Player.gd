@@ -70,23 +70,22 @@ func lateral_movement(delta):
 		else:
 			motion.x = lerp(motion.x, 0, AIR_RESISTANCE * delta)
 	
+func jump(delta):
+	if is_on_floor():
+		if Input.is_action_just_pressed("ui_up"):
+			motion.y = -JUMP_FORCE
+		#if Input.is_action_just_pressed("ui_down"):
+	else:
+		animationPlayer.play("Jump")
+		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
+			motion.y = -JUMP_FORCE/2
 
 func _physics_process(delta):
 	# delta is 1/60 = 0.01666 aprox
 	# x * delta -> x / 60, move_and_slide no debe usar tiempos modificados con delta
 	
 	lateral_movement(delta)
-		
-	if is_on_floor():
-		if Input.is_action_just_pressed("ui_up"):
-			motion.y = -JUMP_FORCE
-		
-		#if Input.is_action_just_pressed("ui_down"):
-
-	else:
-		animationPlayer.play("Jump")
-		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
-			motion.y = -JUMP_FORCE/2
+	jump(delta)
 
 	motion.y += (GRAVITY / 60)
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
