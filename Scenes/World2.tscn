@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=2]
-
-[ext_resource path="res://TileMap2.tscn" type="PackedScene" id=1]
-
-[node name="World2" type="Node2D"]
-
-[node name="TileMap" parent="." instance=ExtResource( 1 )]
-tile_data = PoolIntArray( -65540, 0, 196608, -65539, 0, 7, -3, 0, 196612, -2, 0, 6, -1, 0, 2, 65534, 0, 65540, 65535, 0, 131074, 4, 0, 3, 131070, 0, 131075, 65540, 0, 65539, 131072, 0, 196608, 131073, 0, 196609, 131074, 0, 196609, 131075, 0, 196609, 131076, 0, 196615 )

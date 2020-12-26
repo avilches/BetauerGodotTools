@@ -81,16 +81,8 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("ui_up"):
 			motion.y = -JUMP_FORCE
 		
-		if Input.is_action_just_pressed("ui_down"):
-			print(get_collision_mask_bit(0));
-			print(get_collision_mask_bit(1));
-			print(get_collision_mask_bit(2));
-			print(get_collision_mask_bit(3));
-			print(get_collision_mask_bit(4));
-			print(get_collision_mask_bit(5));
-			print(get_collision_mask_bit(6));
-			print(get_collision_mask_bit(7));
-			#set_collision_mask_bit(1, false)
+		#if Input.is_action_just_pressed("ui_down"):
+
 	else:
 		animationPlayer.play("Jump")
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
