@@ -8,9 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "CollisionShape2D",
+"class": "Filler2D",
+"language": "GDScript",
+"path": "res://tools/Filler2D.gd"
+} ]
 _global_script_class_icons={
-
+"Filler2D": ""
 }
 
 [application]
