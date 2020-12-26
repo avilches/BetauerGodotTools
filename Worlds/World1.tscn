@@ -5,7 +5,7 @@
 [ext_resource path="res://Scenes/WorldComplete.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Tilemaps/MyTileMap.tscn" type="PackedScene" id=5]
 
-[sub_resource type="RectangleShape2D" id=2]
+[sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 45, 6 )
 
 [node name="World1" type="Node2D"]
@@ -21,7 +21,7 @@ next_scene = "res://Worlds/World2.tscn"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 164, 19 )
-shape = SubResource( 2 )
+shape = SubResource( 1 )
 script = ExtResource( 2 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
