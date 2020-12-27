@@ -45,9 +45,12 @@ func flip(left):
 	sprite.flip_h = left;
 	#sprite.scale.x = -1 if left else 1
 
-#func _process(delta):
+func _process(delta):
+	lateral_movement(delta)
+	jump()
+
 #func _ready():
-#	Engine.set_target_fps(30)
+	#Engine.set_target_fps(30)
 	
 func lateral_movement(delta):
 	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
@@ -70,17 +73,16 @@ func lateral_movement(delta):
 		if abs(motion.x) < STOP_IF_SPEED_IS_LESS_THAN: motion.x = 0
 		else: motion.x *= FRICTION if is_on_floor() else AIR_RESISTANCE
 
+var isJumping = false
 func jump():
 	if is_on_floor():
 		if Input.is_action_just_pressed("ui_up"):
 			motion.y = -JUMP_FORCE
-			return Vector2.ZERO
+			isJumping = true
 	else:
 		animationPlayer.play("Jump")
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
 			motion.y = -JUMP_FORCE/2
-
-	return SLOPE_RAYCAST_VECTOR
 
 func debug_motion():
 	if DEBUG_MAX_SPEED:
@@ -113,10 +115,6 @@ func cancel_fall_through():
 		set_collision_mask_bit(1, true)
 		
 func _physics_process(delta):
-
-	lateral_movement(delta)
-	var snap_vector = jump()
-
 	if Input.is_action_pressed("ui_down"): fall_through()
 	else: cancel_fall_through()
 
@@ -126,8 +124,10 @@ func _physics_process(delta):
 
 	debug_motion()
 
+	var raycastSnapToSlope = Vector2.ZERO if isJumping else SLOPE_RAYCAST_VECTOR
+	var remain = move_and_slide_with_snap(motion, raycastSnapToSlope, FLOOR, STOP_ON_SLOPES)
 	lastMotion = motion
-	var remain = move_and_slide_with_snap(motion, snap_vector, FLOOR, STOP_ON_SLOPES)
 	motion.y = remain.y # this line stops the gravity accumulation
 	if (!STOP_ON_SLOPES): motion.x = remain.x
+	isJumping = false
 
