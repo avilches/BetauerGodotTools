@@ -12,7 +12,7 @@ const DEBUG_ACCELERATION = true
 const TIME_TO_MAX_SPEED = 0.2         # seconds to reach the max speed 0=immediate
 const MAX_SPEED = 80                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
-const FRICTION = 0.9                  # 0=stop 0.9=10%/frame 0.99=ice!!
+const FRICTION = 0.82                  # 0=stop 0.9=10%/frame 0.99=ice!!
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
 
 # air
@@ -100,10 +100,25 @@ func debug_motion():
 
 	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion)
 
+# las plataformas desde la que se pueden bajar deben estar en el layer 2 (bit 1 pq empiezan por 0) y deben
+# tener el collision mask vacio
+# asi, el jugador puede desactivar el mask 2 (bit 1) y se cae
+
+func fall_through():
+	if is_on_floor():
+		set_collision_mask_bit(1, false)
+
+func cancel_fall_through():
+	if get_collision_mask_bit(1) == false:
+		set_collision_mask_bit(1, true)
+		
 func _physics_process(delta):
 
 	lateral_movement(delta)
 	var snap_vector = jump()
+
+	if Input.is_action_pressed("ui_down"): fall_through()
+	else: cancel_fall_through()
 
 	motion.y += GRAVITY * delta
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)

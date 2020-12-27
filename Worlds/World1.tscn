@@ -21,25 +21,37 @@ position = Vector2( 340, -37 )
 next_scene = "res://Worlds/World2.tscn"
 
 [node name="Platform move" type="KinematicBody2D" parent="."]
+collision_layer = 2
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 146, 1 )
 shape = SubResource( 1 )
+one_way_collision = true
+script = ExtResource( 2 )
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="Platform move"]
+position = Vector2( 271, -3 )
+shape = SubResource( 1 )
+one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 209, -24 )
 shape = SubResource( 1 )
+one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 174, -10 )
 rotation = -0.785398
 shape = SubResource( 1 )
+one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 116, -12 )
 rotation = 0.785398
 shape = SubResource( 1 )
+one_way_collision = true
 script = ExtResource( 2 )

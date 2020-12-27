@@ -41,6 +41,11 @@ window/stretch/aspect="keep"
 
 sho=false
 
+[layer_names]
+
+2d_physics/layer_1="general"
+2d_physics/layer_2="pass_trough"
+
 [rendering]
 
 quality/2d/use_pixel_snap=true
