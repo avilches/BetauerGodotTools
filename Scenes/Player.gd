@@ -5,53 +5,47 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
-const DEBUG_MOTION = false
+const DEBUG_MOTION = true
+const TARGET_FPS = 60
+
+# ground
 const TIME_TO_MAX_SPEED = 0.2         # seconds to reach the max speed 0=immediate
 const MAX_SPEED = 80                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
-const MAX_FALLING_SPEED = 300         #
-
-const FRICTION = 0.9                # 0=stop 0.9=10%/frame 0.99=ice!!
-const AIR_RESISTANCE = 0.95        
-const FLOOR = Vector2.UP
-const SNAP_DIRECTION = Vector2.DOWN
-const SNAP_LENGTH = 15
-
-const stop_on_slopes = true
-
-#const GRAVITY = 920
-#const JUMP_FORCE = 368
-var jumpHeight:float = 52;
-var timeToJumpApex = 0.4;
-
-onready var GRAVITY = (2 * jumpHeight) / pow(timeToJumpApex, 2)
-onready var JUMP_FORCE = GRAVITY * timeToJumpApex;
+const FRICTION = 0.9                  # 0=stop 0.9=10%/frame 0.99=ice!!
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
 
+# air
+const JUMP_HEIGHT = 52                # jump max pixels
+const MAX_JUMP_TIME = 0.4             # jump max time
+const MAX_FALLING_SPEED = 300         # max speed in free fall
+const AIR_RESISTANCE = 0.95        
+onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
+onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
 
-#The likely source of your problem is the combination of _physics_process and
-#is_action_just_pressed. _physics_process is not guaranteed to be
-#called every frame and so it can easily miss the action.
-
-#A better solution would be to catch the jump in _input,
-#store the information about the jump in a script-level variable
-#and then look at this variable in _physics_process.
-
+# slope config
+const STOP_ON_SLOPES = true
+const FLOOR = Vector2.UP
+const SNAP_LENGTH = 15                # be sure this value is less than the smallest tile
+onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
 onready var sprite = $Sprite
 onready var animationPlayer = $AnimationPlayer
 
 var motion = Vector2.ZERO
-
-var x_input:float;
+var x_input:float = 0;
+var y_input:float = 0;
+# Debug the motion change
+var lastPos = 0
+var lastMotion = Vector2.ZERO
+var lastStart = Vector2.ZERO
 
 func flip(left):
 	sprite.flip_h = left;
 	#sprite.scale.x = -1 if left else 1
 
-
 func _process(delta):
-	x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left");
+	x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 
 var lastPos = 0
 func lateral_movement(delta):
@@ -77,31 +71,23 @@ func lateral_movement(delta):
 			else:
 				motion.x *= AIR_RESISTANCE
 	
-func jump(delta):
+func jump():
 	if is_on_floor():
 		if Input.is_action_just_pressed("ui_up"):
 			motion.y = -JUMP_FORCE
 			return Vector2.ZERO
-		#if Input.is_action_just_pressed("ui_down"):
 	else:
 		animationPlayer.play("Jump")
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
 			motion.y = -JUMP_FORCE/2
-	return SNAP_DIRECTION * SNAP_LENGTH
 
-# Debug the motion change
-var lastMotion = Vector2.ZERO
+	return SLOPE_RAYCAST_VECTOR
 
-var lastStart = Vector2.ZERO
 func _physics_process(delta):
-	# delta is 1/60 = 0.01666 aprox
-	# x * delta -> x / 60, move_and_slide no debe usar tiempos modificados con delta
-	
+
 	lateral_movement(delta)
-	jump(delta)
-	
-	var snap_vector = jump(delta)
-	
+	var snap_vector = jump()
+
 	motion.y += (GRAVITY * delta)
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
@@ -124,9 +110,9 @@ func _physics_process(delta):
 	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion)
 	
 	lastMotion = motion
-	var remainder = move_and_slide_with_snap(motion, snap_vector, FLOOR, stop_on_slopes)
+	var remainder = move_and_slide_with_snap(motion, snap_vector, FLOOR, STOP_ON_SLOPES)
 	motion.y = remainder.y # this line stops the gravity accumulation
-	if (!stop_on_slopes):
+	if (!STOP_ON_SLOPES):
 		motion.x = remainder.x 
 	x_input = 0
 
