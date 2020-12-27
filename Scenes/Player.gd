@@ -5,8 +5,8 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
-const DEBUG_MOTION = true
-const TARGET_FPS = 60
+const DEBUG_MOTION = false
+const DEBUG_ACCELERATION = true
 
 # ground
 const TIME_TO_MAX_SPEED = 0.2         # seconds to reach the max speed 0=immediate
@@ -39,38 +39,37 @@ var y_input:float = 0;
 var lastPos = 0
 var lastMotion = Vector2.ZERO
 var lastStart = Vector2.ZERO
+var lastAcc = 0
 
 func flip(left):
 	sprite.flip_h = left;
 	#sprite.scale.x = -1 if left else 1
 
-func _process(delta):
-	x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-
-var lastPos = 0
+#func _process(delta):
+#func _ready():
+#	Engine.set_target_fps(30)
+	
 func lateral_movement(delta):
+	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
+
 	if x_input != 0:
+		if lastMotion.x == 0: lastAcc = OS.get_ticks_msec() # starts to move
 		if sign(motion.x) != sign(x_input): # si cambia de direccion de repente...
 			# esto hace que se puede cambiar de direccion sin esperar a que decelere
 			motion.x = x_input * ACCELERATION * delta
 		else:
 			motion.x += x_input * ACCELERATION * delta
 		if abs(motion.x) >= MAX_SPEED:
-			# test para saber cuando llega a la maxima velocidad
-			animationPlayer.play("Run")
-			
+			if lastAcc > 0 && DEBUG_ACCELERATION: print("FULL THROTLE IN "+str(OS.get_ticks_msec()-lastAcc))
+			lastAcc = 0
+		animationPlayer.play("Run")
 		flip(x_input < 0)
 	else:
 		# para suavamente
 		animationPlayer.play("Stand")
-		if abs(motion.x) < STOP_IF_SPEED_IS_LESS_THAN:
-			motion.x = 0
-		else:
-			if is_on_floor():
-				motion.x *= FRICTION
-			else:
-				motion.x *= AIR_RESISTANCE
-	
+		if abs(motion.x) < STOP_IF_SPEED_IS_LESS_THAN: motion.x = 0
+		else: motion.x *= FRICTION if is_on_floor() else AIR_RESISTANCE
+
 func jump():
 	if is_on_floor():
 		if Input.is_action_just_pressed("ui_up"):
@@ -83,15 +82,7 @@ func jump():
 
 	return SLOPE_RAYCAST_VECTOR
 
-func _physics_process(delta):
-
-	lateral_movement(delta)
-	var snap_vector = jump()
-
-	motion.y += (GRAVITY * delta)
-	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
-	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
-
+func debug_motion():
 	if DEBUG_MAX_SPEED:
 		if motion.x != 0:
 			if lastMotion.x == 0:
@@ -108,11 +99,20 @@ func _physics_process(delta):
 			lastPos = 0
 
 	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion)
-	
+
+func _physics_process(delta):
+
+	lateral_movement(delta)
+	var snap_vector = jump()
+
+	motion.y += GRAVITY * delta
+	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
+	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
+
+	debug_motion()
+
 	lastMotion = motion
-	var remainder = move_and_slide_with_snap(motion, snap_vector, FLOOR, STOP_ON_SLOPES)
-	motion.y = remainder.y # this line stops the gravity accumulation
-	if (!STOP_ON_SLOPES):
-		motion.x = remainder.x 
-	x_input = 0
+	var remain = move_and_slide_with_snap(motion, snap_vector, FLOOR, STOP_ON_SLOPES)
+	motion.y = remain.y # this line stops the gravity accumulation
+	if (!STOP_ON_SLOPES): motion.x = remain.x
 
