@@ -42,7 +42,8 @@ var lastStart = Vector2.ZERO
 var lastAcc = 0
 
 func flip(left):
-	sprite.flip_h = left;
+	pass
+#	sprite.flip_h = left;
 	#sprite.scale.x = -1 if left else 1
 
 func _process(delta):
@@ -65,11 +66,11 @@ func lateral_movement(delta):
 		if abs(motion.x) >= MAX_SPEED:
 			if lastAcc > 0 && DEBUG_ACCELERATION: print("FULL THROTLE IN "+str(OS.get_ticks_msec()-lastAcc))
 			lastAcc = 0
-		animationPlayer.play("Run")
+#		animationPlayer.play("Run")
 		flip(x_input < 0)
 	else:
 		# para suavamente
-		animationPlayer.play("Stand")
+#		animationPlayer.play("Stand")
 		if abs(motion.x) < STOP_IF_SPEED_IS_LESS_THAN: motion.x = 0
 		else: motion.x *= FRICTION if is_on_floor() else AIR_RESISTANCE
 
@@ -80,7 +81,7 @@ func jump():
 			motion.y = -JUMP_FORCE
 			isJumping = true
 	else:
-		animationPlayer.play("Jump")
+#		animationPlayer.play("Jump")
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
 			motion.y = -JUMP_FORCE/2
 
@@ -115,8 +116,8 @@ func cancel_fall_through():
 		set_collision_mask_bit(1, true)
 		
 func _physics_process(delta):
-	if Input.is_action_pressed("ui_down"): fall_through()
-	else: cancel_fall_through()
+	#if Input.is_action_pressed("ui_down"): fall_through()
+	#else: cancel_fall_through()
 
 	motion.y += GRAVITY * delta
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
@@ -125,7 +126,10 @@ func _physics_process(delta):
 	debug_motion()
 
 	var raycastSnapToSlope = Vector2.ZERO if isJumping else SLOPE_RAYCAST_VECTOR
-	var remain = move_and_slide_with_snap(motion, raycastSnapToSlope, FLOOR, STOP_ON_SLOPES)
+#	var is_on_platform = platform_detector.is_colliding()
+	var is_on_platform = is_on_floor()
+#	var remain = move_and_slide(motion, Vector2.UP)
+	var remain = move_and_slide_with_snap(motion, raycastSnapToSlope, FLOOR, false, 4, 0.9, false)
 	lastMotion = motion
 	motion.y = remain.y # this line stops the gravity accumulation
 	if (!STOP_ON_SLOPES): motion.x = remain.x

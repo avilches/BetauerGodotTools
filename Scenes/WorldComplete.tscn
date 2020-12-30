@@ -17,3 +17,4 @@ shape = SubResource( 1 )
 position = Vector2( 2, 35 )
 scale = Vector2( 0.320312, 0.28125 )
 texture = ExtResource( 2 )
+[connection signal="body_shape_entered" from="." to="." method="_on_WorldComplete_body_shape_entered"]
