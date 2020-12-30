@@ -54,25 +54,26 @@ tracks/0/keys = {
 "values": [ 0 ]
 }
 
-[node name="Player" type="KinematicBody2D"]
+[node name="Node2D" type="Node2D"]
+
+[node name="Player" type="KinematicBody2D" parent="."]
 position = Vector2( 11, 9 )
-collision_layer = 2147483649
-collision_mask = 2147483651
+collision_mask = 2147483649
 script = ExtResource( 2 )
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Sprite" type="Sprite" parent="Player"]
 texture = ExtResource( 1 )
 hframes = 7
 frame = 6
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 position = Vector2( 0, 3 )
 shape = SubResource( 1 )
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="Player"]
 current = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Player"]
 anims/Jump = SubResource( 2 )
 anims/Run = SubResource( 3 )
 anims/Stand = SubResource( 4 )

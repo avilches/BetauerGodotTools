@@ -24,7 +24,6 @@ onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
 
 # slope config
-const STOP_ON_SLOPES = true
 const FLOOR = Vector2.UP
 const SNAP_LENGTH = 15                # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
@@ -42,15 +41,16 @@ var lastStart = Vector2.ZERO
 var lastAcc = 0
 
 func flip(left):
-	pass
-#	sprite.flip_h = left;
+	sprite.flip_h = left;
 	#sprite.scale.x = -1 if left else 1
 
 func _process(delta):
 	lateral_movement(delta)
 	jump()
 
-#func _ready():
+func _ready():
+	PlatformManager.subscribe_platform_out(self, "enable_platform_collide")
+	enable_platform_collide()
 	#Engine.set_target_fps(30)
 	
 func lateral_movement(delta):
@@ -66,11 +66,11 @@ func lateral_movement(delta):
 		if abs(motion.x) >= MAX_SPEED:
 			if lastAcc > 0 && DEBUG_ACCELERATION: print("FULL THROTLE IN "+str(OS.get_ticks_msec()-lastAcc))
 			lastAcc = 0
-#		animationPlayer.play("Run")
+		animationPlayer.play("Run")
 		flip(x_input < 0)
 	else:
 		# para suavamente
-#		animationPlayer.play("Stand")
+		animationPlayer.play("Stand")
 		if abs(motion.x) < STOP_IF_SPEED_IS_LESS_THAN: motion.x = 0
 		else: motion.x *= FRICTION if is_on_floor() else AIR_RESISTANCE
 
@@ -81,7 +81,7 @@ func jump():
 			motion.y = -JUMP_FORCE
 			isJumping = true
 	else:
-#		animationPlayer.play("Jump")
+		animationPlayer.play("Jump")
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
 			motion.y = -JUMP_FORCE/2
 
@@ -103,35 +103,35 @@ func debug_motion():
 
 	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion)
 
-# las plataformas desde la que se pueden bajar deben estar en el layer 2 (bit 1 pq empiezan por 0) y deben
+# las plataformas desde la que se pueden bajar deben estar en el layer 2º (bit 1 pq empiezan por 0) y deben
 # tener el collision mask vacio
 # asi, el jugador puede desactivar el mask 2 (bit 1) y se cae
+func fall_from_platform():
+	if is_on_floor(): PlatformManager.fall_from_platform(self)
 
-func fall_through():
-	if is_on_floor():
-		set_collision_mask_bit(1, false)
 
-func cancel_fall_through():
-	if get_collision_mask_bit(1) == false:
-		set_collision_mask_bit(1, true)
+func enable_platform_collide():
+	PlatformManager.enable_platform_collide(self)
 		
 func _physics_process(delta):
-	#if Input.is_action_pressed("ui_down"): fall_through()
-	#else: cancel_fall_through()
+	if Input.is_action_pressed("ui_down"):
+		fall_from_platform()
 
-	motion.y += GRAVITY * delta
+	if !is_on_floor():
+		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
+		motion.y += GRAVITY * delta
+		
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
 
 	debug_motion()
+	var STOP_ON_SLOPES = true
 
 	var raycastSnapToSlope = Vector2.ZERO if isJumping else SLOPE_RAYCAST_VECTOR
-#	var is_on_platform = platform_detector.is_colliding()
-	var is_on_platform = is_on_floor()
-#	var remain = move_and_slide(motion, Vector2.UP)
-	var remain = move_and_slide_with_snap(motion, raycastSnapToSlope, FLOOR, false, 4, 0.9, false)
+	var remain = move_and_slide_with_snap(motion, raycastSnapToSlope, FLOOR, STOP_ON_SLOPES)
 	lastMotion = motion
 	motion.y = remain.y # this line stops the gravity accumulation
-	if (!STOP_ON_SLOPES): motion.x = remain.x
+	#motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
 	isJumping = false
-
+	
+	if is_on_floor(): enable_platform_collide()

@@ -24,6 +24,10 @@ config/name="Plat10minutes"
 run/main_scene="res://Worlds/World1.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+PlatformManager="*res://tools/platforms/PlatformManager.gd"
+
 [debug]
 
 settings/stdout/print_fps=true
@@ -44,7 +48,7 @@ sho=false
 [layer_names]
 
 2d_physics/layer_1="general"
-2d_physics/layer_2="pass_trough"
+2d_physics/layer_3="pass_trough"
 
 [rendering]
 

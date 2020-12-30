@@ -26,8 +26,3 @@ func _draw():
 		var rect_position = offset_position - Vector2(shape.radius, shape.height * 0.5)
 		var rect = Rect2(rect_position, Vector2(shape.radius * 2, shape.height))
 		draw_rect(rect, color)
-
-
-func _on_Area2D_body_shape_exited(body_id, body, body_shape, area_shape):
-	print(body)
-	pass # Replace with function body.
