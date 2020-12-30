@@ -117,7 +117,8 @@ func _physics_process(delta):
 	if Input.is_action_pressed("ui_down"):
 		fall_from_platform()
 
-	if !is_on_floor():
+	var was_in_floor = is_on_floor()
+	if !was_in_floor:
 		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
 		motion.y += GRAVITY * delta
 		
@@ -134,4 +135,5 @@ func _physics_process(delta):
 	#motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
 	isJumping = false
 	
-	if is_on_floor(): enable_platform_collide()
+	if is_on_floor() and not was_in_floor:
+		enable_platform_collide()
