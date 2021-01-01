@@ -63,10 +63,11 @@ script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="Player"]
 texture = ExtResource( 1 )
+offset = Vector2( 0, -10 )
 hframes = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
-position = Vector2( 0, 3 )
+position = Vector2( 0, -7 )
 shape = SubResource( 1 )
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
@@ -76,9 +77,3 @@ current = true
 anims/Jump = SubResource( 2 )
 anims/Run = SubResource( 3 )
 anims/Stand = SubResource( 4 )
-
-[node name="GroundRay" type="RayCast2D" parent="Player"]
-position = Vector2( 0, 10 )
-enabled = true
-cast_to = Vector2( 0, 1 )
-collision_mask = 5

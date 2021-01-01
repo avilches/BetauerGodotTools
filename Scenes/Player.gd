@@ -12,16 +12,25 @@ const DEBUG_ACCELERATION = true
 const TIME_TO_MAX_SPEED = 0.2         # seconds to reach the max speed 0=immediate
 const MAX_SPEED = 80                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
-const FRICTION = 0.82                  # 0=stop 0.9=10%/frame 0.99=ice!!
-const COYOTE_TIME = 0.1               # how much time the player can jump when falling (seconds)
+const FRICTION = 0.82                 # 0=stop 0.9=10%/frame 0.99=ice!!
+const COYOTE_TIME = 0.1               # seconds. How much time the player can jump when falling 
+const JUMP_HELPER_TIME = 120          # milliseconds. If the user press jump just before land
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
 const STOP_ON_SLOPES = true
+
+# squeeze effect
+const SQUEEZE_JUMP_TIME = 0.3                 # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_JUMP = Vector2(0.5, 1.2)        # Vector to scale when jump
+const SQUEEZE_LAND_TIME = 0.3                # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
+
 
 # air
 const JUMP_HEIGHT = 52                # jump max pixels
 const MAX_JUMP_TIME = 0.4             # jump max time
 const MAX_FALLING_SPEED = 300         # max speed in free fall
 const AIR_RESISTANCE = 0.95        
+const MAX_JUMPS = 1
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
 
@@ -42,9 +51,10 @@ var lastMotion = Vector2.ZERO
 var lastStart = Vector2.ZERO
 var movStartTime = 0
 
+var jumps = 0
 var canJump = false
 var isJumping = false
-
+var time_jump_pressed = 0
 
 func flip(left):
 	sprite.flip_h = left;
@@ -87,14 +97,22 @@ func lateral_movement(x_input, delta):
 		else: motion.x *= FRICTION if is_on_floor() else AIR_RESISTANCE
 
 func jump():
-	if is_on_floor(): canJump = true
+	if is_on_floor():
+		jumps = 0
+		canJump = true
+		
+	if Input.is_action_just_pressed("ui_up"):
+		time_jump_pressed = OS.get_ticks_msec()
 		
 	if canJump:
 		modulate = Color.white
-		if Input.is_action_just_pressed("ui_up"):
+		var now = OS.get_ticks_msec()
+		if time_jump_pressed + JUMP_HELPER_TIME >= now:
+			if SQUEEZE_JUMP_TIME != 0: sprite.scale = SQUEEZE_JUMP
 			motion.y = -JUMP_FORCE
-			canJump = false
+			jumps = jumps + 1
 			isJumping = true
+			canJump = jumps < MAX_JUMPS
 	else:
 		modulate = Color.red
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
@@ -135,12 +153,22 @@ func fall_from_platform():
 
 func enable_platform_collide():
 	PlatformManager.enable_platform_collide(self)
-		
+
 func _physics_process(delta):
+	
 	var was_in_floor = is_on_floor()
 	if !was_in_floor:
 		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
 		motion.y += GRAVITY * delta
+		if SQUEEZE_JUMP_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
+	else:
+		if SQUEEZE_LAND_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
+		
+		
 		
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
@@ -157,13 +185,19 @@ func _physics_process(delta):
 
 	lastMotion = motion
 	
+	if is_on_ceiling():
+		# slow down a little bit when the jump collides a celing
+		motion.y = - GRAVITY * delta * 0.9
+	
 	if !was_in_floor && is_on_floor():
 		# just grounded
+		if SQUEEZE_LAND_TIME != 0: sprite.scale = SQUEEZE_LAND
 		isJumping = false
 		enable_platform_collide()
-	elif was_in_floor && !is_on_floor():
+	elif was_in_floor && !is_on_floor() && !isJumping:
 		# just falling!
 		schedule_coyote_time()
+
 
 func schedule_coyote_time():
 	if COYOTE_TIME > 0:
