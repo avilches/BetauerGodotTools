@@ -13,9 +13,21 @@ _global_script_classes=[ {
 "class": "Filler2D",
 "language": "GDScript",
 "path": "res://tools/Filler2D.gd"
+}, {
+"base": "Reference",
+"class": "TweenSequence",
+"language": "GDScript",
+"path": "res://tools/TweenSequence.gd"
+}, {
+"base": "Reference",
+"class": "Tweener",
+"language": "GDScript",
+"path": "res://tools/Tweener.gd"
 } ]
 _global_script_class_icons={
-"Filler2D": ""
+"Filler2D": "",
+"TweenSequence": "",
+"Tweener": ""
 }
 
 [application]

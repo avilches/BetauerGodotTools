@@ -3,7 +3,7 @@ extends KinematicBody2D
 onready var path = $'Platform path/PathFollow2D'
 
 onready var original = position
-var enabled = false
+var enabled = true
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	original = position
