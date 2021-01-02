@@ -109,14 +109,17 @@ func jump():
 		var now = OS.get_ticks_msec()
 		if time_jump_pressed + JUMP_HELPER_TIME >= now:
 			if SQUEEZE_JUMP_TIME != 0: sprite.scale = SQUEEZE_JUMP
+			print("Jump:",JUMP_FORCE)
 			motion.y = -JUMP_FORCE
 			jumps = jumps + 1
 			isJumping = true
 			canJump = jumps < MAX_JUMPS
 	else:
+		# jumping or falling
 		modulate = Color.red
 		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
-			motion.y = -JUMP_FORCE/2
+			print("Jump from ",motion.y, " to ", JUMP_FORCE/2)
+			motion.y = 0 #-JUMP_FORCE/2
 
 func debug_acceleration():
 	if DEBUG_ACCELERATION && motion.x != 0:
@@ -159,17 +162,8 @@ func _physics_process(delta):
 	var was_in_floor = is_on_floor()
 	if !was_in_floor:
 		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
-		motion.y += GRAVITY * delta
-		if SQUEEZE_JUMP_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
-	else:
-		if SQUEEZE_LAND_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
-		
-		
-		
+        motion.y += GRAVITY * delta
+
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
 
@@ -197,6 +191,19 @@ func _physics_process(delta):
 	elif was_in_floor && !is_on_floor() && !isJumping:
 		# just falling!
 		schedule_coyote_time()
+
+	restore_squeeze()
+    pass
+
+func restore_squeeze():
+	if is_on_floor():
+		if SQUEEZE_JUMP_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
+	else:
+		if SQUEEZE_LAND_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
 
 
 func schedule_coyote_time():
