@@ -40,10 +40,6 @@ config/icon="res://icon.png"
 
 PlatformManager="*res://tools/platforms/PlatformManager.gd"
 
-[debug]
-
-settings/stdout/print_fps=true
-
 [display]
 
 window/size/width=320

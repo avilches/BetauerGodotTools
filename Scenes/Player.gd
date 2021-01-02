@@ -33,10 +33,11 @@ const AIR_RESISTANCE = 0.95
 const MAX_JUMPS = 1
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
+onready var JUMP_FORCE_MIN = JUMP_FORCE / 2
 
 # slope config
 const FLOOR = Vector2.UP
-const SNAP_LENGTH = 15                # be sure this value is less than the smallest tile
+const SNAP_LENGTH = 12                # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
 onready var sprite = $Sprite
@@ -117,9 +118,9 @@ func jump():
 	else:
 		# jumping or falling
 		modulate = Color.red
-		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE/2:
-			print("Jump from ",motion.y, " to ", JUMP_FORCE/2)
-			motion.y = 0 #-JUMP_FORCE/2
+		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE_MIN:
+			print("Jump from ",motion.y, " to ", JUMP_FORCE_MIN)
+			motion.y = -JUMP_FORCE_MIN
 
 func debug_acceleration():
 	if DEBUG_ACCELERATION && motion.x != 0:
@@ -157,12 +158,22 @@ func fall_from_platform():
 func enable_platform_collide():
 	PlatformManager.enable_platform_collide(self)
 
+func restore_squeeze():
+	if is_on_floor():
+		if SQUEEZE_JUMP_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
+	else:
+		if SQUEEZE_LAND_TIME != 0:
+			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
+
 func _physics_process(delta):
 	
 	var was_in_floor = is_on_floor()
 	if !was_in_floor:
 		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
-        motion.y += GRAVITY * delta
+		motion.y += GRAVITY * delta
 
 	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
@@ -193,18 +204,6 @@ func _physics_process(delta):
 		schedule_coyote_time()
 
 	restore_squeeze()
-    pass
-
-func restore_squeeze():
-	if is_on_floor():
-		if SQUEEZE_JUMP_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
-	else:
-		if SQUEEZE_LAND_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
-
 
 func schedule_coyote_time():
 	if COYOTE_TIME > 0:
