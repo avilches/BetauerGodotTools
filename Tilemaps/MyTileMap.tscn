@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Tilemaps/MyTileset.tres" type="TileSet" id=1]
+[ext_resource path="res://Tilemaps/MyTileMap.gd" type="Script" id=2]
+[ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=3]
 
 [node name="TileMap2" type="TileMap"]
 tile_set = ExtResource( 1 )
@@ -8,6 +10,8 @@ cell_size = Vector2( 16, 16 )
 cell_y_sort = true
 collision_mask = 0
 format = 1
+script = ExtResource( 2 )
 __meta__ = {
 "_editor_description_": ""
 }
+tree_scene = ExtResource( 3 )

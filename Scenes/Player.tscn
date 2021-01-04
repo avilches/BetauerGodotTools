@@ -54,26 +54,29 @@ tracks/0/keys = {
 "values": [ 0 ]
 }
 
-[node name="Node2D" type="Node2D"]
+[node name="PlayerNode" type="Node2D"]
 
-[node name="Player" type="KinematicBody2D" parent="."]
-position = Vector2( 11, 9 )
+[node name="PlayerBody" type="KinematicBody2D" parent="."]
+modulate = Color( 1, 0, 0, 1 )
 collision_mask = 2147483649
 script = ExtResource( 2 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="Sprite" type="Sprite" parent="Player"]
+[node name="Sprite" type="Sprite" parent="PlayerBody"]
 texture = ExtResource( 1 )
 offset = Vector2( 0, -10 )
 hframes = 7
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody"]
 position = Vector2( 0, -7 )
 shape = SubResource( 1 )
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Camera2D" type="Camera2D" parent="PlayerBody"]
 current = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Player"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody"]
 anims/Jump = SubResource( 2 )
 anims/Run = SubResource( 3 )
 anims/Stand = SubResource( 4 )

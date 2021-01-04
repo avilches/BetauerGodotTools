@@ -187,7 +187,7 @@ func _physics_process(delta):
 		var remain = move_and_slide_with_snap(motion, SLOPE_RAYCAST_VECTOR, FLOOR, STOP_ON_SLOPES)
 		motion.y = remain.y # this line stops the gravity accumulation
 		#motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
-
+		
 	lastMotion = motion
 	
 	if is_on_ceiling():
