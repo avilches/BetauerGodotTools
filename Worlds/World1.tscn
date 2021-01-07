@@ -1,10 +1,16 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=16 format=2]
 
+[ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://tools/Filler2D.gd" type="Script" id=2]
 [ext_resource path="res://Scenes/WorldComplete.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Worlds/PlatformMove2.gd" type="Script" id=4]
-[ext_resource path="res://Tilemaps/MyTileMap.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Worlds/Environment/gvania-bridge-background.png" type="Texture" id=5]
 [ext_resource path="res://tools/platforms/PlatformBodyOut.gd" type="Script" id=6]
+[ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=7]
+[ext_resource path="res://Worlds/Environment/gvania-bridge-middleground.png" type="Texture" id=8]
+[ext_resource path="res://Worlds/Environment/GVania-sky-purple-tree.png" type="Texture" id=9]
+
+[sub_resource type="ImageTexture" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
 
@@ -38,8 +44,75 @@ extents = Vector2( 24, 2 )
 [node name="World1" type="Node2D"]
 position = Vector2( 263, -10 )
 
-[node name="MyTileMap" parent="." instance=ExtResource( 5 )]
-tile_data = PoolIntArray( -393215, 0, 196611, -393211, 1, 0, -65529, 0, 196608, -65528, 0, 196609, -65527, 0, 196609, -65526, 0, 196609, -65525, 0, 196609, -65524, 0, 196609, -65523, 0, 196609, -65522, 0, 196610, 0, 0, 3, 19, 0, 196611, 23, 0, 196611, 65536, 0, 131076, 65537, 0, 5, 65538, 0, 196609, 65539, 0, 196609, 65540, 0, 196609, 65541, 0, 196609, 65542, 0, 196609, 65543, 0, 196610, 65574, 0, 3, 131072, 0, 65540, 131073, 0, 131074, 131086, 0, 196608, 131087, 0, 196609, 131088, 0, 196609, 131089, 0, 196609, 131090, 0, 196609, 131091, 0, 196609, 131092, 0, 196609, 131093, 0, 196609, 131094, 0, 6, 131095, 0, 5, 131096, 0, 196609, 131097, 0, 196609, 131098, 0, 196609, 131099, 0, 196609, 131100, 0, 196609, 131101, 0, 196609, 131102, 0, 196609, 131103, 0, 196609, 131104, 0, 196609, 131105, 0, 196609, 131106, 0, 196609, 131107, 0, 196609, 131108, 0, 196609, 131109, 0, 196609, 131110, 0, 196615, 196608, 0, 65539, 196613, 0, 0, 196614, 0, 1, 196615, 0, 1, 196616, 0, 2, 196620, 0, 196608, 196621, 0, 196610, 196630, 0, 65536, 196631, 0, 65538, 327679, 0, 196608, 262144, 0, 262151, 262149, 0, 65536, 262150, 0, 65541, 262151, 0, 131073, 262152, 0, 196613, 262153, 0, 196610, 262166, 0, 65536, 262167, 0, 65538, 327680, 0, 131076, 327681, 0, 2, 327685, 0, 131072, 327686, 0, 131074, 327702, 0, 65536, 327703, 0, 65538, 393216, 0, 65536, 393217, 0, 65538, 393238, 0, 65536, 393239, 0, 65538, 524284, 0, 196611, 458752, 0, 65536, 458753, 0, 65538, 458763, 0, 196608, 458764, 0, 196609, 458765, 0, 196609, 458766, 0, 196609, 458767, 0, 196610, 458774, 0, 65536, 458775, 0, 65538, 524288, 0, 65536, 524289, 0, 65538, 524294, 0, 0, 524295, 0, 1, 524296, 0, 2, 524305, 0, 196608, 524306, 0, 6, 524307, 0, 1, 524308, 0, 1, 524309, 0, 1, 524310, 0, 131078, 524311, 0, 65538, 589824, 0, 65536, 589825, 0, 131077, 589826, 0, 2, 589830, 0, 65536, 589831, 0, 65537, 589832, 0, 131077, 589833, 0, 1, 589834, 0, 2, 589842, 0, 65536, 589843, 0, 65537, 589844, 0, 65537, 589845, 0, 65537, 589846, 0, 65537, 589847, 0, 65538, 720895, 0, 196608, 655360, 0, 262150, 655361, 0, 65537, 655362, 0, 131077, 655363, 0, 2, 655366, 0, 65536, 655367, 0, 65537, 655368, 0, 65537, 655369, 0, 65537, 655370, 0, 131077, 655371, 0, 1, 655372, 0, 1, 655373, 0, 1, 655374, 0, 1, 655375, 0, 1, 655376, 0, 1, 655377, 0, 1, 655378, 0, 131078, 655379, 0, 65537, 655380, 0, 65537, 655381, 0, 65537, 655382, 0, 65537, 655383, 0, 65538, 720896, 0, 131072, 720897, 0, 131073, 720898, 0, 131073, 720899, 0, 196613, 720900, 0, 196609, 720901, 0, 196609, 720902, 0, 196614, 720903, 0, 131073, 720904, 0, 131073, 720905, 0, 131073, 720906, 0, 131073, 720907, 0, 131073, 720908, 0, 131073, 720909, 0, 131073, 720910, 0, 131073, 720911, 0, 131073, 720912, 0, 131073, 720913, 0, 131073, 720914, 0, 131073, 720915, 0, 131073, 720916, 0, 131073, 720917, 0, 131073, 720918, 0, 131073, 720919, 0, 131074, 851964, 0, 196611, 1048575, 0, 196611, 1179644, 0, 3, 1245179, 0, 0, 1245180, 0, 131082, 1245181, 0, 196609, 1245182, 0, 196609, 1245183, 0, 196609, 1179648, 0, 196610, 1179660, 0, 3, 1310714, 0, 196608, 1310715, 0, 196614, 1310716, 0, 131074, 1245195, 0, 0, 1245196, 0, 131080, 1245197, 0, 2, 1310726, 0, 0, 1310727, 0, 1, 1310728, 0, 1, 1310729, 0, 1, 1310730, 0, 1, 1310731, 0, 131078, 1310732, 0, 65537, 1310733, 0, 131077, 1310734, 0, 1, 1310735, 0, 1, 1310736, 0, 2, 1376262, 0, 131072, 1376263, 0, 131073, 1376264, 0, 131073, 1376265, 0, 131073, 1376266, 0, 131073, 1376267, 0, 131073, 1376268, 0, 131073, 1376269, 0, 131073, 1376270, 0, 131073, 1376271, 0, 131073, 1376272, 0, 196613, 1376273, 0, 196610 )
+[node name="GVaniaBridgeTileMap" parent="." instance=ExtResource( 1 )]
+position = Vector2( 3, 0 )
+tile_data = PoolIntArray( 262145, 9, 0, 262149, 8, 0, 262154, 8, 0, 393232, 10, 0, 458762, 12, 0, 524293, 4, 0, 524294, 4, 0, 655353, 1, 0, 655358, 3, 0, 589831, 3, 0, 589840, 2, 0, 589846, 1, 0, 589851, 2, 0, 589858, 1, 0, 589863, 2, 0, 589877, 1, 0, 589880, 1, 0, 589885, 3, 0, 589894, 2, 0, 589898, 3, 0, 589907, 3, 0, 589916, 3, 0, 589925, 3, 0, 589934, 3, 0, 589943, 3, 0, 589952, 3, 0, 589961, 3, 0, 589970, 3, 0, 589979, 3, 0, 851941, 11, 0, 851943, 11, 0, 851945, 11, 0, 851946, 11, 0, 851948, 11, 0, 851950, 11, 0, 851953, 11, 0, 851955, 11, 0, 851958, 11, 0, 786452, 11, 0, 786463, 11, 0, 786475, 11, 0, 786478, 11, 0, 786480, 11, 0, 786483, 11, 0 )
+
+[node name="Sprite" type="Sprite" parent="GVaniaBridgeTileMap"]
+modulate = Color( 0.14902, 0.172549, 0.235294, 1 )
+show_behind_parent = true
+texture = SubResource( 6 )
+offset = Vector2( 0, 480.366 )
+
+[node name="ColorRect" type="ColorRect" parent="GVaniaBridgeTileMap"]
+margin_left = -500.0
+margin_top = 224.0
+margin_right = 39800.0
+margin_bottom = 344.0
+color = Color( 0.0666667, 0.0627451, 0.0745098, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="Fixed" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0, 0 )
+
+[node name="Sprite" type="Sprite" parent="ParallaxBackground/Fixed"]
+modulate = Color( 0.729412, 0.643137, 0.14902, 1 )
+scale = Vector2( 1.6, 1.6 )
+texture = ExtResource( 5 )
+
+[node name="BG1a" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.1, 0.1 )
+motion_offset = Vector2( 0, 35 )
+motion_mirroring = Vector2( 304, 0 )
+
+[node name="Sprite" type="Sprite" parent="ParallaxBackground/BG1a"]
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 8 )
+
+[node name="ColorRect" type="ColorRect" parent="ParallaxBackground/BG1a"]
+margin_left = -500.0
+margin_top = 60.0
+margin_right = 40000.0
+margin_bottom = 334.0
+color = Color( 0.105882, 0.156863, 0.298039, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BG1B" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.1, 0.1 )
+motion_offset = Vector2( 0, 35 )
+motion_mirroring = Vector2( 304, 0 )
+
+[node name="Sprite" type="Sprite" parent="ParallaxBackground/BG1B"]
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 8 )
+offset = Vector2( 1216, 0 )
+
+[node name="BGarbol" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
+motion_scale = Vector2( 0.5, 0.5 )
+motion_mirroring = Vector2( 48, 0 )
+
+[node name="Sprite" type="Sprite" parent="ParallaxBackground/BGarbol"]
+texture = ExtResource( 9 )
+
+[node name="PlayerNode" parent="." instance=ExtResource( 7 )]
+position = Vector2( 107, 79 )
 
 [node name="PlatOK" type="KinematicBody2D" parent="."]
 position = Vector2( 135, -58 )
@@ -55,10 +128,9 @@ scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 1 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="PlatOK2" type="KinematicBody2D" parent="."]
-position = Vector2( 209, -39 )
+position = Vector2( -7, -91 )
 rotation = 1.40848
 collision_layer = 4
 collision_mask = 0
@@ -92,14 +164,12 @@ position = Vector2( 150, 1 )
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 209, -24 )
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 174, -10 )
@@ -107,7 +177,6 @@ rotation = -0.785398
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 116, -12 )
@@ -115,7 +184,6 @@ rotation = 0.785398
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="Platform path" type="Path2D" parent="Platform move"]
 position = Vector2( 140, -52 )
@@ -144,7 +212,6 @@ autoplay = "up down"
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
-color = Color( 1, 1, 1, 1 )
 
 [node name="Area2D" type="Area2D" parent="Node2D/PlatSuperior"]
 position = Vector2( 0, 1 )

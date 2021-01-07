@@ -15,6 +15,6 @@ export(String, FILE, "*.tscn") var next_scene;
 
 
 func _on_WorldComplete_body_shape_entered(body_id, body, body_shape, area_shape):
-	if body.name == "Player":
+	if body.name == "PlayerBody":
 		# var scene_name = get_tree().get_current_scene().get_name()
 		get_tree().change_scene(next_scene)

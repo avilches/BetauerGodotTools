@@ -9,28 +9,28 @@ const DEBUG_MOTION = false
 const DEBUG_ACCELERATION = true
 
 # ground
-const TIME_TO_MAX_SPEED = 0.2         # seconds to reach the max speed 0=immediate
-const MAX_SPEED = 80                  # pixels/seconds
+const TIME_TO_MAX_SPEED = 0.2          # seconds to reach the max speed 0=immediate
+const MAX_SPEED = 200                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
-const FRICTION = 0.82                 # 0=stop 0.9=10%/frame 0.99=ice!!
+const FRICTION = 0.7                  # 0=stop 0.9=10%/frame 0.99=ice!!
 const COYOTE_TIME = 0.1               # seconds. How much time the player can jump when falling 
-const JUMP_HELPER_TIME = 120          # milliseconds. If the user press jump just before land
+const JUMP_HELPER_TIME = 90           # milliseconds. If the user press jump just before land
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
 const STOP_ON_SLOPES = true
 
 # squeeze effect
-const SQUEEZE_JUMP_TIME = 0.3                 # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_JUMP_TIME = 0                 # % correction per frame (lerp). The bigger, the faster
 const SQUEEZE_JUMP = Vector2(0.5, 1.2)        # Vector to scale when jump
-const SQUEEZE_LAND_TIME = 0.3                # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_LAND_TIME = 0                # % correction per frame (lerp). The bigger, the faster
 const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
 
 
 # air
-const JUMP_HEIGHT = 52                # jump max pixels
+const JUMP_HEIGHT = 60                # jump max pixels
 const MAX_JUMP_TIME = 0.4             # jump max time
-const MAX_FALLING_SPEED = 300         # max speed in free fall
-const AIR_RESISTANCE = 0.95        
-const MAX_JUMPS = 1
+const MAX_FALLING_SPEED = 2000        # max speed in free fall
+const AIR_RESISTANCE = 0.6     
+const MAX_JUMPS = 2
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
 onready var JUMP_FORCE_MIN = JUMP_FORCE / 2
@@ -40,8 +40,12 @@ const FLOOR = Vector2.UP
 const SNAP_LENGTH = 12                # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
-onready var sprite = $Sprite
-onready var animationPlayer = $AnimationPlayer
+onready var spriteRun = $Sprites/Run
+onready var spriteIdle = $Sprites/Idle
+onready var spriteJump = $Sprites/Jump
+onready var spriteFall = $Sprites/Fall
+onready var sprite = spriteIdle
+
 
 var motion = Vector2.ZERO
 var x_input:float = 0;
@@ -58,30 +62,44 @@ var isJumping = false
 var time_jump_pressed = 0
 
 func flip(left):
-	sprite.flip_h = left;
-	#sprite.scale.x = -1 if left else 1
+	sprite.flip_h = !left;
+
+func change_sprite(nextSprite):
+	sprite.visible = false
+	sprite = nextSprite
+	sprite.visible = true
+			
 
 func _process(delta):
 	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	lateral_movement(x_input, delta)
 	jump()
 	
-	if isJumping:
-		animationPlayer.play("Jump")
-	elif x_input != 0:
-		animationPlayer.play("Run")
+	if x_input != 0:
 		flip(x_input < 0)
+
+	if isJumping:
+		change_sprite(spriteJump)
+		if sign(motion.y) == 1:
+			change_sprite(spriteFall)
+	elif x_input != 0:
+		change_sprite(spriteRun)
+		
 	else:
-		animationPlayer.play("Stand")
+		if sign(motion.y) == 1:
+			change_sprite(spriteFall)
+		else:
+			change_sprite(spriteIdle)
 		
 	if !isJumping && Input.is_action_pressed("ui_down"):
 		fall_from_platform()
 		
-
-
+		
 func _ready():
 	PlatformManager.subscribe_platform_out(self, "enable_platform_collide")
 	enable_platform_collide()
+	for sp in $Sprites.get_children(): sp.visible = false
+	
 	#Engine.set_target_fps(30)
 	
 func lateral_movement(x_input, delta):
@@ -106,7 +124,7 @@ func jump():
 		time_jump_pressed = OS.get_ticks_msec()
 		
 	if canJump:
-		modulate = Color.white
+#		modulate = Color.white
 		var now = OS.get_ticks_msec()
 		if time_jump_pressed + JUMP_HELPER_TIME >= now:
 			if SQUEEZE_JUMP_TIME != 0: sprite.scale = SQUEEZE_JUMP
