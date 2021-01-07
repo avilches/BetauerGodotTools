@@ -127,18 +127,19 @@ func jump():
 #		modulate = Color.white
 		var now = OS.get_ticks_msec()
 		if time_jump_pressed + JUMP_HELPER_TIME >= now:
+			time_jump_pressed = 0
 			if SQUEEZE_JUMP_TIME != 0: sprite.scale = SQUEEZE_JUMP
 			print("Jump:",JUMP_FORCE)
 			motion.y = -JUMP_FORCE
 			jumps = jumps + 1
 			isJumping = true
 			canJump = jumps < MAX_JUMPS
-	else:
-		# jumping or falling
-		modulate = Color.red
-		if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE_MIN:
-			print("Jump from ",motion.y, " to ", JUMP_FORCE_MIN)
-			motion.y = -JUMP_FORCE_MIN
+
+	# jumping or falling
+#		modulate = Color.red
+	if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE_MIN and isJumping:
+		print("Jump from ",motion.y, " to ", JUMP_FORCE_MIN)
+		motion.y = -JUMP_FORCE_MIN
 
 func debug_acceleration():
 	if DEBUG_ACCELERATION && motion.x != 0:
