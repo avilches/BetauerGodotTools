@@ -20,9 +20,9 @@ onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPE
 const STOP_ON_SLOPES = true
 
 # squeeze effect
-const SQUEEZE_JUMP_TIME = 0                 # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_JUMP_TIME = 0.1                 # % correction per frame (lerp). The bigger, the faster
 const SQUEEZE_JUMP = Vector2(0.5, 1.2)        # Vector to scale when jump
-const SQUEEZE_LAND_TIME = 0                # % correction per frame (lerp). The bigger, the faster
+const SQUEEZE_LAND_TIME = 0.4                 # % correction per frame (lerp). The bigger, the faster
 const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
 
 
@@ -41,6 +41,7 @@ const FLOOR = Vector2.UP
 const SNAP_LENGTH = 12                # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
+onready var spriteHolder = $Sprites
 onready var spriteRun = $Sprites/Run
 onready var spriteIdle = $Sprites/Idle
 onready var spriteJump = $Sprites/Jump
@@ -68,18 +69,15 @@ func flip(left):
 
 func change_sprite(nextSprite):
 	sprite.visible = false
+	nextSprite.visible = true
+	nextSprite.flip_h = sprite.flip_h  # keep the current flip state
 	sprite = nextSprite
-	sprite.visible = true
-			
 
 func _process(delta):
 	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	lateral_movement(x_input, delta)
 	jump(delta)
 	
-	if x_input != 0:
-		flip(x_input < 0)
-
 	if isJumping:
 		change_sprite(spriteJump)
 		if sign(motion.y) == 1:
@@ -92,16 +90,31 @@ func _process(delta):
 			change_sprite(spriteFall)
 		else:
 			change_sprite(spriteIdle)
+
+	if x_input != 0:
+		flip(x_input < 0)
 		
 	if !isJumping && Input.is_action_pressed("ui_down"):
 		fall_from_platform()
 		
 		
 func _ready():
+	if !GameManager.isPlayer(self):
+		var msg = "Player node name should be "+GameManager.PLAYER_NAME+" (current name: "+self.name+")"
+		print(msg)
+		push_error(msg)		
+		
 	PlatformManager.subscribe_platform_out(self, "enable_platform_collide")
 	enable_platform_collide()
 	for sp in $Sprites.get_children(): sp.visible = false
 	
+	GameManager.connect("death", self, "on_death")
+	
+	
+func on_death(cause):
+	print("MUETO")
+	set_process(false)
+	set_physics_process(false)
 	#Engine.set_target_fps(30)
 	
 func lateral_movement(x_input, delta):
@@ -132,7 +145,7 @@ func jump(delta):
 				if (time_jump_pressed > 0): print("Jump helper: ", time_jump_pressed, "s (Config:", JUMP_HELPER_TIME,")")
 				print("Jump start:", -JUMP_FORCE)
 			time_jump_pressed = -1
-			if SQUEEZE_JUMP_TIME != 0: sprite.scale = SQUEEZE_JUMP
+			if SQUEEZE_JUMP_TIME != 0: spriteHolder.scale = SQUEEZE_JUMP
 			
 			motion.y = -JUMP_FORCE
 			jumps = jumps + 1
@@ -184,13 +197,13 @@ func enable_platform_collide():
 
 func restore_squeeze():
 	if is_on_floor():
-		if SQUEEZE_JUMP_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_JUMP_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_JUMP_TIME)
-	else:
 		if SQUEEZE_LAND_TIME != 0:
-			sprite.scale.y = lerp(sprite.scale.y, 1, SQUEEZE_LAND_TIME)
-			sprite.scale.x = lerp(sprite.scale.x, 1, SQUEEZE_LAND_TIME)
+			spriteHolder.scale.y = lerp(spriteHolder.scale.y, 1, SQUEEZE_LAND_TIME)
+			spriteHolder.scale.x = lerp(spriteHolder.scale.x, 1, SQUEEZE_LAND_TIME)
+	else:
+		if SQUEEZE_JUMP_TIME != 0:
+			spriteHolder.scale.y = lerp(spriteHolder.scale.y, 1, SQUEEZE_JUMP_TIME)
+			spriteHolder.scale.x = lerp(spriteHolder.scale.x, 1, SQUEEZE_JUMP_TIME)
 
 func _physics_process(delta):
 	
@@ -220,7 +233,7 @@ func _physics_process(delta):
 	
 	if !was_in_floor && is_on_floor():
 		# just grounded
-		if SQUEEZE_LAND_TIME != 0: sprite.scale = SQUEEZE_LAND
+		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND
 		isJumping = false
 		enable_platform_collide()
 	elif was_in_floor && !is_on_floor() && !isJumping:

@@ -8,21 +8,22 @@
 [ext_resource path="res://tools/platforms/PlatformBodyOut.gd" type="Script" id=6]
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-middleground.png" type="Texture" id=8]
-[ext_resource path="res://Worlds/Environment/GVania-sky-purple-tree.png" type="Texture" id=9]
-
-[sub_resource type="ImageTexture" id=6]
+[ext_resource path="res://tools/DeathArea.gd" type="Script" id=9]
 
 [sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 2000, 50 )
 
 [sub_resource type="RectangleShape2D" id=2]
+
+[sub_resource type="RectangleShape2D" id=3]
 extents = Vector2( 24, 8 )
 
-[sub_resource type="Curve2D" id=3]
+[sub_resource type="Curve2D" id=4]
 _data = {
 "points": PoolVector2Array( 0, 0, 0, 0, -2, 2, 0, 0, 0, 0, 9, 5, 0, 0, 0, 0, 42, 8, 0, 0, 0, 0, 16, 13, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, -13, 14, 0, 0, 0, 0, -39, 7, 0, 0, 0, 0, -20, 2, 0, 0, 0, 0, -2, 2 )
 }
 
-[sub_resource type="Animation" id=4]
+[sub_resource type="Animation" id=5]
 length = 2.0
 loop = true
 tracks/0/type = "value"
@@ -38,26 +39,31 @@ tracks/0/keys = {
 "values": [ Vector2( 0, 0 ), Vector2( 20, 10 ) ]
 }
 
-[sub_resource type="RectangleShape2D" id=5]
+[sub_resource type="RectangleShape2D" id=6]
 extents = Vector2( 24, 2 )
 
 [node name="World1" type="Node2D"]
 position = Vector2( 263, -10 )
 
+[node name="DeathZone" type="Area2D" parent="."]
+position = Vector2( -491, 224 )
+collision_mask = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone"]
+position = Vector2( 2000, 80 )
+shape = SubResource( 1 )
+script = ExtResource( 9 )
+color = Color( 0.862745, 0.0352941, 0.0352941, 1 )
+
 [node name="GVaniaBridgeTileMap" parent="." instance=ExtResource( 1 )]
+modulate = Color( 0.913725, 0.87451, 0.607843, 1 )
 position = Vector2( 3, 0 )
-tile_data = PoolIntArray( 262145, 9, 0, 262149, 8, 0, 262154, 8, 0, 393232, 10, 0, 458762, 12, 0, 524293, 4, 0, 524294, 4, 0, 655353, 1, 0, 655358, 3, 0, 589831, 3, 0, 589840, 2, 0, 589846, 1, 0, 589851, 2, 0, 589858, 1, 0, 589863, 2, 0, 589877, 1, 0, 589880, 1, 0, 589885, 3, 0, 589894, 2, 0, 589898, 3, 0, 589907, 3, 0, 589916, 3, 0, 589925, 3, 0, 589934, 3, 0, 589943, 3, 0, 589952, 3, 0, 589961, 3, 0, 589970, 3, 0, 589979, 3, 0, 851941, 11, 0, 851943, 11, 0, 851945, 11, 0, 851946, 11, 0, 851948, 11, 0, 851950, 11, 0, 851953, 11, 0, 851955, 11, 0, 851958, 11, 0, 786452, 11, 0, 786463, 11, 0, 786475, 11, 0, 786478, 11, 0, 786480, 11, 0, 786483, 11, 0 )
+tile_data = PoolIntArray( -65474, 41, 0, -65470, 42, 0, -65469, 42, 0, -65468, 42, 0, -65467, 42, 0, -65466, 42, 0, -65465, 42, 0, -65464, 74, 0, 262145, 9, 0, 262149, 8, 0, 262154, 8, 0, 262206, 45, 0, 262207, 45, 0, 262208, 47, 0, 262209, 73, 0, 262210, 73, 0, 262211, 73, 0, 262212, 73, 0, 262213, 49, 0, 262214, 73, 0, 262215, 73, 0, 262216, 73, 0, 327742, 45, 0, 327743, 45, 0, 327744, 47, 0, 327746, 49, 0, 327747, 73, 0, 327748, 73, 0, 327750, 73, 0, 327751, 73, 0, 327752, 53, 0, 393283, 73, 0, 393284, 73, 0, 393285, 73, 0, 393286, 73, 0, 393287, 73, 0, 458762, 12, 0, 458814, 46, 0, 458815, 46, 0, 458816, 48, 0, 458819, 50, 0, 458821, 52, 0, 458824, 54, 0, 458827, 55, 0, 458829, 59, 0, 524293, 4, 0, 524294, 4, 0, 524361, 56, 0, 524365, 57, 0, 524367, 60, 0, 655353, 1, 0, 655358, 3, 0, 589831, 3, 0, 589840, 2, 0, 589846, 1, 0, 589851, 2, 0, 589858, 1, 0, 589863, 2, 0, 589877, 1, 0, 589880, 1, 0, 589885, 3, 0, 589894, 2, 0, 589899, 56, 0, 589901, 75, 0, 589902, 75, 0, 655406, 26, 0, 655408, 29, 0, 655409, 29, 0, 655410, 29, 0, 655411, 31, 0, 655412, 29, 0, 655413, 29, 0, 655435, 56, 0, 655437, 75, 0, 655438, 75, 0, 720942, 27, 0, 720947, 33, 0, 720971, 56, 0, 720973, 75, 0, 720974, 75, 0, 720975, 75, 0, 720976, 75, 0, 720977, 75, 0, 720978, 75, 0, 851941, 11, 0, 851943, 11, 0, 851945, 11, 0, 851946, 11, 0, 851948, 11, 0, 851950, 11, 0, 851953, 11, 0, 851955, 11, 0, 851958, 11, 0, 786452, 11, 0, 786463, 11, 0, 786475, 11, 0, 786478, 28, 0, 786480, 11, 0, 786481, 39, 0, 786483, 34, 0, 786484, 39, 0, 786506, 11, 0, 786507, 56, 0, 786509, 75, 0, 786510, 75, 0, 786511, 75, 0, 786512, 75, 0, 786513, 75, 0, 786514, 75, 0, 852019, 40, 0, 852045, 75, 0, 852046, 75, 0, 852047, 75, 0, 852048, 75, 0, 852049, 75, 0, 852050, 75, 0 )
 
-[node name="Sprite" type="Sprite" parent="GVaniaBridgeTileMap"]
-modulate = Color( 0.14902, 0.172549, 0.235294, 1 )
-show_behind_parent = true
-texture = SubResource( 6 )
-offset = Vector2( 0, 480.366 )
-
-[node name="ColorRect" type="ColorRect" parent="GVaniaBridgeTileMap"]
-margin_left = -500.0
+[node name="BlackBottombar" type="ColorRect" parent="GVaniaBridgeTileMap"]
+margin_left = -494.0
 margin_top = 224.0
-margin_right = 39800.0
+margin_right = 39806.0
 margin_bottom = 344.0
 color = Color( 0.0666667, 0.0627451, 0.0745098, 1 )
 __meta__ = {
@@ -66,10 +72,10 @@ __meta__ = {
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
-[node name="Fixed" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="FixedSky" type="ParallaxLayer" parent="ParallaxBackground"]
 motion_scale = Vector2( 0, 0 )
 
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/Fixed"]
+[node name="Sprite" type="Sprite" parent="ParallaxBackground/FixedSky"]
 modulate = Color( 0.729412, 0.643137, 0.14902, 1 )
 scale = Vector2( 1.6, 1.6 )
 texture = ExtResource( 5 )
@@ -83,12 +89,12 @@ motion_mirroring = Vector2( 304, 0 )
 scale = Vector2( 0.5, 0.5 )
 texture = ExtResource( 8 )
 
-[node name="ColorRect" type="ColorRect" parent="ParallaxBackground/BG1a"]
+[node name="DarkGreenBar" type="ColorRect" parent="ParallaxBackground/BG1a"]
 margin_left = -500.0
 margin_top = 60.0
 margin_right = 40000.0
 margin_bottom = 334.0
-color = Color( 0.105882, 0.156863, 0.298039, 1 )
+color = Color( 0.12549, 0.180392, 0.207843, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -103,16 +109,8 @@ scale = Vector2( 0.5, 0.5 )
 texture = ExtResource( 8 )
 offset = Vector2( 1216, 0 )
 
-[node name="BGarbol" type="ParallaxLayer" parent="ParallaxBackground"]
-visible = false
-motion_scale = Vector2( 0.5, 0.5 )
-motion_mirroring = Vector2( 48, 0 )
-
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/BGarbol"]
-texture = ExtResource( 9 )
-
 [node name="PlayerNode" parent="." instance=ExtResource( 7 )]
-position = Vector2( 107, 79 )
+position = Vector2( 65, 142 )
 
 [node name="PlatOK" type="KinematicBody2D" parent="."]
 position = Vector2( 135, -58 )
@@ -125,7 +123,7 @@ __meta__ = {
 
 [node name="Filler2D" type="CollisionShape2D" parent="PlatOK"]
 scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 1 )
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
@@ -141,9 +139,8 @@ __meta__ = {
 
 [node name="Filler2D" type="CollisionShape2D" parent="PlatOK2"]
 scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 1 )
+shape = SubResource( 2 )
 script = ExtResource( 2 )
-color = Color( 0, 0, 0, 1 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 340, -37 )
@@ -161,33 +158,33 @@ __meta__ = {
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 150, 1 )
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 209, -24 )
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 174, -10 )
 rotation = -0.785398
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Platform move"]
 position = Vector2( 116, -12 )
 rotation = 0.785398
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 one_way_collision = true
 script = ExtResource( 2 )
 
 [node name="Platform path" type="Path2D" parent="Platform move"]
 position = Vector2( 140, -52 )
-curve = SubResource( 3 )
+curve = SubResource( 4 )
 
 [node name="PathFollow2D" type="PathFollow2D" parent="Platform move/Platform path"]
 position = Vector2( -2, 2 )
@@ -206,10 +203,10 @@ motion/sync_to_physics = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Node2D/PlatSuperior"]
 autoplay = "up down"
-"anims/up down" = SubResource( 4 )
+"anims/up down" = SubResource( 5 )
 
 [node name="CollisionShape2D5" type="CollisionShape2D" parent="Node2D/PlatSuperior"]
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 one_way_collision = true
 script = ExtResource( 2 )
 
@@ -221,6 +218,5 @@ script = ExtResource( 6 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/PlatSuperior/Area2D"]
 position = Vector2( 0, -6 )
-shape = SubResource( 5 )
+shape = SubResource( 6 )
 script = ExtResource( 2 )
-color = Color( 0.901961, 0.556863, 0.556863, 1 )

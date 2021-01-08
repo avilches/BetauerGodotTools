@@ -22,15 +22,14 @@ func enable_platform_collide(kb2d:KinematicBody2D):
 
 signal platform_fall_started
 
+# añade una plataforma de la que se puede traspasar, suscribendola (como a todas) a la misma
+# señal para que cuando entre en cualquiera de ellas, se pueda volver a activar
 func add_area2d_platform_exit(area2D:Area2D):
 	area2D.connect("body_shape_entered", self, "_on_Area2D_body_shape_entered")
 
+# se suscribe a la señal de cualquier plataforma de la que se caiga (no importa cual)
 func subscribe_platform_out(o, f):
 	self.connect("platform_fall_started", o, f)
 
 func _on_Area2D_body_shape_entered(body_id, body, body_shape, area_shape):
 	emit_signal("platform_fall_started")
-	pass # Replace with function body.
-
-#func get_all_platforms():
-	

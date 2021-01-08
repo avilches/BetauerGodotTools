@@ -6,9 +6,9 @@
 [ext_resource path="res://Characters/Player-heroine/jump.png" type="Texture" id=4]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 8, 20 )
+extents = Vector2( 7, 20 )
 
-[sub_resource type="Animation" id=7]
+[sub_resource type="Animation" id=2]
 resource_name = "Idle"
 length = 1.75
 loop = true
@@ -26,7 +26,7 @@ tracks/0/keys = {
 "values": [ 0, 1, 2, 3 ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=3]
 resource_name = "Run"
 length = 1.75
 loop = true
@@ -44,7 +44,7 @@ tracks/0/keys = {
 "values": [ 0, 1, 2, 3, 4, 5, 6 ]
 }
 
-[sub_resource type="Animation" id=8]
+[sub_resource type="Animation" id=4]
 resource_name = "Run"
 length = 3.0
 loop = true
@@ -62,7 +62,7 @@ tracks/0/keys = {
 "values": [ 0, 1 ]
 }
 
-[sub_resource type="Animation" id=9]
+[sub_resource type="Animation" id=5]
 resource_name = "Run"
 length = 0.5
 loop = true
@@ -83,35 +83,34 @@ tracks/0/keys = {
 [node name="PlayerNode" type="Node2D"]
 
 [node name="PlayerBody" type="KinematicBody2D" parent="."]
-position = Vector2( 14, -2 )
 collision_mask = 2147483649
 script = ExtResource( 1 )
 
 [node name="Camera2D" type="Camera2D" parent="PlayerBody"]
 current = true
+drag_margin_v_enabled = true
 smoothing_enabled = true
-smoothing_speed = 8.0
+smoothing_speed = 10.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody"]
-position = Vector2( -14, 12 )
+position = Vector2( -13, -18 )
 shape = SubResource( 1 )
 
 [node name="Sprites" type="Node2D" parent="PlayerBody"]
-position = Vector2( 0, -2 )
 
 [node name="Idle" type="Sprite" parent="PlayerBody/Sprites"]
-visible = false
 position = Vector2( -13, 2 )
 rotation = 3.14159
 scale = Vector2( 1, -1 )
 texture = ExtResource( 3 )
+offset = Vector2( 0, -32 )
 hframes = 4
-frame = 1
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Idle"]
 autoplay = "Idle"
 playback_speed = 1.3
-anims/Idle = SubResource( 7 )
+anims/Idle = SubResource( 2 )
 
 [node name="Run" type="Sprite" parent="PlayerBody/Sprites"]
 visible = false
@@ -119,13 +118,14 @@ position = Vector2( -13, 2 )
 rotation = 3.14159
 scale = Vector2( 1, -1 )
 texture = ExtResource( 2 )
+offset = Vector2( 0, -32 )
 hframes = 7
 frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Run"]
 autoplay = "Run"
 playback_speed = 2.0
-anims/Run = SubResource( 6 )
+anims/Run = SubResource( 3 )
 
 [node name="Jump" type="Sprite" parent="PlayerBody/Sprites"]
 visible = false
@@ -133,27 +133,30 @@ position = Vector2( -13, 2 )
 rotation = 3.14159
 scale = Vector2( 1, -1 )
 texture = ExtResource( 4 )
-flip_h = true
+offset = Vector2( 0, -32 )
 hframes = 4
+frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Jump"]
 autoplay = "Run"
 playback_speed = 2.0
-anims/Run = SubResource( 8 )
+anims/Run = SubResource( 4 )
 
 [node name="Fall" type="Sprite" parent="PlayerBody/Sprites"]
+visible = false
 position = Vector2( -13, 2 )
 rotation = 3.14159
 scale = Vector2( 1, -1 )
 texture = ExtResource( 4 )
+offset = Vector2( 0, -32 )
 flip_h = true
 hframes = 4
-frame = 2
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Fall"]
 autoplay = "Run"
 playback_speed = 2.0
-anims/Run = SubResource( 9 )
+anims/Run = SubResource( 5 )
 
 [node name="FlipPivot" type="Node2D" parent="PlayerBody"]
 position = Vector2( -13, 2 )

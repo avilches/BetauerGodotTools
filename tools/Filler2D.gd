@@ -9,6 +9,7 @@ func set_color(new_color):
 	update()
 
 func _draw():
+	if !Engine.editor_hint: return
 	var offset_position = Vector2(0, 0)
 
 	if shape is CircleShape2D:
