@@ -3,13 +3,27 @@ class_name Filler2D
 extends CollisionShape2D
 
 export (Color) var color = Color(1, 1, 1, 1) setget set_color
+export var enabled_editor = false setget set_enabled_editor
+export var enabled_game = false setget set_enabled_game
 
 func set_color(new_color):
 	color = new_color
 	update()
+	
+func set_enabled_editor(v):
+	enabled_editor = v
+	update()
+	
+func set_enabled_game(v):
+	enabled_game = v
+	update()
 
 func _draw():
-	if !Engine.editor_hint: return
+	if Engine.editor_hint:
+		if !enabled_editor: return
+	else:
+		if !enabled_game: return
+		
 	var offset_position = Vector2(0, 0)
 
 	if shape is CircleShape2D:
