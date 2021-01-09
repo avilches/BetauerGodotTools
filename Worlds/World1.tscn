@@ -139,12 +139,16 @@ position = Vector2( 150, 1 )
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 209, -24 )
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 174, -10 )
@@ -152,6 +156,8 @@ rotation = -0.785398
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 116, -12 )
@@ -159,6 +165,8 @@ rotation = 0.785398
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="Platform path" type="Path2D" parent="Platforms/Platform move"]
 position = Vector2( 140, -52 )
@@ -187,6 +195,8 @@ autoplay = "up down"
 shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="Area2D" type="Area2D" parent="Platforms/Node2D/PlatSuperior"]
 position = Vector2( 0, 1 )
@@ -198,6 +208,9 @@ script = ExtResource( 6 )
 position = Vector2( 0, -6 )
 shape = SubResource( 5 )
 script = ExtResource( 2 )
+color = Color( 0.764706, 0.203922, 0.203922, 1 )
+enabled_editor = true
+enabled_game = true
 
 [node name="PlatOK" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 247, 49 )
@@ -213,6 +226,8 @@ scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="PlatOK2" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 189, 3 )
@@ -228,6 +243,8 @@ __meta__ = {
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 115, 42 )
