@@ -157,7 +157,3 @@ frame = 3
 autoplay = "Run"
 playback_speed = 2.0
 anims/Run = SubResource( 5 )
-
-[node name="FlipPivot" type="Node2D" parent="PlayerBody"]
-position = Vector2( -13, 2 )
-scale = Vector2( -1, 1 )
