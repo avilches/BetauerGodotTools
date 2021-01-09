@@ -14,16 +14,14 @@
 extents = Vector2( 2000, 50 )
 
 [sub_resource type="RectangleShape2D" id=2]
-
-[sub_resource type="RectangleShape2D" id=3]
 extents = Vector2( 24, 8 )
 
-[sub_resource type="Curve2D" id=4]
+[sub_resource type="Curve2D" id=3]
 _data = {
 "points": PoolVector2Array( 0, 0, 0, 0, -2, 2, 0, 0, 0, 0, 9, 5, 0, 0, 0, 0, 42, 8, 0, 0, 0, 0, 16, 13, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, -13, 14, 0, 0, 0, 0, -39, 7, 0, 0, 0, 0, -20, 2, 0, 0, 0, 0, -2, 2 )
 }
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=4]
 length = 2.0
 loop = true
 tracks/0/type = "value"
@@ -39,11 +37,23 @@ tracks/0/keys = {
 "values": [ Vector2( 0, 0 ), Vector2( 20, 10 ) ]
 }
 
-[sub_resource type="RectangleShape2D" id=6]
+[sub_resource type="RectangleShape2D" id=5]
 extents = Vector2( 24, 2 )
+
+[sub_resource type="RectangleShape2D" id=6]
 
 [node name="World1" type="Node2D"]
 position = Vector2( 263, -10 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_left = 987.0
+margin_top = 153.0
+margin_right = 2064.0
+margin_bottom = 229.0
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="DeathZone" type="Area2D" parent="."]
 position = Vector2( -491, 224 )
@@ -57,8 +67,8 @@ color = Color( 0.862745, 0.0352941, 0.0352941, 1 )
 
 [node name="GVaniaBridgeTileMap" parent="." instance=ExtResource( 1 )]
 modulate = Color( 0.913725, 0.87451, 0.607843, 1 )
-position = Vector2( 3, 0 )
-tile_data = PoolIntArray( -65474, 41, 0, -65470, 42, 0, -65469, 42, 0, -65468, 42, 0, -65467, 42, 0, -65466, 42, 0, -65465, 42, 0, -65464, 74, 0, 262145, 9, 0, 262149, 8, 0, 262154, 8, 0, 262206, 45, 0, 262207, 45, 0, 262208, 47, 0, 262209, 73, 0, 262210, 73, 0, 262211, 73, 0, 262212, 73, 0, 262213, 49, 0, 262214, 73, 0, 262215, 73, 0, 262216, 73, 0, 327742, 45, 0, 327743, 45, 0, 327744, 47, 0, 327746, 49, 0, 327747, 73, 0, 327748, 73, 0, 327750, 73, 0, 327751, 73, 0, 327752, 53, 0, 393283, 73, 0, 393284, 73, 0, 393285, 73, 0, 393286, 73, 0, 393287, 73, 0, 458762, 12, 0, 458814, 46, 0, 458815, 46, 0, 458816, 48, 0, 458819, 50, 0, 458821, 52, 0, 458824, 54, 0, 458827, 55, 0, 458829, 59, 0, 524293, 4, 0, 524294, 4, 0, 524361, 56, 0, 524365, 57, 0, 524367, 60, 0, 655353, 1, 0, 655358, 3, 0, 589831, 3, 0, 589840, 2, 0, 589846, 1, 0, 589851, 2, 0, 589858, 1, 0, 589863, 2, 0, 589877, 1, 0, 589880, 1, 0, 589885, 3, 0, 589894, 2, 0, 589899, 56, 0, 589901, 75, 0, 589902, 75, 0, 655406, 26, 0, 655408, 29, 0, 655409, 29, 0, 655410, 29, 0, 655411, 31, 0, 655412, 29, 0, 655413, 29, 0, 655435, 56, 0, 655437, 75, 0, 655438, 75, 0, 720942, 27, 0, 720947, 33, 0, 720971, 56, 0, 720973, 75, 0, 720974, 75, 0, 720975, 75, 0, 720976, 75, 0, 720977, 75, 0, 720978, 75, 0, 851941, 11, 0, 851943, 11, 0, 851945, 11, 0, 851946, 11, 0, 851948, 11, 0, 851950, 11, 0, 851953, 11, 0, 851955, 11, 0, 851958, 11, 0, 786452, 11, 0, 786463, 11, 0, 786475, 11, 0, 786478, 28, 0, 786480, 11, 0, 786481, 39, 0, 786483, 34, 0, 786484, 39, 0, 786506, 11, 0, 786507, 56, 0, 786509, 75, 0, 786510, 75, 0, 786511, 75, 0, 786512, 75, 0, 786513, 75, 0, 786514, 75, 0, 852019, 40, 0, 852045, 75, 0, 852046, 75, 0, 852047, 75, 0, 852048, 75, 0, 852049, 75, 0, 852050, 75, 0 )
+position = Vector2( 6, 0 )
+tile_data = PoolIntArray( -65474, 41, 0, -65470, 42, 0, -65469, 42, 0, -65468, 42, 0, -65467, 42, 0, -65466, 42, 0, -65465, 42, 0, -65464, 74, 0, 262145, 9, 0, 262149, 8, 0, 262154, 8, 0, 262206, 45, 0, 262207, 45, 0, 262208, 47, 0, 262209, 73, 0, 262210, 73, 0, 262211, 73, 0, 262212, 73, 0, 262213, 49, 0, 262214, 73, 0, 262215, 73, 0, 262216, 73, 0, 327730, 25, 0, 327731, 25, 0, 327732, 25, 0, 327733, 25, 0, 327734, 25, 0, 327735, 25, 0, 327736, 25, 0, 327737, 25, 0, 327742, 45, 0, 327743, 45, 0, 327744, 47, 0, 327746, 49, 0, 327747, 73, 0, 327748, 73, 0, 327750, 73, 0, 327751, 73, 0, 327752, 53, 0, 458749, 29, 0, 458750, 32, 0, 458751, 29, 0, 393216, 29, 0, 393283, 73, 0, 393284, 73, 0, 393285, 73, 0, 393286, 73, 0, 393287, 73, 0, 393291, 76, 0, 393293, 94, 0, 393296, 93, 0, 393297, 95, 0, 524286, 35, 0, 458762, 12, 0, 458810, 25, 0, 458811, 25, 0, 458814, 46, 0, 458815, 46, 0, 458816, 48, 0, 458819, 50, 0, 458821, 52, 0, 458824, 54, 0, 458825, 76, 0, 589822, 35, 0, 524293, 4, 0, 524294, 4, 0, 524359, 76, 0, 655353, 1, 0, 655358, 3, 0, 589831, 3, 0, 589840, 2, 0, 589846, 1, 0, 589851, 2, 0, 589858, 1, 0, 589863, 2, 0, 589877, 1, 0, 589880, 1, 0, 589885, 3, 0, 589894, 3, 0, 589895, 80, 0, 589896, 81, 0, 589897, 82, 0, 589898, 84, 0, 589903, 2, 0, 589907, 1, 0, 589912, 3, 0, 589921, 2, 0, 589925, 1, 0, 589930, 2, 0, 589934, 1, 0, 589939, 2, 0, 655406, 26, 0, 655408, 29, 0, 655409, 29, 0, 655410, 29, 0, 655411, 31, 0, 655412, 29, 0, 655413, 29, 0, 720942, 27, 0, 720947, 33, 0, 720956, 1, 0, 720961, 2, 0, 720966, 1, 0, 720970, 3, 0, 720979, 2, 0, 720985, 1, 0, 720990, 3, 0, 720999, 2, 0, 721004, 1, 0, 721009, 3, 0, 721018, 2, 0, 851941, 11, 0, 851943, 11, 0, 851945, 11, 0, 851946, 11, 0, 851948, 11, 0, 851950, 11, 0, 851953, 11, 0, 851955, 11, 0, 851958, 11, 0, 786452, 11, 0, 786463, 11, 0, 786475, 11, 0, 786478, 28, 0, 786480, 11, 0, 786481, 39, 0, 786483, 34, 0, 786484, 39, 0, 786528, 1, 0, 786532, 2, 0, 852019, 40, 0, 852033, 1, 0, 852038, 2, 0, 852051, 1, 0, 852056, 2, 0 )
 
 [node name="BlackBottombar" type="ColorRect" parent="GVaniaBridgeTileMap"]
 margin_left = -494.0
@@ -109,45 +119,13 @@ scale = Vector2( 0.5, 0.5 )
 texture = ExtResource( 8 )
 offset = Vector2( 1216, 0 )
 
-[node name="PlayerNode" parent="." instance=ExtResource( 7 )]
+[node name="Player" parent="." instance=ExtResource( 7 )]
 position = Vector2( 65, 142 )
 
-[node name="PlatOK" type="KinematicBody2D" parent="."]
-position = Vector2( 135, -58 )
-collision_layer = 4
-collision_mask = 0
-motion/sync_to_physics = true
-__meta__ = {
-"_edit_group_": true
-}
+[node name="Platforms" type="Node" parent="."]
 
-[node name="Filler2D" type="CollisionShape2D" parent="PlatOK"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 2 )
-one_way_collision = true
-script = ExtResource( 2 )
-
-[node name="PlatOK2" type="KinematicBody2D" parent="."]
-position = Vector2( -7, -91 )
-rotation = 1.40848
-collision_layer = 4
-collision_mask = 0
-motion/sync_to_physics = true
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Filler2D" type="CollisionShape2D" parent="PlatOK2"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 2 )
-script = ExtResource( 2 )
-
-[node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 340, -37 )
-next_scene = "res://Worlds/World2.tscn"
-
-[node name="Platform move" type="KinematicBody2D" parent="."]
-position = Vector2( -70, -4 )
+[node name="Platform move" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 68, 95 )
 collision_layer = 4
 collision_mask = 2147483648
 motion/sync_to_physics = true
@@ -156,67 +134,104 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Platform move"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 150, 1 )
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="Platform move"]
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 209, -24 )
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="Platform move"]
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 174, -10 )
 rotation = -0.785398
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="Platform move"]
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="Platforms/Platform move"]
 position = Vector2( 116, -12 )
 rotation = 0.785398
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
-[node name="Platform path" type="Path2D" parent="Platform move"]
+[node name="Platform path" type="Path2D" parent="Platforms/Platform move"]
 position = Vector2( 140, -52 )
-curve = SubResource( 4 )
+curve = SubResource( 3 )
 
-[node name="PathFollow2D" type="PathFollow2D" parent="Platform move/Platform path"]
+[node name="PathFollow2D" type="PathFollow2D" parent="Platforms/Platform move/Platform path"]
 position = Vector2( -2, 2 )
 rotation = 0.266252
 
-[node name="Node2D" type="Node2D" parent="."]
-position = Vector2( 100, -65 )
+[node name="Node2D" type="Node2D" parent="Platforms"]
+position = Vector2( 234, 23 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="PlatSuperior" type="KinematicBody2D" parent="Node2D"]
+[node name="PlatSuperior" type="KinematicBody2D" parent="Platforms/Node2D"]
 collision_layer = 4
 collision_mask = 0
 motion/sync_to_physics = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Node2D/PlatSuperior"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Platforms/Node2D/PlatSuperior"]
 autoplay = "up down"
-"anims/up down" = SubResource( 5 )
+"anims/up down" = SubResource( 4 )
 
-[node name="CollisionShape2D5" type="CollisionShape2D" parent="Node2D/PlatSuperior"]
-shape = SubResource( 3 )
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="Platforms/Node2D/PlatSuperior"]
+shape = SubResource( 2 )
 one_way_collision = true
 script = ExtResource( 2 )
 
-[node name="Area2D" type="Area2D" parent="Node2D/PlatSuperior"]
+[node name="Area2D" type="Area2D" parent="Platforms/Node2D/PlatSuperior"]
 position = Vector2( 0, 1 )
 input_pickable = false
 collision_mask = 0
 script = ExtResource( 6 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/PlatSuperior/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/Node2D/PlatSuperior/Area2D"]
 position = Vector2( 0, -6 )
+shape = SubResource( 5 )
+script = ExtResource( 2 )
+
+[node name="PlatOK" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 247, 49 )
+collision_layer = 4
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/PlatOK"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+
+[node name="PlatOK2" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 189, 3 )
+rotation = 1.40848
+collision_layer = 4
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/PlatOK2"]
+scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 script = ExtResource( 2 )
+
+[node name="WorldComplete" parent="." instance=ExtResource( 3 )]
+position = Vector2( 115, 42 )
+next_scene = "res://Worlds/World2.tscn"
+
+[node name="TileMap" type="TileMap" parent="."]
+format = 1

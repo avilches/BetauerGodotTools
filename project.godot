@@ -39,7 +39,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Plat10minutes"
-run/main_scene="res://Worlds/World1.tscn"
+run/main_scene="res://Worlds/World2.tscn"
 config/icon="res://icon.png"
 
 [autoload]
@@ -86,7 +86,8 @@ texture={
 
 [layer_names]
 
-2d_physics/layer_1="general"
+2d_physics/layer_1="block"
+2d_physics/layer_2="player"
 2d_physics/layer_3="pass_trough"
 
 [rendering]
