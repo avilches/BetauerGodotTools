@@ -11,7 +11,7 @@ const DEBUG_JUMP = false
 
 # ground
 const TIME_TO_MAX_SPEED = 0.4          # seconds to reach the max speed 0=immediate
-const MAX_SPEED = 200                  # pixels/seconds
+const MAX_SPEED = 180                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
 const FRICTION = 0.7                  # 0=stop 0.9=10%/frame 0.99=ice!!
 const COYOTE_TIME = 0.1               # seconds. How much time the player can jump when falling 
@@ -21,13 +21,13 @@ const STOP_ON_SLOPES = true
 
 # squeeze effect
 const SQUEEZE_JUMP_TIME = 0.1                 # % correction per frame (lerp). The bigger, the faster
-const SQUEEZE_JUMP = Vector2(0.5, 1.2)        # Vector to scale when jump
+const SQUEEZE_JUMP = Vector2(1, 1.4)        # Vector to scale when jump
 const SQUEEZE_LAND_TIME = 0.4                 # % correction per frame (lerp). The bigger, the faster
 const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
 
 
 # air
-const JUMP_HEIGHT = 60                # jump max pixels
+const JUMP_HEIGHT = 68                # jump max pixels
 const MAX_JUMP_TIME = 0.4             # jump max time
 const MAX_FALLING_SPEED = 2000        # max speed in free fall
 const AIR_RESISTANCE = 0.6     
