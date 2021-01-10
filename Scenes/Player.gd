@@ -11,12 +11,12 @@ const DEBUG_ACCELERATION = false
 const DEBUG_JUMP = false
 
 # ground
-const TIME_TO_MAX_SPEED = 0.4          # seconds to reach the max speed 0=immediate
-const MAX_SPEED = 180                  # pixels/seconds
+const TIME_TO_MAX_SPEED = 0.2          # seconds to reach the max speed 0=immediate
+const MAX_SPEED = 110                  # pixels/seconds
 const STOP_IF_SPEED_IS_LESS_THAN = 20 # pixels/seconds
-const FRICTION = 0.7                  # 0=stop 0.9=10%/frame 0.99=ice!!
+const FRICTION = 0.8                  # 0=stop 0.9=10%/frame 0.99=ice!!
 const COYOTE_TIME = 0.1               # seconds. How much time the player can jump when falling 
-const JUMP_HELPER_TIME = 0.12         # seconds. If the user press jump just before land
+const JUMP_HELPER_TIME = 0.2         # seconds. If the user press jump just before land
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
 
 # squeeze effect
@@ -27,10 +27,10 @@ const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
 
 
 # air
-const JUMP_HEIGHT = 68                # jump max pixels
-const MAX_JUMP_TIME = 0.4             # jump max time
+const JUMP_HEIGHT = 80                # jump max pixels
+const MAX_JUMP_TIME = 0.5             # jump max time
 const MAX_FALLING_SPEED = 2000        # max speed in free fall
-const AIR_RESISTANCE = 0.6     
+const AIR_RESISTANCE = 0.8              # 0=stop, 1=keep lateral movement until the end of the jump     
 const MAX_JUMPS = 1
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
@@ -69,12 +69,14 @@ func flip(left):
 	sprite.flip_h = !left;
 
 func change_sprite(nextSprite):
+	if sprite == nextSprite:
+		return
 	sprite.visible = false
 	nextSprite.visible = true
 	nextSprite.flip_h = sprite.flip_h  # keep the current flip state
 	sprite = nextSprite
 
-func update_sprite(x_input):
+func update_sprite(delta, x_input):
 	if isJumping:
 		change_sprite(spriteJump)
 		if sign(motion.y) == 1:
@@ -224,7 +226,8 @@ func _physics_process(delta):
 	if applyGravity:
 		motion.y += GRAVITY * delta
 
-	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
+	var realMaxSpeed = MAX_SPEED * 1.5 if Input.is_action_pressed("ui_accept") else MAX_SPEED
+	motion.x = clamp(motion.x, -realMaxSpeed, realMaxSpeed)
 	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
 
 	debug_motion(delta)
@@ -276,7 +279,7 @@ func _physics_process(delta):
 	if !isJumping && Input.is_action_pressed("ui_down"):
 		fall_from_platform()
 
-	update_sprite(x_input)
+	update_sprite(delta, x_input)
 	restore_squeeze()
 
 func schedule_coyote_time():

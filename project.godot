@@ -85,11 +85,11 @@ GameManager="*res://GameManager.gd"
 
 [display]
 
-window/size/width=480
-window/size/height=360
+window/size/width=400
+window/size/height=300
 window/size/always_on_top=true
-window/size/test_width=960
-window/size/test_height=720
+window/size/test_width=1280
+window/size/test_height=960
 window/stretch/mode="2d"
 window/stretch/aspect="keep"
 
