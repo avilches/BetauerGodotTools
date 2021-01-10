@@ -2,8 +2,8 @@ class_name PlatformFollowPath
 extends MovingPlatform
 
 onready var path = $'Platform path/PathFollow2D'
-onready var original = position
 export var move_speed:float = 10
+var original
 
 func _enter_tree():
 	original = position
