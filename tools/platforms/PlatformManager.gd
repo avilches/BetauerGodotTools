@@ -4,10 +4,42 @@ extends Node
 # Tambien es accesible como singleton desde el editor con el nombre PlatformManager
 
 const FALL_PLATFORM_LAYER = 2
+const REGULAR_PLATFORM_LAYER = 0
 
-# Configura el layer de la plataforma (se puede hacer desde el editor)
-func add_kineticbody2d_platform(kb2d:KinematicBody2D):
-	kb2d.set_collision_layer_bit(FALL_PLATFORM_LAYER, true)
+# Configura el layer de la plataforma
+func register_platform(platform:Platform):
+	print("Platform:", platform.name)
+	platform.add_to_group("platform")
+	platform.set_collision_layer_bit(REGULAR_PLATFORM_LAYER, true)
+
+func register_falling_platform(platform:KinematicBody2D):
+	print("Falling platform:", platform.name)
+	for col in platform.get_children():
+		if col is CollisionShape2D:
+			col.one_way_collision = true
+	platform.add_to_group("platform")
+	platform.add_to_group("falling_platform")
+	platform.set_collision_layer_bit(REGULAR_PLATFORM_LAYER, false)
+	platform.set_collision_layer_bit(FALL_PLATFORM_LAYER, true)
+
+func register_moving_platform(platform:KinematicBody2D):
+	print("Moving platform:", platform.name)
+	platform.set_sync_to_physics(true)
+	platform.add_to_group("platform")
+	platform.set_collision_layer_bit(REGULAR_PLATFORM_LAYER, true)
+	platform.add_to_group("moving_platform")
+	
+func stop_moving_platform(platform:KinematicBody2D):
+	platform.remove_from_group("moving_platform")
+
+func is_platform(platform:KinematicBody2D) -> bool:
+	return platform.is_in_group("platform")
+
+func is_moving_platform(platform:KinematicBody2D) -> bool:
+	return platform.is_in_group("moving_platform")
+
+func is_falling_platform(platform:KinematicBody2D) -> bool:
+	return platform.is_in_group("falling_platform")
 
 # Provoca caida de la plataforma quitando la mascara
 func fall_from_platform(kb2d:KinematicBody2D):
@@ -17,7 +49,7 @@ func is_falling_from_platform(kb2d:KinematicBody2D):
 	return kb2d.get_collision_mask_bit(FALL_PLATFORM_LAYER) == false
 
 # Deja la mascara como estaba (cuando toca el suelo o cuando sale del area2d que ocupa la plataforma)
-func enable_platform_collide(kb2d:KinematicBody2D):
+func stop_falling_from_platform(kb2d:KinematicBody2D):
 	kb2d.set_collision_mask_bit(FALL_PLATFORM_LAYER, true)
 
 signal platform_fall_started
