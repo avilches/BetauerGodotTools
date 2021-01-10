@@ -30,6 +30,7 @@ const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
 const JUMP_HEIGHT = 80                # jump max pixels
 const MAX_JUMP_TIME = 0.5             # jump max time
 const MAX_FALLING_SPEED = 2000        # max speed in free fall
+const START_FALLING_SPEED = 100       # speed where the player changes to falling (test with fast downwards platform!)
 const AIR_RESISTANCE = 0.8              # 0=stop, 1=keep lateral movement until the end of the jump     
 const MAX_JUMPS = 1
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
@@ -85,7 +86,7 @@ func update_sprite(delta, x_input):
 		change_sprite(spriteRun)
 		
 	else:
-		if sign(motion.y) == 1:
+		if motion.y > START_FALLING_SPEED:
 			change_sprite(spriteFall)
 		else:
 			change_sprite(spriteIdle)
