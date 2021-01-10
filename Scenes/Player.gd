@@ -5,6 +5,7 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
+const DEBUG_COLLISION = true
 const DEBUG_MOTION = false
 const DEBUG_ACCELERATION = false
 const DEBUG_JUMP = false
@@ -17,7 +18,6 @@ const FRICTION = 0.7                  # 0=stop 0.9=10%/frame 0.99=ice!!
 const COYOTE_TIME = 0.1               # seconds. How much time the player can jump when falling 
 const JUMP_HELPER_TIME = 0.12         # seconds. If the user press jump just before land
 onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPEED/TIME_TO_MAX_SPEED
-const STOP_ON_SLOPES = true
 
 # squeeze effect
 const SQUEEZE_JUMP_TIME = 0.1                 # % correction per frame (lerp). The bigger, the faster
@@ -38,7 +38,8 @@ onready var JUMP_FORCE_MIN = JUMP_FORCE / 2
 
 # slope config
 const FLOOR = Vector2.UP
-const SNAP_LENGTH = 12                # be sure this value is less than the smallest tile
+const SLOW_DOWN_ON_SLOPE_PERCENT = 0.8 # % speed slow down in slopes. 1 = no slow down, 0.5 = half
+const SNAP_LENGTH = 12                 # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
 onready var spriteHolder = $Sprites
@@ -73,11 +74,7 @@ func change_sprite(nextSprite):
 	nextSprite.flip_h = sprite.flip_h  # keep the current flip state
 	sprite = nextSprite
 
-func _process(delta):
-	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	lateral_movement(x_input, delta)
-	jump(delta)
-	
+func update_sprite(x_input):
 	if isJumping:
 		change_sprite(spriteJump)
 		if sign(motion.y) == 1:
@@ -94,18 +91,14 @@ func _process(delta):
 	if x_input != 0:
 		flip(x_input < 0)
 		
-	if !isJumping && Input.is_action_pressed("ui_down"):
-		fall_from_platform()
-		
-		
 func _ready():
 	if !GameManager.isPlayer(self):
 		var msg = "Player node name should be "+GameManager.PLAYER_NAME+" (current name: "+self.name+")"
 		print(msg)
-		push_error(msg)		
+		push_error(msg)
 		
-	PlatformManager.subscribe_platform_out(self, "enable_platform_collide")
-	enable_platform_collide()
+	PlatformManager.subscribe_platform_out(self, "stop_falling_from_platform")
+	stop_falling_from_platform()
 	for sp in $Sprites.get_children(): sp.visible = false
 	
 	GameManager.connect("death", self, "on_death")
@@ -155,7 +148,7 @@ func jump(delta):
 			#       para que no coincida con el helper...
 	
 	
-	if Input.is_action_just_released("ui_up") and motion.y < -JUMP_FORCE_MIN and isJumping:
+	if Input.is_action_just_released("ui_up") && motion.y < -JUMP_FORCE_MIN && isJumping:
 		if DEBUG_JUMP:
 			print("Short jump: deccelerating from ", motion.y, " to ", -JUMP_FORCE_MIN)
 		motion.y = -JUMP_FORCE_MIN
@@ -192,8 +185,104 @@ func debug_motion(delta):
 func fall_from_platform():
 	PlatformManager.fall_from_platform(self)
 
-func enable_platform_collide():
-	PlatformManager.enable_platform_collide(self)
+func stop_falling_from_platform():
+	PlatformManager.stop_falling_from_platform(self)
+
+func is_on_slope() -> bool:
+	if is_on_floor():
+#		if get_slide_count() == 0: print("NO COLLISION") 
+		for i in get_slide_count():
+			var collision = get_slide_collision(i)
+			if abs(collision.normal.y) < 1:
+				return true
+	return false
+	
+func is_on_moving_platform() -> bool:
+	if is_on_floor():
+#		if get_slide_count() == 0: print("NO COLLISION") 
+		for i in get_slide_count():
+			var collision = get_slide_collision(i)
+			if collision.collider is KinematicBody2D && PlatformManager.is_moving_platform(collision.collider):
+				return true
+	return false
+
+func debug_collision():
+	if DEBUG_COLLISION && get_slide_count():
+		print("Body:",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
+		for i in get_slide_count():
+			var collision = get_slide_collision(i)
+			print("Coll:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
+		
+	
+func _physics_process(delta):
+
+	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
+	lateral_movement(x_input, delta)
+	jump(delta)
+
+	var applyGravity = true
+	if applyGravity:
+		motion.y += GRAVITY * delta
+
+	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
+	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
+
+	debug_motion(delta)
+
+	var was_in_floor = is_on_floor()
+	var slowdownVector = Vector2(1, SLOW_DOWN_ON_SLOPE_PERCENT) if is_on_slope() else Vector2.ONE
+	if PlatformManager.is_falling_from_platform(self) || isJumping:
+		# STOP_ON_SLOPES debe ser true para al caer sobre una pendiente la tome como suelo
+		var STOP_ON_SLOPES = true
+		var remain = move_and_slide_with_snap(motion * slowdownVector, Vector2.ZERO, FLOOR, STOP_ON_SLOPES)
+		motion.y = remain.y # this line stops the gravity accumulation
+		
+		# inertia false = se mantiene el remain.x = al chocar con la cabeza pierde toda la inercia lateral que tenia y se va para abajo. Y si choca al subir y se
+		# se sube, pierde tambien la inercia teniendo que alecerar desde 0
+		# intertia true = se pierde el remain.x = al saltar y chocar (temporalmente) con un objeto hace que al dejar de chocar, recupere
+		# totalmente la movilidad = si choca justo antes de subir y luego se sube, corre a tope. Si choca con la cabeza y baja un poco,
+		# cuando de chocar, continua hacia delante a tope.
+		var inertia = false
+		
+		if !inertia:
+			motion.x = remain.x
+
+	else:
+		# STOP_ON_SLOPES debe ser true para que no se resbale en las pendientes, pero tiene que ser false si se mueve una plataforma y nos queremos quedar pegados
+		# Bug: si la plataforma que se mueve tiene slope, entonces para que detected el slope como suelo, se para y ya no sigue a la plataforma
+		var STOP_ON_SLOPES = get_floor_velocity() == Vector2.ZERO || is_on_slope()
+		var remain = move_and_slide_with_snap(motion * slowdownVector, SLOPE_RAYCAST_VECTOR, FLOOR, STOP_ON_SLOPES)
+		motion.y = remain.y  # this line stops the gravity accumulation
+#		motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
+		
+	lastMotion = motion
+	
+#	if is_on_ceiling():
+		# slow down a little bit when the jump collides a celing
+#		motion.y = - GRAVITY * delta * 0.9
+	
+
+	
+	if !was_in_floor && is_on_floor():
+		debug_collision()
+		# just grounded
+		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND
+		isJumping = false
+		stop_falling_from_platform()
+	elif was_in_floor && !is_on_floor() && !isJumping:
+		# just falling!
+		schedule_coyote_time()
+
+	if !isJumping && Input.is_action_pressed("ui_down"):
+		fall_from_platform()
+
+	update_sprite(x_input)
+	restore_squeeze()
+
+func schedule_coyote_time():
+	if COYOTE_TIME > 0:
+		yield(get_tree().create_timer(COYOTE_TIME), "timeout")
+	canJump = false
 
 func restore_squeeze():
 	if is_on_floor():
@@ -204,46 +293,3 @@ func restore_squeeze():
 		if SQUEEZE_JUMP_TIME != 0:
 			spriteHolder.scale.y = lerp(spriteHolder.scale.y, 1, SQUEEZE_JUMP_TIME)
 			spriteHolder.scale.x = lerp(spriteHolder.scale.x, 1, SQUEEZE_JUMP_TIME)
-
-func _physics_process(delta):
-	
-	var was_in_floor = is_on_floor()
-	if !was_in_floor:
-		# con esto se corrige el bug de que si STOP_ON_SLOPES es true, no se mueva junto a la plataforma
-		motion.y += GRAVITY * delta
-
-	motion.x = clamp(motion.x, -MAX_SPEED, MAX_SPEED)
-	motion.y = min(motion.y, MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
-
-	debug_motion(delta)
-
-	if PlatformManager.is_falling_from_platform(self) || isJumping:
-		var remain = move_and_slide(motion, Vector2.UP, true)
-		motion.y = remain.y # this line stops the gravity accumulation
-	else:
-		var remain = move_and_slide_with_snap(motion, SLOPE_RAYCAST_VECTOR, FLOOR, STOP_ON_SLOPES)
-		motion.y = remain.y  # this line stops the gravity accumulation
-		#motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
-		
-	lastMotion = motion
-	
-	if is_on_ceiling():
-		# slow down a little bit when the jump collides a celing
-		motion.y = - GRAVITY * delta * 0.9
-	
-	if !was_in_floor && is_on_floor():
-		# just grounded
-		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND
-		isJumping = false
-		enable_platform_collide()
-	elif was_in_floor && !is_on_floor() && !isJumping:
-		# just falling!
-		schedule_coyote_time()
-
-	restore_squeeze()
-
-func schedule_coyote_time():
-	if COYOTE_TIME > 0:
-		yield(get_tree().create_timer(COYOTE_TIME), "timeout")
-	canJump = false
-
