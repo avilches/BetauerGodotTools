@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=23 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://tools/Filler2D.gd" type="Script" id=2]
@@ -12,6 +12,10 @@
 [ext_resource path="res://tools/platforms/FallMovingPlatform.gd" type="Script" id=10]
 [ext_resource path="res://tools/platforms/FallPlatform.gd" type="Script" id=11]
 [ext_resource path="res://Worlds/AnimatedPlat.gd" type="Script" id=12]
+[ext_resource path="res://Worlds/RotatingPlatform.gd" type="Script" id=13]
+[ext_resource path="res://Worlds/RotateChildrenSpaced.gd" type="Script" id=14]
+[ext_resource path="res://tools/platforms/MovingPlatform.gd" type="Script" id=15]
+[ext_resource path="res://Worlds/RotateChildrenAligned.gd" type="Script" id=16]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 2000, 50 )
@@ -124,12 +128,12 @@ texture = ExtResource( 8 )
 offset = Vector2( 1216, 0 )
 
 [node name="Player" parent="." instance=ExtResource( 7 )]
-position = Vector2( 65, 142 )
+position = Vector2( 224, 139 )
 
 [node name="Platforms" type="Node" parent="."]
 
 [node name="FallMovSlopeFollow" type="KinematicBody2D" parent="Platforms"]
-position = Vector2( 70, -8 )
+position = Vector2( 74, -8 )
 collision_layer = 0
 collision_mask = 2147483648
 script = ExtResource( 4 )
@@ -247,19 +251,177 @@ script = ExtResource( 2 )
 enabled_editor = true
 enabled_game = true
 
-[node name="Platform3" type="KinematicBody2D" parent="Platforms"]
-position = Vector2( 477, 86 )
+[node name="TweenPlatform" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 391, 101 )
 collision_mask = 0
 script = ExtResource( 12 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/Platform3"]
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/TweenPlatform"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 2 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Pivot" type="Node2D" parent="Platforms"]
+position = Vector2( 452, 39 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Circular" type="KinematicBody2D" parent="Platforms/Pivot"]
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 13 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/Pivot/Circular"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="MultipleSpaced" type="Node2D" parent="Platforms"]
+position = Vector2( 759, 76 )
+script = ExtResource( 14 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 15 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular1"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 15 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular2"]
+position = Vector2( -1, 0 )
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="MultipleAligned" type="Node2D" parent="Platforms"]
+position = Vector2( 587, 76 )
+script = ExtResource( 16 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+collision_layer = 0
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular1"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+collision_layer = 0
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular2"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+collision_layer = 0
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular3"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Circular4" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+collision_layer = 0
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular4"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Circular5" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 15 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular5"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 2 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
 
