@@ -19,7 +19,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://tools/platforms/FallMovingPlatform.gd"
 }, {
-"base": "Platform",
+"base": "KinematicBody2D",
 "class": "FallPlatform",
 "language": "GDScript",
 "path": "res://tools/platforms/FallPlatform.gd"
@@ -34,7 +34,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://tools/Filler2D.gd"
 }, {
-"base": "Platform",
+"base": "KinematicBody2D",
 "class": "MovingPlatform",
 "language": "GDScript",
 "path": "res://tools/platforms/MovingPlatform.gd"
@@ -123,8 +123,8 @@ texture={
 [layer_names]
 
 2d_physics/layer_1="block"
-2d_physics/layer_2="player"
-2d_physics/layer_3="pass_trough"
+2d_physics/layer_2="slope_stairs"
+2d_physics/layer_3="falling_platform"
 
 [rendering]
 

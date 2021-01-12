@@ -1,5 +1,5 @@
 class_name MovingPlatform
-extends Platform
+extends KinematicBody2D
 
 export var mov_enabled = true setget _set_enabled
 
