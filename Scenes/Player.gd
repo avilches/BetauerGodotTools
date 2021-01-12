@@ -56,7 +56,7 @@ var x_input:float = 0;
 var y_input:float = 0;
 
 # Debug the motion change
-var movStartPosMAXSPEED = 0
+var movStartPosMAXSPEED
 var lastMotion = Vector2.ZERO
 var movStartTimeMAXSPEED = Vector2.ZERO
 var movStartTimeACC = -1
@@ -170,19 +170,21 @@ func debug_motion(delta):
 		if motion.x != 0:
 			if lastMotion.x == 0:
 				movStartTimeMAXSPEED = 0
-				movStartPosMAXSPEED = get_position().x
+				movStartPosMAXSPEED = get_position()
 			else:
-				if movStartTimeMAXSPEED >= 1 && movStartPosMAXSPEED != -1:
-					var distance = get_position().x - movStartPosMAXSPEED
-					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position().x, " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
-					movStartTimeMAXSPEED = -1
+				if movStartTimeMAXSPEED >= 1:
+					var distance = get_position().distance_to(movStartPosMAXSPEED)
+					# No funciona bien si se cambia de direccion...
+					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position(), " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
+					movStartTimeMAXSPEED = 0
+					movStartPosMAXSPEED = get_position()
 				else:
 					movStartTimeMAXSPEED += delta
 					
 		else:
-			movStartPosMAXSPEED = 0
+			movStartPosMAXSPEED = null
 
-	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion)
+	if DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion, motion-lastMotion)
 
 # las plataformas desde la que se pueden bajar deben estar en el layer 2º (bit 1 pq empiezan por 0) y deben
 # tener el collision mask vacio
