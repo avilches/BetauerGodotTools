@@ -5,9 +5,10 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
-const DEBUG_COLLISION = true
-const DEBUG_MOTION = false
 const DEBUG_ACCELERATION = false
+
+const DEBUG_COLLISION = false
+const DEBUG_MOTION = false
 const DEBUG_JUMP = false
 
 # ground
@@ -31,7 +32,7 @@ const JUMP_HEIGHT = 80                # jump max pixels
 const MAX_JUMP_TIME = 0.5             # jump max time
 const MAX_FALLING_SPEED = 2000        # max speed in free fall
 const START_FALLING_SPEED = 100       # speed where the player changes to falling (test with fast downwards platform!)
-const AIR_RESISTANCE = 0.8              # 0=stop, 1=keep lateral movement until the end of the jump     
+const AIR_RESISTANCE = 0.8            # 0=stop, 1=keep lateral movement until the end of the jump
 const MAX_JUMPS = 1
 onready var GRAVITY = (2 * JUMP_HEIGHT) / pow(MAX_JUMP_TIME, 2)
 onready var JUMP_FORCE = GRAVITY * MAX_JUMP_TIME
@@ -39,8 +40,9 @@ onready var JUMP_FORCE_MIN = JUMP_FORCE / 2
 
 # slope config
 const FLOOR = Vector2.UP
-const SLOW_DOWN_ON_SLOPE_PERCENT = 0.8 # % speed slow down in slopes. 1 = no slow down, 0.5 = half
-const SNAP_LENGTH = 12                 # be sure this value is less than the smallest tile
+const SLOW_ON_SLOPE_DOWN = 0.4     # % speed slow % in slopes. 1 = no slow down, 0.5 = half
+const SLOW_ON_SLOPE_UP = 0.9       # % speed slow % in slopes. 1 = no slow down, 0.5 = half
+const SNAP_LENGTH = 12             # be sure this value is less than the smallest tile
 onready var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH
 
 onready var spriteHolder = $Sprites
@@ -190,41 +192,51 @@ func debug_motion(delta):
 # tener el collision mask vacio
 # asi, el jugador puede desactivar el mask 2 (bit 1) y se cae
 func fall_from_platform():
-	if is_on_falling_platform():
+	if is_on_falling_platform:
 		PlatformManager.fall_from_platform(self)
 		debug_player_masks()
 
 func stop_falling_from_platform():
 	PlatformManager.stop_falling_from_platform(self)
 	debug_player_masks()
-	
-func is_on_slope() -> bool:
-	if is_on_floor():
-#		if get_slide_count() == 0: print("NO COLLISION") 
-		for i in get_slide_count():
-			var collision = get_slide_collision(i)
-			if abs(collision.normal.y) < 1:
-				return true
-	return false
-	
-func is_on_moving_platform() -> bool:
-	if is_on_floor():
-#		if get_slide_count() == 0: print("NO COLLISION") 
-		for i in get_slide_count():
-			var collision = get_slide_collision(i)
-			if collision.collider is KinematicBody2D && PlatformManager.is_moving_platform(collision.collider):
-				return true
-	return false
 
-func is_on_falling_platform() -> bool:
-	if is_on_floor():
-#		if get_slide_count() == 0: print("NO COLLISION") 
-		for i in get_slide_count():
-			var collision = get_slide_collision(i)
-			if collision.collider is KinematicBody2D && PlatformManager.is_falling_platform(collision.collider):
-				return true
-	return false
+var is_on_slope
+var is_on_moving_platform
+var is_on_falling_platform
+var is_on_slope_stairs
 
+var colliderNormal:Vector2
+func _draw():
+	if colliderNormal:
+#		var angle = rad2deg(colliderNormal.angle_to(Vector2.UP))
+		var from = sprite
+		draw_line(from.position, from.position + (colliderNormal * 10), Color.red, 1)
+	
+func update_ground_colliders():
+	is_on_slope = false
+	is_on_moving_platform = false
+	is_on_falling_platform = false
+	is_on_slope_stairs = false
+	colliderNormal = Vector2.ZERO
+	if !is_on_floor(): return
+#	if get_slide_count() == 0: print("Ground but no colliders??") 
+	for i in get_slide_count():
+		var collision = get_slide_collision(i)
+		colliderNormal = collision.normal
+		if abs(collision.normal.y) < 1:
+			is_on_slope = true
+		
+		if collision.collider is KinematicBody2D && PlatformManager.is_moving_platform(collision.collider):
+			is_on_moving_platform = true
+		
+		if collision.collider is PhysicsBody2D && PlatformManager.is_falling_platform(collision.collider):
+			is_on_falling_platform = true
+
+		if collision.collider is PhysicsBody2D && PlatformManager.is_slope_stairs(collision.collider):
+			is_on_slope_stairs = true
+	update()
+
+	
 func debug_player_masks():
 	if DEBUG_COLLISION:
 		print("Player:  ",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
@@ -236,6 +248,8 @@ func debug_collision():
 			var collision = get_slide_collision(i)
 			print("Collider:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
 		
+
+var applyGravity = true
 	
 func _physics_process(delta):
 
@@ -243,7 +257,6 @@ func _physics_process(delta):
 	lateral_movement(x_input, delta)
 	jump(delta)
 
-	var applyGravity = true
 	if applyGravity:
 		motion.y += GRAVITY * delta
 
@@ -253,10 +266,19 @@ func _physics_process(delta):
 
 	debug_motion(delta)
 
-	var was_in_floor = is_on_floor()
-	var slowdownVector = Vector2(1, SLOW_DOWN_ON_SLOPE_PERCENT) if is_on_slope() else Vector2.ONE
+	var slowdownVector = Vector2.ONE
+	var slope_down = null
+	
+	if is_on_slope && !isJumping && x_input != 0:
+		slope_down = sign(colliderNormal.x) == sign(x_input) # pendiente y direccion al mismo lado
+		slowdownVector = SLOW_ON_SLOPE_DOWN if slope_down else SLOW_ON_SLOPE_UP
 
 	lastMotion = motion
+	var was_in_floor = is_on_floor()
+	var was_on_slope = is_on_slope
+	var was_on_falling_platform = is_on_falling_platform
+	var was_on_moving_platform = is_on_moving_platform
+	var was_on_slope_stairs = is_on_slope_stairs
 
 	if PlatformManager.is_falling_from_platform(self) || isJumping:
 		# STOP_ON_SLOPES debe ser true para al caer sobre una pendiente la tome como suelo
@@ -283,11 +305,26 @@ func _physics_process(delta):
 		motion.y = remain.y  # this line stops the gravity accumulation
 #		motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
 		
+	update_ground_colliders()
 	
 #	if is_on_ceiling():
 		# slow down a little bit when the jump collides a celing
 #		motion.y = - GRAVITY * delta * 0.9
 	
+#	if !was_on_slope && is_on_slope:
+#		print("Slope!")
+#	elif !was_on_slope_stairs && is_on_slope_stairs:
+#		print("Slope stairs!")
+	
+#	if was_on_slope && !is_on_slope && is_on_floor():
+#		print("Tierra firme ",motion.y)
+
+#	if !was_on_falling_platform && is_on_falling_platform:
+#		print("Falling platform!")
+
+#	if !was_on_moving_platform && is_on_moving_platform:
+#		print("Moving platform!")
+
 
 
 	if !was_in_floor && is_on_floor():
@@ -296,8 +333,11 @@ func _physics_process(delta):
 		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND_SCALE
 		isJumping = false
 		stop_falling_from_platform()
-		if is_on_slope():
-			motion.x = motion.x / 10
+		if is_on_slope and x_input == 0:
+			# Evita resbalarse un poco Al caer sobre un slope en linea recta
+			motion.x = 0
+#			motion.y = 0
+			
 	elif was_in_floor && !is_on_floor() && !isJumping:
 		# just falling!
 		schedule_coyote_time()
@@ -307,7 +347,8 @@ func _physics_process(delta):
 
 	update_sprite(delta, x_input)
 	restore_squeeze()
-	if abs(motion.x) < 10:
+	if motion.x == 0:
+	    # pixer perfect only stopped (TODO: only do that once, not every frame)
 		position = Vector2(round(position.x), round(position.y))
 
 func schedule_coyote_time():
