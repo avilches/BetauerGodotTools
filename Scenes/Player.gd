@@ -21,9 +21,9 @@ onready var ACCELERATION = MAX_SPEED*1000 if TIME_TO_MAX_SPEED == 0 else MAX_SPE
 
 # squeeze effect
 const SQUEEZE_JUMP_TIME = 0.1                 # % correction per frame (lerp). The bigger, the faster
-const SQUEEZE_JUMP = Vector2(1, 1.4)        # Vector to scale when jump
+const SQUEEZE_JUMP_SCALE = Vector2(1, 1.4)    # Vector to scale when jump
 const SQUEEZE_LAND_TIME = 0.4                 # % correction per frame (lerp). The bigger, the faster
-const SQUEEZE_LAND = Vector2(1.2, 0.8)        # Vector to scale when land
+const SQUEEZE_LAND_SCALE = Vector2(1.2, 0.8)  # Vector to scale when land
 
 
 # air
@@ -141,7 +141,7 @@ func jump(delta):
 				if (time_jump_pressed > 0): print("Jump helper: ", time_jump_pressed, "s (Config:", JUMP_HELPER_TIME,")")
 				print("Jump start:", -JUMP_FORCE)
 			time_jump_pressed = -1
-			if SQUEEZE_JUMP_TIME != 0: spriteHolder.scale = SQUEEZE_JUMP
+			if SQUEEZE_JUMP_TIME != 0: spriteHolder.scale = SQUEEZE_JUMP_SCALE
 			
 			motion.y = -JUMP_FORCE
 			jumps = jumps + 1
@@ -293,7 +293,7 @@ func _physics_process(delta):
 	if !was_in_floor && is_on_floor():
 		debug_collision()
 		# just grounded
-		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND
+		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND_SCALE
 		isJumping = false
 		stop_falling_from_platform()
 		if is_on_slope():
