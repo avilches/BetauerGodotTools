@@ -172,11 +172,13 @@ func debug_motion(delta):
 				movStartTimeMAXSPEED = 0
 				movStartPosMAXSPEED = get_position().x
 			else:
-				movStartTimeMAXSPEED += delta
 				if movStartTimeMAXSPEED >= 1 && movStartPosMAXSPEED != -1:
 					var distance = get_position().x - movStartPosMAXSPEED
 					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position().x, " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
 					movStartTimeMAXSPEED = -1
+				else:
+					movStartTimeMAXSPEED += delta
+					
 		else:
 			movStartPosMAXSPEED = 0
 
