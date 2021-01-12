@@ -5,8 +5,8 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
-const DEBUG_COLLISION = true
-const DEBUG_MOTION = false
+const DEBUG_COLLISION = false
+const DEBUG_MOTION = true
 const DEBUG_ACCELERATION = false
 const DEBUG_JUMP = false
 
@@ -265,14 +265,13 @@ func _physics_process(delta):
 		motion.y = remain.y  # this line stops the gravity accumulation
 #		motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
 		
-	lastMotion = motion
 	
 #	if is_on_ceiling():
 		# slow down a little bit when the jump collides a celing
 #		motion.y = - GRAVITY * delta * 0.9
 	
 
-	
+
 	if !was_in_floor && is_on_floor():
 		debug_collision()
 		# just grounded
@@ -290,6 +289,8 @@ func _physics_process(delta):
 
 	update_sprite(delta, x_input)
 	restore_squeeze()
+	if abs(motion.x) < 10:
+		position = Vector2(round(position.x), round(position.y))
 
 func schedule_coyote_time():
 	if COYOTE_TIME > 0:
