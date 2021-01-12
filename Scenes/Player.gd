@@ -260,7 +260,7 @@ func _physics_process(delta):
 		# STOP_ON_SLOPES debe ser true para que no se resbale en las pendientes, pero tiene que ser false si se mueve una plataforma y nos queremos quedar pegados
 		# Bug: si la plataforma que se mueve tiene slope, entonces para que detected el slope como suelo, se para y ya no sigue a la plataforma
 		var LATERAL_MOVEMENT_PLATFORM = get_floor_velocity().x != 0
-		var STOP_ON_SLOPES = !LATERAL_MOVEMENT_PLATFORM || is_on_slope()
+		var STOP_ON_SLOPES = !LATERAL_MOVEMENT_PLATFORM
 		var remain = move_and_slide_with_snap(motion * slowdownVector, SLOPE_RAYCAST_VECTOR, FLOOR, STOP_ON_SLOPES)
 		motion.y = remain.y  # this line stops the gravity accumulation
 #		motion.x = remain.x  # this line should be always commented, player can't climb slopes with it!!
@@ -279,6 +279,8 @@ func _physics_process(delta):
 		if SQUEEZE_LAND_TIME != 0: spriteHolder.scale = SQUEEZE_LAND
 		isJumping = false
 		stop_falling_from_platform()
+		if is_on_slope():
+			motion.x = motion.x / 10
 	elif was_in_floor && !is_on_floor() && !isJumping:
 		# just falling!
 		schedule_coyote_time()
