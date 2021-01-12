@@ -5,8 +5,8 @@ extends KinematicBody2D
 # TODO: efectos
 
 const DEBUG_MAX_SPEED = false
-const DEBUG_COLLISION = false
-const DEBUG_MOTION = true
+const DEBUG_COLLISION = true
+const DEBUG_MOTION = false
 const DEBUG_ACCELERATION = false
 const DEBUG_JUMP = false
 
@@ -188,11 +188,14 @@ func debug_motion(delta):
 # tener el collision mask vacio
 # asi, el jugador puede desactivar el mask 2 (bit 1) y se cae
 func fall_from_platform():
-	PlatformManager.fall_from_platform(self)
+	if is_on_falling_platform():
+		PlatformManager.fall_from_platform(self)
+		debug_player_masks()
 
 func stop_falling_from_platform():
 	PlatformManager.stop_falling_from_platform(self)
-
+	debug_player_masks()
+	
 func is_on_slope() -> bool:
 	if is_on_floor():
 #		if get_slide_count() == 0: print("NO COLLISION") 
@@ -211,12 +214,25 @@ func is_on_moving_platform() -> bool:
 				return true
 	return false
 
-func debug_collision():
-	if DEBUG_COLLISION && get_slide_count():
-		print("Body:",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
+func is_on_falling_platform() -> bool:
+	if is_on_floor():
+#		if get_slide_count() == 0: print("NO COLLISION") 
 		for i in get_slide_count():
 			var collision = get_slide_collision(i)
-			print("Coll:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
+			if collision.collider is KinematicBody2D && PlatformManager.is_falling_platform(collision.collider):
+				return true
+	return false
+
+func debug_player_masks():
+	if DEBUG_COLLISION:
+		print("Player:  ",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
+		
+func debug_collision():
+	if DEBUG_COLLISION && get_slide_count():
+		debug_player_masks()
+		for i in get_slide_count():
+			var collision = get_slide_collision(i)
+			print("Collider:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
 		
 	
 func _physics_process(delta):
