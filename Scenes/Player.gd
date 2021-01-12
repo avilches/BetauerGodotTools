@@ -235,6 +235,9 @@ func _physics_process(delta):
 
 	var was_in_floor = is_on_floor()
 	var slowdownVector = Vector2(1, SLOW_DOWN_ON_SLOPE_PERCENT) if is_on_slope() else Vector2.ONE
+
+	lastMotion = motion
+
 	if PlatformManager.is_falling_from_platform(self) || isJumping:
 		# STOP_ON_SLOPES debe ser true para al caer sobre una pendiente la tome como suelo
 		var STOP_ON_SLOPES = true
