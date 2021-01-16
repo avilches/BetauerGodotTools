@@ -1,8 +1,8 @@
 tool
 class_name Filler2D
 extends CollisionShape2D
-
-export (Color) var color = Color(1, 1, 1, 1) setget set_color
+ 
+export (Color) var color = Color(1, 1, 1, 1) setget set_color 
 export var enabled_editor = false setget set_enabled_editor
 export var enabled_game = false setget set_enabled_game
 

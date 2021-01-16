@@ -1,8 +1,13 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=15 format=2]
 
-[ext_resource path="res://tools/Filler2D.gd" type="Script" id=1]
-[ext_resource path="res://Worlds/SlopeStairs.gd" type="Script" id=2]
+[ext_resource path="res://tools/platforms/SlopeStairsDownHall.gd" type="Script" id=1]
+[ext_resource path="res://tools/platforms/SlopeStairs.gd" type="Script" id=2]
 [ext_resource path="res://Worlds/Environment/anokalisa/village.png" type="Texture" id=3]
+[ext_resource path="res://tools/Filler2D.gd" type="Script" id=4]
+[ext_resource path="res://tools/platforms/SlopeStairsUpHall.gd" type="Script" id=5]
+[ext_resource path="res://tools/platforms/SlopeStairsEnabler.gd" type="Script" id=6]
+[ext_resource path="res://tools/platforms/SlopeStairsDisabler.gd" type="Script" id=7]
+[ext_resource path="res://tools/platforms/SlopeStairsCover.gd" type="Script" id=8]
 
 [sub_resource type="TileSet" id=1]
 0/name = "village.png 0"
@@ -34,9 +39,23 @@
 1/shapes = [  ]
 1/z_index = 0
 
+[sub_resource type="RectangleShape2D" id=6]
+extents = Vector2( 60, 8 )
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 10, 5 )
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 5, 3 )
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 25, 50 )
+
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 25, 46 )
+
 [node name="Node2D" type="Node2D"]
 __meta__ = {
-"_edit_group_": true,
 "_edit_lock_": true
 }
 
@@ -49,19 +68,15 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
+[node name="SlopeStairs" type="StaticBody2D" parent="."]
 collision_layer = 2
 collision_mask = 0
 script = ExtResource( 2 )
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
-polygon = PoolVector2Array( -3, 0, -102, -96, -102, 0 )
-disabled = true
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="SlopeStairs"]
+polygon = PoolVector2Array( 0, 0, -96, -96, -96, 0 )
 
-[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="StaticBody2D"]
-polygon = PoolVector2Array( -3, 0, -256, -96, -256, 0 )
-
-[node name="Label" type="Label" parent="StaticBody2D"]
+[node name="Label" type="Label" parent="SlopeStairs"]
 anchor_right = 0.352
 margin_left = -90.0
 margin_top = -50.0
@@ -71,7 +86,88 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="Cover" type="StaticBody2D" parent="."]
+position = Vector2( -52, -88 )
+collision_layer = 0
+collision_mask = 0
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="Filler2D" type="CollisionShape2D" parent="Area2D"]
+[node name="Filler2D" type="CollisionShape2D" parent="Cover"]
+shape = SubResource( 6 )
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
+color = Color( 0.054902, 0.00784314, 0.00784314, 0.470588 )
+enabled_editor = true
+enabled_game = true
+
+[node name="UpHall" type="Area2D" parent="."]
+position = Vector2( -144, -90 )
+collision_mask = 0
+script = ExtResource( 5 )
+
+[node name="Filler2D" type="CollisionShape2D" parent="UpHall"]
+position = Vector2( 40, -11 )
+shape = SubResource( 2 )
+script = ExtResource( 4 )
+color = Color( 0.0588235, 0.184314, 0.85098, 0.419608 )
+enabled_editor = true
+enabled_game = true
+
+[node name="DownHall" type="Area2D" parent="."]
+position = Vector2( 29, -5 )
+collision_mask = 0
 script = ExtResource( 1 )
+
+[node name="Filler2D" type="CollisionShape2D" parent="DownHall"]
+position = Vector2( -27, 2 )
+shape = SubResource( 3 )
+script = ExtResource( 4 )
+color = Color( 0.0588235, 0.184314, 0.85098, 0.419608 )
+enabled_editor = true
+enabled_game = true
+
+[node name="EnablerAndDisabler" type="Node2D" parent="."]
+position = Vector2( -112, -160 )
+
+[node name="Enabler" type="Area2D" parent="EnablerAndDisabler"]
+position = Vector2( 2.00001, 14 )
+collision_mask = 0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
+shape = SubResource( 4 )
+disabled = true
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
+color = Color( 0.0588235, 0.85098, 0.164706, 0.25098 )
+
+[node name="Disabler" type="Area2D" parent="EnablerAndDisabler"]
+position = Vector2( -48, 0 )
+collision_mask = 0
+script = ExtResource( 7 )
+
+[node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Disabler"]
+position = Vector2( 1.52588e-05, 18 )
+shape = SubResource( 5 )
+script = ExtResource( 4 )
+color = Color( 0.984314, 0.0352941, 0.0117647, 0.14902 )
+enabled_editor = true
+enabled_game = true
+
+[node name="Down" type="CollisionShape2D" parent="EnablerAndDisabler/Disabler"]
+position = Vector2( 192, 114 )
+shape = SubResource( 5 )
+script = ExtResource( 4 )
+color = Color( 0.984314, 0.0352941, 0.0117647, 0.14902 )
+enabled_editor = true
+enabled_game = true
