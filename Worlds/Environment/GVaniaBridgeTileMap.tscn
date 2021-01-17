@@ -1681,6 +1681,7 @@ points = PoolVector2Array( 0, 0, 16, 0, 16, 32, 0, 32 )
 95/z_index = 0
 
 [node name="GVaniaBridgeTileMap" type="TileMap"]
+position = Vector2( 2, 0 )
 tile_set = SubResource( 36 )
 cell_size = Vector2( 16, 16 )
 format = 1

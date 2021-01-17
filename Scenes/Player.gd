@@ -254,14 +254,14 @@ func _physics_process(delta):
 		slowdownVector = SLOW_ON_SLOPE_DOWN if slope_down else SLOW_ON_SLOPE_UP
 	
 	if is_on_slope_stairs_down:
-		if x_input != 0 && Input.is_action_pressed("ui_up") && !isJumping:
+		if Input.is_action_pressed("ui_up") && !isJumping:
 			enable_slope_stairs()
-		else:
+		elif x_input != 0:
 			disable_slope_stairs()
 	elif is_on_slope_stairs_up:
-		if x_input != 0 && Input.is_action_pressed("ui_down") && !isJumping:
+		if Input.is_action_pressed("ui_down") && !isJumping:
 			enable_slope_stairs()
-		else:
+		elif x_input != 0 :
 			disable_slope_stairs()
 
 	lastMotion = motion
