@@ -1,9 +1,11 @@
+extends Node
+
 # https://godotengine.org/qa/25504/pixel-perfect-scaling?show=26997#a26997
 # https://github.com/godotengine/godot/issues/6506
 
-extends Node
+# Model: viewport
+# Aspect: ignore
 
-# don't forget to use stretch mode 'viewport' and aspect 'ignore'
 onready var viewport = get_viewport()
 
 func _ready():

@@ -82,16 +82,17 @@ config/icon="res://icon.png"
 
 PlatformManager="*res://tools/platforms/PlatformManager.gd"
 GameManager="*res://GameManager.gd"
-PixelPerfect="*res://tools/AutoloadPixelPerfectResolution.gd"
+AutoloadIntegerResolution="*res://tools/AutoloadIntegerResolution.gd"
 
 [display]
 
 window/size/width=400
 window/size/height=300
 window/size/always_on_top=true
-window/size/test_width=1280
-window/size/test_height=960
+window/size/test_width=800
+window/size/test_height=600
 window/stretch/mode="viewport"
+window/stretch/aspect="keep"
 
 [global]
 
