@@ -87,8 +87,8 @@ func _ready():
 	#PlatformManager.subscribe_slope_stairs_up(self, "_slope_stairs_up_in", "_slope_stairs_up_out")
 	#PlatformManager.subscribe_slope_stairs_down(self, "_slope_stairs_down_in", "_slope_stairs_down_out")
 
-	PlatformManager.subscribe_slope_stairs_enabler(self, "_slope_stairs_enabler_in", "_slope_stairs_enabler_out")
-	PlatformManager.subscribe_slope_stairs_disabler(self, "_slope_stairs_disabler_in", "_slope_stairs_disabler_out")
+	PlatformManager.subscribe_slope_stairs_enabler(self, "_slope_stairs_enabler_in") #, "_slope_stairs_enabler_out")
+	PlatformManager.subscribe_slope_stairs_disabler(self, "_slope_stairs_disabler_in") #, "_slope_stairs_disabler_out")
 	
 	stop_falling_from_platform()
 	for sp in $Sprites.get_children(): sp.visible = false
@@ -104,14 +104,14 @@ func stop_falling_from_platform():
 	PlatformManager.body_stop_falling_from_platform(self)
 	debug_player_masks()
 
-func slope_stairs_up_in(body, _area2D):
-	if body == self:
-		print("Entering up hall...")
-
-func slope_stairs_up_out(body, _area2D):
-	if body == self:
-		print("Exiting up hall...")
-
+#func slope_stairs_up_in(body, _area2D):
+#	if body == self:
+#		print("Entering up hall...")
+#
+#func slope_stairs_up_out(body, _area2D):
+#	if body == self:
+#		print("Exiting up hall...")
+#
 #func _slope_stairs_up_in(body, area2D):
 #	if body == self: print("stairs_up_in")
 #
@@ -126,20 +126,21 @@ func slope_stairs_up_out(body, _area2D):
 
 func _slope_stairs_enabler_in(body, _area2D):
 	if body == self:
-		print("stairs_enabler_in")
+		print("stairs_enabler_in ENABLING")
 		enable_slope_stairs()
 
-
-func _slope_stairs_enabler_out(body, _area2D):
-	if body == self: print("stairs_enabler_out")
+#func _slope_stairs_enabler_out(body, _area2D):
+#	if body == self:
+#		print("stairs_enabler_out")
 
 func _slope_stairs_disabler_in(body, _area2D):
 	if body == self:
-		print("stairs_disabler_in")
+		print("stairs_disabler_in DISABLING")
 		disable_slope_stairs()
 
-func _slope_stairs_disabler_out(body, _area2D):
-	if body == self: print("stairs_disabler_out")
+#func _slope_stairs_disabler_out(body, _area2D):
+#	if body == self: 
+#		print("stairs_disabler_out")
 
 func on_death(_cause):
 	print("MUETO")
@@ -203,7 +204,7 @@ func update_ground_colliders():
 		colliderNormal = collision.normal
 		if collision.collider.has_method("collide_with"):
 			collision.collider.collide_with(self, collision)
-		
+
 		if abs(collision.normal.y) < 1:
 			is_on_slope = true
 		
@@ -216,7 +217,6 @@ func update_ground_colliders():
 		if collision.collider is PhysicsBody2D && PlatformManager.is_a_slope_stairs(collision.collider):
 			is_on_slope_stairs = true
 	update()
-		
 
 var applyGravity = true
 
@@ -256,12 +256,23 @@ func _physics_process(delta):
 	if is_on_slope_stairs_down:
 		if Input.is_action_pressed("ui_up") && !isJumping:
 			enable_slope_stairs()
-		elif x_input != 0:
+		else: #if x_input != 0:
 			disable_slope_stairs()
 	elif is_on_slope_stairs_up:
-		if Input.is_action_pressed("ui_down") && !isJumping:
+		if Input.is_action_pressed("ui_down") && !isJumping && (!colliderNormal || abs(colliderNormal.x) != 1):
+			# Hay un bug en el que si se sube la escaleras dejando pulsado abajo,
+			# cuando llega arriba y la pendiente finaliza, colisiona lateralmente
+			# con la plataforma. Esta collision es (1, 0) subiendo de derecha a 
+			# izquierda (es decir, completamente lateral) y el personaje se queda
+			# atascado y no llega a subir. Tambien pasa desde arriba, es decir, 
+			# andando de izquierda a derecha pulsando abajo.
+			# Claro que dejando de pulsar abajo se
+			# soluciona, pero no deja de ser un bug. Lo ideal sería controlar
+			# la dirección de la escalera y activarla solo cuando se avanza hacia ella
+			# pero con el fix abs(colliderNormal.x) != 1) se arregla sin tener que
+			# hacerlo. 
 			enable_slope_stairs()
-		elif x_input != 0 :
+		elif x_input != 0:
 			disable_slope_stairs()
 
 	lastMotion = motion
