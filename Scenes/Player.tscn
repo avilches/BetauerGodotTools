@@ -156,6 +156,7 @@ playback_speed = 2.0
 anims/Run = SubResource( 5 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
+visible = false
 margin_top = -40.0
 margin_right = 100.0
 margin_bottom = 60.0

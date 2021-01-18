@@ -86,11 +86,10 @@ AutoloadIntegerResolution="*res://tools/AutoloadIntegerResolution.gd"
 
 [display]
 
-window/size/width=400
-window/size/height=300
-window/size/always_on_top=true
-window/size/test_width=800
-window/size/test_height=600
+window/size/width=480
+window/size/height=270
+window/size/test_width=1440
+window/size/test_height=810
 window/stretch/mode="viewport"
 window/stretch/aspect="keep"
 

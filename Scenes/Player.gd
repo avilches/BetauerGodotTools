@@ -74,7 +74,7 @@ var lastMotion = Vector2.ZERO
 var movStartTimeMAXSPEED = Vector2.ZERO
 var movStartTimeACC = -1
 
-func _ready():
+func _ready():	
 	if !GameManager.isPlayer(self):
 		var msg = "Player node name should be "+GameManager.PLAYER_NAME+" (current name: "+self.name+")"
 		print(msg)
@@ -91,7 +91,9 @@ func _ready():
 	PlatformManager.subscribe_slope_stairs_disabler(self, "_slope_stairs_disabler_in") #, "_slope_stairs_disabler_out")
 	
 	stop_falling_from_platform()
+	disable_slope_stairs()
 	for sp in $Sprites.get_children(): sp.visible = false
+	sprite.visible = true
 	
 	GameManager.connect("death", self, "on_death")
 
@@ -230,7 +232,7 @@ func disable_slope_stairs():
 
 func _physics_process(delta):
 	
-	$Label.text = str(PlatformManager.body_has_slope_stairs_enabled(self), " ", PlatformManager.body_has_slope_stairs_cover_enabled(self))
+#	$Label.text = str(PlatformManager.body_has_slope_stairs_enabled(self), " ", PlatformManager.body_has_slope_stairs_cover_enabled(self))
 #	$Label.text = str(is_on_slope_stairs_down, " ", is_on_slope_stairs_up)
 
 	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
@@ -329,9 +331,6 @@ func _physics_process(delta):
 
 	update_sprite(delta, x_input)
 	restore_squeeze()
-	if motion.x == 0:
-		# pixer perfect only stopped (TODO: only do that once, not every frame)
-		position = Vector2(round(position.x), round(position.y))
 
 func schedule_coyote_time():
 	if COYOTE_TIME > 0:
