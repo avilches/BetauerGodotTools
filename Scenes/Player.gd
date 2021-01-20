@@ -52,26 +52,26 @@ onready var spriteJump = $Sprites/Jump
 onready var spriteFall = $Sprites/Fall
 onready var sprite = spriteIdle
 
-var motion = Vector2.ZERO
+var motion: Vector2 = Vector2.ZERO
 var jumps = 0
 var canJump = false
 var isJumping = false
 var time_jump_pressed = -1
 
 # Updated manually before move_and.. by update_ground_colliders()
-var is_on_slope
-var is_on_moving_platform
-var is_on_falling_platform
-var is_on_slope_stairs
+var is_on_slope: bool
+var is_on_moving_platform: bool
+var is_on_falling_platform: bool
+var is_on_slope_stairs: bool
 # Changed by signals
-var is_on_slope_stairs_down = false
-var is_on_slope_stairs_up = false
+var is_on_slope_stairs_down: bool = false
+var is_on_slope_stairs_up: bool = false
 
 # Variables only to debug
-var colliderNormal:Vector2
+var colliderNormal: Vector2
 var movStartPosMAXSPEED
-var lastMotion = Vector2.ZERO
-var movStartTimeMAXSPEED = Vector2.ZERO
+var lastMotion: Vector2 = Vector2.ZERO
+var movStartTimeMAXSPEED = 0
 var movStartTimeACC = -1
 
 func _ready():	

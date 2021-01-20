@@ -1,4 +1,6 @@
 extends Node
+# https://github.com/Yukitty/godot-addon-integer_resolution_handler
+
 # IntegerResolutionHandler autoload.
 # Watches for window size changes and handles
 # game screen scaling with exact integer
@@ -7,11 +9,14 @@ extends Node
 const SETTING_BASE_WIDTH = "display/window/integer_resolution_handler/base_width"
 const SETTING_BASE_HEIGHT = "display/window/integer_resolution_handler/base_height"
 
-var base_resolution := Vector2(400, 300)
+#var base_resolution := Vector2(320, 180)  # 1920x1080 / 6
+#var base_resolution := Vector2(480, 270)  # 1920x1080 / 4
+#var base_resolution := Vector2(1920, 1080)
+var base_resolution := Vector2(1920, 1080) / 4
 var stretch_mode: int
 var stretch_aspect: int
-onready var stretch_shrink: float = ProjectSettings.get_setting("display/window/stretch/shrink")
-
+const DEBUG_INFO = false
+onready var stretch_shrink: float = 1  # ProjectSettings.get_setting("display/window/stretch/shrink")
 onready var _root: Viewport = get_node("/root")
 
 
@@ -54,6 +59,11 @@ func _ready():
 	# warning-ignore:return_value_discarded
 	tree.connect("screen_resized", self, "update_resolution")
 
+func XXX_process(delta):
+	if Input.is_action_just_released("ui_select"):
+		OS.window_fullscreen = !OS.window_fullscreen
+		
+
 
 func update_resolution():
 	var video_mode: Vector2 = OS.window_size
@@ -79,16 +89,28 @@ func update_resolution():
 	margin2 = margin.ceil()
 	margin = margin.floor()
 
+
 	match stretch_mode:
 		SceneTree.STRETCH_MODE_VIEWPORT:
 			_root.set_size((screen_size / stretch_shrink).floor())
 			_root.set_attach_to_screen_rect(Rect2(margin, viewport_size))
 			_root.set_size_override_stretch(false)
 			_root.set_size_override(false)
+			if DEBUG_INFO:
+				print("(Viewport Mode) Base resolution:",str(base_resolution.x),"x", str(base_resolution.y),\
+				" Video resolution:",str(video_mode.x),"x",str(video_mode.y), \
+				" Size:", (screen_size / stretch_shrink).floor(), "(Screen size ", screen_size,"/",stretch_shrink," stretch shrink)",\
+				" Viewport rect: ", margin, " ",viewport_size)
 		SceneTree.STRETCH_MODE_2D, _:
 			_root.set_size((viewport_size / stretch_shrink).floor())
 			_root.set_attach_to_screen_rect(Rect2(margin, viewport_size))
 			_root.set_size_override_stretch(true)
 			_root.set_size_override(true, (screen_size / stretch_shrink).floor())
+			if DEBUG_INFO:
+				print("(2D model) Base resolution:",str(base_resolution.x),"x", str(base_resolution.y),\
+				" Video resolution:",str(video_mode.x),"x",str(video_mode.y), \
+				" Size:", (viewport_size / stretch_shrink).floor(), " (Viewport size ", viewport_size,"/",stretch_shrink," stretch shrink)",\
+				" Viewport rect: ", margin, " ",viewport_size,
+				" Size override:", (screen_size / stretch_shrink).floor(), "(Screen size ", screen_size,"/",stretch_shrink," stretch shrink)")
 
 	VisualServer.black_bars_set_margins(max(0, int(margin.x)), max(0, int(margin.y)), max(0, int(margin2.x)), max(0, int(margin2.y)))
