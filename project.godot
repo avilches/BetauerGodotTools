@@ -80,16 +80,16 @@ config/icon="res://icon.png"
 
 [autoload]
 
-PlatformManager="*res://tools/platforms/PlatformManager.gd"
 GameManager="*res://GameManager.gd"
 AutoloadIntegerResolution="*res://tools/AutoloadIntegerResolution.gd"
+PlatformManager="*res://tools/platforms/PlatformManager.gd"
 
 [display]
 
 window/size/width=480
 window/size/height=270
-window/size/test_width=1440
-window/size/test_height=810
+window/size/test_width=960
+window/size/test_height=540
 window/stretch/mode="viewport"
 window/stretch/aspect="keep"
 
@@ -141,7 +141,10 @@ ui_select={
 
 2d_physics/layer_1="block"
 2d_physics/layer_2="slope_stairs"
-2d_physics/layer_3="falling_platform"
+2d_physics/layer_3="slope_stairs_cover"
+2d_physics/layer_4="falling_platform"
+2d_physics/layer_11="player"
+2d_physics/layer_12="enemy"
 
 [rendering]
 
