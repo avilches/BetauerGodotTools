@@ -83,6 +83,7 @@ config/icon="res://icon.png"
 GameManager="*res://GameManager.gd"
 AutoloadIntegerResolution="*res://tools/AutoloadIntegerResolution.gd"
 PlatformManager="*res://tools/platforms/PlatformManager.gd"
+C="*res://tools/Constants.gd"
 
 [display]
 
