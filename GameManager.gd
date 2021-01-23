@@ -1,6 +1,5 @@
 extends Node
 
-
 const PLAYER_NAME = "PlayerBody"
 
 signal death

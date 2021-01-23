@@ -3,6 +3,7 @@ extends Node
 # CONFIG: debug
 const DEBUG_MAX_SPEED = false
 const DEBUG_ACCELERATION = false
+const DEBUG_SLOPE_STAIRS = true
 
 const DEBUG_COLLISION = false
 const DEBUG_MOTION = false
