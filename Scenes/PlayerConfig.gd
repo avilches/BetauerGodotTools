@@ -35,3 +35,11 @@ var SQUEEZE_JUMP_TIME = 0.1                 # % correction per frame (lerp). The
 var SQUEEZE_JUMP_SCALE = Vector2(1, 1.4)    # Vector to scale when jump
 var SQUEEZE_LAND_TIME = 0.4                 # % correction per frame (lerp). The bigger, the faster
 var SQUEEZE_LAND_SCALE = Vector2(1.2, 0.8)  # Vector to scale when land
+
+
+# CONFIG: slope config
+var FLOOR = Vector2.UP
+var SLOW_ON_SLOPE_DOWN = 0.4     # % speed slow % in slopes. 1 = no slow down, 0.5 = half
+var SLOW_ON_SLOPE_UP = 0.9       # % speed slow % in slopes. 1 = no slow down, 0.5 = half
+var SNAP_LENGTH = 12             # be sure this value is less than the smallest tile
+var SLOPE_RAYCAST_VECTOR = Vector2.DOWN * SNAP_LENGTH

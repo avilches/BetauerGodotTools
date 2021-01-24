@@ -19,7 +19,7 @@ var lastMotion: Vector2 = Vector2.ZERO
 var movStartTimeMAXSPEED = 0
 var movStartTimeACC = -1
 
-var C
+var C: CharacterConfig
 
 func configure_falling_platforms():
 	PlatformManager.subscribe_platform_out(self, "stop_falling_from_platform")

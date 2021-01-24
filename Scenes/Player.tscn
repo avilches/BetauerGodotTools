@@ -8,7 +8,7 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7, 20 )
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=2]
 resource_name = "Fall"
 length = 0.2
 loop = true
@@ -61,8 +61,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=2]
-resource_name = "Idle"
+[sub_resource type="Animation" id=3]
 length = 1.75
 loop = true
 step = 0.25
@@ -115,7 +114,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=7]
+[sub_resource type="Animation" id=4]
 resource_name = "Jump"
 length = 3.0
 loop = true
@@ -168,7 +167,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=8]
+[sub_resource type="Animation" id=5]
 resource_name = "Run"
 length = 0.7
 loop = true
@@ -239,16 +238,16 @@ position = Vector2( 0, -20 )
 shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="PlayerBody"]
-texture = ExtResource( 2 )
+texture = ExtResource( 3 )
 offset = Vector2( 0, -32 )
-hframes = 7
+hframes = 4
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
-playback_speed = 0.9
-anims/Fall = SubResource( 6 )
-anims/Idle = SubResource( 2 )
-anims/Jump = SubResource( 7 )
-anims/Run = SubResource( 8 )
+anims/Fall = SubResource( 2 )
+anims/Idle = SubResource( 3 )
+anims/Jump = SubResource( 4 )
+anims/Run = SubResource( 5 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
 visible = false
@@ -261,3 +260,17 @@ autowrap = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="RayCastJumps" type="Node2D" parent="PlayerBody"]
+
+[node name="R2" type="RayCast2D" parent="PlayerBody/RayCastJumps"]
+position = Vector2( -4, -40 )
+enabled = true
+cast_to = Vector2( 0, -8 )
+collision_mask = 5
+
+[node name="R1" type="RayCast2D" parent="PlayerBody/RayCastJumps"]
+position = Vector2( 4, -40 )
+enabled = true
+cast_to = Vector2( 0, -8 )
+collision_mask = 5

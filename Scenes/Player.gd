@@ -67,7 +67,7 @@ func on_death(_cause):
 func jump(delta):
 	if is_on_floor():
 		jumps = 0
-		canJump = true
+		canJump = !$RayCastJumps/R1.is_colliding() && !$RayCastJumps/R2.is_colliding()
 		
 	if Input.is_action_just_pressed("ui_select"):
 		# jump starts
