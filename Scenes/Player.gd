@@ -1,24 +1,51 @@
-extends "res://Scenes/Character.gd"
+extends Character
 
 # TODO: efectos
 # escalar a las paredes
 # engancharse en las repisas de las plataformas
 
-onready var spriteHolder = $Sprites
-onready var spriteRun = $Sprites/Run
-onready var spriteIdle = $Sprites/Idle
-onready var spriteJump = $Sprites/Jump
-onready var spriteFall = $Sprites/Fall
-onready var sprite = spriteIdle
+onready var sprite = $Sprite
+onready var anim_sprite = $Sprite/AnimationPlayer
 
 var jumps = 0
 var canJump = false
 var isJumping = false
 var time_jump_pressed = -1
 
+enum Anim { JUMP, FALL, IDLE, RUN }
+
+func change_sprite(next: int):
+	match next:
+		Anim.JUMP: anim_sprite.play("Jump")
+		Anim.FALL: anim_sprite.play("Fall")
+		Anim.RUN: anim_sprite.play("Run")
+		Anim.IDLE, _: anim_sprite.play("Idle")
+			
+
+func update_sprite(_delta, x_input):
+	if isJumping:
+		if motion.y > C.START_FALLING_SPEED:
+			change_sprite(Anim.FALL)
+		else:
+			change_sprite(Anim.JUMP)
+	elif x_input != 0:
+		change_sprite(Anim.RUN)
+		
+	else:
+		if motion.y > 0:
+			if motion.y > C.START_FALLING_SPEED:
+				change_sprite(Anim.FALL)
+			else:
+				change_sprite(Anim.RUN)
+		else:
+			change_sprite(Anim.IDLE)
+
+	if x_input != 0:
+		flip(x_input < 0)
 
 
-func _ready():	
+func _ready():
+	C = PlayerConfig.new()
 	if !GameManager.isPlayer(self):
 		var msg = "Player node name should be "+GameManager.PLAYER_NAME+" (current name: "+self.name+")"
 		print(msg)
@@ -26,9 +53,6 @@ func _ready():
 
 	configure_falling_platforms()
 	configure_slope_stairs()
-	
-	for sp in $Sprites.get_children(): sp.visible = false
-	sprite.visible = true
 	
 	GameManager.connect("death", self, "on_death")
 
@@ -58,7 +82,7 @@ func jump(delta):
 				if (time_jump_pressed > 0): print("Jump helper: ", time_jump_pressed, "s (Config:", C.JUMP_HELPER_TIME,")")
 				print("Jump start:", -C.JUMP_FORCE)
 			time_jump_pressed = -1
-			if C.SQUEEZE_JUMP_TIME != 0: spriteHolder.scale = C.SQUEEZE_JUMP_SCALE
+			if C.SQUEEZE_JUMP_TIME != 0: sprite.scale = C.SQUEEZE_JUMP_SCALE
 			
 			motion.y = -C.JUMP_FORCE
 			jumps = jumps + 1
@@ -162,7 +186,7 @@ func _physics_process(delta):
 	if !was_in_floor && is_on_floor():
 		debug_collision()
 		# just grounded
-		if C.SQUEEZE_LAND_TIME != 0: spriteHolder.scale = C.SQUEEZE_LAND_SCALE
+		if C.SQUEEZE_LAND_TIME != 0: sprite.scale = C.SQUEEZE_LAND_SCALE
 		isJumping = false
 		stop_falling_from_platform()
 		if is_on_slope and x_input == 0:
@@ -188,45 +212,24 @@ func schedule_coyote_time():
 func restore_squeeze():
 	if is_on_floor():
 		if C.SQUEEZE_LAND_TIME != 0:
-			spriteHolder.scale.y = lerp(spriteHolder.scale.y, 1, C.SQUEEZE_LAND_TIME)
-			spriteHolder.scale.x = lerp(spriteHolder.scale.x, 1, C.SQUEEZE_LAND_TIME)
+			sprite.scale.y = lerp(sprite.scale.y, 1, C.SQUEEZE_LAND_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, C.SQUEEZE_LAND_TIME)
 	else:
 		if C.SQUEEZE_JUMP_TIME != 0:
-			spriteHolder.scale.y = lerp(spriteHolder.scale.y, 1, C.SQUEEZE_JUMP_TIME)
-			spriteHolder.scale.x = lerp(spriteHolder.scale.x, 1, C.SQUEEZE_JUMP_TIME)
+			sprite.scale.y = lerp(sprite.scale.y, 1, C.SQUEEZE_JUMP_TIME)
+			sprite.scale.x = lerp(sprite.scale.x, 1, C.SQUEEZE_JUMP_TIME)
 
 func flip(left):
-	sprite.flip_h = !left;
+	sprite.flip_h = left;
 
-func change_sprite(nextSprite):
-	if sprite == nextSprite:
-		return
-	sprite.visible = false
-	nextSprite.visible = true
-	nextSprite.flip_h = sprite.flip_h  # keep the current flip state
-	sprite = nextSprite
-
-func update_sprite(_delta, x_input):
-	if isJumping:
-		change_sprite(spriteJump)
-		if sign(motion.y) == 1:
-			change_sprite(spriteFall)
-	elif x_input != 0:
-		change_sprite(spriteRun)
-		
-	else:
-		if motion.y > C.START_FALLING_SPEED:
-			change_sprite(spriteFall)
-		else:
-			change_sprite(spriteIdle)
-
-	if x_input != 0:
-		flip(x_input < 0)
 
 
 func _draw():
 	if colliderNormal:
 #		var angle = rad2deg(colliderNormal.angle_to(Vector2.UP))
+		# Se pinta una linea hacia arriba desde la posicion 0,0 del sprite
+		# Para que no la pinte desde el centro, sino desde abajo, hay que desplazar
+		# el sprite con offset dejando el position a 0,0
 		var from = sprite
 		draw_line(from.position, from.position + (colliderNormal * 10), Color.red, 1)
 

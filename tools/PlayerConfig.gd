@@ -1,4 +1,5 @@
-extends Node
+extends Reference
+class_name PlayerConfig
 
 # CONFIG: debug
 const DEBUG_MAX_SPEED = false

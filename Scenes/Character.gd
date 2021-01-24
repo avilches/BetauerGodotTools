@@ -1,4 +1,5 @@
 extends KinematicBody2D
+class_name Character
 
 var motion: Vector2 = Vector2.ZERO
 
@@ -18,6 +19,7 @@ var lastMotion: Vector2 = Vector2.ZERO
 var movStartTimeMAXSPEED = 0
 var movStartTimeACC = -1
 
+var C
 
 func configure_falling_platforms():
 	PlatformManager.subscribe_platform_out(self, "stop_falling_from_platform")

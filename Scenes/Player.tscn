@@ -8,6 +8,59 @@
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7, 20 )
 
+[sub_resource type="Animation" id=6]
+resource_name = "Fall"
+length = 0.2
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.1 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ 2, 3 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 4 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 4 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
+
 [sub_resource type="Animation" id=2]
 resource_name = "Idle"
 length = 1.75
@@ -25,30 +78,47 @@ tracks/0/keys = {
 "update": 1,
 "values": [ 0, 1, 2, 3 ]
 }
-
-[sub_resource type="Animation" id=3]
-resource_name = "Run"
-length = 1.75
-loop = true
-step = 0.25
-tracks/0/type = "value"
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/keys = {
-"times": PoolRealArray( 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
 "update": 1,
-"values": [ 0, 1, 2, 3, 4, 5, 6 ]
+"values": [ ExtResource( 3 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 4 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=4]
-resource_name = "Run"
+[sub_resource type="Animation" id=7]
+resource_name = "Jump"
 length = 3.0
 loop = true
-step = 0.25
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
 tracks/0/interp = 1
@@ -56,17 +126,52 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.25 ),
+"times": PoolRealArray( 0, 0.2 ),
 "transitions": PoolRealArray( 1, 1 ),
 "update": 1,
 "values": [ 0, 1 ]
 }
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 4 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 4 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=8]
 resource_name = "Run"
-length = 0.5
+length = 0.7
 loop = true
-step = 0.25
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
 tracks/0/interp = 1
@@ -74,10 +179,46 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.25 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 2, 3 ]
+"values": [ 0, 1, 2, 3, 4, 5, 6 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 2 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 7 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 0.9 ]
 }
 
 [node name="PlayerNode" type="Node2D"]
@@ -97,63 +238,17 @@ smoothing_speed = 10.0
 position = Vector2( 0, -20 )
 shape = SubResource( 1 )
 
-[node name="Sprites" type="Node2D" parent="PlayerBody"]
-
-[node name="Idle" type="Sprite" parent="PlayerBody/Sprites"]
-rotation = 3.14159
-scale = Vector2( 1, -1 )
-texture = ExtResource( 3 )
-offset = Vector2( 0, -32 )
-hframes = 4
-frame = 3
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Idle"]
-autoplay = "Idle"
-playback_speed = 1.3
-anims/Idle = SubResource( 2 )
-
-[node name="Run" type="Sprite" parent="PlayerBody/Sprites"]
-visible = false
-rotation = 3.14159
-scale = Vector2( 1, -1 )
+[node name="Sprite" type="Sprite" parent="PlayerBody"]
 texture = ExtResource( 2 )
 offset = Vector2( 0, -32 )
 hframes = 7
-frame = 3
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Run"]
-autoplay = "Run"
-playback_speed = 2.0
-anims/Run = SubResource( 3 )
-
-[node name="Jump" type="Sprite" parent="PlayerBody/Sprites"]
-visible = false
-rotation = 3.14159
-scale = Vector2( 1, -1 )
-texture = ExtResource( 4 )
-offset = Vector2( 0, -32 )
-hframes = 4
-frame = 1
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Jump"]
-autoplay = "Run"
-playback_speed = 2.0
-anims/Run = SubResource( 4 )
-
-[node name="Fall" type="Sprite" parent="PlayerBody/Sprites"]
-visible = false
-rotation = 3.14159
-scale = Vector2( 1, -1 )
-texture = ExtResource( 4 )
-offset = Vector2( 0, -32 )
-flip_h = true
-hframes = 4
-frame = 3
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites/Fall"]
-autoplay = "Run"
-playback_speed = 2.0
-anims/Run = SubResource( 5 )
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
+playback_speed = 0.9
+anims/Fall = SubResource( 6 )
+anims/Idle = SubResource( 2 )
+anims/Jump = SubResource( 7 )
+anims/Run = SubResource( 8 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
 visible = false
