@@ -99,9 +99,6 @@ func jump(delta):
 	
 
 
-var applyGravity = true
-
-
 func _physics_process(delta):
 	
 #	$Label.text = str(PlatformManager.body_has_slope_stairs_enabled(self), " ", PlatformManager.body_has_slope_stairs_cover_enabled(self))
@@ -111,12 +108,7 @@ func _physics_process(delta):
 	add_lateral_movement(x_input, delta)
 	jump(delta)
 
-	if applyGravity:
-		motion.y += C.GRAVITY * delta
-
-	var realMaxSpeed = C.MAX_SPEED * 1.5 if Input.is_action_pressed("ui_accept") else C.MAX_SPEED
-	motion.x = clamp(motion.x, -realMaxSpeed, realMaxSpeed)
-	motion.y = min(motion.y, C.MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
+	limit_motion(delta, true, 1.5 if Input.is_action_pressed("ui_accept") else 1)
 
 	debug_motion(delta)
 
@@ -221,8 +213,6 @@ func restore_squeeze():
 
 func flip(left):
 	sprite.flip_h = left;
-
-
 
 func _draw():
 	if colliderNormal:

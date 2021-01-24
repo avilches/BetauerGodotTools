@@ -138,6 +138,13 @@ func add_lateral_movement(x_input, delta):
 		if abs(motion.x) < C.STOP_IF_SPEED_IS_LESS_THAN: motion.x = 0
 		else: motion.x *= C.FRICTION if is_on_floor() else C.AIR_RESISTANCE
 
+func limit_motion(delta, applyGravity = true, maxSpeedFactor = 1):
+	if applyGravity:
+		motion.y += C.GRAVITY * delta
+
+	var realMaxSpeed = C.MAX_SPEED * maxSpeedFactor
+	motion.x = clamp(motion.x, -realMaxSpeed, realMaxSpeed)
+	motion.y = min(motion.y, C.MAX_FALLING_SPEED) # avoid gravity continue forever in free fall
 
 ###########################################################################
 # DEBUG

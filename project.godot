@@ -14,6 +14,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Scenes/Character.gd"
 }, {
+"base": "Reference",
+"class": "CharacterConfig",
+"language": "GDScript",
+"path": "res://Scenes/CharacterConfig.gd"
+}, {
 "base": "Filler2D",
 "class": "DeathArea",
 "language": "GDScript",
@@ -54,10 +59,10 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://tools/platforms/PlatformFollowPath.gd"
 }, {
-"base": "Reference",
+"base": "CharacterConfig",
 "class": "PlayerConfig",
 "language": "GDScript",
-"path": "res://tools/PlayerConfig.gd"
+"path": "res://Scenes/PlayerConfig.gd"
 }, {
 "base": "Reference",
 "class": "TweenSequence",
@@ -71,6 +76,7 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "Character": "",
+"CharacterConfig": "",
 "DeathArea": "",
 "FallMovingPlatform": "",
 "FallPlatform": "",
