@@ -19,3 +19,4 @@ data_*/
 
 # Jetbrains
 .idea/
+/mono_crash.*
