@@ -1,23 +1,35 @@
 using Godot;
 using System;
 
-public abstract class CharacterController : KinematicBody2D {
-
+public interface FrameAware {
+    long GetFrame();
+}
+public abstract class CharacterController : KinematicBody2D, FrameAware {
     protected CharacterConfig CharacterConfig;
     public float Delta { get; private set; } = 0.16f;
-    public Vector2 Motion  = Vector2.Zero;
+    public Vector2 Motion = Vector2.Zero;
     private Vector2 _lastMotion = Vector2.Zero;
+    private long _frame = 0;
+    public long GetFrame() {
+        return _frame;
+    }
 
     public void SetMotion(Vector2 motion) {
-        this.Motion = motion;
+        Motion.x = motion.x;
+        Motion.y = motion.y;
+    }
+
+    public void AddMotion(Vector2 motion) {
+        Motion.x += motion.x;
+        Motion.y += motion.y;
     }
 
     public void SetMotionX(float x) {
         Motion.x = x;
     }
 
-    public void SetMotionY(float x) {
-        Motion.x = x;
+    public void SetMotionY(float y) {
+        Motion.y = y;
     }
 
     public void ApplyGravity(float factor = 1.0F) {
@@ -26,19 +38,42 @@ public abstract class CharacterController : KinematicBody2D {
 
     public sealed override void _PhysicsProcess(float delta) {
         Delta = delta;
+        _frame++;
         _lastMotion = Motion;
         PhysicsProcess();
         if (CharacterConfig.DEBUG_MOTION && Motion != _lastMotion) {
-            GD.Print("Motion:"+Motion+" (diff "+(_lastMotion-Motion)+")");
+            GD.Print("Motion:" + Motion + " (diff " + (_lastMotion - Motion) + ")");
         }
     }
 
     protected abstract void PhysicsProcess();
 
+    /**
+     *
+     */
+    public void AddLateralMovement(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
+        float changeDirectionFactor) {
+        if (xInput != 0) {
+            var directionChanged = Math.Sign(Motion.x) != Math.Sign(xInput);
+            if (directionChanged) {
+                SetMotionX((Motion.x * changeDirectionFactor) + xInput * acceleration * Delta);
+            } else {
+                SetMotionX(Motion.x + xInput * acceleration * Delta);
+            }
+        } else {
+            if (Mathf.Abs(Motion.x) < stopIfSpeedIsLessThan) {
+                SetMotionX(0);
+            } else {
+                SetMotionX(Motion.x * friction);
+            }
+        }
+    }
+
     public void LimitMotion(float maxSpeedFactor = 1.0F) {
         var realMaxSpeed = CharacterConfig.MAX_SPEED * maxSpeedFactor;
         Motion.x = Mathf.Clamp(Motion.x, -realMaxSpeed, realMaxSpeed);
-        Motion.y = Mathf.Min(Motion.y, CharacterConfig.MAX_FALLING_SPEED);  //  avoid gravity continue forever in free fall
+        Motion.y = Mathf.Min(Motion.y,
+            CharacterConfig.MAX_FALLING_SPEED); //  avoid gravity continue forever in free fall
     }
 
     public void MoveSnapping() {
@@ -56,6 +91,7 @@ public abstract class CharacterController : KinematicBody2D {
             CharacterConfig.FLOOR, stopOnSlopes);
         Motion.y = remain.y; // this line stops the gravity accumulation
         // motion.x = remain.x:  // WARNING!! this line should be always commented, player can't climb slopes with it!!
+        _dirtyGroundCollisions = true;
     }
 
     public void Slide() {
@@ -67,7 +103,7 @@ public abstract class CharacterController : KinematicBody2D {
         var stopOnSlopes = true;
         var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero, CharacterConfig.FLOOR, stopOnSlopes);
         Motion.y = remain.y; // this line stops the gravity accumulation
-		/*
+        /*
         inertia false = se mantiene el remain.x = al chocar con la cabeza pierde toda la inercia lateral que tenia y se va para abajo. Y si choca al subir y se
         se sube, pierde tambien la inercia teniendo que alecerar desde 0
 
@@ -80,8 +116,59 @@ public abstract class CharacterController : KinematicBody2D {
         if (!inertia) {
             Motion.x = remain.x;
         }
-
+        _dirtyGroundCollisions = true;
     }
+
+    private bool _dirtyGroundCollisions = true;
+    private bool _isOnSlope = false;
+    private bool _isOnMovingPlatform = false;
+    private bool _isOnFallingPlatform = false;
+    private bool _isOnSlopeStairs = false;
+
+    public bool IsOnSlope() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlope;
+    public bool IsOnMovingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnMovingPlatform;
+    public bool IsOnFallingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnFallingPlatform;
+    public bool IsOnSlopeStairs() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlopeStairs;
+    public Vector2 ColliderNormal = Vector2.Zero;
+
+    public CharacterController UpdateFloorCollisions() {
+        _dirtyGroundCollisions = false;
+        _isOnSlope = false;
+        _isOnMovingPlatform = false;
+        _isOnFallingPlatform = false;
+        _isOnSlopeStairs = false;
+        ColliderNormal = Vector2.Zero;
+        if (!IsOnFloor()) return this;
+        if (GetSlideCount() == 0) {
+            GD.Print("Ground but no colliders??");
+        }
+
+        var slideCount = GetSlideCount();
+        for (var i = 0; i < slideCount; i++) {
+            var collision = GetSlideCollision(i);
+            ColliderNormal = collision.Normal;
+
+            // This is like a callback: if the objet has method collide_with, it's called
+            // if (collision.Collider.has_method("collide_with"):
+            // collision.collider.collide_with(self, collision)
+
+            if (Mathf.Abs(collision.Normal.y) < 1) {
+                _isOnSlope = true;
+            }
+
+            // if (collision.Collider is KinematicBody2D && PlatformManager.is_a_moving_platform(collision.collider):
+            // is_on_moving_platform = true
+
+            // if collision.collider is PhysicsBody2D && PlatformManager.is_a_falling_platform(collision.collider):
+            // is_on_falling_platform = true
+
+            // if collision.collider is PhysicsBody2D && PlatformManager.is_a_slope_stairs(collision.collider):
+            // is_on_slope_stairs = true
+        }
+        Update();  // this allow to call to _draw() with the colliderNormal updated
+        return this;
+    }
+
     public bool HasFloorLateralMovement() {
         return GetFloorVelocity().x != 0;
     }

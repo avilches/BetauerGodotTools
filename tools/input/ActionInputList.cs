@@ -1,33 +1,33 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Veronenger.tools.input {
     public class ActionInputList : IActionUpdate {
-        private List<IActionUpdate> actions = new List<IActionUpdate>();
-        private readonly PlayerController _playerController;
+        private readonly List<IActionUpdate> _actions = new List<IActionUpdate>();
+        private readonly PlayerActions _playerActions;
+        private readonly int _deviceId;
 
-        public ActionInputList(PlayerController playerController) {
-            _playerController = playerController;
+        public ActionInputList(PlayerActions playerActions, int deviceId = -1) {
+            _playerActions = playerActions;
+            _deviceId = deviceId;
         }
 
         public DirectionInput AddDirectionalMotion(string name) {
-            var actionState = new DirectionInput(name, _playerController);
-            actions.Add(actionState);
+            var actionState = new DirectionInput(name, _playerActions, _deviceId);
+            _actions.Add(actionState);
             return actionState;
         }
 
         public ActionState AddAction(string name) {
-            var actionState = new ActionState(name, _playerController);
-            actions.Add(actionState);
+            var actionState = new ActionState(name, _playerActions, _deviceId);
+            _actions.Add(actionState);
             return actionState;
         }
 
         public override bool Update(EventWrapper w) {
-            return actions.Any(actionInput => actionInput.Update(w));
+            return _actions.Any(actionInput => actionInput.Update(w));
         }
 
         public override void ClearJustState() {
-            actions.ForEach(actionInput => actionInput.ClearJustState());
+            _actions.ForEach(actionInput => actionInput.ClearJustState());
         }
     }
-}

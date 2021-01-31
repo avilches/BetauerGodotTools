@@ -9,19 +9,21 @@ public class ActionState: IActionUpdate {
     public bool JustPressed { get; private set; } = false;
     public bool JustReleased { get; private set; } = false;
 
-    private readonly PlayerController _playerController;
+    private readonly PlayerActions _playerActions;
+    private readonly int _deviceId = -1;
     public string Name;
 
-    public ActionState(string name, PlayerController playerController) {
+    public ActionState(string name, PlayerActions playerActions, int deviceId) {
         Name = name;
-        _playerController = playerController;
+        _playerActions = playerActions;
+        _deviceId = deviceId;
     }
 
     public override bool Update(EventWrapper w) {
         if (!Enabled) return false;
-        if (w.IsKey(_keys) || w.IsButton(_buttons)) {
-            _playerController.IsUsingKeyboard = true;
-            if (w.IsPressed()) {
+        if (w.IsKey(_keys) || w.IsButton(_buttons, _deviceId)) {
+            _playerActions.IsUsingKeyboard = w.IsAnyKey();
+            if (w.Pressed) {
                 JustPressed = !Pressed;
                 Pressed = true;
                 JustReleased = false;

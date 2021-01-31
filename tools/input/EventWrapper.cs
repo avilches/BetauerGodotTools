@@ -9,6 +9,27 @@ public class EventWrapper {
         this.@event = @event;
     }
 
+    public int Device => @event.Device;
+    public int Button => @event is InputEventJoypadButton button ? button.ButtonIndex : -1;
+    public bool Pressed => @event.IsPressed();
+    public float Pressure => @event is InputEventJoypadButton button ? button.Pressure : -1;
+
+    public int Key => @event is InputEventKey key ? (int)key.Scancode : -1;
+
+    public string KeyString => OS.GetScancodeString((uint)Key);
+
+    public float Axis => @event is InputEventJoypadMotion joypadMotion ? joypadMotion.Axis : -1;
+    public float AxisValue => @event is InputEventJoypadMotion joypadMotion ? joypadMotion.AxisValue : 0;
+    public bool Echo => @event is InputEventKey key && key.Echo;
+
+    public bool IsMotion() {
+        return @event is InputEventJoypadMotion;
+    }
+
+    public bool IsDevice(int deviceId) {
+        return @event.Device == deviceId;
+    }
+
     public bool IsAxis(int axis, int deviceId = -1) {
         if (@event is InputEventJoypadMotion motion) {
             if (deviceId == -1 || motion.Device == deviceId) {
@@ -18,10 +39,6 @@ public class EventWrapper {
             }
         }
         return false;
-    }
-
-    public float GetAxisValue() {
-        return ((InputEventJoypadMotion) @event).AxisValue;
     }
 
     public float GetStrength(float deadZone = 0.5f) {
@@ -42,16 +59,16 @@ public class EventWrapper {
         throw new Exception("Strength not supported for " + @event.GetType().Name + ":" + @event.AsText());
     }
 
+    public bool IsAnyButton(int deviceId = -1) {
+        return (deviceId == -1 || @event.Device == deviceId) && @event is InputEventJoypadButton;
+    }
+
     public bool IsButton(int button, int deviceId = -1) {
         return (deviceId == -1 || @event.Device == deviceId) && @event is InputEventJoypadButton b && b.ButtonIndex == button;
     }
 
     public bool IsButton(ISet<int> buttons, int deviceId = -1) {
         return (deviceId == -1 || @event.Device == deviceId) && @event is InputEventJoypadButton b && buttons.Contains(b.ButtonIndex);
-    }
-
-    public bool IsPressed() {
-        return @event.IsPressed();
     }
 
     public bool IsButtonPressed(JoystickList button, int deviceId = -1) {
@@ -74,6 +91,10 @@ public class EventWrapper {
             return !b.Pressed;
         }
         return false;
+    }
+
+    public bool IsAnyKey() {
+        return @event is InputEventKey;
     }
 
     public bool IsKey(KeyList k) {

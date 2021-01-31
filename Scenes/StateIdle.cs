@@ -1,27 +1,35 @@
 using Godot;
 using System;
 
-public class StateIdle : PlayerState {
-    public StateIdle(PlayerController playerController) : base(playerController) {
+public class StateIdle : StateGround {
+    public StateIdle(PlayerController player) : base(player) {
+    }
+
+    public override void Start() {
+        Player.AnimateIdle();
     }
 
     public override void Execute() {
-        if (XInput != 0 && _playerController.IsOnFloor()) {
-            _playerController.GoToRunState();
+        if (!Player.IsOnFloor()) {
+            GoToFallState();
             return;
         }
-        var mine = (Jump.JustPressed+" "+Jump.JustReleased+" "+Jump.Pressed);
-        var godot = (Input.IsActionJustPressed("ui_select")+" "+Input.IsActionJustReleased("ui_select")+" "+Input.IsActionPressed("ui_select"));
-        if (!mine.Equals(godot)) {
-            GD.Print("Mine:"+mine);
-            GD.Print("Godo:"+godot);
+
+        if (XInput != 0) {
+            GoToRunState();
+            return;
         }
 
-        // Fall
-        _playerController.ApplyGravity();
-        _playerController.LimitMotion();
-        _playerController.Slide();
+        if (Jump.Pressed) {
+            GoToJumpState();
+            return;
+        }
+
+        // Suelo + no salto + sin movimiento. Empujamos hacia abajo
+
+        Player.ApplyGravity();
+        Player.LimitMotion();
+        Player.MoveSnapping();
 
     }
-        
 }

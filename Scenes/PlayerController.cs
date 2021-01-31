@@ -1,108 +1,117 @@
 using System;
-using System.Collections.Generic;
 using Godot;
-using Veronenger.tools.input;
 
 public class PlayerController : CharacterController {
-    private StateIdle idle;
-    private StateRun run;
-    public bool IsUsingKeyboard = true;
-    public readonly DirectionInput lateralMotion;
-    public PlayerConfig playerConfig => (PlayerConfig) CharacterConfig;
+    public PlayerConfig PlayerConfig => (PlayerConfig) CharacterConfig;
     private readonly StateMachine _stateMachine;
-    private readonly ActionInputList _actionInputList;
+    public readonly PlayerActions PlayerActions;
+    private AnimationPlayer _animationPlayer;
+    private Sprite _sprite;
 
 
-    public readonly ActionState Jump;
-    public readonly ActionState Attack;
     public PlayerController() {
         CharacterConfig = new PlayerConfig();
+        PlayerActions = new PlayerActions(-1);
 
         // State Machine
-        _stateMachine = new StateMachine(playerConfig);
-        idle = new StateIdle(this);
-        run = new StateRun(this);
+        _stateMachine = new StateMachine(PlayerConfig, this)
+            .AddState(new StateIdle(this))
+            .AddState(new StateRun(this))
+            .AddState(new StateFall(this))
+            .AddState(new StateJump(this));
 
         // Mapping
-        _actionInputList = new ActionInputList(this);
-        Jump = _actionInputList.AddAction("Jump");
-        Attack = _actionInputList.AddAction("Attack");
-        lateralMotion = _actionInputList.AddDirectionalMotion("Lateral");
-        ConfigureMapping();
+        PlayerActions.ConfigureMapping();
     }
 
-
-    public void ConfigureMapping() {
-        // TODO: subscribe to signal with the mapping preferences on load or on change
-        lateralMotion.ConfigureDefaults();
-        lateralMotion.AxisDeadZone = 0.5f;
-
-        Jump.Configure(KeyList.Space, JoystickList.XboxA);
-        Attack.Configure(KeyList.C, JoystickList.XboxX);
-    }
 
     public override void _EnterTree() {
-        _stateMachine.SetNextState(idle);
+        _sprite = GetNode<Sprite>("Sprite");
+        _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
+        _stateMachine.SetNextState(typeof(StateIdle));
     }
 
     protected override void PhysicsProcess() {
         _stateMachine.Execute();
-        _actionInputList.ClearJustState();
+        PlayerActions.ClearJustState();
     }
 
     private EventWrapper w = new EventWrapper(null);
 
     public override void _UnhandledInput(InputEvent @event) {
-        if (@event is InputEventJoypadMotion joypadMotion) {
-            // GD.Print("Axis " + joypadMotion.Device + "[" + joypadMotion.Axis + "]:" + joypadMotion.AxisValue+ " "+joypadMotion.IsActionType());
-        } else if (@event is InputEventJoypadButton joypadButton) {
-            GD.Print("Button " + joypadButton.Device + "[" + joypadButton.ButtonIndex + "]:" + joypadButton.Pressed +
-                     " " + joypadButton.Pressure);
-        } else if (@event is InputEventKey eventKey) {
-            // GD.Print(eventKey.GetType().FullName+" - "+eventKey.IsActionPressed("ui_right", true)+":"+eventKey.IsActionReleased("ui_right")+":"+eventKey.GetActionStrength("ui_right") + " / "+eventKey.IsActionPressed("ui_left", true) +":"+eventKey.IsActionReleased("ui_left") +":"+eventKey.GetActionStrength("ui_left"));
-            // GD.Print(eventKey.Pressed+"/"+eventKey.Echo+" "+eventKey.Scancode+" "+eventKey.IsAction());
-        } else {
-            // GD.Print(@event.Device + "[" + @event.AsText() + "] pressed:" + @event.IsPressed() + " type:" +
-            // @event.IsActionType());
-        }
-
-        // if (eventKey.Pressed && eventKey.Scancode == (int) KeyList.Escape)
-        // GetTree().Quit();
         w.@event = @event;
-        if (!_actionInputList.Update(w)) {
+        if (!PlayerActions.Update(w)) {
             _stateMachine._UnhandledInput(@event);
         }
+
+        // TestJumpActions();
     }
 
+    private void TestJumpActions() {
 
-    public void GoToRunState() {
-        // Change to run is immediate
-        _stateMachine.ChangeStateTo(run);
-    }
+        if (w.IsMotion()) {
+            GD.Print("Axis " + w.Device + "[" + w.Axis+ "]:" + w.GetStrength()+" ("+w.AxisValue+")");
+        } else if (w.IsAnyButton()) {
+            GD.Print("Button " + w.Device + "[" + w.Button + "]:" + w.Pressed +" ("+w.Pressure+")");
+        } else if (w.IsAnyKey()) {
+            GD.Print("Key "+w.KeyString + " [" + w.Key + "] " + w.Pressed + "/" + w.Echo);
+        } else {
 
-    public void GoToIdleState() {
-        // Idle is deferred to the next frame
-        _stateMachine.SetNextState(idle);
-    }
-
-    public void PrintActionMap() {
-        // foreach (string actionName in InputMap.GetActions()) {
-        // InputMap.EraseAction(actionName);
-        // }
-        foreach (string actionName in InputMap.GetActions()) {
-            foreach (InputEvent action in InputMap.GetActionList(actionName)) {
-                var message = actionName + ">" + action.GetType() + ": " + action.Device + " " + action.AsText() +
-                              " > ";
-                if (action is InputEventKey k) {
-                    message += k.Scancode + "(" + OS.GetScancodeString(k.Scancode) + ")";
-                } else if (action is InputEventJoypadButton b) {
-                    message += b.ButtonIndex;
-                } else if (action is InputEventJoypadMotion m) {
-                    message += m.Axis;
-                }
-
-                GD.Print(message);
-            }
         }
+
+        /**
+         * Aqui se comprueba que el JustPressed, Pressed y JustReleased de las acciones del PlayerActions coinciden
+         * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
+         */
+        var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
+                   PlayerActions.Jump.Pressed;
+        var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
+                    Input.IsActionPressed("ui_select");
+        if (!mine.Equals(godot)) {
+            GD.Print("Mine:" + mine);
+            GD.Print("Godo:" + godot);
+        }
+    }
+
+    public void ChangeStateTo(Type newStateType) {
+        _stateMachine.ChangeStateTo(newStateType);
+    }
+
+    public void SetNextState(Type nextStateType) {
+        _stateMachine.SetNextState(nextStateType);
+    }
+
+    public void Flip(float XInput) {
+        if (XInput == 0) return;
+        Flip(XInput < 0);
+    }
+
+    public void Flip(bool left) {
+        _sprite.FlipH = left;
+    }
+
+    private string _currentAnimation = null;
+    private const string JUMP_ANIMATION = "Jump";
+    private const string IDLE_ANIMATION = "Idle";
+    private const string RUN_ANIMATION = "Run";
+    private const string FALL_ANIMATION = "Fall";
+    public void AnimateJump() {
+        if (_currentAnimation == JUMP_ANIMATION) return;
+        _animationPlayer.Play(JUMP_ANIMATION);
+    }
+
+    public void AnimateIdle() {
+        if (_currentAnimation == IDLE_ANIMATION) return;
+        _animationPlayer.Play(IDLE_ANIMATION);
+    }
+
+    public void AnimateRun() {
+        if (_currentAnimation == RUN_ANIMATION) return;
+        _animationPlayer.Play(RUN_ANIMATION);
+    }
+
+    public void AnimateFall() {
+        if (_currentAnimation == FALL_ANIMATION) return;
+        _animationPlayer.Play(FALL_ANIMATION);
     }
 }

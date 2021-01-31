@@ -1,29 +1,26 @@
 using Godot;
 using System;
 
-public class StateJump : StateAir {
-    public StateJump(PlayerController player) : base(player) {
+public class StateFall : StateAir {
+    public StateFall(PlayerController player) : base(player) {
     }
 
-    private float time_jump_pressed = 0;
-    private float jumps = 0;
-
     public override void Start() {
-        time_jump_pressed = 0;
-        jumps = 0;
-        Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
-        Player.AnimateJump();
+        if (Player.IsOnFloor()) {
+            throw new Exception("Invalid change!");
+        }
     }
 
     public override void Execute() {
-        if (Motion.y > 0) {
-            GoToFallState();
-            return;
+        if (Motion.y > PlayerConfig.START_FALLING_SPEED) {
+            Player.AnimateFall();
         }
 
         Player.AddLateralMovement(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
             PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
         Player.Flip(XInput);
+
+        bool wasOnFloor = Player.IsOnFloor();
         Player.ApplyGravity();
         Player.LimitMotion();
         Player.Slide();
