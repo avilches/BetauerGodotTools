@@ -25,7 +25,7 @@ namespace Betauer.Tools.Input {
         }
 
         public override bool Update(EventWrapper w) {
-            return _actions.Any(actionInput => actionInput.Update(w));
+            return _actions.Any(actionInput => actionInput.Enabled && actionInput.Update(w));
         }
 
         public override void ClearJustState() {
