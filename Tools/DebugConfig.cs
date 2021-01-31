@@ -1,4 +1,4 @@
-namespace Betauer.Tools.Character {
+namespace Betauer.Tools {
     public class DebugConfig {
         // CONFIG: debug
         public bool DEBUG_STATE_FLOW = false;

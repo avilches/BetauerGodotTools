@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Tools.Character;
 using Godot;
 
 namespace Betauer.Tools.Statemachine {
