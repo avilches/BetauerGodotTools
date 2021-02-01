@@ -33,7 +33,7 @@ namespace Betauer.Characters.Player {
 
         protected void GoToRunState() {
             // Change to run is immediate
-            Player.ChangeStateTo(typeof(GroundStateRun));
+            Player.SetNextState(typeof(GroundStateRun), true);
         }
 
         protected void GoToIdleState() {
@@ -42,13 +42,13 @@ namespace Betauer.Characters.Player {
         }
 
         protected void GoToFallState() {
-            // Idle is deferred to the next frame
+            // fall next frame
             Player.SetNextState(typeof(AirStateFall));
         }
 
         protected void GoToJumpState() {
-            // Idle is deferred to the next frame
-            Player.SetNextState(typeof(AirStateJump));
+            // Jump is immediate
+            Player.SetNextState(typeof(AirStateJump), true);
         }
 
     }

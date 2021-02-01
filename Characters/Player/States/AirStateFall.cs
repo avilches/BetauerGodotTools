@@ -5,13 +5,20 @@ namespace Betauer.Characters.Player.States {
         public AirStateFall(PlayerController player) : base(player) {
         }
 
+        private float _timeLastJump = -1;
         public override void Start() {
-            if (Player.IsOnFloor()) {
-                throw new Exception("Invalid change!");
-            }
+            _timeLastJump = -1;
         }
 
         public override void Execute() {
+            if (_timeLastJump >= 0) {
+                _timeLastJump += Delta;
+            }
+
+            if (Jump.JustPressed) {
+                _timeLastJump = 0;
+            }
+
             if (Motion.y > PlayerConfig.START_FALLING_SPEED) {
                 Player.AnimateFall();
             }
@@ -25,7 +32,11 @@ namespace Betauer.Characters.Player.States {
             Player.LimitMotion();
             Player.Slide();
 
-            CheckLanding();
+            if (CheckLanding()) {
+                if (_timeLastJump > 0 && _timeLastJump <= PlayerConfig.JUMP_HELPER_TIME) {
+                    GoToJumpState();
+                }
+            }
         }
     }
 }

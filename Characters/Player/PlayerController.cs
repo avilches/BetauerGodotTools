@@ -49,41 +49,37 @@ namespace Betauer.Characters.Player {
                 _stateMachine._UnhandledInput(@event);
             }
 
-            // TestJumpActions();
+            TestJumpActions();
         }
 
         private void TestJumpActions() {
-
-            if (w.IsMotion()) {
-                GD.Print("Axis " + w.Device + "[" + w.Axis+ "]:" + w.GetStrength()+" ("+w.AxisValue+")");
-            } else if (w.IsAnyButton()) {
-                GD.Print("Button " + w.Device + "[" + w.Button + "]:" + w.Pressed +" ("+w.Pressure+")");
-            } else if (w.IsAnyKey()) {
-                GD.Print("Key "+w.KeyString + " [" + w.Key + "] " + w.Pressed + "/" + w.Echo);
-            } else {
-
+            if (PlayerConfig.DEBUG_INPUT_EVENTS) {
+                if (w.IsMotion()) {
+                    GD.Print("Axis " + w.Device + "[" + w.Axis + "]:" + w.GetStrength() + " (" + w.AxisValue + ")");
+                } else if (w.IsAnyButton()) {
+                    GD.Print("Button " + w.Device + "[" + w.Button + "]:" + w.Pressed + " (" + w.Pressure + ")");
+                } else if (w.IsAnyKey()) {
+                    GD.Print("Key " + w.KeyString + " [" + w.Key + "] " + w.Pressed + "/" + w.Echo);
+                } else {
+                }
             }
 
             /**
-         * Aqui se comprueba que el JustPressed, Pressed y JustReleased de las acciones del PlayerActions coinciden
-         * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
-         */
-            var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
-                       PlayerActions.Jump.Pressed;
-            var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
-                        Input.IsActionPressed("ui_select");
-            if (!mine.Equals(godot)) {
-                GD.Print("Mine:" + mine);
-                GD.Print("Godo:" + godot);
-            }
+            * Aqui se comprueba que el JustPressed, Pressed y JustReleased de las acciones del PlayerActions coinciden
+            * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
+            */
+            // var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
+                       // PlayerActions.Jump.Pressed;
+            // var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
+                        // Input.IsActionPressed("ui_select");
+            // if (!mine.Equals(godot)) {
+                // GD.Print("Mine:" + mine);
+                // GD.Print("Godo:" + godot);
+            // }
         }
 
-        public void ChangeStateTo(Type newStateType) {
-            _stateMachine.ChangeStateTo(newStateType);
-        }
-
-        public void SetNextState(Type nextStateType) {
-            _stateMachine.SetNextState(nextStateType);
+        public void SetNextState(Type nextStateType, bool immediate = false) {
+            _stateMachine.SetNextState(nextStateType, immediate);
         }
 
         public void Flip(float XInput) {
@@ -100,6 +96,7 @@ namespace Betauer.Characters.Player {
         private const string IDLE_ANIMATION = "Idle";
         private const string RUN_ANIMATION = "Run";
         private const string FALL_ANIMATION = "Fall";
+
         public void AnimateJump() {
             if (_currentAnimation == JUMP_ANIMATION) return;
             _animationPlayer.Play(JUMP_ANIMATION);

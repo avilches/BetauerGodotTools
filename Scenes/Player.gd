@@ -53,7 +53,7 @@ func _ready():
 
 	configure_falling_platforms()
 	configure_slope_stairs()
-	
+
 	GameManager.connect("death", self, "on_death")
 
 
@@ -64,6 +64,7 @@ func on_death(_cause):
 	#Engine.set_target_fps(30)
 	
 
+var jump_started:float = 0
 func jump(delta):
 	if is_on_floor():
 		jumps = 0
@@ -72,14 +73,16 @@ func jump(delta):
 	if Input.is_action_just_pressed("ui_select"):
 		# jump starts
 		time_jump_pressed = 0
+		jump_started = OS.get_ticks_msec()
 	elif time_jump_pressed != -1:
 		# is jumping
 		time_jump_pressed += delta
 		
 	if canJump:
+		var elapsed:float = (OS.get_ticks_msec() - jump_started) / 1000.0
 		if time_jump_pressed != -1 && time_jump_pressed <= C.JUMP_HELPER_TIME:
 			if C.DEBUG_JUMP:
-				if (time_jump_pressed > 0): print("Jump helper: ", time_jump_pressed, "s (Config:", C.JUMP_HELPER_TIME,")")
+				if (time_jump_pressed > 0): print("Jump helper: pressed in ", time_jump_pressed, "s (real:",elapsed,") Config:", C.JUMP_HELPER_TIME,")")
 				print("Jump start:", -C.JUMP_FORCE)
 			time_jump_pressed = -1
 			if C.SQUEEZE_JUMP_TIME != 0: sprite.scale = C.SQUEEZE_JUMP_SCALE
