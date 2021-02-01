@@ -1,6 +1,6 @@
 namespace Betauer.Tools {
     public class DebugConfig {
-        // CONFIG: debug
+        public bool DEBUG_INPUT_EVENTS = false;
         public bool DEBUG_STATE_FLOW = false;
         public bool DEBUG_STATE_CHANGE = false;
         public bool DEBUG_MAX_SPEED = false;

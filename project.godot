@@ -100,7 +100,7 @@ config/icon="res://icon.png"
 
 GameManager="*res://GameManager.gd"
 AutoloadIntegerResolution="*res://Tools/AutoloadIntegerResolution.gd"
-PlatformManager="*res://Tools/platforms/PlatformManager.gd"
+PlatformManager="*res://Tools/Platforms/PlatformManager.gd"
 
 [display]
 

@@ -9,6 +9,7 @@ namespace Betauer.Tools.Statemachine {
 
         private State _currentState;
         private State _nextState;
+        private bool _nextStateImmediate;
         private readonly IFrameAware _frameAware;
 
         public StateMachine(DebugConfig debugConfig, IFrameAware frameAware) {
@@ -23,35 +24,49 @@ namespace Betauer.Tools.Statemachine {
             return this;
         }
 
-        public void SetNextState(Type nextStateType) {
+        public void SetNextState(Type nextStateType, bool immediate = false) {
             var nextState = _states[nextStateType];
-            DebugStateFlow("#"+Frame+": "+_currentState?.GetType().Name+" | SetNextState "+nextState.GetType().Name+"");
-            _nextState = nextState;
-        }
-
-        public void ChangeStateTo(Type newStateType) {
-            var newState = _states[newStateType];
-
-            if (_debugConfig.DEBUG_STATE_CHANGE || _debugConfig.DEBUG_STATE_FLOW) {
-                GD.Print("#" + Frame + ": " + _currentState?.GetType().Name + " > " +
-                         newState.GetType().Name);
+            if (_nextState == null) {
+                DebugStateFlow("#" + Frame + ": " + _currentState?.GetType().Name + " | Next State = " +
+                               nextState.GetType().Name + (immediate ? " (immediate)" : " (next frame)"));
+            } else {
+                DebugStateFlow("#" + Frame + ": " + _currentState?.GetType().Name + " | Next State = " +
+                               nextState.GetType().Name + (immediate ? " (immediate)" : " (next frame)")+" (replaced old " +
+                                   _nextState.GetType().Name+")");
             }
 
-            CallEnd(_currentState);
-            _currentState = newState;
-            CallStart(_currentState);
-            _currentState.Execute();
+            _nextState = nextState;
+            _nextStateImmediate = immediate;
         }
 
         public void Execute() {
-            if (_nextState != null) {
-                DebugStateFlow("#"+Frame+": "+_currentState?.GetType().Name+" | _PhysicsProcess(). Detected nextState "+_nextState.GetType().Name);
-                var nextState = _nextState;
-                _nextState = null;
-                ChangeStateTo(nextState.GetType());
-            } else {
-                _currentState?.Execute();
+            var stateChanges = 0;
+            CheckNextState(_nextState);
+            do {
+                ExecuteState();
+                stateChanges++;
+                if (stateChanges > 10) {
+                    throw new Exception("State has been changed too many times in the same frame: " + stateChanges);
+                }
+            } while (CheckNextState(_nextState != null && _nextStateImmediate ? _nextState : null));
+        }
+
+        private bool CheckNextState(State newState) {
+            if (newState == null) return false;
+            _nextState = null;
+
+            if (_debugConfig.DEBUG_STATE_CHANGE || _debugConfig.DEBUG_STATE_FLOW) {
+                GD.Print("#" + Frame + ": " + _currentState?.GetType().Name + " > " + newState.GetType().Name);
             }
+
+            EndState(_currentState);
+            _currentState = newState;
+            StartState(_currentState);
+            return true;
+        }
+
+        private void ExecuteState() {
+            _currentState?.Execute();
         }
 
         public void _UnhandledInput(InputEvent @event) {
@@ -63,17 +78,16 @@ namespace Betauer.Tools.Statemachine {
             GD.Print(message);
         }
 
-        private void CallStart(State state) {
+        private void StartState(State state) {
             if (state == null) return;
             DebugStateFlow("#" + Frame + ": " + state.GetType().Name + ".Start()");
             state.Start();
         }
 
-        private void CallEnd(State state) {
+        private void EndState(State state) {
             if (state == null) return;
             DebugStateFlow("#" + Frame + ": " + state.GetType().Name + ".End()");
             state.End();
         }
-
     }
 }

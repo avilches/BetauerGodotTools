@@ -45,7 +45,6 @@ namespace Betauer.Tools.Input {
         public float GetStrength(float deadZone = 0.5f) {
             if (@event is InputEventJoypadMotion motion) {
                 // TODO: Normalize with deadzone
-                GD.Print(motion.AxisValue+ " "+(Mathf.Abs(motion.AxisValue) > deadZone ? "SI":"Ignored"));
                 if (Mathf.Abs(motion.AxisValue) > deadZone) {
                     return motion.AxisValue;
                 }

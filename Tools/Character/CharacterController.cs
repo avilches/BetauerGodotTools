@@ -137,9 +137,9 @@ namespace Betauer.Tools.Character {
             _isOnSlopeStairs = false;
             ColliderNormal = Vector2.Zero;
             if (!IsOnFloor()) return this;
-            if (GetSlideCount() == 0) {
-                GD.Print("Ground but no colliders??");
-            }
+            // if (GetSlideCount() == 0) {
+                // GD.Print("Ground but no colliders??");
+            // }
 
             var slideCount = GetSlideCount();
             for (var i = 0; i < slideCount; i++) {
