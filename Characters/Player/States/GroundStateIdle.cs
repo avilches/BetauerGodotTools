@@ -1,3 +1,5 @@
+using Betauer.Tools.Platforms;
+
 namespace Betauer.Characters.Player.States {
     public class GroundStateIdle : GroundState {
         public GroundStateIdle(PlayerController player) : base(player) {
@@ -19,7 +21,11 @@ namespace Betauer.Characters.Player.States {
             }
 
             if (Jump.JustPressed) {
-                GoToJumpState();
+                if (IsDown && Player.IsOnFallingPlatform()) {
+                    PlatformManager.BodyFallFromPlatform(Player);
+                } else {
+                    GoToJumpState();
+                }
                 return;
             }
 

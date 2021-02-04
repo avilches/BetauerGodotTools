@@ -8,7 +8,7 @@ namespace Betauer.Characters.Player {
 
 		public PlayerConfig() {
 			// DEBUG_INPUT_EVENTS = true;
-			DEBUG_STATE_FLOW = true;
+			// DEBUG_STATE_FLOW = true;
 			// DEBUG_STATE_CHANGE = true;
 			// DEBUG_MAX_SPEED = true;
 			// DEBUG_ACCELERATION = true;

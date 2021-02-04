@@ -1,3 +1,5 @@
+using Betauer.Tools.Platforms;
+
 namespace Betauer.Characters.Player.States {
     public abstract class AirState : PlayerState {
         public AirState(PlayerController player) : base(player) {
@@ -5,16 +7,9 @@ namespace Betauer.Characters.Player.States {
 
         public bool CheckLanding() {
             if (!Player.IsOnFloor()) return false;
-            // Just grounded
-            /*
-                      if C.SQUEEZE_LAND_TIME != 0: sprite.scale = C.SQUEEZE_LAND_SCALE
-                      isJumping = false
-                      stop_falling_from_platform()
-                      if is_on_slope and x_input == 0:
-                      motion.x = 0
-          #			motion.y = 0
 
-          */
+            PlatformManager.body_stop_falling_from_platform(Player);
+
             // Debug("Just grounded!");
             if (XInput == 0) {
                 if (Player.IsOnSlope()) {

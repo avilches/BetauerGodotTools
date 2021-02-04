@@ -89,7 +89,7 @@ func disable_slope_stairs():
 
 func fall_from_platform():
 	if is_on_falling_platform:
-		PlatformManager.body_fall_from_platform(self)
+		PlatformManager.BodyFallFromPlatform(self)
 		debug_player_masks()
 
 func stop_falling_from_platform():
@@ -115,13 +115,13 @@ func update_ground_colliders():
 		if abs(collision.normal.y) < 1:
 			is_on_slope = true
 		
-		if collision.collider is KinematicBody2D && PlatformManager.is_a_moving_platform(collision.collider):
+		if collision.collider is KinematicBody2D && PlatformManager.IsMovingPlatform(collision.collider):
 			is_on_moving_platform = true
 		
-		if collision.collider is PhysicsBody2D && PlatformManager.is_a_falling_platform(collision.collider):
+		if collision.collider is PhysicsBody2D && PlatformManager.IsFallingPlatform(collision.collider):
 			is_on_falling_platform = true
 
-		if collision.collider is PhysicsBody2D && PlatformManager.is_a_slope_stairs(collision.collider):
+		if collision.collider is PhysicsBody2D && PlatformManager.IsSlopeStairs(collision.collider):
 			is_on_slope_stairs = true
 	update() # this allow to call to _draw() with the colliderNormal updated
 	

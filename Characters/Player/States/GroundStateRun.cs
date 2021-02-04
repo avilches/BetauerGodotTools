@@ -1,3 +1,5 @@
+using Betauer.Tools.Platforms;
+
 namespace Betauer.Characters.Player.States {
     public class GroundStateRun : GroundState {
         public GroundStateRun(PlayerController player) : base(player) {
@@ -18,12 +20,32 @@ namespace Betauer.Characters.Player.States {
                 return;
             }
 
+            // TODO: create bool HasJumped() along with the StateIdle
             if (Jump.JustPressed) {
-                GoToJumpState();
+                if (IsDown && Player.IsOnFallingPlatform()) {
+                    PlatformManager.BodyFallFromPlatform(Player);
+                } else {
+                    GoToJumpState();
+                }
                 return;
             }
 
             // Suelo + no salto + movimiento/inercia. Movemos lateralmente y empujamos hacia abajo
+
+
+            if (Player.IsOnSlopeStairsDown()) {
+                if (IsUp) {
+                    Player.enable_slope_stairs();
+                } else {
+                    Player.disable_slope_stairs();
+                }
+            } else if (Player.IsOnSlopeStairsUp()) {
+                if (IsDown) {
+                    Player.enable_slope_stairs();
+                } else {
+                    Player.disable_slope_stairs();
+                }
+            }
 
             Player.AddLateralMovement(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);

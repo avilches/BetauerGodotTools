@@ -4,5 +4,5 @@ func _ready():
 	PlatformManager.register_slope_stairs_cover(self)
 	
 #func _process(delta):
-#	$Label.text = str(PlatformManager.is_a_slope_stairs(self))
+#	$Label.text = str(PlatformManager.IsSlopeStairs(self))
 

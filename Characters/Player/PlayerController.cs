@@ -2,6 +2,7 @@ using System;
 using Betauer.Characters.Player.States;
 using Betauer.Tools.Character;
 using Betauer.Tools.Input;
+using Betauer.Tools.Platforms;
 using Betauer.Tools.Statemachine;
 using Godot;
 
@@ -34,6 +35,83 @@ namespace Betauer.Characters.Player {
             _sprite = GetNode<Sprite>("Sprite");
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
+
+            PlatformManager.ConfigureBodyCollisions(this);
+            PlatformManager.subscribe_platform_out(this, nameof(subscribe_platform_out));
+
+            // PlatformManager.on_slope_stairs_down_flag(self, "is_on_slope_stairs_down")
+            // PlatformManager.on_slope_stairs_up_flag(self, "is_on_slope_stairs_up")
+            PlatformManager.subscribe_slope_stairs_up(this, nameof(_slope_stairs_up_in), nameof(_slope_stairs_up_out));
+            PlatformManager.subscribe_slope_stairs_down(this, nameof(_slope_stairs_down_in), nameof(_slope_stairs_down_out));
+            PlatformManager.subscribe_slope_stairs_enabler(this,
+                nameof(_slope_stairs_enabler_in)); // _slope_stairs_enabler_out
+            PlatformManager.subscribe_slope_stairs_disabler(this,
+                nameof(_slope_stairs_disabler_in)); // _slope_stairs_disabler_out
+        }
+
+        public void enable_slope_stairs() {
+            // # permite subir una escalera
+            // if C.DEBUG_SLOPE_STAIRS: print("stairs_enabler_in ENABLING")
+            PlatformManager.body_disable_slope_stairs_cover(this);
+            PlatformManager.body_enable_slope_stairs(this);
+        }
+
+        public void disable_slope_stairs() {
+            // # deja de subir la escalera
+            // if C.DEBUG_SLOPE_STAIRS: print("stairs_disabler_in DISABLING")
+            PlatformManager.body_enable_slope_stairs_cover(this);
+            PlatformManager.body_disable_slope_stairs(this);
+        }
+
+        public bool IsOnSlopeStairsUp() => _slope_stairs_up;
+        public bool IsOnSlopeStairsDown() => _slope_stairs_down;
+        private bool _slope_stairs_down;
+        private bool _slope_stairs_up;
+
+        public void _slope_stairs_up_in(Node body, Area2D area2D) {
+            if (body == this) {
+                _slope_stairs_up = true;
+                GD.Print("_slope_stairs_up ", _slope_stairs_up);
+            }
+        }
+
+        public void _slope_stairs_up_out(Node body, Area2D area2D) {
+            if (body == this) {
+                _slope_stairs_up = false;
+                GD.Print("_slope_stairs_up ", _slope_stairs_up);
+            }
+        }
+
+        public void _slope_stairs_down_in(Node body, Area2D area2D) {
+            if (body == this) {
+                _slope_stairs_down = true;
+                GD.Print("_slope_stairs_down ", _slope_stairs_down);
+            }
+        }
+
+        public void _slope_stairs_down_out(Node body, Area2D area2D) {
+            if (body == this) {
+                _slope_stairs_down = false;
+                GD.Print("_slope_stairs_down ", _slope_stairs_down);
+            }
+        }
+
+        public void subscribe_platform_out() {
+            PlatformManager.body_stop_falling_from_platform(this);
+        }
+
+        public void _slope_stairs_enabler_in(Node body, Area2D area2D) {
+            if (body == this) {
+                enable_slope_stairs();
+                GD.Print("Enabling slope");
+            }
+        }
+
+        public void _slope_stairs_disabler_in(Node body, Area2D area2D) {
+            if (body == this) {
+                disable_slope_stairs();
+                GD.Print("Disabling slope");
+            }
         }
 
         protected override void PhysicsProcess() {
@@ -69,12 +147,12 @@ namespace Betauer.Characters.Player {
             * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
             */
             // var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
-                       // PlayerActions.Jump.Pressed;
+            // PlayerActions.Jump.Pressed;
             // var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
-                        // Input.IsActionPressed("ui_select");
+            // Input.IsActionPressed("ui_select");
             // if (!mine.Equals(godot)) {
-                // GD.Print("Mine:" + mine);
-                // GD.Print("Godo:" + godot);
+            // GD.Print("Mine:" + mine);
+            // GD.Print("Godo:" + godot);
             // }
         }
 

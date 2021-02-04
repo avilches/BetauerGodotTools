@@ -1,4 +1,5 @@
 using System;
+using Betauer.Tools.Platforms;
 using Godot;
 
 namespace Betauer.Tools.Character {
@@ -7,6 +8,7 @@ namespace Betauer.Tools.Character {
         public float Delta { get; private set; } = 0.16f;
         public Vector2 Motion = Vector2.Zero;
         private Vector2 _lastMotion = Vector2.Zero;
+        public PlatformManager PlatformManager => PlatformManager.Instance;
         private long _frame = 0;
         public long GetFrame() {
             return _frame;
@@ -154,14 +156,17 @@ namespace Betauer.Tools.Character {
                     _isOnSlope = true;
                 }
 
-                // if (collision.Collider is KinematicBody2D && PlatformManager.is_a_moving_platform(collision.collider):
-                // is_on_moving_platform = true
+                if (collision.Collider is KinematicBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
+                    _isOnFallingPlatform = true;
+                }
 
-                // if collision.collider is PhysicsBody2D && PlatformManager.is_a_falling_platform(collision.collider):
-                // is_on_falling_platform = true
+                if (collision.Collider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
+                    _isOnMovingPlatform = true;
+                }
 
-                // if collision.collider is PhysicsBody2D && PlatformManager.is_a_slope_stairs(collision.collider):
-                // is_on_slope_stairs = true
+                if (collision.Collider is KinematicBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
+                    _isOnSlopeStairs = true;
+                }
             }
             Update();  // this allow to call to _draw() with the colliderNormal updated
             return this;

@@ -1,4 +1,4 @@
 extends Area2D
 
 func _ready():
-	PlatformManager.add_area2d_slope_stairs_up(self)
+	PlatformManager.AddArea2DSlopeStairsUp(self)
