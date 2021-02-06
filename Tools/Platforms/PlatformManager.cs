@@ -25,7 +25,7 @@ namespace Betauer.Tools.Platforms {
         const int FALL_PLATFORM_LAYER = 3;
         const int PLAYER_LAYER = 10;
 
-        // # Configura el layer de la plataforma segun el tipo
+        // Configura el layer de la plataforma segun el tipo
         void RegisterPlatform(PhysicsBody2D platform) {
             GD.Print("Platform:", platform.Name);
             // platform.AddToGroup("platform");
@@ -100,7 +100,7 @@ namespace Betauer.Tools.Platforms {
             return platform.IsInGroup(GROUP_SLOPE_STAIRS);
         }
 
-        // # Provoca la caida del jugador desde la plataforma quitando la mascara
+        // Provoca la caida del jugador desde la plataforma quitando la mascara
         public void BodyFallFromPlatform(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, false);
         }
@@ -129,12 +129,12 @@ namespace Betauer.Tools.Platforms {
             return kb2d.GetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER);
         }
 
-        // # ¿Esta el jugador cayendo de una plataforma?
+        // ¿Esta el jugador cayendo de una plataforma?
         bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) {
             return kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER) == false;
         }
 
-        // # Deja la mascara como estaba (cuando toca el suelo o cuando sale del area2d que ocupa la plataforma)
+        // Deja la mascara como estaba (cuando toca el suelo o cuando sale del area2d que ocupa la plataforma)
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
         }
@@ -142,14 +142,14 @@ namespace Betauer.Tools.Platforms {
         [Signal]
         public delegate void platform_fall_started();
 
-        // # añade un area2D en la que cualquier objeto que la traspase, enviara una señal
-        // # Suscribirse a esta señal desde el jugador para llamar a BodyStopFallFromPlatform
+        // añade un area2D en la que cualquier objeto que la traspase, enviara una señal
+        // Suscribirse a esta señal desde el jugador para llamar a BodyStopFallFromPlatform
         void AddArea2DFallingPlatformExit(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered));
+            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered), new Array() {area2D});
         }
 
-        void _on_Area2D_platform_exit_body_shape_entered(Object body_id, Node body, Node body_shape, Node area_shape) {
-            EmitSignal(nameof(platform_fall_started));
+        void _on_Area2D_platform_exit_body_shape_entered(int bodyId, Node body, int bodyShape, int areaShape, Area2D area2D) {
+            EmitSignal(nameof(platform_fall_started), body, area2D);
         }
 
         //Se suscribe a la señal de cualquier plataforma de la que se caiga (no importa cual)
@@ -181,8 +181,8 @@ namespace Betauer.Tools.Platforms {
         [Signal]
         public delegate void slope_stairs_disabler_out(Node body, Area2D area2D);
 
-        // # añade un area2D en la que cualquier objeto que la traspase, enviara una señal
-        // # Suscribirse a esta señal desde el jugador para llamar a body_*
+        // añade un area2D en la que cualquier objeto que la traspase, enviara una señal
+        // Suscribirse a esta señal desde el jugador para llamar a body_*
         void AddArea2DSlopeStairsDown(Area2D area2D) {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_down_body_shape_entered), new Array() {area2D});
             area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_down_body_shape_exited), new Array() {area2D});
@@ -241,7 +241,7 @@ namespace Betauer.Tools.Platforms {
             EmitSignal(nameof(slope_stairs_disabler_out), body, area2D);
         }
 
-        // # se suscribe a la señal de cualquier entrada a slope stairs
+        // se suscribe a la señal de cualquier entrada a slope stairs
 
         public void SubscribeSlopeStairsDown(Object o, string f_in, string f_out = null) {
             Connect(nameof(slope_stairs_down_in), o, f_in);
