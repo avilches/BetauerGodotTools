@@ -37,7 +37,8 @@ namespace Betauer.Characters.Player {
             _stateMachine.SetNextState(typeof(GroundStateIdle));
 
             PlatformManager.ConfigureBodyCollisions(this);
-            PlatformManager.SubscribeFallingPlatformOut(this, nameof(_OnFallingPlatformOut));
+            PlatformManager.SubscribeAllFallingPlatformOut(_OnFallingPlatformOut);
+            PlatformManager.SubscribeFallingPlatformOut(_OnMeFallingPlatformOut);
 
             // PlatformManager.on_slope_stairs_down_flag(self, "is_on_slope_stairs_down")
             // PlatformManager.on_slope_stairs_up_flag(self, "is_on_slope_stairs_up")
@@ -47,6 +48,10 @@ namespace Betauer.Characters.Player {
                 nameof(_OnSlopeStairsEnablerIn)); // _slope_stairs_enabler_out
             PlatformManager.SubscribeSlopeStairsDisabler(this,
                 nameof(_OnSlopeStairsDisablerIn)); // _slope_stairs_disabler_out
+        }
+
+        public override void _ExitTree() {
+            PlatformManager.UnsubscribeAll(this);
         }
 
         public void EnableSlopeStairs() {
@@ -96,7 +101,14 @@ namespace Betauer.Characters.Player {
             }
         }
 
-        public void _OnFallingPlatformOut() {
+        public void _OnFallingPlatformOut(Node body, Area2D area2D) {
+            GD.Print("_OnFallingPlatformOut "+body.Name+ " " +area2D.Name);
+            GD.Print(body == this);
+            PlatformManager.BodyStopFallFromPlatform(this);
+        }
+
+        public void _OnMeFallingPlatformOut(Area2D area2D) {
+            GD.Print("_OnMeFallingPlatformOut "+area2D.Name);
             PlatformManager.BodyStopFallFromPlatform(this);
         }
 

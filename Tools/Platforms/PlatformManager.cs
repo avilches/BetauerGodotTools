@@ -2,6 +2,9 @@ using Godot;
 using Godot.Collections;
 
 namespace Betauer.Tools.Platforms {
+    public delegate void OnBodyEnterArea2D(Node body, Area2D area2D);
+    public delegate void OnMeEnterArea2D(Area2D area2D);
+
     public class PlatformManager : Node {
 
         private const string GODOT_SIGNAL_body_shape_entered = "body_shape_entered";
@@ -148,15 +151,45 @@ namespace Betauer.Tools.Platforms {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered), new Array() {area2D});
         }
 
+        private event OnBodyEnterArea2D bodyFallingPlatformsEvents;
+        private event OnMeEnterArea2D meFallingPlatformsEvents;
+
         void _on_Area2D_platform_exit_body_shape_entered(int bodyId, Node body, int bodyShape, int areaShape, Area2D area2D) {
-            EmitSignal(nameof(platform_fall_started), body, area2D);
+            FilterDelegates(meFallingPlatformsEvents, body, delegate(System.Delegate @delegate) { ((OnMeEnterArea2D) @delegate).Invoke(area2D); });
+            bodyFallingPlatformsEvents?.Invoke(body, area2D);
         }
 
-        //Se suscribe a la señal de cualquier plataforma de la que se caiga (no importa cual)
-        public void SubscribeFallingPlatformOut(Object o, string f) {
-            Connect(nameof(platform_fall_started), o, f);
+        public void UnsubscribeAll(Node body) {
+            FilterDelegates(meFallingPlatformsEvents, body, delegate(System.Delegate @delegate) { UnsubscribeFallingPlatformOut((OnMeEnterArea2D) @delegate); });
+            FilterDelegates(bodyFallingPlatformsEvents, body, delegate(System.Delegate @delegate) { UnsubscribeAllFallingPlatformOut((OnBodyEnterArea2D) @delegate); });
         }
 
+        private void FilterDelegates(System.MulticastDelegate delegates, Node body, System.Action<System.Delegate> action) {
+            if (delegates != null) {
+                foreach (System.Delegate @delegate in delegates.GetInvocationList()) {
+                    if (@delegate.Target is Node node && node == body) {
+                        action(@delegate);
+                    }
+                }
+            }
+        }
+
+        public void UnsubscribeAllFallingPlatformOut(OnBodyEnterArea2D onBodyEnterArea2D) {
+            bodyFallingPlatformsEvents -= onBodyEnterArea2D;
+        }
+
+        public void SubscribeAllFallingPlatformOut(OnBodyEnterArea2D onBodyEnterArea2D) {
+            bodyFallingPlatformsEvents += onBodyEnterArea2D;
+        }
+
+        public void SubscribeFallingPlatformOut(OnMeEnterArea2D onMeEnterArea2D) {
+            meFallingPlatformsEvents += onMeEnterArea2D;
+        }
+
+        public void UnsubscribeFallingPlatformOut(OnMeEnterArea2D onMeEnterArea2D) {
+            meFallingPlatformsEvents -= onMeEnterArea2D;
+        }
+        
         [Signal]
         public delegate void slope_stairs_down_in(Node body, Area2D area2D);
 
