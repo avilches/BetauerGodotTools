@@ -104,7 +104,7 @@ func jump(delta):
 
 func _physics_process(delta):
 	
-#	$Label.text = str(PlatformManager.body_has_slope_stairs_enabled(self), " ", PlatformManager.body_has_slope_stairs_cover_enabled(self))
+#	$Label.text = str(PlatformManager.HasBodyEnabledSlopeStairs(self), " ", PlatformManager.HasBodyEnabledSlopeStairsCover(self))
 #	$Label.text = str(is_on_slope_stairs_down, " ", is_on_slope_stairs_up)
 
 	var x_input = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
@@ -124,9 +124,9 @@ func _physics_process(delta):
 	
 	if is_on_slope_stairs_down:
 		if Input.is_action_pressed("ui_up") && !isJumping:
-			enable_slope_stairs()
+			EnableSlopeStairs()
 		else: #if x_input != 0:
-			disable_slope_stairs()
+			DisableSlopeStairs()
 	elif is_on_slope_stairs_up:
 		if Input.is_action_pressed("ui_down") && !isJumping && (!colliderNormal || abs(colliderNormal.x) != 1):
 			# Hay un bug en el que si se sube la escaleras dejando pulsado abajo,
@@ -140,9 +140,9 @@ func _physics_process(delta):
 			# la dirección de la escalera y activarla solo cuando se avanza hacia ella
 			# pero con el fix abs(colliderNormal.x) != 1) se arregla sin tener que
 			# hacerlo. 
-			enable_slope_stairs()
+			EnableSlopeStairs()
 		elif x_input != 0:
-			disable_slope_stairs()
+			DisableSlopeStairs()
 
 	lastMotion = motion
 	var was_in_floor = is_on_floor()
@@ -151,7 +151,7 @@ func _physics_process(delta):
 	var was_on_moving_platform = is_on_moving_platform
 	var was_on_slope_stairs = is_on_slope_stairs
 
-	if PlatformManager.is_body_falling_from_platform(self) || isJumping:
+	if PlatformManager.IsBodyFallingFromPlatform(self) || isJumping:
 		# STOP_ON_SLOPES debe ser true para al caer sobre una pendiente la tome comoelo
 		var STOP_ON_SLOPES = true
 		var remain = move_and_slide_with_snap(motion * slowdownVector, Vector2.ZERO, C.FLOOR, STOP_ON_SLOPES)

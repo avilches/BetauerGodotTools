@@ -35,15 +35,15 @@ namespace Betauer.Characters.Player.States {
 
             if (Player.IsOnSlopeStairsDown()) {
                 if (IsUp) {
-                    Player.enable_slope_stairs();
+                    Player.EnableSlopeStairs();
                 } else {
-                    Player.disable_slope_stairs();
+                    Player.DisableSlopeStairs();
                 }
             } else if (Player.IsOnSlopeStairsUp()) {
                 if (IsDown) {
-                    Player.enable_slope_stairs();
+                    Player.EnableSlopeStairs();
                 } else {
-                    Player.disable_slope_stairs();
+                    Player.DisableSlopeStairs();
                 }
             }
 

@@ -26,14 +26,14 @@ namespace Betauer.Tools.Platforms {
         const int PLAYER_LAYER = 10;
 
         // # Configura el layer de la plataforma segun el tipo
-        void register_platform(PhysicsBody2D platform) {
+        void RegisterPlatform(PhysicsBody2D platform) {
             GD.Print("Platform:", platform.Name);
             // platform.AddToGroup("platform");
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
         }
 
-        void register_moving_platform(KinematicBody2D platform) {
+        void RegisterMovingPlatform(KinematicBody2D platform) {
             GD.Print("Moving platform:", platform.Name);
             platform.Motion__syncToPhysics = true;
             // platform.AddToGroup("platform");
@@ -42,21 +42,21 @@ namespace Betauer.Tools.Platforms {
             platform.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
         }
 
-        void register_slope_stairs(PhysicsBody2D platform) {
+        void RegisterSlopeStairs(PhysicsBody2D platform) {
             GD.Print("Slope stair platform:", platform.Name);
             platform.AddToGroup(GROUP_SLOPE_STAIRS);
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(SLOPE_STAIRS_LAYER, true);
         }
 
-        void register_slope_stairs_cover(PhysicsBody2D platform) {
+        void RegisterSlopeStairsCover(PhysicsBody2D platform) {
             GD.Print("Slope stair cover platform:", platform.Name);
             // platform.AddToGroup("slope_stairs_cover");
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(SLOPE_STAIRS_COVER_LAYER, true);
         }
 
-        void register_falling_platform(PhysicsBody2D platform) {
+        void RegisterFallingPlatform(PhysicsBody2D platform) {
             GD.Print("Falling platform:", platform.Name);
             foreach (var col in platform.GetChildren()) {
                 if (col is CollisionShape2D colShape2d) {
@@ -69,17 +69,24 @@ namespace Betauer.Tools.Platforms {
             }
         }
 
-        void disable_moving_platform(KinematicBody2D platform) {
-            platform.RemoveFromGroup(GROUP_MOVING_PLATFORMS);
+        public void ConfigureBodyCollisions(KinematicBody2D kb2d) {
+            kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
+            kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, false);
+            kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, true);
+            kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
         }
 
-        void enable_moving_platform(KinematicBody2D platform) {
-            platform.RemoveFromGroup(GROUP_MOVING_PLATFORMS);
-        }
+        // void disable_moving_platform(KinematicBody2D platform) {
+            // platform.RemoveFromGroup(GROUP_MOVING_PLATFORMS);
+        // }
 
-        bool is_a_platform(PhysicsBody2D platform) {
-            return platform.IsInGroup("platform");
-        }
+        // void enable_moving_platform(KinematicBody2D platform) {
+            // platform.RemoveFromGroup(GROUP_MOVING_PLATFORMS);
+        // }
+
+        // bool is_a_platform(PhysicsBody2D platform) {
+            // return platform.IsInGroup("platform");
+        // }
 
         public bool IsMovingPlatform(KinematicBody2D platform) {
             return platform.IsInGroup(GROUP_MOVING_PLATFORMS);
@@ -93,49 +100,42 @@ namespace Betauer.Tools.Platforms {
             return platform.IsInGroup(GROUP_SLOPE_STAIRS);
         }
 
-        public void ConfigureBodyCollisions(KinematicBody2D kb2d) {
-            kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
-            kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, false);
-            kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, true);
-            kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
-        }
-
         // # Provoca la caida del jugador desde la plataforma quitando la mascara
         public void BodyFallFromPlatform(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, false);
         }
 
-        public void body_enable_slope_stairs(KinematicBody2D kb2d) {
+        public void EnableSlopeStairsForBody(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, true);
         }
 
-        public void body_disable_slope_stairs(KinematicBody2D kb2d) {
+        public void DisableSlopeStairsForBody(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, false);
         }
 
-        bool body_has_slope_stairs_enabled(KinematicBody2D kb2d) {
+        bool HasBodyEnabledSlopeStairs(KinematicBody2D kb2d) {
             return kb2d.GetCollisionMaskBit(SLOPE_STAIRS_LAYER);
         }
 
-        public void body_enable_slope_stairs_cover(KinematicBody2D kb2d) {
+        public void EnableSlopeStairsCoverForBody(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, true);
         }
 
-        public void body_disable_slope_stairs_cover(KinematicBody2D kb2d) {
+        public void DisableSlopeStairsCoverForBody(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, false);
         }
 
-        bool body_has_slope_stairs_cover_enabled(KinematicBody2D kb2d) {
+        bool HasBodyEnabledSlopeStairsCover(KinematicBody2D kb2d) {
             return kb2d.GetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER);
         }
 
         // # ¿Esta el jugador cayendo de una plataforma?
-        bool is_body_falling_from_platform(KinematicBody2D kb2d) {
+        bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) {
             return kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER) == false;
         }
 
         // # Deja la mascara como estaba (cuando toca el suelo o cuando sale del area2d que ocupa la plataforma)
-        public void body_stop_falling_from_platform(KinematicBody2D kb2d) {
+        public void BodyStopFallFromPlatform(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
         }
 
@@ -143,8 +143,8 @@ namespace Betauer.Tools.Platforms {
         public delegate void platform_fall_started();
 
         // # añade un area2D en la que cualquier objeto que la traspase, enviara una señal
-        // # Suscribirse a esta señal desde el jugador para llamar a body_stop_falling_from_platform
-        void add_area2d_platform_exit(Area2D area2D) {
+        // # Suscribirse a esta señal desde el jugador para llamar a BodyStopFallFromPlatform
+        void AddArea2DFallingPlatformExit(Area2D area2D) {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered));
         }
 
@@ -152,9 +152,9 @@ namespace Betauer.Tools.Platforms {
             EmitSignal(nameof(platform_fall_started));
         }
 
-// # se suscribe a la señal de cualquier plataforma de la que se caiga (no importa cual)
-        public void subscribe_platform_out(Object o, string f) {
-            this.Connect("platform_fall_started", o, f);
+        //Se suscribe a la señal de cualquier plataforma de la que se caiga (no importa cual)
+        public void SubscribeFallingPlatformOut(Object o, string f) {
+            Connect(nameof(platform_fall_started), o, f);
         }
 
         [Signal]
@@ -183,7 +183,7 @@ namespace Betauer.Tools.Platforms {
 
         // # añade un area2D en la que cualquier objeto que la traspase, enviara una señal
         // # Suscribirse a esta señal desde el jugador para llamar a body_*
-        void add_area2d_slope_stairs_down(Area2D area2D) {
+        void AddArea2DSlopeStairsDown(Area2D area2D) {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_down_body_shape_entered), new Array() {area2D});
             area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_down_body_shape_exited), new Array() {area2D});
         }
@@ -195,14 +195,14 @@ namespace Betauer.Tools.Platforms {
                 new Array() {area2D});
         }
 
-        void add_area2d_slope_stairs_enabler(Area2D area2D) {
+        void AddArea2DSlopeStairsEnabler(Area2D area2D) {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_enabler_body_shape_entered),
                 new Array() {area2D});
             area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_enabler_body_shape_exited),
                 new Array() {area2D});
         }
 
-        void add_area2d_slope_stairs_disabler(Area2D area2D) {
+        void AddArea2DSlopeStairsDisabler(Area2D area2D) {
             area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_disabler_body_shape_entered),
                 new Array() {area2D});
             area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_disabler_body_shape_exited),
@@ -243,7 +243,7 @@ namespace Betauer.Tools.Platforms {
 
         // # se suscribe a la señal de cualquier entrada a slope stairs
 
-        public void subscribe_slope_stairs_down(Object o, string f_in, string f_out = null) {
+        public void SubscribeSlopeStairsDown(Object o, string f_in, string f_out = null) {
             Connect(nameof(slope_stairs_down_in), o, f_in);
             if (f_out != null) {
                 Connect(nameof(slope_stairs_down_out), o, f_out);
@@ -251,11 +251,11 @@ namespace Betauer.Tools.Platforms {
         }
 
         // void on_slope_stairs_down_flag(Object o, flag) {
-            // this.Connect("slope_stairs_down_in", this, "_enable_flag", [o, flag])
-            // this.Connect("slope_stairs_down_out", this, "_disable_flag", [o, flag])
+            // Connect("slope_stairs_down_in", this, "_enable_flag", [o, flag])
+            // Connect("slope_stairs_down_out", this, "_disable_flag", [o, flag])
         // }
 
-        public void subscribe_slope_stairs_up(Object o, string f_in, string f_out = null) {
+        public void SubscribeSlopeStairsUp(Object o, string f_in, string f_out = null) {
             Connect(nameof(slope_stairs_up_in), o, f_in);
             if (f_out != null) {
                 Connect(nameof(slope_stairs_up_out), o, f_out);
@@ -263,21 +263,21 @@ namespace Betauer.Tools.Platforms {
         }
 
         // void on_slope_stairs_up_flag(Object o, flag) {
-            // this.Connect("slope_stairs_up_in", this, "_enable_flag", [o, flag])
-            // this.Connect("slope_stairs_up_out", this, "_disable_flag", [o, flag])
+            // Connect("slope_stairs_up_in", this, "_enable_flag", [o, flag])
+            // Connect("slope_stairs_up_out", this, "_disable_flag", [o, flag])
         // }
 
-        public void subscribe_slope_stairs_enabler(Object o, string f_in, string f_out = null) {
+        public void SubscribeSlopeStairsEnabler(Object o, string f_in, string f_out = null) {
             Connect(nameof(slope_stairs_enabler_in), o, f_in);
             if (f_out != null) {
-                this.Connect(nameof(slope_stairs_enabler_out), o, f_out);
+                Connect(nameof(slope_stairs_enabler_out), o, f_out);
             }
         }
 
-        public void subscribe_slope_stairs_disabler(Object o, string f_in, string f_out = null) {
-            this.Connect(nameof(slope_stairs_disabler_in), o, f_in);
+        public void SubscribeSlopeStairsDisabler(Object o, string f_in, string f_out = null) {
+            Connect(nameof(slope_stairs_disabler_in), o, f_in);
             if (f_out != null) {
-                this.Connect(nameof(slope_stairs_disabler_out), o, f_out);
+                Connect(nameof(slope_stairs_disabler_out), o, f_out);
             }
         }
 

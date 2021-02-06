@@ -19,7 +19,7 @@ Para que baje de ahi, se debe quitar la mask 2.
 3 En el Player script:
 
     func _ready():
-        PlatformManager.subscribe_platform_out(self, "enable_platform_collide")
+        PlatformManager.SubscribeFallingPlatformOut(self, "enable_platform_collide")
         PlatformManager.configure_player(self)
 
     func fall_from_platform():
@@ -37,7 +37,7 @@ Para que baje de ahi, se debe quitar la mask 2.
 a activar la colision. Este Area2D debe tener un script como PlatformBodyOut con:
 
     func _ready():
-        PlatformManager.add_area2d_platform_exit(self)
+        PlatformManager.AddArea2DFallingPlatformExit(self)
 
 
 

@@ -8,7 +8,7 @@ namespace Betauer.Characters.Player.States {
         public bool CheckLanding() {
             if (!Player.IsOnFloor()) return false;
 
-            PlatformManager.body_stop_falling_from_platform(Player);
+            PlatformManager.BodyStopFallFromPlatform(Player);
 
             // Debug("Just grounded!");
             if (XInput == 0) {

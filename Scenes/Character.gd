@@ -22,7 +22,7 @@ var movStartTimeACC = -1
 var C
 
 func configure_falling_platforms():
-	PlatformManager.subscribe_platform_out(self, "stop_falling_from_platform")
+	PlatformManager.SubscribeFallingPlatformOut(self, "stop_falling_from_platform")
 	
 	# not falling by default
 	stop_falling_from_platform()
@@ -30,14 +30,14 @@ func configure_falling_platforms():
 func configure_slope_stairs():
 	PlatformManager.on_slope_stairs_down_flag(self, "is_on_slope_stairs_down")
 	PlatformManager.on_slope_stairs_up_flag(self, "is_on_slope_stairs_up")
-	#PlatformManager.subscribe_slope_stairs_up(self, "_slope_stairs_up_in", "_slope_stairs_up_out")
-	#PlatformManager.subscribe_slope_stairs_down(self, "_slope_stairs_down_in", "_slope_stairs_down_out")
+	#PlatformManager.SubscribeSlopeStairsUp(self, "_OnSlopeStairsUpIn", "_OnSlopeStairsUpOut")
+	#PlatformManager.SubscribeSlopeStairsDown(self, "_OnSlopeStairsDownIn", "_OnSlopeStairsDownOut")
 
-	PlatformManager.subscribe_slope_stairs_enabler(self, "_slope_stairs_enabler_in") #, "_slope_stairs_enabler_out")
-	PlatformManager.subscribe_slope_stairs_disabler(self, "_slope_stairs_disabler_in") #, "_slope_stairs_disabler_out")
+	PlatformManager.SubscribeSlopeStairsEnabler(self, "_OnSlopeStairsEnablerIn") #, "_slope_stairs_enabler_out")
+	PlatformManager.SubscribeSlopeStairsDisabler(self, "_OnSlopeStairsDisablerIn") #, "_slope_stairs_disabler_out")
 
 	# disabled by default
-	disable_slope_stairs()
+	DisableSlopeStairs()
 
 #func slope_stairs_up_in(body, _area2D):
 #	if body == self:
@@ -47,45 +47,45 @@ func configure_slope_stairs():
 #	if body == self:
 #		print("Exiting up hall...")
 #
-#func _slope_stairs_up_in(body, area2D):
+#func _OnSlopeStairsUpIn(body, area2D):
 #	if body == self: print("stairs_up_in")
 #
-#func _slope_stairs_up_out(body, area2D):
+#func _OnSlopeStairsUpOut(body, area2D):
 #	if body == self: print("stairs_up_out")
 #
-#func _slope_stairs_down_in(body, area2D):
+#func _OnSlopeStairsDownIn(body, area2D):
 #	if body == self: print("stairs_down_in")
 #
-#func _slope_stairs_down_out(body, area2D):
+#func _OnSlopeStairsDownOut(body, area2D):
 #	if body == self: print("stairs_down_out")
 
-func _slope_stairs_enabler_in(body, _area2D):
+func _OnSlopeStairsEnablerIn(body, _area2D):
 	if body == self:
-		enable_slope_stairs()
+		EnableSlopeStairs()
 
 #func _slope_stairs_enabler_out(body, _area2D):
 #	if body == self:
 #		print("stairs_enabler_out")
 
-func _slope_stairs_disabler_in(body, _area2D):
+func _OnSlopeStairsDisablerIn(body, _area2D):
 	if body == self:
-		disable_slope_stairs()
+		DisableSlopeStairs()
 
 #func _slope_stairs_disabler_out(body, _area2D):
 #	if body == self: 
 #		print("stairs_disabler_out")
 
-func enable_slope_stairs():
+func EnableSlopeStairs():
 	# permite subir una escalera
 	if C.DEBUG_SLOPE_STAIRS: print("stairs_enabler_in ENABLING")
-	PlatformManager.body_disable_slope_stairs_cover(self)
-	PlatformManager.body_enable_slope_stairs(self)
+	PlatformManager.DisableSlopeStairsCoverForBody(self)
+	PlatformManager.EnableSlopeStairsForBody(self)
 	
-func disable_slope_stairs():
+func DisableSlopeStairs():
 	# deja de subir la escalera
 	if C.DEBUG_SLOPE_STAIRS: print("stairs_disabler_in DISABLING")
-	PlatformManager.body_enable_slope_stairs_cover(self)
-	PlatformManager.body_disable_slope_stairs(self)
+	PlatformManager.EnableSlopeStairsCoverForBody(self)
+	PlatformManager.DisableSlopeStairsForBody(self)
 
 func fall_from_platform():
 	if is_on_falling_platform:
@@ -93,7 +93,7 @@ func fall_from_platform():
 		debug_player_masks()
 
 func stop_falling_from_platform():
-	PlatformManager.body_stop_falling_from_platform(self)
+	PlatformManager.BodyStopFallFromPlatform(self)
 	debug_player_masks()
 
 func update_ground_colliders():

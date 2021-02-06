@@ -14,6 +14,16 @@ namespace Betauer.Tools.Character {
             return _frame;
         }
 
+        public void Debug(bool flag, string message) {
+            if (flag) {
+                Debug(message);
+            }
+        }
+
+        public void Debug(string message) {
+            GD.Print("#" + GetFrame() + ": " + GetType().Name + " | " + message);
+        }
+
         public void SetMotion(Vector2 motion) {
             Motion.x = motion.x;
             Motion.y = motion.y;
