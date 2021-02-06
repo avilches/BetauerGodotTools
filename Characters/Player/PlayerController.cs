@@ -37,33 +37,21 @@ namespace Betauer.Characters.Player {
             _stateMachine.SetNextState(typeof(GroundStateIdle));
 
             PlatformManager.ConfigureBodyCollisions(this);
-            PlatformManager.SubscribeAllFallingPlatformOut(_OnFallingPlatformOut);
-            PlatformManager.SubscribeFallingPlatformOut(_OnMeFallingPlatformOut);
-
-            // PlatformManager.on_slope_stairs_down_flag(self, "is_on_slope_stairs_down")
-            // PlatformManager.on_slope_stairs_up_flag(self, "is_on_slope_stairs_up")
+            PlatformManager.SubscribeFallingPlatformOut(this, nameof(_OnFallingPlatformOut));
             PlatformManager.SubscribeSlopeStairsUp(this, nameof(_OnSlopeStairsUpIn), nameof(_OnSlopeStairsUpOut));
             PlatformManager.SubscribeSlopeStairsDown(this, nameof(_OnSlopeStairsDownIn), nameof(_OnSlopeStairsDownOut));
-            PlatformManager.SubscribeSlopeStairsEnabler(this,
-                nameof(_OnSlopeStairsEnablerIn)); // _slope_stairs_enabler_out
-            PlatformManager.SubscribeSlopeStairsDisabler(this,
-                nameof(_OnSlopeStairsDisablerIn)); // _slope_stairs_disabler_out
-        }
-
-        public override void _ExitTree() {
-            PlatformManager.UnsubscribeAll(this);
+            PlatformManager.SubscribeSlopeStairsEnabler(this, nameof(_OnSlopeStairsEnablerIn));
+            PlatformManager.SubscribeSlopeStairsDisabler(this, nameof(_OnSlopeStairsDisablerIn));
         }
 
         public void EnableSlopeStairs() {
-            // # permite subir una escalera
-            // if C.DEBUG_SLOPE_STAIRS: print("stairs_enabler_in ENABLING")
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Enabling slope stairs");
             PlatformManager.DisableSlopeStairsCoverForBody(this);
             PlatformManager.EnableSlopeStairsForBody(this);
         }
 
         public void DisableSlopeStairs() {
-            // # deja de subir la escalera
-            // if C.DEBUG_SLOPE_STAIRS: print("stairs_disabler_in DISABLING")
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Disabling slope stairs");
             PlatformManager.EnableSlopeStairsCoverForBody(this);
             PlatformManager.DisableSlopeStairsForBody(this);
         }
@@ -74,56 +62,39 @@ namespace Betauer.Characters.Player {
         private bool _slope_stairs_up;
 
         public void _OnSlopeStairsUpIn(Node body, Area2D area2D) {
-            if (body == this) {
-                _slope_stairs_up = true;
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
-            }
+            if (body != this) return;
+            _slope_stairs_up = true;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
         }
 
         public void _OnSlopeStairsUpOut(Node body, Area2D area2D) {
-            if (body == this) {
-                _slope_stairs_up = false;
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
-            }
+            if (body != this) return;
+            _slope_stairs_up = false;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
         }
 
         public void _OnSlopeStairsDownIn(Node body, Area2D area2D) {
-            if (body == this) {
-                _slope_stairs_down = true;
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
-            }
+            if (body != this) return;
+            _slope_stairs_down = true;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
         }
 
         public void _OnSlopeStairsDownOut(Node body, Area2D area2D) {
-            if (body == this) {
-                _slope_stairs_down = false;
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
-            }
+            if (body != this) return;
+            _slope_stairs_down = false;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
         }
 
         public void _OnFallingPlatformOut(Node body, Area2D area2D) {
-            GD.Print("_OnFallingPlatformOut "+body.Name+ " " +area2D.Name);
-            GD.Print(body == this);
-            PlatformManager.BodyStopFallFromPlatform(this);
-        }
-
-        public void _OnMeFallingPlatformOut(Area2D area2D) {
-            GD.Print("_OnMeFallingPlatformOut "+area2D.Name);
-            PlatformManager.BodyStopFallFromPlatform(this);
+            if (body == this) PlatformManager.BodyStopFallFromPlatform(this);
         }
 
         public void _OnSlopeStairsEnablerIn(Node body, Area2D area2D) {
-            if (body == this) {
-                EnableSlopeStairs();
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Enabling slope stairs");
-            }
+            if (body == this) EnableSlopeStairs();
         }
 
         public void _OnSlopeStairsDisablerIn(Node body, Area2D area2D) {
-            if (body == this) {
-                DisableSlopeStairs();
-                Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Disabling slope stairs");
-            }
+            if (body == this) DisableSlopeStairs();
         }
 
         protected override void PhysicsProcess() {
@@ -172,9 +143,9 @@ namespace Betauer.Characters.Player {
             _stateMachine.SetNextState(nextStateType, immediate);
         }
 
-        public void Flip(float XInput) {
-            if (XInput == 0) return;
-            Flip(XInput < 0);
+        public void Flip(float xInput) {
+            if (xInput == 0) return;
+            Flip(xInput < 0);
         }
 
         public void Flip(bool left) {
@@ -182,29 +153,19 @@ namespace Betauer.Characters.Player {
         }
 
         private string _currentAnimation = null;
-        private const string JUMP_ANIMATION = "Jump";
-        private const string IDLE_ANIMATION = "Idle";
-        private const string RUN_ANIMATION = "Run";
-        private const string FALL_ANIMATION = "Fall";
+        private const string _JUMP_ANIMATION = "Jump";
+        private const string _IDLE_ANIMATION = "Idle";
+        private const string _RUN_ANIMATION = "Run";
+        private const string _FALL_ANIMATION = "Fall";
 
-        public void AnimateJump() {
-            if (_currentAnimation == JUMP_ANIMATION) return;
-            _animationPlayer.Play(JUMP_ANIMATION);
-        }
-
-        public void AnimateIdle() {
-            if (_currentAnimation == IDLE_ANIMATION) return;
-            _animationPlayer.Play(IDLE_ANIMATION);
-        }
-
-        public void AnimateRun() {
-            if (_currentAnimation == RUN_ANIMATION) return;
-            _animationPlayer.Play(RUN_ANIMATION);
-        }
-
-        public void AnimateFall() {
-            if (_currentAnimation == FALL_ANIMATION) return;
-            _animationPlayer.Play(FALL_ANIMATION);
+        public void AnimateJump() => AnimationPlay(_JUMP_ANIMATION);
+        public void AnimateIdle() => AnimationPlay(_IDLE_ANIMATION);
+        public void AnimateRun() => AnimationPlay(_RUN_ANIMATION);
+        public void AnimateFall() => AnimationPlay(_FALL_ANIMATION);
+        private void AnimationPlay(string newAnimation) {
+            if (_currentAnimation == newAnimation) return;
+            _animationPlayer.Play(newAnimation);
+            _currentAnimation = newAnimation;
         }
     }
 }
