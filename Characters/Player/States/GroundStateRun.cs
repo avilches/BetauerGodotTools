@@ -11,7 +11,7 @@ namespace Betauer.Characters.Player.States {
 
         public override void Execute() {
             if (!Player.IsOnFloor()) {
-                GoToFallState();
+                GoToFallState(true);
                 return;
             }
 
@@ -20,15 +20,7 @@ namespace Betauer.Characters.Player.States {
                 return;
             }
 
-            // TODO: create bool HasJumped() along with the StateIdle
-            if (Jump.JustPressed) {
-                if (IsDown && Player.IsOnFallingPlatform()) {
-                    PlatformManager.BodyFallFromPlatform(Player);
-                } else {
-                    GoToJumpState();
-                }
-                return;
-            }
+            if (CheckJump()) return;
 
             // Suelo + no salto + movimiento/inercia. Movemos lateralmente y empujamos hacia abajo
 
@@ -46,6 +38,20 @@ namespace Betauer.Characters.Player.States {
                     Player.DisableSlopeStairs();
                 }
             }
+            /*
+
+	var slowdownVector = Vector2.ONE
+	var slope_down = null
+
+	if is_on_slope && !isJumping && x_input != 0:
+		slope_down = sign(colliderNormal.x) == sign(x_input) # pendiente y direccion al mismo lado
+		slowdownVector = C.SLOW_ON_SLOPE_DOWN if slope_down else C.SLOW_ON_SLOPE_UP
+
+
+	move_and_slide_with_snap(motion * slowdownVector
+
+
+             */
 
             Player.AddLateralMovement(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);

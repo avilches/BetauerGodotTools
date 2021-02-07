@@ -2,7 +2,6 @@ using System;
 using Betauer.Characters.Player.States;
 using Betauer.Tools.Character;
 using Betauer.Tools.Input;
-using Betauer.Tools.Platforms;
 using Betauer.Tools.Statemachine;
 using Godot;
 
@@ -139,6 +138,18 @@ namespace Betauer.Characters.Player {
             // }
         }
 
+        public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
+            _stateMachine.SetNextConfig(config);
+        }
+
+        public void SetNextConfig(string key, object value) {
+            _stateMachine.SetNextConfig(key, value);
+        }
+
+        public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
+            return _stateMachine.GetNextConfig();
+        }
+
         public void SetNextState(Type nextStateType, bool immediate = false) {
             _stateMachine.SetNextState(nextStateType, immediate);
         }
@@ -168,4 +179,61 @@ namespace Betauer.Characters.Player {
             _currentAnimation = newAnimation;
         }
     }
+/*
+
+GameManager.connect("death", self, "on_death")
+
+
+func on_death(_cause):
+	print("MUETO")
+	set_process(false)
+	set_physics_process(false)
+	#Engine.set_target_fps(30)
+
+
+func debug_motion(delta):
+	if C.DEBUG_ACCELERATION && motion.x != 0:
+		if lastMotion.x == 0:
+			movStartTimeACC = 0 # starts to move
+		elif movStartTimeACC != -1:
+			movStartTimeACC += delta
+			if abs(motion.x) >= C.MAX_SPEED:
+				print("Full throtle ", motion.x, " in ", movStartTimeACC, "s")
+				movStartTimeACC = -1
+
+	if C.DEBUG_MAX_SPEED:
+		if motion.x != 0:
+			if lastMotion.x == 0:
+				movStartTimeMAXSPEED = 0
+				movStartPosMAXSPEED = get_position()
+			else:
+				if movStartTimeMAXSPEED >= 1:
+					var distance = get_position().distance_to(movStartPosMAXSPEED)
+					# No funciona bien si se cambia de direccion...
+					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position(), " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
+					movStartTimeMAXSPEED = 0
+					movStartPosMAXSPEED = get_position()
+				else:
+					movStartTimeMAXSPEED += delta
+
+		else:
+			movStartPosMAXSPEED = null
+
+	if C.DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion, motion-lastMotion)
+
+func debug_player_masks():
+	if C.DEBUG_COLLISION:
+		print("Player:  ",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
+
+func debug_collision():
+	if C.DEBUG_COLLISION && get_slide_count():
+		debug_player_masks()
+		for i in get_slide_count():
+			var collision = get_slide_collision(i)
+			print("Collider:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
+
+
+
+ */
+
 }

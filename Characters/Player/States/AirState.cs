@@ -5,8 +5,8 @@ namespace Betauer.Characters.Player.States {
         public AirState(PlayerController player) : base(player) {
         }
 
-        public bool CheckLanding() {
-            if (!Player.IsOnFloor()) return false;
+        protected bool CheckLanding() {
+            if (!Player.IsOnFloor()) return false; // Still in the air! :)
 
             PlatformManager.BodyStopFallFromPlatform(Player);
 

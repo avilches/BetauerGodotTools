@@ -12,7 +12,7 @@ namespace Betauer.Characters.Player {
 			// DEBUG_STATE_CHANGE = true;
 			// DEBUG_MAX_SPEED = true;
 			// DEBUG_ACCELERATION = true;
-			DEBUG_SLOPE_STAIRS = true;
+			// DEBUG_SLOPE_STAIRS = true;
 			// DEBUG_COLLISION = true;
 			// DEBUG_MOTION = true;
 			// DEBUG_JUMP = true;

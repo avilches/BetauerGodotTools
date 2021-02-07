@@ -20,14 +20,7 @@ namespace Betauer.Characters.Player.States {
                 return;
             }
 
-            if (Jump.JustPressed) {
-                if (IsDown && Player.IsOnFallingPlatform()) {
-                    PlatformManager.BodyFallFromPlatform(Player);
-                } else {
-                    GoToJumpState();
-                }
-                return;
-            }
+            if (CheckJump()) return;
 
             // Suelo + no salto + sin movimiento. Empujamos hacia abajo
 

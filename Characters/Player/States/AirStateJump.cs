@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Characters.Player.States {
@@ -27,13 +28,12 @@ namespace Betauer.Characters.Player.States {
             Player.LimitMotion();
             Player.Slide();
 
+            if (CheckLanding()) {
+                return;
+            }
+
             if (Motion.y >= 0) { // Ya no sube: se queda quieto exactamente (raro) o empieza a caer
-                if (!CheckLanding()) {
-                    GoToFallState();
-                } else {
-                    // Weird case: jump to a 1-way moving up plataform and land on it without fall
-                    // The CheckLanding already changed to run/idle
-                }
+                GoToFallState();
             }
         }
     }

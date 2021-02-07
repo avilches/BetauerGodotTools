@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 
 namespace Betauer.Tools.Statemachine {
     public abstract class State {
@@ -6,6 +7,9 @@ namespace Betauer.Tools.Statemachine {
         public abstract void Execute();
 
         public virtual void _UnhandledInput(InputEvent @event) {
+        }
+
+        public virtual void Configure(System.Collections.Generic.Dictionary<string, object> config) {
         }
 
         public virtual void Start() {

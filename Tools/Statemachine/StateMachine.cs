@@ -9,6 +9,8 @@ namespace Betauer.Tools.Statemachine {
 
         private State _currentState;
         private State _nextState;
+        private Dictionary<string, object> _nextConfig;
+
         private bool _nextStateImmediate;
         private readonly IFrameAware _frameAware;
 
@@ -39,6 +41,22 @@ namespace Betauer.Tools.Statemachine {
             _nextStateImmediate = immediate;
         }
 
+        public void SetNextConfig(Dictionary<string, object> config) {
+            _nextConfig = config;
+        }
+
+        public void SetNextConfig(string key, object value) {
+            if (_nextConfig == null) {
+                _nextConfig = new Dictionary<string, object>();
+            }
+            _nextConfig[key] = value;
+        }
+
+        public Dictionary<string, object> GetNextConfig() {
+            return _nextConfig;
+        }
+
+
         public void Execute() {
             var stateChanges = 0;
             CheckNextState(_nextState);
@@ -59,9 +77,9 @@ namespace Betauer.Tools.Statemachine {
                 GD.Print("#" + Frame + ": " + _currentState?.GetType().Name + " > " + newState.GetType().Name);
             }
 
-            EndState(_currentState);
+            EndState();
             _currentState = newState;
-            StartState(_currentState);
+            StartState();
             return true;
         }
 
@@ -78,16 +96,18 @@ namespace Betauer.Tools.Statemachine {
             GD.Print(message);
         }
 
-        private void StartState(State state) {
-            if (state == null) return;
-            DebugStateFlow("#" + Frame + ": " + state.GetType().Name + ".Start()");
-            state.Start();
+        private void StartState() {
+            if (_currentState == null) return;
+            DebugStateFlow("#" + Frame + ": " + _currentState.GetType().Name + ".Start()");
+            _currentState.Configure(_nextConfig);
+            _nextConfig = null;
+            _currentState.Start();
         }
 
-        private void EndState(State state) {
-            if (state == null) return;
-            DebugStateFlow("#" + Frame + ": " + state.GetType().Name + ".End()");
-            state.End();
+        private void EndState() {
+            if (_currentState == null) return;
+            DebugStateFlow("#" + Frame + ": " + _currentState.GetType().Name + ".End()");
+            _currentState.End();
         }
     }
 }
