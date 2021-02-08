@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Tools.Statemachine {
@@ -59,11 +60,14 @@ namespace Betauer.Tools.Statemachine {
 
         public void Execute() {
             var stateChanges = 0;
+            var list = new List<string>();
             CheckNextState(_nextState);
             do {
+                list.Add(_currentState.GetType().Name);
                 ExecuteState();
                 stateChanges++;
                 if (stateChanges > 10) {
+                    list.ForEach(state=> GD.Print(state));
                     throw new Exception("State has been changed too many times in the same frame: " + stateChanges);
                 }
             } while (CheckNextState(_nextState != null && _nextStateImmediate ? _nextState : null));
