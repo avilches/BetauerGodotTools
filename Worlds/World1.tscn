@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=2]
+[gd_scene load_steps=24 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Tools/Filler2D.gd" type="Script" id=2]
@@ -16,6 +16,7 @@
 [ext_resource path="res://Worlds/RotateChildrenSpaced.gd" type="Script" id=14]
 [ext_resource path="res://Tools/Platforms/MovingPlatform.gd" type="Script" id=15]
 [ext_resource path="res://Worlds/RotateChildrenAligned.gd" type="Script" id=16]
+[ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=17]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 2000, 50 )
@@ -426,7 +427,8 @@ enabled_editor = true
 enabled_game = true
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 115, 42 )
+position = Vector2( 117.777, -21.6804 )
+script = ExtResource( 17 )
 next_scene = "res://Worlds/World2.tscn"
 
 [node name="TileMap" type="TileMap" parent="."]

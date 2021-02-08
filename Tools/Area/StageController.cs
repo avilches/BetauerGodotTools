@@ -1,6 +1,3 @@
-using static System.Math;
-using Betauer.Tools;
-using Betauer.Tools.Platforms;
 using Godot;
 using static Betauer.Tools.LayerConstants;
 
@@ -11,12 +8,10 @@ namespace Betauer.Tools.Area {
         private bool _exitedStage;
         private Stage _currentStage;
 
-        private AreaManager AreaManager;
-
-        public StageController(AreaManager areaManager) {
-            AreaManager = areaManager;
-        }
-
+        /**
+         * Camera2D
+         * Unico objeto externo en el que este controller hace cambios
+         */
         private Camera2D Camera2D => GameManager.Instance.Camera2D;
 
         public void RegisterStage(CollisionShape2D stageCollisionShape2D) {

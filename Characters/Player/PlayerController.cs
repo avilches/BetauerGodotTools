@@ -29,7 +29,6 @@ namespace Betauer.Characters.Player {
             PlayerActions.ConfigureMapping();
         }
 
-
         public override void _EnterTree() {
             _sprite = GetNode<Sprite>("Sprite");
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
@@ -179,6 +178,10 @@ namespace Betauer.Characters.Player {
             if (_currentAnimation == newAnimation) return;
             _animationPlayer.Play(newAnimation);
             _currentAnimation = newAnimation;
+        }
+
+        public void DeathZone(Area2D deathArea2D) {
+            GD.Print("MUETO!!");
         }
     }
 /*

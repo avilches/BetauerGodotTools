@@ -1,4 +1,5 @@
 using System;
+using Betauer.Characters.Player;
 using Betauer.Tools.Area;
 using Betauer.Tools.Character;
 using Betauer.Tools.Platforms;
@@ -23,19 +24,21 @@ namespace Betauer.Tools {
         public PlatformManager PlatformManager { get; private set; }
         public void AddManager(AreaManager areaManager) => AreaManager = areaManager;
 
-        public KinematicBody2D CurrentPlayer { get; private set; }
+        public PlayerController CurrentPlayer { get; private set; }
         public Camera2D Camera2D { get; private set; }
 
         public override void _Ready() {
         }
 
-        public void RegisterPlayer(CharacterController player) {
+        public void RegisterPlayer(PlayerController player) {
             CurrentPlayer = player;
             Camera2D = player.GetNode<Camera2D>("Camera2D");
             if (Camera2D == null) {
                 throw new System.Exception("Player must have a child node Camera2D");
             }
 
+            player.CollisionLayer = 0;
+            player.CollisionMask = 0;
             player.SetCollisionLayerBit(PLAYER_LAYER, true);
 
             PlatformManager.RegisterPlayer(player);
@@ -45,5 +48,10 @@ namespace Betauer.Tools {
         public bool IsPlayer(KinematicBody2D player) {
             return CurrentPlayer == player;
         }
+
+        public void PlayerEnteredDeathZone(Area2D deathArea2D) {
+            CurrentPlayer.DeathZone(deathArea2D);
+        }
+
     }
 }

@@ -7,7 +7,5 @@ namespace Betauer.Tools {
         public const int PLAYER_LAYER = 10;
         public const int ENEMY_LAYER = 11;
         public const int PLAYER_DETECTOR_LAYER = 12;
-
-
     }
 }

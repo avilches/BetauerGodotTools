@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Scenes/SlopeStairs.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://Worlds/Environment/anokalisa/LegacyVania.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scenes/Enemy-skeleton.tscn" type="PackedScene" id=6]
 [ext_resource path="res://Tools/Area/Stage.gd" type="Script" id=7]
+[ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=8]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 300, 200 )
@@ -41,6 +42,7 @@ scale = Vector2( 1, -1 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 528, -40 )
+script = ExtResource( 8 )
 next_scene = "res://Worlds/World1.tscn"
 
 [node name="EnemySkeleton" parent="." instance=ExtResource( 6 )]
