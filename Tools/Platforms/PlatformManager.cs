@@ -1,28 +1,18 @@
+using Betauer.Tools.Character;
 using Godot;
+using static Betauer.Tools.LayerConstants;
 using Godot.Collections;
 
 namespace Betauer.Tools.Platforms {
     public class PlatformManager : Node {
-        private const string GODOT_SIGNAL_body_shape_entered = "body_shape_entered";
-        private const string GODOT_SIGNAL_body_shape_exited = "body_shape_exited";
-
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";
         private const string GROUP_FALLING_PLATFORMS = "falling_platform";
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
 
 
-        public static PlatformManager Instance { get; private set; }
-
         public override void _EnterTree() {
-            Instance = this;
+            GameManager.Instance.AddManager(this);
         }
-
-
-        const int REGULAR_PLATFORM_LAYER = 0;
-        const int SLOPE_STAIRS_LAYER = 1;
-        const int SLOPE_STAIRS_COVER_LAYER = 2;
-        const int FALL_PLATFORM_LAYER = 3;
-        const int PLAYER_LAYER = 10;
 
         // Configura el layer de la plataforma segun el tipo
         void RegisterPlatform(PhysicsBody2D platform) {
@@ -68,7 +58,7 @@ namespace Betauer.Tools.Platforms {
             }
         }
 
-        public void ConfigureBodyCollisions(KinematicBody2D kb2d) {
+        public void RegisterPlayer(CharacterController kb2d) {
             kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, false);
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, true);
@@ -144,7 +134,7 @@ namespace Betauer.Tools.Platforms {
         // añade un area2D en la que cualquier objeto que la traspase, enviara una señal
         // Suscribirse a esta señal desde el jugador para llamar a BodyStopFallFromPlatform
         void AddArea2DFallingPlatformExit(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered),
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_platform_exit_body_shape_entered),
                 new Array() {area2D});
         }
 
@@ -185,33 +175,33 @@ namespace Betauer.Tools.Platforms {
         // añade un area2D en la que cualquier objeto que la traspase, enviara una señal
         // Suscribirse a esta señal desde el jugador para llamar a body_*
         void AddArea2DSlopeStairsDown(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this,
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_entered, this,
                 nameof(_on_Area2D_slope_stairs_down_body_shape_entered), new Array() {area2D});
-            area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_down_body_shape_exited),
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_down_body_shape_exited),
                 new Array() {area2D});
         }
 
         public void AddArea2DSlopeStairsUp(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_up_body_shape_entered),
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_entered, this, nameof(_on_Area2D_slope_stairs_up_body_shape_entered),
                 new Array() {area2D});
-            area2D.Connect(GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_up_body_shape_exited),
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_exited, this, nameof(_on_Area2D_slope_stairs_up_body_shape_exited),
                 new Array() {area2D});
         }
 
         void AddArea2DSlopeStairsEnabler(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this,
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_entered, this,
                 nameof(_on_Area2D_slope_stairs_enabler_body_shape_entered),
                 new Array() {area2D});
-            area2D.Connect(GODOT_SIGNAL_body_shape_exited, this,
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_exited, this,
                 nameof(_on_Area2D_slope_stairs_enabler_body_shape_exited),
                 new Array() {area2D});
         }
 
         void AddArea2DSlopeStairsDisabler(Area2D area2D) {
-            area2D.Connect(GODOT_SIGNAL_body_shape_entered, this,
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_entered, this,
                 nameof(_on_Area2D_slope_stairs_disabler_body_shape_entered),
                 new Array() {area2D});
-            area2D.Connect(GODOT_SIGNAL_body_shape_exited, this,
+            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_shape_exited, this,
                 nameof(_on_Area2D_slope_stairs_disabler_body_shape_exited),
                 new Array() {area2D});
         }

@@ -8,7 +8,8 @@ namespace Betauer.Tools.Character {
         public float Delta { get; private set; } = 0.16f;
         public Vector2 Motion = Vector2.Zero;
         private Vector2 _lastMotion = Vector2.Zero;
-        public PlatformManager PlatformManager => PlatformManager.Instance;
+        public GameManager GameManager => GameManager.Instance;
+        public PlatformManager PlatformManager => GameManager.PlatformManager;
         private long _frame = 0;
         public long GetFrame() {
             return _frame;

@@ -34,8 +34,10 @@ namespace Betauer.Characters.Player {
             _sprite = GetNode<Sprite>("Sprite");
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
+        }
 
-            PlatformManager.ConfigureBodyCollisions(this);
+        public override void _Ready() {
+            GameManager.RegisterPlayer(this);
             PlatformManager.SubscribeFallingPlatformOut(this, nameof(_OnFallingPlatformOut));
             PlatformManager.SubscribeSlopeStairsUp(this, nameof(_OnSlopeStairsUpIn), nameof(_OnSlopeStairsUpOut));
             PlatformManager.SubscribeSlopeStairsDown(this, nameof(_OnSlopeStairsDownIn), nameof(_OnSlopeStairsDownOut));
