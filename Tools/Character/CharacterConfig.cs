@@ -1,7 +1,18 @@
 using Godot;
 
 namespace Betauer.Tools.Character {
-    public class CharacterConfig : DebugConfig {
+    public class CharacterConfig {
+
+        public bool DEBUG_INPUT_EVENTS = false;
+        public bool DEBUG_STATE_FLOW = false;
+        public bool DEBUG_STATE_CHANGE = false;
+        public bool DEBUG_MAX_SPEED = false;
+        public bool DEBUG_ACCELERATION = false;
+        public bool DEBUG_SLOPE_STAIRS = false;
+        public bool DEBUG_COLLISION = false;
+        public bool DEBUG_MOTION = false;
+        public bool DEBUG_JUMP = false;
+
         // CONFIG: ground
         public float MAX_SPEED = 120f;                  // pixels/seconds
         public float ACCELERATION = 120f;               // pixels/frame

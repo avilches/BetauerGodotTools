@@ -9,21 +9,22 @@ namespace Betauer.Tools.Platforms {
         private const string GROUP_FALLING_PLATFORMS = "falling_platform";
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
 
+        /**
+         * No almacena nada, solo permite que characters se suscriban a cambios en una plataforma
+         * y permite cambiar sus mascaras.
+         */
 
-        public override void _EnterTree() {
-            GameManager.Instance.AddManager(this);
-        }
 
         // Configura el layer de la plataforma segun el tipo
         void RegisterPlatform(PhysicsBody2D platform) {
-            GD.Print("Platform:", platform.Name);
+            Debug.Register("PlatformManager.Platform", platform);
             // platform.AddToGroup("platform");
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
         }
 
         void RegisterMovingPlatform(KinematicBody2D platform) {
-            GD.Print("Moving platform:", platform.Name);
+            Debug.Register("PlatformManager.Moving platform", platform);
             platform.Motion__syncToPhysics = true;
             // platform.AddToGroup("platform");
             platform.AddToGroup(GROUP_MOVING_PLATFORMS);
@@ -32,21 +33,21 @@ namespace Betauer.Tools.Platforms {
         }
 
         void RegisterSlopeStairs(PhysicsBody2D platform) {
-            GD.Print("Slope stair platform:", platform.Name);
+            Debug.Register("PlatformManager.Slope stair", platform);
             platform.AddToGroup(GROUP_SLOPE_STAIRS);
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(SLOPE_STAIRS_LAYER, true);
         }
 
         void RegisterSlopeStairsCover(PhysicsBody2D platform) {
-            GD.Print("Slope stair cover platform:", platform.Name);
+            Debug.Register("PlatformManager.Slope stair cover", platform);
             // platform.AddToGroup("slope_stairs_cover");
             platform.CollisionLayer = 0;
             platform.SetCollisionLayerBit(SLOPE_STAIRS_COVER_LAYER, true);
         }
 
         void RegisterFallingPlatform(PhysicsBody2D platform) {
-            GD.Print("Falling platform:", platform.Name);
+            Debug.Register("PlatformManager.Falling platform", platform);
             foreach (var col in platform.GetChildren()) {
                 if (col is CollisionShape2D colShape2d) {
                     colShape2d.OneWayCollision = true;
@@ -59,6 +60,7 @@ namespace Betauer.Tools.Platforms {
         }
 
         public void RegisterPlayer(CharacterController kb2d) {
+            Debug.Register("PlatformManager.PlayerController", kb2d);
             kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_LAYER, false);
             kb2d.SetCollisionMaskBit(SLOPE_STAIRS_COVER_LAYER, true);

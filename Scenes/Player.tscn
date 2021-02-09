@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Characters/Player/PlayerController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Player-heroine/run.png" type="Texture" id=2]
 [ext_resource path="res://Characters/Player-heroine/idle.png" type="Texture" id=3]
 [ext_resource path="res://Characters/Player-heroine/jump.png" type="Texture" id=4]
+[ext_resource path="res://Characters/StageCameraController.cs" type="Script" id=5]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7, 20 )
@@ -235,6 +236,7 @@ current = true
 drag_margin_v_enabled = true
 smoothing_enabled = true
 smoothing_speed = 10.0
+script = ExtResource( 5 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody"]
 position = Vector2( 0, -20 )

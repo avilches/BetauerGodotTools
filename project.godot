@@ -67,12 +67,12 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "TweenSequence",
 "language": "GDScript",
-"path": "res://Tools/TweenSequence.gd"
+"path": "res://Tools/Effects/TweenSequence.gd"
 }, {
 "base": "Reference",
 "class": "Tweener",
 "language": "GDScript",
-"path": "res://Tools/Tweener.gd"
+"path": "res://Tools/Effects/Tweener.gd"
 } ]
 _global_script_class_icons={
 "Character": "",
@@ -98,10 +98,8 @@ config/icon="res://icon.png"
 
 [autoload]
 
-AutoloadIntegerResolution="*res://Tools/AutoloadIntegerResolution.gd"
-PlatformManager="*res://Tools/Platforms/PlatformManager.cs"
+AutoloadIntegerResolution="res://Tools/Resolution/AutoloadIntegerResolution.gd"
 GameManager="*res://Tools/GameManager.cs"
-AreaManager="*res://Tools/Area/AreaManager.cs"
 
 [display]
 
@@ -181,6 +179,6 @@ ui_right={
 
 [rendering]
 
-quality/2d/use_pixel_snap=true
+quality/2d/use_nvidia_rect_flicker_workaround=true
 environment/default_clear_color=Color( 0, 0, 0, 1 )
 environment/default_environment="res://default_env.tres"

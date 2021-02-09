@@ -1,35 +1,22 @@
+using System;
+using Betauer.Characters.Player;
 using Godot;
-using static Betauer.Tools.LayerConstants;
 
 
 namespace Betauer.Tools.Area {
-    public class StageController : IStageController {
+    public class StageCameraController : Camera2D, IPlayerStageChange {
         private Stage _enteredStage;
+
         private bool _exitedStage;
         private Stage _currentStage;
 
-        /**
-         * Camera2D
-         * Unico objeto externo en el que este controller hace cambios
-         */
-        private Camera2D Camera2D => GameManager.Instance.Camera2D;
-
-        public void RegisterStage(CollisionShape2D stageCollisionShape2D) {
-            var stageArea2D = stageCollisionShape2D.GetParent<Area2D>();
-            stageArea2D.CollisionLayer = 0;
-            stageArea2D.CollisionMask = 0;
-            stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
-        }
-
-        public void RegisterPlayer(KinematicBody2D player) {
-            var stageDetector = player.GetNode<Area2D>("StageDetector");
+        public override void _EnterTree() {
+            var stageDetector = GetNode<Area2D>("../StageDetector");
             if (stageDetector == null) {
-                throw new System.Exception("Player must have an Area2D called 'StageDetector'");
+                throw new Exception("Missing node Area2D StageDetector");
             }
-
-            stageDetector.CollisionLayer = 0;
-            stageDetector.CollisionMask = 0;
-            stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
+            GameManager.Instance.AreaManager.RegisterPlayerStageDetector(stageDetector);
+            GameManager.Instance.AreaManager.ListenPlayerStageChanges(this);
         }
 
         private class Stage {
@@ -52,20 +39,25 @@ namespace Betauer.Tools.Area {
             }
         }
 
+        private void Debug(string message) {
+            GD.Print("[Stage] " + message);
+        }
+
         public void _on_player_entered_stage(Area2D player, Area2D stageEnteredArea2D, RectangleShape2D shape2D) {
             var enteredStage = new Stage(stageEnteredArea2D, shape2D);
             if (_currentStage == null) {
+                Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". No current stage: changing now");
                 ChangeStage(enteredStage);
-                GD.Print("Entering first time: Current stage ", stageEnteredArea2D.Name);
                 return;
             }
 
             if (stageEnteredArea2D.Equals(_currentStage.Area2D)) {
-                GD.Print("Entering in ", stageEnteredArea2D.Name, ". We are already here. Ignoring");
+                Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name +
+                      " = _currentStage (we are already here): ignoring!");
                 return;
             }
 
-            GD.Print("Entering in ", stageEnteredArea2D.Name, ". (Scheduled)");
+            Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". New place...");
             _enteredStage = enteredStage;
             CheckChangeStage(false);
         }
@@ -74,9 +66,11 @@ namespace Betauer.Tools.Area {
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
                 _enteredStage = null;
                 _exitedStage = false;
-                GD.Print("Exiting stage ", stageExitedArea2D.Name, ". Rollback!");
+                Debug("Exit: " + player.Name + " from " + stageExitedArea2D.Name + ". Invalid transition, rollback!");
                 return;
             }
+
+            Debug("Stage exit: " + player.Name + " from " + stageExitedArea2D.Name + "....");
 
             _exitedStage = true;
 
@@ -85,32 +79,21 @@ namespace Betauer.Tools.Area {
 
         private void CheckChangeStage(bool normal) {
             if (_exitedStage && _enteredStage != null) {
-                GD.Print("Exiting stage ", _currentStage.Name, ", changing to scheduled ", _enteredStage.Name);
-                if (!normal) {
-                    GD.Print("WWWWWWWWWWWWWWWWW!!!!!");
-                }
+                Debug("Change: from " + _currentStage.Name + " to " + _enteredStage.Name+ (normal?"":" REVERSED (exit old place -> enter new place)"));
                 ChangeStage(_enteredStage);
             }
         }
 
-        float Lerp(float firstFloat, float secondFloat, float by) {
-            return firstFloat * (1 - by) + secondFloat * by;
-        }
-
         private void ChangeStage(Stage newStage) {
-            // _changeFrom = _currentStage?.Rect2;
-            // _changeTo = newStage.Rect2;
-
             _currentStage = newStage;
             _enteredStage = null;
             _exitedStage = false;
             var rect2 = newStage.Rect2;
-            Camera2D.LimitTop = (int) rect2.Position.y;
-            Camera2D.LimitLeft = (int) rect2.Position.x;
-            Camera2D.LimitBottom = (int) rect2.End.y;
-            Camera2D.LimitRight = (int) rect2.End.x;
-
+            Debug("Rect: " + rect2.Position + " " +rect2.End);
+            LimitLeft = (int) rect2.Position.x;
+            LimitTop = (int) rect2.Position.y;
+            LimitRight = (int) rect2.End.x;
+            LimitBottom = (int) rect2.End.y;
         }
-
     }
 }

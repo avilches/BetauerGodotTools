@@ -1,5 +1,6 @@
 using System;
 using Betauer.Characters.Player.States;
+using Betauer.Tools;
 using Betauer.Tools.Character;
 using Betauer.Tools.Input;
 using Betauer.Tools.Statemachine;
@@ -36,7 +37,7 @@ namespace Betauer.Characters.Player {
         }
 
         public override void _Ready() {
-            GameManager.RegisterPlayer(this);
+            GameManager.Instance.RegisterPlayerController(this);
             PlatformManager.SubscribeFallingPlatformOut(this, nameof(_OnFallingPlatformOut));
             PlatformManager.SubscribeSlopeStairsUp(this, nameof(_OnSlopeStairsUpIn), nameof(_OnSlopeStairsUpOut));
             PlatformManager.SubscribeSlopeStairsDown(this, nameof(_OnSlopeStairsDownIn), nameof(_OnSlopeStairsDownOut));

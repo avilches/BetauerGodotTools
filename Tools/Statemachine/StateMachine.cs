@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Tools.Character;
 using Godot;
 
 namespace Betauer.Tools.Statemachine {
     public class StateMachine {
         private readonly Dictionary<Type, State> _states = new Dictionary<Type, State>();
-        private readonly DebugConfig _debugConfig;
+        private readonly CharacterConfig _characterConfig;
 
         private State _currentState;
         private State _nextState;
@@ -15,8 +16,8 @@ namespace Betauer.Tools.Statemachine {
         private bool _nextStateImmediate;
         private readonly IFrameAware _frameAware;
 
-        public StateMachine(DebugConfig debugConfig, IFrameAware frameAware) {
-            _debugConfig = debugConfig;
+        public StateMachine(CharacterConfig characterConfig, IFrameAware frameAware) {
+            _characterConfig = characterConfig;
             _frameAware = frameAware;
         }
 
@@ -77,7 +78,7 @@ namespace Betauer.Tools.Statemachine {
             if (newState == null) return false;
             _nextState = null;
 
-            if (_debugConfig.DEBUG_STATE_CHANGE || _debugConfig.DEBUG_STATE_FLOW) {
+            if (_characterConfig.DEBUG_STATE_CHANGE || _characterConfig.DEBUG_STATE_FLOW) {
                 GD.Print("#" + Frame + ": " + _currentState?.GetType().Name + " > " + newState.GetType().Name);
             }
 
@@ -96,7 +97,7 @@ namespace Betauer.Tools.Statemachine {
         }
 
         private void DebugStateFlow(string message) {
-            if (!_debugConfig.DEBUG_STATE_FLOW) return;
+            if (!_characterConfig.DEBUG_STATE_FLOW) return;
             GD.Print(message);
         }
 

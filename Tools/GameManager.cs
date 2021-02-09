@@ -1,15 +1,18 @@
 using System;
 using Betauer.Characters.Player;
 using Betauer.Tools.Area;
-using Betauer.Tools.Character;
 using Betauer.Tools.Platforms;
 using Godot;
 using static Betauer.Tools.LayerConstants;
 
 
 namespace Betauer.Tools {
-    public class GameManager : Node {
+    public class GameManager : Node2D {
         public static GameManager Instance { get; private set; }
+
+        public readonly AreaManager AreaManager;
+        public readonly PlatformManager PlatformManager;
+        public readonly SceneManager SceneManager;
 
         public GameManager() {
             if (Instance != null) {
@@ -17,41 +20,38 @@ namespace Betauer.Tools {
             }
 
             Instance = this;
+            AreaManager = new AreaManager();
+            PlatformManager = new PlatformManager();
+            SceneManager = new SceneManager();
         }
 
-        public AreaManager AreaManager { get; private set; }
-        public void AddManager(PlatformManager platformManager) => PlatformManager = platformManager;
-        public PlatformManager PlatformManager { get; private set; }
-        public void AddManager(AreaManager areaManager) => AreaManager = areaManager;
-
-        public PlayerController CurrentPlayer { get; private set; }
-        public Camera2D Camera2D { get; private set; }
-
-        public override void _Ready() {
+        public override void _EnterTree() {
+            AddChild(AreaManager);
+            AddChild(PlatformManager);
         }
 
-        public void RegisterPlayer(PlayerController player) {
-            CurrentPlayer = player;
-            Camera2D = player.GetNode<Camera2D>("Camera2D");
-            if (Camera2D == null) {
-                throw new System.Exception("Player must have a child node Camera2D");
-            }
 
-            player.CollisionLayer = 0;
-            player.CollisionMask = 0;
-            player.SetCollisionLayerBit(PLAYER_LAYER, true);
+        /**
+         * Variables globales que se guardan. Se actualizan cada vez que el propio PlayerController se registra
+         */
+        public PlayerController PlayerController { get; private set; }
 
-            PlatformManager.RegisterPlayer(player);
-            AreaManager.RegisterPlayer(player);
+        public void RegisterPlayerController(PlayerController playerController) {
+            Debug.Register("GameManager.PlayerController ", playerController);
+            playerController.CollisionLayer = 0;
+            playerController.CollisionMask = 0;
+            playerController.SetCollisionLayerBit(PLAYER_LAYER, true);
+
+            PlayerController = playerController;
+            PlatformManager.RegisterPlayer(playerController);
         }
 
         public bool IsPlayer(KinematicBody2D player) {
-            return CurrentPlayer == player;
+            return PlayerController == player;
         }
 
         public void PlayerEnteredDeathZone(Area2D deathArea2D) {
-            CurrentPlayer.DeathZone(deathArea2D);
+            PlayerController.DeathZone(deathArea2D);
         }
-
     }
 }

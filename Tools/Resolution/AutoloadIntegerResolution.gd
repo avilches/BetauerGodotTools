@@ -10,9 +10,8 @@ const SETTING_BASE_WIDTH = "display/window/integer_resolution_handler/base_width
 const SETTING_BASE_HEIGHT = "display/window/integer_resolution_handler/base_height"
 
 #var base_resolution := Vector2(320, 180)  # 1920x1080 / 6
-#var base_resolution := Vector2(480, 270)  # 1920x1080 / 4
+var base_resolution := Vector2(480, 270)  # 1920x1080 / 4
 #var base_resolution := Vector2(1920, 1080)
-var base_resolution := Vector2(1920, 1080) / 4
 var stretch_mode: int
 var stretch_aspect: int
 const DEBUG_INFO = false

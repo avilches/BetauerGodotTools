@@ -50,30 +50,26 @@ position = Vector2( 0, 1 )
 
 [node name="Stages" type="Node2D" parent="."]
 
-[node name="Stage1" type="Area2D" parent="Stages"]
-position = Vector2( 280.976, 43.0464 )
+[node name="Stage21" type="Area2D" parent="Stages"]
+position = Vector2( 281, 43 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage1"]
+[node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage21"]
 shape = SubResource( 1 )
 script = ExtResource( 7 )
-color = Color( 0.827451, 0.247059, 0.172549, 0.141176 )
-enabled_editor = true
 
-[node name="Stage2" type="Area2D" parent="Stages"]
-position = Vector2( 880.494, 43.0464 )
+[node name="Stage22" type="Area2D" parent="Stages"]
+position = Vector2( 881, 43 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage2"]
+[node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage22"]
 shape = SubResource( 1 )
 script = ExtResource( 7 )
-color = Color( 0.0392157, 0.423529, 0.137255, 0.392157 )
-enabled_editor = true
