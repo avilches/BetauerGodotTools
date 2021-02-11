@@ -7,6 +7,17 @@ using static Betauer.Tools.LayerConstants;
 
 
 namespace Betauer.Tools {
+    /**
+     * GameManager es Node para estar en autoload.
+     * Añade automaticamente a los otros managers (Manager = siempre cargado)
+     * Los Controller son scripts de objetos de le escena que se cargan y se registran en los managers
+     *
+     * Los Manager actuan de intermediarios entre objetos que no se conocen entre si. Por ejemplo: las death zones,
+     * plataformas o stages se añaden en sus managers, que escucha a las señales que estos objetos producen.
+     * Por otro lado, el jugador se registra en estos mismos manager para escuchar estas señales, sin llegar a saber
+     * donde estan realmente estos objetos (plataformas o areas).
+     *
+     */
     public class GameManager : Node2D {
         public static GameManager Instance { get; private set; }
 

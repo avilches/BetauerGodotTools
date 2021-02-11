@@ -2,6 +2,7 @@ using System;
 using Betauer.Characters.Player.States;
 using Betauer.Tools;
 using Betauer.Tools.Character;
+using Betauer.Tools.Events;
 using Betauer.Tools.Input;
 using Betauer.Tools.Statemachine;
 using Godot;
@@ -38,11 +39,14 @@ namespace Betauer.Characters.Player {
 
         public override void _Ready() {
             GameManager.Instance.RegisterPlayerController(this);
-            PlatformManager.SubscribeFallingPlatformOut(this, nameof(_OnFallingPlatformOut));
-            PlatformManager.SubscribeSlopeStairsUp(this, nameof(_OnSlopeStairsUpIn), nameof(_OnSlopeStairsUpOut));
-            PlatformManager.SubscribeSlopeStairsDown(this, nameof(_OnSlopeStairsDownIn), nameof(_OnSlopeStairsDownOut));
-            PlatformManager.SubscribeSlopeStairsEnabler(this, nameof(_OnSlopeStairsEnablerIn));
-            PlatformManager.SubscribeSlopeStairsDisabler(this, nameof(_OnSlopeStairsDisablerIn));
+            PlatformManager.SubscribeFallingPlatformOut(new Area2DEnterListenerDelegate(this, _OnFallingPlatformOut));
+            PlatformManager.SubscribeSlopeStairsUp(new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpIn),
+                new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpOut));
+            PlatformManager.SubscribeSlopeStairsDown(new Area2DEnterListenerDelegate(this, _OnSlopeStairsDownIn),
+                new Area2DEnterListenerDelegate(this, _OnSlopeStairsDownOut));
+            PlatformManager.SubscribeSlopeStairsEnabler(new Area2DEnterListenerDelegate(this, _OnSlopeStairsEnablerIn));
+            PlatformManager.SubscribeSlopeStairsDisabler(
+                new Area2DEnterListenerDelegate(this, _OnSlopeStairsDisablerIn));
         }
 
         public void EnableSlopeStairs() {
@@ -62,41 +66,31 @@ namespace Betauer.Characters.Player {
         private bool _slope_stairs_down;
         private bool _slope_stairs_up;
 
-        public void _OnSlopeStairsUpIn(Node body, Area2D area2D) {
-            if (body != this) return;
+        public void _OnSlopeStairsUpIn(BodyOnArea2D evt) {
             _slope_stairs_up = true;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
         }
 
-        public void _OnSlopeStairsUpOut(Node body, Area2D area2D) {
-            if (body != this) return;
+        public void _OnSlopeStairsUpOut(BodyOnArea2D evt) {
             _slope_stairs_up = false;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
         }
 
-        public void _OnSlopeStairsDownIn(Node body, Area2D area2D) {
-            if (body != this) return;
+        public void _OnSlopeStairsDownIn(BodyOnArea2D evt) {
             _slope_stairs_down = true;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
         }
 
-        public void _OnSlopeStairsDownOut(Node body, Area2D area2D) {
-            if (body != this) return;
+        public void _OnSlopeStairsDownOut(BodyOnArea2D evt) {
             _slope_stairs_down = false;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
         }
 
-        public void _OnFallingPlatformOut(Node body, Area2D area2D) {
-            if (body == this) PlatformManager.BodyStopFallFromPlatform(this);
-        }
+        public void _OnFallingPlatformOut(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
 
-        public void _OnSlopeStairsEnablerIn(Node body, Area2D area2D) {
-            if (body == this) EnableSlopeStairs();
-        }
+        public void _OnSlopeStairsEnablerIn(BodyOnArea2D evt) => EnableSlopeStairs();
 
-        public void _OnSlopeStairsDisablerIn(Node body, Area2D area2D) {
-            if (body == this) DisableSlopeStairs();
-        }
+        public void _OnSlopeStairsDisablerIn(BodyOnArea2D evt) => DisableSlopeStairs();
 
         protected override void PhysicsProcess() {
             _stateMachine.Execute();
@@ -241,5 +235,4 @@ func debug_collision():
 
 
  */
-
 }

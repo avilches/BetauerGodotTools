@@ -1,5 +1,4 @@
 using System;
-using Betauer.Characters.Player;
 using Godot;
 
 
@@ -39,38 +38,34 @@ namespace Betauer.Tools.Area {
             }
         }
 
-        private void Debug(string message) {
-            GD.Print("[Stage] " + message);
-        }
-
         public void _on_player_entered_stage(Area2D player, Area2D stageEnteredArea2D, RectangleShape2D shape2D) {
             var enteredStage = new Stage(stageEnteredArea2D, shape2D);
             if (_currentStage == null) {
-                Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". No current stage: changing now");
+                Debug.Stage("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". No current stage: changing now");
                 ChangeStage(enteredStage);
                 return;
             }
 
             if (stageEnteredArea2D.Equals(_currentStage.Area2D)) {
-                Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name +
+                Debug.Stage("Enter: " + player.Name + " to " + stageEnteredArea2D.Name +
                       " = _currentStage (we are already here): ignoring!");
                 return;
             }
 
-            Debug("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". New place...");
+            Debug.Stage("Enter: " + player.Name + " to " + stageEnteredArea2D.Name + ". New place...");
             _enteredStage = enteredStage;
             CheckChangeStage(false);
         }
 
-        public void _on_player_exited_stage(Area2D player, Area2D stageExitedArea2D, RectangleShape2D stageShape2D) {
+        public void _on_player_exited_stage(Area2D player, Area2D stageExitedArea2D) {
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
                 _enteredStage = null;
                 _exitedStage = false;
-                Debug("Exit: " + player.Name + " from " + stageExitedArea2D.Name + ". Invalid transition, rollback!");
+                Debug.Stage("Exit: " + player.Name + " from " + stageExitedArea2D.Name + ". Invalid transition, rollback!");
                 return;
             }
 
-            Debug("Stage exit: " + player.Name + " from " + stageExitedArea2D.Name + "....");
+            Debug.Stage("Stage exit: " + player.Name + " from " + stageExitedArea2D.Name + "....");
 
             _exitedStage = true;
 
@@ -79,7 +74,7 @@ namespace Betauer.Tools.Area {
 
         private void CheckChangeStage(bool normal) {
             if (_exitedStage && _enteredStage != null) {
-                Debug("Change: from " + _currentStage.Name + " to " + _enteredStage.Name+ (normal?"":" REVERSED (exit old place -> enter new place)"));
+                Debug.Stage("Change: from " + _currentStage.Name + " to " + _enteredStage.Name+ (normal?"":" REVERSED (exit old place -> enter new place)"));
                 ChangeStage(_enteredStage);
             }
         }
@@ -89,7 +84,7 @@ namespace Betauer.Tools.Area {
             _enteredStage = null;
             _exitedStage = false;
             var rect2 = newStage.Rect2;
-            Debug("Rect: " + rect2.Position + " " +rect2.End);
+            Debug.Stage("Rect: " + rect2.Position + " " +rect2.End);
             LimitLeft = (int) rect2.Position.x;
             LimitTop = (int) rect2.Position.y;
             LimitRight = (int) rect2.End.x;

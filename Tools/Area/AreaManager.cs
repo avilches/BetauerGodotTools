@@ -25,7 +25,7 @@ namespace Betauer.Tools.Area {
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_stage),
                 new Array {stageArea2D, stageCollisionShape2D.Shape});
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_on_player_exited_stage),
-                new Array {stageArea2D, stageCollisionShape2D.Shape});
+                new Array {stageArea2D});
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
@@ -36,8 +36,8 @@ namespace Betauer.Tools.Area {
             _stageCameraController?._on_player_entered_stage(player, stageEnteredArea2D, shape2D);
         }
 
-        public void _on_player_exited_stage(Area2D player, Area2D stageExitedArea2D, RectangleShape2D stageShape2D) {
-            _stageCameraController?._on_player_exited_stage(player, stageExitedArea2D, stageShape2D);
+        public void _on_player_exited_stage(Area2D player, Area2D stageExitedArea2D) {
+            _stageCameraController?._on_player_exited_stage(player, stageExitedArea2D);
         }
 
         public void RegisterDeathZone(CollisionShape2D deathCollisionShape2D) {
