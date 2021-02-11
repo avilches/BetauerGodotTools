@@ -1,14 +1,9 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=11 format=2]
 
-[ext_resource path="res://Tools/Platforms/SlopeStairsDownHall.gd" type="Script" id=1]
-[ext_resource path="res://Tools/Platforms/SlopeStairs.gd" type="Script" id=2]
 [ext_resource path="res://Worlds/Environment/anokalisa/village.png" type="Texture" id=3]
 [ext_resource path="res://Tools/Filler2D.gd" type="Script" id=4]
-[ext_resource path="res://Tools/Platforms/SlopeStairsUpHall.gd" type="Script" id=5]
-[ext_resource path="res://Tools/Platforms/SlopeStairsEnabler.gd" type="Script" id=6]
-[ext_resource path="res://Tools/Platforms/SlopeStairsDisabler.gd" type="Script" id=7]
-[ext_resource path="res://Tools/Platforms/SlopeStairsCover.gd" type="Script" id=8]
 [ext_resource path="res://Worlds/Environment/anokalisa/gallery.png" type="Texture" id=9]
+[ext_resource path="res://Tools/Platforms/SlopeStairs.cs" type="Script" id=10]
 
 [sub_resource type="TileSet" id=1]
 0/name = "village.png 0"
@@ -154,6 +149,7 @@ extents = Vector2( 8, 40 )
 extents = Vector2( 8, 40 )
 
 [node name="Node2D" type="Node2D"]
+script = ExtResource( 10 )
 __meta__ = {
 "_edit_lock_": true
 }
@@ -172,7 +168,6 @@ __meta__ = {
 [node name="SlopeStairs" type="StaticBody2D" parent="."]
 collision_layer = 0
 collision_mask = 0
-script = ExtResource( 2 )
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="SlopeStairs"]
 polygon = PoolVector2Array( 0, 0, -128, -128, -128, 0 )
@@ -191,7 +186,6 @@ __meta__ = {
 position = Vector2( -56, -120 )
 collision_layer = 0
 collision_mask = 0
-script = ExtResource( 8 )
 __meta__ = {
 "_edit_group_": true
 }
@@ -209,7 +203,6 @@ enabled_game = true
 [node name="UpHall" type="Area2D" parent="."]
 position = Vector2( -144, -90 )
 collision_mask = 0
-script = ExtResource( 5 )
 
 [node name="Filler2D" type="CollisionShape2D" parent="UpHall"]
 position = Vector2( 16, -38 )
@@ -223,7 +216,6 @@ enabled_game = true
 [node name="DownHall" type="Area2D" parent="."]
 position = Vector2( -8, 0 )
 collision_mask = 0
-script = ExtResource( 1 )
 
 [node name="Filler2D" type="CollisionShape2D" parent="DownHall"]
 position = Vector2( 8, 0 )
@@ -240,7 +232,6 @@ position = Vector2( -112, -160 )
 [node name="Enabler" type="Area2D" parent="EnablerAndDisabler"]
 position = Vector2( -7.99999, -16 )
 collision_mask = 0
-script = ExtResource( 6 )
 
 [node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
 position = Vector2( -24, -8 )
@@ -259,7 +250,6 @@ color = Color( 0.0588235, 0.85098, 0.164706, 0.25098 )
 [node name="Disabler" type="Area2D" parent="EnablerAndDisabler"]
 position = Vector2( -48, 0 )
 collision_mask = 0
-script = ExtResource( 7 )
 
 [node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Disabler"]
 position = Vector2( 8, -24 )

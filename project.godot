@@ -59,11 +59,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Scenes/PlayerConfig.gd"
 }, {
-"base": "Filler2D",
-"class": "StageArea",
-"language": "GDScript",
-"path": "res://Tools/Area/Stage.gd"
-}, {
 "base": "Reference",
 "class": "TweenSequence",
 "language": "GDScript",
@@ -85,7 +80,6 @@ _global_script_class_icons={
 "Platform": "",
 "PlatformFollowPath": "",
 "PlayerConfig": "",
-"StageArea": "",
 "TweenSequence": "",
 "Tweener": ""
 }

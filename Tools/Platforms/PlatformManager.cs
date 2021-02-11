@@ -34,7 +34,7 @@ namespace Betauer.Tools.Platforms {
             platform.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
         }
 
-        void RegisterSlopeStairs(PhysicsBody2D platform) {
+        public void RegisterSlopeStairs(PhysicsBody2D platform) {
             Debug.Register("PlatformManager.Slope stair", platform);
             platform.AddToGroup(GROUP_SLOPE_STAIRS);
             platform.CollisionMask = 0;
@@ -42,7 +42,7 @@ namespace Betauer.Tools.Platforms {
             platform.SetCollisionLayerBit(SLOPE_STAIRS_LAYER, true);
         }
 
-        void RegisterSlopeStairsCover(PhysicsBody2D platform) {
+        public void RegisterSlopeStairsCover(PhysicsBody2D platform) {
             Debug.Register("PlatformManager.Slope stair cover", platform);
             // platform.AddToGroup("slope_stairs_cover");
             platform.CollisionMask = 0;
@@ -154,7 +154,7 @@ namespace Betauer.Tools.Platforms {
 
         // añade un area2D en la que cualquier objeto que la traspase, enviara una señal
         // Suscribirse a esta señal desde el jugador para llamar a body_*
-        void AddArea2DSlopeStairsDown(Area2D area2D) {
+        public void AddArea2DSlopeStairsDown(Area2D area2D) {
             area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this,
                 nameof(SlopeStairsDown_BodyEntered), new Array {area2D});
             area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, this,
@@ -171,7 +171,7 @@ namespace Betauer.Tools.Platforms {
                 new Array {area2D});
         }
 
-        void AddArea2DSlopeStairsEnabler(Area2D area2D) {
+        public void AddArea2DSlopeStairsEnabler(Area2D area2D) {
             area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this,
                 nameof(SlopeStairsEnabler_BodyEntered),
                 new Array {area2D});
@@ -180,7 +180,7 @@ namespace Betauer.Tools.Platforms {
                 new Array {area2D});
         }
 
-        void AddArea2DSlopeStairsDisabler(Area2D area2D) {
+        public void AddArea2DSlopeStairsDisabler(Area2D area2D) {
             area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this,
                 nameof(SlopeStairsDisabler_BodyEntered),
                 new Array {area2D});

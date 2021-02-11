@@ -1,14 +1,14 @@
 [gd_scene load_steps=28 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
-[ext_resource path="res://Tools/Filler2D.gd" type="Script" id=2]
+[ext_resource path="res://Tools/Area/DeathArea2D.cs" type="Script" id=2]
 [ext_resource path="res://Scenes/WorldComplete.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Tools/Platforms/FallPlatformFollowPath.gd" type="Script" id=4]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-background.png" type="Texture" id=5]
 [ext_resource path="res://Tools/Platforms/PlatformBodyOut.gd" type="Script" id=6]
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-middleground.png" type="Texture" id=8]
-[ext_resource path="res://Tools/Area/DeathArea.gd" type="Script" id=9]
+[ext_resource path="res://Tools/Filler2D.gd" type="Script" id=9]
 [ext_resource path="res://Tools/Platforms/FallMovingPlatform.gd" type="Script" id=10]
 [ext_resource path="res://Tools/Platforms/FallPlatform.gd" type="Script" id=11]
 [ext_resource path="res://Worlds/AnimatedPlat.gd" type="Script" id=12]
@@ -17,7 +17,7 @@
 [ext_resource path="res://Tools/Platforms/MovingPlatform.gd" type="Script" id=15]
 [ext_resource path="res://Worlds/RotateChildrenAligned.gd" type="Script" id=16]
 [ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=17]
-[ext_resource path="res://Tools/Area/Stage.gd" type="Script" id=18]
+[ext_resource path="res://Tools/Area/StageList.cs" type="Script" id=18]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 2000, 50 )
@@ -75,12 +75,11 @@ __meta__ = {
 [node name="DeathZone" type="Area2D" parent="."]
 position = Vector2( -491, 224 )
 collision_mask = 7
+script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone"]
 position = Vector2( 2000, 80 )
 shape = SubResource( 1 )
-script = ExtResource( 9 )
-color = Color( 0.862745, 0.0352941, 0.0352941, 1 )
 
 [node name="GVaniaBridgeTileMap" parent="." instance=ExtResource( 1 )]
 modulate = Color( 0.913725, 0.87451, 0.607843, 1 )
@@ -154,7 +153,7 @@ __meta__ = {
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 150, 1 )
 shape = SubResource( 2 )
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -162,7 +161,7 @@ enabled_game = true
 position = Vector2( 209, -24 )
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -171,7 +170,7 @@ position = Vector2( 174, -10 )
 rotation = -0.785398
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -180,7 +179,7 @@ position = Vector2( 116, -12 )
 rotation = 0.785398
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -211,7 +210,7 @@ autoplay = "up down"
 [node name="CollisionShape2D5" type="CollisionShape2D" parent="Platforms/FallMovAnim/Body"]
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -224,7 +223,7 @@ script = ExtResource( 6 )
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovAnim/Body/Area2D"]
 position = Vector2( 0, -6 )
 shape = SubResource( 5 )
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.764706, 0.203922, 0.203922, 1 )
 enabled_editor = true
 enabled_game = true
@@ -241,7 +240,7 @@ __meta__ = {
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -257,7 +256,7 @@ __meta__ = {
 [node name="Filler2D" type="CollisionShape2D" parent="Platforms/Platform2"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -273,7 +272,7 @@ __meta__ = {
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 enabled_editor = true
 enabled_game = true
 
@@ -295,7 +294,7 @@ __meta__ = {
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 enabled_editor = true
 enabled_game = true
@@ -319,7 +318,7 @@ __meta__ = {
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 enabled_editor = true
 enabled_game = true
@@ -337,7 +336,7 @@ position = Vector2( -1, 0 )
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 enabled_editor = true
 enabled_game = true
@@ -361,7 +360,7 @@ __meta__ = {
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
@@ -378,7 +377,7 @@ __meta__ = {
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
@@ -395,7 +394,7 @@ __meta__ = {
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
@@ -412,7 +411,7 @@ __meta__ = {
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
@@ -430,7 +429,7 @@ __meta__ = {
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 2 )
+script = ExtResource( 9 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 enabled_editor = true
 enabled_game = true
@@ -444,6 +443,7 @@ next_scene = "res://Worlds/World2.tscn"
 format = 1
 
 [node name="Stages" type="Node2D" parent="."]
+script = ExtResource( 18 )
 
 [node name="Stage11" type="Area2D" parent="Stages"]
 position = Vector2( 144, 40 )
@@ -456,7 +456,6 @@ __meta__ = {
 [node name="StageArea" type="CollisionShape2D" parent="Stages/Stage11"]
 position = Vector2( -1, 0 )
 shape = SubResource( 7 )
-script = ExtResource( 18 )
 
 [node name="Stage12" type="Area2D" parent="Stages"]
 position = Vector2( 643, 40 )
@@ -468,7 +467,6 @@ __meta__ = {
 
 [node name="StageArea" type="CollisionShape2D" parent="Stages/Stage12"]
 shape = SubResource( 8 )
-script = ExtResource( 18 )
 
 [node name="Stage13" type="Area2D" parent="Stages"]
 position = Vector2( 1143, 40 )
@@ -480,7 +478,6 @@ __meta__ = {
 
 [node name="StageArea" type="CollisionShape2D" parent="Stages/Stage13"]
 shape = SubResource( 9 )
-script = ExtResource( 18 )
 
 [node name="Position2D" type="Position2D" parent="."]
 position = Vector2( -105, 170 )

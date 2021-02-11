@@ -6,7 +6,7 @@
 [ext_resource path="res://Worlds/Environment/anokalisa/LegacyVaniaMock.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Worlds/Environment/anokalisa/LegacyVania.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scenes/Enemy-skeleton.tscn" type="PackedScene" id=6]
-[ext_resource path="res://Tools/Area/Stage.gd" type="Script" id=7]
+[ext_resource path="res://Tools/Area/StageList.cs" type="Script" id=7]
 [ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=8]
 
 [sub_resource type="RectangleShape2D" id=1]
@@ -50,18 +50,15 @@ next_scene = "res://Worlds/World1.tscn"
 position = Vector2( 0, 1 )
 
 [node name="Stages" type="Node2D" parent="."]
+script = ExtResource( 7 )
 
 [node name="Stage20" type="Area2D" parent="Stages"]
 position = Vector2( -319, 73 )
 collision_layer = 0
 collision_mask = 0
-__meta__ = {
-"_edit_group_": true
-}
 
 [node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage20"]
 shape = SubResource( 1 )
-script = ExtResource( 7 )
 
 [node name="Stage21" type="Area2D" parent="Stages"]
 position = Vector2( 281, 43 )
@@ -73,7 +70,6 @@ __meta__ = {
 
 [node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage21"]
 shape = SubResource( 1 )
-script = ExtResource( 7 )
 
 [node name="Stage22" type="Area2D" parent="Stages"]
 position = Vector2( 881, 43 )
@@ -85,4 +81,3 @@ __meta__ = {
 
 [node name="Filler2D" type="CollisionShape2D" parent="Stages/Stage22"]
 shape = SubResource( 1 )
-script = ExtResource( 7 )

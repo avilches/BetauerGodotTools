@@ -19,8 +19,7 @@ namespace Betauer.Tools.Area {
             stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
         }
 
-        public void RegisterStage(CollisionShape2D stageCollisionShape2D) {
-            var stageArea2D = stageCollisionShape2D.GetParent<Area2D>();
+        public void RegisterStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
             Debug.Register("AreaManager.Stage", stageArea2D);
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_stage),
                 new Array {stageArea2D, stageCollisionShape2D.Shape});
@@ -40,17 +39,16 @@ namespace Betauer.Tools.Area {
             _stageCameraController?._on_player_exited_stage(player, stageExitedArea2D);
         }
 
-        public void RegisterDeathZone(CollisionShape2D deathCollisionShape2D) {
-            var deathArea2D = deathCollisionShape2D.GetParent<Area2D>();
+        public void RegisterDeathZone(Area2D deathArea2D) {
             Debug.Register("AreaManager.DeathZone", deathArea2D);
             deathArea2D.CollisionLayer = 0;
             deathArea2D.CollisionMask = 0;
             deathArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
             deathArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_death_zone),
-                new Array {deathArea2D, deathCollisionShape2D.Shape});
+                new Array {deathArea2D});
         }
 
-        public void _on_player_entered_death_zone(Area2D player, Area2D deathArea2D, RectangleShape2D shape2D) {
+        public void _on_player_entered_death_zone(Area2D player, Area2D deathArea2D) {
             GameManager.Instance.PlayerEnteredDeathZone(deathArea2D);
         }
 
