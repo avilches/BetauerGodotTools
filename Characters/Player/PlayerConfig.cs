@@ -7,6 +7,8 @@ namespace Betauer.Characters.Player {
 		public const int MAX_JUMPS = 1;
 
 		public PlayerConfig() {
+			// DEBUG_SLOPE_STAIRS = true;
+
 			float MAX_SPEED = 110.0f; // pixels/seconds
 			float TIME_TO_MAX_SPEED = 0.2f; // seconds to reach the max speed 0=immediate
 			ConfigureSpeed(MAX_SPEED, TIME_TO_MAX_SPEED);

@@ -9,16 +9,6 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "KinematicBody2D",
-"class": "Character",
-"language": "GDScript",
-"path": "res://Scenes/Character.gd"
-}, {
-"base": "Reference",
-"class": "CharacterConfig",
-"language": "GDScript",
-"path": "res://Scenes/CharacterConfig.gd"
-}, {
 "base": "MovingPlatform",
 "class": "FallMovingPlatform",
 "language": "GDScript",
@@ -33,11 +23,6 @@ _global_script_classes=[ {
 "class": "FallPlatformFollowPath",
 "language": "GDScript",
 "path": "res://Tools/Platforms/FallPlatformFollowPath.gd"
-}, {
-"base": "CollisionShape2D",
-"class": "Filler2D",
-"language": "GDScript",
-"path": "res://Tools/Filler2D.gd"
 }, {
 "base": "KinematicBody2D",
 "class": "MovingPlatform",
@@ -54,11 +39,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Tools/Platforms/PlatformFollowPath.gd"
 }, {
-"base": "CharacterConfig",
-"class": "PlayerConfig",
-"language": "GDScript",
-"path": "res://Scenes/PlayerConfig.gd"
-}, {
 "base": "Reference",
 "class": "TweenSequence",
 "language": "GDScript",
@@ -70,16 +50,12 @@ _global_script_classes=[ {
 "path": "res://Tools/Effects/Tweener.gd"
 } ]
 _global_script_class_icons={
-"Character": "",
-"CharacterConfig": "",
 "FallMovingPlatform": "",
 "FallPlatform": "",
 "FallPlatformFollowPath": "",
-"Filler2D": "",
 "MovingPlatform": "",
 "Platform": "",
 "PlatformFollowPath": "",
-"PlayerConfig": "",
 "TweenSequence": "",
 "Tweener": ""
 }

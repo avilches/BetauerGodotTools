@@ -8,7 +8,6 @@
 [ext_resource path="res://Tools/Platforms/PlatformBodyOut.gd" type="Script" id=6]
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=7]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-middleground.png" type="Texture" id=8]
-[ext_resource path="res://Tools/Filler2D.gd" type="Script" id=9]
 [ext_resource path="res://Tools/Platforms/FallMovingPlatform.gd" type="Script" id=10]
 [ext_resource path="res://Tools/Platforms/FallPlatform.gd" type="Script" id=11]
 [ext_resource path="res://Worlds/AnimatedPlat.gd" type="Script" id=12]
@@ -18,6 +17,7 @@
 [ext_resource path="res://Worlds/RotateChildrenAligned.gd" type="Script" id=16]
 [ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=17]
 [ext_resource path="res://Tools/Area/StageList.cs" type="Script" id=18]
+[ext_resource path="res://Tools/Collored2D.cs" type="Script" id=19]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 2000, 50 )
@@ -153,35 +153,27 @@ __meta__ = {
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 150, 1 )
 shape = SubResource( 2 )
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 209, -24 )
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 174, -10 )
 rotation = -0.785398
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 116, -12 )
 rotation = 0.785398
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="Platform path" type="Path2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 140, -52 )
@@ -210,9 +202,7 @@ autoplay = "up down"
 [node name="CollisionShape2D5" type="CollisionShape2D" parent="Platforms/FallMovAnim/Body"]
 shape = SubResource( 2 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="Area2D" type="Area2D" parent="Platforms/FallMovAnim/Body"]
 position = Vector2( 0, 1 )
@@ -223,10 +213,8 @@ script = ExtResource( 6 )
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovAnim/Body/Area2D"]
 position = Vector2( 0, -6 )
 shape = SubResource( 5 )
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.764706, 0.203922, 0.203922, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Platform1" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 247, 49 )
@@ -236,13 +224,11 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/Platform1"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/Platform1"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="Platform2" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 170, 99 )
@@ -253,12 +239,10 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/Platform2"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/Platform2"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="TweenPlatform" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 391, 101 )
@@ -268,13 +252,11 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/TweenPlatform"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
-enabled_editor = true
-enabled_game = true
+script = ExtResource( 19 )
 
 [node name="Pivot" type="Node2D" parent="Platforms"]
 position = Vector2( 452, 39 )
@@ -290,14 +272,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/Pivot/Circular"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/Pivot/Circular"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="MultipleSpaced" type="Node2D" parent="Platforms"]
 position = Vector2( 759, 76 )
@@ -314,14 +294,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular1"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular1"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
 collision_mask = 0
@@ -331,15 +309,13 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular2"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular2"]
 position = Vector2( -1, 0 )
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="MultipleAligned" type="Node2D" parent="Platforms"]
 position = Vector2( 587, 76 )
@@ -356,14 +332,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular1"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular1"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
 collision_layer = 0
@@ -373,14 +347,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular2"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular2"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
 collision_layer = 0
@@ -390,14 +362,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular3"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular3"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Circular4" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
 collision_layer = 0
@@ -407,14 +377,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular4"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular4"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="Circular5" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
@@ -425,14 +393,12 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular5"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular5"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
-script = ExtResource( 9 )
+script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
-enabled_editor = true
-enabled_game = true
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 117.777, -21.6804 )

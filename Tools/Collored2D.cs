@@ -1,18 +1,17 @@
 using Godot;
-using System;
 
 namespace Betauer.Tools {
     [Tool]
     public class Collored2D : CollisionShape2D {
-
-        private Color _color;
-        private bool _enabled_editor;
-        private bool _enabled_game;
+        private Color _color = Colors.White;
+        private bool _enabled_editor = true;
+        private bool _enabled_game = true;
 
         [Export]
         Color color {
             get => _color;
-            set { _color = value;
+            set {
+                _color = value;
                 Update();
             }
         }
@@ -20,7 +19,8 @@ namespace Betauer.Tools {
         [Export]
         bool enabled_editor {
             get => _enabled_editor;
-            set { _enabled_editor = value;
+            set {
+                _enabled_editor = value;
                 Update();
             }
         }
@@ -28,7 +28,8 @@ namespace Betauer.Tools {
         [Export]
         bool enabled_game {
             get => _enabled_game;
-            set { _enabled_game = value;
+            set {
+                _enabled_game = value;
                 Update();
             }
         }
@@ -40,53 +41,25 @@ namespace Betauer.Tools {
                 if (!_enabled_game) return;
             }
 
-            if (Shape is RectangleShape2D r) {
-                var rect = new Rect2(Vector2.Zero - r.Extents, r.Extents * 2.0f);
-                DrawRect(rect, color);
+            var shape2D = Shape;
+            switch (shape2D) {
+                case RectangleShape2D r: {
+                    var rExtents = r.Extents;
+                    DrawRect(new Rect2(-rExtents, rExtents * 2.0f), color);
+                    break;
+                }
+                case CircleShape2D c:
+                    DrawCircle(Vector2.Zero, c.Radius, color);
+                    break;
+                
+                case CapsuleShape2D c:
+                    var cHeight = c.Height;
+                    var cRadius = c.Radius;
+                    DrawCircle(new Vector2(0, cHeight / 2F), cRadius, color);
+                    DrawCircle(new Vector2(0, -cHeight / 2F), cRadius, color);
+                    DrawRect(new Rect2(new Vector2(-cRadius, -cHeight / 2F), new Vector2(cRadius * 2, cHeight)), color);
+                    break;
             }
         }
-
-
-        /*
-    export (Color) var color = Color(1, 1, 1, 1) setget set_color
-    export var enabled_editor = false setget set_enabled_editor
-    export var enabled_game = false setget set_enabled_game
-
-    func set_color(new_color):
-        color = new_color
-        update()
-
-    func set_enabled_editor(v):
-        enabled_editor = v
-        update()
-
-    func set_enabled_game(v):
-        enabled_game = v
-        update()
-
-    func _draw():
-        if Engine.editor_hint:
-            if !enabled_editor: return
-        else:
-            if !enabled_game: return
-
-        var offset_position = Vector2(0, 0)
-
-        if shape is CircleShape2D:
-            draw_circle(offset_position, shape.radius, color)
-        elif shape is RectangleShape2D:
-            var rect = Rect2(offset_position - shape.extents, shape.extents * 2.0)
-            draw_rect(rect, color)
-        elif shape is CapsuleShape2D:
-            var upper_circle_position = offset_position + Vector2(0, shape.height * 0.5)
-            draw_circle(upper_circle_position, shape.radius, color)
-
-            var lower_circle_position = offset_position - Vector2(0, shape.height * 0.5)
-            draw_circle(lower_circle_position, shape.radius, color)
-
-            var rect_position = offset_position - Vector2(shape.radius, shape.height * 0.5)
-            var rect = Rect2(rect_position, Vector2(shape.radius * 2, shape.height))
-            draw_rect(rect, color)
-    */
     }
 }

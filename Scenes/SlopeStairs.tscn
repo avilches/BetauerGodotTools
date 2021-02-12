@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Worlds/Environment/anokalisa/village.png" type="Texture" id=3]
-[ext_resource path="res://Tools/Filler2D.gd" type="Script" id=4]
+[ext_resource path="res://Tools/Collored2D.cs" type="Script" id=4]
 [ext_resource path="res://Worlds/Environment/anokalisa/gallery.png" type="Texture" id=9]
 [ext_resource path="res://Tools/Platforms/SlopeStairs.cs" type="Script" id=10]
 
@@ -190,41 +190,39 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Filler2D" type="CollisionShape2D" parent="Cover"]
+[node name="Collored2D" type="CollisionShape2D" parent="Cover"]
 shape = SubResource( 2 )
 script = ExtResource( 4 )
 __meta__ = {
 "_edit_lock_": true
 }
-color = Color( 0.329412, 0.568627, 0.14902, 0.588235 )
-enabled_editor = true
-enabled_game = true
+color = Color( 0.329412, 0.568627, 0.14902, 0.670588 )
+enabled_game = false
+enabled_editor = false
 
 [node name="UpHall" type="Area2D" parent="."]
 position = Vector2( -144, -90 )
 collision_mask = 0
 
-[node name="Filler2D" type="CollisionShape2D" parent="UpHall"]
+[node name="Collored2D" type="CollisionShape2D" parent="UpHall"]
 position = Vector2( 16, -38 )
 z_index = 10
 shape = SubResource( 3 )
 script = ExtResource( 4 )
 color = Color( 0.0588235, 0.184314, 0.85098, 0.419608 )
-enabled_editor = true
-enabled_game = true
+enabled_game = false
 
 [node name="DownHall" type="Area2D" parent="."]
 position = Vector2( -8, 0 )
 collision_mask = 0
 
-[node name="Filler2D" type="CollisionShape2D" parent="DownHall"]
+[node name="Collored2D" type="CollisionShape2D" parent="DownHall"]
 position = Vector2( 8, 0 )
 z_index = 10
 shape = SubResource( 4 )
 script = ExtResource( 4 )
 color = Color( 0.0588235, 0.184314, 0.85098, 0.419608 )
-enabled_editor = true
-enabled_game = true
+enabled_game = false
 
 [node name="EnablerAndDisabler" type="Node2D" parent="."]
 position = Vector2( -112, -160 )
@@ -238,14 +236,14 @@ position = Vector2( -24, -8 )
 shape = SubResource( 5 )
 disabled = true
 script = ExtResource( 4 )
-color = Color( 0.0588235, 0.85098, 0.164706, 0.25098 )
+color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )
 
 [node name="Down" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
 position = Vector2( 136, 136 )
 shape = SubResource( 5 )
 disabled = true
 script = ExtResource( 4 )
-color = Color( 0.0588235, 0.85098, 0.164706, 0.25098 )
+color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )
 
 [node name="Disabler" type="Area2D" parent="EnablerAndDisabler"]
 position = Vector2( -48, 0 )
@@ -255,14 +253,10 @@ collision_mask = 0
 position = Vector2( 8, -24 )
 shape = SubResource( 6 )
 script = ExtResource( 4 )
-color = Color( 0.984314, 0.0352941, 0.0117647, 0.14902 )
-enabled_editor = true
-enabled_game = true
+color = Color( 0.984314, 0.0352941, 0.0117647, 0.611765 )
 
 [node name="Down" type="CollisionShape2D" parent="EnablerAndDisabler/Disabler"]
 position = Vector2( 184, 120 )
 shape = SubResource( 6 )
 script = ExtResource( 4 )
-color = Color( 0.984314, 0.0352941, 0.0117647, 0.254902 )
-enabled_editor = true
-enabled_game = true
+color = Color( 0.984314, 0.0352941, 0.0117647, 0.611765 )

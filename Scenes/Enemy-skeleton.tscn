@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://Tools/Filler2D.gd" type="Script" id=1]
+[ext_resource path="res://Tools/Collored2D.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Skeleton/Skeleton Idle.png" type="Texture" id=2]
 [ext_resource path="res://Scenes/Enemy-skeleton.gd" type="Script" id=3]
 [ext_resource path="res://Characters/Skeleton/Skeleton Walk.png" type="Texture" id=4]
@@ -66,7 +66,7 @@ autoplay = "Walk"
 playback_speed = 4.0
 anims/Walk = SubResource( 2 )
 
-[node name="Filler2D" type="CollisionShape2D" parent="."]
+[node name="Collored2D" type="CollisionShape2D" parent="."]
 position = Vector2( -4, 4 )
 shape = SubResource( 3 )
 script = ExtResource( 1 )
