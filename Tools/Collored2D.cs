@@ -6,7 +6,8 @@ namespace Betauer.Tools {
     public class Collored2D : CollisionShape2D {
 
         private Color _color;
-        // private bool _color;
+        private bool _enabled_editor;
+        private bool _enabled_game;
 
         [Export]
         Color color {
@@ -16,7 +17,29 @@ namespace Betauer.Tools {
             }
         }
 
+        [Export]
+        bool enabled_editor {
+            get => _enabled_editor;
+            set { _enabled_editor = value;
+                Update();
+            }
+        }
+
+        [Export]
+        bool enabled_game {
+            get => _enabled_game;
+            set { _enabled_game = value;
+                Update();
+            }
+        }
+
         public override void _Draw() {
+            if (Engine.EditorHint) {
+                if (!_enabled_editor) return;
+            } else {
+                if (!_enabled_game) return;
+            }
+
             if (Shape is RectangleShape2D r) {
                 var rect = new Rect2(Vector2.Zero - r.Extents, r.Extents * 2.0f);
                 DrawRect(rect, color);
