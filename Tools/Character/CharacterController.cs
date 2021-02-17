@@ -130,38 +130,48 @@ namespace Betauer.Tools.Character {
         }
 
         private bool _dirtyGroundCollisions = true;
+
         private bool _isOnSlope = false;
         private bool _isOnMovingPlatform = false;
         private bool _isOnFallingPlatform = false;
         private bool _isOnSlopeStairs = false;
+        private Vector2 _colliderNormal = Vector2.Zero;
 
         public bool IsOnSlope() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlope;
         public bool IsOnMovingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnMovingPlatform;
         public bool IsOnFallingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnFallingPlatform;
         public bool IsOnSlopeStairs() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlopeStairs;
-        public Vector2 ColliderNormal = Vector2.Zero;
+        public Vector2 GetColliderNormal() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._colliderNormal;
 
-        public CharacterController UpdateFloorCollisions() {
+        void ResetCollisionFlags() {
             _dirtyGroundCollisions = false;
+
             _isOnSlope = false;
             _isOnMovingPlatform = false;
             _isOnFallingPlatform = false;
             _isOnSlopeStairs = false;
-            ColliderNormal = Vector2.Zero;
-            if (!IsOnFloor()) return this;
-            // if (GetSlideCount() == 0) {
-                // GD.Print("Ground but no colliders??");
-            // }
+            _colliderNormal = Vector2.Zero;
+        }
 
+        public CharacterController UpdateFloorCollisions() {
+            if (!IsOnFloor()) {
+                // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " (0 checks: air?)");
+                ResetCollisionFlags();
+                return this;
+            }
             var slideCount = GetSlideCount();
+            if (slideCount == 0) {
+                // Weird case: IsOnFloor but there is no colliders... (puede suceder si el jugador esta
+                // subido a una plataforma que sube). En ese caso no se resetean los flags ni se actualizan, y se dejan
+                // los del frame anterior
+                // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " (0 checks: Floor caching last result)");
+                return this;
+            }
+
+            ResetCollisionFlags();
             for (var i = 0; i < slideCount; i++) {
                 var collision = GetSlideCollision(i);
-                ColliderNormal = collision.Normal;
-
-                // This is like a callback: if the objet has method collide_with, it's called
-                // if (collision.Collider.has_method("collide_with"):
-                // collision.collider.collide_with(self, collision)
-
+                _colliderNormal = collision.Normal;
                 if (Mathf.Abs(collision.Normal.y) < 1) {
                     _isOnSlope = true;
                 }
@@ -178,6 +188,7 @@ namespace Betauer.Tools.Character {
                     _isOnSlopeStairs = true;
                 }
             }
+            // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " ("+slideCount+ " checks: Floor)");
             Update();  // this allow to call to _draw() with the colliderNormal updated
             return this;
         }
