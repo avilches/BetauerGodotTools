@@ -12,8 +12,8 @@ namespace Betauer.Tools.Platforms {
                 var enabler = GetNode<Area2D>("EnablerAndDisabler/Enabler");
                 var disabler = GetNode<Area2D>("EnablerAndDisabler/Disabler");
 
-                GameManager.Instance.PlatformManager.RegisterSlopeStairs(slopeStairs);
-                GameManager.Instance.PlatformManager.RegisterSlopeStairsCover(cover);
+                GameManager.Instance.PlatformManager.ConfigureSlopeStairs(slopeStairs);
+                GameManager.Instance.PlatformManager.ConfigureSlopeStairsCover(cover);
                 GameManager.Instance.PlatformManager.AddArea2DSlopeStairsUp(upHall);
                 GameManager.Instance.PlatformManager.AddArea2DSlopeStairsDown(downHall);
                 GameManager.Instance.PlatformManager.AddArea2DSlopeStairsEnabler(enabler);

@@ -54,7 +54,7 @@ namespace Betauer.Tools {
             playerController.SetCollisionLayerBit(PLAYER_LAYER, true);
 
             PlayerController = playerController;
-            PlatformManager.RegisterPlayer(playerController);
+            PlatformManager.ConfigurePlayerCollisions(playerController);
         }
 
         public bool IsPlayer(KinematicBody2D player) {

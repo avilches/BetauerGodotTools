@@ -9,36 +9,6 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "MovingPlatform",
-"class": "FallMovingPlatform",
-"language": "GDScript",
-"path": "res://Tools/Platforms/FallMovingPlatform.gd"
-}, {
-"base": "KinematicBody2D",
-"class": "FallPlatform",
-"language": "GDScript",
-"path": "res://Tools/Platforms/FallPlatform.gd"
-}, {
-"base": "PlatformFollowPath",
-"class": "FallPlatformFollowPath",
-"language": "GDScript",
-"path": "res://Tools/Platforms/FallPlatformFollowPath.gd"
-}, {
-"base": "KinematicBody2D",
-"class": "MovingPlatform",
-"language": "GDScript",
-"path": "res://Tools/Platforms/MovingPlatform.gd"
-}, {
-"base": "KinematicBody2D",
-"class": "Platform",
-"language": "GDScript",
-"path": "res://Tools/Platforms/Platform.gd"
-}, {
-"base": "MovingPlatform",
-"class": "PlatformFollowPath",
-"language": "GDScript",
-"path": "res://Tools/Platforms/PlatformFollowPath.gd"
-}, {
 "base": "Reference",
 "class": "TweenSequence",
 "language": "GDScript",
@@ -50,12 +20,6 @@ _global_script_classes=[ {
 "path": "res://Tools/Effects/Tweener.gd"
 } ]
 _global_script_class_icons={
-"FallMovingPlatform": "",
-"FallPlatform": "",
-"FallPlatformFollowPath": "",
-"MovingPlatform": "",
-"Platform": "",
-"PlatformFollowPath": "",
 "TweenSequence": "",
 "Tweener": ""
 }
@@ -63,7 +27,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Betauer"
-run/main_scene="res://Worlds/World2.tscn"
+run/main_scene="res://Worlds/World1.tscn"
 config/icon="res://icon.png"
 
 [autoload]
