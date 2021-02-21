@@ -1,5 +1,3 @@
-using Betauer.Tools.Platforms;
-
 namespace Betauer.Characters.Player.States {
     public class GroundStateRun : GroundState {
         public GroundStateRun(PlayerController player) : base(player) {
@@ -22,8 +20,7 @@ namespace Betauer.Characters.Player.States {
 
             if (CheckJump()) return;
 
-            // Suelo + no salto + movimiento/inercia. Movemos lateralmente y empujamos hacia abajo
-
+            // Suelo + no salto + movimiento/inercia
 
             if (Player.IsOnSlopeStairsDown()) {
                 if (IsUp) {
@@ -38,30 +35,26 @@ namespace Betauer.Characters.Player.States {
                     Player.DisableSlopeStairs();
                 }
             }
+
             /*
 
-	var slowdownVector = Vector2.ONE
-	var slope_down = null
+            var slowdownVector = Vector2.ONE
+            var slope_down = null
 
-	if is_on_slope && !isJumping && x_input != 0:
-		slope_down = sign(colliderNormal.x) == sign(x_input) # pendiente y direccion al mismo lado
-		slowdownVector = C.SLOW_ON_SLOPE_DOWN if slope_down else C.SLOW_ON_SLOPE_UP
-
-
-	move_and_slide_with_snap(motion * slowdownVector
+            if is_on_slope && !isJumping && x_input != 0:
+            slope_down = sign(colliderNormal.x) == sign(x_input) # pendiente y direccion al mismo lado
+            slowdownVector = C.SLOW_ON_SLOPE_DOWN if slope_down else C.SLOW_ON_SLOPE_UP
 
 
-             */
+            move_and_slide_with_snap(motion * slowdownVector
+            */
 
-            Player.AddLateralMovement(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
+            Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
 
             Player.Flip(XInput);
-            Player.ApplyGravity();
             Player.LimitMotion();
             Player.MoveSnapping();
-
-
         }
     }
 }

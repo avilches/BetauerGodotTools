@@ -10,6 +10,7 @@ namespace Betauer.Tools.Character {
         public bool DEBUG_ACCELERATION = false;
         public bool DEBUG_SLOPE_STAIRS = false;
         public bool DEBUG_COLLISION = false;
+        public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = false;
         public bool DEBUG_MOTION = false;
         public bool DEBUG_JUMP = false;
 

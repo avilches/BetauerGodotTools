@@ -58,10 +58,7 @@ namespace Betauer.Tools.Character {
 
         protected abstract void PhysicsProcess();
 
-        /**
-     *
-     */
-        public void AddLateralMovement(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
+        public void AddLateralMotion(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
             if (xInput != 0) {
                 var directionChanged = Math.Sign(Motion.x) != Math.Sign(xInput);
@@ -71,11 +68,15 @@ namespace Betauer.Tools.Character {
                     SetMotionX(Motion.x + xInput * acceleration * Delta);
                 }
             } else {
-                if (Mathf.Abs(Motion.x) < stopIfSpeedIsLessThan) {
-                    SetMotionX(0);
-                } else {
-                    SetMotionX(Motion.x * friction);
-                }
+                StopLateralMotionWithFriction(friction, stopIfSpeedIsLessThan);
+            }
+        }
+
+        public void StopLateralMotionWithFriction(float friction, float stopIfSpeedIsLessThan) {
+            if (Mathf.Abs(Motion.x) < stopIfSpeedIsLessThan) {
+                SetMotionX(0);
+            } else {
+                SetMotionX(Motion.x * friction);
             }
         }
 
@@ -111,7 +112,8 @@ namespace Betauer.Tools.Character {
         public void Slide(Vector2 slowdownVector) {
             // stopOnSlopes debe ser true para al caer sobre una pendiente la tome comoelo
             var stopOnSlopes = true;
-            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero, CharacterConfig.FLOOR, stopOnSlopes);
+            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero, CharacterConfig.FLOOR,
+                stopOnSlopes);
             Motion.y = remain.y; // this line stops the gravity accumulation
             /*
         inertia false = se mantiene el remain.x = al chocar con la cabeza pierde toda la inercia lateral que tenia y se va para abajo. Y si choca al subir y se
@@ -126,27 +128,51 @@ namespace Betauer.Tools.Character {
             if (!inertia) {
                 Motion.x = remain.x;
             }
+
             _dirtyGroundCollisions = true;
         }
 
         private bool _dirtyGroundCollisions = true;
 
         private bool _isOnSlope = false;
+        private bool _isOnSlopeUpRight = false;
         private bool _isOnMovingPlatform = false;
         private bool _isOnFallingPlatform = false;
         private bool _isOnSlopeStairs = false;
         private Vector2 _colliderNormal = Vector2.Zero;
 
         public bool IsOnSlope() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlope;
-        public bool IsOnMovingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnMovingPlatform;
-        public bool IsOnFallingPlatform() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnFallingPlatform;
+        public bool IsOnSlopeUpRight() => IsOnSlope() && _isOnSlopeUpRight;
+        public bool IsOnSlopeDownLeft() => IsOnSlope() && _isOnSlopeUpRight;
+
+        public bool IsOnSlopeDownRight() => IsOnSlope() && !_isOnSlopeUpRight;
+        public bool IsOnSlopeUpLeft() => IsOnSlope() && !_isOnSlopeUpRight;
+
+        public bool IsOnMovingPlatform() =>
+            (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnMovingPlatform;
+
+        public bool IsOnFallingPlatform() =>
+            (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnFallingPlatform;
+
         public bool IsOnSlopeStairs() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlopeStairs;
         public Vector2 GetColliderNormal() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._colliderNormal;
+
+        private RayCast2D _floorDetector;
+        public RayCast2D FloorDetector {
+            get {
+                if (_floorDetector == null) {
+                    _floorDetector = GetNode("RayCasts").GetNode<RayCast2D>("SlopeDetector");
+                }
+
+                return _floorDetector;
+            }
+        }
 
         void ResetCollisionFlags() {
             _dirtyGroundCollisions = false;
 
             _isOnSlope = false;
+            _isOnSlopeUpRight = false;
             _isOnMovingPlatform = false;
             _isOnFallingPlatform = false;
             _isOnSlopeStairs = false;
@@ -154,47 +180,135 @@ namespace Betauer.Tools.Character {
         }
 
         public CharacterController UpdateFloorCollisions() {
+            ResetCollisionFlags();
             if (!IsOnFloor()) {
                 // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " (0 checks: air?)");
-                ResetCollisionFlags();
-                return this;
-            }
-            var slideCount = GetSlideCount();
-            if (slideCount == 0) {
-                // Weird case: IsOnFloor but there is no colliders... (puede suceder si el jugador esta
-                // subido a una plataforma que sube). En ese caso no se resetean los flags ni se actualizan, y se dejan
-                // los del frame anterior
-                // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " (0 checks: Floor caching last result)");
                 return this;
             }
 
-            ResetCollisionFlags();
+            var __isOnSlope = false;
+            var __isOnSlopeUpRight = false;
+            var __isOnMovingPlatform = false;
+            var __isOnFallingPlatform = false;
+            var __isOnSlopeStairs = false;
+            var __colliderNormal = Vector2.Zero;
+
+            var slideCount = GetSlideCount();
+            CheckMoveAndSlideCollisions(slideCount);
+            CheckRaycastGroundCollisions(ref __colliderNormal, ref __isOnSlope, ref __isOnFallingPlatform,
+                ref __isOnMovingPlatform, ref __isOnSlopeStairs, ref __isOnSlopeUpRight);
+
+            if (CharacterConfig.DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT) {
+                if (_isOnSlope != __isOnSlope ||
+                    _isOnSlopeStairs != __isOnSlopeStairs ||
+                    _isOnFallingPlatform != __isOnFallingPlatform ||
+                    _isOnMovingPlatform != __isOnMovingPlatform ||
+                    _colliderNormal != __colliderNormal) {
+                    GD.Print("UpdateFloorCollisions. Floor:", IsOnFloor(),
+                        // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
+                        " Slope:", _isOnSlope, "/", __isOnSlope,
+                        " Stairs:", _isOnSlopeStairs, "/", __isOnSlopeStairs,
+                        " Falling:", _isOnFallingPlatform, "/", __isOnFallingPlatform,
+                        " Moving:", _isOnMovingPlatform, "/", __isOnMovingPlatform,
+                        " Normal:", _colliderNormal, "/", __colliderNormal,
+                        // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
+                        " (", slideCount, "/", FloorDetector.IsColliding(), ")");
+                }
+            }
+
+            _isOnSlope |= __isOnSlope;
+            _isOnSlopeUpRight |= __isOnSlopeUpRight;
+            _isOnMovingPlatform |= __isOnMovingPlatform;
+            _isOnFallingPlatform |= __isOnFallingPlatform;
+            _isOnSlopeStairs |= __isOnSlopeStairs;
+            _colliderNormal = _colliderNormal != Vector2.Zero ? _colliderNormal : __colliderNormal;
+
+            if (CharacterConfig.DEBUG_COLLISION) {
+                GD.Print("UpdateFloorCollisions. Floor:", IsOnFloor(),
+                    // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
+                    " Slope:", _isOnSlope,
+                    " Stairs:", _isOnSlopeStairs,
+                    " Falling:", _isOnFallingPlatform,
+                    " Moving:", _isOnMovingPlatform,
+                    " Normal:", _colliderNormal,
+                    " (", slideCount, "/", FloorDetector.IsColliding(), ")");
+            }
+
+            Update(); // this allow to call to _draw() with the colliderNormal updated
+            return this;
+        }
+
+        private bool CheckRaycastGroundCollisions(ref Vector2 __colliderNormal, ref bool __isOnSlope,
+            ref bool __isOnFallingPlatform, ref bool __isOnMovingPlatform, ref bool __isOnSlopeStairs,                          
+            ref bool __isOnSlopeUpRight) {
+            FloorDetector.ForceRaycastUpdate();
+            var collisionCollider = FloorDetector.GetCollider();
+            if (collisionCollider == null) return false;
+
+            __colliderNormal = FloorDetector.GetCollisionNormal();
+
+            if (__colliderNormal != Vector2.Zero && Mathf.Abs(__colliderNormal.y) < 1) {
+                __isOnSlope = true;
+                __isOnSlopeUpRight = __colliderNormal.x < 0;
+            }
+
+            if (collisionCollider is PhysicsBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
+                __isOnFallingPlatform = true;
+            }
+
+            if (collisionCollider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
+                __isOnMovingPlatform = true;
+            }
+
+            if (collisionCollider is PhysicsBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
+                __isOnSlopeStairs = true;
+            }
+            Update(); // this allow to call to _draw() with the colliderNormal updated
+            return true;
+        }
+
+        private void CheckMoveAndSlideCollisions(int slideCount) {
+            if (slideCount == 0) return;
+            Vector2 lastColliderNormal = Vector2.Zero;
             for (var i = 0; i < slideCount; i++) {
                 var collision = GetSlideCollision(i);
-                _colliderNormal = collision.Normal;
-                if (Mathf.Abs(collision.Normal.y) < 1) {
-                    _isOnSlope = true;
+                var collisionCollider = collision.Collider;
+                var currentColliderNormal = collision.Normal;
+                if (currentColliderNormal != Vector2.Zero) {
+                    lastColliderNormal = currentColliderNormal;
+                    if (!_isOnSlope) {
+                        _colliderNormal = lastColliderNormal;
+                        if (Mathf.Abs(_colliderNormal.y) < 1) {
+                            _isOnSlope = true;
+                            _isOnSlopeUpRight = _colliderNormal.x < 0;
+                        }
+                    }
                 }
 
-                if (collision.Collider is KinematicBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
+                if (collisionCollider is PhysicsBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
                     _isOnFallingPlatform = true;
                 }
 
-                if (collision.Collider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
+                if (collisionCollider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
                     _isOnMovingPlatform = true;
                 }
 
-                if (collision.Collider is KinematicBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
+                if (collisionCollider is PhysicsBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
                     _isOnSlopeStairs = true;
                 }
             }
-            // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " ("+slideCount+ " checks: Floor)");
-            Update();  // this allow to call to _draw() with the colliderNormal updated
-            return this;
+
+            if (_colliderNormal == null) {
+                _colliderNormal = lastColliderNormal;
+            }
         }
 
         public bool HasFloorLateralMovement() {
             return GetFloorVelocity().x != 0;
         }
+
+        // public override void _Draw() {
+            // DrawLine(slopeDetector.Position, slopeDetector.Position + slopeDetector.CastTo, Colors.Red, 3F);
+        // }
     }
 }

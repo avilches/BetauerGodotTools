@@ -1,5 +1,3 @@
-using Betauer.Tools.Platforms;
-
 namespace Betauer.Characters.Player.States {
     public class GroundStateIdle : GroundState {
         public GroundStateIdle(PlayerController player) : base(player) {
@@ -22,12 +20,10 @@ namespace Betauer.Characters.Player.States {
 
             if (CheckJump()) return;
 
-            // Suelo + no salto + sin movimiento. Empujamos hacia abajo
+            // Suelo + no salto + sin movimiento
 
-            Player.ApplyGravity();
-            Player.LimitMotion();
+            // Fuerza un movimiento de 0 para que detecte las colisiones y sea empujado por plataformas
             Player.MoveSnapping();
-
         }
     }
 }

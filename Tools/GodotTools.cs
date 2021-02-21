@@ -52,7 +52,8 @@ namespace Betauer.Tools {
             for (var i = 0; i < count; i++) {
                 var newX = Sin(angle) * spacing * (i + 1);
                 var newY = Cos(angle) * spacing * (i + 1);
-                nodes[i].Position = new Vector2(newX, newY);
+                var newPos = new Vector2(newX, newY);
+                nodes[i].Position = newPos;
             }
         }
 
@@ -65,7 +66,8 @@ namespace Betauer.Tools {
             for (var i = 0; i < count; i++) {
                 var newX = Sin(spacing * i + angle) * radius.x;
                 var newY = Cos(spacing * i + angle) * radius.y;
-                nodes[i].Position = new Vector2(newX, newY);
+                var newPos = new Vector2(newX, newY);
+                nodes[i].Position = newPos;
             }
         }
 

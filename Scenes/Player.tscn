@@ -265,19 +265,16 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RayCastJumps" type="Node2D" parent="PlayerBody"]
+[node name="RayCasts" type="Node2D" parent="PlayerBody"]
 
-[node name="R2" type="RayCast2D" parent="PlayerBody/RayCastJumps"]
-position = Vector2( -4, -40 )
+[node name="SlopeDetector" type="RayCast2D" parent="PlayerBody/RayCasts"]
+position = Vector2( 0, -4 )
 enabled = true
-cast_to = Vector2( 0, -8 )
-collision_mask = 5
-
-[node name="R1" type="RayCast2D" parent="PlayerBody/RayCastJumps"]
-position = Vector2( 4, -40 )
-enabled = true
-cast_to = Vector2( 0, -8 )
-collision_mask = 5
+cast_to = Vector2( 0, 21 )
+collision_mask = 15
+__meta__ = {
+"_editor_description_": "El rayo se usa para detectar el tipo de suelo cuando el GetSlideCollision no funciona bien. Debe empezar dentro del jugador para que funcione con una plataforma que sube rapido."
+}
 
 [node name="StageDetector" type="Area2D" parent="PlayerBody"]
 position = Vector2( 0, -26 )
