@@ -16,6 +16,8 @@ namespace Betauer.Tools.Statemachine {
         private bool _nextStateImmediate;
         private readonly IFrameAware _frameAware;
 
+        public State CurrenState => _currentState;
+
         public StateMachine(CharacterConfig characterConfig, IFrameAware frameAware) {
             _characterConfig = characterConfig;
             _frameAware = frameAware;
