@@ -14,6 +14,7 @@ namespace Betauer.Characters.Player {
         public readonly MyPlayerActions PlayerActions;
         private AnimationPlayer _animationPlayer;
         private Sprite _sprite;
+        private Label _label;
 
 
         public PlayerController() {
@@ -35,6 +36,7 @@ namespace Betauer.Characters.Player {
             _sprite = GetNode<Sprite>("Sprite");
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
+            _label = GetNode<Label>("Label");
         }
 
         public override void _Ready() {
@@ -95,6 +97,13 @@ namespace Betauer.Characters.Player {
         protected override void PhysicsProcess() {
             _stateMachine.Execute();
             PlayerActions.ClearJustState();
+            /*
+            _label.Text = "Floor: " + IsOnFloor() + "\n" +
+                          "Slope: " + IsOnSlope() + "\n" +
+                          "Stair: " + IsOnSlopeStairs() + "\n" +
+                          "Moving: " + IsOnMovingPlatform() + "\n" +
+                          "Falling: " + IsOnFallingPlatform();
+            */
         }
 
         private EventWrapper w = new EventWrapper(null);
