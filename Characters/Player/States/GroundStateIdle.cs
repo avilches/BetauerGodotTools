@@ -22,7 +22,11 @@ namespace Betauer.Characters.Player.States {
 
             // Suelo + no salto + sin movimiento
 
-            // Fuerza un movimiento de 0 para que detecte las colisiones y sea empujado por plataformas
+            if (!Player.IsOnMovingPlatform()) {
+                // No gravity in moving platforms
+                // Gravity in slopes to avoid go down slowly
+                Player.ApplyGravity();
+            }
             Player.MoveSnapping();
         }
     }
