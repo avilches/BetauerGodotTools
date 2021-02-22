@@ -2,9 +2,9 @@ using System;
 using Betauer.Characters.Player;
 using Betauer.Tools.Area;
 using Betauer.Tools.Platforms;
+using Betauer.Tools.Resolution;
 using Godot;
 using static Betauer.Tools.LayerConstants;
-
 
 namespace Betauer.Tools {
     /**
@@ -24,6 +24,14 @@ namespace Betauer.Tools {
         public readonly AreaManager AreaManager;
         public readonly PlatformManager PlatformManager;
         public readonly SceneManager SceneManager;
+        public readonly ScreenManager ScreenManager;
+
+
+        // new Vector2(320, 180),   // 1920x1080 / 6
+        public static Vector2 FULL_DIV4 = new Vector2(480, 270);    // 1920x1080 / 4
+        public static Vector2 FULL_DIV2 = new Vector2(960, 540);    // 1920x1080 / 2
+        public static Vector2 FULLHD = new Vector2(1920, 1080);
+        public static Vector2 FULLHDx133 = new Vector2(2560, 1440); // 1920x1080 * 1.33
 
         public GameManager() {
             if (Instance != null) {
@@ -34,13 +42,30 @@ namespace Betauer.Tools {
             AreaManager = new AreaManager();
             PlatformManager = new PlatformManager();
             SceneManager = new SceneManager();
+
+            ScreenManager = new ScreenManager(
+                FULL_DIV4,
+                SceneTree.StretchMode.Disabled,
+                SceneTree.StretchAspect.Keep);
         }
 
         public override void _EnterTree() {
             AddChild(AreaManager);
             AddChild(PlatformManager);
+            ScreenManager.Start(this, nameof(OnScreenResized));
+
+            // TODO: load from user settings
+            ScreenManager.SetAll(false, 2, false);
+
         }
 
+        public void OnScreenResized() {
+            ScreenManager.UpdateResolution();
+        }
+
+        public void Quit() {
+            GetTree().Quit();
+        }
 
         /**
          * Variables globales que se guardan. Se actualizan cada vez que el propio PlayerController se registra

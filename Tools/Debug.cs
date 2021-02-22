@@ -4,6 +4,7 @@ namespace Betauer.Tools {
     public class Debug {
         public const bool DEBUG_STAGE = false;
         public const bool DEBUG_REGISTER = false;
+        public const bool DEBUG_RESOLUTION = false;
         public const bool DEBUG_EVENT_LISTENER = false;
 
         public static void Register(string type, Node node) {

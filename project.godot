@@ -32,7 +32,6 @@ config/icon="res://icon.png"
 
 [autoload]
 
-AutoloadIntegerResolution="*res://Tools/Resolution/AutoloadIntegerResolution.gd"
 GameManager="*res://Tools/GameManager.cs"
 
 [display]

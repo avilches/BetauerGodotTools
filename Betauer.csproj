@@ -7,6 +7,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Scenes" />
-    <Folder Include="Tools\Resolution" />
   </ItemGroup>
 </Project>
