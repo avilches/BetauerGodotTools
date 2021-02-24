@@ -43,10 +43,7 @@ namespace Betauer.Tools {
             PlatformManager = new PlatformManager();
             SceneManager = new SceneManager();
 
-            ScreenManager = new ScreenManager(
-                FULL_DIV4,
-                SceneTree.StretchMode.Disabled,
-                SceneTree.StretchAspect.Keep);
+            ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep);
         }
 
         public override void _EnterTree() {
