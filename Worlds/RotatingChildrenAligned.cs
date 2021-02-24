@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Tools;
 using static Betauer.Tools.GodotConstants;
 using static Betauer.Tools.GodotTools;
 using Betauer.Tools.Effects;
 using Godot;
 
-namespace Betauer.Tools.Platforms {
+namespace Betauer.Worlds {
     public class RotatingChildrenAligned : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public float Radius = 50;

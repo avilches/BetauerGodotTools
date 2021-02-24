@@ -1,7 +1,8 @@
 using Betauer.Tools;
+using Godot;
 using static Godot.Mathf;
 
-namespace Godot {
+namespace Betauer.Worlds {
     public class AnimatedPlatform : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
