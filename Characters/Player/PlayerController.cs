@@ -49,6 +49,8 @@ namespace Betauer.Characters.Player {
             PlatformManager.SubscribeSlopeStairsEnabler(new Area2DEnterListenerDelegate(this, _OnSlopeStairsEnablerIn));
             PlatformManager.SubscribeSlopeStairsDisabler(
                 new Area2DEnterListenerDelegate(this, _OnSlopeStairsDisablerIn));
+
+            _animationPlayer.Connect("animation_finished", this, nameof(OnAnimationFinished));
         }
 
         public void EnableSlopeStairs() {
@@ -173,20 +175,55 @@ namespace Betauer.Characters.Player {
         private const string _IDLE_ANIMATION = "Idle";
         private const string _RUN_ANIMATION = "Run";
         private const string _FALL_ANIMATION = "Fall";
+        private const string _ATTACK_ANIMATION = "Attack";
+        private const string _JUMP_ATTACK_ANIMATION = "JumpAttack";
 
         public void AnimateJump() => AnimationPlay(_JUMP_ANIMATION);
         public void AnimateIdle() => AnimationPlay(_IDLE_ANIMATION);
         public void AnimateRun() => AnimationPlay(_RUN_ANIMATION);
         public void AnimateFall() => AnimationPlay(_FALL_ANIMATION);
+        public void AnimateAttack() => AnimationPlay(_ATTACK_ANIMATION);
+        public void AnimateJumpAttack() => AnimationPlay(_JUMP_ATTACK_ANIMATION);
+        private string _previousAnimation = null;
+
+        public bool IsAttacking = false;
         private void AnimationPlay(string newAnimation) {
             if (_currentAnimation == newAnimation) return;
-            _animationPlayer.Play(newAnimation);
-            _currentAnimation = newAnimation;
+            if (IsAttacking) {
+                _previousAnimation = newAnimation;
+            } else {
+                _previousAnimation = _currentAnimation;
+                _animationPlayer.Play(newAnimation);
+                _currentAnimation = newAnimation;
+            }
+        }
+
+        public void AirAttack() {
+            AnimateJumpAttack();
+            GD.Print("IsAttacking: true (jump)");
+            IsAttacking = true;
+        }
+        public void Attack() {
+            AnimateAttack();
+            GD.Print("IsAttacking: true (ground)");
+            IsAttacking = true;
+        }
+
+        public void OnAnimationFinished(string animation) {
+            var attackingAnimation = animation == _ATTACK_ANIMATION || animation == _JUMP_ATTACK_ANIMATION;
+            if (attackingAnimation) {
+                IsAttacking = false;
+            }
+            GD.Print("IsAttacking "+IsAttacking+ " (finished "+animation+" is attacking "+attackingAnimation+")");
+            if (_previousAnimation != null) {
+                AnimationPlay(_previousAnimation);
+            }
         }
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");
         }
+
     }
 /*
 

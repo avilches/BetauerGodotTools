@@ -36,6 +36,10 @@ namespace Betauer.Characters.Player.States {
                 }
             }
 
+            if (Attack.JustPressed && !Player.IsAttacking) {
+                Player.Attack();
+            }
+
             /*
 
             var slowdownVector = Vector2.ONE
@@ -49,8 +53,14 @@ namespace Betauer.Characters.Player.States {
             move_and_slide_with_snap(motion * slowdownVector
             */
 
-            Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
-                PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
+            if (Player.IsAttacking) {
+                Player.AddLateralMotion(XInput*0.05f, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
+                    PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
+            } else {
+                Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
+                    PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
+            }
+
 
             Player.Flip(XInput);
             Player.LimitMotion();

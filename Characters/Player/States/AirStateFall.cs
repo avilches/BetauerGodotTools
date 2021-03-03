@@ -43,6 +43,10 @@ namespace Betauer.Characters.Player.States {
                 Player.AnimateFall();
             }
 
+            if (Attack.JustPressed && !Player.IsAttacking) {
+                Player.AirAttack();
+            }
+
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
             Player.Flip(XInput);

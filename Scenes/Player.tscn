@@ -1,16 +1,70 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Characters/Player/PlayerController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Player-heroine/run.png" type="Texture" id=2]
 [ext_resource path="res://Characters/Player-heroine/idle.png" type="Texture" id=3]
 [ext_resource path="res://Characters/Player-heroine/jump.png" type="Texture" id=4]
 [ext_resource path="res://Characters/StageCameraController.cs" type="Script" id=5]
+[ext_resource path="res://Characters/Player-heroine/attack.png" type="Texture" id=6]
+[ext_resource path="res://Characters/Player-heroine/jump-attack.png" type="Texture" id=7]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7, 20 )
 
 [sub_resource type="Animation" id=2]
-resource_name = "Fall"
+resource_name = "Attack"
+length = 0.16
+step = 0.02
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 6 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 5 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.06, 0.12 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ 1, 2, 3 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
+
+[sub_resource type="Animation" id=3]
 length = 0.2
 loop = true
 tracks/0/type = "value"
@@ -62,7 +116,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=3]
+[sub_resource type="Animation" id=4]
 length = 1.75
 loop = true
 step = 0.25
@@ -115,8 +169,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=4]
-resource_name = "Jump"
+[sub_resource type="Animation" id=5]
 length = 3.0
 loop = true
 tracks/0/type = "value"
@@ -168,8 +221,60 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=5]
-resource_name = "Run"
+[sub_resource type="Animation" id=8]
+resource_name = "JumpAttack"
+length = 0.12
+step = 0.02
+tracks/0/type = "value"
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 7 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ 3 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath(".:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.06 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ 1, 2 ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("AnimationPlayer:playback_speed")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ 1.0 ]
+}
+
+[sub_resource type="Animation" id=6]
 length = 0.7
 loop = true
 tracks/0/type = "value"
@@ -221,7 +326,7 @@ tracks/3/keys = {
 "values": [ 0.9 ]
 }
 
-[sub_resource type="RectangleShape2D" id=6]
+[sub_resource type="RectangleShape2D" id=7]
 extents = Vector2( 0.5, 14 )
 
 [node name="PlayerNode" type="Node2D"]
@@ -243,16 +348,19 @@ position = Vector2( 0, -20 )
 shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="PlayerBody"]
-texture = ExtResource( 4 )
-offset = Vector2( 0, -32 )
-hframes = 4
-frame = 2
+position = Vector2( 83.4929, -10.62 )
+texture = ExtResource( 6 )
+offset = Vector2( -83.4929, -21.38 )
+hframes = 5
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
-anims/Fall = SubResource( 2 )
-anims/Idle = SubResource( 3 )
-anims/Jump = SubResource( 4 )
-anims/Run = SubResource( 5 )
+anims/Attack = SubResource( 2 )
+anims/Fall = SubResource( 3 )
+anims/Idle = SubResource( 4 )
+anims/Jump = SubResource( 5 )
+anims/JumpAttack = SubResource( 8 )
+anims/Run = SubResource( 6 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
 margin_top = -40.0
@@ -281,4 +389,4 @@ collision_layer = 2048
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/StageDetector"]
-shape = SubResource( 6 )
+shape = SubResource( 7 )
