@@ -28,7 +28,7 @@ namespace Betauer.Worlds {
 
         private void Configure() {
             _sequence = new TweenSequence(true);
-            _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.Linear);
+            _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.QuadraticEaseInOut);
             _sequence.AddReverseAll();
 
             _platforms = Filter<PhysicsBody2D>(GetChildren());

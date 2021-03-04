@@ -412,6 +412,7 @@ position = Vector2( 560, 130 )
 script = ExtResource( 15 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/Pauser"]
+position = Vector2( -102.822, 0.949127 )
 shape = SubResource( 7 )
 script = ExtResource( 19 )
 color = Color( 0.698039, 0.054902, 0.054902, 1 )
@@ -421,6 +422,7 @@ position = Vector2( 600, 130 )
 script = ExtResource( 14 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/Start"]
+position = Vector2( -112.946, -0.632751 )
 shape = SubResource( 7 )
 script = ExtResource( 19 )
 color = Color( 0.054902, 0.698039, 0.141176, 1 )
