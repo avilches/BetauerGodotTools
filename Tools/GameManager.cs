@@ -24,7 +24,7 @@ namespace Betauer.Tools {
         public readonly AreaManager AreaManager;
         public readonly PlatformManager PlatformManager;
         public readonly SceneManager SceneManager;
-        public readonly ScreenManager ScreenManager;
+        private readonly ScreenManager ScreenManager;
 
 
         // new Vector2(320, 180),   // 1920x1080 / 6
