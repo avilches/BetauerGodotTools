@@ -3,7 +3,7 @@ using Godot.Collections;
 using static Betauer.Tools.LayerConstants;
 
 namespace Betauer.Tools.Area {
-    public class AreaManager : Node2D, ISceneEvents, IPlayerStageChange {
+    public class AreaManager : Node, ISceneEvents, IPlayerStageChange {
         private IPlayerStageChange _stageCameraController;
 
         public void ListenPlayerStageChanges(IPlayerStageChange stageCameraController) {
