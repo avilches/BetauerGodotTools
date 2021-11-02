@@ -20,3 +20,8 @@ data_*/
 
 # Jetbrains
 .idea/
+
+# Tests
+/packages/
+/Tests/bin/
+/Tests/obj/

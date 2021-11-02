@@ -2,6 +2,8 @@
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer", "Betauer.csproj", "{F54B0D80-6608-405D-96D9-852BC80FA92E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{1F300446-3224-44C8-9F92-06A61168AA22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -15,5 +17,11 @@ Global
 		{F54B0D80-6608-405D-96D9-852BC80FA92E}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
 		{F54B0D80-6608-405D-96D9-852BC80FA92E}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
 		{F54B0D80-6608-405D-96D9-852BC80FA92E}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F300446-3224-44C8-9F92-06A61168AA22}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal
