@@ -57,9 +57,7 @@ namespace Betauer.Tools.Events {
         }
 
         public void Emit<E, T>(object key, T evt) where E : EventListener<T> {
-            {
-                GetTopic<E, T>(key)?.Publish(evt);
-            }
+            GetTopic<E, T>(key)?.Publish(evt);
         }
     }
 }

@@ -13,7 +13,7 @@ extents = Vector2( 7, 20 )
 
 [sub_resource type="Animation" id=2]
 resource_name = "Attack"
-length = 0.24
+length = 0.16
 step = 0.02
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:texture")
@@ -46,7 +46,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.12, 0.18 ),
+"times": PoolRealArray( 0, 0.06, 0.12 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 1, 2, 3 ]
@@ -221,7 +221,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=9]
 resource_name = "JumpAttack"
 length = 0.24
 step = 0.02
@@ -274,7 +274,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=7]
+[sub_resource type="Animation" id=10]
 length = 0.7
 loop = true
 tracks/0/type = "value"
@@ -359,8 +359,8 @@ anims/Attack = SubResource( 2 )
 anims/Fall = SubResource( 3 )
 anims/Idle = SubResource( 4 )
 anims/Jump = SubResource( 5 )
-anims/JumpAttack = SubResource( 6 )
-anims/Run = SubResource( 7 )
+anims/JumpAttack = SubResource( 9 )
+anims/Run = SubResource( 10 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
 margin_top = -40.0
