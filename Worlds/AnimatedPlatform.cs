@@ -1,8 +1,8 @@
-using Betauer.Tools;
+using Game.Tools;
 using Godot;
 using static Godot.Mathf;
 
-namespace Betauer.Worlds {
+namespace Game.Worlds {
     public class AnimatedPlatform : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
@@ -26,7 +26,7 @@ namespace Betauer.Worlds {
             _original = Position;
 
             // TODO: pasar a C#
-            GDScript MyGDScript = (GDScript) GD.Load("res://Tools/Effects/TweenSequence.gd");
+            GDScript MyGDScript = (GDScript) GD.Load("res://Game/Tools/Effects/TweenSequence.gd");
             Object myGDScriptNode = (Object) MyGDScript.New(GetTree());
             Object tweener1 = (Object) myGDScriptNode.Call("append", this, nameof(follow), new Vector2(100, 0), 2);
             tweener1.Call("set_trans", Tween.TransitionType.Cubic);

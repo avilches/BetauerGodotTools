@@ -12,12 +12,12 @@ _global_script_classes=[ {
 "base": "Reference",
 "class": "TweenSequence",
 "language": "GDScript",
-"path": "res://Tools/Effects/TweenSequence.gd"
+"path": "res://Game/Tools/Effects/TweenSequence.gd"
 }, {
 "base": "Reference",
 "class": "Tweener",
 "language": "GDScript",
-"path": "res://Tools/Effects/Tweener.gd"
+"path": "res://Game/Tools/Effects/Tweener.gd"
 } ]
 _global_script_class_icons={
 "TweenSequence": "",
@@ -32,7 +32,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
-GameManager="*res://Tools/GameManager.cs"
+GameManager="*res://Game/Tools/GameManager.cs"
 
 [display]
 
