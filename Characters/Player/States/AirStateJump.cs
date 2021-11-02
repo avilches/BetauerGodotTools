@@ -21,9 +21,7 @@ namespace Betauer.Characters.Player.States {
                 Player.SetMotionY(-PlayerConfig.JUMP_FORCE_MIN);
             }
 
-            if (Attack.JustPressed && !Player.IsAttacking) {
-                Player.AirAttack();
-            }
+            CheckAttack();
 
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);

@@ -1,6 +1,7 @@
 using System;
 using Betauer.Characters.Player;
 using Betauer.Tools.Area;
+using Betauer.Tools.Character;
 using Betauer.Tools.Platforms;
 using Betauer.Tools.Resolution;
 using Godot;
@@ -25,6 +26,7 @@ namespace Betauer.Tools {
         public readonly PlatformManager PlatformManager;
         public readonly SceneManager SceneManager;
         private readonly ScreenManager ScreenManager;
+        public readonly CharacterManager CharacterManager;
 
 
         // new Vector2(320, 180),   // 1920x1080 / 6
@@ -42,6 +44,7 @@ namespace Betauer.Tools {
             AreaManager = new AreaManager();
             PlatformManager = new PlatformManager();
             SceneManager = new SceneManager();
+            CharacterManager = new CharacterManager();
 
             ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep);
         }
@@ -71,11 +74,8 @@ namespace Betauer.Tools {
 
         public void RegisterPlayerController(PlayerController playerController) {
             Debug.Register("GameManager.PlayerController ", playerController);
-            playerController.CollisionLayer = 0;
-            playerController.CollisionMask = 0;
-            playerController.SetCollisionLayerBit(PLAYER_LAYER, true);
-
             PlayerController = playerController;
+            CharacterManager.RegisterPlayer(playerController);
             PlatformManager.ConfigurePlayerCollisions(playerController);
         }
 

@@ -72,6 +72,10 @@ namespace Betauer.Tools.Platforms {
             platform.SetCollisionLayerBit(SLOPE_STAIRS_COVER_LAYER, true);
         }
 
+        public void ConfigureEnemyCollisions(CharacterController kb2d) {
+            ConfigurePlayerCollisions(kb2d);
+        }
+
         public void ConfigurePlayerCollisions(CharacterController kb2d) {
             Debug.Register("PlatformManager.PlayerController", kb2d);
             kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
@@ -98,7 +102,7 @@ namespace Betauer.Tools.Platforms {
          */
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER);
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
-        public void AddArea2DFallingPlatformExit(Area2D area2D) => ConnectBodyWithArea2D(area2D, PlatformBodyOut_BodyEntered);
+        public void AddArea2DFallingPlatformExit(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, PlatformBodyOut_BodyEntered);
         public void SubscribeFallingPlatformOut(NodeFromListenerDelegate<BodyOnArea2D> enterListener) => _platformBodyOut_enterTopic.Subscribe(enterListener);
         private GodotUnicastTopic<BodyOnArea2D> _platformBodyOut_enterTopic = new GodotUnicastTopic<BodyOnArea2D>();
         void PlatformBodyOut_BodyEntered(Node body, Area2D area2D) => _platformBodyOut_enterTopic.Publish(new BodyOnArea2D(body, area2D));
@@ -106,10 +110,10 @@ namespace Betauer.Tools.Platforms {
         /**
          * Slope stairs
          */
-        public void AddArea2DSlopeStairsDown(Area2D area2D) => ConnectBodyWithArea2D(area2D, SlopeStairsDown_BodyEntered, SlopeStairsDown_BodyExited);
-        public void AddArea2DSlopeStairsUp(Area2D area2D) => ConnectBodyWithArea2D(area2D, SlopeStairsUp_BodyEntered, SlopeStairsUp_BodyExited);
-        public void AddArea2DSlopeStairsEnabler(Area2D area2D) => ConnectBodyWithArea2D(area2D, SlopeStairsEnabler_BodyEntered, SlopeStairsEnabler_BodyExited);
-        public void AddArea2DSlopeStairsDisabler(Area2D area2D) => ConnectBodyWithArea2D(area2D, SlopeStairsDisabler_BodyEntered, SlopeStairsDisabler_BodyExited);
+        public void AddArea2DSlopeStairsDown(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsDown_BodyEntered, SlopeStairsDown_BodyExited);
+        public void AddArea2DSlopeStairsUp(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsUp_BodyEntered, SlopeStairsUp_BodyExited);
+        public void AddArea2DSlopeStairsEnabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsEnabler_BodyEntered, SlopeStairsEnabler_BodyExited);
+        public void AddArea2DSlopeStairsDisabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsDisabler_BodyEntered, SlopeStairsDisabler_BodyExited);
 
         private GodotUnicastTopic<BodyOnArea2D> _slopeStairsDown_enterTopic = new GodotUnicastTopic<BodyOnArea2D>();
         private GodotUnicastTopic<BodyOnArea2D> _slopeStairsDown_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();

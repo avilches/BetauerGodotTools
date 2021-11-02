@@ -16,10 +16,12 @@ namespace Betauer.Characters.Player {
         private Sprite _sprite;
         private Label _label;
 
+        private Area2D _attack;
+
 
         public PlayerController() {
             CharacterConfig = new PlayerConfig();
-            PlayerActions = new MyPlayerActions(-1);
+            PlayerActions = new MyPlayerActions(-1);  // TODO: deviceId -1... manage add/remove controllers
 
             // State Machine
             _stateMachine = new StateMachine(PlayerConfig, this)
@@ -37,10 +39,14 @@ namespace Betauer.Characters.Player {
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
             _label = GetNode<Label>("Label");
+            _attack = GetNode<Area2D>("Attack");
         }
 
         public override void _Ready() {
             GameManager.Instance.RegisterPlayerController(this);
+
+            CharacterManager.RegisterPlayerWeapon(_attack);
+
             PlatformManager.SubscribeFallingPlatformOut(new Area2DEnterListenerDelegate(this, _OnFallingPlatformOut));
             PlatformManager.SubscribeSlopeStairsUp(new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpIn),
                 new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpOut));
@@ -198,14 +204,13 @@ namespace Betauer.Characters.Player {
             }
         }
 
-        public void AirAttack() {
-            AnimateJumpAttack();
-            GD.Print("IsAttacking: true (jump)");
-            IsAttacking = true;
-        }
-        public void Attack() {
-            AnimateAttack();
-            GD.Print("IsAttacking: true (ground)");
+        public void Attack(bool floor) {
+            if (IsAttacking) return;
+            if (floor) {
+                AnimateAttack();
+            } else {
+                AnimateJumpAttack();
+            }
             IsAttacking = true;
         }
 

@@ -18,6 +18,8 @@ namespace Betauer.Characters.Player.States {
                 return;
             }
 
+            CheckAttack();
+
             if (CheckJump()) return;
 
             // Suelo + no salto + movimiento/inercia
@@ -36,10 +38,6 @@ namespace Betauer.Characters.Player.States {
                 }
             }
 
-            if (Attack.JustPressed && !Player.IsAttacking) {
-                Player.Attack();
-            }
-
             /*
 
             var slowdownVector = Vector2.ONE
@@ -54,7 +52,7 @@ namespace Betauer.Characters.Player.States {
             */
 
             if (Player.IsAttacking) {
-                Player.AddLateralMotion(XInput*0.05f, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
+                Player.AddLateralMotion(0, PlayerConfig.ACCELERATION, 0.95f,
                     PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
             } else {
                 Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
@@ -66,5 +64,6 @@ namespace Betauer.Characters.Player.States {
             Player.LimitMotion();
             Player.MoveSnapping();
         }
+
     }
 }

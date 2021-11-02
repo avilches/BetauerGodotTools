@@ -18,11 +18,9 @@ namespace Betauer.Characters.Player.States {
                 return;
             }
 
-            if (CheckJump()) return;
+            CheckAttack();
 
-            if (Attack.JustPressed && !Player.IsAttacking) {
-                Player.Attack();
-            }
+            if (CheckJump()) return;
 
             // Suelo + no salto + sin movimiento
 

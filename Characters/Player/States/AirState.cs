@@ -23,5 +23,12 @@ namespace Betauer.Characters.Player.States {
 
             return true;
         }
+
+        protected void CheckAttack() {
+            if (Attack.JustPressed) {
+                Player.Attack(false);
+            }
+        }
+
     }
 }

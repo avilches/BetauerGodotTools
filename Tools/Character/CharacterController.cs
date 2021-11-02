@@ -9,6 +9,7 @@ namespace Betauer.Tools.Character {
         public Vector2 Motion = Vector2.Zero;
         private Vector2 _lastMotion = Vector2.Zero;
         public PlatformManager PlatformManager => GameManager.Instance.PlatformManager;
+        public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
         private long _frame = 0;
         public long GetFrame() {
             return _frame;

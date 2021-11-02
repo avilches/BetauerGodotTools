@@ -11,7 +11,12 @@ namespace Betauer.Characters.Player.States {
                 GoToJumpState();
             }
             return true;
+        }
 
+        protected void CheckAttack() {
+            if (Attack.JustPressed) {
+                Player.Attack(true);
+            }
         }
 
     }

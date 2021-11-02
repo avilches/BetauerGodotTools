@@ -13,7 +13,7 @@ extents = Vector2( 7, 20 )
 
 [sub_resource type="Animation" id=2]
 resource_name = "Attack"
-length = 0.16
+length = 0.24
 step = 0.02
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:texture")
@@ -46,7 +46,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.06, 0.12 ),
+"times": PoolRealArray( 0, 0.12, 0.18 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 1, 2, 3 ]
@@ -223,7 +223,7 @@ tracks/3/keys = {
 
 [sub_resource type="Animation" id=6]
 resource_name = "JumpAttack"
-length = 0.12
+length = 0.24
 step = 0.02
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:texture")
@@ -256,10 +256,10 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.06 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PoolRealArray( 0, 0.12, 0.18 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
-"values": [ 1, 2 ]
+"values": [ 1, 2, 0 ]
 }
 tracks/3/type = "value"
 tracks/3/path = NodePath("AnimationPlayer:playback_speed")
@@ -352,7 +352,7 @@ position = Vector2( 83.4929, -10.62 )
 texture = ExtResource( 6 )
 offset = Vector2( -83.4929, -21.38 )
 hframes = 5
-frame = 3
+frame = 2
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
 anims/Attack = SubResource( 2 )
@@ -390,3 +390,10 @@ collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/StageDetector"]
 shape = SubResource( 8 )
+
+[node name="Attack" type="Area2D" parent="PlayerBody"]
+collision_layer = 0
+collision_mask = 2048
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody/Attack"]
+polygon = PoolVector2Array( 7.22504, -5.79674, 51.6895, -12.6548, 63.9738, -22.9043, 58.5476, -37.3741, 44.3793, -46.8699, 24.8601, -41.3683, 9.33523, -35.3392 )

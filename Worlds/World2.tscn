@@ -18,7 +18,7 @@ __meta__ = {
 }
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( -550.656, 65.8609 )
+position = Vector2( -125.259, 9.33766 )
 
 [node name="MockTileMapBack" parent="." instance=ExtResource( 4 )]
 modulate = Color( 0.47451, 0.47451, 0.47451, 1 )
