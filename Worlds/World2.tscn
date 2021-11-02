@@ -50,61 +50,126 @@ next_scene = "res://Worlds/World1.tscn"
 position = Vector2( 0, 1 )
 
 [node name="Stages" type="Node2D" parent="."]
-visible = false
+position = Vector2( 300, 0 )
 script = ExtResource( 7 )
 
-[node name="Stage20" type="Area2D" parent="Stages"]
-visible = false
-position = Vector2( -576, 72 )
+[node name="Stage11" type="Area2D" parent="Stages"]
+position = Vector2( -919, 43 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_edit_lock_": true
 }
 
-[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage20"]
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage11"]
+shape = SubResource( 1 )
+
+[node name="Stage12" type="Area2D" parent="Stages"]
+visible = false
+position = Vector2( -319, 43 )
+collision_layer = 0
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage12"]
+shape = SubResource( 1 )
+
+[node name="Stage13" type="Area2D" parent="Stages"]
+position = Vector2( 281, 43 )
+collision_layer = 0
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage13"]
+shape = SubResource( 1 )
+
+[node name="Stage14" type="Area2D" parent="Stages"]
+position = Vector2( 881, 43 )
+collision_layer = 0
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage14"]
+shape = SubResource( 1 )
+
+[node name="Stage15" type="Area2D" parent="Stages"]
+position = Vector2( 1481, 43 )
+collision_layer = 0
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage15"]
 shape = SubResource( 1 )
 
 [node name="Stage21" type="Area2D" parent="Stages"]
-position = Vector2( 24, 72 )
+position = Vector2( -919, 523 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_edit_lock_": true
 }
 
 [node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage21"]
 shape = SubResource( 1 )
 
 [node name="Stage22" type="Area2D" parent="Stages"]
-position = Vector2( 881, 43 )
+position = Vector2( -319, 523 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_edit_lock_": true
 }
 
 [node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage22"]
 shape = SubResource( 1 )
 
 [node name="Stage23" type="Area2D" parent="Stages"]
-position = Vector2( 1481, 43 )
+position = Vector2( 281, 523 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_edit_lock_": true
 }
 
 [node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage23"]
 shape = SubResource( 1 )
 
 [node name="Stage24" type="Area2D" parent="Stages"]
+position = Vector2( 881, 523 )
+collision_layer = 0
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true,
+"_edit_lock_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage24"]
+shape = SubResource( 1 )
+
+[node name="Stage25" type="Area2D" parent="Stages"]
 position = Vector2( 1481, 523 )
 collision_layer = 0
 collision_mask = 0
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_edit_lock_": true
 }
 
-[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage24"]
+[node name="Collored2D" type="CollisionShape2D" parent="Stages/Stage25"]
 shape = SubResource( 1 )

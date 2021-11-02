@@ -4,7 +4,7 @@
 [ext_resource path="res://Characters/Player-heroine/run.png" type="Texture" id=2]
 [ext_resource path="res://Characters/Player-heroine/idle.png" type="Texture" id=3]
 [ext_resource path="res://Characters/Player-heroine/jump.png" type="Texture" id=4]
-[ext_resource path="res://Characters/StageCameraController.cs" type="Script" id=5]
+[ext_resource path="res://Tools/Area/StageCameraController.cs" type="Script" id=5]
 [ext_resource path="res://Characters/Player-heroine/attack.png" type="Texture" id=6]
 [ext_resource path="res://Characters/Player-heroine/jump-attack.png" type="Texture" id=7]
 
@@ -221,7 +221,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=8]
+[sub_resource type="Animation" id=6]
 resource_name = "JumpAttack"
 length = 0.12
 step = 0.02
@@ -274,7 +274,7 @@ tracks/3/keys = {
 "values": [ 1.0 ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=7]
 length = 0.7
 loop = true
 tracks/0/type = "value"
@@ -326,7 +326,7 @@ tracks/3/keys = {
 "values": [ 0.9 ]
 }
 
-[sub_resource type="RectangleShape2D" id=7]
+[sub_resource type="RectangleShape2D" id=8]
 extents = Vector2( 0.5, 14 )
 
 [node name="PlayerNode" type="Node2D"]
@@ -359,8 +359,8 @@ anims/Attack = SubResource( 2 )
 anims/Fall = SubResource( 3 )
 anims/Idle = SubResource( 4 )
 anims/Jump = SubResource( 5 )
-anims/JumpAttack = SubResource( 8 )
-anims/Run = SubResource( 6 )
+anims/JumpAttack = SubResource( 6 )
+anims/Run = SubResource( 7 )
 
 [node name="Label" type="Label" parent="PlayerBody"]
 margin_top = -40.0
@@ -389,4 +389,4 @@ collision_layer = 2048
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/StageDetector"]
-shape = SubResource( 7 )
+shape = SubResource( 8 )

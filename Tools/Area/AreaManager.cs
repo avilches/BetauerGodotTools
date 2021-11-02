@@ -3,10 +3,11 @@ using Godot.Collections;
 using static Betauer.Tools.LayerConstants;
 
 namespace Betauer.Tools.Area {
-    public class AreaManager : Node, ISceneEvents, IPlayerStageChange {
+    public class AreaManager : Node, ISceneEvents {
         private IPlayerStageChange _stageCameraController;
 
         public void ListenPlayerStageChanges(IPlayerStageChange stageCameraController) {
+            // TODO: now, only the StageCameraController is subscribed to these events. It could a list instead...?
             _stageCameraController = stageCameraController;
         }
 
@@ -50,6 +51,7 @@ namespace Betauer.Tools.Area {
             GameManager.Instance.PlayerEnteredDeathZone(deathArea2D);
         }
 
+        // TODO: World complete area2d should register
         public void RegisterSceneChange(Area2D sceneChangeArea2D, string scene) {
             Debug.Register("AreaManager.SceneChange", sceneChangeArea2D);
             sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_scene_change),

@@ -3,7 +3,12 @@ using Godot;
 
 
 namespace Betauer.Tools.Area {
-    public class StageCameraController : Camera2D, IPlayerStageChange {
+    /**
+     * Add this script to a Comera2D in your Player.
+     *
+     * It will receive
+     */
+     public class StageCameraController : Camera2D, IPlayerStageChange {
         private Stage _enteredStage;
 
         private bool _exitedStage;
@@ -16,26 +21,6 @@ namespace Betauer.Tools.Area {
             }
             GameManager.Instance.AreaManager.RegisterPlayerStageDetector(stageDetector);
             GameManager.Instance.AreaManager.ListenPlayerStageChanges(this);
-        }
-
-        private class Stage {
-            public readonly Area2D Area2D;
-            public readonly RectangleShape2D Shape2D;
-            public Rect2 Rect2 => new Rect2(Area2D.Position - Shape2D.Extents, Shape2D.Extents * 2f);
-            public string Name => Area2D.Name;
-
-            public Stage(Area2D area2D, RectangleShape2D shape2D) {
-                Area2D = area2D;
-                Shape2D = shape2D;
-            }
-
-            public override bool Equals(object obj) {
-                return this == (Stage) obj;
-            }
-
-            public override int GetHashCode() {
-                return Area2D.GetHashCode();
-            }
         }
 
         public void _on_player_entered_stage(Area2D player, Area2D stageEnteredArea2D, RectangleShape2D shape2D) {
@@ -83,7 +68,7 @@ namespace Betauer.Tools.Area {
             _currentStage = newStage;
             _enteredStage = null;
             _exitedStage = false;
-            var rect2 = newStage.Rect2;
+            var rect2 = newStage.CreateAbsoluteRect2();
             Debug.Stage("Rect: " + rect2.Position + " " +rect2.End);
             LimitLeft = (int) rect2.Position.x;
             LimitTop = (int) rect2.Position.y;
@@ -91,4 +76,24 @@ namespace Betauer.Tools.Area {
             LimitBottom = (int) rect2.End.y;
         }
     }
+
+    internal class Stage {
+        public readonly Area2D Area2D;
+        private readonly RectangleShape2D Shape2D;
+        public Rect2 CreateAbsoluteRect2() => new Rect2(Area2D.GlobalPosition - Shape2D.Extents, Shape2D.Extents * 2f);
+        public string Name => Area2D.Name;
+        public Stage(Area2D area2D, RectangleShape2D shape2D) {
+            Area2D = area2D;
+            Shape2D = shape2D;
+        }
+
+        public override bool Equals(object obj) {
+            return this == (Stage) obj;
+        }
+
+        public override int GetHashCode() {
+            return Area2D.GetHashCode();
+        }
+    }
+
 }
