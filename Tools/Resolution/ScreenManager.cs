@@ -75,7 +75,7 @@ namespace Betauer.Tools.Resolution {
             }
         }
 
-        private void CenterWindow() {
+        private static void CenterWindow() {
             if (!OS.WindowFullscreen) {
                 var screen_size = OS.GetScreenSize(OS.CurrentScreen);
                 var window_size = OS.WindowSize;

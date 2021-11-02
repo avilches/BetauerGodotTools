@@ -9,7 +9,7 @@ using Godot;
 
 namespace Betauer.Characters.Player {
     public class PlayerController : CharacterController {
-        public PlayerConfig PlayerConfig => (PlayerConfig) CharacterConfig;
+        public PlayerConfig PlayerConfig => (PlayerConfig)CharacterConfig;
         private readonly StateMachine _stateMachine;
         public readonly MyPlayerActions PlayerActions;
         private AnimationPlayer _animationPlayer;
@@ -56,7 +56,7 @@ namespace Betauer.Characters.Player {
             PlatformManager.SubscribeSlopeStairsDisabler(
                 new Area2DEnterListenerDelegate(this, _OnSlopeStairsDisablerIn));
 
-            _animationPlayer.Connect("animation_finished", this, nameof(OnAnimationFinished));
+            _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }
 
         public void EnableSlopeStairs() {
@@ -71,29 +71,29 @@ namespace Betauer.Characters.Player {
             PlatformManager.DisableSlopeStairsForBody(this);
         }
 
-        public bool IsOnSlopeStairsUp() => _slope_stairs_up;
-        public bool IsOnSlopeStairsDown() => _slope_stairs_down;
-        private bool _slope_stairs_down;
-        private bool _slope_stairs_up;
+        public bool IsOnSlopeStairsUp() => _slopeStairsUp;
+        public bool IsOnSlopeStairsDown() => _slopeStairsDown;
+        private bool _slopeStairsDown;
+        private bool _slopeStairsUp;
 
         public void _OnSlopeStairsUpIn(BodyOnArea2D evt) {
-            _slope_stairs_up = true;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
+            _slopeStairsUp = true;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
         }
 
         public void _OnSlopeStairsUpOut(BodyOnArea2D evt) {
-            _slope_stairs_up = false;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slope_stairs_up);
+            _slopeStairsUp = false;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
         }
 
         public void _OnSlopeStairsDownIn(BodyOnArea2D evt) {
-            _slope_stairs_down = true;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
+            _slopeStairsDown = true;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
         }
 
         public void _OnSlopeStairsDownOut(BodyOnArea2D evt) {
-            _slope_stairs_down = false;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slope_stairs_down);
+            _slopeStairsDown = false;
+            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
         }
 
         public void _OnFallingPlatformOut(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
@@ -106,12 +106,12 @@ namespace Betauer.Characters.Player {
             _stateMachine.Execute();
             PlayerActions.ClearJustState();
             /*
-            _label.Text = "Floor: " + IsOnFloor() + "\n" +
-                          "Slope: " + IsOnSlope() + "\n" +
-                          "Stair: " + IsOnSlopeStairs() + "\n" +
-                          "Moving: " + IsOnMovingPlatform() + "\n" +
-                          "Falling: " + IsOnFallingPlatform();
-            */
+                _label.Text = "Floor: " + IsOnFloor() + "\n" +
+                              "Slope: " + IsOnSlope() + "\n" +
+                              "Stair: " + IsOnSlopeStairs() + "\n" +
+                              "Moving: " + IsOnMovingPlatform() + "\n" +
+                              "Falling: " + IsOnFallingPlatform();
+                */
         }
 
         private EventWrapper w = new EventWrapper(null);
@@ -138,9 +138,9 @@ namespace Betauer.Characters.Player {
             }
 
             /**
-            * Aqui se comprueba que el JustPressed, Pressed y JustReleased de las acciones del PlayerActions coinciden
-            * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
-            */
+                * Aqui se comprueba que el JustPressed, Pressed y JustReleased de las acciones del PlayerActions coinciden
+                * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
+                */
             // var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
             // PlayerActions.Jump.Pressed;
             // var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
@@ -177,22 +177,23 @@ namespace Betauer.Characters.Player {
         }
 
         private string _currentAnimation = null;
-        private const string _JUMP_ANIMATION = "Jump";
-        private const string _IDLE_ANIMATION = "Idle";
-        private const string _RUN_ANIMATION = "Run";
-        private const string _FALL_ANIMATION = "Fall";
-        private const string _ATTACK_ANIMATION = "Attack";
-        private const string _JUMP_ATTACK_ANIMATION = "JumpAttack";
+        private const string JUMP_ANIMATION = "Jump";
+        private const string IDLE_ANIMATION = "Idle";
+        private const string RUN_ANIMATION = "Run";
+        private const string FALL_ANIMATION = "Fall";
+        private const string ATTACK_ANIMATION = "Attack";
+        private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
 
-        public void AnimateJump() => AnimationPlay(_JUMP_ANIMATION);
-        public void AnimateIdle() => AnimationPlay(_IDLE_ANIMATION);
-        public void AnimateRun() => AnimationPlay(_RUN_ANIMATION);
-        public void AnimateFall() => AnimationPlay(_FALL_ANIMATION);
-        public void AnimateAttack() => AnimationPlay(_ATTACK_ANIMATION);
-        public void AnimateJumpAttack() => AnimationPlay(_JUMP_ATTACK_ANIMATION);
+        public void AnimateJump() => AnimationPlay(JUMP_ANIMATION);
+        public void AnimateIdle() => AnimationPlay(IDLE_ANIMATION);
+        public void AnimateRun() => AnimationPlay(RUN_ANIMATION);
+        public void AnimateFall() => AnimationPlay(FALL_ANIMATION);
+        public void AnimateAttack() => AnimationPlay(ATTACK_ANIMATION);
+        public void AnimateJumpAttack() => AnimationPlay(JUMP_ATTACK_ANIMATION);
         private string _previousAnimation = null;
 
         public bool IsAttacking = false;
+
         private void AnimationPlay(string newAnimation) {
             if (_currentAnimation == newAnimation) return;
             if (IsAttacking) {
@@ -211,15 +212,18 @@ namespace Betauer.Characters.Player {
             } else {
                 AnimateJumpAttack();
             }
+
             IsAttacking = true;
         }
 
         public void OnAnimationFinished(string animation) {
-            var attackingAnimation = animation == _ATTACK_ANIMATION || animation == _JUMP_ATTACK_ANIMATION;
+            var attackingAnimation = animation == ATTACK_ANIMATION || animation == JUMP_ATTACK_ANIMATION;
             if (attackingAnimation) {
                 IsAttacking = false;
             }
-            GD.Print("IsAttacking "+IsAttacking+ " (finished "+animation+" is attacking "+attackingAnimation+")");
+
+            GD.Print("IsAttacking " + IsAttacking + " (finished " + animation + " is attacking " + attackingAnimation +
+                     ")");
             if (_previousAnimation != null) {
                 AnimationPlay(_previousAnimation);
             }
@@ -228,62 +232,5 @@ namespace Betauer.Characters.Player {
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");
         }
-
     }
-/*
-
-GameManager.connect("death", self, "on_death")
-
-
-func on_death(_cause):
-	print("MUETO")
-	set_process(false)
-	set_physics_process(false)
-	#Engine.set_target_fps(30)
-
-
-func debug_motion(delta):
-	if C.DEBUG_ACCELERATION && motion.x != 0:
-		if lastMotion.x == 0:
-			movStartTimeACC = 0 # starts to move
-		elif movStartTimeACC != -1:
-			movStartTimeACC += delta
-			if abs(motion.x) >= C.MAX_SPEED:
-				print("Full throtle ", motion.x, " in ", movStartTimeACC, "s")
-				movStartTimeACC = -1
-
-	if C.DEBUG_MAX_SPEED:
-		if motion.x != 0:
-			if lastMotion.x == 0:
-				movStartTimeMAXSPEED = 0
-				movStartPosMAXSPEED = get_position()
-			else:
-				if movStartTimeMAXSPEED >= 1:
-					var distance = get_position().distance_to(movStartPosMAXSPEED)
-					# No funciona bien si se cambia de direccion...
-					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position(), " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
-					movStartTimeMAXSPEED = 0
-					movStartPosMAXSPEED = get_position()
-				else:
-					movStartTimeMAXSPEED += delta
-
-		else:
-			movStartPosMAXSPEED = null
-
-	if C.DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion, motion-lastMotion)
-
-func debug_player_masks():
-	if C.DEBUG_COLLISION:
-		print("Player:  ",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
-
-func debug_collision():
-	if C.DEBUG_COLLISION && get_slide_count():
-		debug_player_masks()
-		for i in get_slide_count():
-			var collision = get_slide_collision(i)
-			print("Collider:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
-
-
-
- */
 }
