@@ -4,12 +4,6 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include=".gitignore" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="**/*.cs" Exclude="Tests/**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Scenes" />
   </ItemGroup>
 </Project>

@@ -1,10 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
@@ -21,5 +19,4 @@
             <Name>Betauer</Name>
         </ProjectReference>
     </ItemGroup>
-
 </Project>
