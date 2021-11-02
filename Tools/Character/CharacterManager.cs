@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using Betauer.Characters.Player;
-using Betauer.Tools.Character;
 using Betauer.Tools.Events;
 using Godot;
 using static Betauer.Tools.LayerConstants;
@@ -25,7 +22,7 @@ namespace Betauer.Tools.Character {
 
         public void RegisterEnemy(CharacterController enemy) {
             Debug.Register("CharacterManager.Enemy", enemy);
-            // enemy.AddToGroup(GROUP_ENEMY);
+            enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
             enemy.SetCollisionLayerBit(ENEMY_LAYER, true);
