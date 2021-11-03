@@ -1,4 +1,5 @@
 using System;
+using Godot;
 using Veronenger.Game.Characters.Player;
 using Veronenger.Game.Characters.Player.States;
 using Veronenger.Game.Tools;
@@ -6,9 +7,8 @@ using Veronenger.Game.Tools.Character;
 using Veronenger.Game.Tools.Events;
 using Veronenger.Game.Tools.Input;
 using Veronenger.Game.Tools.Statemachine;
-using Godot;
 
-namespace Veronenger.Game.Characters.Enemies {
+namespace Veronenger.Game.Controller {
     public class Enemy1Controller : CharacterController {
 
         public PlayerConfig EnemyConfig => (PlayerConfig) CharacterConfig;

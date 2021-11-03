@@ -5,10 +5,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="Tests/**" />
+    <Compile Remove=".mono\**" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Characters" />
     <Folder Include="Scenes" />
     <Folder Include="Worlds" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove=".mono\**" />
   </ItemGroup>
 </Project>

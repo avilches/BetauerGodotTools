@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using Veronenger.Game.Tools;
-using static Veronenger.Game.Tools.GodotConstants;
-using static Veronenger.Game.Tools.GodotTools;
-using Veronenger.Game.Tools.Effects;
 using Godot;
+using Veronenger.Game.Tools;
+using Veronenger.Game.Tools.Effects;
+using static Veronenger.Game.Tools.GodotTools;
 
-namespace Veronenger.Game.Worlds {
+namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenSpaced : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);

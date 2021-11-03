@@ -1,3 +1,5 @@
+using Veronenger.Game.Controller;
+
 namespace Veronenger.Game.Characters.Player.States {
     public class GroundStateIdle : GroundState {
         public GroundStateIdle(PlayerController player) : base(player) {

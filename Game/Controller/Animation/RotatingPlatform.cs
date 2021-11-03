@@ -1,8 +1,8 @@
-using Veronenger.Game.Tools;
 using Godot;
+using Veronenger.Game.Tools;
 using static Godot.Mathf;
 
-namespace Veronenger.Game.Worlds {
+namespace Veronenger.Game.Controller.Animation {
     public class RotatingPlatform : KinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;
@@ -17,10 +17,9 @@ namespace Veronenger.Game.Worlds {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Enabled) {
-                UpdateAngle(delta);
-                UpdatePosition();
-            }
+            if (!Enabled) return;
+            UpdateAngle(delta);
+            UpdatePosition();
         }
 
         private void Configure() {

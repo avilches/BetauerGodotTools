@@ -1,7 +1,8 @@
 using System;
 using Godot;
+using Veronenger.Game.Tools;
 
-namespace Veronenger.Game.Tools.Area {
+namespace Veronenger.Game.Controller.Area {
 
     /**
      * Add this script to wrap all the stages in every scene.

@@ -5,6 +5,7 @@ using Veronenger.Game.Tools.Character;
 using Veronenger.Game.Tools.Platforms;
 using Veronenger.Game.Tools.Resolution;
 using Godot;
+using Veronenger.Game.Controller;
 
 namespace Veronenger.Game.Tools {
     /**

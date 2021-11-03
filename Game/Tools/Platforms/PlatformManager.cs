@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Veronenger.Game.Tools.Character;
@@ -26,8 +27,8 @@ namespace Veronenger.Game.Tools.Platforms {
         }
 
         /**
-         * Si una plataforma falling tiene un Area2D dentro, se tomaraá como una zona que vuelve a activar las plataformas falling
-         * Es lo mismo que si a esa zona se le añade el script FallPlatformExit
+         * Si una plataforma falling tiene un Area2D dentro, se tomará como una zona que vuelve a activar las plataformas falling
+         * Es lo mismo que si a esa zona se le añade el script FallingPlatformExit
          */
         public void RegisterPlatform(PhysicsBody2D platform, bool falling = false, bool moving = false) {
             var message = "PlatformManager.Platform " + (falling ? "falling" : "") + "/" + (moving ? "moving" : "") + ")";

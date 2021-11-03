@@ -1,8 +1,7 @@
-using Veronenger.Game.Tools;
 using Godot;
-using static Godot.Mathf;
+using Veronenger.Game.Tools;
 
-namespace Veronenger.Game.Worlds {
+namespace Veronenger.Game.Controller.Animation {
     public class AnimatedPlatform : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
@@ -15,9 +14,8 @@ namespace Veronenger.Game.Worlds {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Enabled) {
-                UpdatePosition();
-            }
+            if (!Enabled) return;
+            UpdatePosition();
         }
 
         public void Configure() {

@@ -1,7 +1,8 @@
 using System;
 using Godot;
+using Veronenger.Game.Tools;
 
-namespace Veronenger.Game.Tools.Platforms {
+namespace Veronenger.Game.Controller.Platforms {
     public class SlopeStairs : Node {
         public override void _EnterTree() {
             try {

@@ -1,7 +1,8 @@
 using System;
 using Godot;
+using Veronenger.Game.Tools;
 
-namespace Veronenger.Game.Tools.Platforms {
+namespace Veronenger.Game.Controller.Platforms {
 	public class PlatformFollowPath : Platform {
 
 		[Export] public float Speed = 10;
@@ -15,9 +16,8 @@ namespace Veronenger.Game.Tools.Platforms {
 		}
 
 		public override void _PhysicsProcess(float delta) {
-			if (Enabled) {
-				UpdatePosition(delta);
-			}
+			if (!Enabled) return;
+			UpdatePosition(delta);
 		}
 
 		private void Configure() {
