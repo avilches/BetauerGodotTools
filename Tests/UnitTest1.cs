@@ -1,7 +1,7 @@
-using Veronenger.Game.Tools.Events;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using Godot;
+using Tools.Events;
 
 namespace Tests {
     public class Tests {

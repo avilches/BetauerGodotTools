@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Veronenger.Game.Tools.Events {
+namespace Tools.Events {
     public class GodotMulticastTopic<T> : MulticastTopic<NodeFromListenerDelegate<T>, T>
         where T : EventFromNode {
         public void Publish(T @event, string name) {

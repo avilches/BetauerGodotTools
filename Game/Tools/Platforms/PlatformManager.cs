@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Veronenger.Game.Tools.Character;
-using Veronenger.Game.Tools.Events;
 using Godot;
+using Tools.Events;
 using static Veronenger.Game.Tools.LayerConstants;
 using static Veronenger.Game.Tools.GodotTools;
 

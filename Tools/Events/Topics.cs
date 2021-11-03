@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace Veronenger.Game.Tools.Events {
+namespace Tools.Events {
 
     public interface ITopic<E, T> where E : EventListener<T> {
         void Subscribe(E eventListener);

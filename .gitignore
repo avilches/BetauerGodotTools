@@ -25,5 +25,7 @@ data_*/
 /packages/
 /Tests/bin/
 /Tests/obj/
+/Tools/bin/
+/Tools/obj/
 /*.sln.DotSettings.*
 

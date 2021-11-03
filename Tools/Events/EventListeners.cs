@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 
-namespace Veronenger.Game.Tools.Events {
+namespace Tools.Events {
     public interface EventListener<T> {
         void OnEvent(T @event);
     }

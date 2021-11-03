@@ -1,10 +1,10 @@
 using System;
 using Godot;
+using Tools.Events;
 using Veronenger.Game.Characters.Player;
 using Veronenger.Game.Characters.Player.States;
 using Veronenger.Game.Tools;
 using Veronenger.Game.Tools.Character;
-using Veronenger.Game.Tools.Events;
 using Veronenger.Game.Tools.Input;
 using Veronenger.Game.Tools.Statemachine;
 

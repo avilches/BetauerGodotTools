@@ -1,6 +1,5 @@
-using Veronenger.Game.Characters.Player;
-using Veronenger.Game.Tools.Events;
 using Godot;
+using Tools.Events;
 using Veronenger.Game.Controller;
 using static Veronenger.Game.Tools.LayerConstants;
 using static Veronenger.Game.Tools.GodotTools;

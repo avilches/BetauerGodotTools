@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Veronenger.Game.Tools.Events {
+namespace Tools.Events {
     public interface EventFromNode {
         Node GetFrom();
     }
