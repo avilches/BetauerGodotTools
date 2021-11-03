@@ -14,9 +14,9 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer.csproj">
+        <ProjectReference Include="..\Veronenger.csproj">
             <Project>{F54B0D80-6608-405D-96D9-852BC80FA92E}</Project>
-            <Name>Betauer</Name>
+            <Name>Veronenger</Name>
         </ProjectReference>
     </ItemGroup>
 </Project>

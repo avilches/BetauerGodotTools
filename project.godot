@@ -26,7 +26,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Betauer"
+config/name="Veronenger"
 run/main_scene="res://Worlds/World2.tscn"
 config/icon="res://icon.png"
 
