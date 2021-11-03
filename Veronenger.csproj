@@ -4,13 +4,16 @@
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="Tests/**" />
+    <Compile Include="**/*.cs" Exclude="Tests/**;Tools/**" />
     <Compile Remove=".mono\**" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Characters" />
     <Folder Include="Scenes" />
     <Folder Include="Worlds" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Tools/Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove=".mono\**" />
