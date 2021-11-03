@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools.Platforms {
+namespace Veronenger.Game.Tools.Platforms {
     public class Platform : KinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;

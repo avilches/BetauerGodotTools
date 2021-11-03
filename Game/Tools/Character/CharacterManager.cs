@@ -1,10 +1,10 @@
-using Game.Characters.Player;
-using Game.Tools.Events;
+using Veronenger.Game.Characters.Player;
+using Veronenger.Game.Tools.Events;
 using Godot;
-using static Game.Tools.LayerConstants;
-using static Game.Tools.GodotTools;
+using static Veronenger.Game.Tools.LayerConstants;
+using static Veronenger.Game.Tools.GodotTools;
 
-namespace Game.Tools.Character {
+namespace Veronenger.Game.Tools.Character {
     public class CharacterManager : Node {
         private const string GROUP_ENEMY = "enemy";
 

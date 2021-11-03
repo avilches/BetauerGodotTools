@@ -1,7 +1,7 @@
-using Game.Tools.Input;
+using Veronenger.Game.Tools.Input;
 using Godot;
 
-namespace Game.Characters.Player {
+namespace Veronenger.Game.Characters.Player {
     public class MyPlayerActions : PlayerActions {
         public readonly DirectionInput LateralMotion;
         public readonly DirectionInput VerticalMotion;

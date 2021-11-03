@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using Game.Tools.Character;
-using Game.Tools.Events;
+using Veronenger.Game.Tools.Character;
+using Veronenger.Game.Tools.Events;
 using Godot;
-using static Game.Tools.LayerConstants;
-using static Game.Tools.GodotTools;
+using static Veronenger.Game.Tools.LayerConstants;
+using static Veronenger.Game.Tools.GodotTools;
 
-namespace Game.Tools.Platforms {
+namespace Veronenger.Game.Tools.Platforms {
     public class PlatformManager : Node {
         private const string GROUP_PLATFORMS = "platform";
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";

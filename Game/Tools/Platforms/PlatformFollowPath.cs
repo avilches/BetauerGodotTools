@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Game.Tools.Platforms {
+namespace Veronenger.Game.Tools.Platforms {
 	public class PlatformFollowPath : Platform {
 
 		[Export] public float Speed = 10;

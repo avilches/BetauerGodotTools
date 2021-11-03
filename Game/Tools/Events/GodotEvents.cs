@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools.Events {
+namespace Veronenger.Game.Tools.Events {
 
     public class BodyOnArea2D : EventFromNode {
         public readonly Node Body;

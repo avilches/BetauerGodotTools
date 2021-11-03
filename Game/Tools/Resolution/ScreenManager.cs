@@ -1,9 +1,9 @@
 using Godot;
-using Game.Tools;
+using Veronenger.Game.Tools;
 using static Godot.Mathf;
 
 // https://github.com/Yukitty/godot-addon-integer_resolution_handler
-namespace Game.Tools.Resolution {
+namespace Veronenger.Game.Tools.Resolution {
     public class ScreenManager {
         private readonly Vector2 _baseResolution;
 

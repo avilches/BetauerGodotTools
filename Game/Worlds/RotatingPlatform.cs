@@ -1,8 +1,8 @@
-using Game.Tools;
+using Veronenger.Game.Tools;
 using Godot;
 using static Godot.Mathf;
 
-namespace Game.Worlds {
+namespace Veronenger.Game.Worlds {
     public class RotatingPlatform : KinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;

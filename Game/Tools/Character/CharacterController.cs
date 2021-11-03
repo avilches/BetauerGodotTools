@@ -1,8 +1,8 @@
 using System;
-using Game.Tools.Platforms;
+using Veronenger.Game.Tools.Platforms;
 using Godot;
 
-namespace Game.Tools.Character {
+namespace Veronenger.Game.Tools.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
         protected CharacterConfig CharacterConfig;
         public float Delta { get; private set; } = 0.16f;

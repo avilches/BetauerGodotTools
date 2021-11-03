@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Game.Tools.Input {
+namespace Veronenger.Game.Tools.Input {
     public class DirectionInput : IActionUpdate {
         public static readonly ISet<int> Empty = new HashSet<int>();
 

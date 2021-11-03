@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Game.Characters.Player.States {
+namespace Veronenger.Game.Characters.Player.States {
     public class AirStateFall : AirState {
         public AirStateFall(PlayerController player) : base(player) {
         }

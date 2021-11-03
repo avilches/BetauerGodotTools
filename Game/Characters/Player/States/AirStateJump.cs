@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Game.Characters.Player.States {
+namespace Veronenger.Game.Characters.Player.States {
     public class AirStateJump : AirState {
         public AirStateJump(PlayerController player) : base(player) {
         }
@@ -14,7 +14,6 @@ namespace Game.Characters.Player.States {
         }
 
         public override void Execute() {
-
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
                 Debug(PlayerConfig.DEBUG_JUMP,
                     "Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JUMP_FORCE_MIN);

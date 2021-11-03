@@ -1,7 +1,7 @@
 using Godot;
 using Godot.Collections;
 
-namespace Game.Tools.Statemachine {
+namespace Veronenger.Game.Tools.Statemachine {
     public abstract class State {
 
         public abstract void Execute();

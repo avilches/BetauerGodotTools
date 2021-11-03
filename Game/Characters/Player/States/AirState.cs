@@ -1,6 +1,4 @@
-using Game.Tools.Platforms;
-
-namespace Game.Characters.Player.States {
+namespace Veronenger.Game.Characters.Player.States {
     public abstract class AirState : PlayerState {
         public AirState(PlayerController player) : base(player) {
         }

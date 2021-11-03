@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools.Platforms {
+namespace Veronenger.Game.Tools.Platforms {
 	public class FallPlatformExit : Area2D {
 
 		public override void _EnterTree() {

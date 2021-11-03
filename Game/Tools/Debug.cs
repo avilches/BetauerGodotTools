@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools {
+namespace Veronenger.Game.Tools {
     public class Debug {
         public const bool DEBUG_STAGE = true;
         public const bool DEBUG_REGISTER = false;

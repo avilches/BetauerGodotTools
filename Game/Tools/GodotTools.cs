@@ -4,7 +4,7 @@ using Godot;
 using Godot.Collections;
 using static Godot.Mathf;
 
-namespace Game.Tools {
+namespace Veronenger.Game.Tools {
     public delegate void BodyOnArea2DSignalMethod(Node body, Area2D area2D);
 
     public class GodotTools {

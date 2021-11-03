@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Tools;
-using static Game.Tools.GodotConstants;
-using static Game.Tools.GodotTools;
-using Game.Tools.Effects;
+using Veronenger.Game.Tools;
+using static Veronenger.Game.Tools.GodotConstants;
+using static Veronenger.Game.Tools.GodotTools;
+using Veronenger.Game.Tools.Effects;
 using Godot;
 
-namespace Game.Worlds {
+namespace Veronenger.Game.Worlds {
     public class RotatingChildrenAligned : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public float Radius = 50;

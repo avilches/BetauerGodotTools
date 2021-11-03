@@ -1,4 +1,4 @@
-namespace Game.Characters.Player.States {
+namespace Veronenger.Game.Characters.Player.States {
     public class GroundStateIdle : GroundState {
         public GroundStateIdle(PlayerController player) : base(player) {
         }

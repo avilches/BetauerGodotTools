@@ -2,7 +2,7 @@ using System;
 using Godot;
 
 
-namespace Game.Tools.Area {
+namespace Veronenger.Game.Tools.Area {
     /**
      * Add this script to a Comera2D in your Player.
      *

@@ -24,7 +24,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.Tools.Effects {
+namespace Veronenger.Game.Tools.Effects {
     public enum TweenReturn {
         pause,
         next,

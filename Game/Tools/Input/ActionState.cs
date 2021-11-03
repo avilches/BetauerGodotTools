@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Game.Tools.Input {
+namespace Veronenger.Game.Tools.Input {
     public class ActionState: IActionUpdate {
         private ISet<int> _buttons;
         private ISet<int> _keys;

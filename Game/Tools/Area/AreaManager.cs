@@ -1,8 +1,8 @@
 using Godot;
 using Godot.Collections;
-using static Game.Tools.LayerConstants;
+using static Veronenger.Game.Tools.LayerConstants;
 
-namespace Game.Tools.Area {
+namespace Veronenger.Game.Tools.Area {
     public class AreaManager : Node, ISceneEvents {
         private IPlayerStageChange _stageCameraController;
 

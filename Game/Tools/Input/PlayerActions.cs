@@ -1,4 +1,4 @@
-namespace Game.Tools.Input {
+namespace Veronenger.Game.Tools.Input {
     public abstract class PlayerActions {
         public bool IsUsingKeyboard = true;
         protected readonly ActionInputList ActionInputList;

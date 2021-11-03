@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools.Character {
+namespace Veronenger.Game.Tools.Character {
     public class CharacterConfig {
 
         public bool DEBUG_INPUT_EVENTS = false;

@@ -1,6 +1,6 @@
 using static Godot.Mathf;
 
-namespace Game.Tools {
+namespace Veronenger.Game.Tools {
     public class GodotConstants {
         public const float CLOCK_THREE = Pi / 2;
         public const float CLOCK_NINE = -Pi / 2;

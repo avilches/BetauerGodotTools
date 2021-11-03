@@ -1,14 +1,14 @@
 using System;
-using Game.Characters.Player;
-using Game.Characters.Player.States;
-using Game.Tools;
-using Game.Tools.Character;
-using Game.Tools.Events;
-using Game.Tools.Input;
-using Game.Tools.Statemachine;
+using Veronenger.Game.Characters.Player;
+using Veronenger.Game.Characters.Player.States;
+using Veronenger.Game.Tools;
+using Veronenger.Game.Tools.Character;
+using Veronenger.Game.Tools.Events;
+using Veronenger.Game.Tools.Input;
+using Veronenger.Game.Tools.Statemachine;
 using Godot;
 
-namespace Game.Characters.Enemies {
+namespace Veronenger.Game.Characters.Enemies {
     public class Enemy1Controller : CharacterController {
 
         public PlayerConfig EnemyConfig => (PlayerConfig) CharacterConfig;

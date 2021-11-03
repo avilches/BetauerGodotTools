@@ -1,12 +1,12 @@
 using System;
-using Game.Characters.Player;
-using Game.Tools.Area;
-using Game.Tools.Character;
-using Game.Tools.Platforms;
-using Game.Tools.Resolution;
+using Veronenger.Game.Characters.Player;
+using Veronenger.Game.Tools.Area;
+using Veronenger.Game.Tools.Character;
+using Veronenger.Game.Tools.Platforms;
+using Veronenger.Game.Tools.Resolution;
 using Godot;
 
-namespace Game.Tools {
+namespace Veronenger.Game.Tools {
     /**
      * GameManager es Node para estar en autoload.
      * Añade automaticamente a los otros managers (Manager = siempre cargado)

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Game.Tools.Area {
+namespace Veronenger.Game.Tools {
     public class SceneManager {
 
         public void ChangeScene(string scene) {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Game.Tools.Input {
+namespace Veronenger.Game.Tools.Input {
     public class ActionInputList : IActionUpdate {
         private readonly List<IActionUpdate> _actions = new List<IActionUpdate>();
         private readonly PlayerActions _playerActions;

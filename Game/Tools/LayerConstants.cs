@@ -1,5 +1,5 @@
-namespace Game.Tools {
-    public class LayerConstants {
+namespace Veronenger.Game.Tools {
+    public static class LayerConstants {
         public const int REGULAR_PLATFORM_LAYER = 0;
         public const int SLOPE_STAIRS_LAYER = 1;
         public const int SLOPE_STAIRS_COVER_LAYER = 2;

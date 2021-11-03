@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
-    <RootNamespace>Game</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="Tests/**" />

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game.Tools.Character;
+using Veronenger.Game.Tools.Character;
 using Godot;
 
-namespace Game.Tools.Statemachine {
+namespace Veronenger.Game.Tools.Statemachine {
     public class StateMachine {
         private readonly Dictionary<Type, State> _states = new Dictionary<Type, State>();
         private readonly CharacterConfig _characterConfig;
