@@ -1,5 +1,4 @@
 using System;
-using Veronenger.Game.Characters.Player;
 using Veronenger.Game.Tools.Area;
 using Veronenger.Game.Tools.Character;
 using Veronenger.Game.Tools.Platforms;
@@ -25,7 +24,7 @@ namespace Veronenger.Game.Tools {
         public readonly AreaManager AreaManager;
         public readonly PlatformManager PlatformManager;
         public readonly SceneManager SceneManager;
-        private readonly ScreenManager ScreenManager;
+        private ScreenManager ScreenManager;
         public readonly CharacterManager CharacterManager;
 
 
@@ -39,24 +38,27 @@ namespace Veronenger.Game.Tools {
             if (Instance != null) {
                 throw new Exception("Only one instance");
             }
-
             Instance = this;
             AreaManager = new AreaManager();
             PlatformManager = new PlatformManager();
             SceneManager = new SceneManager();
             CharacterManager = new CharacterManager();
-
-            ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep);
         }
 
         public override void _EnterTree() {
             AddChild(AreaManager);
             AddChild(PlatformManager);
-            ScreenManager.Start(this, nameof(OnScreenResized));
+            var runningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
 
-            // TODO: load from user settings
-            ScreenManager.SetAll(false, 2, false);
-
+            if (runningTests) {
+                ScreenManager = new ScreenManager(new Vector2(1200, 900), SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Expand);
+                ScreenManager.Start(this, nameof(OnScreenResized));
+                ScreenManager.SetAll(false, 1, false);
+            } else {
+                ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep);
+                ScreenManager.Start(this, nameof(OnScreenResized));
+                ScreenManager.SetAll(false, 2, false);
+            }
         }
 
         public void OnScreenResized() {

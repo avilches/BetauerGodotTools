@@ -26,7 +26,7 @@ namespace Veronenger.Game.Tools.Resolution {
             _stretchShrink = stretchShrink;
         }
 
-        public void Start(GameManager gameManager, string updateResolutionMethodName) {
+        public void Start(GameManager gameManager, string gameManagerUpdateResolutionMethodName) {
             _tree = gameManager.GetTree();
             _root = gameManager.GetNode<Viewport>("/root");
 
@@ -36,9 +36,9 @@ namespace Veronenger.Game.Tools.Resolution {
             _tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep,
                 _baseResolution, 1);
 
-            var windowSize = OS.GetScreenSize();
-            _maxScale = (int) Max(Floor(Min(windowSize.x / _baseResolution.x, windowSize.y / _baseResolution.y)), 1);
-            _tree.Connect("screen_resized", gameManager, updateResolutionMethodName);
+            var screenSize = OS.GetScreenSize();
+            _maxScale = (int) Max(Floor(Min(screenSize.x / _baseResolution.x, screenSize.y / _baseResolution.y)), 1);
+            _tree.Connect("screen_resized", gameManager, gameManagerUpdateResolutionMethodName);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;
@@ -53,7 +53,7 @@ namespace Veronenger.Game.Tools.Resolution {
             UpdateResolution();
         }
 
-        public void SetScale(int scale) {
+        public void SetScale(float scale) {
             OS.WindowSize = _baseResolution * Min(_maxScale, scale);
             CenterWindow();
             UpdateResolution();
@@ -69,10 +69,8 @@ namespace Veronenger.Game.Tools.Resolution {
                 OS.WindowFullscreen = true;
             } else {
                 OS.WindowFullscreen = false;
-                OS.WindowSize = _baseResolution * Min(_maxScale, scale);;
                 OS.WindowBorderless = borderless;
-                CenterWindow();
-                UpdateResolution();
+                SetScale(scale);
             }
         }
 

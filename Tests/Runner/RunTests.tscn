@@ -1,0 +1,94 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Tests/Runner/TestRunnerController.cs" type="Script" id=1]
+[ext_resource path="res://Tests/Runner/test_passed_icon.png" type="Texture" id=2]
+[ext_resource path="res://Tests/Runner/test_failed_icon.png" type="Texture" id=3]
+[ext_resource path="res://Tests/Runner/CourierPrime.tres" type="DynamicFont" id=4]
+
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0.145098, 0.172549, 0.231373, 1 )
+
+[sub_resource type="StyleBoxEmpty" id=2]
+
+[node name="Node" type="Node"]
+script = ExtResource( 1 )
+passedIcon = ExtResource( 2 )
+failedIcon = ExtResource( 3 )
+
+[node name="Panel" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = 5.0
+margin_bottom = 170.0
+custom_styles/panel = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tree" type="Tree" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 0.63497
+margin_right = -4.0
+margin_bottom = -24.3868
+custom_styles/bg = SubResource( 2 )
+hide_root = true
+drop_mode_flags = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OverallStatus" type="RichTextLabel" parent="Panel"]
+anchor_top = 0.63
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = -15.2
+margin_right = -10.0
+margin_bottom = -164.0
+bbcode_enabled = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Stacktrace" type="RichTextLabel" parent="Panel"]
+anchor_top = 0.63
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 11.8
+margin_right = -10.0
+margin_bottom = -77.0
+custom_fonts/normal_font = ExtResource( 4 )
+bbcode_enabled = true
+scroll_following = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ButtonRepeat" type="Button" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -64.0837
+margin_top = 8.6853
+margin_right = -8.08374
+margin_bottom = 28.6853
+grow_horizontal = 0
+text = "Repeat"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ButtonFailedOnly" type="Button" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -153.805
+margin_top = 9.17812
+margin_right = -72.8049
+margin_bottom = 29.1781
+grow_horizontal = 0
+text = "Failed only"
+align = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
