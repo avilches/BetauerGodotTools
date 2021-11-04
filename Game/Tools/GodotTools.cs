@@ -19,8 +19,9 @@ namespace Veronenger.Game.Tools {
             var nodes = parent.GetChildren();
             var count = nodes.Count;
             for (var i = 0; i < count; i++) {
-                var node = nodes[i];
-                if (node is T nodeTyped) return nodeTyped;
+                if (nodes[i] is T result) {
+                    return result;
+                }
             }
 
             return null;
@@ -34,8 +35,7 @@ namespace Veronenger.Game.Tools {
             var children = new List<T>();
             var count = nodes.Count;
             for (var i = 0; i < count; i++) {
-                var node = nodes[i];
-                if (node is T nodeTyped) {
+                if (nodes[i] is T nodeTyped) {
                     children.Add(nodeTyped);
                 }
             }
