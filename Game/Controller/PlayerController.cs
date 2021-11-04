@@ -48,14 +48,14 @@ namespace Veronenger.Game.Controller {
 
             CharacterManager.RegisterPlayerWeapon(_attack);
 
-            PlatformManager.SubscribeFallingPlatformOut(new Area2DEnterListenerDelegate(this, _OnFallingPlatformOut));
-            PlatformManager.SubscribeSlopeStairsUp(new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpIn),
-                new Area2DEnterListenerDelegate(this, _OnSlopeStairsUpOut));
-            PlatformManager.SubscribeSlopeStairsDown(new Area2DEnterListenerDelegate(this, _OnSlopeStairsDownIn),
-                new Area2DEnterListenerDelegate(this, _OnSlopeStairsDownOut));
-            PlatformManager.SubscribeSlopeStairsEnabler(new Area2DEnterListenerDelegate(this, _OnSlopeStairsEnablerIn));
+            PlatformManager.SubscribeFallingPlatformOut(new BodyOnArea2DEnterListenerDelegate(this, _OnFallingPlatformOut));
+            PlatformManager.SubscribeSlopeStairsUp(new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsUpIn),
+                new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsUpOut));
+            PlatformManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsDownIn),
+                new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsDownOut));
+            PlatformManager.SubscribeSlopeStairsEnabler(new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsEnablerIn));
             PlatformManager.SubscribeSlopeStairsDisabler(
-                new Area2DEnterListenerDelegate(this, _OnSlopeStairsDisablerIn));
+                new BodyOnArea2DEnterListenerDelegate(this, _OnSlopeStairsDisablerIn));
 
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }

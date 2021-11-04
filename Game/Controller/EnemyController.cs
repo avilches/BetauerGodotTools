@@ -35,7 +35,7 @@ namespace Veronenger.Game.Controller {
         public override void _Ready() {
             GameManager.Instance.CharacterManager.RegisterEnemy(this);
 
-            PlatformManager.SubscribeFallingPlatformOut(new Area2DEnterListenerDelegate(this, _OnFallingPlatformOut));
+            PlatformManager.SubscribeFallingPlatformOut(new BodyOnArea2DEnterListenerDelegate(this, _OnFallingPlatformOut));
 
             _animationPlayer.Connect("animation_finished", this, nameof(OnAnimationFinished));
         }
