@@ -75,21 +75,24 @@ namespace Veronenger.Tests.Runner {
                         element = element.GetParent();
                     }
 
-                    GD.Print(testResult.classType.Name + "." + testResult.testMethod.Name + "\n" +
+                    GD.Print("* Failed test *\n"+testResult.classType.Name + "." + testResult.testMethod.Name + "\n" +
                              testResult.exception.Message + "\n" + testResult.exception.StackTrace);
                 }
 
                 itemSelections[testItem] = testResult;
+                overallStatusLabel.BbcodeText =
+                    $"Running tests: {passed + failed} of {testRunner.testCount}\t\t[color=green]Passed: {passed}[/color]";
                 if (failed > 0) {
-                    overallStatusLabel.BbcodeText =
-                        $"Running tests: {passed + failed} of {testRunner.testCount}\t\t[color=green]Passed: {passed}[/color]\t\t[color=red]Failed: {failed}[/color]";
-                } else {
-                    overallStatusLabel.BbcodeText =
-                        $"Running tests: {passed + failed} of {testRunner.testCount}\t\t[color=green]Passed: {passed}[/color]";
+                    overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {failed}[/color]";
                 }
             });
-            overallStatusLabel.BbcodeText =
-                $"Done: {passed + failed}\t\t[color=green]Passed: {passed}[/color]\t\t[color=red]Failed: {failed}[/color]";
+            overallStatusLabel.BbcodeText = $"[color=green]Passed: {passed}[/color]";
+            if (failed > 0) {
+                overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {failed}[/color]";
+                GD.Print("* Passed: " + passed + " | Failed: " + failed);
+            } else {
+                GD.Print("* All passed: " + passed + "!");
+            }
             buttonFailedOnly.Disabled = false;
             buttonRepeat.Disabled = false;
         }
