@@ -2,11 +2,11 @@ using System;
 using Godot;
 
 namespace Tools.Events {
-    public interface EventFromNode {
+    public interface IEventFromNode {
         Node GetFrom();
     }
 
-    public abstract class NodeFromListener<T> : ConditionalEventListener<T> where T : EventFromNode {
+    public abstract class NodeFromListener<T> : ConditionalEventListener<T> where T : IEventFromNode {
         private Node _body;
 
         public NodeFromListener(Node body) {
@@ -16,19 +16,26 @@ namespace Tools.Events {
         public bool IsDisposed() => _body.NativeInstance == IntPtr.Zero;
 
         public override bool CanBeExecuted(T @event) {
+            var nodeFrom = @event.GetFrom();
+            var matches = nodeFrom == _body;
+
             if (Debug.DEBUG_EVENT_LISTENER) {
-                GD.Print("[Event] From " + @event.GetFrom().Name + " " + @event.GetFrom().NativeInstance + "/0x" +
-                         @event.GetFrom().GetHashCode().ToString("X") +
-                         " Me: " + _body.Name + " " + _body.NativeInstance + "/0x" + _body.GetHashCode().ToString("X") +
-                         ": " + (@event.GetFrom() == _body ? "Ok!!" : ":("));
+                var nodeFromName = nodeFrom.GetType().FullName + " \"" + nodeFrom.Name + "\" [" +
+                                   nodeFrom.NativeInstance + "/0x" + nodeFrom.GetHashCode().ToString("X") + "]";
+
+                var me = _body.GetType().FullName + " \"" + _body.GetType().FullName + "\" [" + _body.NativeInstance +
+                         "/0x" +
+                         _body.GetHashCode().ToString("X") + "]";
+
+                GD.Print("[Event.NodeFromListener] Listener: " + me + " | Received: " + nodeFromName + " ? "+matches);
             }
 
-            return @event.GetFrom() == _body;
+            return matches;
         }
     }
 
 
-    public class NodeFromListenerDelegate<T> : NodeFromListener<T> where T : EventFromNode {
+    public class NodeFromListenerDelegate<T> : NodeFromListener<T> where T : IEventFromNode {
         public delegate void ExecuteMethod(T @event);
 
         private readonly ExecuteMethod _executeMethod;
@@ -41,5 +48,4 @@ namespace Tools.Events {
             _executeMethod.Invoke(@event);
         }
     }
-
 }
