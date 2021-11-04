@@ -48,6 +48,7 @@ namespace Veronenger.Tests.Runner {
                 TestResult testResult = new TestResult(method, null, TestResult.Result.Passed);
                 try {
                     if (testObject is Node node) {
+                        await Idle(testObject);
                         sceneTree.Root.AddChild(node);
                     }
 
@@ -58,7 +59,7 @@ namespace Veronenger.Tests.Runner {
                     object obj = method.Invoke(testObject, new object[] { });
                     if (obj is IEnumerator coroutine) {
                         while (coroutine.MoveNext()) {
-                            await Task.Delay(10);
+                            await Idle(testObject);
                         }
                     }
                 } catch (Exception e) {
@@ -78,7 +79,15 @@ namespace Veronenger.Tests.Runner {
                     resultCallback(testResult);
                 }
 
-                await Task.Delay(1);
+                await Idle(testObject);
+            }
+        }
+
+        private async Task Idle(object testObject) {
+            if (testObject is Node node) {
+                await sceneTree.ToSignal(sceneTree, "idle_frame");
+            } else {
+                await Task.Delay(2);
             }
         }
 
@@ -91,13 +100,23 @@ namespace Veronenger.Tests.Runner {
 
         private void IterateThroughTypes(Type[] types) {
             foreach (Type type in types) {
+                if (Attribute.GetCustomAttribute(type, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
+                    // TODO: this is not tested
+                    continue;
+                }
                 if (requireTestFixture &&
                     !(Attribute.GetCustomAttribute(type, typeof(TestFixtureAttribute), false) is TestFixtureAttribute))
                     continue;
                 MethodInfo[] methods = type.GetMethods();
                 foreach (var method in methods) {
-                    if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute) {
+                    if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {
+                        // TODO: add the testAttribute.Description
                         try {
+                            if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
+                                // TODO: show the method is ignored
+                                continue;
+                            }
+
                             ConstructorInfo[] constructors = type.GetConstructors();
                             object curTestObject = null;
                             if (constructors.Length > 0) {

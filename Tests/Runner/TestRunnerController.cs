@@ -14,8 +14,8 @@ namespace Veronenger.Tests.Runner {
         RichTextLabel stackTraceLabel;
         Button buttonFailedOnly;
         Button buttonRepeat;
-        int passed = 0;
-        int failed = 0;
+        int testsPassed = 0;
+        int testsFailed = 0;
         private Tree tree;
         private TreeItem rootItem;
 
@@ -24,7 +24,6 @@ namespace Veronenger.Tests.Runner {
             if (!enabled) return;
             buttonFailedOnly = GetNode<Button>("ButtonFailedOnly");
             buttonRepeat = GetNode<Button>("ButtonRepeat");
-
             panel = GetNode<Panel>("Panel");
             overallStatusLabel = panel.GetNode<RichTextLabel>("OverallStatus");
             stackTraceLabel = panel.GetNode<RichTextLabel>("Stacktrace");
@@ -33,12 +32,11 @@ namespace Veronenger.Tests.Runner {
             buttonRepeat.Connect("pressed", this, nameof(RunTests));
             tree.Connect("cell_selected", this, nameof(OnCellSelected));
             rootItem = tree.CreateItem(tree);
-
             RunTests();
         }
 
         private async void RunTests() {
-            passed = failed = 0;
+            testsPassed = testsFailed = 0;
             treeItems.Clear();
             itemSelections.Clear();
             buttonFailedOnly.Disabled = buttonRepeat.Disabled = true;
@@ -47,27 +45,21 @@ namespace Veronenger.Tests.Runner {
 
             TestRunner testRunner = new TestRunner(GetTree());
             await testRunner.Run((TestResult testResult) => {
-                bool didFail = testResult.result == TestResult.Result.Failed;
-
-                if (didFail) {
-                    failed++;
-                } else {
-                    passed++;
-                }
-
+                bool testPasses = testResult.result == TestResult.Result.Passed;
                 string classType = testResult.classType.ToString();
 
                 if (!treeItems.ContainsKey(classType)) {
-                    treeItems[classType] = CreateTreeItemsForClassType(classType, rootItem);
+                    treeItems[classType] = CreateTreeItemsForClassType(classType);
                 }
-
-                // treeItems[classType].SetText(0, testResult.classType.ToString());
 
                 TreeItem testItem = tree.CreateItem(treeItems[classType]);
                 testItem.SetText(0, testResult.testMethod.Name);
-                testItem.SetIcon(0, didFail ? failedIcon : passedIcon);
+                testItem.SetIcon(0, testPasses ? passedIcon: failedIcon);
 
-                if (didFail) {
+                if (testPasses) {
+                    testsPassed++;
+                } else {
+                    testsFailed++;
                     TreeItem element = treeItems[classType];
                     while (element != null) {
                         element.SetIcon(0, failedIcon);
@@ -75,59 +67,60 @@ namespace Veronenger.Tests.Runner {
                         element = element.GetParent();
                     }
 
-                    GD.Print("* Failed test *\n"+testResult.classType.Name + "." + testResult.testMethod.Name + "\n" +
+                    GD.Print("* Failed test: " + testResult.classType.Name + "." + testResult.testMethod.Name + "\n" +
                              testResult.exception.Message + "\n" + testResult.exception.StackTrace);
                 }
 
                 itemSelections[testItem] = testResult;
                 overallStatusLabel.BbcodeText =
-                    $"Running tests: {passed + failed} of {testRunner.testCount}\t\t[color=green]Passed: {passed}[/color]";
-                if (failed > 0) {
-                    overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {failed}[/color]";
+                    $"Running tests: {testsPassed + testsFailed} of {testRunner.testCount}\t\t[color=green]Passed: {testsPassed}[/color]";
+                if (testsFailed > 0) {
+                    overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testsFailed}[/color]";
                 }
             });
-            overallStatusLabel.BbcodeText = $"[color=green]Passed: {passed}[/color]";
-            if (failed > 0) {
-                overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {failed}[/color]";
-                GD.Print("* Passed: " + passed + " | Failed: " + failed);
+            overallStatusLabel.BbcodeText = $"[color=green]Passed: {testsPassed}[/color]";
+            if (testsFailed > 0) {
+                overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testsFailed}[/color]";
+                GD.Print("* Passed: " + testsPassed + " | Failed: " + testsFailed);
             } else {
-                GD.Print("* All passed: " + passed + "!");
+                GD.Print("* All passed: " + testsPassed + "!");
             }
+
             buttonFailedOnly.Disabled = false;
             buttonRepeat.Disabled = false;
         }
 
-        TreeItem CreateTreeItemsForClassType(string classType, TreeItem rootItem) {
+        private TreeItem CreateTreeItemsForClassType(string classType) {
             string[] treeItemParts = classType.Split('.');
-            var currentClassType = "";
+            var canonicalTestName = "";
             TreeItem nextItem = rootItem;
             for (var i = 0; i < treeItemParts.Length; i++) {
                 if (i > 0) {
-                    currentClassType += ".";
+                    canonicalTestName += ".";
                 }
 
+                canonicalTestName += treeItemParts[i];
                 bool isLast = i == treeItemParts.Length - 1;
-                currentClassType += treeItemParts[i];
-                if (!treeItems.ContainsKey(currentClassType)) {
+                if (!treeItems.ContainsKey(canonicalTestName)) {
                     var newItem = tree.CreateItem(nextItem, 0);
                     newItem.SetText(0, treeItemParts[i]);
                     newItem.Collapsed = isLast;
                     newItem.SetIcon(0, passedIcon);
-                    treeItems[currentClassType] = newItem;
+                    treeItems[canonicalTestName] = newItem;
                 }
 
-                nextItem = treeItems[currentClassType];
+                nextItem = treeItems[canonicalTestName];
             }
 
             return nextItem;
         }
 
-        void ShowOnlyFailed() {
+        private void ShowOnlyFailed() {
             Clear(tree.GetRoot(), true);
             tree.Update();
         }
 
-        void Clear(TreeItem parent, bool onlyPassed) {
+        private void Clear(TreeItem parent, bool onlyPassed) {
             TreeItem treeItem = parent.GetChildren();
             while (treeItem != null) {
                 if (!onlyPassed || treeItem.GetIcon(0) == passedIcon) {
@@ -140,8 +133,7 @@ namespace Veronenger.Tests.Runner {
             }
         }
 
-
-        void OnCellSelected() {
+        private void OnCellSelected() {
             var itemSelected = tree.GetSelected();
             if (!itemSelections.ContainsKey(itemSelected)) {
                 stackTraceLabel.BbcodeText = "";
