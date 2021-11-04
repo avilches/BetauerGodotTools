@@ -2,7 +2,7 @@ using Godot;
 
 namespace Tools.Events {
 
-    public class BodyOnArea2D : EventFromNode {
+    public class BodyOnArea2D : IEventFromNode {
         public readonly Node Body;
         public readonly Area2D Area2D;
 
@@ -16,13 +16,13 @@ namespace Tools.Events {
         }
     }
 
-    public abstract class Area2DEnterListener : NodeFromListener<BodyOnArea2D> {
-        public Area2DEnterListener(Node body) : base(body) {
+    public abstract class BodyOnArea2DEnterListener : NodeFromListener<BodyOnArea2D> {
+        public BodyOnArea2DEnterListener(Node body) : base(body) {
         }
     }
 
-    public class Area2DEnterListenerDelegate : NodeFromListenerDelegate<BodyOnArea2D> {
-        public Area2DEnterListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body, executeMethod) {
+    public class BodyOnArea2DEnterListenerDelegate : NodeFromListenerDelegate<BodyOnArea2D> {
+        public BodyOnArea2DEnterListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body, executeMethod) {
         }
     }
 }

@@ -2,10 +2,11 @@ using Godot;
 
 namespace Tools.Events {
     public class GodotMulticastTopic<T> : MulticastTopic<NodeFromListenerDelegate<T>, T>
-        where T : EventFromNode {
+        where T : IEventFromNode {
         public void Publish(T @event, string name) {
             if (Debug.DEBUG_EVENT_LISTENER) {
-                GD.Print("[Event] " + name + ": " + _eventListeners.Count);
+                GD.Print("[Event.GodotMultiCast] Published(" + name + ") event to " + _eventListeners.Count +
+                         " listeners");
             }
 
             Publish(@event);
@@ -14,8 +15,8 @@ namespace Tools.Events {
         public override void Publish(T @event) {
             int size = _eventListeners.Count;
             int deleted = _eventListeners.RemoveAll(listener => listener.IsDisposed());
-            if (Debug.DEBUG_EVENT_LISTENER) {
-                GD.Print("[Event] Disposed listeners deleted: " + deleted + "/" + size);
+            if (Debug.DEBUG_EVENT_LISTENER && deleted > 0) {
+                GD.Print("[Event.GodotMultiCast] Disposed listeners deleted: " + deleted + "/" + size);
             }
 
             _eventListeners.ForEach(listener => listener.OnEvent(@event));
@@ -23,11 +24,13 @@ namespace Tools.Events {
     }
 
     public class GodotUnicastTopic<T> : UnicastTopic<NodeFromListenerDelegate<T>, T>
-        where T : EventFromNode {
+        where T : IEventFromNode {
         public void Publish(T @event, string name) {
             if (Debug.DEBUG_EVENT_LISTENER) {
-                GD.Print("[Event] " + name+ ": event listener is "+(_eventListener == null?"null":(_eventListener.IsDisposed()?"Disposed":"Ok")));
+                var status = _eventListener == null ? "null" : (_eventListener.IsDisposed() ? "Disposed" : "Ok");
+                GD.Print("[Event.GodotUniCast] Published(" + name + ") event to single listener. Status: " + status);
             }
+
             Publish(@event);
         }
 

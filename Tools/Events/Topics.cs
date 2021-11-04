@@ -51,11 +51,15 @@ namespace Tools.Events {
             return _topics[key] as ITopic<E, T>;
         }
 
+        public ITopic<EventListener<object>, object> GetTopic(object key) {
+            return _topics[key] as ITopic<EventListener<object>, object>;
+        }
+
         public void Subscribe<E, T>(object key, E listener) where E : EventListener<T> {
             GetTopic<E, T>(key)?.Subscribe(listener);
         }
 
-        public void Emit<E, T>(object key, T evt) where E : EventListener<T> {
+        public void Publish<E, T>(object key, T evt) where E : EventListener<T> {
             GetTopic<E, T>(key)?.Publish(evt);
         }
     }
