@@ -28,7 +28,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence = new TweenSequence(true);
             _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear);
 
-            _platforms = GameManager.Instance.PlatformManager.RegisterPlatforms(GetChildren(), IsFallingPlatform, true);
+            _platforms = GameManager.Instance.PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
         }
     }
 }

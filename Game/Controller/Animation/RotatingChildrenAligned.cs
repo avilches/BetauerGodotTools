@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence.AddReverseAll();
 
             _platforms = Filter<PhysicsBody2D>(GetChildren());
-            GameManager.Instance.PlatformManager.RegisterPlatform(_platforms.Last(), IsFallingPlatform, true);
+            GameManager.Instance.PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 
         public void Start() {

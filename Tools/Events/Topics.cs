@@ -64,11 +64,13 @@ namespace Tools.Events {
         }
 
         public void Subscribe<E, T>(object key, E listener) where E : EventListener<T> {
-            GetTopic<E, T>(key)?.Subscribe(listener);
+            var topic = GetTopic<E, T>(key);
+            topic?.Subscribe(listener);
         }
 
         public void Publish<E, T>(object key, T evt) where E : EventListener<T> {
-            GetTopic<E, T>(key)?.Publish(evt);
+            var topic = GetTopic<E, T>(key);
+            topic?.Publish(evt);
         }
     }
 }

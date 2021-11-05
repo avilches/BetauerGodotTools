@@ -6,6 +6,7 @@ namespace Veronenger.Game.Tools {
         public const int FALL_PLATFORM_LAYER = 3;
         public const int PLAYER_LAYER = 10;
         public const int ENEMY_LAYER = 11;
+
         public const int PLAYER_DETECTOR_LAYER = 12;
     }
 }

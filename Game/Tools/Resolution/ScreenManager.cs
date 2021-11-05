@@ -1,5 +1,6 @@
 using Godot;
 using Tools;
+using Tools.Events;
 using Veronenger.Game.Tools;
 using static Godot.Mathf;
 
@@ -124,7 +125,7 @@ namespace Veronenger.Game.Tools.Resolution {
                     _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     _root.SizeOverrideStretch = false;
                     _root.SetSizeOverride(false);
-                    if (Debug.DEBUG_RESOLUTION) {
+                    if (Debug._DEBUG_RESOLUTION) {
                         GD.Print("(Viewport Mode) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
                             " Video resolution:", windowSize.x, "x", windowSize.y,
                             " Size:", (screenSize / _stretchShrink).Floor(), "(Screen size ", screenSize, "/",
@@ -139,7 +140,7 @@ namespace Veronenger.Game.Tools.Resolution {
                     _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     _root.SizeOverrideStretch = true;
                     _root.SetSizeOverride(true, (screenSize / _stretchShrink).Floor());
-                    if (Debug.DEBUG_RESOLUTION) {
+                    if (Debug._DEBUG_RESOLUTION) {
                         GD.Print("(2D model) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
                             " Video resolution:", windowSize.x, "x", windowSize.y,
                             " Size:", (viewportSize / _stretchShrink).Floor(), " (Viewport size ", viewportSize, "/",

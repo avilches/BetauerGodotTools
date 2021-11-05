@@ -13,12 +13,12 @@ namespace Veronenger.Game.Controller.Platforms {
                 var enabler = GetNode<Area2D>("EnablerAndDisabler/Enabler");
                 var disabler = GetNode<Area2D>("EnablerAndDisabler/Disabler");
 
-                GameManager.Instance.PlatformManager.ConfigureSlopeStairs(slopeStairs);
-                GameManager.Instance.PlatformManager.ConfigureSlopeStairsCover(cover);
-                GameManager.Instance.PlatformManager.AddArea2DSlopeStairsUp(upHall);
-                GameManager.Instance.PlatformManager.AddArea2DSlopeStairsDown(downHall);
-                GameManager.Instance.PlatformManager.AddArea2DSlopeStairsEnabler(enabler);
-                GameManager.Instance.PlatformManager.AddArea2DSlopeStairsDisabler(disabler);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairs(slopeStairs);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsCover(cover);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsUp(upHall);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsDown(downHall);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsEnabler(enabler);
+                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsDisabler(disabler);
             } catch (InvalidCastException e) {
                 Console.WriteLine("Slope stairs node has a wrong name or a wrong node type");
                 Console.WriteLine(e);

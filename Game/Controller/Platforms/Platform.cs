@@ -12,7 +12,7 @@ namespace Veronenger.Game.Controller.Platforms {
         }
 
         private void Configure() {
-            GameManager.Instance.PlatformManager.RegisterPlatform(this, IsFallingPlatform, IsMovingPlatform);
+            GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, IsMovingPlatform);
         }
     }
 }

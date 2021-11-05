@@ -9,6 +9,7 @@ namespace Veronenger.Game.Tools.Character {
         public Vector2 Motion = Vector2.Zero;
         private Vector2 _lastMotion = Vector2.Zero;
         public PlatformManager PlatformManager => GameManager.Instance.PlatformManager;
+        public SlopeStairsManager SlopeStairsManager => GameManager.Instance.SlopeStairsManager;
         public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
         private long _frame = 0;
         public long GetFrame() {
@@ -261,7 +262,7 @@ namespace Veronenger.Game.Tools.Character {
                 __isOnMovingPlatform = true;
             }
 
-            if (collisionCollider is PhysicsBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
+            if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
                 __isOnSlopeStairs = true;
             }
             Update(); // this allow to call to _draw() with the colliderNormal updated
@@ -294,7 +295,7 @@ namespace Veronenger.Game.Tools.Character {
                     _isOnMovingPlatform = true;
                 }
 
-                if (collisionCollider is PhysicsBody2D slopeStairs && PlatformManager.IsSlopeStairs(slopeStairs)) {
+                if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
                     _isOnSlopeStairs = true;
                 }
             }

@@ -12,16 +12,15 @@ namespace Veronenger.Game.Tools.Character {
          * No almacena nada, solo permite que enemigos y armas se suscriban a cambios
          */
 
-        public void RegisterPlayer(PlayerController playerController) {
-            Debug.Register("CharacterManager.Player", playerController);
+        public void ConfigurePlayerCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
             playerController.SetCollisionLayerBit(PLAYER_LAYER, true);
             GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(playerController);
+            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
         public void RegisterEnemy(CharacterController enemy) {
-            Debug.Register("CharacterManager.Enemy", enemy);
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
@@ -49,8 +48,8 @@ namespace Veronenger.Game.Tools.Character {
         // void PlayerWeapon_BodyExited(Node body, Area2D area2D) => _playerWeapon_exitTopic.Publish(new BodyOnArea2D(body, area2D));
 
         // Enemies (or the player!) can subscribe to this event to check if an attack has been done to them
-        public void SubscribePlayerWeaponCollision(GodotNodeListenerDelegate<BodyOnArea2D> enterListener) {
-            // NodeFromListenerDelegate<BodyOnArea2D> exitListener = null) {
+        public void SubscribePlayerWeaponCollision(GodotNodeListener<BodyOnArea2D> enterListener) {
+            // NodeFromListener<BodyOnArea2D> exitListener = null) {
             _playerWeapon_enterTopic.Subscribe(enterListener);
             // if (exitListener != null) _playerWeapon_exitTopic.Subscribe(exitListener);
         }

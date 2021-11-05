@@ -5,7 +5,7 @@
 [ext_resource path="res://Worlds/Environment/anokalisa/gallery.png" type="Texture" id=9]
 [ext_resource path="res://Game/Controller/Platforms/SlopeStairs.cs" type="Script" id=10]
 
-[sub_resource type="TileSet" id=7]
+[sub_resource type="TileSet" id=1]
 0/name = "village.png 0"
 0/texture = ExtResource( 3 )
 0/tex_offset = Vector2( 0, 0 )
@@ -133,7 +133,7 @@
 8/shapes = [  ]
 8/z_index = 0
 
-[sub_resource type="RectangleShape2D" id=8]
+[sub_resource type="RectangleShape2D" id=2]
 extents = Vector2( 72, 8 )
 
 [sub_resource type="RectangleShape2D" id=3]
@@ -155,7 +155,7 @@ __meta__ = {
 }
 
 [node name="TileMap" type="TileMap" parent="."]
-tile_set = SubResource( 7 )
+tile_set = SubResource( 1 )
 cell_size = Vector2( 16, 16 )
 collision_layer = 0
 collision_mask = 0
@@ -191,17 +191,18 @@ __meta__ = {
 }
 
 [node name="Collored2D" type="CollisionShape2D" parent="Cover"]
-shape = SubResource( 8 )
+shape = SubResource( 2 )
 script = ExtResource( 4 )
 __meta__ = {
 "_edit_lock_": true
 }
-enabled_editor = false
 enabled_game = false
+enabled_editor = false
 color = Color( 0.329412, 0.568627, 0.14902, 0.670588 )
 
 [node name="UpHall" type="Area2D" parent="."]
 position = Vector2( -144, -90 )
+collision_layer = 0
 collision_mask = 0
 
 [node name="Collored2D" type="CollisionShape2D" parent="UpHall"]
@@ -213,6 +214,7 @@ enabled_game = false
 color = Color( 0.0588235, 0.184314, 0.85098, 0.419608 )
 
 [node name="DownHall" type="Area2D" parent="."]
+collision_layer = 0
 collision_mask = 0
 
 [node name="Collored2D" type="CollisionShape2D" parent="DownHall"]
@@ -227,6 +229,7 @@ position = Vector2( -112, -160 )
 
 [node name="Enabler" type="Area2D" parent="EnablerAndDisabler"]
 position = Vector2( -7.99999, -16 )
+collision_layer = 0
 collision_mask = 0
 
 [node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
@@ -245,6 +248,7 @@ color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )
 
 [node name="Disabler" type="Area2D" parent="EnablerAndDisabler"]
 position = Vector2( -48, 0 )
+collision_layer = 0
 collision_mask = 0
 
 [node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Disabler"]

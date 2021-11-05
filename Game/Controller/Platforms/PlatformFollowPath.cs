@@ -22,7 +22,7 @@ namespace Veronenger.Game.Controller.Platforms {
 		}
 
 		private void Configure() {
-			GameManager.Instance.PlatformManager.RegisterPlatform(this, IsFallingPlatform, true);
+			GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
 				var path2D = GodotTools.FindChild<Path2D>(this);

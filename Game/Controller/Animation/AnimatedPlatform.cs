@@ -19,7 +19,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Configure() {
-            GameManager.Instance.PlatformManager.RegisterPlatform(this, IsFallingPlatform, true);
+            GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 
             _original = Position;
 

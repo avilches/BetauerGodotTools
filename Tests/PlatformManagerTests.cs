@@ -25,8 +25,8 @@ namespace Veronenger.Tests {
             KinematicBody2D body2 = CreateKinematicBody2D("Enemy", 0, 0);
             Area2D area2D = CreateArea2D("slopeDown", 2000, 2000);
 
-            GameManager.Instance.PlatformManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate("Body1", body, _OnEventBody1));
-            GameManager.Instance.PlatformManager.AddArea2DSlopeStairsDown(area2D);
+            GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsDown(area2D);
+            GameManager.Instance.SlopeStairsManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate("Body1", body, _OnEventBody1));
             yield return null;
 
             // They are not colliding

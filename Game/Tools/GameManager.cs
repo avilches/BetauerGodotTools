@@ -4,6 +4,7 @@ using Veronenger.Game.Tools.Character;
 using Veronenger.Game.Tools.Platforms;
 using Veronenger.Game.Tools.Resolution;
 using Godot;
+using Tools.Events;
 using Veronenger.Game.Controller;
 
 namespace Veronenger.Game.Tools {
@@ -23,6 +24,7 @@ namespace Veronenger.Game.Tools {
 
         public readonly AreaManager AreaManager;
         public readonly PlatformManager PlatformManager;
+        public readonly SlopeStairsManager SlopeStairsManager;
         public readonly SceneManager SceneManager;
         private ScreenManager ScreenManager;
         public readonly CharacterManager CharacterManager;
@@ -41,6 +43,7 @@ namespace Veronenger.Game.Tools {
             Instance = this;
             AreaManager = new AreaManager();
             PlatformManager = new PlatformManager();
+            SlopeStairsManager = new SlopeStairsManager();
             SceneManager = new SceneManager();
             CharacterManager = new CharacterManager();
         }
@@ -73,10 +76,8 @@ namespace Veronenger.Game.Tools {
         public PlayerController PlayerController { get; private set; }
 
         public void RegisterPlayerController(PlayerController playerController) {
-            Debug.Register("GameManager.PlayerController ", playerController);
             PlayerController = playerController;
-            CharacterManager.RegisterPlayer(playerController);
-            PlatformManager.ConfigurePlayerCollisions(playerController);
+            CharacterManager.ConfigurePlayerCollisions(playerController);
         }
 
         public bool IsPlayer(KinematicBody2D player) {

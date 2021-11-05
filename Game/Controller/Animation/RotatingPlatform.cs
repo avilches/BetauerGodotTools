@@ -23,7 +23,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         private void Configure() {
-            GameManager.Instance.PlatformManager.RegisterPlatform(this, IsFallingPlatform, true);
+            GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _speed = Tau / RotationDuration;
         }
 

@@ -2,7 +2,7 @@ using Godot;
 using Godot.Collections;
 
 namespace Tools.Events {
-    public class GodotNodeMulticastTopic<T> : MulticastTopic<GodotNodeListenerDelegate<T>, T>
+    public class GodotNodeMulticastTopic<T> : MulticastTopic<GodotNodeListener<T>, T>
         where T : IGodotNodeEvent {
         public GodotNodeMulticastTopic(string name) : base(name) {
         }
@@ -20,7 +20,7 @@ namespace Tools.Events {
         }
     }
 
-    public class GodotNodeUnicastTopic<T> : UnicastTopic<GodotNodeListenerDelegate<T>, T>
+    public class GodotNodeUnicastTopic<T> : UnicastTopic<GodotNodeListener<T>, T>
         where T : IGodotNodeEvent {
         public GodotNodeUnicastTopic(string name) : base(name) {
         }
@@ -80,8 +80,20 @@ namespace Tools.Events {
         }
         */
 
-        public void Subscribe(GodotNodeListenerDelegate<BodyOnArea2D> enterListener,
-            GodotNodeListenerDelegate<BodyOnArea2D> exitListener = null) {
+        public void Subscribe(string name, Node body, GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
+            GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
+            GodotNodeListener<BodyOnArea2D> enterListener = null;
+            GodotNodeListener<BodyOnArea2D> exitListener = null;
+            if (enterMethod != null)
+                enterListener = new GodotNodeListenerDelegate<BodyOnArea2D>(name, body, enterMethod);
+            if (exitMethod != null) exitListener = new GodotNodeListenerDelegate<BodyOnArea2D>(name, body, exitMethod);
+            if (enterListener != null && exitListener != null) {
+                Subscribe(enterListener, exitListener);
+            }
+        }
+
+        public void Subscribe(GodotNodeListener<BodyOnArea2D> enterListener,
+            GodotNodeListener<BodyOnArea2D> exitListener = null) {
             if (enterListener != null) {
                 // Topic is crated only when there is at least one subscriber
                 if (_enterTopic == null) _enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>($"{Name}_BodyEntered");

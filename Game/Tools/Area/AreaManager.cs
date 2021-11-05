@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using Tools;
+using Tools.Events;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Tools.Area {
@@ -12,15 +13,13 @@ namespace Veronenger.Game.Tools.Area {
             _stageCameraController = stageCameraController;
         }
 
-        public void RegisterPlayerStageDetector(Area2D stageDetector) {
-            Debug.Register("AreaManager.PlayerStageDetector", stageDetector);
+        public void ConfigurePlayerStageDetector(Area2D stageDetector) {
             stageDetector.CollisionLayer = 0;
             stageDetector.CollisionMask = 0;
             stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
         }
 
-        public void RegisterStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
-            Debug.Register("AreaManager.Stage", stageArea2D);
+        public void ConfigureStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_stage),
                 new Array { stageArea2D, stageCollisionShape2D.Shape });
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_on_player_exited_stage),
@@ -39,8 +38,7 @@ namespace Veronenger.Game.Tools.Area {
             _stageCameraController?._on_player_exited_stage(player, stageExitedArea2D);
         }
 
-        public void RegisterDeathZone(Area2D deathArea2D) {
-            Debug.Register("AreaManager.DeathZone", deathArea2D);
+        public void ConfigureDeathZone(Area2D deathArea2D) {
             deathArea2D.CollisionLayer = 0;
             deathArea2D.CollisionMask = 0;
             deathArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
@@ -52,9 +50,8 @@ namespace Veronenger.Game.Tools.Area {
             GameManager.Instance.PlayerEnteredDeathZone(deathArea2D);
         }
 
-        // TODO: World complete area2d should register
-        public void RegisterSceneChange(Area2D sceneChangeArea2D, string scene) {
-            Debug.Register("AreaManager.SceneChange", sceneChangeArea2D);
+        // TODO: World complete area2d should
+        public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
             sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this,
                 nameof(_on_player_entered_scene_change),
                 new Array { sceneChangeArea2D, scene });

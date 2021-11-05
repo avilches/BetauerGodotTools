@@ -7,6 +7,7 @@ using Veronenger.Game.Characters.Player.States;
 using Veronenger.Game.Tools;
 using Veronenger.Game.Tools.Character;
 using Veronenger.Game.Tools.Input;
+using Veronenger.Game.Tools.Platforms;
 using Veronenger.Game.Tools.Statemachine;
 
 namespace Veronenger.Game.Controller {
@@ -50,12 +51,13 @@ namespace Veronenger.Game.Controller {
             CharacterManager.RegisterPlayerWeapon(_attack);
 
             PlatformManager.SubscribeFallingPlatformOut(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnFallingPlatformOut));
-            PlatformManager.SubscribeSlopeStairsUp(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsUpIn),
+
+            SlopeStairsManager.SubscribeSlopeStairsUp(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsUpIn),
                 new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsUpOut));
-            PlatformManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDownIn),
+            SlopeStairsManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDownIn),
                 new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDownOut));
-            PlatformManager.SubscribeSlopeStairsEnabler(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsEnablerIn));
-            PlatformManager.SubscribeSlopeStairsDisabler(
+            SlopeStairsManager.SubscribeSlopeStairsEnabler(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsEnablerIn));
+            SlopeStairsManager.SubscribeSlopeStairsDisabler(
                 new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDisablerIn));
 
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
@@ -63,14 +65,14 @@ namespace Veronenger.Game.Controller {
 
         public void EnableSlopeStairs() {
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Enabling slope stairs");
-            PlatformManager.DisableSlopeStairsCoverForBody(this);
-            PlatformManager.EnableSlopeStairsForBody(this);
+            SlopeStairsManager.DisableSlopeStairsCoverForBody(this);
+            SlopeStairsManager.EnableSlopeStairsForBody(this);
         }
 
         public void DisableSlopeStairs() {
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Disabling slope stairs");
-            PlatformManager.EnableSlopeStairsCoverForBody(this);
-            PlatformManager.DisableSlopeStairsForBody(this);
+            SlopeStairsManager.EnableSlopeStairsCoverForBody(this);
+            SlopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
         public bool IsOnSlopeStairsUp() => _slopeStairsUp;

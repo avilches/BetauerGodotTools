@@ -158,18 +158,18 @@ namespace Veronenger.Tests {
             /*
              It should work in the same way as TestGodotMulticast
              */
-            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body2));
                 body2Calls++;
             }));
-            t.Publish<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));
-            t.Publish<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area2));
-            t.Publish<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area1));
-            t.Publish<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area2));
+            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));
+            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area2));
+            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area1));
+            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area2));
             Assert.That(body1Calls, Is.EqualTo(2));
             Assert.That(body2Calls, Is.EqualTo(2));
         }
