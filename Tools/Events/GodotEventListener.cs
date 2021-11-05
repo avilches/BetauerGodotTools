@@ -1,37 +1,42 @@
 using System;
 using Godot;
+using Object = Godot.Object;
 
 namespace Tools.Events {
     public interface IGodotNodeEvent {
         Node GetFrom();
     }
 
-    public abstract class GodotNodeListener<T> : ConditionalEventListener<T> where T : IGodotNodeEvent {
+    public abstract class GodotNodeListener<T> : EventListener<T> where T : IGodotNodeEvent {
         public Node Body { get; }
+        public string Name { get; }
 
-        public GodotNodeListener(Node body) {
+        protected GodotNodeListener(string name, Node body) {
+            Name = name;
             Body = body;
         }
 
-        public bool IsDisposed() => Body.NativeInstance == IntPtr.Zero;
+        public bool IsDisposed() => GodotTools.IsDisposed(Body);
 
         private static string GetNodeInfo(Node node) {
-            string nodeName = node.NativeInstance == IntPtr.Zero ? "(no name: disposed)" : $"\"{node.Name}\"";
-            return $"{node.GetType().Name} {nodeName} [{node.NativeInstance}/0x{node.GetHashCode():X}]";
+            var nodeName = GodotTools.IsDisposed(node) ? "(no name: disposed)" : $"\"{node.Name}\"";
+            return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
-        public override bool CanBeExecuted(T @event) {
+        public void OnEvent(T @event) {
             var nodeFrom = @event.GetFrom();
             var matches = nodeFrom == Body;
 
             if (matches) {
-                Debug.Event("GodotNodeListener", $"Listening {GetNodeInfo(Body)} events. Received ok");
+                Debug.Event("GodotNodeListener", Name, $"Listening {GetNodeInfo(Body)} events. Received ok");
+                Execute(@event);
             } else {
-                Debug.Event("GodotNodeListener",
+                Debug.Event("GodotNodeListener", Name,
                     $"Listening {GetNodeInfo(Body)} events. Rejected {GetNodeInfo(nodeFrom)}");
             }
-            return matches;
         }
+
+        public abstract void Execute(T @event);
     }
 
 
@@ -40,7 +45,7 @@ namespace Tools.Events {
 
         private readonly ExecuteMethod _executeMethod;
 
-        public GodotNodeListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body) {
+        public GodotNodeListenerDelegate(string name, Node body, ExecuteMethod executeMethod) : base(name, body) {
             _executeMethod = executeMethod;
         }
 

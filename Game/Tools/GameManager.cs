@@ -8,8 +8,8 @@ using Veronenger.Game.Controller;
 
 namespace Veronenger.Game.Tools {
     /**
-     * GameManager es Node para estar en autoload.
-     * Añade automaticamente a los otros managers (Manager = siempre cargado)
+     * GameManager es Node para estar en autoload y recibir eventos
+     * Crea automaticamente a los otros managers (Manager = siempre cargado)
      * Los Controller son scripts de objetos de le escena que se cargan y se registran en los managers
      *
      * Los Manager actuan de intermediarios entre objetos que no se conocen entre si. Por ejemplo: las death zones,
@@ -18,7 +18,7 @@ namespace Veronenger.Game.Tools {
      * donde estan realmente estos objetos (plataformas o areas).
      *
      */
-    public class GameManager : Node2D {
+    public class GameManager : Node {
         public static GameManager Instance { get; private set; }
 
         public readonly AreaManager AreaManager;
@@ -46,8 +46,6 @@ namespace Veronenger.Game.Tools {
         }
 
         public override void _EnterTree() {
-            AddChild(AreaManager);
-            AddChild(PlatformManager);
             var runningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
 
             if (runningTests) {

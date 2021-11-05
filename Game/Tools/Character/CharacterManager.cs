@@ -2,10 +2,10 @@ using Godot;
 using Tools.Events;
 using Veronenger.Game.Controller;
 using static Veronenger.Game.Tools.LayerConstants;
-using static Veronenger.Game.Tools.GodotTools;
+using static Tools.GodotTools;
 
 namespace Veronenger.Game.Tools.Character {
-    public class CharacterManager : Node {
+    public class CharacterManager : Object /* needed to connect to signals */  {
         private const string GROUP_ENEMY = "enemy";
 
         /**
@@ -42,11 +42,11 @@ namespace Veronenger.Game.Tools.Character {
         public void EnablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, true);
         public void DisablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, false);
 
-        private GodotNodeUnicastTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>();
+        private GodotNodeUnicastTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("PlayerWeapon_enter");
         // private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();
 
-        void PlayerWeapon_BodyEntered(Node body, Area2D area2D) => _playerWeapon_enterTopic.Publish(new BodyOnArea2D(body, area2D), "PlayerWeapon_BodyEntered");
-        // void PlayerWeapon_BodyExited(Node body, Area2D area2D) => _playerWeapon_exitTopic.Publish(new BodyOnArea2D(body, area2D), "PlayerWeapon_BodyExited");
+        void PlayerWeapon_BodyEntered(Node body, Area2D area2D) => _playerWeapon_enterTopic.Publish(new BodyOnArea2D(body, area2D));
+        // void PlayerWeapon_BodyExited(Node body, Area2D area2D) => _playerWeapon_exitTopic.Publish(new BodyOnArea2D(body, area2D));
 
         // Enemies (or the player!) can subscribe to this event to check if an attack has been done to them
         public void SubscribePlayerWeaponCollision(GodotNodeListenerDelegate<BodyOnArea2D> enterListener) {

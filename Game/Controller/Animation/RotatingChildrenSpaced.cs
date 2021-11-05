@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using Veronenger.Game.Tools;
 using Veronenger.Game.Tools.Effects;
-using static Veronenger.Game.Tools.GodotTools;
+using static Tools.GodotTools;
 
 namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenSpaced : Node2D {

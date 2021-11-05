@@ -9,7 +9,6 @@ using Debug = Tools.Events.Debug;
 namespace Veronenger.Tests {
     [TestFixture]
     public class PlatformManagerTests : Node {
-        Area2D Area3 = new Area2D();
         private int Body1Calls = 0;
         private int Body2Calls = 0;
 
@@ -23,9 +22,10 @@ namespace Veronenger.Tests {
         [Test]
         public IEnumerator PlatformMap() {
             KinematicBody2D body = CreateKinematicBody2D("player", 0, 0);
+            KinematicBody2D body2 = CreateKinematicBody2D("Enemy", 0, 0);
             Area2D area2D = CreateArea2D("slopeDown", 2000, 2000);
 
-            GameManager.Instance.PlatformManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate(body, _OnEventBody1));
+            GameManager.Instance.PlatformManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate("Body1", body, _OnEventBody1));
             GameManager.Instance.PlatformManager.AddArea2DSlopeStairsDown(area2D);
             yield return null;
 

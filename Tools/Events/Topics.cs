@@ -3,13 +3,21 @@ using System.Collections.Generic;
 namespace Tools.Events {
 
     public interface ITopic<E, T> where E : EventListener<T> {
+        string Name { get; }
+
         void Subscribe(E eventListener);
 
         void Publish(T @event);
     }
 
     public class UnicastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
-        public E Listener { get; set; }
+        public E Listener { get; protected set; }
+
+        public string Name { get; }
+
+        public UnicastTopic(string name) {
+            Name = name;
+        }
 
         public virtual void Subscribe(E eventListener) => Listener = eventListener;
 
@@ -21,7 +29,10 @@ namespace Tools.Events {
     public class MulticastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
         protected readonly List<E> _eventListeners;
 
-        public MulticastTopic() {
+        public string Name { get; }
+
+        protected MulticastTopic(string name) {
+            Name = name;
             _eventListeners = new List<E>();
         }
 

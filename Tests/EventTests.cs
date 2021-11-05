@@ -30,14 +30,14 @@ namespace Veronenger.Tests {
             /*
              Unicast only allows one subscriber, so, Body1Calls is 0 and Body2 have two calls
              */
-            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>();
+            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             int body2Calls = 0;
-            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate(body1, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate(body2, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body2));
                 body2Calls++;
             }));
@@ -72,9 +72,9 @@ namespace Veronenger.Tests {
             body2.QueueFree();
             yield return null; // TesRunner will make enough delay to ensure the Godot event loop add them
 
-            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>();
+            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
-            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate(body1, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body1));
                 body1Calls++;
             }));
@@ -114,15 +114,15 @@ namespace Veronenger.Tests {
             KinematicBody2D body2 = new KinematicBody2D();
             AddChild(body1);
             AddChild(body2);
-            GodotNodeMulticastTopic<BodyOnArea2D> topic = new GodotNodeMulticastTopic<BodyOnArea2D>();
+            GodotNodeMulticastTopic<BodyOnArea2D> topic = new GodotNodeMulticastTopic<BodyOnArea2D>("T");
             /*
              Multicast allows multiple subscribers, so, Body1 and Body2 have two calls
              */
-            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate(body1, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate(body2, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body2));
                 body2Calls++;
             }));
@@ -153,16 +153,16 @@ namespace Veronenger.Tests {
             AddChild(body1);
             AddChild(body2);
             var t = TopicMap.Instance;
-            t.AddTopic("t", new GodotNodeMulticastTopic<BodyOnArea2D>());
+            t.AddTopic("t", new GodotNodeMulticastTopic<BodyOnArea2D>("T"));
 
             /*
              It should work in the same way as TestGodotMulticast
              */
-            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate(body1, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate(body2, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotNodeListenerDelegate<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.Body, Is.EqualTo(body2));
                 body2Calls++;
             }));

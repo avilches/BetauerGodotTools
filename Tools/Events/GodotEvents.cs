@@ -17,12 +17,12 @@ namespace Tools.Events {
     }
 
     public abstract class BodyOnArea2DEnterListener : GodotNodeListener<BodyOnArea2D> {
-        public BodyOnArea2DEnterListener(Node body) : base(body) {
+        protected BodyOnArea2DEnterListener(string name, Node body) : base(name, body) {
         }
     }
 
     public class BodyOnArea2DEnterListenerDelegate : GodotNodeListenerDelegate<BodyOnArea2D> {
-        public BodyOnArea2DEnterListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body, executeMethod) {
+        public BodyOnArea2DEnterListenerDelegate(string name, Node body, ExecuteMethod executeMethod) : base(name, body, executeMethod) {
         }
     }
 }

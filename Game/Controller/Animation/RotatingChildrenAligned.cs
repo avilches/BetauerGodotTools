@@ -3,8 +3,8 @@ using System.Linq;
 using Godot;
 using Veronenger.Game.Tools;
 using Veronenger.Game.Tools.Effects;
-using static Veronenger.Game.Tools.GodotConstants;
-using static Veronenger.Game.Tools.GodotTools;
+using static Tools.GodotConstants;
+using static Tools.GodotTools;
 
 namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenAligned : Node2D {

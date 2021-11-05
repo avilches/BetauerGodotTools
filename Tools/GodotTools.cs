@@ -4,16 +4,22 @@ using Godot;
 using Godot.Collections;
 using static Godot.Mathf;
 
-namespace Veronenger.Game.Tools {
+namespace Tools {
     public delegate void BodyOnArea2DSignalMethod(Node body, Area2D area2D);
 
     public class GodotTools {
         public static void ListenArea2DCollisionsWithBodies(Area2D area2D, BodyOnArea2DSignalMethod enter, BodyOnArea2DSignalMethod exit = null) {
-            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, (Object)enter.Target, enter.Method.Name, new Array {area2D});
-            if (exit != null) {
-                area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, (Object)exit.Target, exit.Method.Name, new Array {area2D});
+            if (enter.Target is Object nodeEnter) {
+                area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, nodeEnter, enter.Method.Name,
+                    new Array { area2D });
+                if (exit != null && enter.Target is Object nodeExit) {
+                    area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, nodeExit, exit.Method.Name,
+                        new Array { area2D });
+                }
             }
         }
+
+        public static bool IsDisposed(Object @object) => @object == null || @object.NativeInstance == System.IntPtr.Zero;
 
         public static T FindChild<T>(Node parent) where T : class {
             var nodes = parent.GetChildren();

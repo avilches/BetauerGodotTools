@@ -1,9 +1,10 @@
 using Godot;
 using Godot.Collections;
+using Tools;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Tools.Area {
-    public class AreaManager : Node, ISceneEvents {
+    public class AreaManager : Object /* needed to connect to signals */, ISceneEvents {
         private IPlayerStageChange _stageCameraController;
 
         public void ListenPlayerStageChanges(IPlayerStageChange stageCameraController) {
@@ -21,9 +22,9 @@ namespace Veronenger.Game.Tools.Area {
         public void RegisterStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
             Debug.Register("AreaManager.Stage", stageArea2D);
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_stage),
-                new Array {stageArea2D, stageCollisionShape2D.Shape});
+                new Array { stageArea2D, stageCollisionShape2D.Shape });
             stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_on_player_exited_stage),
-                new Array {stageArea2D});
+                new Array { stageArea2D });
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
@@ -44,7 +45,7 @@ namespace Veronenger.Game.Tools.Area {
             deathArea2D.CollisionMask = 0;
             deathArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
             deathArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_death_zone),
-                new Array {deathArea2D});
+                new Array { deathArea2D });
         }
 
         public void _on_player_entered_death_zone(Area2D player, Area2D deathArea2D) {
@@ -54,8 +55,9 @@ namespace Veronenger.Game.Tools.Area {
         // TODO: World complete area2d should register
         public void RegisterSceneChange(Area2D sceneChangeArea2D, string scene) {
             Debug.Register("AreaManager.SceneChange", sceneChangeArea2D);
-            sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_scene_change),
-                new Array {sceneChangeArea2D, scene});
+            sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this,
+                nameof(_on_player_entered_scene_change),
+                new Array { sceneChangeArea2D, scene });
             sceneChangeArea2D.CollisionLayer = 0;
             sceneChangeArea2D.CollisionMask = 0;
             sceneChangeArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
