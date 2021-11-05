@@ -48,7 +48,7 @@ namespace Veronenger.Tests.Runner {
                 TestResult testResult = new TestResult(method, null, TestResult.Result.Passed);
                 try {
                     if (testObject is Node node) {
-                        await Idle(testObject);
+                        await Task.Delay(100);
                         sceneTree.Root.AddChild(node);
                     }
 
@@ -59,7 +59,7 @@ namespace Veronenger.Tests.Runner {
                     object obj = method.Invoke(testObject, new object[] { });
                     if (obj is IEnumerator coroutine) {
                         while (coroutine.MoveNext()) {
-                            await Idle(testObject);
+                            await Task.Delay(100);
                         }
                     }
                 } catch (Exception e) {
@@ -79,15 +79,7 @@ namespace Veronenger.Tests.Runner {
                     resultCallback(testResult);
                 }
 
-                await Idle(testObject);
-            }
-        }
-
-        private async Task Idle(object testObject) {
-            if (testObject is Node node) {
-                await sceneTree.ToSignal(sceneTree, "idle_frame");
-            } else {
-                await Task.Delay(2);
+                await Task.Delay(100);
             }
         }
 
