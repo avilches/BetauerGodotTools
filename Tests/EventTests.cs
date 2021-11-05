@@ -1,6 +1,7 @@
 using Godot;
 using NUnit.Framework;
 using Tools.Events;
+using Debug = Tools.Events.Debug;
 
 namespace Veronenger.Tests {
     [TestFixture]
@@ -25,7 +26,6 @@ namespace Veronenger.Tests {
             Body3.Name = "Body3";
             Body1Calls = 0;
             Body2Calls = 0;
-            GD.Print("Setup");
         }
 
         [Test]
@@ -77,7 +77,6 @@ namespace Veronenger.Tests {
             Assert.That(Body1Calls, Is.EqualTo(2));
             Assert.That(Body2Calls, Is.EqualTo(2));
         }
-
 
         public void _OnEventBody1(BodyOnArea2D evt) {
             Assert.That(evt.Body, Is.EqualTo(Body1));

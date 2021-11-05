@@ -116,6 +116,11 @@ namespace Veronenger.Game.Tools.Platforms {
         public void AddArea2DSlopeStairsEnabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsEnabler_BodyEntered, SlopeStairsEnabler_BodyExited);
         public void AddArea2DSlopeStairsDisabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsDisabler_BodyEntered, SlopeStairsDisabler_BodyExited);
 
+        /**
+         * They are all Unicast because only the Player is subscribed to these events. PlatformManager connect itself to the
+         * Area2D signals to be aware of all the bodies that collide with them. If any of this collision is the player, the
+         * event is really received by the player.
+         */
         private GodotUnicastTopic<BodyOnArea2D> _slopeStairsDown_enterTopic = new GodotUnicastTopic<BodyOnArea2D>();
         private GodotUnicastTopic<BodyOnArea2D> _slopeStairsDown_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();
         private GodotUnicastTopic<BodyOnArea2D> _slopeStairsUp_enterTopic = new GodotUnicastTopic<BodyOnArea2D>();
