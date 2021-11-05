@@ -9,15 +9,12 @@ namespace Tools.Events {
     }
 
     public class UnicastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
-        protected E _eventListener;
+        public E Listener { get; set; }
 
-        public UnicastTopic() {
-        }
-
-        public virtual void Subscribe(E eventListener) => _eventListener = eventListener;
+        public virtual void Subscribe(E eventListener) => Listener = eventListener;
 
         public virtual void Publish(T @event) {
-            _eventListener?.OnEvent(@event);
+            Listener?.OnEvent(@event);
         }
     }
 

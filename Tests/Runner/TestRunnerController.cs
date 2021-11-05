@@ -67,8 +67,6 @@ namespace Veronenger.Tests.Runner {
                         element = element.GetParent();
                     }
 
-                    GD.Print("* Failed test: " + testResult.classType.Name + "." + testResult.testMethod.Name + "\n" +
-                             testResult.exception.Message + "\n" + testResult.exception.StackTrace);
                 }
 
                 itemSelections[testItem] = testResult;
@@ -81,9 +79,6 @@ namespace Veronenger.Tests.Runner {
             overallStatusLabel.BbcodeText = $"[color=green]Passed: {testsPassed}[/color]";
             if (testsFailed > 0) {
                 overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testsFailed}[/color]";
-                GD.Print("* Passed: " + testsPassed + " | Failed: " + testsFailed);
-            } else {
-                GD.Print("* All passed: " + testsPassed + "!");
             }
 
             buttonFailedOnly.Disabled = false;

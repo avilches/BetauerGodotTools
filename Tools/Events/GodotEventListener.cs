@@ -2,45 +2,45 @@ using System;
 using Godot;
 
 namespace Tools.Events {
-    public interface IEventFromNode {
+    public interface IGodotNodeEvent {
         Node GetFrom();
     }
 
-    public abstract class NodeFromListener<T> : ConditionalEventListener<T> where T : IEventFromNode {
-        private Node _body;
+    public abstract class GodotNodeListener<T> : ConditionalEventListener<T> where T : IGodotNodeEvent {
+        public Node Body { get; }
 
-        public NodeFromListener(Node body) {
-            _body = body;
+        public GodotNodeListener(Node body) {
+            Body = body;
         }
 
-        public bool IsDisposed() => _body.NativeInstance == IntPtr.Zero;
+        public bool IsDisposed() => Body.NativeInstance == IntPtr.Zero;
+
+        private static string GetNodeInfo(Node node) {
+            string nodeName = node.NativeInstance == IntPtr.Zero ? "(no name: disposed)" : $"\"{node.Name}\"";
+            return $"{node.GetType().Name} {nodeName} [{node.NativeInstance}/0x{node.GetHashCode():X}]";
+        }
 
         public override bool CanBeExecuted(T @event) {
             var nodeFrom = @event.GetFrom();
-            var matches = nodeFrom == _body;
+            var matches = nodeFrom == Body;
 
-            if (Debug.DEBUG_EVENT_LISTENER) {
-                var nodeFromName = nodeFrom.GetType().FullName + " \"" + nodeFrom.Name + "\" [" +
-                                   nodeFrom.NativeInstance + "/0x" + nodeFrom.GetHashCode().ToString("X") + "]";
-
-                var me = _body.GetType().FullName + " \"" + _body.GetType().FullName + "\" [" + _body.NativeInstance +
-                         "/0x" +
-                         _body.GetHashCode().ToString("X") + "]";
-
-                GD.Print("[Event.NodeFromListener] Listener: " + me + " | Received: " + nodeFromName + " ? "+matches);
+            if (matches) {
+                Debug.Event("GodotNodeListener", $"Listening {GetNodeInfo(Body)} events. Received ok");
+            } else {
+                Debug.Event("GodotNodeListener",
+                    $"Listening {GetNodeInfo(Body)} events. Rejected {GetNodeInfo(nodeFrom)}");
             }
-
             return matches;
         }
     }
 
 
-    public class NodeFromListenerDelegate<T> : NodeFromListener<T> where T : IEventFromNode {
+    public class GodotNodeListenerDelegate<T> : GodotNodeListener<T> where T : IGodotNodeEvent {
         public delegate void ExecuteMethod(T @event);
 
         private readonly ExecuteMethod _executeMethod;
 
-        public NodeFromListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body) {
+        public GodotNodeListenerDelegate(Node body, ExecuteMethod executeMethod) : base(body) {
             _executeMethod = executeMethod;
         }
 

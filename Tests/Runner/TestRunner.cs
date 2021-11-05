@@ -43,9 +43,14 @@ namespace Veronenger.Tests.Runner {
         }
 
         public async Task Run(TestResultDelegate resultCallback = null) {
+            int testsFailed = 0;
+            int testsPassed = 0;
             foreach (MethodInfo method in testMethods.Keys) {
                 object testObject = testMethods[method];
+
                 TestResult testResult = new TestResult(method, null, TestResult.Result.Passed);
+                GD.Print($"+++{testResult.classType.Name}.{testResult.testMethod.Name}");
+
                 try {
                     if (testObject is Node node) {
                         await Task.Delay(100);
@@ -62,24 +67,32 @@ namespace Veronenger.Tests.Runner {
                             await Task.Delay(100);
                         }
                     }
+                    testsPassed++;
                 } catch (Exception e) {
+                    testsFailed++;
                     testResult = new TestResult(method, e.InnerException ?? e, TestResult.Result.Failed);
-                } finally {
-                    testResults.Add(testResult);
-                    if (teardownMethods.ContainsKey(method.DeclaringType)) {
-                        teardownMethods[method.DeclaringType].Invoke(testObject, new object[] { });
-                    }
+                    GD.Print(
+                        $"*** Failed test: {testResult.classType.Name}.{testResult.testMethod.Name}\n{testResult.exception.Message}\n{testResult.exception.StackTrace}");
+                }
+                testResults.Add(testResult);
+                if (teardownMethods.ContainsKey(method.DeclaringType)) {
+                    teardownMethods[method.DeclaringType].Invoke(testObject, new object[] { });
+                }
 
-                    if (testObject is Node node) {
-                        node.QueueFree();
-                    }
+                if (testObject is Node node2) {
+                    node2.QueueFree();
                 }
 
                 if (resultCallback != null) {
                     resultCallback(testResult);
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(20);
+            }
+            if (testsFailed > 0) {
+                GD.Print($"*!*!* Passed: {testsPassed} | Failed: {testsFailed}");
+            } else {
+                GD.Print($"***** All passed: {testsPassed}!");
             }
         }
 
@@ -101,10 +114,12 @@ namespace Veronenger.Tests.Runner {
                     continue;
                 MethodInfo[] methods = type.GetMethods();
                 foreach (var method in methods) {
-                    if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {
+                    if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute
+                        testAttribute) {
                         // TODO: add the testAttribute.Description
                         try {
-                            if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
+                            if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute),
+                                false) is IgnoreAttribute) {
                                 // TODO: show the method is ignored
                                 continue;
                             }

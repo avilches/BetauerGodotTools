@@ -1,47 +1,43 @@
 using Godot;
 
 namespace Tools.Events {
-    public class GodotMulticastTopic<T> : MulticastTopic<NodeFromListenerDelegate<T>, T>
-        where T : IEventFromNode {
-        public void Publish(T @event, string name) {
-            if (Debug.DEBUG_EVENT_LISTENER) {
-                GD.Print("[Event.GodotMultiCast] Published(" + name + ") event to " + _eventListeners.Count +
-                         " listeners");
-            }
-
-            Publish(@event);
+    public class GodotNodeMulticastTopic<T> : MulticastTopic<GodotNodeListenerDelegate<T>, T>
+        where T : IGodotNodeEvent {
+        public override void Publish(T @event) {
+            Publish(@event, "");
         }
 
-        public override void Publish(T @event) {
-            int size = _eventListeners.Count;
+        public void Publish(T @event, string name) {
             int deleted = _eventListeners.RemoveAll(listener => listener.IsDisposed());
-            if (Debug.DEBUG_EVENT_LISTENER && deleted > 0) {
-                GD.Print("[Event.GodotMultiCast] Disposed listeners deleted: " + deleted + "/" + size);
+            if (deleted > 0) {
+                Debug.Event("GodotMulticast",
+                    $"Event \"{name}\" published to {_eventListeners.Count} listeners ({deleted} have been disposed)");
+            } else {
+                Debug.Event("GodotMulticast", $"Event \"{name}\" published to {_eventListeners.Count} listeners");
             }
 
-            _eventListeners.ForEach(listener => listener.OnEvent(@event));
+            base.Publish(@event);
         }
     }
 
-    public class GodotUnicastTopic<T> : UnicastTopic<NodeFromListenerDelegate<T>, T>
-        where T : IEventFromNode {
-        public void Publish(T @event, string name) {
-            if (Debug.DEBUG_EVENT_LISTENER) {
-                var status = _eventListener == null ? "null" : (_eventListener.IsDisposed() ? "Disposed" : "Ok");
-                GD.Print("[Event.GodotUniCast] Published(" + name + ") event to single listener. Status: " + status);
-            }
-
-            Publish(@event);
+    public class GodotNodeUnicastTopic<T> : UnicastTopic<GodotNodeListenerDelegate<T>, T>
+        where T : IGodotNodeEvent {
+        public override void Publish(T @event) {
+            Publish(@event, "");
         }
 
-        public override void Publish(T @event) {
-            if (_eventListener == null) return;
-            if (_eventListener.IsDisposed()) {
-                _eventListener = null;
-                return;
+        public void Publish(T @event, string name) {
+            if (Listener == null) {
+                Debug.Event("GodotUnicast",
+                    $"Event \"{name}\" ignored: no listener");
+            } else if (Listener.IsDisposed()) {
+                Debug.Event("GodotUnicast",
+                    $"Event \"{name}\" ignored: listener body is disposed (it will be deleted)");
+                Listener = null;
+            } else {
+                Debug.Event("GodotUnicast", $"Event \"{name}\" published");
+                base.Publish(@event);
             }
-
-            _eventListener.OnEvent(@event);
         }
     }
 }
