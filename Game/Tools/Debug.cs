@@ -9,11 +9,11 @@ namespace Veronenger.Game.Tools {
 
         public static void Register(string type, Node node) {
             if (!DEBUG_REGISTER) return;
-            GD.Print("+"+ type+": \""+node.Name+ "\" ("+node.GetType()+") 0x"+node.GetHashCode().ToString("X"));
+            GD.Print($"+{type}: \"{node.Name}\" ({node.GetType()}) 0x{node.GetHashCode():X}");
         }
         public static void Stage(string message) {
             if (!DEBUG_STAGE) return;
-            GD.Print("[Stage] " + message);
+            GD.Print($"[Stage] {message}");
         }
     }
 }

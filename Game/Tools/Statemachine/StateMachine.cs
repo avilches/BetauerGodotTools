@@ -81,7 +81,7 @@ namespace Veronenger.Game.Tools.Statemachine {
             _nextState = null;
 
             if (_characterConfig.DEBUG_STATE_CHANGE || _characterConfig.DEBUG_STATE_FLOW) {
-                GD.Print("#" + Frame + ": " + _currentState?.GetType().Name + " > " + newState.GetType().Name);
+                GD.Print($"#{Frame}: {_currentState?.GetType().Name} > {newState.GetType().Name}");
             }
 
             EndState();

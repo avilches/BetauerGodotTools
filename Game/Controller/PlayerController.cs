@@ -130,11 +130,11 @@ namespace Veronenger.Game.Controller {
         private void TestJumpActions() {
             if (PlayerConfig.DEBUG_INPUT_EVENTS) {
                 if (w.IsMotion()) {
-                    GD.Print("Axis " + w.Device + "[" + w.Axis + "]:" + w.GetStrength() + " (" + w.AxisValue + ")");
+                    GD.Print($"Axis {w.Device}[{w.Axis}]:{w.GetStrength()} ({w.AxisValue})");
                 } else if (w.IsAnyButton()) {
-                    GD.Print("Button " + w.Device + "[" + w.Button + "]:" + w.Pressed + " (" + w.Pressure + ")");
+                    GD.Print($"Button {w.Device}[{w.Button}]:{w.Pressed} ({w.Pressure})");
                 } else if (w.IsAnyKey()) {
-                    GD.Print("Key " + w.KeyString + " [" + w.Key + "] " + w.Pressed + "/" + w.Echo);
+                    GD.Print($"Key {w.KeyString} [{w.Key}] {w.Pressed}/{w.Echo}");
                 } else {
                 }
             }
@@ -224,8 +224,7 @@ namespace Veronenger.Game.Controller {
                 IsAttacking = false;
             }
 
-            GD.Print("IsAttacking " + IsAttacking + " (finished " + animation + " is attacking " + attackingAnimation +
-                     ")");
+            GD.Print($"IsAttacking {IsAttacking} (finished {animation} is attacking {attackingAnimation})");
             if (_previousAnimation != null) {
                 AnimationPlay(_previousAnimation);
             }

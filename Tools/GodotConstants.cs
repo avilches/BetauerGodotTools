@@ -12,6 +12,7 @@ namespace Tools {
         public const string GODOT_SIGNAL_area_entered = "area_entered";
         public const string GODOT_SIGNAL_area_exited = "area_exited";
 
+        public const string GODOT_SIGNAL_screen_resized = "screen_resized";
         public const string GODOT_SIGNAL_animation_finished = "animation_finished";
     }
 }

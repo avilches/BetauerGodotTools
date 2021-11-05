@@ -22,7 +22,7 @@ namespace Veronenger.Game.Tools.Character {
         }
 
         public void Debug(string message) {
-            GD.Print("#" + GetFrame() + ": " + GetType().Name + " | " + message);
+            GD.Print($"#{GetFrame()}: {GetType().Name} | {message}");
         }
 
         public void SetMotion(Vector2 motion) {
@@ -53,7 +53,7 @@ namespace Veronenger.Game.Tools.Character {
             _lastMotion = Motion;
             PhysicsProcess();
             if (CharacterConfig.DEBUG_MOTION && Motion != _lastMotion) {
-                GD.Print("Motion:" + Motion + " (diff " + (_lastMotion - Motion) + ")");
+                GD.Print($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
             }
         }
 

@@ -1,4 +1,5 @@
 using Godot;
+using Tools;
 using Veronenger.Game.Tools;
 using static Godot.Mathf;
 
@@ -38,7 +39,7 @@ namespace Veronenger.Game.Tools.Resolution {
 
             var screenSize = OS.GetScreenSize();
             _maxScale = (int) Max(Floor(Min(screenSize.x / _baseResolution.x, screenSize.y / _baseResolution.y)), 1);
-            _tree.Connect("screen_resized", gameManager, gameManagerUpdateResolutionMethodName);
+            _tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, gameManager, gameManagerUpdateResolutionMethodName);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;

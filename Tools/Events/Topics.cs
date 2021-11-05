@@ -22,7 +22,7 @@ namespace Tools.Events {
         public virtual void Subscribe(E eventListener) => Listener = eventListener;
 
         public virtual void Publish(T @event) {
-            Listener?.OnEvent(@event);
+            Listener?.OnEvent(Name, @event);
         }
     }
 
@@ -39,7 +39,7 @@ namespace Tools.Events {
         public virtual void Subscribe(E eventListener) => _eventListeners.Add(eventListener);
 
         public virtual void Publish(T @event) {
-            _eventListeners.ForEach(listener => listener.OnEvent(@event));
+            _eventListeners.ForEach(listener => listener.OnEvent(Name, @event));
         }
     }
 

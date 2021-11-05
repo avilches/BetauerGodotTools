@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using Tools;
 using Tools.Events;
 using Veronenger.Game.Characters.Player;
 using Veronenger.Game.Characters.Player.States;
@@ -10,8 +11,7 @@ using Veronenger.Game.Tools.Statemachine;
 
 namespace Veronenger.Game.Controller {
     public class Enemy1Controller : CharacterController {
-
-        public PlayerConfig EnemyConfig => (PlayerConfig) CharacterConfig;
+        public PlayerConfig EnemyConfig => (PlayerConfig)CharacterConfig;
         private readonly StateMachine _stateMachine;
         private AnimationPlayer _animationPlayer;
         private Sprite _sprite;
@@ -23,7 +23,6 @@ namespace Veronenger.Game.Controller {
             // State Machine
             _stateMachine = new StateMachine(EnemyConfig, this);
             // .AddState(new GroundStateIdle(this))
-
         }
 
         public override void _EnterTree() {
@@ -35,9 +34,10 @@ namespace Veronenger.Game.Controller {
         public override void _Ready() {
             GameManager.Instance.CharacterManager.RegisterEnemy(this);
 
-            PlatformManager.SubscribeFallingPlatformOut(new BodyOnArea2DEnterListenerDelegate("Enemy"+Name,this, _OnFallingPlatformOut));
+            PlatformManager.SubscribeFallingPlatformOut(
+                new BodyOnArea2DEnterListenerDelegate("Enemy" + Name, this, _OnFallingPlatformOut));
 
-            _animationPlayer.Connect("animation_finished", this, nameof(OnAnimationFinished));
+            _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }
 
         public void _OnFallingPlatformOut(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
@@ -59,11 +59,11 @@ namespace Veronenger.Game.Controller {
         private void TestJumpActions() {
             if (EnemyConfig.DEBUG_INPUT_EVENTS) {
                 if (w.IsMotion()) {
-                    GD.Print("Axis " + w.Device + "[" + w.Axis + "]:" + w.GetStrength() + " (" + w.AxisValue + ")");
+                    GD.Print($"Axis {w.Device}[{w.Axis}]:{w.GetStrength()} ({w.AxisValue})");
                 } else if (w.IsAnyButton()) {
-                    GD.Print("Button " + w.Device + "[" + w.Button + "]:" + w.Pressed + " (" + w.Pressure + ")");
+                    GD.Print($"Button {w.Device}[{w.Button}]:{w.Pressed} ({w.Pressure})");
                 } else if (w.IsAnyKey()) {
-                    GD.Print("Key " + w.KeyString + " [" + w.Key + "] " + w.Pressed + "/" + w.Echo);
+                    GD.Print($"Key {w.KeyString} [{w.Key}] {w.Pressed}/{w.Echo}");
                 } else {
                 }
             }
@@ -124,6 +124,7 @@ namespace Veronenger.Game.Controller {
         private string _previousAnimation = null;
 
         public bool IsAttacking = false;
+
         private void AnimationPlay(string newAnimation) {
             if (_currentAnimation == newAnimation) return;
             if (IsAttacking) {
@@ -150,7 +151,7 @@ namespace Veronenger.Game.Controller {
             if (attackingAnimation) {
                 IsAttacking = false;
             }
-            GD.Print("IsAttacking "+IsAttacking+ " (finished "+animation+" is attacking "+attackingAnimation+")");
+            GD.Print($"IsAttacking {IsAttacking} (finished {animation} is attacking {attackingAnimation})");
             if (_previousAnimation != null) {
                 AnimationPlay(_previousAnimation);
             }
@@ -159,62 +160,5 @@ namespace Veronenger.Game.Controller {
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");
         }
-
     }
-/*
-
-GameManager.connect("death", self, "on_death")
-
-
-func on_death(_cause):
-	print("MUETO")
-	set_process(false)
-	set_physics_process(false)
-	#Engine.set_target_fps(30)
-
-
-func debug_motion(delta):
-	if C.DEBUG_ACCELERATION && motion.x != 0:
-		if lastMotion.x == 0:
-			movStartTimeACC = 0 # starts to move
-		elif movStartTimeACC != -1:
-			movStartTimeACC += delta
-			if abs(motion.x) >= C.MAX_SPEED:
-				print("Full throtle ", motion.x, " in ", movStartTimeACC, "s")
-				movStartTimeACC = -1
-
-	if C.DEBUG_MAX_SPEED:
-		if motion.x != 0:
-			if lastMotion.x == 0:
-				movStartTimeMAXSPEED = 0
-				movStartPosMAXSPEED = get_position()
-			else:
-				if movStartTimeMAXSPEED >= 1:
-					var distance = get_position().distance_to(movStartPosMAXSPEED)
-					# No funciona bien si se cambia de direccion...
-					print("Moved from ", movStartPosMAXSPEED, " to ",  get_position(), " in ", movStartTimeMAXSPEED, "s. Speed: ", abs(round(distance)),"px/second")
-					movStartTimeMAXSPEED = 0
-					movStartPosMAXSPEED = get_position()
-				else:
-					movStartTimeMAXSPEED += delta
-
-		else:
-			movStartPosMAXSPEED = null
-
-	if C.DEBUG_MOTION && (lastMotion.x != motion.x || lastMotion.y != motion.y): print(motion, motion-lastMotion)
-
-func debug_player_masks():
-	if C.DEBUG_COLLISION:
-		print("Player:  ",int(get_collision_mask_bit(0)), int(get_collision_mask_bit(1)), int(get_collision_mask_bit(2)))
-
-func debug_collision():
-	if C.DEBUG_COLLISION && get_slide_count():
-		debug_player_masks()
-		for i in get_slide_count():
-			var collision = get_slide_collision(i)
-			print("Collider:",int(collision.collider.get_collision_layer_bit(0)), int(collision.collider.get_collision_layer_bit(1)), int(collision.collider.get_collision_layer_bit(2)), " ", collision.collider.get_class(), ":'", collision.collider.name+"'")
-
-
-
- */
 }

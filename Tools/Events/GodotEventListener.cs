@@ -1,6 +1,4 @@
-using System;
 using Godot;
-using Object = Godot.Object;
 
 namespace Tools.Events {
     public interface IGodotNodeEvent {
@@ -23,15 +21,16 @@ namespace Tools.Events {
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
-        public void OnEvent(T @event) {
+        public void OnEvent(string topicName, T @event) {
             var nodeFrom = @event.GetFrom();
             var matches = nodeFrom == Body;
 
             if (matches) {
-                Debug.Event("GodotNodeListener", Name, $"Listening {GetNodeInfo(Body)} events. Received ok");
+                Debug.Event(topicName, "GodotNodeListener." + Name,
+                    $"Listening {GetNodeInfo(Body)} events. Received ok");
                 Execute(@event);
             } else {
-                Debug.Event("GodotNodeListener", Name,
+                Debug.Event(topicName, "GodotNodeListener." + Name,
                     $"Listening {GetNodeInfo(Body)} events. Rejected {GetNodeInfo(nodeFrom)}");
             }
         }

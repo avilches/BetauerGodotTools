@@ -7,7 +7,7 @@ using static Veronenger.Game.Tools.LayerConstants;
 using static Tools.GodotTools;
 
 namespace Veronenger.Game.Tools.Platforms {
-    public class PlatformManager : Object /* needed to connect to signals */  {
+    public class PlatformManager {
         private const string GROUP_PLATFORMS = "platform";
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";
         private const string GROUP_FALLING_PLATFORMS = "falling_platform";
@@ -102,66 +102,41 @@ namespace Veronenger.Game.Tools.Platforms {
          */
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER);
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
-        public void AddArea2DFallingPlatformExit(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, PlatformBodyOut_BodyEntered);
-        public void SubscribeFallingPlatformOut(GodotNodeListenerDelegate<BodyOnArea2D> enterListener) => _platformBodyOut_enterTopic.Subscribe(enterListener);
-        private GodotNodeUnicastTopic<BodyOnArea2D> _platformBodyOut_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("PlatformBodyOut_BodyEntered");
-        public void PlatformBodyOut_BodyEntered(Node body, Area2D area2D) => _platformBodyOut_enterTopic.Publish(new BodyOnArea2D(body, area2D));
+        private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");
+        public void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.AddArea2D(area2D);
+        public void SubscribeFallingPlatformOut(GodotNodeListenerDelegate<BodyOnArea2D> enterListener) => _platformBodyOutTopic.Subscribe(enterListener);
 
         /**
          * Slope stairs
          */
-        public void AddArea2DSlopeStairsDown(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsDown_BodyEntered, SlopeStairsDown_BodyExited);
-        public void AddArea2DSlopeStairsUp(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsUp_BodyEntered, SlopeStairsUp_BodyExited);
-        public void AddArea2DSlopeStairsEnabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsEnabler_BodyEntered, SlopeStairsEnabler_BodyExited);
-        public void AddArea2DSlopeStairsDisabler(Area2D area2D) => ListenArea2DCollisionsWithBodies(area2D, SlopeStairsDisabler_BodyEntered, SlopeStairsDisabler_BodyExited);
+        private readonly BodyOnArea2DTopic _slopeStairsDownTopic = new BodyOnArea2DTopic("SlopeStairsDown");
+        private readonly BodyOnArea2DTopic _slopeStairsUpTopic = new BodyOnArea2DTopic("SlopeStairsUp");
+        private readonly BodyOnArea2DTopic _slopeStairsEnablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
+        private readonly BodyOnArea2DTopic _slopeStairsDisablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
 
-        /**
-         * They are all Unicast because only the Player is subscribed to these events. PlatformManager connect itself to the
-         * Area2D signals to be aware of all the bodies that collide with them. If any of this collision is the player, the
-         * event is really received by the player.
-         */
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsDown_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsDown_enter");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsDown_exitTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsDown_exit");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsUp_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsUp_enter");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsUp_exitTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsUp_exit");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsEnabler_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsEnabler_enter");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsEnabler_exitTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsEnabler_exit");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsDisabler_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsDisabler_enter");
-        private GodotNodeUnicastTopic<BodyOnArea2D> _slopeStairsDisabler_exitTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("slopeStairsDisabler_exit");
-
-        void SlopeStairsDown_BodyEntered(Node body, Area2D area2D) => _slopeStairsDown_enterTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsDown_BodyExited(Node body, Area2D area2D) => _slopeStairsDown_exitTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsUp_BodyEntered(Node body, Area2D area2D) => _slopeStairsUp_enterTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsUp_BodyExited(Node body, Area2D area2D) => _slopeStairsUp_exitTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsEnabler_BodyEntered(Node body, Area2D area2D) => _slopeStairsEnabler_enterTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsEnabler_BodyExited(Node body, Area2D area2D) => _slopeStairsEnabler_exitTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsDisabler_BodyEntered(Node body, Area2D area2D) => _slopeStairsDisabler_enterTopic.Publish(new BodyOnArea2D(body, area2D));
-        void SlopeStairsDisabler_BodyExited(Node body, Area2D area2D) => _slopeStairsDisabler_exitTopic.Publish(new BodyOnArea2D(body, area2D));
+        public void AddArea2DSlopeStairsDown(Area2D area2D) => _slopeStairsDownTopic.AddArea2D(area2D);
+        public void AddArea2DSlopeStairsUp(Area2D area2D) => _slopeStairsUpTopic.AddArea2D(area2D);
+        public void AddArea2DSlopeStairsEnabler(Area2D area2D) => _slopeStairsEnablerTopic.AddArea2D(area2D);
+        public void AddArea2DSlopeStairsDisabler(Area2D area2D) => _slopeStairsDisablerTopic.AddArea2D(area2D);
 
         public void SubscribeSlopeStairsDown(GodotNodeListenerDelegate<BodyOnArea2D> enterListener,
             GodotNodeListenerDelegate<BodyOnArea2D> exitListener = null) {
-            _slopeStairsDown_enterTopic.Subscribe(enterListener);
-            if (exitListener != null) _slopeStairsDown_exitTopic.Subscribe(exitListener);
+            _slopeStairsDownTopic.Subscribe(enterListener, exitListener);
         }
 
         public void SubscribeSlopeStairsUp(GodotNodeListenerDelegate<BodyOnArea2D> enterListener,
             GodotNodeListenerDelegate<BodyOnArea2D> exitListener = null) {
-            _slopeStairsUp_enterTopic.Subscribe(enterListener);
-            if (exitListener != null) _slopeStairsUp_exitTopic.Subscribe(exitListener);
+            _slopeStairsUpTopic.Subscribe(enterListener, exitListener);
         }
 
         public void SubscribeSlopeStairsEnabler(GodotNodeListenerDelegate<BodyOnArea2D> enterListener,
             GodotNodeListenerDelegate<BodyOnArea2D> exitListener = null) {
-            _slopeStairsEnabler_enterTopic.Subscribe(enterListener);
-            if (exitListener != null) _slopeStairsEnabler_exitTopic.Subscribe(exitListener);
+            _slopeStairsEnablerTopic.Subscribe(enterListener, exitListener);
         }
 
         public void SubscribeSlopeStairsDisabler(GodotNodeListenerDelegate<BodyOnArea2D> enterListener,
             GodotNodeListenerDelegate<BodyOnArea2D> exitListener = null) {
-            _slopeStairsDisabler_enterTopic.Subscribe(enterListener);
-            if (exitListener != null) _slopeStairsDisabler_exitTopic.Subscribe(exitListener);
+            _slopeStairsDisablerTopic.Subscribe(enterListener, exitListener);
         }
-
-
     }
 }
