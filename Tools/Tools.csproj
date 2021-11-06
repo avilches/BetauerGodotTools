@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
         <IsPackable>false</IsPackable>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
