@@ -5,15 +5,15 @@ namespace Tools.Bus {
         }
 
         public override void Publish(T @event) {
-            int deleted = _eventListeners.RemoveAll(listener => listener.IsDisposed());
+            int deleted = EventListeners.RemoveAll(listener => listener.IsDisposed());
             if (deleted > 0) {
                 Debug.Topic($"GodotMulticast.{Name}",
-                    $"Event published to {_eventListeners.Count} listeners ({deleted} have been disposed)");
+                    $"Event published to {EventListeners.Count} listeners ({deleted} have been disposed)");
             } else {
-                Debug.Topic($"GodotMulticast.{Name}", $"Event published to {_eventListeners.Count} listeners");
+                Debug.Topic($"GodotMulticast.{Name}", $"Event published to {EventListeners.Count} listeners");
             }
 
-            _eventListeners.ForEach(listener => listener.OnEvent($"GodotMulticast.{Name}", @event));
+            EventListeners.ForEach(listener => listener.OnEvent($"GodotMulticast.{Name}", @event));
         }
     }
 

@@ -2,49 +2,49 @@ using Godot;
 
 namespace Tools.Bus {
     public interface IGodotNodeEvent {
-        Node GetFrom();
+        Node GetFilter();
     }
 
     public abstract class GodotNodeListener<T> : EventListener<T> where T : IGodotNodeEvent {
-        public Node Body { get; }
+        public Node Filter { get; }
         public string Name { get; }
 
-        protected GodotNodeListener(string name, Node body) {
+        protected GodotNodeListener(string name, Node filter) {
             Name = name;
-            Body = body;
+            Filter = filter;
         }
 
-        public bool IsDisposed() => GodotTools.IsDisposed(Body);
+        public bool IsDisposed() => Filter != null && GodotTools.IsDisposed(Filter);
 
         private static string GetNodeInfo(Node node) {
+            if (node == null) return "all";
             var nodeName = GodotTools.IsDisposed(node) ? "(no name: disposed)" : $"\"{node.Name}\"";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
         public void OnEvent(string topicName, T @event) {
-            var nodeFrom = @event.GetFrom();
-            var matches = nodeFrom == Body;
+            var nodeFrom = @event.GetFilter();
+            var matches = Filter == null || nodeFrom == Filter;
 
             if (matches) {
                 Debug.Event(topicName, "GodotNodeListener." + Name,
-                    $"Listening {GetNodeInfo(Body)} events. Received ok");
+                    $"Listening {GetNodeInfo(Filter)} events. Received ok");
                 Execute(@event);
             } else {
                 Debug.Event(topicName, "GodotNodeListener." + Name,
-                    $"Listening {GetNodeInfo(Body)} events. Rejected {GetNodeInfo(nodeFrom)}");
+                    $"Listening {GetNodeInfo(Filter)} events. Rejected {GetNodeInfo(nodeFrom)}");
             }
         }
 
         public abstract void Execute(T @event);
     }
 
-
     public class GodotNodeListenerDelegate<T> : GodotNodeListener<T> where T : IGodotNodeEvent {
         public delegate void ExecuteMethod(T @event);
 
         private readonly ExecuteMethod _executeMethod;
 
-        public GodotNodeListenerDelegate(string name, Node body, ExecuteMethod executeMethod) : base(name, body) {
+        public GodotNodeListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name, filter) {
             _executeMethod = executeMethod;
         }
 

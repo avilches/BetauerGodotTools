@@ -1,35 +1,42 @@
 using Godot;
-using Godot.Collections;
 using Tools;
+using Tools.Bus;
+using Tools.Bus.Topics;
 using Veronenger.Game.Controller.Stage;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
-    public class StageManager : Object /* needed to connect to signals */ {
-
+    public class StageManager {
         private Stage _enteredStage;
         private bool _exitedStage;
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
+        private Area2DOnArea2DTopic _topic = new Area2DOnArea2DTopic("StageTopic");
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
             stageDetector.CollisionLayer = 0;
             stageDetector.CollisionMask = 0;
             stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
+            _topic.Subscribe("StageDetector", stageDetector, OnEnterStage, OnExitStage);
         }
 
         public void ConfigureStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
-            stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_stage),
-                new Array { stageArea2D, stageCollisionShape2D.Shape });
-            stageArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_on_player_exited_stage),
-                new Array { stageArea2D });
+            _topic.AddArea2D(stageArea2D, stageCollisionShape2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
         }
 
-        public void _on_player_entered_stage(Area2D player, Area2D stageEnteredArea2D, RectangleShape2D shape2D) {
+        public void Subscribe(GodotNodeListener<Area2DOnArea2D> enterListener,
+            GodotNodeListener<Area2DOnArea2D> exitListener = null) {
+            _topic.Subscribe(enterListener, exitListener);
+        }
+
+        public void OnEnterStage(Area2DOnArea2D e) {
+            RectangleShape2D shape2D = FindFirstCollisionShape2D(e.Area2D);
+            Area2D stageEnteredArea2D = e.Area2D;
+            Area2D player = e.From;
             var enteredStage = new Stage(stageEnteredArea2D, shape2D);
             if (_currentStage == null) {
                 Debug.Stage($"Enter: {player.Name} to {stageEnteredArea2D.Name}. No current stage: changing now");
@@ -46,14 +53,16 @@ namespace Veronenger.Game.Managers {
             CheckChangeStage(false);
         }
 
-        public void _on_player_exited_stage(Area2D player, Area2D stageExitedArea2D) {
+        public void OnExitStage(Area2DOnArea2D e) {
+            Area2D stageExitedArea2D = e.Area2D;
+            Area2D stageDetector = e.From;
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
                 _enteredStage = null;
                 _exitedStage = false;
-                Debug.Stage($"Exit: {player.Name} from {stageExitedArea2D.Name}. Invalid transition, rollback!");
+                Debug.Stage($"Exit: {stageDetector.Name} from {stageExitedArea2D.Name}. Invalid transition, rollback!");
                 return;
             }
-            Debug.Stage($"Stage exit: {player.Name} from {stageExitedArea2D.Name}....");
+            Debug.Stage($"Stage exit: {stageDetector.Name} from {stageExitedArea2D.Name}....");
             _exitedStage = true;
             CheckChangeStage(true);
         }
@@ -68,6 +77,15 @@ namespace Veronenger.Game.Managers {
                 _exitedStage = false;
                 _stageCameraController.ChangeStage(_enteredStage);
             }
+        }
+
+        private RectangleShape2D FindFirstCollisionShape2D(Area2D area2D) {
+            foreach (var nodeChild in area2D.GetChildren()) {
+                if (nodeChild is CollisionShape2D collisionShape2D && collisionShape2D.Shape is RectangleShape2D r2) {
+                    return r2;
+                }
+            }
+            return null;
         }
     }
 

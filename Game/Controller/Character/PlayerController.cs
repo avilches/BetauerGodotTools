@@ -1,12 +1,13 @@
 using System;
 using Godot;
 using Tools;
-using Tools.Bus;
+using Tools.Bus.Topics;
 using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
+using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
@@ -23,7 +24,7 @@ namespace Veronenger.Game.Controller.Character {
 
         public PlayerController() {
             CharacterConfig = new PlayerConfig();
-            PlayerActions = new MyPlayerActions(-1);  // TODO: deviceId -1... manage add/remove controllers
+            PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
 
             // State Machine
             _stateMachine = new StateMachine(PlayerConfig, this)
@@ -49,15 +50,19 @@ namespace Veronenger.Game.Controller.Character {
 
             CharacterManager.RegisterPlayerWeapon(_attack);
 
-            PlatformManager.SubscribeFallingPlatformOut(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnFallingPlatformOut));
+            PlatformManager.SubscribeFallingPlatformOut(
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnFallingPlatformExit));
 
-            SlopeStairsManager.SubscribeSlopeStairsUp(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsUpIn),
-                new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsUpOut));
-            SlopeStairsManager.SubscribeSlopeStairsDown(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDownIn),
-                new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDownOut));
-            SlopeStairsManager.SubscribeSlopeStairsEnabler(new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsEnablerIn));
+            SlopeStairsManager.SubscribeSlopeStairsUp(
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsUpEnter),
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsUpExit));
+            SlopeStairsManager.SubscribeSlopeStairsDown(
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsDownEnter),
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsDownExit));
+            SlopeStairsManager.SubscribeSlopeStairsEnabler(
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsEnablerEnter));
             SlopeStairsManager.SubscribeSlopeStairsDisabler(
-                new BodyOnArea2DEnterListenerDelegate(Name,this, _OnSlopeStairsDisablerIn));
+                new BodyOnArea2DEnterListenerDelegate(Name, this, _OnSlopeStairsDisablerEnter));
 
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }
@@ -79,31 +84,31 @@ namespace Veronenger.Game.Controller.Character {
         private bool _slopeStairsDown;
         private bool _slopeStairsUp;
 
-        public void _OnSlopeStairsUpIn(BodyOnArea2D evt) {
+        public void _OnSlopeStairsUpEnter(BodyOnArea2D evt) {
             _slopeStairsUp = true;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
         }
 
-        public void _OnSlopeStairsUpOut(BodyOnArea2D evt) {
+        public void _OnSlopeStairsUpExit(BodyOnArea2D evt) {
             _slopeStairsUp = false;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
         }
 
-        public void _OnSlopeStairsDownIn(BodyOnArea2D evt) {
+        public void _OnSlopeStairsDownEnter(BodyOnArea2D evt) {
             _slopeStairsDown = true;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
         }
 
-        public void _OnSlopeStairsDownOut(BodyOnArea2D evt) {
+        public void _OnSlopeStairsDownExit(BodyOnArea2D evt) {
             _slopeStairsDown = false;
             Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
         }
 
-        public void _OnFallingPlatformOut(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
+        public void _OnFallingPlatformExit(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
 
-        public void _OnSlopeStairsEnablerIn(BodyOnArea2D evt) => EnableSlopeStairs();
+        public void _OnSlopeStairsEnablerEnter(BodyOnArea2D evt) => EnableSlopeStairs();
 
-        public void _OnSlopeStairsDisablerIn(BodyOnArea2D evt) => DisableSlopeStairs();
+        public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
         protected override void PhysicsProcess() {
             _stateMachine.Execute();

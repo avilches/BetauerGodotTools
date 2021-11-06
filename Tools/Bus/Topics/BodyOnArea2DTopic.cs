@@ -1,28 +1,29 @@
 using Godot;
 using Godot.Collections;
 
-namespace Tools.Bus {
+namespace Tools.Bus.Topics {
     public class BodyOnArea2D : IGodotNodeEvent {
-        public readonly Node Body;
+        public readonly Node From;
         public readonly Area2D Area2D;
 
-        public Node GetFrom() {
-            return Body;
+        public Node GetFilter() {
+            return From;
         }
 
-        public BodyOnArea2D(Node body, Area2D area2D) {
-            Body = body;
+        public BodyOnArea2D(Node from, Area2D area2D) {
+            From = from;
             Area2D = area2D;
         }
     }
 
     public abstract class BodyOnArea2DEnterListener : GodotNodeListener<BodyOnArea2D> {
-        protected BodyOnArea2DEnterListener(string name, Node body) : base(name, body) {
+        protected BodyOnArea2DEnterListener(string name, Node filter) : base(name, filter) {
         }
     }
 
     public class BodyOnArea2DEnterListenerDelegate : GodotNodeListenerDelegate<BodyOnArea2D> {
-        public BodyOnArea2DEnterListenerDelegate(string name, Node body, ExecuteMethod executeMethod) : base(name, body, executeMethod) {
+        public BodyOnArea2DEnterListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name,
+            filter, executeMethod) {
         }
     }
 
@@ -33,6 +34,13 @@ namespace Tools.Bus {
     public class BodyOnArea2DTopic : Node {
         private GodotNodeMulticastTopic<BodyOnArea2D> _enterTopic;
         private GodotNodeMulticastTopic<BodyOnArea2D> _exitTopic;
+
+        public GodotNodeMulticastTopic<BodyOnArea2D> EnterTopic =>
+            _enterTopic ??= new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyEntered");
+
+        public GodotNodeMulticastTopic<BodyOnArea2D> ExitTopic =>
+            _exitTopic ??= new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyExited");
+
         public string Name { get; }
 
         public BodyOnArea2DTopic(string name) {
@@ -56,10 +64,10 @@ namespace Tools.Bus {
 
         public static void ListenArea2DCollisionsWithBodies(Area2D area2D, BodyOnArea2DSignalMethod enter,
             BodyOnArea2DSignalMethod exit = null) {
-            if (enter.Target is Object nodeEnter) {
+            if (enter.Filter is Object nodeEnter) {
                 area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, nodeEnter, enter.Method.Name,
                     new Array { area2D });
-                if (exit != null && enter.Target is Object nodeExit) {
+                if (exit != null && enter.Filter is Object nodeExit) {
                     area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, nodeExit, exit.Method.Name,
                         new Array { area2D });
                 }
@@ -67,39 +75,27 @@ namespace Tools.Bus {
         }
         */
 
-        public void Subscribe(string name, Node body, GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
+        public void Subscribe(string name, Node filter,
+            GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
             GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
-            GodotNodeListener<BodyOnArea2D> enterListener = null;
-            GodotNodeListener<BodyOnArea2D> exitListener = null;
             if (enterMethod != null)
-                enterListener = new GodotNodeListenerDelegate<BodyOnArea2D>(name, body, enterMethod);
-            if (exitMethod != null) exitListener = new GodotNodeListenerDelegate<BodyOnArea2D>(name, body, exitMethod);
-            if (enterListener != null && exitListener != null) {
-                Subscribe(enterListener, exitListener);
-            }
+                EnterTopic.Subscribe(new GodotNodeListenerDelegate<BodyOnArea2D>(name, filter, enterMethod));
+            if (exitMethod != null)
+                ExitTopic.Subscribe(new GodotNodeListenerDelegate<BodyOnArea2D>(name, filter, exitMethod));
         }
 
         public void Subscribe(GodotNodeListener<BodyOnArea2D> enterListener,
             GodotNodeListener<BodyOnArea2D> exitListener = null) {
-            if (enterListener != null) {
-                // Topic is crated only when there is at least one subscriber
-                if (_enterTopic == null) _enterTopic = new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyEntered");
-                _enterTopic.Subscribe(enterListener);
-            }
-            if (exitListener != null) {
-                // Topic is crated only when there is at least one subscriber
-                if (_exitTopic == null) _exitTopic = new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyExited");
-                _exitTopic.Subscribe(exitListener);
-            }
+            EnterTopic.Subscribe(enterListener);
+            ExitTopic.Subscribe(exitListener);
         }
 
         private void _BodyEntered(Node body, Area2D area2D) {
-            _enterTopic?.Publish(new BodyOnArea2D(body, area2D));
+            EnterTopic?.Publish(new BodyOnArea2D(body, area2D));
         }
 
         private void _BodyExited(Node body, Area2D area2D) {
-            _exitTopic?.Publish(new BodyOnArea2D(body, area2D));
+            ExitTopic?.Publish(new BodyOnArea2D(body, area2D));
         }
     }
-
 }

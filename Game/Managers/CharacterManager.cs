@@ -1,8 +1,7 @@
 using Godot;
 using Tools.Bus;
+using Tools.Bus.Topics;
 using Veronenger.Game.Character;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;

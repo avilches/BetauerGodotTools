@@ -31,19 +31,21 @@ namespace Tools.Bus {
     }
 
     public class MulticastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
-        protected readonly List<E> _eventListeners;
+        public List<E> EventListeners { get; }
 
         public string Name { get; }
 
         protected MulticastTopic(string name) {
             Name = name;
-            _eventListeners = new List<E>();
+            EventListeners = new List<E>();
         }
 
-        public virtual void Subscribe(E eventListener) => _eventListeners.Add(eventListener);
+        public virtual void Subscribe(E eventListener) {
+            if (eventListener != null) EventListeners.Add(eventListener);
+        }
 
         public virtual void Publish(T @event) {
-            _eventListeners.ForEach(listener => listener.OnEvent(Name, @event));
+            EventListeners.ForEach(listener => listener.OnEvent(Name, @event));
         }
     }
 

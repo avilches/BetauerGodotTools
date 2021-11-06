@@ -4,7 +4,7 @@ namespace Tools {
     public class Debug {
         public static bool TESTING = false;
 
-        private const bool _DEBUG_STAGE = false;
+        private const bool _DEBUG_STAGE = true;
         public const bool _DEBUG_RESOLUTION = false;
         private const bool _DEBUG_EVENT_PUBLISH = true;
         private const bool _DEBUG_EVENT_LISTENER = true;

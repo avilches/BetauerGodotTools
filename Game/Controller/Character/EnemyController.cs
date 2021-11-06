@@ -1,14 +1,15 @@
 using System;
 using Godot;
 using Tools;
-using Tools.Bus;
+using Tools.Bus.Topics;
 using Tools.Input;
 using Tools.Statemachine;
+using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers.Autoload;
 
-namespace Veronenger.Game.Character {
+namespace Veronenger.Game.Controller.Character {
     public class EnemyController : CharacterController {
         public PlayerConfig EnemyConfig => (PlayerConfig)CharacterConfig;
         private readonly StateMachine _stateMachine;
