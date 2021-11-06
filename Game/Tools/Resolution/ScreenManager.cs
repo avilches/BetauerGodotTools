@@ -1,7 +1,6 @@
 using Godot;
 using Tools;
-using Tools.Events;
-using Veronenger.Game.Tools;
+using Veronenger.Game.Managers.Autoload;
 using static Godot.Mathf;
 
 // https://github.com/Yukitty/godot-addon-integer_resolution_handler

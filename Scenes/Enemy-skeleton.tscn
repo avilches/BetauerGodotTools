@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://Game/Controller/Tools/Collored2D.cs" type="Script" id=1]
+[ext_resource path="res://Game/Controller/Tools/Collored2DController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Skeleton/Skeleton Idle.png" type="Texture" id=2]
 [ext_resource path="res://Scenes/Enemy-skeleton.gd" type="Script" id=3]
 [ext_resource path="res://Characters/Skeleton/Skeleton Walk.png" type="Texture" id=4]

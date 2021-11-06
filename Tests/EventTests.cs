@@ -1,8 +1,8 @@
 using System.Collections;
 using Godot;
 using NUnit.Framework;
-using Tools.Events;
-using Debug = Tools.Events.Debug;
+using Tools.Bus;
+using Debug = Tools.Debug;
 
 namespace Veronenger.Tests {
     [TestFixture]

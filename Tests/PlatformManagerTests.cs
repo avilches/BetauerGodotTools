@@ -1,10 +1,14 @@
 using System.Collections;
 using Godot;
 using NUnit.Framework;
-using Tools.Events;
+using Tools.Bus;
+using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller;
+using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers;
+using Veronenger.Game.Managers.Autoload;
 using Veronenger.Game.Tools;
-using Debug = Tools.Events.Debug;
+using Debug = Tools.Debug;
 
 namespace Veronenger.Tests {
     [TestFixture]

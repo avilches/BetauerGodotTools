@@ -1,4 +1,6 @@
 using Godot;
+using Veronenger.Game.Managers;
+using Veronenger.Game.Managers.Autoload;
 using Veronenger.Game.Tools;
 
 namespace Veronenger.Game.Controller.Area {
