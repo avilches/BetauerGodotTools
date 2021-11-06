@@ -16,12 +16,12 @@ namespace Tools.Bus.Topics {
         }
     }
 
-    public abstract class Area2DOnArea2DEnterListener : GodotNodeListener<Area2DOnArea2D> {
+    public abstract class Area2DOnArea2DEnterListener : GodotListener<Area2DOnArea2D> {
         protected Area2DOnArea2DEnterListener(string name, Node filter) : base(name, filter) {
         }
     }
 
-    public class Area2DOnArea2DEnterListenerDelegate : GodotNodeListenerDelegate<Area2DOnArea2D> {
+    public class Area2DOnArea2DEnterListenerDelegate : GodotListenerDelegate<Area2DOnArea2D> {
         public Area2DOnArea2DEnterListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name,
             filter, executeMethod) {
         }
@@ -32,14 +32,14 @@ namespace Tools.Bus.Topics {
      * To receive this event, subscribe to them. In order to filter the events on
      */
     public class Area2DOnArea2DTopic : Node {
-        private GodotNodeMulticastTopic<Area2DOnArea2D> _enterTopic;
-        private GodotNodeMulticastTopic<Area2DOnArea2D> _exitTopic;
+        private GodotMulticastTopic<Area2DOnArea2D> _enterTopic;
+        private GodotMulticastTopic<Area2DOnArea2D> _exitTopic;
 
-        private GodotNodeMulticastTopic<Area2DOnArea2D> EnterTopic =>
-            _enterTopic ??= new GodotNodeMulticastTopic<Area2DOnArea2D>($"{Name}_AreaEntered");
+        private GodotMulticastTopic<Area2DOnArea2D> EnterTopic =>
+            _enterTopic ??= new GodotMulticastTopic<Area2DOnArea2D>($"{Name}_AreaEntered");
 
-        private GodotNodeMulticastTopic<Area2DOnArea2D> ExitTopic =>
-            _exitTopic ??= new GodotNodeMulticastTopic<Area2DOnArea2D>($"{Name}_AreaExited");
+        private GodotMulticastTopic<Area2DOnArea2D> ExitTopic =>
+            _exitTopic ??= new GodotMulticastTopic<Area2DOnArea2D>($"{Name}_AreaExited");
 
         public string Name { get; }
 
@@ -55,18 +55,18 @@ namespace Tools.Bus.Topics {
         }
 
         public void Subscribe(string name, Area2D filter,
-            GodotNodeListenerDelegate<Area2DOnArea2D>.ExecuteMethod enterMethod,
-            GodotNodeListenerDelegate<Area2DOnArea2D>.ExecuteMethod exitMethod = null) {
+            GodotListenerDelegate<Area2DOnArea2D>.ExecuteMethod enterMethod,
+            GodotListenerDelegate<Area2DOnArea2D>.ExecuteMethod exitMethod = null) {
             if (enterMethod != null) {
-                EnterTopic.Subscribe(new GodotNodeListenerDelegate<Area2DOnArea2D>(name, filter, enterMethod));
+                EnterTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, filter, enterMethod));
             }
             if (exitMethod != null) {
-                ExitTopic.Subscribe(new GodotNodeListenerDelegate<Area2DOnArea2D>(name, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, filter, exitMethod));
             }
         }
 
-        public void Subscribe(GodotNodeListener<Area2DOnArea2D> enterListener,
-            GodotNodeListener<Area2DOnArea2D> exitListener = null) {
+        public void Subscribe(GodotListener<Area2DOnArea2D> enterListener,
+            GodotListener<Area2DOnArea2D> exitListener = null) {
             EnterTopic.Subscribe(enterListener);
             ExitTopic.Subscribe(exitListener);
         }

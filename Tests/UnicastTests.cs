@@ -31,7 +31,7 @@ namespace Veronenger.Tests {
             /*
              Unicast only allows one subscriber, so, Body1Calls is 0 and Body2 have two calls
              */
-            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>("T");
+            GodotUnicastTopic<BodyOnArea2D> topic = new GodotUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             var listener = new BodyOnArea2DEnterListenerDelegate("Body1", null, delegate(BodyOnArea2D @event) {
                 body1Calls++;
@@ -77,7 +77,7 @@ namespace Veronenger.Tests {
             /*
              Unicast only allows one subscriber, so, Body1Calls is 0 and Body2 have two calls
              */
-            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>("T");
+            GodotUnicastTopic<BodyOnArea2D> topic = new GodotUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             int body2Calls = 0;
             var listener1 = new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
@@ -123,7 +123,7 @@ namespace Veronenger.Tests {
             body2.QueueFree();
             yield return null; // TesRunner will make enough delay to ensure the Godot event loop add them
 
-            GodotNodeUnicastTopic<BodyOnArea2D> topic = new GodotNodeUnicastTopic<BodyOnArea2D>("T");
+            GodotUnicastTopic<BodyOnArea2D> topic = new GodotUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             var listener = new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.From, Is.EqualTo(body1));

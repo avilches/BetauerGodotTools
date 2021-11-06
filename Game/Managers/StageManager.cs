@@ -28,8 +28,8 @@ namespace Veronenger.Game.Managers {
             stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
         }
 
-        public void Subscribe(GodotNodeListener<Area2DOnArea2D> enterListener,
-            GodotNodeListener<Area2DOnArea2D> exitListener = null) {
+        public void Subscribe(GodotListener<Area2DOnArea2D> enterListener,
+            GodotListener<Area2DOnArea2D> exitListener = null) {
             _topic.Subscribe(enterListener, exitListener);
         }
 

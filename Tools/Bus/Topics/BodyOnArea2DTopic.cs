@@ -16,12 +16,12 @@ namespace Tools.Bus.Topics {
         }
     }
 
-    public abstract class BodyOnArea2DEnterListener : GodotNodeListener<BodyOnArea2D> {
+    public abstract class BodyOnArea2DEnterListener : GodotListener<BodyOnArea2D> {
         protected BodyOnArea2DEnterListener(string name, Node filter) : base(name, filter) {
         }
     }
 
-    public class BodyOnArea2DEnterListenerDelegate : GodotNodeListenerDelegate<BodyOnArea2D> {
+    public class BodyOnArea2DEnterListenerDelegate : GodotListenerDelegate<BodyOnArea2D> {
         public BodyOnArea2DEnterListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name,
             filter, executeMethod) {
         }
@@ -32,14 +32,14 @@ namespace Tools.Bus.Topics {
      * To receive this event, subscribe to them. In order to filter the events on
      */
     public class BodyOnArea2DTopic : Node {
-        private GodotNodeMulticastTopic<BodyOnArea2D> _enterTopic;
-        private GodotNodeMulticastTopic<BodyOnArea2D> _exitTopic;
+        private GodotMulticastTopic<BodyOnArea2D> _enterTopic;
+        private GodotMulticastTopic<BodyOnArea2D> _exitTopic;
 
-        public GodotNodeMulticastTopic<BodyOnArea2D> EnterTopic =>
-            _enterTopic ??= new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyEntered");
+        public GodotMulticastTopic<BodyOnArea2D> EnterTopic =>
+            _enterTopic ??= new GodotMulticastTopic<BodyOnArea2D>($"{Name}_BodyEntered");
 
-        public GodotNodeMulticastTopic<BodyOnArea2D> ExitTopic =>
-            _exitTopic ??= new GodotNodeMulticastTopic<BodyOnArea2D>($"{Name}_BodyExited");
+        public GodotMulticastTopic<BodyOnArea2D> ExitTopic =>
+            _exitTopic ??= new GodotMulticastTopic<BodyOnArea2D>($"{Name}_BodyExited");
 
         public string Name { get; }
 
@@ -76,16 +76,16 @@ namespace Tools.Bus.Topics {
         */
 
         public void Subscribe(string name, Node filter,
-            GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
-            GodotNodeListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
+            GodotListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
+            GodotListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
             if (enterMethod != null)
-                EnterTopic.Subscribe(new GodotNodeListenerDelegate<BodyOnArea2D>(name, filter, enterMethod));
+                EnterTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, filter, enterMethod));
             if (exitMethod != null)
-                ExitTopic.Subscribe(new GodotNodeListenerDelegate<BodyOnArea2D>(name, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, filter, exitMethod));
         }
 
-        public void Subscribe(GodotNodeListener<BodyOnArea2D> enterListener,
-            GodotNodeListener<BodyOnArea2D> exitListener = null) {
+        public void Subscribe(GodotListener<BodyOnArea2D> enterListener,
+            GodotListener<BodyOnArea2D> exitListener = null) {
             EnterTopic.Subscribe(enterListener);
             ExitTopic.Subscribe(exitListener);
         }

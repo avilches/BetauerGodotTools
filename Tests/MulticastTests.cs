@@ -27,7 +27,7 @@ namespace Veronenger.Tests {
             KinematicBody2D body2 = new KinematicBody2D();
             AddChild(body1);
             AddChild(body2);
-            GodotNodeMulticastTopic<BodyOnArea2D> topic = new GodotNodeMulticastTopic<BodyOnArea2D>("T");
+            GodotMulticastTopic<BodyOnArea2D> topic = new GodotMulticastTopic<BodyOnArea2D>("T");
             /*
              Multicast allows multiple subscribers, so, Body1 and Body2 have two calls
              */
@@ -78,23 +78,23 @@ namespace Veronenger.Tests {
             AddChild(body1);
             AddChild(body2);
             var t = TopicMap.Instance;
-            t.AddTopic("t", new GodotNodeMulticastTopic<BodyOnArea2D>("T"));
+            t.AddTopic("t", new GodotMulticastTopic<BodyOnArea2D>("T"));
 
             /*
              It should work in the same way as TestGodotMulticast
              */
-            t.Subscribe<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body1", body1, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.From, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            t.Subscribe<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
+            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DEnterListenerDelegate("Body2", body2, delegate(BodyOnArea2D @event) {
                 Assert.That(@event.From, Is.EqualTo(body2));
                 body2Calls++;
             }));
-            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));
-            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area2));
-            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area1));
-            t.Publish<GodotNodeListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area2));
+            t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));
+            t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area2));
+            t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area1));
+            t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area2));
             Assert.That(body1Calls, Is.EqualTo(2));
             Assert.That(body2Calls, Is.EqualTo(2));
         }

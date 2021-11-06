@@ -44,14 +44,14 @@ namespace Veronenger.Game.Managers {
         public void EnablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, true);
         public void DisablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, false);
 
-        private GodotNodeUnicastTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotNodeUnicastTopic<BodyOnArea2D>("PlayerWeapon_enter");
+        private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotUnicastTopic<BodyOnArea2D>("PlayerWeapon_enter");
         // private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();
 
         void PlayerWeapon_BodyEntered(Node body, Area2D area2D) => _playerWeapon_enterTopic.Publish(new BodyOnArea2D(body, area2D));
         // void PlayerWeapon_BodyExited(Node body, Area2D area2D) => _playerWeapon_exitTopic.Publish(new BodyOnArea2D(body, area2D));
 
         // Enemies (or the player!) can subscribe to this event to check if an attack has been done to them
-        public void SubscribePlayerWeaponCollision(GodotNodeListener<BodyOnArea2D> enterListener) {
+        public void SubscribePlayerWeaponCollision(GodotListener<BodyOnArea2D> enterListener) {
             // NodeFromListener<BodyOnArea2D> exitListener = null) {
             _playerWeapon_enterTopic.Subscribe(enterListener);
             // if (exitListener != null) _playerWeapon_exitTopic.Subscribe(exitListener);

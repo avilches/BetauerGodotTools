@@ -52,23 +52,23 @@ namespace Veronenger.Game.Managers {
             _slopeStairsDisablerTopic.AddArea2D(area2D);
         }
 
-        public void SubscribeSlopeStairsDown(GodotNodeListener<BodyOnArea2D> enterListener,
-            GodotNodeListener<BodyOnArea2D> exitListener = null) {
+        public void SubscribeSlopeStairsDown(GodotListener<BodyOnArea2D> enterListener,
+            GodotListener<BodyOnArea2D> exitListener = null) {
             _slopeStairsDownTopic.Subscribe(enterListener, exitListener);
         }
 
-        public void SubscribeSlopeStairsUp(GodotNodeListener<BodyOnArea2D> enterListener,
-            GodotNodeListener<BodyOnArea2D> exitListener = null) {
+        public void SubscribeSlopeStairsUp(GodotListener<BodyOnArea2D> enterListener,
+            GodotListener<BodyOnArea2D> exitListener = null) {
             _slopeStairsUpTopic.Subscribe(enterListener, exitListener);
         }
 
-        public void SubscribeSlopeStairsEnabler(GodotNodeListener<BodyOnArea2D> enterListener,
-            GodotNodeListener<BodyOnArea2D> exitListener = null) {
+        public void SubscribeSlopeStairsEnabler(GodotListener<BodyOnArea2D> enterListener,
+            GodotListener<BodyOnArea2D> exitListener = null) {
             _slopeStairsEnablerTopic.Subscribe(enterListener, exitListener);
         }
 
-        public void SubscribeSlopeStairsDisabler(GodotNodeListener<BodyOnArea2D> enterListener,
-            GodotNodeListener<BodyOnArea2D> exitListener = null) {
+        public void SubscribeSlopeStairsDisabler(GodotListener<BodyOnArea2D> enterListener,
+            GodotListener<BodyOnArea2D> exitListener = null) {
             _slopeStairsDisablerTopic.Subscribe(enterListener, exitListener);
         }
 

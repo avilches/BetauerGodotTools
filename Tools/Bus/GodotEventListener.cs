@@ -5,11 +5,11 @@ namespace Tools.Bus {
         Node GetFilter();
     }
 
-    public abstract class GodotNodeListener<T> : EventListener<T> where T : IGodotNodeEvent {
+    public abstract class GodotListener<T> : EventListener<T> where T : IGodotNodeEvent {
         public Node Filter { get; }
         public string Name { get; }
 
-        protected GodotNodeListener(string name, Node filter) {
+        protected GodotListener(string name, Node filter) {
             Name = name;
             Filter = filter;
         }
@@ -39,12 +39,12 @@ namespace Tools.Bus {
         public abstract void Execute(T @event);
     }
 
-    public class GodotNodeListenerDelegate<T> : GodotNodeListener<T> where T : IGodotNodeEvent {
+    public class GodotListenerDelegate<T> : GodotListener<T> where T : IGodotNodeEvent {
         public delegate void ExecuteMethod(T @event);
 
         private readonly ExecuteMethod _executeMethod;
 
-        public GodotNodeListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name, filter) {
+        public GodotListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name, filter) {
             _executeMethod = executeMethod;
         }
 
