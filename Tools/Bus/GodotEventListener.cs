@@ -3,6 +3,7 @@ using Godot;
 namespace Tools.Bus {
     public interface IGodotNodeEvent {
         public Node Filter { get; }
+        public Node Origin { get; }
     }
 
     public abstract class GodotListener<T> : EventListener<T> where T : IGodotNodeEvent {
@@ -40,13 +41,13 @@ namespace Tools.Bus {
                 var matches = @event.Filter == Filter;
                 if (!matches) {
                     Debug.Event(TopicName, Name,
-                        $"Filter: {GetNodeInfo(Filter)} | Rejected {GetNodeInfo(@event.Filter)}");
+                        $"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | Rejected {GetNodeInfo(@event.Filter)}");
                     return;
                 }
                 Debug.Event(TopicName, Name,
-                    $"Filter: {GetNodeInfo(Filter)} | -> Ok");
+                    $"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | -> Ok");
             } else {
-                Debug.Event(TopicName, Name, "| -> Ok");
+                Debug.Event(TopicName, Name, $"Origin: {GetNodeInfo(@event.Origin)} | -> Ok");
             }
             Execute(@event);
         }

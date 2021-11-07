@@ -6,12 +6,12 @@ namespace Tools {
 
         private const bool _DEBUG_STAGE = true;
         public const bool _DEBUG_RESOLUTION = false;
-        private const bool _DEBUG_EVENT_PUBLISH = true;
-        private const bool _DEBUG_EVENT_LISTENER = true;
+        private const bool _DEBUG_EVENT_PUBLISH = false;
+        private const bool _DEBUG_EVENT_LISTENER = false;
 
-        public static void Stage(string message) {
+        public static void Stage(string type, string message) {
             if (!TESTING && !_DEBUG_STAGE) return;
-            GD.Print($"[Stage] {message}");
+            GD.Print($"[Stage.{type}] {message}");
         }
 
         public static void Topic(string topicName, string message) {

@@ -3,14 +3,13 @@ using Godot.Collections;
 
 namespace Tools.Bus.Topics {
     public class BodyOnArea2D : IGodotNodeEvent {
-        public readonly Node From;
-        public readonly Area2D Area2D;
+        public readonly Node Detected;
+        public Node Origin { get;}
+        public Node Filter => Detected;
 
-        public Node Filter => From;
-
-        public BodyOnArea2D(Node from, Area2D area2D) {
-            From = from;
-            Area2D = area2D;
+        public BodyOnArea2D(Node detected, Area2D origin) {
+            Detected = detected;
+            Origin = origin;
         }
     }
 
@@ -45,12 +44,10 @@ namespace Tools.Bus.Topics {
             Name = name;
         }
 
-        public void AddArea2D(Area2D area2D) {
-            var binds = new Array { area2D };
-            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this, nameof(_BodyEntered),
-                binds);
-            area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, this, nameof(_BodyExited),
-                binds);
+        public void AddArea2D(Area2D area2DToListen) {
+            var binds = new Array { area2DToListen };
+            area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this, nameof(_BodyEntered), binds);
+            area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_exited, this, nameof(_BodyExited), binds);
         }
 
         /*

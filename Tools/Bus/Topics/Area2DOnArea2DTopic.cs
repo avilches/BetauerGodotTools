@@ -3,14 +3,13 @@ using Godot.Collections;
 
 namespace Tools.Bus.Topics {
     public class Area2DOnArea2D : IGodotNodeEvent {
-        public readonly Area2D From;
-        public readonly Area2D Area2D;
+        public readonly Area2D Detected;
+        public Node Origin { get;}
+        public Node Filter => Detected;
 
-        public Node Filter => From;
-
-        public Area2DOnArea2D(Area2D from, Area2D area2D) {
-            From = from;
-            Area2D = area2D;
+        public Area2DOnArea2D(Area2D detected, Area2D origin) {
+            Detected = detected;
+            Origin = origin;
         }
     }
 
@@ -45,11 +44,10 @@ namespace Tools.Bus.Topics {
             Name = name;
         }
 
-        public void AddArea2D(Area2D area2D) {
-            area2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_AreaEntered),
-                new Array { area2D });
-            area2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_AreaExited),
-                new Array { area2D });
+        public void AddArea2D(Area2D areaToListen) {
+            var binds = new Array { areaToListen };
+            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_AreaEntered), binds);
+            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_AreaExited), binds);
         }
 
         public void Subscribe(string name, Node owner, Area2D filter,
@@ -69,12 +67,12 @@ namespace Tools.Bus.Topics {
             ExitTopic.Subscribe(exitListener);
         }
 
-        public void _AreaEntered(Area2D player, Area2D stageEnteredArea2D) {
-            _enterTopic?.Publish(new Area2DOnArea2D(player, stageEnteredArea2D));
+        public void _AreaEntered(Area2D detected, Area2D origin) {
+            _enterTopic?.Publish(new Area2DOnArea2D(detected, origin));
         }
 
-        public void _AreaExited(Area2D player, Area2D stageExitedArea2D) {
-            _exitTopic?.Publish(new Area2DOnArea2D(player, stageExitedArea2D));
+        public void _AreaExited(Area2D detected, Area2D origin) {
+            _exitTopic?.Publish(new Area2DOnArea2D(detected, origin));
         }
     }
 }
