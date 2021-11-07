@@ -69,11 +69,11 @@ namespace Veronenger.Tests {
             int body1Calls = 0;
             int body2Calls = 0;
             var listener1 = new BodyOnArea2DListenerDelegate("Body1", owner,body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body1));
+                Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             });
             var listener2 = new BodyOnArea2DListenerDelegate("Body2", owner,body2, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body2));
+                Assert.That(@event.Detected, Is.EqualTo(body2));
                 body2Calls++;
             });
             topic.Subscribe(listener1);
@@ -104,7 +104,7 @@ namespace Veronenger.Tests {
             GodotUnicastTopic<BodyOnArea2D> topic = new GodotUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             var listener = new BodyOnArea2DListenerDelegate("Body1", owner, body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body1));
+                Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             });
             topic.Subscribe(listener);
@@ -148,7 +148,7 @@ namespace Veronenger.Tests {
             GodotUnicastTopic<BodyOnArea2D> topic = new GodotUnicastTopic<BodyOnArea2D>("T");
             int body1Calls = 0;
             var listener = new BodyOnArea2DListenerDelegate("Body1", owner, body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body1));
+                Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             });
             topic.Subscribe(listener);

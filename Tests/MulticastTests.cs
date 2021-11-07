@@ -29,11 +29,11 @@ namespace Veronenger.Tests {
             KinematicBody2D body2 = new KinematicBody2D();
             GodotMulticastTopic<BodyOnArea2D> topic = new GodotMulticastTopic<BodyOnArea2D>("T");
             topic.Subscribe(new BodyOnArea2DListenerDelegate("Body1", owner1, body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body1));
+                Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             }));
             topic.Subscribe(new BodyOnArea2DListenerDelegate("Body2", owner1, body2, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body2));
+                Assert.That(@event.Detected, Is.EqualTo(body2));
                 body2Calls++;
             }));
             topic.Subscribe(new BodyOnArea2DListenerDelegate("ANY", owner3, null, delegate(BodyOnArea2D @event) {
@@ -98,11 +98,11 @@ namespace Veronenger.Tests {
              It should work in the same way as TestGodotMulticast
              */
             t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerDelegate("Body1", body1, body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body1));
+                Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             }));
             t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerDelegate("Body2", body2, body2, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.From, Is.EqualTo(body2));
+                Assert.That(@event.Detected, Is.EqualTo(body2));
                 body2Calls++;
             }));
             t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));

@@ -18,7 +18,7 @@ __meta__ = {
 }
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( -125.259, 9.33766 )
+position = Vector2( 207.17, 139.315 )
 
 [node name="MockTileMapBack" parent="." instance=ExtResource( 4 )]
 modulate = Color( 0.47451, 0.47451, 0.47451, 1 )
@@ -66,7 +66,6 @@ __meta__ = {
 shape = SubResource( 1 )
 
 [node name="Stage12" type="Area2D" parent="Stages"]
-visible = false
 position = Vector2( -319, 43 )
 collision_layer = 0
 collision_mask = 0

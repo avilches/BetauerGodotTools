@@ -436,7 +436,6 @@ next_scene = "res://Worlds/World2.tscn"
 format = 1
 
 [node name="Stages" type="Node2D" parent="."]
-visible = false
 script = ExtResource( 18 )
 
 [node name="Stage11" type="Area2D" parent="Stages"]
