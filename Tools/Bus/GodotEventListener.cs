@@ -2,7 +2,7 @@ using Godot;
 
 namespace Tools.Bus {
     public interface IGodotNodeEvent {
-        Node GetFilter();
+        public Node Filter { get; }
     }
 
     public abstract class GodotListener<T> : EventListener<T> where T : IGodotNodeEvent {
@@ -31,23 +31,22 @@ namespace Tools.Bus {
 
         private static string GetNodeInfo(Node node) {
             if (node == null) return "all";
-            var nodeName = GodotTools.IsDisposed(node) ? "(no name: disposed)" : $"\"{node.Name}\"";
+            var nodeName = GodotTools.IsDisposed(node) ? "(disposed)" : $"\"{node.Name}\"";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
         public void OnEvent(T @event) {
             if (Filter != null) {
-                var filterNode = @event.GetFilter();
-                var matches = filterNode == Filter;
+                var matches = @event.Filter == Filter;
                 if (!matches) {
                     Debug.Event(TopicName, Name,
-                        $"Filter: {GetNodeInfo(Filter)} | Rejected {GetNodeInfo(filterNode)}");
+                        $"Filter: {GetNodeInfo(Filter)} | Rejected {GetNodeInfo(@event.Filter)}");
                     return;
                 }
                 Debug.Event(TopicName, Name,
                     $"Filter: {GetNodeInfo(Filter)} | -> Ok");
             } else {
-                Debug.Event(TopicName, Name, "Ok");
+                Debug.Event(TopicName, Name, "| -> Ok");
             }
             Execute(@event);
         }

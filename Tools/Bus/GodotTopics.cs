@@ -4,6 +4,11 @@ namespace Tools.Bus {
         public GodotMulticastTopic(string name) : base(name) {
         }
 
+        public override void Subscribe(GodotListener<T> eventListener) {
+            if (eventListener != null) eventListener.TopicName = Name;
+            base.Subscribe(eventListener);
+        }
+
         public override void Publish(T @event) {
             int deleted = EventListeners.RemoveAll(listener => listener.IsDisposed());
             if (deleted > 0) {
@@ -20,6 +25,11 @@ namespace Tools.Bus {
     public class GodotUnicastTopic<T> : UnicastTopic<GodotListener<T>, T>
         where T : IGodotNodeEvent {
         public GodotUnicastTopic(string name) : base(name) {
+        }
+
+        public override void Subscribe(GodotListener<T> eventListener) {
+            if (eventListener != null) eventListener.TopicName = Name;
+            base.Subscribe(eventListener);
         }
 
         public override void Publish(T @event) {

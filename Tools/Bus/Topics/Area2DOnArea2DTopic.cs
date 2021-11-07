@@ -6,9 +6,7 @@ namespace Tools.Bus.Topics {
         public readonly Area2D From;
         public readonly Area2D Area2D;
 
-        public Node GetFilter() {
-            return From;
-        }
+        public Node Filter => From;
 
         public Area2DOnArea2D(Area2D from, Area2D area2D) {
             From = from;
@@ -28,8 +26,8 @@ namespace Tools.Bus.Topics {
     }
 
     /**
-     * The topic listen for all signals of body_entered and body_exited in all the Area2D added by the method AddArea2D
-     * To receive this event, subscribe to them. In order to filter the events on
+     * The topic listen for all signals of area_entered and area_exited in all the Area2D added by the method AddArea2D
+     * To receive this event, subscribe to them.
      */
     public class Area2DOnArea2DTopic : Node {
         private GodotMulticastTopic<Area2DOnArea2D> _enterTopic;

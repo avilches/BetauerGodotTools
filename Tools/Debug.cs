@@ -20,7 +20,7 @@ namespace Tools {
         }
         public static void Event(string topicName, string listenerName, string message) {
             if (!TESTING && !_DEBUG_EVENT_LISTENER) return;
-            GD.Print($"[{topicName}].{listenerName}] {message}");
+            GD.Print($"[{topicName}.{listenerName}] {message}");
         }
     }
 }
