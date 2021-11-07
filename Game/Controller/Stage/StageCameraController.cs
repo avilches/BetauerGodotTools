@@ -23,9 +23,8 @@ namespace Veronenger.Game.Controller.Stage {
             GameManager.Instance.StageManager.ConfigureStageCamera(this, stageDetector);
         }
 
-        public void ChangeStage(Managers.Stage newStage) {
-            var rect2 = newStage.CreateAbsoluteRect2();
-            Debug.Stage("Rect: " + rect2.Position + " " + rect2.End);
+        public void ChangeStage(Rect2 rect2) {
+            Debug.Stage("Camera",rect2.Position + " " + rect2.End);
             LimitLeft = (int)rect2.Position.x;
             LimitTop = (int)rect2.Position.y;
             LimitRight = (int)rect2.End.x;

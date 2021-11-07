@@ -25,14 +25,17 @@ namespace Veronenger.Game.Controller.Stage {
         }
 
         private void ValidateStageArea2D(Area2D area2D) {
-            var hasValidShape = false;
-            foreach (var nodeChild in area2D.GetChildren()) {
-                if (nodeChild is CollisionShape2D collisionShape2D && collisionShape2D.Shape is RectangleShape2D) {
-                    if (hasValidShape) throw new Exception($"Stage {area2D.Name} with more than 1 RectangleShape2D");
-                    hasValidShape = true;
-                }
+            var childCount = area2D.GetChildCount();
+            if (childCount != 1) {
+                throw new Exception(
+                    $"Stage {area2D.Name} has {childCount} children. It should have only 1 RectangleShape2D");
             }
-            if (!hasValidShape) throw new Exception($"Stage {area2D.Name} needs 1 RectangleShape2D");
+            var nodeChild = area2D.GetChild(0);
+            if (nodeChild is CollisionShape2D collisionShape2D && collisionShape2D.Shape is RectangleShape2D) {
+                return;
+            }
+            throw new Exception(
+                $"Stage {area2D.Name}/{nodeChild.Name} is not a CollisionShape2D with a RectangleShape2D shape");
         }
     }
 }
