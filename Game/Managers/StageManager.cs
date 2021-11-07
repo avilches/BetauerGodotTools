@@ -11,18 +11,18 @@ namespace Veronenger.Game.Managers {
         private bool _exitedStage;
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
-        private Area2DOnArea2DTopic _topic = new Area2DOnArea2DTopic("StageTopic");
+        private readonly Area2DOnArea2DTopic _stageTopic = new Area2DOnArea2DTopic("StageTopic");
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
             stageDetector.CollisionLayer = 0;
             stageDetector.CollisionMask = 0;
             stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
-            _topic.Subscribe("StageDetector", stageDetector, OnEnterStage, OnExitStage);
+            _stageTopic.Subscribe("StageDetector", stageDetector, stageDetector, OnEnterStage, OnExitStage);
         }
 
-        public void ConfigureStage(Area2D stageArea2D, CollisionShape2D stageCollisionShape2D) {
-            _topic.AddArea2D(stageArea2D, stageCollisionShape2D);
+        public void ConfigureStage(Area2D stageArea2D) {
+            _stageTopic.AddArea2D(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
@@ -30,7 +30,7 @@ namespace Veronenger.Game.Managers {
 
         public void Subscribe(GodotListener<Area2DOnArea2D> enterListener,
             GodotListener<Area2DOnArea2D> exitListener = null) {
-            _topic.Subscribe(enterListener, exitListener);
+            _stageTopic.Subscribe(enterListener, exitListener);
         }
 
         public void OnEnterStage(Area2DOnArea2D e) {

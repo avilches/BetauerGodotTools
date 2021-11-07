@@ -35,7 +35,7 @@ namespace Veronenger.Game.Controller.Character {
             GameManager.Instance.CharacterManager.RegisterEnemy(this);
 
             PlatformManager.SubscribeFallingPlatformOut(
-                new BodyOnArea2DEnterListenerDelegate("Enemy" + Name, this, _OnFallingPlatformOut));
+                new BodyOnArea2DListenerDelegate($"Enemy{Name}", this, this, _OnFallingPlatformOut));
 
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }

@@ -19,7 +19,7 @@ namespace Tools {
             }
         }
 
-        public static bool IsDisposed(Object @object) => @object == null || @object.NativeInstance == System.IntPtr.Zero;
+        public static bool IsDisposed(Object @object) => @object != null && @object.NativeInstance == System.IntPtr.Zero;
 
         public static T FindChild<T>(Node parent) where T : class {
             var nodes = parent.GetChildren();

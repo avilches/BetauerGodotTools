@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Tools.Bus {
     public interface EventListener<T> {
         string Name { get; }
-        void OnEvent(string topicName, T @event);
+        void OnEvent(T @event);
     }
 
     public interface ITopic<E, T> where E : EventListener<T> {
@@ -26,7 +26,7 @@ namespace Tools.Bus {
         public virtual void Subscribe(E eventListener) => Listener = eventListener;
 
         public virtual void Publish(T @event) {
-            Listener?.OnEvent(Name, @event);
+            Listener?.OnEvent(@event);
         }
     }
 
@@ -45,7 +45,7 @@ namespace Tools.Bus {
         }
 
         public virtual void Publish(T @event) {
-            EventListeners.ForEach(listener => listener.OnEvent(Name, @event));
+            EventListeners.ForEach(listener => listener.OnEvent(@event));
         }
     }
 

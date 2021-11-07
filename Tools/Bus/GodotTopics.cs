@@ -13,7 +13,7 @@ namespace Tools.Bus {
                 Debug.Topic($"GodotMulticast.{Name}", $"Event published to {EventListeners.Count} listeners");
             }
 
-            EventListeners.ForEach(listener => listener.OnEvent($"GodotMulticast.{Name}", @event));
+            EventListeners.ForEach(listener => listener.OnEvent(@event));
         }
     }
 
@@ -30,7 +30,7 @@ namespace Tools.Bus {
                 Listener = null;
             } else {
                 Debug.Topic($"GodotUnicast.{Name}", $"Event sent to {Listener.Name}");
-                Listener.OnEvent($"GodotUnicast.{Name}", @event);
+                Listener.OnEvent(@event);
             }
         }
     }

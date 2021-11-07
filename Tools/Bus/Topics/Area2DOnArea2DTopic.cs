@@ -16,14 +16,14 @@ namespace Tools.Bus.Topics {
         }
     }
 
-    public abstract class Area2DOnArea2DEnterListener : GodotListener<Area2DOnArea2D> {
-        protected Area2DOnArea2DEnterListener(string name, Node filter) : base(name, filter) {
+    public abstract class Area2DOnArea2DListener : GodotListener<Area2DOnArea2D> {
+        protected Area2DOnArea2DListener(string name, Node owner, Node filter) : base(name, owner, filter) {
         }
     }
 
-    public class Area2DOnArea2DEnterListenerDelegate : GodotListenerDelegate<Area2DOnArea2D> {
-        public Area2DOnArea2DEnterListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name,
-            filter, executeMethod) {
+    public class Area2DOnArea2DListenerDelegate : GodotListenerDelegate<Area2DOnArea2D> {
+        public Area2DOnArea2DListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+            base(name, owner, filter, executeMethod) {
         }
     }
 
@@ -47,21 +47,21 @@ namespace Tools.Bus.Topics {
             Name = name;
         }
 
-        public void AddArea2D(Area2D area2D, CollisionShape2D stageCollisionShape2D) {
+        public void AddArea2D(Area2D area2D) {
             area2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_AreaEntered),
-                new Array { area2D, stageCollisionShape2D.Shape });
+                new Array { area2D });
             area2D.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_AreaExited),
                 new Array { area2D });
         }
 
-        public void Subscribe(string name, Area2D filter,
+        public void Subscribe(string name, Node owner, Area2D filter,
             GodotListenerDelegate<Area2DOnArea2D>.ExecuteMethod enterMethod,
             GodotListenerDelegate<Area2DOnArea2D>.ExecuteMethod exitMethod = null) {
             if (enterMethod != null) {
-                EnterTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, filter, enterMethod));
+                EnterTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, owner, filter, enterMethod));
             }
             if (exitMethod != null) {
-                ExitTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotListenerDelegate<Area2DOnArea2D>(name, owner, filter, exitMethod));
             }
         }
 
@@ -71,7 +71,7 @@ namespace Tools.Bus.Topics {
             ExitTopic.Subscribe(exitListener);
         }
 
-        public void _AreaEntered(Area2D player, Area2D stageEnteredArea2D, RectangleShape2D shape2D) {
+        public void _AreaEntered(Area2D player, Area2D stageEnteredArea2D) {
             _enterTopic?.Publish(new Area2DOnArea2D(player, stageEnteredArea2D));
         }
 

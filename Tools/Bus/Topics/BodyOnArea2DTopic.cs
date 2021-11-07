@@ -16,14 +16,14 @@ namespace Tools.Bus.Topics {
         }
     }
 
-    public abstract class BodyOnArea2DEnterListener : GodotListener<BodyOnArea2D> {
-        protected BodyOnArea2DEnterListener(string name, Node filter) : base(name, filter) {
+    public abstract class BodyOnArea2DListener : GodotListener<BodyOnArea2D> {
+        protected BodyOnArea2DListener(string name, Node owner, Node filter) : base(name, owner, filter) {
         }
     }
 
-    public class BodyOnArea2DEnterListenerDelegate : GodotListenerDelegate<BodyOnArea2D> {
-        public BodyOnArea2DEnterListenerDelegate(string name, Node filter, ExecuteMethod executeMethod) : base(name,
-            filter, executeMethod) {
+    public class BodyOnArea2DListenerDelegate : GodotListenerDelegate<BodyOnArea2D> {
+        public BodyOnArea2DListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+            base(name, owner, filter, executeMethod) {
         }
     }
 
@@ -75,13 +75,13 @@ namespace Tools.Bus.Topics {
         }
         */
 
-        public void Subscribe(string name, Node filter,
+        public void Subscribe(string name, Node owner, Node filter,
             GodotListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
             GodotListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
             if (enterMethod != null)
-                EnterTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, filter, enterMethod));
+                EnterTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, owner, filter, enterMethod));
             if (exitMethod != null)
-                ExitTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotListenerDelegate<BodyOnArea2D>(name, owner, filter, exitMethod));
         }
 
         public void Subscribe(GodotListener<BodyOnArea2D> enterListener,
