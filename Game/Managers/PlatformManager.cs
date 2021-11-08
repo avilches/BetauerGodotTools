@@ -75,7 +75,7 @@ namespace Veronenger.Game.Managers {
         // Provoca la caida del jugador desde la plataforma quitando la mascara
         public void BodyFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, false);
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER);
-        // Para la caiida del jugador
+        // Para la caida del jugador
 
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
         private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");

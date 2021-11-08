@@ -1,6 +1,6 @@
 namespace Tools.Bus {
     public class GodotMulticastTopic<T> : MulticastTopic<GodotListener<T>, T>
-        where T : IGodotNodeEvent {
+        where T : IGodotEvent {
         public GodotMulticastTopic(string name) : base(name) {
         }
 
@@ -23,7 +23,7 @@ namespace Tools.Bus {
     }
 
     public class GodotUnicastTopic<T> : UnicastTopic<GodotListener<T>, T>
-        where T : IGodotNodeEvent {
+        where T : IGodotEvent {
         public GodotUnicastTopic(string name) : base(name) {
         }
 

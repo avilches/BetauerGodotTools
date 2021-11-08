@@ -2,6 +2,7 @@ using Godot;
 using Tools.Bus;
 using Tools.Bus.Topics;
 using Veronenger.Game.Character;
+using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
 
@@ -57,9 +58,12 @@ namespace Veronenger.Game.Managers {
             _downTopic.Subscribe(enterListener, exitListener);
         }
 
-        public void SubscribeSlopeStairsUp(GodotListener<BodyOnArea2D> enterListener,
-            GodotListener<BodyOnArea2D> exitListener = null) {
-            _upTopic.Subscribe(enterListener, exitListener);
+        public BodyOnArea2DStatus CreateSlopeStairsUpStatusListener(string name, PlayerController playerController) {
+            return _upTopic.StatusSubscriber(name, playerController, playerController);
+        }
+
+        public BodyOnArea2DStatus CreateSlopeStairsDownStatusListener(string name, PlayerController playerController) {
+            return _downTopic.StatusSubscriber(name, playerController, playerController);
         }
 
         public void SubscribeSlopeStairsEnabler(GodotListener<BodyOnArea2D> enterListener,

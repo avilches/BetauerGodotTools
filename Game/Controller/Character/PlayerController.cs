@@ -7,7 +7,6 @@ using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
-using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
@@ -53,12 +52,8 @@ namespace Veronenger.Game.Controller.Character {
             PlatformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
 
-            SlopeStairsManager.SubscribeSlopeStairsUp(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsUpEnter),
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsUpExit));
-            SlopeStairsManager.SubscribeSlopeStairsDown(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsDownEnter),
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsDownExit));
+            _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
+            _slopeStairsDown = SlopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
             SlopeStairsManager.SubscribeSlopeStairsEnabler(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsEnablerEnter));
             SlopeStairsManager.SubscribeSlopeStairsDisabler(
@@ -79,30 +74,10 @@ namespace Veronenger.Game.Controller.Character {
             SlopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
-        public bool IsOnSlopeStairsUp() => _slopeStairsUp;
-        public bool IsOnSlopeStairsDown() => _slopeStairsDown;
-        private bool _slopeStairsDown;
-        private bool _slopeStairsUp;
-
-        public void _OnSlopeStairsUpEnter(BodyOnArea2D evt) {
-            _slopeStairsUp = true;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
-        }
-
-        public void _OnSlopeStairsUpExit(BodyOnArea2D evt) {
-            _slopeStairsUp = false;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_up " + _slopeStairsUp);
-        }
-
-        public void _OnSlopeStairsDownEnter(BodyOnArea2D evt) {
-            _slopeStairsDown = true;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
-        }
-
-        public void _OnSlopeStairsDownExit(BodyOnArea2D evt) {
-            _slopeStairsDown = false;
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "_slope_stairs_down " + _slopeStairsDown);
-        }
+        public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
+        public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
+        private BodyOnArea2DStatus _slopeStairsDown;
+        private BodyOnArea2DStatus _slopeStairsUp;
 
         public void _OnFallingPlatformExit(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
 

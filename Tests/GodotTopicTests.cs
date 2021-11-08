@@ -19,27 +19,30 @@ namespace Veronenger.Tests {
             int exitCalls = 0;
             bool overlap = false;
             KinematicBody2D body = CreateKinematicBody2D("player", 0, 0);
+            Area2D area2DMustBeIgnored = CreateArea2D("other different than filtered");
             Area2D area2D = CreateArea2D("slopeDown", 2000, 2000);
 
             BodyOnArea2DTopic topic = new BodyOnArea2DTopic("T");
             topic.AddArea2D(area2D);
             topic.Subscribe(
-                new BodyOnArea2DListenerDelegate("Body1", body, body, delegate(BodyOnArea2D @event) {
+                new BodyOnArea2DListenerDelegate("Body", body, body, delegate(BodyOnArea2D @event) {
                     Assert.That(@event.Detected, Is.EqualTo(body));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     enterCalls++;
                     overlap = true;
                 }),
-                new BodyOnArea2DListenerDelegate("Body1", body, body, delegate(BodyOnArea2D @event) {
+                new BodyOnArea2DListenerDelegate("Body", body, body, delegate(BodyOnArea2D @event) {
                     Assert.That(@event.Detected, Is.EqualTo(body));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     exitCalls++;
                     overlap = false;
                 }));
+            BodyOnArea2DStatus status = topic.StatusSubscriber("Body", body, body);
             yield return null;
 
             // They are not colliding
             Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(status.IsOverlapping, Is.EqualTo(false));
             Assert.That(enterCalls, Is.EqualTo(0));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -48,6 +51,7 @@ namespace Veronenger.Tests {
             yield return null;
 
             Assert.That(overlap, Is.EqualTo(true));
+            Assert.That(status.IsOverlapping, Is.EqualTo(true));
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -56,12 +60,24 @@ namespace Veronenger.Tests {
             yield return null;
 
             Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(status.IsOverlapping, Is.EqualTo(false));
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
+
+            body.QueueFree();
+            yield return null;
+
+            Assert.That(status.IsDisposed(), Is.EqualTo(true));
+            foreach (var listener in topic.EnterTopic.EventListeners) {
+                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+            }
+            foreach (var listener in topic.ExitTopic.EventListeners) {
+                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+            }
         }
 
         [Test]
-        public IEnumerator Area2DOnArea2D() {
+        public IEnumerator Area2DOnArea2DTopic() {
             int enterCalls = 0;
             int exitCalls = 0;
             bool overlap = false;
@@ -83,10 +99,12 @@ namespace Veronenger.Tests {
                     exitCalls++;
                     overlap = false;
                 }));
+            Area2DOnArea2DStatus status = topic.StatusSubscriber("Body", from, from);
             yield return null;
 
             // They are not colliding
             Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(status.IsOverlapping, Is.EqualTo(false));
             Assert.That(enterCalls, Is.EqualTo(0));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -95,6 +113,7 @@ namespace Veronenger.Tests {
             yield return null;
 
             Assert.That(overlap, Is.EqualTo(true));
+            Assert.That(status.IsOverlapping, Is.EqualTo(true));
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -103,9 +122,22 @@ namespace Veronenger.Tests {
             yield return null;
 
             Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(status.IsOverlapping, Is.EqualTo(false));
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
+
+            from.QueueFree();
+            yield return null;
+
+            Assert.That(status.IsDisposed(), Is.EqualTo(true));
+            foreach (var listener in topic.EnterTopic.EventListeners) {
+                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+            }
+            foreach (var listener in topic.ExitTopic.EventListeners) {
+                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+            }
         }
+
 
         [Test]
         public IEnumerator Area2DShapeOnArea2D() {
@@ -163,6 +195,7 @@ namespace Veronenger.Tests {
             Assert.That(exitCalls, Is.EqualTo(2));
             Assert.That(exitedOriginShapes, Contains.Item(0));
             Assert.That(exitedOriginShapes, Contains.Item(1));
+
         }
 
         private Area2D CreateArea2D(string name, int x = 0, int y = 0) {

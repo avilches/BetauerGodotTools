@@ -78,7 +78,7 @@ namespace Tools.Statemachine {
             _nextState = null;
 
             if (_stateMachineDebugConfig.DEBUG_STATEMACHINE_CHANGE || _stateMachineDebugConfig.DEBUG_STATEMACHINE_FLOW) {
-                GD.Print($"#{Frame}: {_currentState?.GetType().Name} > {newState.GetType().Name}");
+                GD.Print($"#{Frame}: {_currentState?.GetType().Name} -> {newState.GetType().Name}");
             }
 
             EndState();
