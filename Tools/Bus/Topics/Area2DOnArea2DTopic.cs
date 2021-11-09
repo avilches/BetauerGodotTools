@@ -49,14 +49,14 @@ namespace Tools.Bus.Topics {
      * updated by the events in real time.
      */
     public class Area2DOnArea2DTopic : Object {
-        private GodotMulticastTopic<Area2DOnArea2D> _enterTopic;
-        private GodotMulticastTopic<Area2DOnArea2D> _exitTopic;
+        private GodotTopic<Area2DOnArea2D> _enterTopic;
+        private GodotTopic<Area2DOnArea2D> _exitTopic;
 
-        public GodotMulticastTopic<Area2DOnArea2D> EnterTopic =>
-            _enterTopic ??= new GodotMulticastTopic<Area2DOnArea2D>($"{Name}_AreaEntered");
+        public GodotTopic<Area2DOnArea2D> EnterTopic =>
+            _enterTopic ??= new GodotTopic<Area2DOnArea2D>($"{Name}_AreaEntered");
 
-        public GodotMulticastTopic<Area2DOnArea2D> ExitTopic =>
-            _exitTopic ??= new GodotMulticastTopic<Area2DOnArea2D>($"{Name}_AreaExited");
+        public GodotTopic<Area2DOnArea2D> ExitTopic =>
+            _exitTopic ??= new GodotTopic<Area2DOnArea2D>($"{Name}_AreaExited");
 
         public string Name { get; }
 

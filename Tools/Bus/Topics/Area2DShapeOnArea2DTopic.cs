@@ -36,14 +36,14 @@ namespace Tools.Bus.Topics {
      * To receive this event, subscribe to them.
      */
     public class Area2DShapeOnArea2DTopic : Object {
-        private GodotMulticastTopic<Area2DShapeOnArea2D> _enterTopic;
-        private GodotMulticastTopic<Area2DShapeOnArea2D> _exitTopic;
+        private GodotTopic<Area2DShapeOnArea2D> _enterTopic;
+        private GodotTopic<Area2DShapeOnArea2D> _exitTopic;
 
-        private GodotMulticastTopic<Area2DShapeOnArea2D> EnterTopic =>
-            _enterTopic ??= new GodotMulticastTopic<Area2DShapeOnArea2D>($"{Name}_AreaShapeEntered");
+        private GodotTopic<Area2DShapeOnArea2D> EnterTopic =>
+            _enterTopic ??= new GodotTopic<Area2DShapeOnArea2D>($"{Name}_AreaShapeEntered");
 
-        private GodotMulticastTopic<Area2DShapeOnArea2D> ExitTopic =>
-            _exitTopic ??= new GodotMulticastTopic<Area2DShapeOnArea2D>($"{Name}_AreaShapeExited");
+        private GodotTopic<Area2DShapeOnArea2D> ExitTopic =>
+            _exitTopic ??= new GodotTopic<Area2DShapeOnArea2D>($"{Name}_AreaShapeExited");
 
         public string Name { get; }
 

@@ -14,28 +14,12 @@ namespace Tools.Bus {
         void Publish(T @event);
     }
 
-    public class UnicastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
-        public E Listener { get; protected set; }
-
-        public string Name { get; }
-
-        public UnicastTopic(string name) {
-            Name = name;
-        }
-
-        public virtual void Subscribe(E eventListener) => Listener = eventListener;
-
-        public virtual void Publish(T @event) {
-            Listener?.OnEvent(@event);
-        }
-    }
-
-    public class MulticastTopic<E, T> : ITopic<E, T> where E : EventListener<T> {
+    public class Topic<E, T> : ITopic<E, T> where E : EventListener<T> {
         public List<E> EventListeners { get; }
 
         public string Name { get; }
 
-        protected MulticastTopic(string name) {
+        protected Topic(string name) {
             Name = name;
             EventListeners = new List<E>();
         }

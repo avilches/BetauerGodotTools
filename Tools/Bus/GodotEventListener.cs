@@ -16,11 +16,9 @@ namespace Tools.Bus {
         }
 
         public virtual bool IsDisposed() {
-            if (GodotTools.IsDisposed(Owner)) {
-                Debug.Event(TopicName, Name, $"Disposed. Owner: {GetNodeInfo(Owner)}");
-                return true;
-            }
-            return false;
+            if (!GodotTools.IsDisposed(Owner)) return false;
+            Debug.Event(TopicName, Name, $"Disposed. Owner: {GetNodeInfo(Owner)}");
+            return true;
 
         }
         protected static string GetNodeInfo(Node node) {
@@ -45,15 +43,15 @@ namespace Tools.Bus {
 
         public override bool IsDisposed() {
             if (base.IsDisposed()) return true;
-            if (GodotTools.IsDisposed(Filter)) {
-                Debug.Event(TopicName, Name, $"Disposed. Filter: {GetNodeInfo(Filter)}");
-                return true;
-            }
-            return false;
+            if (!GodotTools.IsDisposed(Filter)) return false;
+            Debug.Event(TopicName, Name, $"Disposed. Filter: {GetNodeInfo(Filter)}");
+            return true;
         }
 
         public override void OnEvent(T @event) {
-            if (Filter != null) {
+            if (Filter == null) {
+                Debug.Event(TopicName, Name, $"Origin: {GetNodeInfo(@event.Origin)} | -> Ok");
+            } else {
                 var matches = @event.Filter == Filter;
                 if (!matches) {
                     Debug.Event(TopicName, Name,
@@ -62,8 +60,6 @@ namespace Tools.Bus {
                 }
                 Debug.Event(TopicName, Name,
                     $"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | -> Ok");
-            } else {
-                Debug.Event(TopicName, Name, $"Origin: {GetNodeInfo(@event.Origin)} | -> Ok");
             }
             Execute(@event);
         }

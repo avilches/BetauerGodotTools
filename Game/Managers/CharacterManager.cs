@@ -44,7 +44,7 @@ namespace Veronenger.Game.Managers {
         public void EnablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, true);
         public void DisablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, false);
 
-        private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotUnicastTopic<BodyOnArea2D>("PlayerWeapon_enter");
+        private GodotTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotTopic<BodyOnArea2D>("PlayerWeapon_enter");
         // private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();
 
         void PlayerWeapon_BodyEntered(Node body, Area2D area2D) => _playerWeapon_enterTopic.Publish(new BodyOnArea2D(body, area2D));
