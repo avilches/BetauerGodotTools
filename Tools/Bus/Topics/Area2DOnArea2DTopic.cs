@@ -48,7 +48,7 @@ namespace Tools.Bus.Topics {
      * StatusSubscriber. It will return a Area2DOnArea2DStatus where the internal variable IsOverlapping will be
      * updated by the events in real time.
      */
-    public class Area2DOnArea2DTopic : Node {
+    public class Area2DOnArea2DTopic : Object {
         private GodotMulticastTopic<Area2DOnArea2D> _enterTopic;
         private GodotMulticastTopic<Area2DOnArea2D> _exitTopic;
 

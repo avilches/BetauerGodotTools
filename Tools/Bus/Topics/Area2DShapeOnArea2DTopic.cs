@@ -35,7 +35,7 @@ namespace Tools.Bus.Topics {
      * The topic listen for all signals of area_entered and area_exited in all the Area2D added by the method AddArea2D
      * To receive this event, subscribe to them.
      */
-    public class Area2DShapeOnArea2DTopic : Node {
+    public class Area2DShapeOnArea2DTopic : Object {
         private GodotMulticastTopic<Area2DShapeOnArea2D> _enterTopic;
         private GodotMulticastTopic<Area2DShapeOnArea2D> _exitTopic;
 
