@@ -5,10 +5,6 @@ namespace Tools.Bus {
         public Node Origin { get; }
     }
 
-    public interface IGodotFilterEvent: IGodotEvent {
-        public Node Filter { get; }
-    }
-
     public abstract class GodotListener<T> : EventListener<T> where T : IGodotEvent {
         public Node Owner { get; }
         public string TopicName { get; set; }
@@ -34,6 +30,10 @@ namespace Tools.Bus {
         }
 
         public abstract void OnEvent(T @event);
+    }
+
+    public interface IGodotFilterEvent: IGodotEvent {
+        public Node Filter { get; }
     }
 
     public abstract class GodotFilterListener<T> : GodotListener<T> where T : IGodotFilterEvent {

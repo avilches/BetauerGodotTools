@@ -352,7 +352,7 @@ position = Vector2( 83.4929, -10.62 )
 texture = ExtResource( 6 )
 offset = Vector2( -83.4929, -21.38 )
 hframes = 5
-frame = 2
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
 anims/Attack = SubResource( 2 )

@@ -57,9 +57,9 @@ namespace Veronenger.Game.Managers.Autoload {
                 ScreenManager.Start(this, nameof(OnScreenResized));
                 ScreenManager.SetAll(false, 1, false);
             } else {
-                ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep);
+                ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Viewport, SceneTree.StretchAspect.Keep);
                 ScreenManager.Start(this, nameof(OnScreenResized));
-                ScreenManager.SetAll(false, 2, false);
+                ScreenManager.SetAll(false, 3, false);
             }
         }
 
