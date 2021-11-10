@@ -1,25 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using Godot;
-using Godot.Collections;
 using static Godot.Mathf;
 
 namespace Tools {
     public delegate void BodyOnArea2DSignalMethod(Node body, Area2D area2D);
 
     public class GodotTools {
-        // TODO: REMOVE and use Topic
-        public static void ListenArea2DCollisionsWithBodies(Area2D area2D, BodyOnArea2DSignalMethod enter, BodyOnArea2DSignalMethod exit = null) {
-            if (enter.Target is Object nodeEnter) {
-                area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, nodeEnter, enter.Method.Name,
-                    new Array { area2D });
-                if (exit != null && enter.Target is Object nodeExit) {
-                    area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, nodeExit, exit.Method.Name,
-                        new Array { area2D });
-                }
-            }
-        }
-
         public static bool IsDisposed(Object @object) => @object != null && @object.NativeInstance == System.IntPtr.Zero;
 
         public static T FindChild<T>(Node parent) where T : class {

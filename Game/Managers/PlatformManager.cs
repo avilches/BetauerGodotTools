@@ -43,9 +43,9 @@ namespace Veronenger.Game.Managers {
                         AddArea2DFallingPlatformExit(area2D);
                     }
                 platform.AddToGroup(GROUP_FALLING_PLATFORMS);
-                platform.SetCollisionLayerBit(FALL_PLATFORM_LAYER, true);
+                platform.SetCollisionLayerBit(LayerFallPlatform, true);
             } else {
-                platform.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
+                platform.SetCollisionLayerBit(LayerRegularPlatform, true);
             }
 
             if (moving) {
@@ -57,12 +57,12 @@ namespace Veronenger.Game.Managers {
         public void ConfigureArea2DAsPlatform(Area2D upHall) {
             upHall.CollisionMask = 0;
             upHall.CollisionLayer = 0;
-            upHall.SetCollisionLayerBit(REGULAR_PLATFORM_LAYER, true);
+            upHall.SetCollisionLayerBit(LayerRegularPlatform, true);
         }
 
         public void ConfigurePlayerCollisions(CharacterController kb2d) {
-            kb2d.SetCollisionMaskBit(REGULAR_PLATFORM_LAYER, true);
-            kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
+            kb2d.SetCollisionMaskBit(LayerRegularPlatform, true);
+            kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
         }
 
         public bool IsMovingPlatform(KinematicBody2D platform) => platform.IsInGroup(GROUP_MOVING_PLATFORMS);
@@ -73,11 +73,11 @@ namespace Veronenger.Game.Managers {
          * Platform falling & body out
          */
         // Provoca la caida del jugador desde la plataforma quitando la mascara
-        public void BodyFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, false);
-        public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(FALL_PLATFORM_LAYER);
+        public void BodyFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, false);
+        public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(LayerFallPlatform);
         // Para la caida del jugador
 
-        public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(FALL_PLATFORM_LAYER, true);
+        public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
         private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");
         private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.AddArea2D(area2D);
         public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) => _platformBodyOutTopic.Subscribe(enterListener);

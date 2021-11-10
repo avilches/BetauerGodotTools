@@ -1,15 +1,15 @@
 using Godot;
-using Tools.Bus;
 using Tools.Bus.Topics;
 using Veronenger.Game.Character;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
-using static Tools.GodotTools;
 
 namespace Veronenger.Game.Managers {
-    public class CharacterManager : Object /* needed to connect to signals */  {
+    public class CharacterManager {
         private const string GROUP_ENEMY = "enemy";
+
+        private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 
         /**
          * No almacena nada, solo permite que enemigos y armas se suscriban a cambios
@@ -18,7 +18,9 @@ namespace Veronenger.Game.Managers {
         public void ConfigurePlayerCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
-            playerController.SetCollisionLayerBit(PLAYER_LAYER, true);
+            // TODO: layer bit should be in an area2d and it should be used to get damage, so rename LayerPlayer by
+            // LayerDamagePlayer
+            // playerController.SetCollisionLayerBit(LayerPlayer, true);
             GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(playerController);
             GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
@@ -27,35 +29,19 @@ namespace Veronenger.Game.Managers {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
-            enemy.SetCollisionLayerBit(ENEMY_LAYER, true);
+            // TODO: layer bit should be in an area2d
+            enemy.SetCollisionLayerBit(LayerEnemy, true);
 
             GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(enemy);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
-        // Thi
-        public void RegisterPlayerWeapon(Area2D playerWeaponArea2D) {
+        public void ConfigurePlayerAreaAttack(Area2D playerWeaponArea2D) {
             playerWeaponArea2D.CollisionMask = 0;
             playerWeaponArea2D.CollisionLayer = 0;
-            ListenArea2DCollisionsWithBodies(playerWeaponArea2D, PlayerWeapon_BodyEntered); //
+            playerWeaponArea2D.SetCollisionMaskBit(LayerEnemy, true);
+            _playerAttackTopic.AddArea2D(playerWeaponArea2D);
         }
-
-        public void EnablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, true);
-        public void DisablePlayerWeapon(Area2D playerWeaponArea2D) => playerWeaponArea2D.SetCollisionMaskBit(ENEMY_LAYER, false);
-
-        private GodotTopic<BodyOnArea2D> _playerWeapon_enterTopic = new GodotTopic<BodyOnArea2D>("PlayerWeapon_enter");
-        // private GodotUnicastTopic<BodyOnArea2D> _playerWeapon_exitTopic = new GodotUnicastTopic<BodyOnArea2D>();
-
-        void PlayerWeapon_BodyEntered(Node body, Area2D area2D) => _playerWeapon_enterTopic.Publish(new BodyOnArea2D(body, area2D));
-        // void PlayerWeapon_BodyExited(Node body, Area2D area2D) => _playerWeapon_exitTopic.Publish(new BodyOnArea2D(body, area2D));
-
-        // Enemies (or the player!) can subscribe to this event to check if an attack has been done to them
-        public void SubscribePlayerWeaponCollision(GodotListener<BodyOnArea2D> enterListener) {
-            // NodeFromListener<BodyOnArea2D> exitListener = null) {
-            _playerWeapon_enterTopic.Subscribe(enterListener);
-            // if (exitListener != null) _playerWeapon_exitTopic.Subscribe(exitListener);
-        }
-
     }
 }

@@ -12,12 +12,8 @@ using Veronenger.Game.Managers.Autoload;
 namespace Veronenger.Game.Controller.Character {
     public class PlayerController : CharacterController {
         public PlayerConfig PlayerConfig => (PlayerConfig)CharacterConfig;
-        private readonly StateMachine _stateMachine;
         public readonly MyPlayerActions PlayerActions;
         private AnimationPlayer _animationPlayer;
-        private Sprite _sprite;
-        private Label _label;
-
         private Area2D _attack;
 
 
@@ -38,26 +34,36 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _EnterTree() {
             _sprite = GetNode<Sprite>("Sprite");
+            GD.Print("SPRITE "+_sprite?.NativeInstance);
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
             _label = GetNode<Label>("Label");
-            _attack = GetNode<Area2D>("Attack");
+            _attack = GetNode<Area2D>("AttackArea");
         }
+
+        /**
+         * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
+         */
+        public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
+        public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
+        private BodyOnArea2DStatus _slopeStairsDown;
+        private BodyOnArea2DStatus _slopeStairsUp;
 
         public override void _Ready() {
             GameManager.Instance.RegisterPlayerController(this);
 
-            CharacterManager.RegisterPlayerWeapon(_attack);
-
-            PlatformManager.SubscribeFallingPlatformOut(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
+            CharacterManager.ConfigurePlayerAreaAttack(_attack);
 
             _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
             _slopeStairsDown = SlopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
+
             SlopeStairsManager.SubscribeSlopeStairsEnabler(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsEnablerEnter));
             SlopeStairsManager.SubscribeSlopeStairsDisabler(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsDisablerEnter));
+
+            PlatformManager.SubscribeFallingPlatformOut(
+                new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
 
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }
@@ -74,10 +80,6 @@ namespace Veronenger.Game.Controller.Character {
             SlopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
-        public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
-        public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
-        private BodyOnArea2DStatus _slopeStairsDown;
-        private BodyOnArea2DStatus _slopeStairsUp;
 
         public void _OnFallingPlatformExit(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
 
@@ -132,31 +134,6 @@ namespace Veronenger.Game.Controller.Character {
             // GD.Print("Mine:" + mine);
             // GD.Print("Godo:" + godot);
             // }
-        }
-
-        public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
-            _stateMachine.SetNextConfig(config);
-        }
-
-        public void SetNextConfig(string key, object value) {
-            _stateMachine.SetNextConfig(key, value);
-        }
-
-        public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
-            return _stateMachine.GetNextConfig();
-        }
-
-        public void SetNextState(Type nextStateType, bool immediate = false) {
-            _stateMachine.SetNextState(nextStateType, immediate);
-        }
-
-        public void Flip(float xInput) {
-            if (xInput == 0) return;
-            Flip(xInput < 0);
-        }
-
-        public void Flip(bool left) {
-            _sprite.FlipH = left;
         }
 
         private string _currentAnimation = null;

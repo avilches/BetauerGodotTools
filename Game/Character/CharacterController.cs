@@ -1,12 +1,17 @@
 using System;
 using Godot;
 using Tools;
+using Tools.Statemachine;
 using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
         protected CharacterConfig CharacterConfig;
+        protected StateMachine _stateMachine;
+        protected Sprite _sprite;
+        protected Label _label;
+
         public float Delta { get; private set; } = 0.16f;
         public Vector2 Motion = Vector2.Zero;
         private Vector2 _lastMotion = Vector2.Zero;
@@ -17,6 +22,35 @@ namespace Veronenger.Game.Character {
         public long GetFrame() {
             return _frame;
         }
+
+        public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
+            _stateMachine.SetNextConfig(config);
+        }
+
+        public void SetNextConfig(string key, object value) {
+            _stateMachine.SetNextConfig(key, value);
+        }
+
+        public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
+            return _stateMachine.GetNextConfig();
+        }
+
+        public void SetNextState(Type nextStateType, bool immediate = false) {
+            _stateMachine.SetNextState(nextStateType, immediate);
+        }
+
+        public void Flip(float xInput) {
+            if (xInput == 0) return;
+            // TODO: write the FlipH on every frame (cost 1) is cheaper (in terms of inter-op cost) than read the FlipH
+            // and, if it's different, change it (read 1 op + write: 2 ops in the worst case).
+            // If the FlipH value is cached, the inter-op cost will be 0 if no change, 1 if change
+            Flip(xInput < 0);
+        }
+
+        public void Flip(bool left) {
+            _sprite.FlipH = left;
+        }
+
 
         public void Debug(bool flag, string message) {
             if (flag) {

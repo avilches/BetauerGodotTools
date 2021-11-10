@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Game/Controller/Tools/Collored2DController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Skeleton/Skeleton Idle.png" type="Texture" id=2]
+[ext_resource path="res://Game/Controller/Character/EnemyController.cs" type="Script" id=3]
 [ext_resource path="res://Characters/Skeleton/Skeleton Walk.png" type="Texture" id=4]
 
 [sub_resource type="Animation" id=1]
@@ -44,9 +45,9 @@ extents = Vector2( 4, 12 )
 [node name="EnemySkeleton" type="KinematicBody2D"]
 collision_layer = 2048
 collision_mask = 13
+script = ExtResource( 3 )
 
 [node name="SpriteIdle" type="Sprite" parent="."]
-visible = false
 texture = ExtResource( 2 )
 hframes = 11
 frame = 1

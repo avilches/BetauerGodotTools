@@ -5,12 +5,13 @@ using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
-    public class AreaManager : Object /* needed to connect to signals */ {
+    public class AreaManager : Object /* needed to signal listen */{
 
         public void ConfigureDeathZone(Area2D deathArea2D) {
             deathArea2D.CollisionLayer = 0;
             deathArea2D.CollisionMask = 0;
-            deathArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
+            // TODO: this should be a topic, so other places can subscribe like remove all bullets
+            deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
             deathArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_on_player_entered_death_zone),
                 new Array { deathArea2D });
         }
@@ -26,7 +27,7 @@ namespace Veronenger.Game.Managers {
                 new Array { sceneChangeArea2D, scene });
             sceneChangeArea2D.CollisionLayer = 0;
             sceneChangeArea2D.CollisionMask = 0;
-            sceneChangeArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
+            sceneChangeArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
         }
 
         public void _on_player_entered_scene_change(Area2D player, Area2D stageEnteredArea2D, string scene) {

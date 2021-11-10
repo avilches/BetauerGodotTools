@@ -1,12 +1,11 @@
 namespace Veronenger.Game.Tools {
     public static class LayerConstants {
-        public const int REGULAR_PLATFORM_LAYER = 0;
-        public const int SLOPE_STAIRS_LAYER = 1;
-        public const int SLOPE_STAIRS_COVER_LAYER = 2;
-        public const int FALL_PLATFORM_LAYER = 3;
-        public const int PLAYER_LAYER = 10;
-        public const int ENEMY_LAYER = 11;
-
-        public const int PLAYER_DETECTOR_LAYER = 12;
+        public const int LayerRegularPlatform = 0;
+        public const int LayerSlopeStairs = 1;
+        public const int LayerSlopeStairsCover = 2;
+        public const int LayerFallPlatform = 3;
+        // public const int LayerPlayer = 10;
+        public const int LayerEnemy = 11;
+        public const int LayerPlayerStageDetector = 12; // this should be a 1px vertical line
     }
 }

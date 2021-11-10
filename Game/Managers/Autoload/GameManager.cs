@@ -18,7 +18,7 @@ namespace Veronenger.Game.Managers.Autoload {
      * donde estan realmente estos objetos (plataformas o areas).
      *
      */
-    public class GameManager : Node {
+    public class GameManager  : Node /* needed to receive _EnterTree and OnScreenResized signals */ {
         public static GameManager Instance { get; private set; }
 
         public readonly AreaManager AreaManager;

@@ -17,7 +17,7 @@ namespace Veronenger.Game.Managers {
             _stageCameraController = stageCameraController;
             stageDetector.CollisionLayer = 0;
             stageDetector.CollisionMask = 0;
-            stageDetector.SetCollisionMaskBit(PLAYER_DETECTOR_LAYER, true);
+            stageDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
             _stageTopic.Subscribe("StageDetector", stageDetector, stageDetector, OnEnterStage, OnExitStage);
         }
 
@@ -25,7 +25,7 @@ namespace Veronenger.Game.Managers {
             _stageTopic.AddArea2D(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
-            stageArea2D.SetCollisionLayerBit(PLAYER_DETECTOR_LAYER, true);
+            stageArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
         }
 
         public void Subscribe(GodotListener<Area2DShapeOnArea2D> enterListener,

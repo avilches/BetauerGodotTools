@@ -5,24 +5,21 @@ using Tools.Bus.Topics;
 using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Character.Player.States;
+using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
     public class EnemyController : CharacterController {
-        public PlayerConfig EnemyConfig => (PlayerConfig)CharacterConfig;
+        public CharacterConfig EnemyConfig => CharacterConfig;
         private readonly StateMachine _stateMachine;
         private AnimationPlayer _animationPlayer;
-        private Sprite _sprite;
-        private Label _label;
 
         public EnemyController() {
-            CharacterConfig = new PlayerConfig();
+            CharacterConfig = new CharacterConfig();
 
             // State Machine
-            _stateMachine = new StateMachine(EnemyConfig, this);
-            // .AddState(new GroundStateIdle(this))
+            _stateMachine = new StateMachine(EnemyConfig, this)
+                .AddState(new GroundStateIdle( /*this*/));
         }
 
         public override void _EnterTree() {
@@ -80,31 +77,6 @@ namespace Veronenger.Game.Controller.Character {
             // GD.Print("Mine:" + mine);
             // GD.Print("Godo:" + godot);
             // }
-        }
-
-        public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
-            _stateMachine.SetNextConfig(config);
-        }
-
-        public void SetNextConfig(string key, object value) {
-            _stateMachine.SetNextConfig(key, value);
-        }
-
-        public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
-            return _stateMachine.GetNextConfig();
-        }
-
-        public void SetNextState(Type nextStateType, bool immediate = false) {
-            _stateMachine.SetNextState(nextStateType, immediate);
-        }
-
-        public void Flip(float xInput) {
-            if (xInput == 0) return;
-            Flip(xInput < 0);
-        }
-
-        public void Flip(bool left) {
-            _sprite.FlipH = left;
         }
 
         private string _currentAnimation = null;
