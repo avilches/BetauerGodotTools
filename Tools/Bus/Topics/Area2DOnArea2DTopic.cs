@@ -31,6 +31,14 @@ namespace Tools.Bus.Topics {
             _owner = owner;
         }
 
+        public bool JustHappened; // TODO it could be interesting to know so
+        /*
+         * JustHappened | IsOverlapping |
+         * true         | true          | Overlap happens in current frame
+         * false        | true          | Overlap happened in previous frame and continued in this one
+         * true         | false         | Overlapped in the previous frame, but it's not overlapping any more
+         * false        | false         | Overlapping is not happening now neither in the previous frame
+         */
         public bool IsOverlapping { get; protected internal set; }
 
         public bool IsDisposed() {
