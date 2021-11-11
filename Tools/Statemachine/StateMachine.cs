@@ -103,7 +103,7 @@ namespace Tools.Statemachine {
         private void StartState() {
             if (_currentState == null) return;
             DebugStateFlow($"#{Frame}: {_currentState.GetType().Name}.Start()");
-            _currentState.Configure(_nextConfig);
+            if (_nextConfig != null) _currentState.Configure(_nextConfig);
             _nextConfig = null;
             _currentState.Start();
         }

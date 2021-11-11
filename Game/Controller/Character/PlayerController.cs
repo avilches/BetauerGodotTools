@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Tools;
 using Tools.Bus.Topics;
@@ -6,6 +5,7 @@ using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
+using Veronenger.Game.Character.Player.Animations;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers.Autoload;
 
@@ -16,16 +16,36 @@ namespace Veronenger.Game.Controller.Character {
         private AnimationPlayer _animationPlayer;
         private Area2D _attack;
 
+        public readonly Clock FallingJumpClock = new Clock().Disable();
+        public readonly Clock FallingClock = new Clock().Disable();
+
+
 
         public PlayerController() {
             CharacterConfig = new PlayerConfig();
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
 
-            // State Machine
+            // State Machines
+
+            // private const string JUMP_ANIMATION = "Jump";
+            // private const string IDLE_ANIMATION = "Idle";
+            // private const string RUN_ANIMATION = "Run";
+            // private const string FALL_ANIMATION = "Fall";
+            // private const string ATTACK_ANIMATION = "Attack";
+            // private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
+
+            // public void AnimateJump() => AnimationPlay(JUMP_ANIMATION);
+            // public void AnimateIdle() => AnimationPlay(IDLE_ANIMATION);
+            // public void AnimateRun() => AnimationPlay(RUN_ANIMATION);
+            // public void AnimateFall() => AnimationPlay(FALL_ANIMATION);
+            // public void AnimateAttack() => AnimationPlay(ATTACK_ANIMATION);
+            // public void AnimateJumpAttack() => AnimationPlay(JUMP_ATTACK_ANIMATION);
+
             _stateMachine = new StateMachine(PlayerConfig, this)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
-                .AddState(new AirStateFall(this))
+                .AddState(new AirStateFallShort(this))
+                .AddState(new AirStateFallLong(this))
                 .AddState(new AirStateJump(this));
 
             // Mapping
@@ -34,11 +54,19 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _EnterTree() {
             _sprite = GetNode<Sprite>("Sprite");
-            GD.Print("SPRITE "+_sprite?.NativeInstance);
             _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             _stateMachine.SetNextState(typeof(GroundStateIdle));
             _label = GetNode<Label>("Label");
             _attack = GetNode<Area2D>("AttackArea");
+
+            _animationMachine = new AnimationStateMachine(_animationPlayer)
+                .AddAnimation(new AnimationIdle( "Idle"))
+                .AddAnimation(new AnimationRun( "Run"))
+                .AddAnimation(new AnimationFall( "Fall"))
+                .AddAnimation(new AnimationAttack( "Attack", this))
+                .AddAnimation(new AnimationJumpAttack( "JumpAttack", this))
+                .AddAnimation(new AnimationJump( "Jump"));
+
         }
 
         /**
@@ -64,8 +92,6 @@ namespace Veronenger.Game.Controller.Character {
 
             PlatformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
-
-            _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this, nameof(OnAnimationFinished));
         }
 
         public void EnableSlopeStairs() {
@@ -88,6 +114,8 @@ namespace Veronenger.Game.Controller.Character {
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
         protected override void PhysicsProcess() {
+            FallingJumpClock.Add(Delta);
+            FallingClock.Add(Delta);
             _stateMachine.Execute();
             PlayerActions.ClearJustState();
             /*
@@ -136,34 +164,34 @@ namespace Veronenger.Game.Controller.Character {
             // }
         }
 
-        private string _currentAnimation = null;
-        private const string JUMP_ANIMATION = "Jump";
-        private const string IDLE_ANIMATION = "Idle";
-        private const string RUN_ANIMATION = "Run";
-        private const string FALL_ANIMATION = "Fall";
-        private const string ATTACK_ANIMATION = "Attack";
-        private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
+        // private string _currentAnimation = null;
+        // private const string JUMP_ANIMATION = "Jump";
+        // private const string IDLE_ANIMATION = "Idle";
+        // private const string RUN_ANIMATION = "Run";
+        // private const string FALL_ANIMATION = "Fall";
+        // private const string ATTACK_ANIMATION = "Attack";
+        // private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
 
-        public void AnimateJump() => AnimationPlay(JUMP_ANIMATION);
-        public void AnimateIdle() => AnimationPlay(IDLE_ANIMATION);
-        public void AnimateRun() => AnimationPlay(RUN_ANIMATION);
-        public void AnimateFall() => AnimationPlay(FALL_ANIMATION);
-        public void AnimateAttack() => AnimationPlay(ATTACK_ANIMATION);
-        public void AnimateJumpAttack() => AnimationPlay(JUMP_ATTACK_ANIMATION);
-        private string _previousAnimation = null;
+        public void AnimateJump() => _animationMachine.Play(typeof(AnimationJump));
+        public void AnimateIdle() => _animationMachine.Play(typeof(AnimationIdle));
+        public void AnimateRun() => _animationMachine.Play(typeof(AnimationRun));
+        public void AnimateFall() => _animationMachine.Play(typeof(AnimationFall));
+        public void AnimateAttack() => _animationMachine.Play(typeof(AnimationAttack));
+        public void AnimateJumpAttack() => _animationMachine.Play(typeof(AnimationJumpAttack));
+        // private string _previousAnimation = null;
 
         public bool IsAttacking = false;
 
-        private void AnimationPlay(string newAnimation) {
-            if (_currentAnimation == newAnimation) return;
-            if (IsAttacking) {
-                _previousAnimation = newAnimation;
-            } else {
-                _previousAnimation = _currentAnimation;
-                _animationPlayer.Play(newAnimation);
-                _currentAnimation = newAnimation;
-            }
-        }
+        // private void AnimationPlay(string newAnimation) {
+            // if (_currentAnimation == newAnimation) return;
+            // if (IsAttacking) {
+                // _previousAnimation = newAnimation;
+            // } else {
+                // _previousAnimation = _currentAnimation;
+                // _animationPlayer.Play(newAnimation);
+                // _currentAnimation = newAnimation;
+            // }
+        // }
 
         public void Attack(bool floor) {
             if (IsAttacking) return;
@@ -172,21 +200,20 @@ namespace Veronenger.Game.Controller.Character {
             } else {
                 AnimateJumpAttack();
             }
-
             IsAttacking = true;
         }
 
-        public void OnAnimationFinished(string animation) {
-            var attackingAnimation = animation == ATTACK_ANIMATION || animation == JUMP_ATTACK_ANIMATION;
-            if (attackingAnimation) {
-                IsAttacking = false;
-            }
-
-            GD.Print($"IsAttacking {IsAttacking} (finished {animation} is attacking {attackingAnimation})");
-            if (_previousAnimation != null) {
-                AnimationPlay(_previousAnimation);
-            }
-        }
+        // public void OnAnimationFinished(string animation) {
+        //     var attackingAnimation = animation == ATTACK_ANIMATION || animation == JUMP_ATTACK_ANIMATION;
+        //     if (attackingAnimation) {
+        //         IsAttacking = false;
+        //     }
+        //
+        //     GD.Print($"IsAttacking {IsAttacking} (finished {animation} is attacking {attackingAnimation})");
+        //     if (_previousAnimation != null) {
+        //         AnimationPlay(_previousAnimation);
+        //     }
+        // }
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");

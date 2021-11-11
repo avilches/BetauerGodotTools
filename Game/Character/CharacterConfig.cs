@@ -12,7 +12,9 @@ namespace Veronenger.Game.Character {
         public bool DEBUG_COLLISION = false;
         public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = false;
         public bool DEBUG_MOTION = false;
-        public bool DEBUG_JUMP = false;
+        public bool DEBUG_JUMP_VELOCITY = false;
+        public bool DEBUG_JUMP_HELPER = true;
+        public bool DEBUG_JUMP_COYOTE = false;
 
         // CONFIG: ground
         public float MAX_SPEED = 120f; // pixels/seconds
@@ -30,7 +32,7 @@ namespace Veronenger.Game.Character {
         public float MAX_FALLING_SPEED = 2000; // max speed in free fall
 
         public float
-            START_FALLING_SPEED = 100; // speed where the player changes to falling (test with fast downwards platform!)
+            START_FALLING_SPEED = 400; // speed where the player changes to falling (test with fast downwards platform!)
 
         public float AIR_RESISTANCE = 0; // 0=stop immediately, 1=keep lateral movement until the end of the jump
 

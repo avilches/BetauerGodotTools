@@ -1,7 +1,7 @@
 namespace Veronenger.Game.Character.Player {
 	public class PlayerConfig : CharacterConfig {
 		public const float COYOTE_TIME = 0.1f; // seconds. How much time the player can jump when falling
-		public const float JUMP_HELPER_TIME = 0.2f; // seconds. If the user press jump just before land
+		public const float JUMP_HELPER_TIME = 0.1f; // seconds. If the user press jump just before land
 		public const int MAX_JUMPS = 1;
 
 		public PlayerConfig() {

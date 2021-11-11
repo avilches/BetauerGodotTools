@@ -12,7 +12,7 @@ namespace Veronenger.Game.Character.Player.States {
 
         public override void Execute() {
             if (!Player.IsOnFloor()) {
-                GoToFallState(true);
+                GoToFallShortState(true);
                 return;
             }
 

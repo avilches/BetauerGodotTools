@@ -2,6 +2,7 @@ using System;
 using Godot;
 using Tools;
 using Tools.Statemachine;
+using Veronenger.Game.Character.Player.Animations;
 using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 
@@ -9,6 +10,7 @@ namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
         protected CharacterConfig CharacterConfig;
         protected StateMachine _stateMachine;
+        protected AnimationStateMachine _animationMachine;
         protected Sprite _sprite;
         protected Label _label;
 

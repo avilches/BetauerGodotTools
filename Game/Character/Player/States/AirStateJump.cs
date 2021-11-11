@@ -8,14 +8,14 @@ namespace Veronenger.Game.Character.Player.States {
 
         public override void Start() {
             Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
-            Debug(PlayerConfig.DEBUG_JUMP,
+            Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
                 "Jump: decelerating to " + -PlayerConfig.JUMP_FORCE);
             Player.AnimateJump();
         }
 
         public override void Execute() {
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
-                Debug(PlayerConfig.DEBUG_JUMP,
+                Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
                     "Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JUMP_FORCE_MIN);
                 Player.SetMotionY(-PlayerConfig.JUMP_FORCE_MIN);
             }
@@ -34,7 +34,7 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             if (Motion.y >= 0) { // Ya no sube: se queda quieto exactamente (raro) o empieza a caer
-                GoToFallState();
+                GoToFallShortState();
             }
         }
     }

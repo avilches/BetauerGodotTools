@@ -11,7 +11,7 @@ namespace Veronenger.Game.Character.Player.States {
             if (IsDown && Player.IsOnFallingPlatform()) {
                 PlatformManager.BodyFallFromPlatform(Player);
             } else {
-                GoToJumpState();
+                GoToJumpState(true);
             }
             return true;
         }
