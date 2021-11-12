@@ -27,20 +27,6 @@ namespace Veronenger.Game.Controller.Character {
 
             // State Machines
 
-            // private const string JUMP_ANIMATION = "Jump";
-            // private const string IDLE_ANIMATION = "Idle";
-            // private const string RUN_ANIMATION = "Run";
-            // private const string FALL_ANIMATION = "Fall";
-            // private const string ATTACK_ANIMATION = "Attack";
-            // private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
-
-            // public void AnimateJump() => AnimationPlay(JUMP_ANIMATION);
-            // public void AnimateIdle() => AnimationPlay(IDLE_ANIMATION);
-            // public void AnimateRun() => AnimationPlay(RUN_ANIMATION);
-            // public void AnimateFall() => AnimationPlay(FALL_ANIMATION);
-            // public void AnimateAttack() => AnimationPlay(ATTACK_ANIMATION);
-            // public void AnimateJumpAttack() => AnimationPlay(JUMP_ATTACK_ANIMATION);
-
             _stateMachine = new StateMachine(PlayerConfig, this)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
@@ -59,13 +45,13 @@ namespace Veronenger.Game.Controller.Character {
             _label = GetNode<Label>("Label");
             _attack = GetNode<Area2D>("AttackArea");
 
-            _animationMachine = new AnimationStateMachine(_animationPlayer)
-                .AddAnimation(new AnimationIdle( "Idle"))
-                .AddAnimation(new AnimationRun( "Run"))
-                .AddAnimation(new AnimationFall( "Fall"))
-                .AddAnimation(new AnimationAttack( "Attack", this))
-                .AddAnimation(new AnimationJumpAttack( "JumpAttack", this))
-                .AddAnimation(new AnimationJump( "Jump"));
+            _animationStack = new AnimationStack(_animationPlayer)
+                .AddLoopAnimation(new AnimationIdle("Idle"))
+                .AddLoopAnimation(new AnimationRun("Run"))
+                .AddLoopAnimation(new AnimationJump("Jump"))
+                .AddLoopAnimation(new AnimationFall("Fall"))
+                .AddOnceAnimation(new AnimationAttack("Attack", this))
+                .AddOnceAnimation(new AnimationJumpAttack("JumpAttack", this));
 
         }
 
@@ -164,56 +150,14 @@ namespace Veronenger.Game.Controller.Character {
             // }
         }
 
-        // private string _currentAnimation = null;
-        // private const string JUMP_ANIMATION = "Jump";
-        // private const string IDLE_ANIMATION = "Idle";
-        // private const string RUN_ANIMATION = "Run";
-        // private const string FALL_ANIMATION = "Fall";
-        // private const string ATTACK_ANIMATION = "Attack";
-        // private const string JUMP_ATTACK_ANIMATION = "JumpAttack";
-
-        public void AnimateJump() => _animationMachine.Play(typeof(AnimationJump));
-        public void AnimateIdle() => _animationMachine.Play(typeof(AnimationIdle));
-        public void AnimateRun() => _animationMachine.Play(typeof(AnimationRun));
-        public void AnimateFall() => _animationMachine.Play(typeof(AnimationFall));
-        public void AnimateAttack() => _animationMachine.Play(typeof(AnimationAttack));
-        public void AnimateJumpAttack() => _animationMachine.Play(typeof(AnimationJumpAttack));
-        // private string _previousAnimation = null;
+        public void AnimateJump() => _animationStack.PlayLoop(typeof(AnimationJump));
+        public void AnimateIdle() => _animationStack.PlayLoop(typeof(AnimationIdle));
+        public void AnimateRun() => _animationStack.PlayLoop(typeof(AnimationRun));
+        public void AnimateFall() => _animationStack.PlayLoop(typeof(AnimationFall));
+        public void AnimateAttack() => _animationStack.PlayOnce(typeof(AnimationAttack));
+        public void AnimateJumpAttack() => _animationStack.PlayOnce(typeof(AnimationJumpAttack));
 
         public bool IsAttacking = false;
-
-        // private void AnimationPlay(string newAnimation) {
-            // if (_currentAnimation == newAnimation) return;
-            // if (IsAttacking) {
-                // _previousAnimation = newAnimation;
-            // } else {
-                // _previousAnimation = _currentAnimation;
-                // _animationPlayer.Play(newAnimation);
-                // _currentAnimation = newAnimation;
-            // }
-        // }
-
-        public void Attack(bool floor) {
-            if (IsAttacking) return;
-            if (floor) {
-                AnimateAttack();
-            } else {
-                AnimateJumpAttack();
-            }
-            IsAttacking = true;
-        }
-
-        // public void OnAnimationFinished(string animation) {
-        //     var attackingAnimation = animation == ATTACK_ANIMATION || animation == JUMP_ATTACK_ANIMATION;
-        //     if (attackingAnimation) {
-        //         IsAttacking = false;
-        //     }
-        //
-        //     GD.Print($"IsAttacking {IsAttacking} (finished {animation} is attacking {attackingAnimation})");
-        //     if (_previousAnimation != null) {
-        //         AnimationPlay(_previousAnimation);
-        //     }
-        // }
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");

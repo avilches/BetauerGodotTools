@@ -10,7 +10,7 @@ namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
         protected CharacterConfig CharacterConfig;
         protected StateMachine _stateMachine;
-        protected AnimationStateMachine _animationMachine;
+        protected AnimationStack _animationStack;
         protected Sprite _sprite;
         protected Label _label;
 
@@ -117,6 +117,7 @@ namespace Veronenger.Game.Character {
                 SetMotionX(0);
             } else {
                 SetMotionX(Motion.x * friction);
+                // SetMotionX(Motion.x - (deceleration * Delta * Math.Sign(Motion.x)));
             }
         }
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -10,7 +9,7 @@ namespace Veronenger.Game.Character.Player.States {
         private bool CoyoteJumpEnabled = false;
 
         public override void Configure(Dictionary<string, object> config) {
-            CoyoteJumpEnabled = config[COYOTE_JUMP] is bool && (bool) config[COYOTE_JUMP];
+            CoyoteJumpEnabled = config[COYOTE_JUMP] is bool && (bool)config[COYOTE_JUMP];
         }
 
         public override void Start() {
@@ -18,6 +17,9 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Execute() {
+            if (!Player.IsAttacking) {
+                CheckAttack();
+            }
 
             if (CoyoteJumpEnabled && CheckCoyoteJump()) {
                 return;
@@ -26,8 +28,6 @@ namespace Veronenger.Game.Character.Player.States {
                 GoToFallLongState();
                 return;
             }
-
-            CheckAttack();
 
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
@@ -39,6 +39,5 @@ namespace Veronenger.Game.Character.Player.States {
 
             CheckLanding();
         }
-
     }
 }

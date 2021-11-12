@@ -39,10 +39,12 @@ namespace Veronenger.Game.Character.Player.States {
             return true;
         }
 
-        protected void CheckAttack() {
+        protected bool CheckAttack() {
             if (Attack.JustPressed) {
-                Player.Attack(false);
+                Player.AnimateJumpAttack();
+                return true;
             }
+            return false;
         }
 
         protected bool CheckCoyoteJump() {

@@ -9,14 +9,19 @@ namespace Veronenger.Game.Character.Player.States {
             if (Player.FallingClock.Elapsed > PlayerConfig.COYOTE_TIME) {
                 Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump will never happen in FallLong state: {Player.FallingClock.Elapsed} > {PlayerConfig.COYOTE_TIME}");
             }
+            Player.AnimateFall();
         }
 
+
+
         public override void Execute() {
+            if (!Player.IsAttacking) {
+                CheckAttack();
+            }
+
             if (CheckCoyoteJump()) {
                 return;
             }
-
-            CheckAttack();
 
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
                 PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);

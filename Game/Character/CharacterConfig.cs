@@ -13,7 +13,7 @@ namespace Veronenger.Game.Character {
         public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = false;
         public bool DEBUG_MOTION = false;
         public bool DEBUG_JUMP_VELOCITY = false;
-        public bool DEBUG_JUMP_HELPER = true;
+        public bool DEBUG_JUMP_HELPER = false;
         public bool DEBUG_JUMP_COYOTE = false;
 
         // CONFIG: ground

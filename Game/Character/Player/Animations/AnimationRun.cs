@@ -1,56 +1,57 @@
 using Godot;
 using Veronenger.Game.Controller.Character;
+using Animation = Tools.Animation;
 
 namespace Veronenger.Game.Character.Player.Animations {
-    public class AnimationIdle : AnimationState {
-        public AnimationIdle(string name) : base(name) {
+    public class AnimationIdle : Animation {
+        public AnimationIdle(string name) : base(name, true) {
         }
     }
 
-    public class AnimationJump : AnimationState {
-        public AnimationJump(string name) : base(name) {
+    public class AnimationJump : Animation {
+        public AnimationJump(string name) : base(name, true) {
         }
     }
 
-    public class AnimationAttack : AnimationState {
-        private PlayerController _playerController;
+    public class AnimationFall : Animation {
+        public AnimationFall(string name) : base(name, true) {
+        }
+    }
 
-        public AnimationAttack(string name, PlayerController playerController) : base(name) {
-            _playerController = playerController;
+    public class AnimationRun : Animation {
+        public AnimationRun(string name) : base(name, true) {
+        }
+    }
+
+    public class AnimationAttack : Animation {
+        private readonly PlayerController Player;
+
+        public AnimationAttack(string name, PlayerController player) : base(name, false) {
+            Player = player;
         }
 
-        public override bool OnStart() {
-            return false;
+        public override void CanStart() {
+            Player.IsAttacking = true;
         }
 
         public override void OnEnd() {
-            _playerController.IsAttacking = false;
+            Player.IsAttacking = false;
         }
     }
 
-    public class AnimationJumpAttack : AnimationState {
-        private PlayerController _playerController;
+    public class AnimationJumpAttack : Animation {
+        private readonly PlayerController Player;
 
-        public AnimationJumpAttack(string name, PlayerController playerController) : base(name) {
-            _playerController = playerController;
+        public AnimationJumpAttack(string name, PlayerController player) : base(name, false) {
+            Player = player;
         }
 
-        public override bool OnStart() {
-            return false;
+        public override void CanStart() {
+            Player.IsAttacking = true;
         }
 
         public override void OnEnd() {
-            _playerController.IsAttacking = false;
-        }
-    }
-
-    public class AnimationFall : AnimationState {
-        public AnimationFall(string name) : base(name) {
-        }
-    }
-
-    public class AnimationRun : AnimationState {
-        public AnimationRun(string name) : base(name) {
+            Player.IsAttacking = false;
         }
     }
 }

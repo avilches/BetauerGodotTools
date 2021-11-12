@@ -27,7 +27,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Veronenger"
-run/main_scene="res://Tests/Runner/RunTests.tscn"
+run/main_scene="res://Worlds/World2.tscn"
 config/icon="res://icon.png"
 
 [autoload]
@@ -46,6 +46,7 @@ window/stretch/aspect="keep"
 [global]
 
 sho=false
+scene=false
 
 [importer_defaults]
 

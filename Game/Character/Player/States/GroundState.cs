@@ -16,11 +16,28 @@ namespace Veronenger.Game.Character.Player.States {
             return true;
         }
 
-        protected void CheckAttack() {
-            if (Attack.JustPressed) {
-                Player.Attack(true);
+        protected bool CheckAttack() {
+            if (Attack.JustPressed && !Player.IsAttacking) {
+                Player.AnimateAttack();
+                return true;
             }
+            return false;
         }
 
+        protected void EnableSlopeStairs() {
+            if (Player.IsOnSlopeStairsDown()) {
+                if (IsUp) {
+                    Player.EnableSlopeStairs();
+                } else {
+                    Player.DisableSlopeStairs();
+                }
+            } else if (Player.IsOnSlopeStairsUp()) {
+                if (IsDown) {
+                    Player.EnableSlopeStairs();
+                } else {
+                    Player.DisableSlopeStairs();
+                }
+            }
+        }
     }
 }

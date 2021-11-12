@@ -256,7 +256,7 @@ tracks/2/loop_wrap = true
 tracks/2/imported = false
 tracks/2/enabled = true
 tracks/2/keys = {
-"times": PoolRealArray( 0, 0.12, 0.18 ),
+"times": PoolRealArray( 0, 0.12, 0.26 ),
 "transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
 "values": [ 1, 2, 0 ]
@@ -349,9 +349,9 @@ shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="PlayerBody"]
 position = Vector2( 83.4929, -10.62 )
-texture = ExtResource( 6 )
+texture = ExtResource( 7 )
 offset = Vector2( -83.4929, -21.38 )
-hframes = 5
+hframes = 3
 frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]

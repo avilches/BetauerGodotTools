@@ -11,6 +11,11 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Execute() {
+            if (!Player.IsAttacking) {
+                // Ensure that the jump animation is changed as soon as the previous attack (started from the air) is finished
+                CheckAttack();
+            }
+
             if (!Player.IsOnFloor()) {
                 GoToFallShortState();
                 return;
@@ -20,8 +25,6 @@ namespace Veronenger.Game.Character.Player.States {
                 GoToRunState();
                 return;
             }
-
-            CheckAttack();
 
             if (CheckJump()) return;
 
