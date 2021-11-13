@@ -2,7 +2,6 @@ using System;
 using Godot;
 using Tools;
 using Tools.Statemachine;
-using Veronenger.Game.Character.Player.Animations;
 using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 

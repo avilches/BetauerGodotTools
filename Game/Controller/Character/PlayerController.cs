@@ -5,7 +5,6 @@ using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
-using Veronenger.Game.Character.Player.Animations;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers.Autoload;
 
@@ -46,12 +45,12 @@ namespace Veronenger.Game.Controller.Character {
             _attack = GetNode<Area2D>("AttackArea");
 
             _animationStack = new AnimationStack(_animationPlayer)
-                .AddLoopAnimation(new AnimationIdle("Idle"))
-                .AddLoopAnimation(new AnimationRun("Run"))
-                .AddLoopAnimation(new AnimationJump("Jump"))
-                .AddLoopAnimation(new AnimationFall("Fall"))
-                .AddOnceAnimation(new AnimationAttack("Attack", this))
-                .AddOnceAnimation(new AnimationJumpAttack("JumpAttack", this));
+                .AddLoopAnimation(new LoopAnimationIdle("Idle"))
+                .AddLoopAnimation(new LoopAnimationRun("Run"))
+                .AddLoopAnimation(new LoopAnimationJump("Jump"))
+                .AddLoopAnimation(new LoopAnimationFall("Fall"))
+                .AddOnceAnimation(new AnimationAttack("Attack"))
+                .AddOnceAnimation(new AnimationJumpAttack("JumpAttack"));
 
         }
 
@@ -150,14 +149,14 @@ namespace Veronenger.Game.Controller.Character {
             // }
         }
 
-        public void AnimateJump() => _animationStack.PlayLoop(typeof(AnimationJump));
-        public void AnimateIdle() => _animationStack.PlayLoop(typeof(AnimationIdle));
-        public void AnimateRun() => _animationStack.PlayLoop(typeof(AnimationRun));
-        public void AnimateFall() => _animationStack.PlayLoop(typeof(AnimationFall));
+        public void AnimateJump() => _animationStack.PlayLoop(typeof(LoopAnimationJump));
+        public void AnimateIdle() => _animationStack.PlayLoop(typeof(LoopAnimationIdle));
+        public void AnimateRun() => _animationStack.PlayLoop(typeof(LoopAnimationRun));
+        public void AnimateFall() => _animationStack.PlayLoop(typeof(LoopAnimationFall));
         public void AnimateAttack() => _animationStack.PlayOnce(typeof(AnimationAttack));
         public void AnimateJumpAttack() => _animationStack.PlayOnce(typeof(AnimationJumpAttack));
 
-        public bool IsAttacking = false;
+        public bool IsAttacking => _animationStack.IsPlaying(typeof(AnimationAttack)) || _animationStack.IsPlaying(typeof(AnimationJumpAttack));
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");
