@@ -29,7 +29,7 @@ namespace Tools.Statemachine {
         }
 
         public void SetNextState(Type nextStateType, bool immediate = false) {
-            var nextState = _states[nextStateType];
+            State nextState = _states[nextStateType];
             if (_nextState == null) {
                 DebugStateFlow(
                     $"#{Frame}: {_currentState?.GetType().Name} | Next State = {nextState.GetType().Name}{(immediate ? " (immediate)" : " (next frame)")}");
@@ -58,19 +58,23 @@ namespace Tools.Statemachine {
         }
 
 
+        private const int MAX_CHANGES = 2;
+
         public void Execute() {
             var stateChanges = 0;
-            var list = new List<string>();
+            var immediateChanges = new List<string>(MAX_CHANGES+1);
             CheckNextState(_nextState);
             do {
-                list.Add(_currentState.GetType().Name);
-                ExecuteState();
+                immediateChanges.Add(_currentState.GetType().Name);
+                _currentState?.Execute();
                 stateChanges++;
-                if (stateChanges > 10) {
-                    list.ForEach(state=> GD.Print(state));
-                    throw new Exception($"State has been changed too many times in the same frame: {stateChanges}");
+                if (stateChanges > MAX_CHANGES) {
+                    throw new Exception($"{stateChanges} > {MAX_CHANGES} immediate changes in the same frame: {string.Join(", ", immediateChanges)}");
                 }
             } while (CheckNextState(_nextState != null && _nextStateImmediate ? _nextState : null));
+            // if (stateChanges > 1) {
+                // GD.Print($"{stateChanges} immediate: {string.Join(", ", immediateChanges)}");
+            // }
         }
 
         private bool CheckNextState(State newState) {
@@ -85,10 +89,6 @@ namespace Tools.Statemachine {
             _currentState = newState;
             StartState();
             return true;
-        }
-
-        private void ExecuteState() {
-            _currentState?.Execute();
         }
 
         public void _UnhandledInput(InputEvent @event) {
