@@ -10,7 +10,7 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
     public class PlayerController : CharacterController {
-        public PlayerConfig PlayerConfig => (PlayerConfig)CharacterConfig;
+        public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
         private Area2D _attack;
 
@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override CharacterConfig CreateCharacterConfig() {
-            return new PlayerConfig();
+            return PlayerConfig;
         }
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
@@ -63,7 +63,7 @@ namespace Veronenger.Game.Controller.Character {
         public override void _Ready() {
             base._Ready();
             GameManager.Instance.RegisterPlayerController(this);
-
+            CharacterManager.ConfigurePlayerCollisions(this);
             CharacterManager.ConfigurePlayerAreaAttack(_attack);
 
             _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);

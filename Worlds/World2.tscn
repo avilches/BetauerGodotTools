@@ -172,4 +172,4 @@ __meta__ = {
 shape = SubResource( 1 )
 
 [node name="EnemyNode" parent="." instance=ExtResource( 6 )]
-position = Vector2( 130.565, 137.888 )
+position = Vector2( 164.061, 78.3622 )

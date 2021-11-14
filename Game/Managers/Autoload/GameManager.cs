@@ -78,7 +78,6 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
-            CharacterManager.ConfigurePlayerCollisions(playerController);
         }
 
         public bool IsPlayer(KinematicBody2D player) {

@@ -7,8 +7,8 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
-        protected CharacterConfig CharacterConfig { get;}
-        protected StateMachine StateMachine { get;  }
+        protected CharacterConfig CharacterConfig { get; }
+        protected StateMachine StateMachine { get; }
         protected Sprite MainSprite { get; private set; }
         protected AnimationStack AnimationStack { get; private set; }
         protected Label Label { get; private set; }
@@ -20,6 +20,7 @@ namespace Veronenger.Game.Character {
         public SlopeStairsManager SlopeStairsManager => GameManager.Instance.SlopeStairsManager;
         public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
         private long _frame = 0;
+        public bool _isFacingRight = false;
 
         protected abstract StateMachine CreateStateMachine();
         protected abstract CharacterConfig CreateCharacterConfig();
@@ -35,6 +36,7 @@ namespace Veronenger.Game.Character {
             MainSprite = GetNode<Sprite>("Sprite");
             AnimationStack = CreateAnimationStack(animationPlayer);
             Label = GetNode<Label>("Label");
+            _isFacingRight = !MainSprite.FlipH; // FlipH is true when you flip the sprite to the left
         }
 
         public long GetFrame() {
@@ -59,16 +61,19 @@ namespace Veronenger.Game.Character {
 
         public void Flip(float xInput) {
             if (xInput == 0) return;
-            // TODO: write the FlipH on every frame (cost 1) is cheaper (in terms of inter-op cost) than read the FlipH
-            // and, if it's different, change it (read 1 op + write: 2 ops in the worst case).
-            // If the FlipH value is cached, the inter-op cost will be 0 if no change, 1 if change
-            Flip(xInput < 0);
+            bool shouldFaceRight = xInput > 0;
+            IsFacingRight = shouldFaceRight;
         }
 
-        public void Flip(bool left) {
-            MainSprite.FlipH = left;
+        public bool IsFacingRight {
+            get => _isFacingRight;
+            set {
+                if (value != _isFacingRight) {
+                    _isFacingRight = value;
+                    MainSprite.FlipH = !_isFacingRight;
+                }
+            }
         }
-
 
         public void Debug(bool flag, string message) {
             if (flag) {
@@ -117,7 +122,7 @@ namespace Veronenger.Game.Character {
         public void AddLateralMotion(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
             if (xInput != 0) {
-                var directionChanged = Math.Sign(Motion.x) != Math.Sign(xInput);
+                bool directionChanged = Motion.x != 0 && Math.Sign(Motion.x) != Math.Sign(xInput);
                 if (directionChanged) {
                     SetMotionX((Motion.x * changeDirectionFactor) + xInput * acceleration * Delta);
                 } else {
@@ -215,6 +220,7 @@ namespace Veronenger.Game.Character {
         public Vector2 GetColliderNormal() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._colliderNormal;
 
         private RayCast2D _floorDetector;
+
         public RayCast2D FloorDetector {
             get {
                 if (_floorDetector == null) {
@@ -307,7 +313,7 @@ namespace Veronenger.Game.Character {
         }
 
         private bool CheckRaycastGroundCollisions(ref Vector2 __colliderNormal, ref bool __isOnSlope,
-            ref bool __isOnFallingPlatform, ref bool __isOnMovingPlatform, ref bool __isOnSlopeStairs,                          
+            ref bool __isOnFallingPlatform, ref bool __isOnMovingPlatform, ref bool __isOnSlopeStairs,
             ref bool __isOnSlopeUpRight) {
             FloorDetector.ForceRaycastUpdate();
             var collisionCollider = FloorDetector.GetCollider();
@@ -376,7 +382,7 @@ namespace Veronenger.Game.Character {
         }
 
         // public override void _Draw() {
-            // DrawLine(slopeDetector.Position, slopeDetector.Position + slopeDetector.CastTo, Colors.Red, 3F);
+        // DrawLine(slopeDetector.Position, slopeDetector.Position + slopeDetector.CastTo, Colors.Red, 3F);
         // }
     }
 }

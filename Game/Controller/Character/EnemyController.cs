@@ -2,24 +2,26 @@ using Godot;
 using Tools;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
+using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
     public class EnemyController : CharacterController {
-        public CharacterConfig EnemyConfig => CharacterConfig;
+        public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
         public EnemyController() {
         }
 
         protected override StateMachine CreateStateMachine() {
             return new StateMachine(EnemyConfig, this)
+                .AddState(new GroundStateRun( this))
                 .AddState(new GroundStateIdle( this));
         }
 
         protected override CharacterConfig CreateCharacterConfig() {
-            return new CharacterConfig();
+            return EnemyConfig;
         }
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
@@ -36,7 +38,7 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _Ready() {
             base._Ready();
-            GameManager.Instance.CharacterManager.RegisterEnemy(this);
+            GameManager.Instance.CharacterManager.ConfigureEnemyCollisions(this);
         }
 
         protected override void PhysicsProcess() {

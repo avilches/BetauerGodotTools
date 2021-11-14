@@ -1,5 +1,6 @@
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class AirState : PlayerState {
@@ -9,7 +10,7 @@ namespace Veronenger.Game.Character.Player.States {
         protected bool CheckLanding() {
             if (!Player.IsOnFloor()) return false; // Still in the air! :)
 
-            PlatformManager.BodyStopFallFromPlatform(Player);
+            GameManager.Instance.PlatformManager.BodyStopFallFromPlatform(Player);
 
             // Debug("Just grounded!");
             if (XInput == 0) {
@@ -25,14 +26,14 @@ namespace Veronenger.Game.Character.Player.States {
             // Grounded!
             if (!Player.FallingJumpClock.Paused) {
                 Player.FallingJumpClock.Pause();
-                if (Player.FallingJumpClock.Elapsed <= PlayerConfig.JUMP_HELPER_TIME) {
+                if (Player.FallingJumpClock.Elapsed <= base.PlayerConfig.JUMP_HELPER_TIME) {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} Done!");
+                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {base.PlayerConfig.JUMP_HELPER_TIME} Done!");
                     // Scheduled jump
                     GoToJumpState(false);
                 } else {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
+                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {base.PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
 
                 }
             }
@@ -50,12 +51,12 @@ namespace Veronenger.Game.Character.Player.States {
         protected bool CheckCoyoteJump() {
             if (Jump.JustPressed) {
                 Player.FallingJumpClock.Start();
-                if (Player.FallingClock.Elapsed <= PlayerConfig.COYOTE_TIME) {
-                    Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump: {Player.FallingClock.Elapsed} <= {PlayerConfig.COYOTE_TIME} Done!");
+                if (Player.FallingClock.Elapsed <= base.PlayerConfig.COYOTE_TIME) {
+                    Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump: {Player.FallingClock.Elapsed} <= {base.PlayerConfig.COYOTE_TIME} Done!");
                     GoToJumpState(true);
                     return true;
                 }
-                Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump: {Player.FallingClock.Elapsed} > {PlayerConfig.COYOTE_TIME} TOO LATE");
+                Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump: {Player.FallingClock.Elapsed} > {base.PlayerConfig.COYOTE_TIME} TOO LATE");
             }
             return false;
         }

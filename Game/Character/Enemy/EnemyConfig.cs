@@ -1,9 +1,6 @@
-namespace Veronenger.Game.Character.Player {
-    public class PlayerConfig : CharacterConfig {
-        public float COYOTE_TIME = 0.1f; // seconds. How much time the player can jump when falling
-        public float JUMP_HELPER_TIME = 0.1f; // seconds. If the user press jump just before land
-
-        public PlayerConfig() {
+namespace Veronenger.Game.Character.Enemy {
+    public class EnemyConfig : CharacterConfig {
+        public EnemyConfig() {
             const float maxSpeed = 110.0f; // pixels/seconds
             const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
             ConfigureSpeed(maxSpeed, timeToMaxSpeed);

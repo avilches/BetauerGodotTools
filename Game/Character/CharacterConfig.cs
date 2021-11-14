@@ -2,8 +2,7 @@ using Godot;
 using Tools.Statemachine;
 
 namespace Veronenger.Game.Character {
-    public class CharacterConfig : StateMachineDebugConfig {
-        public bool DEBUG_INPUT_EVENTS = false;
+    public abstract class CharacterConfig : StateMachineDebugConfig {
         public bool DEBUG_STATEMACHINE_FLOW => false;
         public bool DEBUG_STATEMACHINE_CHANGE => false;
         public bool DEBUG_MAX_SPEED = false;
@@ -13,8 +12,11 @@ namespace Veronenger.Game.Character {
         public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = false;
         public bool DEBUG_MOTION = false;
         public bool DEBUG_JUMP_VELOCITY = false;
+
+        // Only for the player...
         public bool DEBUG_JUMP_HELPER = false;
         public bool DEBUG_JUMP_COYOTE = false;
+        public bool DEBUG_INPUT_EVENTS = false;
 
         // CONFIG: ground
         public float MAX_SPEED = 120f; // pixels/seconds
@@ -22,12 +24,10 @@ namespace Veronenger.Game.Character {
         public float STOP_IF_SPEED_IS_LESS_THAN = 20f; // pixels/seconds
         public float FRICTION = 0f; // 0=stop immediately, 0.9=10%/frame 0.99=ice!!
 
-
         // CONFIG: air
         public float GRAVITY;
         public float JUMP_FORCE;
         public float JUMP_FORCE_MIN;
-
 
         public float MAX_FALLING_SPEED = 2000; // max speed in free fall
 

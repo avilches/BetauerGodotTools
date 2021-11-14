@@ -18,21 +18,16 @@ namespace Veronenger.Game.Managers {
         public void ConfigurePlayerCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
-            // TODO: layer bit should be in an area2d and it should be used to get damage, so rename LayerPlayer by
-            // LayerDamagePlayer
-            // playerController.SetCollisionLayerBit(LayerPlayer, true);
             GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(playerController);
             GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
-        public void RegisterEnemy(CharacterController enemy) {
+        public void ConfigureEnemyCollisions(CharacterController enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
-            // TODO: layer bit should be in an area2d
-            enemy.SetCollisionLayerBit(LayerEnemy, true);
-
             GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(enemy);
+            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(enemy);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

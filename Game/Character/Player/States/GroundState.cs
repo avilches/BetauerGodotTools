@@ -1,5 +1,6 @@
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class GroundState : PlayerState {
@@ -9,7 +10,7 @@ namespace Veronenger.Game.Character.Player.States {
         protected bool CheckJump() {
             if (!Jump.JustPressed) return false;
             if (IsDown && Player.IsOnFallingPlatform()) {
-                PlatformManager.BodyFallFromPlatform(Player);
+                GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
             } else {
                 GoToJumpState(true);
             }
