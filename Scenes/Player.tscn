@@ -275,7 +275,7 @@ tracks/3/keys = {
 }
 
 [sub_resource type="Animation" id=7]
-length = 0.7
+length = 0.8
 loop = true
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
@@ -349,12 +349,13 @@ shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="PlayerBody"]
 position = Vector2( 83.4929, -10.62 )
-texture = ExtResource( 7 )
+texture = ExtResource( 2 )
 offset = Vector2( -83.4929, -21.38 )
-hframes = 3
-frame = 1
+hframes = 7
+frame = 6
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
+playback_speed = 0.9
 anims/Attack = SubResource( 2 )
 anims/Fall = SubResource( 3 )
 anims/Idle = SubResource( 4 )
