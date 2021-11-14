@@ -1,12 +1,13 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Game/Controller/Character/PlayerController.cs" type="Script" id=1]
+[ext_resource path="res://Characters/Zombie/zombie-sheet.png" type="Texture" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7, 20 )
 
 [sub_resource type="Animation" id=2]
-length = 0.3
+loop = true
 step = 0.02
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
@@ -15,15 +16,16 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.12, 0.26 ),
-"transitions": PoolRealArray( 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.18, 0.36, 0.54, 0.74, 0.88 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 1, 2, 3 ]
+"values": [ 4, 5, 6, 7, 8, 9 ]
 }
 
 [sub_resource type="Animation" id=3]
-length = 0.2
+length = 2.0
 loop = true
+step = 0.05
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
 tracks/0/interp = 1
@@ -31,16 +33,14 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1 ),
-"transitions": PoolRealArray( 1, 1 ),
+"times": PoolRealArray( 0, 0.45, 0.95, 1.8 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
 "update": 1,
-"values": [ 2, 3 ]
+"values": [ 0, 1, 4, 1 ]
 }
 
 [sub_resource type="Animation" id=4]
-length = 1.75
 loop = true
-step = 0.25
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
 tracks/0/interp = 1
@@ -48,10 +48,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.5, 1, 1.25 ),
-"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
-"values": [ 0, 1, 2, 3 ]
+"values": [ 1, 3, 4 ]
 }
 
 [node name="EnemyNode" type="Node2D"]
@@ -66,9 +66,11 @@ position = Vector2( 0, -20 )
 shape = SubResource( 1 )
 
 [node name="Sprite" type="Sprite" parent="EnemyBody"]
-position = Vector2( 103.827, 8.39365 )
+position = Vector2( 102.827, 8.39365 )
+texture = ExtResource( 2 )
 offset = Vector2( -95.374, -22.042 )
-hframes = 4
+hframes = 10
+frame = 4
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="EnemyBody/Sprite"]
 anims/Attack = SubResource( 2 )
@@ -102,4 +104,4 @@ collision_mask = 0
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="EnemyBody/AttackArea"]
 position = Vector2( 0, 0.0677719 )
-polygon = PoolVector2Array( 0.6213, -3.88163, 49.8925, -9.84568, 63.9738, -22.9043, 61.2106, -37.5649, 44.3793, -46.8699, 21.631, -43.1901, -6.76599, -30.8554 )
+polygon = PoolVector2Array( 2.90794, -11.8251, 9.18351, -12.9741, 17.934, -15.5374, 22.9721, -18.9845, 15.6359, -24.7298, -3.6328, -20.9291 )
