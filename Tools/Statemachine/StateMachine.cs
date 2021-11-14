@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Tools.Statemachine {
@@ -62,14 +63,20 @@ namespace Tools.Statemachine {
 
         public void Execute() {
             var stateChanges = 0;
-            var immediateChanges = new List<string>(MAX_CHANGES+1);
             CheckNextState(_nextState);
+            if (_currentState == null) return;
+            var immediateChanges = new List<string>(MAX_CHANGES+1);
             do {
                 immediateChanges.Add(_currentState.GetType().Name);
                 _currentState?.Execute();
                 stateChanges++;
                 if (stateChanges > MAX_CHANGES) {
-                    throw new Exception($"{stateChanges} > {MAX_CHANGES} immediate changes in the same frame: {string.Join(", ", immediateChanges)}");
+                    if (immediateChanges.Count != immediateChanges.Distinct().Count()) {
+                        throw new Exception(
+                            $"{stateChanges} > {MAX_CHANGES} immediate changes in the same frame: {string.Join(", ", immediateChanges)}");
+                    } else {
+                        GD.Print("mmmmmmmmmm");
+                    }
                 }
             } while (CheckNextState(_nextState != null && _nextStateImmediate ? _nextState : null));
             // if (stateChanges > 1) {
