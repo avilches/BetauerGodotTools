@@ -14,8 +14,8 @@ namespace Veronenger.Game.Controller.Character {
         public readonly MyPlayerActions PlayerActions;
         private Area2D _attack;
 
-        public readonly Clock FallingJumpClock = new Clock().Disable();
-        public readonly Clock FallingClock = new Clock().Disable();
+        public readonly Clock FallingJumpClock = new Clock().Pause();
+        public readonly Clock FallingClock = new Clock().Pause();
 
         public PlayerController() {
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers

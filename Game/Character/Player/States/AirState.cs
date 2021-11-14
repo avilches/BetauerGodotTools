@@ -23,7 +23,8 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             // Grounded!
-            if (Player.FallingJumpClock.Enabled) {
+            if (!Player.FallingJumpClock.Paused) {
+                Player.FallingJumpClock.Pause();
                 if (Player.FallingJumpClock.Elapsed <= PlayerConfig.JUMP_HELPER_TIME) {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,
                         $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} Done!");
@@ -34,7 +35,6 @@ namespace Veronenger.Game.Character.Player.States {
                         $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
 
                 }
-                Player.FallingJumpClock.Disable();
             }
             return true;
         }
@@ -49,7 +49,7 @@ namespace Veronenger.Game.Character.Player.States {
 
         protected bool CheckCoyoteJump() {
             if (Jump.JustPressed) {
-                Player.FallingJumpClock.EnableAndStart();
+                Player.FallingJumpClock.Start();
                 if (Player.FallingClock.Elapsed <= PlayerConfig.COYOTE_TIME) {
                     Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump: {Player.FallingClock.Elapsed} <= {PlayerConfig.COYOTE_TIME} Done!");
                     GoToJumpState(true);

@@ -13,7 +13,7 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Start() {
-            Player.FallingClock.EnableAndStart();
+            Player.FallingClock.Start();
         }
 
         public override void Execute() {
