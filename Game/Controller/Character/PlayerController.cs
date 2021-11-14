@@ -12,45 +12,43 @@ namespace Veronenger.Game.Controller.Character {
     public class PlayerController : CharacterController {
         public PlayerConfig PlayerConfig => (PlayerConfig)CharacterConfig;
         public readonly MyPlayerActions PlayerActions;
-        private AnimationPlayer _animationPlayer;
         private Area2D _attack;
 
         public readonly Clock FallingJumpClock = new Clock().Disable();
         public readonly Clock FallingClock = new Clock().Disable();
 
-
-
         public PlayerController() {
-            CharacterConfig = new PlayerConfig();
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
+            PlayerActions.ConfigureMapping();
+        }
 
-            // State Machines
-
-            _stateMachine = new StateMachine(PlayerConfig, this)
+        protected override StateMachine CreateStateMachine() {
+            return new StateMachine(PlayerConfig, this)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
                 .AddState(new AirStateFallShort(this))
                 .AddState(new AirStateFallLong(this))
                 .AddState(new AirStateJump(this));
-
-            // Mapping
-            PlayerActions.ConfigureMapping();
         }
 
-        public override void _EnterTree() {
-            _sprite = GetNode<Sprite>("Sprite");
-            _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            _stateMachine.SetNextState(typeof(GroundStateIdle));
-            _label = GetNode<Label>("Label");
-            _attack = GetNode<Area2D>("AttackArea");
+        protected override CharacterConfig CreateCharacterConfig() {
+            return new PlayerConfig();
+        }
 
-            _animationStack = new AnimationStack(_animationPlayer)
+        protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
+            return new AnimationStack(animationPlayer)
                 .AddLoopAnimation(new LoopAnimationIdle("Idle"))
                 .AddLoopAnimation(new LoopAnimationRun("Run"))
                 .AddLoopAnimation(new LoopAnimationJump("Jump"))
                 .AddLoopAnimation(new LoopAnimationFall("Fall"))
                 .AddOnceAnimation(new AnimationAttack("Attack"))
                 .AddOnceAnimation(new AnimationJumpAttack("JumpAttack"));
+        }
+
+        public override void _EnterTree() {
+            base._EnterTree();
+            StateMachine.SetNextState(typeof(GroundStateIdle));
+            _attack = GetNode<Area2D>("AttackArea");
 
         }
 
@@ -63,6 +61,7 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsUp;
 
         public override void _Ready() {
+            base._Ready();
             GameManager.Instance.RegisterPlayerController(this);
 
             CharacterManager.ConfigurePlayerAreaAttack(_attack);
@@ -101,7 +100,7 @@ namespace Veronenger.Game.Controller.Character {
         protected override void PhysicsProcess() {
             FallingJumpClock.Add(Delta);
             FallingClock.Add(Delta);
-            _stateMachine.Execute();
+            StateMachine.Execute();
             PlayerActions.ClearJustState();
             /*
                 _label.Text = "Floor: " + IsOnFloor() + "\n" +
@@ -117,7 +116,7 @@ namespace Veronenger.Game.Controller.Character {
         public override void _UnhandledInput(InputEvent @event) {
             w.@event = @event;
             if (!PlayerActions.Update(w)) {
-                _stateMachine._UnhandledInput(@event);
+                StateMachine._UnhandledInput(@event);
             }
 
             TestJumpActions();
@@ -149,14 +148,14 @@ namespace Veronenger.Game.Controller.Character {
             // }
         }
 
-        public void AnimateJump() => _animationStack.PlayLoop(typeof(LoopAnimationJump));
-        public void AnimateIdle() => _animationStack.PlayLoop(typeof(LoopAnimationIdle));
-        public void AnimateRun() => _animationStack.PlayLoop(typeof(LoopAnimationRun));
-        public void AnimateFall() => _animationStack.PlayLoop(typeof(LoopAnimationFall));
-        public void AnimateAttack() => _animationStack.PlayOnce(typeof(AnimationAttack));
-        public void AnimateJumpAttack() => _animationStack.PlayOnce(typeof(AnimationJumpAttack));
+        public void AnimateJump() => AnimationStack.PlayLoop(typeof(LoopAnimationJump));
+        public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
+        public void AnimateRun() => AnimationStack.PlayLoop(typeof(LoopAnimationRun));
+        public void AnimateFall() => AnimationStack.PlayLoop(typeof(LoopAnimationFall));
+        public void AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
+        public void AnimateJumpAttack() => AnimationStack.PlayOnce(typeof(AnimationJumpAttack));
 
-        public bool IsAttacking => _animationStack.IsPlaying(typeof(AnimationAttack)) || _animationStack.IsPlaying(typeof(AnimationJumpAttack));
+        public bool IsAttacking => AnimationStack.IsPlaying(typeof(AnimationAttack)) || AnimationStack.IsPlaying(typeof(AnimationJumpAttack));
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");

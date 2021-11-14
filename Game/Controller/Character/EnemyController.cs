@@ -9,34 +9,38 @@ using Veronenger.Game.Managers.Autoload;
 namespace Veronenger.Game.Controller.Character {
     public class EnemyController : CharacterController {
         public CharacterConfig EnemyConfig => CharacterConfig;
-        private readonly StateMachine _stateMachine;
-        private AnimationPlayer _animationPlayer;
 
         public EnemyController() {
-            CharacterConfig = new CharacterConfig();
-
-            // State Machine
-            _stateMachine = new StateMachine(EnemyConfig, this)
-                .AddState(new GroundStateIdle( /*this*/));
         }
 
-        public override void _EnterTree() {
-            _sprite = GetNode<Sprite>("Sprite");
-            _animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            _stateMachine.SetNextState(typeof(GroundStateIdle));
+        protected override StateMachine CreateStateMachine() {
+            return new StateMachine(EnemyConfig, this)
+                .AddState(new GroundStateIdle( this));
         }
 
-        public override void _Ready() {
-            GameManager.Instance.CharacterManager.RegisterEnemy(this);
-            _animationStack = new AnimationStack(_animationPlayer)
+        protected override CharacterConfig CreateCharacterConfig() {
+            return new CharacterConfig();
+        }
+
+        protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
+            return new AnimationStack(animationPlayer)
                 .AddLoopAnimation(new LoopAnimationIdle("Idle"))
                 .AddLoopAnimation(new LoopAnimationRun("Run"))
                 .AddOnceAnimation(new AnimationAttack("Attack"));
+        }
 
+        public override void _EnterTree() {
+            base._EnterTree();
+            StateMachine.SetNextState(typeof(GroundStateIdle));
+        }
+
+        public override void _Ready() {
+            base._Ready();
+            GameManager.Instance.CharacterManager.RegisterEnemy(this);
         }
 
         protected override void PhysicsProcess() {
-            _stateMachine.Execute();
+            StateMachine.Execute();
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +
@@ -45,5 +49,9 @@ namespace Veronenger.Game.Controller.Character {
                           "Falling: " + IsOnFallingPlatform();
             */
         }
+        public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
+        public void AnimateRun() => AnimationStack.PlayLoop(typeof(LoopAnimationRun));
+        public void AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
+
     }
 }

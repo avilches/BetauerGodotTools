@@ -7,11 +7,11 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D, IFrameAware {
-        protected CharacterConfig CharacterConfig;
-        protected StateMachine _stateMachine;
-        protected AnimationStack _animationStack;
-        protected Sprite _sprite;
-        protected Label _label;
+        protected CharacterConfig CharacterConfig { get;}
+        protected StateMachine StateMachine { get;  }
+        protected Sprite MainSprite { get; private set; }
+        protected AnimationStack AnimationStack { get; private set; }
+        protected Label Label { get; private set; }
 
         public float Delta { get; private set; } = 0.16f;
         public Vector2 Motion = Vector2.Zero;
@@ -20,24 +20,41 @@ namespace Veronenger.Game.Character {
         public SlopeStairsManager SlopeStairsManager => GameManager.Instance.SlopeStairsManager;
         public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
         private long _frame = 0;
+
+        protected abstract StateMachine CreateStateMachine();
+        protected abstract CharacterConfig CreateCharacterConfig();
+        protected abstract AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer);
+
+        protected CharacterController() {
+            CharacterConfig = CreateCharacterConfig();
+            StateMachine = CreateStateMachine();
+        }
+
+        public override void _EnterTree() {
+            AnimationPlayer animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
+            MainSprite = GetNode<Sprite>("Sprite");
+            AnimationStack = CreateAnimationStack(animationPlayer);
+            Label = GetNode<Label>("Label");
+        }
+
         public long GetFrame() {
             return _frame;
         }
 
         public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
-            _stateMachine.SetNextConfig(config);
+            StateMachine.SetNextConfig(config);
         }
 
         public void SetNextConfig(string key, object value) {
-            _stateMachine.SetNextConfig(key, value);
+            StateMachine.SetNextConfig(key, value);
         }
 
         public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
-            return _stateMachine.GetNextConfig();
+            return StateMachine.GetNextConfig();
         }
 
         public void SetNextState(Type nextStateType, bool immediate = false) {
-            _stateMachine.SetNextState(nextStateType, immediate);
+            StateMachine.SetNextState(nextStateType, immediate);
         }
 
         public void Flip(float xInput) {
@@ -49,7 +66,7 @@ namespace Veronenger.Game.Character {
         }
 
         public void Flip(bool left) {
-            _sprite.FlipH = left;
+            MainSprite.FlipH = left;
         }
 
 
