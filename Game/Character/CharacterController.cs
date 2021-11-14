@@ -261,15 +261,26 @@ namespace Veronenger.Game.Character {
                     _isOnFallingPlatform != __isOnFallingPlatform ||
                     _isOnMovingPlatform != __isOnMovingPlatform ||
                     _colliderNormal != __colliderNormal) {
-                    GD.Print("UpdateFloorCollisions. Floor:", IsOnFloor(),
-                        // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
-                        " Slope:", _isOnSlope, "/", __isOnSlope,
-                        " Stairs:", _isOnSlopeStairs, "/", __isOnSlopeStairs,
-                        " Falling:", _isOnFallingPlatform, "/", __isOnFallingPlatform,
-                        " Moving:", _isOnMovingPlatform, "/", __isOnMovingPlatform,
-                        " Normal:", _colliderNormal, "/", __colliderNormal,
-                        // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
-                        " (", slideCount, "/", FloorDetector.IsColliding(), ")");
+                    string diff = "UpdateFloorCollisions(" + slideCount + ")";
+                    if (IsOnFloor() != FloorDetector.IsColliding()) {
+                        diff += " Floor:" + IsOnFloor() + "/" + FloorDetector.IsColliding();
+                    }
+                    if (_isOnSlope != __isOnSlope) {
+                        diff += " Slope:" + _isOnSlope + "/" + __isOnSlope;
+                    }
+                    if (_isOnSlopeStairs != __isOnSlopeStairs) {
+                        diff += " Stairs:" + _isOnSlopeStairs + "/" + __isOnSlopeStairs;
+                    }
+                    if (_isOnFallingPlatform != __isOnFallingPlatform) {
+                        diff += " Falling:" + _isOnFallingPlatform + "/" + __isOnFallingPlatform;
+                    }
+                    if (_isOnMovingPlatform != __isOnMovingPlatform) {
+                        diff += " Moving:" + _isOnMovingPlatform + "/" + __isOnMovingPlatform;
+                    }
+                    if (_colliderNormal != __colliderNormal) {
+                        diff += " Normal:" + _colliderNormal + "/" + __colliderNormal;
+                    }
+                    GD.Print(diff);
                 }
             }
 
