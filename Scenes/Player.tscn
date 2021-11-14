@@ -331,6 +331,16 @@ extents = Vector2( 0.5, 14 )
 
 [node name="PlayerNode" type="Node2D"]
 
+[node name="Label" type="Label" parent="."]
+margin_top = -40.0
+margin_right = 400.0
+margin_bottom = 60.0
+rect_scale = Vector2( 0.5, 0.5 )
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="PlayerBody" type="KinematicBody2D" parent="."]
 collision_layer = 1024
 collision_mask = 0
@@ -362,16 +372,6 @@ anims/Idle = SubResource( 4 )
 anims/Jump = SubResource( 5 )
 anims/JumpAttack = SubResource( 6 )
 anims/Run = SubResource( 7 )
-
-[node name="Label" type="Label" parent="PlayerBody"]
-margin_top = -40.0
-margin_right = 400.0
-margin_bottom = 60.0
-rect_scale = Vector2( 0.5, 0.5 )
-autowrap = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="RayCasts" type="Node2D" parent="PlayerBody"]
 
