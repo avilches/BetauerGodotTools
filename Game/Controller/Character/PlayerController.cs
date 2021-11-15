@@ -27,7 +27,7 @@ namespace Veronenger.Game.Controller.Character {
         public LoopAnimationStatus AnimationJump { get; private set; }
         public LoopAnimationStatus AnimationFall { get; private set; }
         public OnceAnimationStatus AnimationAttack { get; private set; }
-        public OnceAnimationStatus AnimationJumpAttack { get; set; }
+        public OnceAnimationStatus AnimationJumpAttack { get; private set; }
 
         protected override StateMachine CreateStateMachine() {
             return new StateMachine(PlayerConfig, this)

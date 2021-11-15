@@ -7,11 +7,14 @@ using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
-    public class EnemyController : CharacterController {
+    public class EnemyZombieController : CharacterController {
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
-        public EnemyController() {
+        public EnemyZombieController() {
         }
+
+        public LoopAnimationStatus AnimationIdle { get; private set; }
+        public OnceAnimationStatus AnimationStep { get; private set; }
 
         protected override StateMachine CreateStateMachine() {
             return new StateMachine(EnemyConfig, this)
@@ -24,10 +27,10 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
-            return new AnimationStack(animationPlayer)
-                .AddLoopAnimation(new LoopAnimationIdle())
-                .AddOnceAnimation(new AnimationZombieStep())
-                .AddOnceAnimation(new AnimationAttack());
+            var animationStack = new AnimationStack(animationPlayer);
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
+            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
+            return animationStack;
         }
 
         public override void _EnterTree() {
@@ -50,9 +53,6 @@ namespace Veronenger.Game.Controller.Character {
                           "Falling: " + IsOnFallingPlatform();
             */
         }
-        public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
-        public OnceAnimationStatus AnimateStep() => AnimationStack.PlayOnce(typeof(AnimationZombieStep));
-        public void AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
 
     }
 }

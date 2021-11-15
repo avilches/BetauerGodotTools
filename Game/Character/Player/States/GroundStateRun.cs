@@ -32,10 +32,10 @@ namespace Veronenger.Game.Character.Player.States {
             } else {
                 Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
                     PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
+                Player.LimitMotion();
                 Player.Flip(XInput);
             }
 
-            Player.LimitMotion();
             Player.MoveSnapping();
         }
     }

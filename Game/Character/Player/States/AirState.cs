@@ -23,7 +23,7 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             // Grounded!
-            if (!Player.FallingJumpClock.Paused) {
+            if (!Player.FallingJumpClock.Stopped) {
                 Player.FallingJumpClock.Pause();
                 if (Player.FallingJumpClock.Elapsed <= base.PlayerConfig.JUMP_HELPER_TIME) {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,

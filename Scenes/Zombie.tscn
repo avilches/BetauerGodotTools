@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Scenes/Enemy.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Characters/Zombie/zombie-sheet.png" type="Texture" id=2]
-[ext_resource path="res://Game/Controller/Character/EnemyController.cs" type="Script" id=3]
+[ext_resource path="res://Game/Controller/Character/EnemyZombieController.cs" type="Script" id=3]
 
 [sub_resource type="RectangleShape2D" id=5]
 resource_local_to_scene = true
@@ -64,7 +64,7 @@ collision_layer = 0
 script = ExtResource( 3 )
 
 [node name="CollisionShape2D" parent="EnemyBody" index="0"]
-position = Vector2( 0, -13.5 )
+position = Vector2( 0, -14 )
 shape = SubResource( 5 )
 
 [node name="Sprite" parent="EnemyBody" index="1"]

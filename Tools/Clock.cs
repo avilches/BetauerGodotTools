@@ -1,20 +1,21 @@
 namespace Tools {
     public class Clock {
         public float Elapsed { get; private set; } = 0;
-        public bool Paused { get; private set; } = false;
+        public bool Stopped { get; private set; } = true;
         public float Max { get; private set; } = float.MaxValue;
 
         public Clock() {
+            Stop();
         }
 
         public Clock Start() {
             Elapsed = 0;
-            Paused = false;
+            Stopped = false;
             return this;
         }
 
         public Clock Add(float add) {
-            if (!Paused) Elapsed += add;
+            if (!Stopped) Elapsed += add;
             return this;
         }
 
@@ -26,12 +27,18 @@ namespace Tools {
         public bool IsFinished() => Elapsed > Max;
 
         public Clock Pause() {
-            Paused = true;
+            Stopped = true;
             return this;
         }
 
         public Clock Resume() {
-            Paused = false;
+            Stopped = false;
+            return this;
+        }
+
+        public Clock Stop() {
+            Elapsed = 0;
+            Stopped = true;
             return this;
         }
     }
