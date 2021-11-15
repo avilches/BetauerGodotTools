@@ -3,8 +3,8 @@ using Tools.Statemachine;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterConfig : StateMachineDebugConfig {
-        public bool DEBUG_STATEMACHINE_FLOW => false;
-        public bool DEBUG_STATEMACHINE_CHANGE => false;
+        public virtual bool DEBUG_STATEMACHINE_FLOW => false;
+        public virtual bool DEBUG_STATEMACHINE_CHANGE => false;
         public bool DEBUG_MAX_SPEED = false;
         public bool DEBUG_ACCELERATION = false;
         public bool DEBUG_SLOPE_STAIRS = false;

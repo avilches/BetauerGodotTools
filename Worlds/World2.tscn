@@ -47,7 +47,6 @@ script = ExtResource( 8 )
 next_scene = "res://Worlds/World1.tscn"
 
 [node name="Stages" type="Node2D" parent="."]
-visible = false
 position = Vector2( 300, 0 )
 script = ExtResource( 7 )
 
@@ -172,4 +171,4 @@ __meta__ = {
 shape = SubResource( 1 )
 
 [node name="EnemyNode" parent="." instance=ExtResource( 6 )]
-position = Vector2( 164.061, 78.3622 )
+position = Vector2( -23.3617, 132.623 )

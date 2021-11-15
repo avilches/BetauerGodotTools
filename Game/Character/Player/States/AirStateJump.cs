@@ -15,7 +15,6 @@ namespace Veronenger.Game.Character.Player.States {
 
         public override void Execute() {
             if (!Player.IsAttacking) {
-                // Ensure that the jump animation is changed as soon as the previous attack (started from the ground) is finished
                 CheckAttack();
             }
 

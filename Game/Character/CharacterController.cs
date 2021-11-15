@@ -12,6 +12,7 @@ namespace Veronenger.Game.Character {
         protected Sprite MainSprite { get; private set; }
         protected AnimationStack AnimationStack { get; private set; }
         protected Label Label { get; private set; }
+        protected Node2D Parent { get; private set; }
 
         public float Delta { get; private set; } = 0.16f;
         public Vector2 Motion = Vector2.Zero;
@@ -35,7 +36,8 @@ namespace Veronenger.Game.Character {
             AnimationPlayer animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             MainSprite = GetNode<Sprite>("Sprite");
             AnimationStack = CreateAnimationStack(animationPlayer);
-            Label = GetNode<Label>("Label");
+            Parent = GetParent<Node2D>();
+            Label = Parent.GetNode<Label>("Label");
             _isFacingRight = !MainSprite.FlipH; // FlipH is true when you flip the sprite to the left
         }
 

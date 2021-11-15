@@ -1,6 +1,6 @@
 using Tools;
 
-namespace Veronenger.Game.Character.Player {
+namespace Veronenger.Game.Character.Enemy {
     public class LoopAnimationIdle : LoopAnimation {
         public override string Name => "Idle";
     }
@@ -17,13 +17,13 @@ namespace Veronenger.Game.Character.Player {
         public override string Name => "Run";
     }
 
-    public class AnimationAttack : OnceAnimation {
-        public override string Name => "Attack";
+    public class AnimationZombieStep : OnceAnimation {
+        public override string Name => "Step";
         public override bool CanBeInterrupted => false;
     }
 
-    public class AnimationJumpAttack : OnceAnimation {
-        public override string Name => "JumpAttack";
+    public class AnimationAttack : OnceAnimation {
+        public override string Name => "Attack";
         public override bool CanBeInterrupted => false;
     }
 }

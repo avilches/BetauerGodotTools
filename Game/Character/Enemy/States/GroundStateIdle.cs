@@ -12,7 +12,7 @@ namespace Veronenger.Game.Character.Enemy.States {
 
         public override void Start() {
             Enemy.AnimateIdle();
-            _clock.Start().Finish(rand.Next(1, 4));
+            _clock.Start().Finish(rand.Next(2, 4));
         }
 
         public override void Execute() {
@@ -25,7 +25,9 @@ namespace Veronenger.Game.Character.Enemy.States {
                 return;
             }
 
+
             if (_clock.IsFinished()) {
+                Enemy.IsFacingRight = !Enemy.IsFacingRight;
                 Enemy.SetNextState(typeof(GroundStateRun));
                 // _clock.Start().Finish(rand.Next(1, 4)* 1000);
             }
@@ -36,7 +38,6 @@ namespace Veronenger.Game.Character.Enemy.States {
                 Enemy.ApplyGravity();
             }
 
-            // rand.NextDouble()
             Enemy.MoveSnapping();
         }
     }

@@ -37,25 +37,25 @@ namespace Veronenger.Game.Controller.Character {
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
             return new AnimationStack(animationPlayer)
-                .AddLoopAnimation(new LoopAnimationIdle("Idle"))
-                .AddLoopAnimation(new LoopAnimationRun("Run"))
-                .AddLoopAnimation(new LoopAnimationJump("Jump"))
-                .AddLoopAnimation(new LoopAnimationFall("Fall"))
-                .AddOnceAnimation(new AnimationAttack("Attack"))
-                .AddOnceAnimation(new AnimationJumpAttack("JumpAttack"));
+                .AddLoopAnimation(new LoopAnimationIdle())
+                .AddLoopAnimation(new LoopAnimationRun())
+                .AddLoopAnimation(new LoopAnimationJump())
+                .AddLoopAnimation(new LoopAnimationFall())
+                .AddOnceAnimation(new AnimationAttack())
+                .AddOnceAnimation(new AnimationJumpAttack());
         }
 
         public override void _EnterTree() {
             base._EnterTree();
             StateMachine.SetNextState(typeof(GroundStateIdle));
             _attack = GetNode<Area2D>("AttackArea");
-
         }
 
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
         public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
+
         public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
         private BodyOnArea2DStatus _slopeStairsDown;
         private BodyOnArea2DStatus _slopeStairsUp;
@@ -103,7 +103,7 @@ namespace Veronenger.Game.Controller.Character {
             StateMachine.Execute();
             PlayerActions.ClearJustState();
             /*
-                _label.Text = "Floor: " + IsOnFloor() + "\n" +
+                Label.Text = "Floor: " + IsOnFloor() + "\n" +
                               "Slope: " + IsOnSlope() + "\n" +
                               "Stair: " + IsOnSlopeStairs() + "\n" +
                               "Moving: " + IsOnMovingPlatform() + "\n" +
@@ -152,10 +152,11 @@ namespace Veronenger.Game.Controller.Character {
         public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
         public void AnimateRun() => AnimationStack.PlayLoop(typeof(LoopAnimationRun));
         public void AnimateFall() => AnimationStack.PlayLoop(typeof(LoopAnimationFall));
-        public void AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
+        public OnceAnimationStatus AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
         public void AnimateJumpAttack() => AnimationStack.PlayOnce(typeof(AnimationJumpAttack));
 
-        public bool IsAttacking => AnimationStack.IsPlaying(typeof(AnimationAttack)) || AnimationStack.IsPlaying(typeof(AnimationJumpAttack));
+        public bool IsAttacking => AnimationStack.IsPlaying(typeof(AnimationAttack)) ||
+                                   AnimationStack.IsPlaying(typeof(AnimationJumpAttack));
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");

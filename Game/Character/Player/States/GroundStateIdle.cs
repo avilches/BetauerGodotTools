@@ -1,3 +1,5 @@
+using Godot;
+using Tools;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -9,9 +11,10 @@ namespace Veronenger.Game.Character.Player.States {
             Player.AnimateIdle();
         }
 
+        private OnceAnimationStatus status;
+
         public override void Execute() {
             if (!Player.IsAttacking) {
-                // Ensure that the jump animation is changed as soon as the previous attack (started from the air) is finished
                 CheckAttack();
             }
 

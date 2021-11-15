@@ -4,7 +4,6 @@ using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Character.Enemy.States;
-using Veronenger.Game.Character.Player;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
@@ -26,9 +25,9 @@ namespace Veronenger.Game.Controller.Character {
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
             return new AnimationStack(animationPlayer)
-                .AddLoopAnimation(new LoopAnimationIdle("Idle"))
-                .AddLoopAnimation(new LoopAnimationRun("Run"))
-                .AddOnceAnimation(new AnimationAttack("Attack"));
+                .AddLoopAnimation(new LoopAnimationIdle())
+                .AddOnceAnimation(new AnimationZombieStep())
+                .AddOnceAnimation(new AnimationAttack());
         }
 
         public override void _EnterTree() {
@@ -52,7 +51,7 @@ namespace Veronenger.Game.Controller.Character {
             */
         }
         public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
-        public void AnimateRun() => AnimationStack.PlayLoop(typeof(LoopAnimationRun));
+        public OnceAnimationStatus AnimateStep() => AnimationStack.PlayOnce(typeof(AnimationZombieStep));
         public void AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
 
     }
