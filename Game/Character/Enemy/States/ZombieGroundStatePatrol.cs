@@ -1,5 +1,6 @@
 using System;
 using Tools;
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Enemy.States {
@@ -11,7 +12,7 @@ namespace Veronenger.Game.Character.Enemy.States {
         public GroundStateRun(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             _state.Start().Finish(rand.Next(5, 8)).Stop();
             EnemyZombie.AnimationStep.Play();
         }
@@ -19,7 +20,7 @@ namespace Veronenger.Game.Character.Enemy.States {
         /*
          * AnimationStep + lateral move -> wait(1,2) + stop
          */
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             _state.Add(EnemyZombie.Delta);
             _waitBetweenSteps.Add(EnemyZombie.Delta);
 
@@ -28,17 +29,17 @@ namespace Veronenger.Game.Character.Enemy.States {
                 EnemyZombie.ApplyGravity();
                 EnemyZombie.LimitMotion();
                 EnemyZombie.Slide();
-                return;
+                return nextState.Current();
             }
 
             if (_state.IsFinished()) {
                 // Stop slowly and go to idle
                 if (EnemyZombie.Motion.x == 0) {
-                    EnemyZombie.SetNextState(typeof(GroundStateIdle));
+                    return nextState.Immediate(typeof(GroundStateIdle));
                 } else {
                     StopMovement();
                 }
-                return;
+                return nextState.Current();
             }
 
             if (EnemyZombie.AnimationStep.Playing) {
@@ -58,6 +59,7 @@ namespace Veronenger.Game.Character.Enemy.States {
                     EnemyZombie.AnimationStep.Play();
                 }
             }
+            return nextState.Current();
         }
 
         void StopMovement() {

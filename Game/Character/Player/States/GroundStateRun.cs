@@ -1,28 +1,36 @@
+using System.Dynamic;
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateRun : GroundState {
+        private readonly StateConfig COYOTE_JUMP_ENABLED = new StateConfig().AddFlag("CoyoteJumpEnabled");
         public GroundStateRun(PlayerController player) : base(player) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             Player.AnimationRun.Play();
         }
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                GoToFallShortState(true);
-                return;
+                return nextState.Immediate(typeof(AirStateFallShort), COYOTE_JUMP_ENABLED);
             }
 
             if (XInput == 0 && Motion.x == 0) {
-                GoToIdleState();
-                return;
+                return nextState.Immediate(typeof(GroundStateIdle));
             }
 
-            if (CheckJump()) return;
+            if (Jump.JustPressed) {
+                if (IsDown && Player.IsOnFallingPlatform()) {
+                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
+                } else {
+                    return nextState.Immediate(typeof(AirStateJump));
+                }
+            }
 
             // Suelo + no salto + movimiento/inercia
             EnableSlopeStairs();
@@ -37,6 +45,8 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             Player.MoveSnapping();
+
+            return nextState.Current();
         }
     }
 }

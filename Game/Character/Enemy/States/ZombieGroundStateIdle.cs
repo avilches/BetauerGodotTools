@@ -1,5 +1,6 @@
 using System;
 using Tools;
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Enemy.States {
@@ -10,25 +11,25 @@ namespace Veronenger.Game.Character.Enemy.States {
         public GroundStateIdle(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             EnemyZombie.AnimationIdle.Play();;
             _clock.Start().Finish(1); // rand.Next(2, 4));
         }
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             _clock.Add(EnemyZombie.Delta);
 
             if (!EnemyZombie.IsOnFloor()) {
                 EnemyZombie.ApplyGravity();
                 EnemyZombie.LimitMotion();
                 EnemyZombie.Slide();
-                return;
+                return nextState.Current();
             }
 
 
             if (_clock.IsFinished()) {
                 EnemyZombie.IsFacingRight = !EnemyZombie.IsFacingRight;
-                EnemyZombie.SetNextState(typeof(GroundStateRun));
+                return nextState.Immediate(typeof(GroundStateRun));
                 // _clock.Start().Finish(rand.Next(1, 4)* 1000);
             }
 
@@ -39,6 +40,7 @@ namespace Veronenger.Game.Character.Enemy.States {
             }
 
             EnemyZombie.MoveSnapping();
+            return nextState.Current();
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -8,23 +8,21 @@ namespace Veronenger.Game.Character.Player.States {
 
         private bool CoyoteJumpEnabled = false;
 
-        public override void Configure(Dictionary<string, object> config) {
-            CoyoteJumpEnabled = config[COYOTE_JUMP] is bool && (bool)config[COYOTE_JUMP];
-        }
-
-        public override void Start() {
+        public override void Start(StateConfig config) {
+            // Only if the state comes from running -> fall, the Coyote jump is enabled
+            // Other cases (state comes from idle or jump), the coyote is not enabled
+            CoyoteJumpEnabled = config.HasFlag("CoyoteJumpEnabled");
             Player.FallingClock.Start();
         }
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             CheckAttack();
 
             if (CoyoteJumpEnabled && CheckCoyoteJump()) {
-                return;
+                return nextState.Immediate(typeof(AirStateJump));
             }
             if (Motion.y > PlayerConfig.START_FALLING_SPEED) {
-                GoToFallLongState();
-                return;
+                return nextState.Immediate(typeof(AirStateFallLong));
             }
 
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
@@ -35,7 +33,7 @@ namespace Veronenger.Game.Character.Player.States {
             Player.LimitMotion();
             Player.Slide();
 
-            CheckLanding();
+            return CheckLanding(nextState);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -5,14 +6,14 @@ namespace Veronenger.Game.Character.Player.States {
         public AirStateJump(PlayerController player) : base(player) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
             Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
                 "Jump: decelerating to " + -PlayerConfig.JUMP_FORCE);
             Player.AnimationJump.Play();
         }
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             CheckAttack();
 
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
@@ -28,13 +29,12 @@ namespace Veronenger.Game.Character.Player.States {
             Player.LimitMotion();
             Player.Slide();
 
-            if (CheckLanding()) {
-                return;
+            if (Motion.y >= 0) {
+                return nextState.Immediate(typeof(AirStateFallShort));
             }
 
-            if (Motion.y >= 0) { // Ya no sube: se queda quieto exactamente (raro) o empieza a caer
-                GoToFallShortState();
-            }
+            return CheckLanding(nextState);
+
         }
     }
 }

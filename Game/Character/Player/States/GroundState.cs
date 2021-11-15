@@ -6,16 +6,6 @@ namespace Veronenger.Game.Character.Player.States {
         public GroundState(PlayerController player) : base(player) {
         }
 
-        protected bool CheckJump() {
-            if (!Jump.JustPressed) return false;
-            if (IsDown && Player.IsOnFallingPlatform()) {
-                GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
-            } else {
-                GoToJumpState(true);
-            }
-            return true;
-        }
-
         protected bool CheckAttack() {
             if (Attack.JustPressed) {
                 Player.AnimationAttack.Play();

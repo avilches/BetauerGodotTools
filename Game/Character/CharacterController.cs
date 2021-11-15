@@ -45,22 +45,6 @@ namespace Veronenger.Game.Character {
             return _frame;
         }
 
-        public void SetNextConfig(System.Collections.Generic.Dictionary<string, object> config) {
-            StateMachine.SetNextConfig(config);
-        }
-
-        public void SetNextConfig(string key, object value) {
-            StateMachine.SetNextConfig(key, value);
-        }
-
-        public System.Collections.Generic.Dictionary<string, object> GetNextConfig() {
-            return StateMachine.GetNextConfig();
-        }
-
-        public void SetNextState(Type nextStateType, bool immediate = false) {
-            StateMachine.SetNextState(nextStateType, immediate);
-        }
-
         public void Flip(float xInput) {
             if (xInput == 0) return;
             bool shouldFaceRight = xInput > 0;

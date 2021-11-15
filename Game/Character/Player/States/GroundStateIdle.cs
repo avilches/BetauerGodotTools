@@ -1,31 +1,38 @@
+using System.Dynamic;
 using Tools;
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateIdle : GroundState {
         public GroundStateIdle(PlayerController player) : base(player) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             Player.AnimationIdle.Play();
         }
 
         private OnceAnimationStatus status;
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                GoToFallShortState();
-                return;
+                return nextState.NextFrame(typeof(AirStateFallShort));
             }
 
             if (XInput != 0) {
-                GoToRunState();
-                return;
+                return nextState.Immediate(typeof(GroundStateRun));
             }
 
-            if (CheckJump()) return;
+            if (Jump.JustPressed) {
+                if (IsDown && Player.IsOnFallingPlatform()) {
+                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
+                } else {
+                    return nextState.Immediate(typeof(AirStateJump));
+                }
+            }
 
             // Suelo + no salto + sin movimiento
 
@@ -35,6 +42,8 @@ namespace Veronenger.Game.Character.Player.States {
                 Player.ApplyGravity();
             }
             Player.MoveSnapping();
+
+            return nextState.Current();
         }
     }
 }

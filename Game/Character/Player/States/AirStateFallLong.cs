@@ -1,3 +1,4 @@
+using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -5,7 +6,7 @@ namespace Veronenger.Game.Character.Player.States {
         public AirStateFallLong(PlayerController player) : base(player) {
         }
 
-        public override void Start() {
+        public override void Start(StateConfig config) {
             if (Player.FallingClock.Elapsed > PlayerConfig.COYOTE_TIME) {
                 Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump will never happen in FallLong state: {Player.FallingClock.Elapsed} > {PlayerConfig.COYOTE_TIME}");
             }
@@ -14,11 +15,11 @@ namespace Veronenger.Game.Character.Player.States {
 
 
 
-        public override void Execute() {
+        public override NextState Execute(NextState nextState) {
             CheckAttack();
 
             if (CheckCoyoteJump()) {
-                return;
+                return nextState.Immediate(typeof(AirStateJump));
             }
 
             Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
@@ -29,7 +30,7 @@ namespace Veronenger.Game.Character.Player.States {
             Player.LimitMotion();
             Player.Slide();
 
-            CheckLanding();
+            return CheckLanding(nextState);
         }
     }
 }
