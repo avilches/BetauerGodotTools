@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using Godot.Collections;
 using Object = Godot.Object;
 
 namespace Tools {
@@ -22,21 +21,48 @@ namespace Tools {
         }
     }
 
-    public class OnceAnimationStatus : Object {
+    public class AnimationStatus : Object {
+        protected AnimationStack _animationStack;
+
+        public AnimationStatus(AnimationStack animationStack) {
+            _animationStack = animationStack;
+        }
+    }
+
+    public class LoopAnimationStatus : AnimationStatus {
+        public LoopAnimation Animation { get; }
+
+        protected internal LoopAnimationStatus(AnimationStack animationStack, LoopAnimation loopAnimation) : base(
+            animationStack) {
+            Animation = loopAnimation;
+        }
+
+        public void Play() {
+            _animationStack.PlayLoop(this);
+        }
+    }
+
+    public class OnceAnimationStatus : AnimationStatus {
         public OnceAnimation Animation { get; set; }
-        public bool Finished { get; set; } = false;
+
+        public bool Playing { get; set; } = false;
         public bool Interrupted { get; set; } = false;
         public bool CanBeInterrupted => Animation.CanBeInterrupted;
 
-        public OnceAnimationStatus(OnceAnimation animation) {
+        protected internal OnceAnimationStatus(AnimationStack animationStack, OnceAnimation animation) : base(
+            animationStack) {
             Animation = animation;
+        }
+
+        public void Play() {
+            _animationStack.PlayOnce(this);
         }
     }
 
 
     public class AnimationStack : Object /* needed to listen signals */ {
-        private readonly System.Collections.Generic.Dictionary<Type, LoopAnimation> _loopAnimations =
-            new System.Collections.Generic.Dictionary<Type, LoopAnimation>();
+        private readonly System.Collections.Generic.Dictionary<Type, LoopAnimationStatus> _loopAnimations =
+            new System.Collections.Generic.Dictionary<Type, LoopAnimationStatus>();
 
         private readonly System.Collections.Generic.Dictionary<Type, OnceAnimationStatus> _onceAnimationsStatuses =
             new System.Collections.Generic.Dictionary<Type, OnceAnimationStatus>();
@@ -55,6 +81,11 @@ namespace Tools {
         }
 
         public AnimationStack AddLoopAnimation(LoopAnimation newAnimation) {
+            AddLoopAnimationAndGetStatus(newAnimation);
+            return this;
+        }
+
+        public LoopAnimationStatus AddLoopAnimationAndGetStatus(LoopAnimation newAnimation) {
             Godot.Animation godotAnimation = _animationPlayer.GetAnimation(newAnimation.Name);
             if (godotAnimation == null) {
                 throw new Exception(
@@ -63,22 +94,15 @@ namespace Tools {
             godotAnimation.Loop = true;
             newAnimation.GodotAnimation = godotAnimation;
 
-            _loopAnimations.Add(newAnimation.GetType(), newAnimation);
+            var loopAnimationStatus = new LoopAnimationStatus(this, newAnimation);
+            _loopAnimations.Add(newAnimation.GetType(), loopAnimationStatus);
             // _animationsByName[newAnimation.Name] = newAnimation;
-            return this;
+            return loopAnimationStatus;
         }
 
         public AnimationStack AddOnceAnimation(OnceAnimation newAnimation) {
             AddOnceAnimationAndGetStatus(newAnimation);
             return this;
-        }
-
-        public OnceAnimationStatus GetOnceAnimationStatus(Type animationType) {
-            OnceAnimationStatus onceAnimationStatus = _onceAnimationsStatuses[animationType];
-            if (onceAnimationStatus == null) {
-                throw new Exception($"Animation {animationType.Name} not found in Animator");
-            }
-            return onceAnimationStatus;
         }
 
         public OnceAnimationStatus AddOnceAnimationAndGetStatus(OnceAnimation newAnimation) {
@@ -90,34 +114,49 @@ namespace Tools {
             godotAnimation.Loop = false;
             newAnimation.GodotAnimation = godotAnimation;
 
-            var onceAnimationStatus = new OnceAnimationStatus(newAnimation);
+            var onceAnimationStatus = new OnceAnimationStatus(this, newAnimation);
             _onceAnimationsStatuses.Add(newAnimation.GetType(), onceAnimationStatus);
             // _animationsByName[newAnimation.Name] = newAnimation;
             return onceAnimationStatus;
         }
 
+        public OnceAnimationStatus GetOnceAnimationStatus(Type animationType) {
+            OnceAnimationStatus onceAnimationStatus = _onceAnimationsStatuses[animationType];
+            if (onceAnimationStatus == null) {
+                throw new Exception($"Animation {animationType.Name} not found in Animator");
+            }
+            return onceAnimationStatus;
+        }
+
 
         public void PlayLoop(Type newAnimationType) {
-            LoopAnimation loopAnimation = _loopAnimations[newAnimationType];
+            LoopAnimationStatus loopAnimation = _loopAnimations[newAnimationType];
             if (loopAnimation == null) {
                 throw new Exception($"Animation {newAnimationType.Name} not found in Animator");
             }
-            if (_currentLoopAnimation != loopAnimation) {
+            PlayLoop(loopAnimation);
+        }
+
+        protected internal void PlayLoop(LoopAnimationStatus loopAnimation) {
+            if (_currentLoopAnimation != loopAnimation.Animation) {
                 // GD.Print("PlayLoop From: "+_loopAnimation?.Name+" | To: "+newAnimation?.Name);
-                _currentLoopAnimation = loopAnimation;
+                _currentLoopAnimation = loopAnimation.Animation;
                 if (_currentOnceAnimationStatus == null) {
-                    _animationPlayer.Play(loopAnimation.Name);
+                    _animationPlayer.Play(loopAnimation.Animation.Name);
                 }
             }
         }
 
         public OnceAnimationStatus PlayOnce(Type newAnimationType) {
             OnceAnimationStatus newOnceAnimationStatus = GetOnceAnimationStatus(newAnimationType);
+            return PlayOnce(newOnceAnimationStatus);
+        }
 
+        protected internal OnceAnimationStatus PlayOnce(OnceAnimationStatus newOnceAnimationStatus) {
             if (_currentOnceAnimationStatus == null || _currentOnceAnimationStatus.CanBeInterrupted) {
                 if (_currentOnceAnimationStatus != null) {
                     // GD.Print("PlayOnce Interrupting: "+_onceOnceAnimationOnceStatus.Animation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
-                    _currentOnceAnimationStatus.Finished = true;
+                    _currentOnceAnimationStatus.Playing = false;
                     _currentOnceAnimationStatus.Interrupted = true;
                     _currentOnceAnimationStatus.Animation.OnEnd();
                     if (_currentOnceAnimationStatus == newOnceAnimationStatus) {
@@ -125,11 +164,13 @@ namespace Tools {
                     }
                 }
                 _currentOnceAnimationStatus = newOnceAnimationStatus;
+                newOnceAnimationStatus.Playing = true;
+                newOnceAnimationStatus.Interrupted = false;
                 // GD.Print("PlayOnce new: "+newAnimation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
                 newOnceAnimationStatus.Animation.OnStart();
                 _animationPlayer.Play(newOnceAnimationStatus.Animation.Name);
             }
-            return _currentOnceAnimationStatus;
+            return newOnceAnimationStatus;
         }
 
         public bool IsPlayingLoopAnimation(Type animationType) {
@@ -152,7 +193,7 @@ namespace Tools {
 
         public void OnAnimationOnceFinished(string animation) {
             // GD.Print("OnAnimationOnceFinished finishing: "+_onceOnceAnimationOnceStatus.Animation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
-            _currentOnceAnimationStatus.Finished = true;
+            _currentOnceAnimationStatus.Playing = false;
             _currentOnceAnimationStatus.Animation.OnEnd();
             _currentOnceAnimationStatus = null;
             if (_currentLoopAnimation != null) {

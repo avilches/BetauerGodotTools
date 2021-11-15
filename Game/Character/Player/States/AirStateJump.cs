@@ -1,4 +1,3 @@
-using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
@@ -10,13 +9,11 @@ namespace Veronenger.Game.Character.Player.States {
             Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
             Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
                 "Jump: decelerating to " + -PlayerConfig.JUMP_FORCE);
-            Player.AnimateJump();
+            Player.AnimationJump.Play();
         }
 
         public override void Execute() {
-            if (!Player.IsAttacking) {
-                CheckAttack();
-            }
+            CheckAttack();
 
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
                 Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,

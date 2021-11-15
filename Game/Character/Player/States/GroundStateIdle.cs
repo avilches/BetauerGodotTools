@@ -1,4 +1,3 @@
-using Godot;
 using Tools;
 using Veronenger.Game.Controller.Character;
 
@@ -8,15 +7,13 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Start() {
-            Player.AnimateIdle();
+            Player.AnimationIdle.Play();
         }
 
         private OnceAnimationStatus status;
 
         public override void Execute() {
-            if (!Player.IsAttacking) {
-                CheckAttack();
-            }
+            CheckAttack();
 
             if (!Player.IsOnFloor()) {
                 GoToFallShortState();

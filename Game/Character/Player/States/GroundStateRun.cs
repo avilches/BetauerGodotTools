@@ -6,13 +6,11 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Start() {
-            Player.AnimateRun();
+            Player.AnimationRun.Play();
         }
 
         public override void Execute() {
-            if (!Player.IsAttacking) {
-                CheckAttack();
-            }
+            CheckAttack();
 
             if (!Player.IsOnFloor()) {
                 GoToFallShortState(true);

@@ -22,6 +22,13 @@ namespace Veronenger.Game.Controller.Character {
             PlayerActions.ConfigureMapping();
         }
 
+        public LoopAnimationStatus AnimationIdle { get; private set; }
+        public LoopAnimationStatus AnimationRun { get; private set; }
+        public LoopAnimationStatus AnimationJump { get; private set; }
+        public LoopAnimationStatus AnimationFall { get; private set; }
+        public OnceAnimationStatus AnimationAttack { get; private set; }
+        public OnceAnimationStatus AnimationJumpAttack { get; set; }
+
         protected override StateMachine CreateStateMachine() {
             return new StateMachine(PlayerConfig, this)
                 .AddState(new GroundStateIdle(this))
@@ -36,13 +43,14 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
-            return new AnimationStack(animationPlayer)
-                .AddLoopAnimation(new LoopAnimationIdle())
-                .AddLoopAnimation(new LoopAnimationRun())
-                .AddLoopAnimation(new LoopAnimationJump())
-                .AddLoopAnimation(new LoopAnimationFall())
-                .AddOnceAnimation(new AnimationAttack())
-                .AddOnceAnimation(new AnimationJumpAttack());
+            var animationStack = new AnimationStack(animationPlayer);
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
+            AnimationRun = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationRun());
+            AnimationJump = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationJump());
+            AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
+            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
+            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
+            return animationStack;
         }
 
         public override void _EnterTree() {
@@ -148,15 +156,7 @@ namespace Veronenger.Game.Controller.Character {
             // }
         }
 
-        public void AnimateJump() => AnimationStack.PlayLoop(typeof(LoopAnimationJump));
-        public void AnimateIdle() => AnimationStack.PlayLoop(typeof(LoopAnimationIdle));
-        public void AnimateRun() => AnimationStack.PlayLoop(typeof(LoopAnimationRun));
-        public void AnimateFall() => AnimationStack.PlayLoop(typeof(LoopAnimationFall));
-        public OnceAnimationStatus AnimateAttack() => AnimationStack.PlayOnce(typeof(AnimationAttack));
-        public void AnimateJumpAttack() => AnimationStack.PlayOnce(typeof(AnimationJumpAttack));
-
-        public bool IsAttacking => AnimationStack.IsPlaying(typeof(AnimationAttack)) ||
-                                   AnimationStack.IsPlaying(typeof(AnimationJumpAttack));
+        public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 
         public void DeathZone(Area2D deathArea2D) {
             GD.Print("MUETO!!");

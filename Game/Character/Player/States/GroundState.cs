@@ -1,4 +1,3 @@
-using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
 
@@ -18,8 +17,8 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         protected bool CheckAttack() {
-            if (Attack.JustPressed && !Player.IsAttacking) {
-                Player.AnimateAttack();
+            if (Attack.JustPressed) {
+                Player.AnimationAttack.Play();
                 return true;
             }
             return false;

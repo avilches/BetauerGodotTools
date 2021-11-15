@@ -17,9 +17,7 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         public override void Execute() {
-            if (!Player.IsAttacking) {
-                CheckAttack();
-            }
+            CheckAttack();
 
             if (CoyoteJumpEnabled && CheckCoyoteJump()) {
                 return;
