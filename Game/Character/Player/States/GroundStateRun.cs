@@ -1,4 +1,3 @@
-using System.Dynamic;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
@@ -9,26 +8,26 @@ namespace Veronenger.Game.Character.Player.States {
         public GroundStateRun(PlayerController player) : base(player) {
         }
 
-        public override void Start(StateConfig config) {
-            Player.AnimationRun.Play();
+        public override void Start(Context context, StateConfig config) {
+            Player.AnimationRun.PlayLoop();
         }
 
-        public override NextState Execute(NextState nextState) {
+        public override NextState Execute(Context context) {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                return nextState.Immediate(typeof(AirStateFallShort), COYOTE_JUMP_ENABLED);
+                return context.Immediate(typeof(AirStateFallShort), COYOTE_JUMP_ENABLED);
             }
 
             if (XInput == 0 && Motion.x == 0) {
-                return nextState.Immediate(typeof(GroundStateIdle));
+                return context.Immediate(typeof(GroundStateIdle));
             }
 
             if (Jump.JustPressed) {
                 if (IsDown && Player.IsOnFallingPlatform()) {
                     GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
                 } else {
-                    return nextState.Immediate(typeof(AirStateJump));
+                    return context.Immediate(typeof(AirStateJump));
                 }
             }
 
@@ -46,7 +45,7 @@ namespace Veronenger.Game.Character.Player.States {
 
             Player.MoveSnapping();
 
-            return nextState.Current();
+            return context.Current();
         }
     }
 }

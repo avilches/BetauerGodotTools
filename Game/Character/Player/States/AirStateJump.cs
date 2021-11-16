@@ -6,14 +6,14 @@ namespace Veronenger.Game.Character.Player.States {
         public AirStateJump(PlayerController player) : base(player) {
         }
 
-        public override void Start(StateConfig config) {
+        public override void Start(Context context, StateConfig config) {
             Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
             Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
                 "Jump: decelerating to " + -PlayerConfig.JUMP_FORCE);
-            Player.AnimationJump.Play();
+            Player.AnimationJump.PlayLoop();
         }
 
-        public override NextState Execute(NextState nextState) {
+        public override NextState Execute(Context context) {
             CheckAttack();
 
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
@@ -30,10 +30,10 @@ namespace Veronenger.Game.Character.Player.States {
             Player.Slide();
 
             if (Motion.y >= 0) {
-                return nextState.Immediate(typeof(AirStateFallShort));
+                return context.Immediate(typeof(AirStateFallShort));
             }
 
-            return CheckLanding(nextState);
+            return CheckLanding(context);
 
         }
     }

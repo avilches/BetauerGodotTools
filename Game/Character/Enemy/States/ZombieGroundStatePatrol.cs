@@ -1,71 +1,84 @@
-using System;
-using Tools;
+using Godot;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
+using Timer = Tools.Timer;
 
 namespace Veronenger.Game.Character.Enemy.States {
-    public class GroundStateRun : GroundState {
-        private Random rand = new Random();
-        private Clock _state = new Clock();
-        private Clock _waitBetweenSteps = new Clock();
+    public class GroundStatePatrolStep : GroundState {
 
-        public GroundStateRun(EnemyZombieController enemyZombie) : base(enemyZombie) {
+        public GroundStatePatrolStep(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
-        public override void Start(StateConfig config) {
-            _state.Start().Finish(rand.Next(5, 8)).Stop();
-            EnemyZombie.AnimationStep.Play();
+        private Timer _patrolTimer = new Timer().Start();
+
+        public override void Start(Context context, StateConfig config) {
+            if (context.FromState is GroundStatePatrolWait) {
+                // State come from the wait, do nothing...
+            } else {
+                EnemyZombie.IsFacingRight = !EnemyZombie.IsFacingRight;
+                _patrolTimer.SetAlarm(4).Reset();
+            }
+            EnemyZombie.AnimationStep.PlayOnce();
         }
 
         /*
          * AnimationStep + lateral move -> wait(1,2) + stop
          */
-        public override NextState Execute(NextState nextState) {
-            _state.Add(EnemyZombie.Delta);
-            _waitBetweenSteps.Add(EnemyZombie.Delta);
-
+        public override NextState Execute(Context context) {
+            _patrolTimer.Add(context.Delta);
             if (!EnemyZombie.IsOnFloor()) {
-                EnemyZombie.AnimationIdle.Play();
+                EnemyZombie.AnimationIdle.PlayLoop();
                 EnemyZombie.ApplyGravity();
                 EnemyZombie.LimitMotion();
                 EnemyZombie.Slide();
-                return nextState.Current();
+                return context.Current();
             }
 
-            if (_state.IsFinished()) {
+            if (_patrolTimer.IsAlarm()) {
                 // Stop slowly and go to idle
                 if (EnemyZombie.Motion.x == 0) {
-                    return nextState.Immediate(typeof(GroundStateIdle));
+                    return context.Immediate(typeof(GroundStateIdle));
                 } else {
-                    StopMovement();
+                    EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.FRICTION,
+                        EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN);
+                    EnemyZombie.MoveSnapping();
                 }
-                return nextState.Current();
+                return context.Current();
             }
 
-            if (EnemyZombie.AnimationStep.Playing) {
-                EnemyZombie.AddLateralMotion(EnemyZombie.IsFacingRight ? 1 : -1, EnemyConfig.ACCELERATION,
-                    EnemyConfig.AIR_RESISTANCE, EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
-                EnemyZombie.LimitMotion();
-                EnemyZombie.MoveSnapping();
-            } else {
-                // No playing the "Step" animation anymore -> stop enemy
-                StopMovement();
-                if (_waitBetweenSteps.Stopped) {
-                    // Start step wait
-                    _waitBetweenSteps.Start().Finish(rand.Next(200, 800) / 1000f);
-                } else if (_waitBetweenSteps.IsFinished()) {
-                    // Step wait is finished
-                    _waitBetweenSteps.Stop();
-                    EnemyZombie.AnimationStep.Play();
-                }
+            if (!EnemyZombie.AnimationStep.Playing) {
+                return context.NextFrame(typeof(GroundStatePatrolWait));
             }
-            return nextState.Current();
-        }
 
-        void StopMovement() {
-            EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.FRICTION, EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN);
+            EnemyZombie.AddLateralMotion(EnemyZombie.IsFacingRight ? 1 : -1, EnemyConfig.ACCELERATION,
+                EnemyConfig.AIR_RESISTANCE, EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
             EnemyZombie.LimitMotion();
             EnemyZombie.MoveSnapping();
+            return context.Current();
+        }
+    }
+
+    public class GroundStatePatrolWait : GroundState {
+        public GroundStatePatrolWait(EnemyZombieController enemyZombie) : base(enemyZombie) {
+        }
+
+        public override void Start(Context context, StateConfig config) {
+            context.StateTimer.SetAlarm(0.3f);
+        }
+
+        /*
+         * AnimationStep + lateral move -> wait(1,2) + stop
+         */
+        public override NextState Execute(Context context) {
+
+            if (!EnemyZombie.IsOnFloor()) {
+                return context.Immediate(typeof(GroundStatePatrolStep));
+            }
+
+            EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.FRICTION, EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN);
+            EnemyZombie.MoveSnapping();
+
+            return context.ImmediateIfAlarm(typeof(GroundStatePatrolStep));
         }
     }
 }

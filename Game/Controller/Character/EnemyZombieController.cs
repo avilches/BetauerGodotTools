@@ -17,8 +17,9 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimationStatus AnimationStep { get; private set; }
 
         protected override StateMachine CreateStateMachine() {
-            return new StateMachine(EnemyConfig, this)
-                .AddState(new GroundStateRun( this))
+            return new StateMachine(EnemyConfig, GameManager.Instance)
+                .AddState(new GroundStatePatrolStep( this))
+                .AddState(new GroundStatePatrolWait( this))
                 .AddState(new GroundStateIdle( this));
         }
 

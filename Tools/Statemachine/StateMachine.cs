@@ -1,117 +1,139 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using Godot;
 
 namespace Tools.Statemachine {
-    public struct NextState {
-        private readonly Dictionary<Type, State> _states;
-        public Type StateType { get; private set; }
-        public bool IsImmediate { get; private set; }
-        public StateConfig Config { get; private set; }
+    public readonly struct Context {
+        internal readonly State State;
 
-        public NextState(Dictionary<Type, State> states) : this() {
-            _states = states;
+        public readonly StateMachine StateMachine;
+        public readonly Timer StateTimer;
+        private readonly long _frameStart;
+        public long StateFrame => StateMachine.Frame - _frameStart;
+        public readonly State FromState;
+
+        public Context(StateMachine stateMachine, State state, State fromState, long frameStart) : this() {
+            StateMachine = stateMachine;
+            State = state;
+            FromState = fromState;
+            StateTimer = new Timer().Start();
+            _frameStart = frameStart;
         }
 
-        public NextState(Dictionary<Type, State> states, StateConfig config) : this() {
-            _states = states;
-            Config = config;
-        }
-
-        public State State => StateType != null ? _states[StateType] : null;
+        public float Delta => StateMachine.Delta;
 
         public NextState NextFrame(Type state, StateConfig config = null) {
-            StateType = state;
-            IsImmediate = false;
-            Config = config;
-            return this;
+            return new NextState(StateMachine, state, false, config);
         }
 
         public NextState Immediate(Type state, StateConfig config = null) {
-            StateType = state;
-            IsImmediate = true;
-            Config = config;
-            return this;
+            return new NextState(StateMachine, state, true, config);
         }
 
         public NextState Current() {
-            StateType = null;
-            IsImmediate = false;
-            return this;
+            return new NextState(StateMachine, null, true);
+        }
+
+        public NextState ImmediateIfAlarm(Type type, StateConfig config = null) {
+            return StateTimer.IsAlarm() ? Immediate(type, config) : Current();
+        }
+
+        public NextState IfAlarmNextFrame(Type type, StateConfig config = null) {
+            return StateTimer.IsAlarm() ? NextFrame(type, config) : Current();
         }
     }
 
-    public class StateMachine {
-        private readonly Dictionary<Type, State> _states = new Dictionary<Type, State>();
-        private readonly StateMachineDebugConfig _stateMachineDebugConfig;
-        private readonly StateConfig EMPTY_CONFIG = new StateConfig();
+    public readonly struct NextState {
+        public readonly Type StateType;
+        public readonly bool IsImmediate;
+        public readonly StateConfig Config;
+        public readonly StateMachine StateMachine;
 
-        private State _currentState;
-
-        private NextState _nextState;
-
-        private readonly IFrameAware _frameAware;
-
-        public State CurrenState => _currentState;
-
-        public StateMachine(StateMachineDebugConfig stateMachineDebugConfig, IFrameAware frameAware) {
-            _stateMachineDebugConfig = stateMachineDebugConfig;
-            _frameAware = frameAware;
+        public NextState(StateMachine stateMachine, Type stateType, bool isImmediate) {
+            StateType = stateType;
+            IsImmediate = isImmediate;
+            StateMachine = stateMachine;
+            Config = null;
         }
 
-        private long Frame => _frameAware.GetFrame();
+        public NextState(StateMachine stateMachine, Type stateType, bool isImmediate, StateConfig config) {
+            StateType = stateType;
+            IsImmediate = isImmediate;
+            StateMachine = stateMachine;
+            Config = config;
+        }
+
+        public State State => StateType != null ? StateMachine.States[StateType] : null;
+    }
+
+    public class StateMachine {
+        private readonly StateMachineDebugConfig _stateMachineDebugConfig;
+        private readonly StateConfig _emptyConfig = new StateConfig();
+        private const int MaxChanges = 2;
+        private readonly IFrameDeltaAware _frameDeltaAware;
+        public long Frame => _frameDeltaAware.GetFrame();
+        public float Delta => _frameDeltaAware.GetDelta();
+
+        internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
+
+        private NextState NextState { get; set; }
+        private Context CurrentContext { get; set; }
+
+        public StateMachine(StateMachineDebugConfig stateMachineDebugConfig, IFrameDeltaAware frameDeltaAware) {
+            _stateMachineDebugConfig = stateMachineDebugConfig;
+            _frameDeltaAware = frameDeltaAware;
+        }
 
         public StateMachine AddState(State state) {
-            _states[state.GetType()] = state;
+            States[state.GetType()] = state;
             return this;
         }
 
-        public void SetNextState(Type nextState) {
-            _nextState = new NextState(_states).Immediate(nextState);
+        public void SetNextState(Type nextState, bool immediate = false) {
+            NextState = new NextState(this, nextState, immediate);
         }
 
         public void SetNextState(NextState nextState) {
-            _nextState = nextState;
+            NextState = nextState;
         }
-
-        private const int MAX_CHANGES = 2;
 
         public void Execute() {
-            Execute(_currentState, _nextState, new List<string>());
+            Execute(CurrentContext.State, NextState, new List<string>());
         }
 
-        public void Execute(State initialState, NextState nextState, List<string> immediateChanges) {
-            if (_currentState != nextState.State) {
+        private void Execute(State initialState, NextState nextState, List<string> immediateChanges) {
+            if (CurrentContext.State != nextState.State) {
                 // New state!
-                if (_currentState != null) { // first execution there is no current state)
+                if (CurrentContext.State != null) { // first execution there is no current state)
                     // End the current state
-                    DebugStateFlow($"#{Frame}: {_currentState.Name}.End()");
-                    _currentState.End();
+                    DebugStateFlow($"#{Frame}: {CurrentContext.State.Name}.End()");
+                    CurrentContext.State.End();
                 }
 
                 // Change the current state
-                DebugStateFlow($"#{Frame}: {_currentState?.Name} -> {nextState.State.Name}");
-                _currentState = nextState.State;
+                DebugStateFlow($"#{Frame}: {CurrentContext.State?.Name} -> {nextState.State.Name}");
+                CurrentContext = new Context(this, nextState.State, CurrentContext.State ?? nextState.State, Frame);
                 immediateChanges.Add(nextState.State.Name);
                 CheckImmediateChanges(initialState, immediateChanges);
 
                 // Start the state
+                CurrentContext.StateTimer.Reset().Start();
                 DebugStateFlow($"#{Frame}: {nextState.State.Name}.Start()");
-                nextState.State.Start(nextState.Config ?? EMPTY_CONFIG);
+                nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
             }
             // Execute the state
-            NextState newNextState = _currentState.Execute(new NextState(_states));
-            if (newNextState.StateType == null || newNextState.State == _currentState) return;
-            _nextState = newNextState;
+            CurrentContext.StateTimer.Add(_frameDeltaAware.GetDelta());
+            NextState newNextState = CurrentContext.State.Execute(CurrentContext);
+            if (newNextState.StateType == null || newNextState.State == CurrentContext.State) return;
+            NextState = newNextState;
             if (!newNextState.IsImmediate) return;
-            Execute(initialState, _nextState, immediateChanges);
+            Execute(initialState, NextState, immediateChanges);
         }
 
         private static void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
-            GD.Print(initialState?.Name + " : " + string.Join(", ", immediateChanges));
-            if (immediateChanges.Count > MAX_CHANGES) {
+            // GD.Print(initialState?.Name + " : " + string.Join(", ", immediateChanges));
+            if (immediateChanges.Count > MaxChanges) {
                 if (immediateChanges.Count != immediateChanges.Distinct().Count()) {
                     throw new Exception(
                         $"Circular state change detected in {initialState.Name}: {string.Join(", ", immediateChanges)}");
@@ -122,7 +144,7 @@ namespace Tools.Statemachine {
         }
 
         public void _UnhandledInput(InputEvent @event) {
-            _currentState?._UnhandledInput(@event);
+            CurrentContext.State?._UnhandledInput(@event);
         }
 
         private void DebugStateFlow(string message) {

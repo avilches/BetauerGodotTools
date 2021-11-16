@@ -9,28 +9,28 @@ namespace Veronenger.Game.Character.Player.States {
         public GroundStateIdle(PlayerController player) : base(player) {
         }
 
-        public override void Start(StateConfig config) {
-            Player.AnimationIdle.Play();
+        public override void Start(Context context, StateConfig config) {
+            Player.AnimationIdle.PlayLoop();
         }
 
         private OnceAnimationStatus status;
 
-        public override NextState Execute(NextState nextState) {
+        public override NextState Execute(Context context) {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                return nextState.NextFrame(typeof(AirStateFallShort));
+                return context.NextFrame(typeof(AirStateFallShort));
             }
 
             if (XInput != 0) {
-                return nextState.Immediate(typeof(GroundStateRun));
+                return context.Immediate(typeof(GroundStateRun));
             }
 
             if (Jump.JustPressed) {
                 if (IsDown && Player.IsOnFallingPlatform()) {
                     GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
                 } else {
-                    return nextState.Immediate(typeof(AirStateJump));
+                    return context.Immediate(typeof(AirStateJump));
                 }
             }
 
@@ -43,7 +43,7 @@ namespace Veronenger.Game.Character.Player.States {
             }
             Player.MoveSnapping();
 
-            return nextState.Current();
+            return context.Current();
         }
     }
 }

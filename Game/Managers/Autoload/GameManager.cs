@@ -1,9 +1,7 @@
 using System;
 using Godot;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller;
+using Tools;
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Tools;
 using Veronenger.Game.Tools.Resolution;
 
 namespace Veronenger.Game.Managers.Autoload {
@@ -18,7 +16,10 @@ namespace Veronenger.Game.Managers.Autoload {
      * donde estan realmente estos objetos (plataformas o areas).
      *
      */
-    public class GameManager  : Node /* needed to receive _EnterTree and OnScreenResized signals */ {
+    public class GameManager : Node, IFrameDeltaAware /* needed to receive _EnterTree and OnScreenResized signals */ {
+        private long _frame = 0;
+        private float _delta = 0.16f;
+
         public static GameManager Instance { get; private set; }
 
         public readonly AreaManager AreaManager;
@@ -28,7 +29,6 @@ namespace Veronenger.Game.Managers.Autoload {
         public readonly SceneManager SceneManager;
         private ScreenManager ScreenManager;
         public readonly CharacterManager CharacterManager;
-
 
         public static Vector2 FULL_DIV6 = new Vector2(320, 180);   // 1920x1080 / 6
         public static Vector2 FULL_DIV4 = new Vector2(480, 270);    // 1920x1080 / 4
@@ -61,6 +61,19 @@ namespace Veronenger.Game.Managers.Autoload {
                 ScreenManager.Start(this, nameof(OnScreenResized));
                 ScreenManager.SetAll(false, 3, false);
             }
+        }
+
+        public long GetFrame() {
+            return _frame;
+        }
+
+        public float GetDelta() {
+            return _delta;
+        }
+
+        public sealed override void _PhysicsProcess(float delta) {
+            _delta = delta;
+            _frame++;
         }
 
         public void OnScreenResized() {

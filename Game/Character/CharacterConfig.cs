@@ -14,7 +14,7 @@ namespace Veronenger.Game.Character {
 
         // Only for the player...
         public bool DEBUG_JUMP_HELPER = false;
-        public bool DEBUG_JUMP_COYOTE = false;
+        public bool DEBUG_JUMP_COYOTE = true;
         public bool DEBUG_INPUT_EVENTS = false;
 
         // CONFIG: ground

@@ -7,11 +7,10 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         protected bool CheckAttack() {
-            if (Attack.JustPressed) {
-                Player.AnimationAttack.Play();
-                return true;
-            }
-            return false;
+            if (!Attack.JustPressed) return false;
+            // Attack was pressed
+            Player.AnimationAttack.PlayOnce();
+            return true;
         }
 
         protected void EnableSlopeStairs() {

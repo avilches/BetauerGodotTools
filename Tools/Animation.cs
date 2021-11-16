@@ -37,7 +37,7 @@ namespace Tools {
             Animation = loopAnimation;
         }
 
-        public void Play() {
+        public void PlayLoop() {
             _animationStack.PlayLoop(this);
         }
     }
@@ -54,7 +54,7 @@ namespace Tools {
             Animation = animation;
         }
 
-        public void Play() {
+        public void PlayOnce() {
             _animationStack.PlayOnce(this);
         }
     }

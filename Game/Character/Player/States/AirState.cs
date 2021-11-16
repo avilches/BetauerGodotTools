@@ -7,21 +7,21 @@ namespace Veronenger.Game.Character.Player.States {
         public AirState(PlayerController player) : base(player) {
         }
 
-        protected NextState CheckLanding(NextState nextState) {
-            if (!Player.IsOnFloor()) return nextState.Current(); // Still in the air! :)
+        protected NextState CheckLanding(Context context) {
+            if (!Player.IsOnFloor()) return context.Current(); // Still in the air! :)
 
             GameManager.Instance.PlatformManager.BodyStopFallFromPlatform(Player);
 
             // Check helper jump
-            if (!Player.FallingJumpClock.Stopped) {
-                Player.FallingJumpClock.Pause();
-                if (Player.FallingJumpClock.Elapsed <= base.PlayerConfig.JUMP_HELPER_TIME) {
+            if (!Player.FallingJumpTimer.Stopped) {
+                Player.FallingJumpTimer.Stop();
+                if (Player.FallingJumpTimer.Elapsed <= PlayerConfig.JUMP_HELPER_TIME) {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {base.PlayerConfig.JUMP_HELPER_TIME} Done!");
-                    return nextState.Immediate(typeof(AirStateJump));
+                        $"Helper jump: {Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} Done!");
+                    return context.Immediate(typeof(AirStateJump));
                 } else {
                     Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpClock.Elapsed} <= {base.PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
+                        $"Helper jump: {Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
                 }
             }
 
@@ -31,30 +31,29 @@ namespace Veronenger.Game.Character.Player.States {
                     // Evita resbalarse hacia abajo al caer sobre un slope
                     Player.SetMotionX(0);
                 }
-                return nextState.Immediate(typeof(GroundStateIdle));
+                return context.Immediate(typeof(GroundStateIdle));
             }
-            return nextState.Immediate(typeof(GroundStateRun));
+            return context.Immediate(typeof(GroundStateRun));
         }
 
         protected bool CheckAttack() {
-            if (Attack.JustPressed) {
-                Player.AnimationJumpAttack.Play();
-                return true;
-            }
-            return false;
+            if (!Attack.JustPressed) return false;
+            // Attack was pressed
+            Player.AnimationJumpAttack.PlayOnce();
+            return true;
         }
 
         protected bool CheckCoyoteJump() {
-            if (Jump.JustPressed) {
-                Player.FallingJumpClock.Start();
-                if (Player.FallingClock.Elapsed <= base.PlayerConfig.COYOTE_TIME) {
-                    Debug(PlayerConfig.DEBUG_JUMP_COYOTE,
-                        $"Coyote jump: {Player.FallingClock.Elapsed} <= {base.PlayerConfig.COYOTE_TIME} Done!");
-                    return true;
-                }
+            if (!Jump.JustPressed) return false;
+            // Jump was pressed
+            Player.FallingJumpTimer.Reset().Start();
+            if (Player.FallingTimer.Elapsed <= PlayerConfig.COYOTE_TIME) {
                 Debug(PlayerConfig.DEBUG_JUMP_COYOTE,
-                    $"Coyote jump: {Player.FallingClock.Elapsed} > {base.PlayerConfig.COYOTE_TIME} TOO LATE");
+                    $"Coyote jump: {Player.FallingTimer.Elapsed} <= {PlayerConfig.COYOTE_TIME} Done!");
+                return true;
             }
+            Debug(PlayerConfig.DEBUG_JUMP_COYOTE,
+                $"Coyote jump: {Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME} TOO LATE");
             return false;
         }
     }

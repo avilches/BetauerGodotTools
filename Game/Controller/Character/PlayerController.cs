@@ -7,6 +7,7 @@ using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers.Autoload;
+using Timer = Tools.Timer;
 
 namespace Veronenger.Game.Controller.Character {
     public class PlayerController : CharacterController {
@@ -14,8 +15,8 @@ namespace Veronenger.Game.Controller.Character {
         public readonly MyPlayerActions PlayerActions;
         private Area2D _attack;
 
-        public readonly Clock FallingJumpClock = new Clock().Pause();
-        public readonly Clock FallingClock = new Clock().Pause();
+        public readonly Timer FallingJumpTimer = new Timer().Stop();
+        public readonly Timer FallingTimer = new Timer().Stop();
 
         public PlayerController() {
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
@@ -30,7 +31,7 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimationStatus AnimationJumpAttack { get; private set; }
 
         protected override StateMachine CreateStateMachine() {
-            return new StateMachine(PlayerConfig, this)
+            return new StateMachine(PlayerConfig, GameManager.Instance)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
                 .AddState(new AirStateFallShort(this))
@@ -106,8 +107,8 @@ namespace Veronenger.Game.Controller.Character {
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
         protected override void PhysicsProcess() {
-            FallingJumpClock.Add(Delta);
-            FallingClock.Add(Delta);
+            FallingJumpTimer.Add(Delta);
+            FallingTimer.Add(Delta);
             StateMachine.Execute();
             PlayerActions.ClearJustState();
             /*
