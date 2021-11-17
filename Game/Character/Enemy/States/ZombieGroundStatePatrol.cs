@@ -1,11 +1,9 @@
-using Godot;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 using Timer = Tools.Timer;
 
 namespace Veronenger.Game.Character.Enemy.States {
     public class GroundStatePatrolStep : GroundState {
-
         public GroundStatePatrolStep(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
@@ -25,7 +23,7 @@ namespace Veronenger.Game.Character.Enemy.States {
          * AnimationStep + lateral move -> wait(1,2) + stop
          */
         public override NextState Execute(Context context) {
-            _patrolTimer.Add(context.Delta);
+            _patrolTimer.Update(context.Delta);
             if (!EnemyZombie.IsOnFloor()) {
                 EnemyZombie.AnimationIdle.PlayLoop();
                 EnemyZombie.ApplyGravity();
@@ -62,23 +60,17 @@ namespace Veronenger.Game.Character.Enemy.States {
         public GroundStatePatrolWait(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
-        public override void Start(Context context, StateConfig config) {
-            context.StateTimer.SetAlarm(0.3f);
-        }
-
         /*
          * AnimationStep + lateral move -> wait(1,2) + stop
          */
         public override NextState Execute(Context context) {
-
             if (!EnemyZombie.IsOnFloor()) {
                 return context.Immediate(typeof(GroundStatePatrolStep));
             }
-
             EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.FRICTION, EnemyConfig.STOP_IF_SPEED_IS_LESS_THAN);
             EnemyZombie.MoveSnapping();
 
-            return context.ImmediateIfAlarm(typeof(GroundStatePatrolStep));
+            return context.NextFrameIfElapsed(0.3f, typeof(GroundStatePatrolStep));
         }
     }
 }

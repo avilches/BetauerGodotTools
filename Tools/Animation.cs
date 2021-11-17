@@ -155,7 +155,8 @@ namespace Tools {
         protected internal OnceAnimationStatus PlayOnce(OnceAnimationStatus newOnceAnimationStatus) {
             if (_currentOnceAnimationStatus == null || _currentOnceAnimationStatus.CanBeInterrupted) {
                 if (_currentOnceAnimationStatus != null) {
-                    // GD.Print("PlayOnce Interrupting: "+_onceOnceAnimationOnceStatus.Animation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
+                    GD.Print("PlayOnce Interrupting: " + _currentOnceAnimationStatus.Animation.Name + ".Playing = false " +
+                             _currentOnceAnimationStatus.GetHashCode());
                     _currentOnceAnimationStatus.Playing = false;
                     _currentOnceAnimationStatus.Interrupted = true;
                     _currentOnceAnimationStatus.Animation.OnEnd();
@@ -166,7 +167,8 @@ namespace Tools {
                 _currentOnceAnimationStatus = newOnceAnimationStatus;
                 newOnceAnimationStatus.Playing = true;
                 newOnceAnimationStatus.Interrupted = false;
-                // GD.Print("PlayOnce new: "+newAnimation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
+                GD.Print("PlayOnce new: " + newOnceAnimationStatus.Animation.Name + ".Playing = true " +
+                         newOnceAnimationStatus.GetHashCode());
                 newOnceAnimationStatus.Animation.OnStart();
                 _animationPlayer.Play(newOnceAnimationStatus.Animation.Name);
             }
@@ -192,7 +194,8 @@ namespace Tools {
         }
 
         public void OnAnimationOnceFinished(string animation) {
-            // GD.Print("OnAnimationOnceFinished finishing: "+_onceOnceAnimationOnceStatus.Animation.Name+ " "+_onceOnceAnimationOnceStatus.GetHashCode());
+            GD.Print("OnAnimationOnceFinished: " + _currentOnceAnimationStatus.Animation.Name + ".Playing = false " +
+                     _currentOnceAnimationStatus.GetHashCode());
             _currentOnceAnimationStatus.Playing = false;
             _currentOnceAnimationStatus.Animation.OnEnd();
             _currentOnceAnimationStatus = null;

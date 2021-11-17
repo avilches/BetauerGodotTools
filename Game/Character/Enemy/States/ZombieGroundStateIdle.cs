@@ -1,4 +1,3 @@
-using System;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
@@ -9,12 +8,10 @@ namespace Veronenger.Game.Character.Enemy.States {
         }
 
         public override void Start(Context context, StateConfig config) {
-            EnemyZombie.AnimationIdle.PlayLoop();;
-            context.StateTimer.SetAlarm(2);
+            EnemyZombie.AnimationIdle.PlayLoop();
         }
 
         public override NextState Execute(Context context) {
-
             if (!EnemyZombie.IsOnFloor()) {
                 EnemyZombie.ApplyGravity();
                 EnemyZombie.LimitMotion();
@@ -29,7 +26,7 @@ namespace Veronenger.Game.Character.Enemy.States {
             }
 
             EnemyZombie.MoveSnapping();
-            return context.ImmediateIfAlarm(typeof(GroundStatePatrolStep));
+            return context.ImmediateIfElapsed(2, typeof(GroundStatePatrolStep));
         }
     }
 }

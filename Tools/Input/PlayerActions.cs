@@ -11,7 +11,7 @@ namespace Tools.Input {
             return ActionInputList.Update(w);
         }
 
-        public void ClearJustState() {
+        public void ClearJustStates() {
             ActionInputList.ClearJustState();
         }
     }

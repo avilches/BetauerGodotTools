@@ -7,8 +7,7 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D {
-        protected CharacterConfig CharacterConfig { get; }
-        protected StateMachine StateMachine { get; }
+        protected CharacterConfig CharacterConfig { get; set; }
         protected Sprite MainSprite { get; private set; }
         protected AnimationStack AnimationStack { get; private set; }
         protected Label Label { get; private set; }
@@ -21,24 +20,21 @@ namespace Veronenger.Game.Character {
         public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
         public bool _isFacingRight = false;
 
-        public float Delta => GameManager.Instance.GetDelta();
-        public long Frame => GameManager.Instance.GetFrame();
+        public float Delta { get; private set; } = 0;
 
-        protected abstract StateMachine CreateStateMachine();
         protected abstract CharacterConfig CreateCharacterConfig();
         protected abstract AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer);
 
-        protected CharacterController() {
-            CharacterConfig = CreateCharacterConfig();
-            StateMachine = CreateStateMachine();
-        }
-
         public override void _EnterTree() {
-            AnimationPlayer animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            MainSprite = GetNode<Sprite>("Sprite");
+            CharacterConfig = CreateCharacterConfig();
+
+            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             AnimationStack = CreateAnimationStack(animationPlayer);
+
+            MainSprite = GetNode<Sprite>("Sprite");
             Parent = GetParent<Node2D>();
             Label = Parent.GetNode<Label>("Label");
+
             _isFacingRight = !MainSprite.FlipH; // FlipH is true when you flip the sprite to the left
         }
 
@@ -65,7 +61,7 @@ namespace Veronenger.Game.Character {
         }
 
         public void Debug(string message) {
-            GD.Print($"#{Frame}: {GetType().Name} | {message}");
+            GD.Print($"{GetType().Name} | {message}");
         }
 
         public void SetMotion(Vector2 motion) {
@@ -91,6 +87,7 @@ namespace Veronenger.Game.Character {
         }
 
         public sealed override void _PhysicsProcess(float delta) {
+            Delta = delta;
             _lastMotion = Motion;
             PhysicsProcess();
             if (CharacterConfig.DEBUG_MOTION && Motion != _lastMotion) {

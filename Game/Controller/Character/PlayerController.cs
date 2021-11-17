@@ -14,6 +14,7 @@ namespace Veronenger.Game.Controller.Character {
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
         private Area2D _attack;
+        private StateMachine StateMachine;
 
         public readonly Timer FallingJumpTimer = new Timer().Stop();
         public readonly Timer FallingTimer = new Timer().Stop();
@@ -29,15 +30,6 @@ namespace Veronenger.Game.Controller.Character {
         public LoopAnimationStatus AnimationFall { get; private set; }
         public OnceAnimationStatus AnimationAttack { get; private set; }
         public OnceAnimationStatus AnimationJumpAttack { get; private set; }
-
-        protected override StateMachine CreateStateMachine() {
-            return new StateMachine(PlayerConfig, GameManager.Instance)
-                .AddState(new GroundStateIdle(this))
-                .AddState(new GroundStateRun(this))
-                .AddState(new AirStateFallShort(this))
-                .AddState(new AirStateFallLong(this))
-                .AddState(new AirStateJump(this));
-        }
 
         protected override CharacterConfig CreateCharacterConfig() {
             return PlayerConfig;
@@ -56,6 +48,13 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _EnterTree() {
             base._EnterTree();
+
+            StateMachine = new StateMachine("Player:" + GetHashCode().ToString("x8"))
+                .AddState(new GroundStateIdle(this))
+                .AddState(new GroundStateRun(this))
+                .AddState(new AirStateFallShort(this))
+                .AddState(new AirStateFallLong(this))
+                .AddState(new AirStateJump(this));
             StateMachine.SetNextState(typeof(GroundStateIdle));
             _attack = GetNode<Area2D>("AttackArea");
         }
@@ -107,10 +106,12 @@ namespace Veronenger.Game.Controller.Character {
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
         protected override void PhysicsProcess() {
-            FallingJumpTimer.Add(Delta);
-            FallingTimer.Add(Delta);
-            StateMachine.Execute();
-            PlayerActions.ClearJustState();
+            FallingJumpTimer.Update(Delta);
+            FallingTimer.Update(Delta);
+
+            StateMachine.Execute(Delta);
+
+            PlayerActions.ClearJustStates();
             /*
                 Label.Text = "Floor: " + IsOnFloor() + "\n" +
                               "Slope: " + IsOnSlope() + "\n" +

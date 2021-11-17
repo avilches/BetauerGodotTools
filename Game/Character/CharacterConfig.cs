@@ -2,7 +2,7 @@ using Godot;
 using Tools.Statemachine;
 
 namespace Veronenger.Game.Character {
-    public abstract class CharacterConfig : StateMachineDebugConfig {
+    public abstract class CharacterConfig {
         public virtual bool DEBUG_STATEMACHINE_FLOW => false;
         public bool DEBUG_MAX_SPEED = false;
         public bool DEBUG_ACCELERATION = false;

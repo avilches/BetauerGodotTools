@@ -9,19 +9,13 @@ using Veronenger.Game.Managers.Autoload;
 namespace Veronenger.Game.Controller.Character {
     public class EnemyZombieController : CharacterController {
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
+        private StateMachine StateMachine;
 
         public EnemyZombieController() {
         }
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
         public OnceAnimationStatus AnimationStep { get; private set; }
-
-        protected override StateMachine CreateStateMachine() {
-            return new StateMachine(EnemyConfig, GameManager.Instance)
-                .AddState(new GroundStatePatrolStep( this))
-                .AddState(new GroundStatePatrolWait( this))
-                .AddState(new GroundStateIdle( this));
-        }
 
         protected override CharacterConfig CreateCharacterConfig() {
             return EnemyConfig;
@@ -36,6 +30,10 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _EnterTree() {
             base._EnterTree();
+            StateMachine = new StateMachine("Zombie:" + GetHashCode().ToString("x8"))
+                .AddState(new GroundStatePatrolStep(this))
+                .AddState(new GroundStatePatrolWait(this))
+                .AddState(new GroundStateIdle(this));
             StateMachine.SetNextState(typeof(GroundStateIdle));
         }
 
@@ -45,7 +43,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void PhysicsProcess() {
-            StateMachine.Execute();
+            StateMachine.Execute(Delta);
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +
@@ -54,6 +52,5 @@ namespace Veronenger.Game.Controller.Character {
                           "Falling: " + IsOnFallingPlatform();
             */
         }
-
     }
 }

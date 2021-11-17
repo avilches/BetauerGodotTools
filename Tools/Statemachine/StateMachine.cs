@@ -4,24 +4,28 @@ using System.Linq;
 using Godot;
 
 namespace Tools.Statemachine {
-    public readonly struct Context {
-        internal readonly State State;
-
+    public class Context {
+        public readonly State CurrentState;
         public readonly StateMachine StateMachine;
         public readonly Timer StateTimer;
-        private readonly long _frameStart;
-        public long StateFrame => StateMachine.Frame - _frameStart;
         public readonly State FromState;
+        public int FrameCount { get; private set; }
+        public float Delta { get; private set; }
 
-        public Context(StateMachine stateMachine, State state, State fromState, long frameStart) : this() {
+        public Context(StateMachine stateMachine, State currentState, State fromState) {
             StateMachine = stateMachine;
-            State = state;
+            CurrentState = currentState;
             FromState = fromState;
             StateTimer = new Timer().Start();
-            _frameStart = frameStart;
+            FrameCount = 0;
+            Delta = 0.16f;
         }
 
-        public float Delta => StateMachine.Delta;
+        internal void Update(float delta) {
+            Delta = delta;
+            StateTimer.Update(delta);
+            FrameCount++;
+        }
 
         public NextState NextFrame(Type state, StateConfig config = null) {
             return new NextState(StateMachine, state, false, config);
@@ -32,57 +36,58 @@ namespace Tools.Statemachine {
         }
 
         public NextState Current() {
-            return new NextState(StateMachine, null, true);
+            return new NextState(StateMachine, CurrentState.GetType(), true);
         }
 
         public NextState ImmediateIfAlarm(Type type, StateConfig config = null) {
             return StateTimer.IsAlarm() ? Immediate(type, config) : Current();
         }
 
-        public NextState IfAlarmNextFrame(Type type, StateConfig config = null) {
+        public NextState ImmediateIfElapsed(float elapsed, Type type, StateConfig config = null) {
+            return StateTimer.Elapsed > elapsed ? Immediate(type, config) : Current();
+        }
+
+        public NextState NextFrameIfAlarm(Type type, StateConfig config = null) {
             return StateTimer.IsAlarm() ? NextFrame(type, config) : Current();
+        }
+
+        public NextState NextFrameIfElapsed(float elapsed, Type type, StateConfig config = null) {
+            return StateTimer.Elapsed > elapsed ? NextFrame(type, config) : Current();
         }
     }
 
     public readonly struct NextState {
-        public readonly Type StateType;
+        public readonly State State;
         public readonly bool IsImmediate;
         public readonly StateConfig Config;
-        public readonly StateMachine StateMachine;
 
-        public NextState(StateMachine stateMachine, Type stateType, bool isImmediate) {
-            StateType = stateType;
+        internal NextState(StateMachine stateMachine, Type stateType, bool isImmediate) {
+            State = stateMachine.States[stateType];
+            if (State == null) throw new Exception("State " + stateType.Name + " not found in StateMachine");
             IsImmediate = isImmediate;
-            StateMachine = stateMachine;
             Config = null;
         }
 
-        public NextState(StateMachine stateMachine, Type stateType, bool isImmediate, StateConfig config) {
-            StateType = stateType;
+        internal NextState(StateMachine stateMachine, Type stateType, bool isImmediate, StateConfig config) {
+            State = stateMachine.States[stateType];
+            if (State == null) throw new Exception("State " + stateType.Name + " not found in StateMachine");
             IsImmediate = isImmediate;
-            StateMachine = stateMachine;
             Config = config;
         }
-
-        public State State => StateType != null ? StateMachine.States[StateType] : null;
     }
 
     public class StateMachine {
-        private readonly StateMachineDebugConfig _stateMachineDebugConfig;
         private readonly StateConfig _emptyConfig = new StateConfig();
         private const int MaxChanges = 2;
-        private readonly IFrameDeltaAware _frameDeltaAware;
-        public long Frame => _frameDeltaAware.GetFrame();
-        public float Delta => _frameDeltaAware.GetDelta();
+        private readonly Logger _logger;
 
         internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
 
         private NextState NextState { get; set; }
         private Context CurrentContext { get; set; }
 
-        public StateMachine(StateMachineDebugConfig stateMachineDebugConfig, IFrameDeltaAware frameDeltaAware) {
-            _stateMachineDebugConfig = stateMachineDebugConfig;
-            _frameDeltaAware = frameDeltaAware;
+        public StateMachine(string name) {
+            _logger = LoggerFactory.GetLogger(GetType(), name);
         }
 
         public StateMachine AddState(State state) {
@@ -94,41 +99,47 @@ namespace Tools.Statemachine {
             NextState = new NextState(this, nextState, immediate);
         }
 
-        public void SetNextState(NextState nextState) {
-            NextState = nextState;
+        public void Execute(float delta) {
+            if (NextState.State == null)
+                throw new Exception(
+                    "Please, initialize the state machine with the next state, even if the next state is the same as the current one");
+           _Execute(delta, CurrentContext?.CurrentState, NextState, new List<string>());
         }
 
-        public void Execute() {
-            Execute(CurrentContext.State, NextState, new List<string>());
-        }
-
-        private void Execute(State initialState, NextState nextState, List<string> immediateChanges) {
-            if (CurrentContext.State != nextState.State) {
-                // New state!
-                if (CurrentContext.State != null) { // first execution there is no current state)
-                    // End the current state
-                    DebugStateFlow($"#{Frame}: {CurrentContext.State.Name}.End()");
-                    CurrentContext.State.End();
-                }
-
-                // Change the current state
-                DebugStateFlow($"#{Frame}: {CurrentContext.State?.Name} -> {nextState.State.Name}");
-                CurrentContext = new Context(this, nextState.State, CurrentContext.State ?? nextState.State, Frame);
-                immediateChanges.Add(nextState.State.Name);
-                CheckImmediateChanges(initialState, immediateChanges);
-
-                // Start the state
-                CurrentContext.StateTimer.Reset().Start();
-                DebugStateFlow($"#{Frame}: {nextState.State.Name}.Start()");
-                nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
-            }
+        private void _Execute(float delta, State initialState, NextState nextState, List<string> immediateChanges) {
+            _EndPreviousStateIfNeeded(nextState);
+            _StartNextStateIfNeeded(initialState, nextState, immediateChanges);
             // Execute the state
-            CurrentContext.StateTimer.Add(_frameDeltaAware.GetDelta());
-            NextState newNextState = CurrentContext.State.Execute(CurrentContext);
-            if (newNextState.StateType == null || newNextState.State == CurrentContext.State) return;
+            CurrentContext.Update(delta);
+            NextState newNextState = CurrentContext.CurrentState.Execute(CurrentContext);
+            if (newNextState.State == CurrentContext.CurrentState) return;
             NextState = newNextState;
             if (!newNextState.IsImmediate) return;
-            Execute(initialState, NextState, immediateChanges);
+            _Execute(delta, initialState, NextState, immediateChanges);
+        }
+
+        private void _EndPreviousStateIfNeeded(NextState nextState) {
+            if (CurrentContext == null || CurrentContext.CurrentState == nextState.State) return;
+            // End the current state
+            _logger.Debug($"{CurrentContext.CurrentState.Name}.End()");
+            CurrentContext.CurrentState.End();
+        }
+
+        private void _StartNextStateIfNeeded(State initialState, NextState nextState, List<string> immediateChanges) {
+            if (CurrentContext?.CurrentState == nextState.State) return;
+            // Change the current state
+            // _logger.Debug($"{CurrentContext.State?.Name} -> {nextState.State.Name}");
+            var fromState =
+                CurrentContext?.CurrentState ??
+                nextState.State; // To avoid NPE in states, the first execution will use the current state as the from state
+            CurrentContext = new Context(this, nextState.State, fromState);
+            immediateChanges.Add(nextState.State.Name);
+            CheckImmediateChanges(initialState, immediateChanges);
+
+            // Start the new state
+            CurrentContext.StateTimer.Reset().Start();
+            _logger.Debug($"{nextState.State.Name}.Start()");
+            nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
         }
 
         private static void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
@@ -144,16 +155,7 @@ namespace Tools.Statemachine {
         }
 
         public void _UnhandledInput(InputEvent @event) {
-            CurrentContext.State?._UnhandledInput(@event);
+            CurrentContext.CurrentState?._UnhandledInput(@event);
         }
-
-        private void DebugStateFlow(string message) {
-            if (!_stateMachineDebugConfig.DEBUG_STATEMACHINE_FLOW) return;
-            GD.Print(message);
-        }
-    }
-
-    public interface StateMachineDebugConfig {
-        bool DEBUG_STATEMACHINE_FLOW { get; }
     }
 }

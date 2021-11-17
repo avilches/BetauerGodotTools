@@ -1,3 +1,5 @@
+using Godot;
+
 namespace Tools {
     public class Timer {
         public float Elapsed { get; private set; } = 0;
@@ -31,8 +33,10 @@ namespace Tools {
 
         public bool IsAlarm() => Elapsed > Alarm;
 
-        public Timer Add(float add) {
-            if (!Stopped) Elapsed += add;
+        public Timer Update(float delta) {
+            if (!Stopped) {
+                Elapsed += delta;
+            }
             return this;
         }
 
