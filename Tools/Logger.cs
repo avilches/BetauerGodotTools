@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Godot;
 using NUnit.Framework;
@@ -41,7 +42,9 @@ namespace Tools {
         private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
         private ITextWriter[] _writers = { };
         private int _frame = -1;
-        private TraceLevelConfig _defaultTraceLevelConfig = new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
+
+        private TraceLevelConfig _defaultTraceLevelConfig =
+            new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
 
         private LoggerFactory() {
         }
@@ -55,6 +58,7 @@ namespace Tools {
             Instance._writers = Array.Empty<ITextWriter>();
             Instance._defaultTraceLevelConfig = new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
         }
+
         public static LoggerFactory AddConsoleOut() {
             return AddTextWriter(Console.Out);
         }
@@ -157,7 +161,7 @@ namespace Tools {
         }
 
         private static TraceLevelConfig FindTraceLevelConfig(string type, string name) {
-            type =  type.ToLower();
+            type = type.ToLower();
             name = name == null ? "" : name.ToLower();
 
             int maxScore = 0;
@@ -180,7 +184,6 @@ namespace Tools {
                     if (score > maxScore) {
                         maxScore = score;
                         result = levelConfig;
-
                     }
                 }
             }
@@ -211,12 +214,15 @@ namespace Tools {
         public static int Frame => LoggerFactory.Frame;
         // public static float Delta => LoggerFactory.Delta;
 
+        private String _lastLog;
+        private int _lastLogTimes;
+
         internal Logger(
             string type,
             string name,
             TraceLevelConfig traceLevelConfig,
             string timeFormat = "yyyy-M-dd HH:mm:ss.fff",
-            string traceFormat = "{0} [{1,4}] {2,5} {3} {4}") {
+            string traceFormat = "{0,23} [{1,4}] {2,5} {3} {4}") {
             Type = type;
             Name = name;
             _title = _CreateLoggerString(type, name);
@@ -235,6 +241,10 @@ namespace Tools {
             return result;
         }
 
+        public Logger GetSubLogger(string name) {
+            return LoggerFactory.GetLogger(Type, name);
+        }
+
 
         public void Fatal(string message) => Log(TraceLevel.Fatal, message);
         public void Error(string message) => Log(TraceLevel.Error, message);
@@ -251,16 +261,62 @@ namespace Tools {
         private void Log(TraceLevel level, string format, params object[] args) =>
             Log(level, string.Format(format, args));
 
+        public bool IsEnabled() {
+            return Enabled;
+        }
+
+        public bool IsEnabled(TraceLevel level) {
+            return Enabled && level <= MaxTraceLevel;
+        }
+
         private void Log(TraceLevel level, string message) {
-            if (!Enabled || level > MaxTraceLevel) return;
-            var line = string.Format(TraceFormat,
-                DateTime.Now.ToString(TimeFormat),
-                Frame,
-                level.ToString(),
-                _title,
-                message);
+            if (!IsEnabled(level)) return;
+            if (_lastLog != null && _lastLog.Equals(message)) {
+                _lastLogTimes++;
+                return;
+            }
+            // New line is different
+            if (_lastLogTimes > 1) {
+                // Print old lines + times
+                WriteLog("", _lastLogTimes.ToString(), _lastLog);
+            }
+            _lastLog = message;
+            _lastLogTimes = 1;
+            WriteLog(FastDateFormat(), level.ToString(), message);
+            // WriteLog("", level.ToString(), message);
+        }
+
+        private string FastDateFormat() {
+            // return ""; //DateTime.Now.ToString(TimeFormat);
+            var now = DateTime.Now;
+            var hour = now.Hour;
+            var minute = now.Minute;
+            var seconds = now.Second;
+            var millis = now.Millisecond;
+            StringBuilder date = new StringBuilder().Append(now.Year).Append("-").Append(now.Month).Append("-")
+                .Append(now.Day).Append(" ");
+            date.Append(
+                hour > 9 ? hour.ToString() : " " + hour).Append(":").Append(
+                minute > 9 ? minute.ToString() : " " + minute).Append(":").Append(
+                seconds > 9 ? seconds.ToString() : " " + seconds).Append(".").Append(
+                millis > 99
+                    ? millis.ToString()
+                    : "0" +
+                      (millis > 9 ? millis.ToString() : "0" + millis)
+            );
+            ;
+            // if (!now.ToString(TimeFormat).Equals(date)) {
+            // GD.Print(now.ToString(TimeFormat));
+            // GD.Print(date);
+            // }
+            return date.ToString();
+        }
+
+        private void WriteLog(string timestamp, string level, string message) {
+            var logLine = string.Format(TraceFormat, timestamp, Frame, level, _title, message);
+            // var logLine = TraceFormat+""+timestamp+""+Frame+""+level+""+_title+""+message;
             foreach (ITextWriter writer in LoggerFactory.Writers) {
-                writer.WriteLine(line);
+                writer.WriteLine(logLine);
                 writer.Flush();
             }
         }
@@ -304,7 +360,7 @@ namespace Tools {
         }
     }
 
-        [TestFixture]
+    [TestFixture]
     public class LoggerTests {
         [SetUp]
         public void Setup() {
@@ -328,7 +384,6 @@ namespace Tools {
 
             Assert.That(log.GetHashCode(), Is.EqualTo(log2.GetHashCode()));
             Assert.That(LoggerFactory.Instance._loggers.Count, Is.EqualTo(1));
-
         }
 
         [Test]
@@ -339,7 +394,6 @@ namespace Tools {
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
             Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
             Assert.That(LoggerFactory.GetLogger("H").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
-
         }
 
         [Test]
@@ -418,6 +472,7 @@ namespace Tools {
             Assert.That(LoggerFactory.GetLogger("y", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
             Assert.That(LoggerFactory.GetLogger("player:X", "jump:x").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
         }
+
         [Test]
         public void Logger8() {
             LoggerFactory.SetTraceLevel("*", "*", TraceLevel.Debug);
@@ -427,6 +482,7 @@ namespace Tools {
             LoggerFactory.SetTraceLevel("x", "*", TraceLevel.Warning);
             Assert.That(LoggerFactory.GetLogger("x", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Warning));
         }
+
         [Test]
         public void Logger9() {
             LoggerFactory.SetTraceLevel("*", "*", TraceLevel.Debug);
@@ -438,7 +494,6 @@ namespace Tools {
             Assert.That(LoggerFactory.GetLogger("aa", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Warning));
             Assert.That(LoggerFactory.GetLogger("aaA", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Warning));
             Assert.That(LoggerFactory.GetLogger("aaAA", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Warning));
-
         }
 
         [Test]
@@ -452,7 +507,6 @@ namespace Tools {
             Assert.That(LoggerFactory.GetLogger("a", "aa").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
             Assert.That(LoggerFactory.GetLogger("a", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
             Assert.That(LoggerFactory.GetLogger("aa", "y").MaxTraceLevel, Is.EqualTo(TraceLevel.Warning));
-
         }
 
         [Test]
@@ -480,8 +534,6 @@ namespace Tools {
 
             Assert.That(LoggerFactory.GetLogger("pepe").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
             Assert.That(LoggerFactory.GetLogger("pepe", "b").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
-
         }
     }
-
 }

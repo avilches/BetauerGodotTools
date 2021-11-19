@@ -3,29 +3,29 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateJump : AirState {
-        public AirStateJump(PlayerController player) : base(player) {
+        public AirStateJump(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
         }
 
         public override void Start(Context context, StateConfig config) {
-            Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
-            DebugJump("Jump start: decelerating to " + -PlayerConfig.JUMP_FORCE);
-            Player.AnimationJump.PlayLoop();
+            Player2DPlatform.SetMotionY(-PlayerConfig.JumpForce);
+            DebugJump("Jump start: decelerating to " + -PlayerConfig.JumpForce);
+            Player2DPlatform.AnimationJump.PlayLoop();
         }
 
         public override NextState Execute(Context context) {
             CheckAttack();
 
-            if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
-                DebugJump("Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JUMP_FORCE_MIN);
-                Player.SetMotionY(-PlayerConfig.JUMP_FORCE_MIN);
+            if (Jump.JustReleased && Motion.y < -PlayerConfig.JumpForceMin) {
+                DebugJump("Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JumpForceMin);
+                Player2DPlatform.SetMotionY(-PlayerConfig.JumpForceMin);
             }
 
-            Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
-                PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
-            Player.Flip(XInput);
-            Player.ApplyGravity();
-            Player.LimitMotion();
-            Player.Slide();
+            Player2DPlatform.AddLateralMotion(XInput, PlayerConfig.Acceleration, PlayerConfig.AirResistance,
+                PlayerConfig.StopIfSpeedIsLessThan, 0);
+            Player2DPlatform.Flip(XInput);
+            Player2DPlatform.ApplyGravity();
+            Player2DPlatform.LimitMotion();
+            Player2DPlatform.Slide();
 
             if (Motion.y >= 0) {
                 return context.Immediate(typeof(AirStateFallShort));

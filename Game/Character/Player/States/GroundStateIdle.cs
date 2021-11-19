@@ -6,11 +6,11 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateIdle : GroundState {
-        public GroundStateIdle(PlayerController player) : base(player) {
+        public GroundStateIdle(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
         }
 
         public override void Start(Context context, StateConfig config) {
-            Player.AnimationIdle.PlayLoop();
+            Player2DPlatform.AnimationIdle.PlayLoop();
         }
 
         private OnceAnimationStatus status;
@@ -18,7 +18,7 @@ namespace Veronenger.Game.Character.Player.States {
         public override NextState Execute(Context context) {
             CheckAttack();
 
-            if (!Player.IsOnFloor()) {
+            if (!Player2DPlatform.IsOnFloor()) {
                 return context.NextFrame(typeof(AirStateFallShort));
             }
 
@@ -27,8 +27,8 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             if (Jump.JustPressed) {
-                if (IsDown && Player.IsOnFallingPlatform()) {
-                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
+                if (IsDown && Player2DPlatform.IsOnFallingPlatform()) {
+                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player2DPlatform);
                 } else {
                     return context.Immediate(typeof(AirStateJump));
                 }
@@ -36,12 +36,12 @@ namespace Veronenger.Game.Character.Player.States {
 
             // Suelo + no salto + sin movimiento
 
-            if (!Player.IsOnMovingPlatform()) {
+            if (!Player2DPlatform.IsOnMovingPlatform()) {
                 // No gravity in moving platforms
                 // Gravity in slopes to avoid go down slowly
-                Player.ApplyGravity();
+                Player2DPlatform.ApplyGravity();
             }
-            Player.MoveSnapping();
+            Player2DPlatform.MoveSnapping();
 
             return context.Current();
         }

@@ -15,7 +15,7 @@ namespace Veronenger.Game.Managers {
         private readonly BodyOnArea2DTopic _enablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
         private readonly BodyOnArea2DTopic _disablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
 
-        public void ConfigurePlayerCollisions(CharacterController kb2d) {
+        public void ConfigurePlayerCollisions(Character2DPlatformController kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
             kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, true);
         }
@@ -58,12 +58,12 @@ namespace Veronenger.Game.Managers {
             _downTopic.Subscribe(enterListener, exitListener);
         }
 
-        public BodyOnArea2DStatus CreateSlopeStairsUpStatusListener(string name, PlayerController playerController) {
-            return _upTopic.StatusSubscriber(name, playerController, playerController);
+        public BodyOnArea2DStatus CreateSlopeStairsUpStatusListener(string name, Player2DPlatformController player2DPlatformController) {
+            return _upTopic.StatusSubscriber(name, player2DPlatformController, player2DPlatformController);
         }
 
-        public BodyOnArea2DStatus CreateSlopeStairsDownStatusListener(string name, PlayerController playerController) {
-            return _downTopic.StatusSubscriber(name, playerController, playerController);
+        public BodyOnArea2DStatus CreateSlopeStairsDownStatusListener(string name, Player2DPlatformController player2DPlatformController) {
+            return _downTopic.StatusSubscriber(name, player2DPlatformController, player2DPlatformController);
         }
 
         public void SubscribeSlopeStairsEnabler(GodotListener<BodyOnArea2D> enterListener,

@@ -1,35 +1,23 @@
 using System;
+using System.Text;
 using Godot;
 using Tools;
 using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
+using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Character {
-    public abstract class CharacterController : KinematicBody2D {
-        protected CharacterConfig CharacterConfig { get; set; }
-        protected Sprite MainSprite { get; private set; }
-        protected Label Label { get; private set; }
-        protected Node2D Parent { get; private set; }
+    public class SpriteFlipper {
+        private Sprite Sprite { get; }
+        private bool _isFacingRight = false;
 
-        public Vector2 Motion = Vector2.Zero;
-        private Vector2 _lastMotion = Vector2.Zero;
-        public PlatformManager PlatformManager => GameManager.Instance.PlatformManager;
-        public SlopeStairsManager SlopeStairsManager => GameManager.Instance.SlopeStairsManager;
-        public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
-        public bool _isFacingRight = false;
+        public SpriteFlipper(Sprite sprite) {
+            Sprite = sprite;
+            _isFacingRight = !Sprite.FlipH; // FlipH is true when looks left
+        }
 
-        public float Delta { get; private set; } = 0;
-
-        protected abstract CharacterConfig CreateCharacterConfig();
-        protected abstract Logger GetLogger();
-
-        public override void _EnterTree() {
-            // TODO: remove this code from here
-            CharacterConfig = CreateCharacterConfig();
-            MainSprite = GetNode<Sprite>("Sprite");
-            Parent = GetParent<Node2D>();
-            Label = Parent.GetNode<Label>("Label");
-            _isFacingRight = !MainSprite.FlipH; // FlipH is true when you flip the sprite to the left
+        public void Flip() {
+            IsFacingRight = !IsFacingRight;
         }
 
         public void Flip(float xInput) {
@@ -43,43 +31,61 @@ namespace Veronenger.Game.Character {
             set {
                 if (value != _isFacingRight) {
                     _isFacingRight = value;
-                    MainSprite.FlipH = !_isFacingRight;
+                    // TODO: use scale instead of flip the sprite, so collider areas will flip together
+                    Sprite.FlipH = !_isFacingRight;
                 }
             }
         }
+    }
 
-        public void SetMotion(Vector2 motion) {
-            Motion.x = motion.x;
-            Motion.y = motion.y;
+    public abstract class Character2DPlatformController : KinematicBody2D {
+        private Logger _loggerMotion;
+        private Logger _loggerCollision;
+        private Vector2 _lastMotion = Vector2.Zero;
+
+        protected Sprite MainSprite { get; private set; }
+        protected Label Label { get; private set; }
+        protected Node2D Parent { get; private set; }
+        protected SpriteFlipper _spriteFlipper;
+
+        public Vector2 Motion = Vector2.Zero;
+        public PlatformManager PlatformManager => GameManager.Instance.PlatformManager;
+        public SlopeStairsManager SlopeStairsManager => GameManager.Instance.SlopeStairsManager;
+        public CharacterManager CharacterManager => GameManager.Instance.CharacterManager;
+        public float Delta { get; private set; } = 0;
+
+        protected abstract Platform2DCharacterConfig Platform2DCharacterConfig { get; }
+        protected abstract string GetName();
+        protected abstract void PhysicsProcess();
+        protected virtual void EnterTree() {
         }
 
-        public void AddMotion(Vector2 motion) {
-            Motion.x += motion.x;
-            Motion.y += motion.y;
+        public sealed override void _EnterTree() {
+            _loggerCollision = LoggerFactory.GetLogger(GetName(),"Collision");
+            _loggerMotion = LoggerFactory.GetLogger(GetName(),"Motion");
+
+            MainSprite = GetNode<Sprite>("Sprite");
+            Parent = GetParent<Node2D>();
+            Label = Parent.GetNode<Label>("Label");
+            _spriteFlipper = new SpriteFlipper(MainSprite);
+            EnterTree();
         }
 
-        public void SetMotionX(float x) {
-            Motion.x = x;
-        }
-
-        public void SetMotionY(float y) {
-            Motion.y = y;
-        }
-
-        public void ApplyGravity(float factor = 1.0F) {
-            Motion.y += CharacterConfig.GRAVITY * factor * Delta;
-        }
+        public bool IsFacingRight => _spriteFlipper.IsFacingRight;
+        public void Flip() => _spriteFlipper.Flip();
+        public void Flip(float xInput) => _spriteFlipper.Flip(xInput);
+        public void SetMotionX(float x) => Motion.x = x;
+        public void SetMotionY(float y) => Motion.y = y;
+        public void ApplyGravity(float factor = 1.0F) => Motion.y += Platform2DCharacterConfig.Gravity * factor * Delta;
 
         public sealed override void _PhysicsProcess(float delta) {
             Delta = delta;
             _lastMotion = Motion;
             PhysicsProcess();
-            if (CharacterConfig.DEBUG_MOTION && Motion != _lastMotion) {
-                GetLogger().Debug($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
+            if (Motion != _lastMotion) {
+                _loggerMotion.Debug($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
             }
         }
-
-        protected abstract void PhysicsProcess();
 
         public void AddLateralMotion(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
@@ -105,15 +111,13 @@ namespace Veronenger.Game.Character {
         }
 
         public void LimitMotion(float maxSpeedFactor = 1.0F) {
-            var realMaxSpeed = CharacterConfig.MAX_SPEED * maxSpeedFactor;
+            var realMaxSpeed = Platform2DCharacterConfig.MaxSpeed * maxSpeedFactor;
             Motion.x = Mathf.Clamp(Motion.x, -realMaxSpeed, realMaxSpeed);
             Motion.y = Mathf.Min(Motion.y,
-                CharacterConfig.MAX_FALLING_SPEED); //  avoid gravity continue forever in free fall
+                Platform2DCharacterConfig.MaxFallingSpeed); //  avoid gravity continue forever in free fall
         }
 
-        public void MoveSnapping() {
-            MoveSnapping(Vector2.One);
-        }
+        public void MoveSnapping() => MoveSnapping(Vector2.One);
 
         public void MoveSnapping(Vector2 slowdownVector) {
             /* stopOnSlopes debe ser true para que no se resbale en las pendientes, pero tiene que ser false si se
@@ -122,21 +126,20 @@ namespace Veronenger.Game.Character {
             se para y ya no sigue a la plataforma
             */
             var stopOnSlopes = !HasFloorLateralMovement();
-            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, CharacterConfig.SLOPE_RAYCAST_VECTOR,
-                CharacterConfig.FLOOR, stopOnSlopes);
+            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Platform2DCharacterConfig.SlopeRayCastVector,
+                Platform2DCharacterConfig.FloorVector, stopOnSlopes);
             Motion.y = remain.y; // this line stops the gravity accumulation
             // motion.x = remain.x:  // WARNING!! this line should be always commented, player can't climb slopes with it!!
             _dirtyGroundCollisions = true;
         }
 
-        public void Slide() {
-            Slide(Vector2.One);
-        }
+        public void Slide() => Slide(Vector2.One);
 
         public void Slide(Vector2 slowdownVector) {
             // stopOnSlopes debe ser true para al caer sobre una pendiente la tome comoelo
             var stopOnSlopes = true;
-            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero, CharacterConfig.FLOOR,
+            var remain = MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero,
+                Platform2DCharacterConfig.FloorVector,
                 stopOnSlopes);
             Motion.y = remain.y; // this line stops the gravity accumulation
             /*
@@ -193,7 +196,7 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        void ResetCollisionFlags() {
+        private void ResetCollisionFlags() {
             _dirtyGroundCollisions = false;
 
             _isOnSlope = false;
@@ -204,10 +207,11 @@ namespace Veronenger.Game.Character {
             _colliderNormal = Vector2.Zero;
         }
 
-        public CharacterController UpdateFloorCollisions() {
+        private Character2DPlatformController UpdateFloorCollisions() {
             ResetCollisionFlags();
             if (!IsOnFloor()) {
-                GetLogger().Debug($"UpdateFloorCollisions end: floor/falling: {IsOnFloor()}/{_isOnFallingPlatform} (0 checks: air?)");
+                _loggerCollision.Debug(
+                    $"UpdateFloorCollisions end: floor/falling: {IsOnFloor()}/{_isOnFallingPlatform} (0 checks: air?)");
                 return this;
             }
 
@@ -220,36 +224,36 @@ namespace Veronenger.Game.Character {
 
             var slideCount = GetSlideCount();
             CheckMoveAndSlideCollisions(slideCount);
-            CheckRaycastGroundCollisions(ref __colliderNormal, ref __isOnSlope, ref __isOnFallingPlatform,
+            CheckCollisionsWithFloorDetector(ref __colliderNormal, ref __isOnSlope, ref __isOnFallingPlatform,
                 ref __isOnMovingPlatform, ref __isOnSlopeStairs, ref __isOnSlopeUpRight);
 
-            if (CharacterConfig.DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT) {
+            if (_loggerCollision.IsEnabled(TraceLevel.Debug)) {
                 if (_isOnSlope != __isOnSlope ||
                     _isOnSlopeStairs != __isOnSlopeStairs ||
                     _isOnFallingPlatform != __isOnFallingPlatform ||
                     _isOnMovingPlatform != __isOnMovingPlatform ||
                     _colliderNormal != __colliderNormal) {
-                    string diff = "";
+                    StringBuilder diff = new StringBuilder();
                     if (IsOnFloor() != FloorDetector.IsColliding()) {
-                        diff += " Floor:" + IsOnFloor() + "/" + FloorDetector.IsColliding();
+                        diff.Append(" Floor:" + IsOnFloor() + "/" + FloorDetector.IsColliding());
                     }
                     if (_isOnSlope != __isOnSlope) {
-                        diff += " Slope:" + _isOnSlope + "/" + __isOnSlope;
+                        diff.Append(" Slope:" + _isOnSlope + "/" + __isOnSlope);
                     }
                     if (_isOnSlopeStairs != __isOnSlopeStairs) {
-                        diff += " Stairs:" + _isOnSlopeStairs + "/" + __isOnSlopeStairs;
+                        diff.Append(" Stairs:" + _isOnSlopeStairs + "/" + __isOnSlopeStairs);
                     }
                     if (_isOnFallingPlatform != __isOnFallingPlatform) {
-                        diff += " Falling:" + _isOnFallingPlatform + "/" + __isOnFallingPlatform;
+                        diff.Append(" Falling:" + _isOnFallingPlatform + "/" + __isOnFallingPlatform);
                     }
                     if (_isOnMovingPlatform != __isOnMovingPlatform) {
-                        diff += " Moving:" + _isOnMovingPlatform + "/" + __isOnMovingPlatform;
+                        diff.Append(" Moving:" + _isOnMovingPlatform + "/" + __isOnMovingPlatform);
                     }
                     // if (_colliderNormal != __colliderNormal) {
-                        // diff += " Normal:" + _colliderNormal + "/" + __colliderNormal;
+                    // diff.Append(" Normal:" + _colliderNormal + "/" + __colliderNormal);
                     // }
                     if (diff.Length > 0) {
-                        GetLogger().Debug("Diff in collisions: "+diff.Trim());
+                        _loggerCollision.Debug("Diff in collisions:" + diff.ToString());
                     }
                 }
             }
@@ -261,17 +265,15 @@ namespace Veronenger.Game.Character {
             _isOnSlopeStairs |= __isOnSlopeStairs;
             _colliderNormal = _colliderNormal != Vector2.Zero ? _colliderNormal : __colliderNormal;
 
-            if (CharacterConfig.DEBUG_COLLISION) {
-                GetLogger().Debug(
-                    $"UpdateFloorCollisions({slideCount}). Floor:{IsOnFloor()} Slope:{_isOnSlope} Stairs:{_isOnSlopeStairs} Falling:{_isOnFallingPlatform} Moving:{_isOnMovingPlatform} Normal:{_colliderNormal}");
-                // FloorDetector.IsColliding()
-            }
+            _loggerCollision.Debug(
+                $"UpdateFloorCollisions({slideCount}). Floor:{IsOnFloor()} Slope:{_isOnSlope} Stairs:{_isOnSlopeStairs} Falling:{_isOnFallingPlatform} Moving:{_isOnMovingPlatform} Normal:{_colliderNormal}");
+            // FloorDetector.IsColliding()
 
             Update(); // this allow to call to _draw() with the colliderNormal updated
             return this;
         }
 
-        private bool CheckRaycastGroundCollisions(ref Vector2 __colliderNormal, ref bool __isOnSlope,
+        private bool CheckCollisionsWithFloorDetector(ref Vector2 __colliderNormal, ref bool __isOnSlope,
             ref bool __isOnFallingPlatform, ref bool __isOnMovingPlatform, ref bool __isOnSlopeStairs,
             ref bool __isOnSlopeUpRight) {
             FloorDetector.ForceRaycastUpdate();
@@ -336,9 +338,7 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public bool HasFloorLateralMovement() {
-            return GetFloorVelocity().x != 0;
-        }
+        public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
 
         // public override void _Draw() {
         // DrawLine(slopeDetector.Position, slopeDetector.Position + slopeDetector.CastTo, Colors.Red, 3F);

@@ -15,14 +15,14 @@ namespace Veronenger.Game.Managers {
          * No almacena nada, solo permite que enemigos y armas se suscriban a cambios
          */
 
-        public void ConfigurePlayerCollisions(PlayerController playerController) {
-            playerController.CollisionLayer = 0;
-            playerController.CollisionMask = 0;
-            GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(playerController);
-            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(playerController);
+        public void ConfigurePlayerCollisions(Player2DPlatformController player2DPlatformController) {
+            player2DPlatformController.CollisionLayer = 0;
+            player2DPlatformController.CollisionMask = 0;
+            GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(player2DPlatformController);
+            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(player2DPlatformController);
         }
 
-        public void ConfigureEnemyCollisions(CharacterController enemy) {
+        public void ConfigureEnemyCollisions(Character2DPlatformController enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;

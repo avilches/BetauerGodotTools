@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Godot;
 using Tools;
 using Tools.Bus;
@@ -7,6 +8,7 @@ using Veronenger.Game.Controller.Stage;
 using Veronenger.Game.Tools.Resolution;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
+using Timer = Godot.Timer;
 using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Managers.Autoload {
@@ -55,6 +57,7 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         public override void _EnterTree() {
+            MicroBenchmarks();
             var runningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
             if (runningTests) RunTests();
             else RunGame();
@@ -84,6 +87,7 @@ namespace Veronenger.Game.Managers.Autoload {
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
                 LoggerFactory.AddFileWriter(logPath);
             }
+
             LoggerFactory.AddGodotPrinter();
 
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
@@ -98,13 +102,15 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "StateMachine", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Animation", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
-            // LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
@@ -112,6 +118,19 @@ namespace Veronenger.Game.Managers.Autoload {
 
 
             LoggerFactory.Start(this);
+        }
+
+        private void MicroBenchmarks() {
+
+            var x = Stopwatch.StartNew();
+            LoggerFactory.GetLogger("x");
+            int calls = 100000;
+            for (int i = 0; i < calls; i++) {
+                LoggerFactory.GetLogger("x").Info("aaa "+i);
+            }
+            x.Stop();
+            GD.Print($"{calls} calls in {x.Elapsed.ToString()}: {x.ElapsedMilliseconds/(float)calls} calls/ms. {(x.ElapsedMilliseconds*1000)/(float)calls} calls/s.");
+            // Quit();
         }
 
         public sealed override void _PhysicsProcess(float delta) {
@@ -129,18 +148,18 @@ namespace Veronenger.Game.Managers.Autoload {
         /**
          * Variables globales que se guardan. Se actualizan cada vez que el propio PlayerController se registra
          */
-        public PlayerController PlayerController { get; private set; }
+        public Player2DPlatformController Player2DPlatformController { get; private set; }
 
-        public void RegisterPlayerController(PlayerController playerController) {
-            PlayerController = playerController;
+        public void RegisterPlayerController(Player2DPlatformController player2DPlatformController) {
+            Player2DPlatformController = player2DPlatformController;
         }
 
         public bool IsPlayer(KinematicBody2D player) {
-            return PlayerController == player;
+            return Player2DPlatformController == player;
         }
 
         public void PlayerEnteredDeathZone(Area2D deathArea2D) {
-            PlayerController.DeathZone(deathArea2D);
+            Player2DPlatformController.DeathZone(deathArea2D);
         }
     }
 }

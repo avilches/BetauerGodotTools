@@ -4,15 +4,15 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateFallLong : AirState {
-        public AirStateFallLong(PlayerController player) : base(player) {
+        public AirStateFallLong(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
         }
 
         public override void Start(Context context, StateConfig config) {
-            if (Player.FallingTimer.Elapsed > PlayerConfig.COYOTE_TIME) {
+            if (Player2DPlatform.FallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
                 DebugCoyoteJump(
-                    $"Coyote jump will never happen in FallLong state: {Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME}");
+                    $"Coyote jump will never happen in FallLong state: {Player2DPlatform.FallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime}");
             }
-            Player.AnimationFall.PlayLoop();
+            Player2DPlatform.AnimationFall.PlayLoop();
         }
 
         public override NextState Execute(Context context) {
@@ -22,13 +22,13 @@ namespace Veronenger.Game.Character.Player.States {
                 return context.Immediate(typeof(AirStateJump));
             }
 
-            Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.AIR_RESISTANCE,
-                PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);
-            Player.Flip(XInput);
+            Player2DPlatform.AddLateralMotion(XInput, PlayerConfig.Acceleration, PlayerConfig.AirResistance,
+                PlayerConfig.StopIfSpeedIsLessThan, 0);
+            Player2DPlatform.Flip(XInput);
 
-            Player.ApplyGravity();
-            Player.LimitMotion();
-            Player.Slide();
+            Player2DPlatform.ApplyGravity();
+            Player2DPlatform.LimitMotion();
+            Player2DPlatform.Slide();
 
             return CheckLanding(context);
         }

@@ -7,39 +7,35 @@ using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
-    public class EnemyZombieController : CharacterController {
-        public readonly EnemyConfig EnemyConfig = new EnemyConfig();
-        private StateMachine _stateMachine;
-        private AnimationStack _animationStack;
-        private string _name;
-        private Logger _logger = LoggerFactory.GetLogger("Enemy.Zombie:");
+    public sealed class EnemyZombieController : Character2DPlatformController {
+        private readonly string _name;
+        private readonly Logger _logger;
+        private readonly StateMachine _stateMachine;
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
         public OnceAnimationStatus AnimationStep { get; private set; }
 
-        protected override CharacterConfig CreateCharacterConfig() {
-            // TODO: rename
-            return EnemyConfig;
-        }
+        public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
-        protected override Logger GetLogger() {
-            return _logger;
-        }
-
-        public override void _EnterTree() {
+        public EnemyZombieController() {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
-            base._EnterTree();
             _logger = LoggerFactory.GetLogger(_name);
-            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            var animationStack = new AnimationStack(_name, animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
-            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
-
             _stateMachine = new StateMachine(_name)
                 .AddState(new GroundStatePatrolStep(this))
                 .AddState(new GroundStatePatrolWait(this))
                 .AddState(new GroundStateIdle(this))
                 .SetNextState(typeof(GroundStateIdle));
+        }
+
+        protected override Platform2DCharacterConfig Platform2DCharacterConfig => EnemyConfig;
+        protected override string GetName() => _name;
+
+        protected override void EnterTree() {
+            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
+            var animationStack = new AnimationStack(_name, animationPlayer);
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
+            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
+
         }
 
         public override void _Ready() {
