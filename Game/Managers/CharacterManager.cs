@@ -1,8 +1,6 @@
 using Godot;
 using Tools.Bus.Topics;
-using Veronenger.Game.Character;
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
@@ -10,24 +8,31 @@ namespace Veronenger.Game.Managers {
         private const string GROUP_ENEMY = "enemy";
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
+        private readonly PlatformManager PlatformManager;
+        private readonly SlopeStairsManager SlopeStairsManager;
+
+        public CharacterManager(PlatformManager platformManager, SlopeStairsManager slopeStairsManager) {
+            PlatformManager = platformManager;
+            SlopeStairsManager = slopeStairsManager;
+        }
 
         /**
          * No almacena nada, solo permite que enemigos y armas se suscriban a cambios
          */
 
-        public void ConfigurePlayerCollisions(Player2DPlatformController player2DPlatformController) {
-            player2DPlatformController.CollisionLayer = 0;
-            player2DPlatformController.CollisionMask = 0;
-            GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(player2DPlatformController);
-            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(player2DPlatformController);
+        public void ConfigurePlayerCollisions(PlayerController playerController) {
+            playerController.CollisionLayer = 0;
+            playerController.CollisionMask = 0;
+            PlatformManager.ConfigurePlayerCollisions(playerController);
+            SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
-        public void ConfigureEnemyCollisions(Character2DPlatformController enemy) {
+        public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
-            GameManager.Instance.PlatformManager.ConfigurePlayerCollisions(enemy);
-            GameManager.Instance.SlopeStairsManager.ConfigurePlayerCollisions(enemy);
+            PlatformManager.ConfigurePlayerCollisions(enemy);
+            SlopeStairsManager.ConfigurePlayerCollisions(enemy);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

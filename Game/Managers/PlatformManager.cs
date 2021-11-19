@@ -60,7 +60,7 @@ namespace Veronenger.Game.Managers {
             upHall.SetCollisionLayerBit(LayerRegularPlatform, true);
         }
 
-        public void ConfigurePlayerCollisions(Character2DPlatformController kb2d) {
+        public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerRegularPlatform, true);
             kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
         }

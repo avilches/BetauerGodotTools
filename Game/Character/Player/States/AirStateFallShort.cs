@@ -3,7 +3,7 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateFallShort : AirState {
-        public AirStateFallShort(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
+        public AirStateFallShort(PlayerController player) : base(player) {
         }
 
         private bool CoyoteJumpEnabled = false;
@@ -12,7 +12,7 @@ namespace Veronenger.Game.Character.Player.States {
             // Only if the state comes from running -> fall, the Coyote jump is enabled
             // Other cases (state comes from idle or jump), the coyote is not enabled
             CoyoteJumpEnabled = config.HasFlag("CoyoteJumpEnabled");
-            Player2DPlatform.FallingTimer.Reset().Start();
+            Player.FallingTimer.Reset().Start();
         }
 
         public override NextState Execute(Context context) {
@@ -21,17 +21,17 @@ namespace Veronenger.Game.Character.Player.States {
             if (CoyoteJumpEnabled && CheckCoyoteJump()) {
                 return context.Immediate(typeof(AirStateJump));
             }
-            if (Motion.y > PlayerConfig.StartFallingSpeed) {
+            if (Motion.y > MotionConfig.StartFallingSpeed) {
                 return context.Immediate(typeof(AirStateFallLong));
             }
 
-            Player2DPlatform.AddLateralMotion(XInput, PlayerConfig.Acceleration, PlayerConfig.AirResistance,
-                PlayerConfig.StopIfSpeedIsLessThan, 0);
-            Player2DPlatform.Flip(XInput);
+            Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                MotionConfig.StopIfSpeedIsLessThan, 0);
+            Body.Flip(XInput);
 
-            Player2DPlatform.ApplyGravity();
-            Player2DPlatform.LimitMotion();
-            Player2DPlatform.Slide();
+            Body.ApplyGravity();
+            Body.LimitMotion();
+            Body.Slide();
 
             return CheckLanding(context);
         }

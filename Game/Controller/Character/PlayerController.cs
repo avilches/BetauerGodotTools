@@ -6,11 +6,26 @@ using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
+using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 using Timer = Tools.Timer;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class Player2DPlatformController : Character2DPlatformController {
+    public class DIKinematicBody2D : KinematicBody2D {
+        public readonly GameManager GameManager;
+        public PlatformManager PlatformManager => GameManager.PlatformManager;
+        public CharacterManager CharacterManager => GameManager.CharacterManager;
+        public SlopeStairsManager SlopeStairsManager => GameManager.SlopeStairsManager;
+
+        public DIKinematicBody2D() : this(GameManager.Instance) {
+        }
+
+        public DIKinematicBody2D(GameManager gameManager) {
+            GameManager = gameManager;
+        }
+    }
+
+    public sealed class PlayerController : DIKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly Logger _loggerInput;
@@ -22,10 +37,12 @@ namespace Veronenger.Game.Controller.Character {
         public readonly Timer FallingJumpTimer = new Timer().Stop();
         public readonly Timer FallingTimer = new Timer().Stop();
 
-        public Player2DPlatformController() {
+        public MotionBody MotionBody;
+
+        public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
-            _loggerInput = LoggerFactory.GetLogger("Player:"+GetHashCode().ToString("x8"), "Input");
+            _loggerInput = LoggerFactory.GetLogger("Player:" + GetHashCode().ToString("x8"), "Input");
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
             PlayerActions.ConfigureMapping();
             _stateMachine = new StateMachine(_name)
@@ -35,6 +52,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AddState(new AirStateFallLong(this))
                 .AddState(new AirStateJump(this))
                 .SetNextState(typeof(GroundStateIdle));
+            MotionBody = new MotionBody(GameManager, this, _name, PlayerConfig.MotionConfig);
         }
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
@@ -44,9 +62,8 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimationStatus AnimationAttack { get; private set; }
         public OnceAnimationStatus AnimationJumpAttack { get; private set; }
 
-        protected override Platform2DCharacterConfig Platform2DCharacterConfig => PlayerConfig;
-        protected override string GetName() => _name;
-        protected override void EnterTree() {
+        public override void _EnterTree() {
+            MotionBody.EnterTree();
             var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             var animationStack = new AnimationStack(_name, animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
@@ -55,7 +72,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
             AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
             AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
-            
+
             _attack = GetNode<Area2D>("AttackArea");
         }
 
@@ -63,6 +80,7 @@ namespace Veronenger.Game.Controller.Character {
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
         public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
+
         public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
         private BodyOnArea2DStatus _slopeStairsDown;
         private BodyOnArea2DStatus _slopeStairsUp;
@@ -101,12 +119,11 @@ namespace Veronenger.Game.Controller.Character {
 
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
-        protected override void PhysicsProcess() {
+        public override void _PhysicsProcess(float Delta) {
+            MotionBody.StartFrame(Delta);
             FallingJumpTimer.Update(Delta);
             FallingTimer.Update(Delta);
-
             _stateMachine.Execute(Delta);
-
             PlayerActions.ClearJustStates();
             /*
                 Label.Text = "Floor: " + IsOnFloor() + "\n" +
@@ -115,6 +132,7 @@ namespace Veronenger.Game.Controller.Character {
                               "Moving: " + IsOnMovingPlatform() + "\n" +
                               "Falling: " + IsOnFallingPlatform();
                 */
+            MotionBody.EndFrame();
         }
 
         private EventWrapper w = new EventWrapper(null);

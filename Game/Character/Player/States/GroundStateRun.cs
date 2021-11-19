@@ -6,17 +6,17 @@ namespace Veronenger.Game.Character.Player.States {
     public class GroundStateRun : GroundState {
         private readonly StateConfig COYOTE_JUMP_ENABLED = new StateConfig().AddFlag("CoyoteJumpEnabled");
 
-        public GroundStateRun(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
+        public GroundStateRun(PlayerController player) : base(player) {
         }
 
         public override void Start(Context context, StateConfig config) {
-            Player2DPlatform.AnimationRun.PlayLoop();
+            Player.AnimationRun.PlayLoop();
         }
 
         public override NextState Execute(Context context) {
             CheckAttack();
 
-            if (!Player2DPlatform.IsOnFloor()) {
+            if (!Player.IsOnFloor()) {
                 return context.Immediate(typeof(AirStateFallShort), COYOTE_JUMP_ENABLED);
             }
 
@@ -25,8 +25,8 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             if (Jump.JustPressed) {
-                if (IsDown && Player2DPlatform.IsOnFallingPlatform()) {
-                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player2DPlatform);
+                if (IsDown && Body.IsOnFallingPlatform()) {
+                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
                 } else {
                     return context.Immediate(typeof(AirStateJump));
                 }
@@ -35,16 +35,16 @@ namespace Veronenger.Game.Character.Player.States {
             // Suelo + no salto + movimiento/inercia
             EnableSlopeStairs();
 
-            if (Player2DPlatform.IsAttacking) {
-                Player2DPlatform.StopLateralMotionWithFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+            if (Player.IsAttacking) {
+                Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
             } else {
-                Player2DPlatform.AddLateralMotion(XInput, PlayerConfig.Acceleration, PlayerConfig.Friction,
-                    PlayerConfig.StopIfSpeedIsLessThan, 0);
-                Player2DPlatform.LimitMotion();
-                Player2DPlatform.Flip(XInput);
+                Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.Friction,
+                    MotionConfig.StopIfSpeedIsLessThan, 0);
+                Body.LimitMotion();
+                Body.Flip(XInput);
             }
 
-            Player2DPlatform.MoveSnapping();
+            Body.MoveSnapping();
 
             return context.Current();
         }

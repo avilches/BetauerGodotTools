@@ -13,7 +13,7 @@ namespace Veronenger.Game.Character.Enemy.States {
             if (context.FromState is GroundStatePatrolWait) {
                 // State come from the wait, do nothing...
             } else {
-                EnemyZombie.Flip();
+                BOdy.Flip();
                 _patrolTimer.SetAlarm(4).Reset();
             }
             EnemyZombie.AnimationStep.PlayOnce();
@@ -26,20 +26,20 @@ namespace Veronenger.Game.Character.Enemy.States {
             _patrolTimer.Update(context.Delta);
             if (!EnemyZombie.IsOnFloor()) {
                 EnemyZombie.AnimationIdle.PlayLoop();
-                EnemyZombie.ApplyGravity();
-                EnemyZombie.LimitMotion();
-                EnemyZombie.Slide();
+                BOdy.ApplyGravity();
+                BOdy.LimitMotion();
+                BOdy.Slide();
                 return context.Current();
             }
 
             if (_patrolTimer.IsAlarm()) {
                 // Stop slowly and go to idle
-                if (EnemyZombie.Motion.x == 0) {
+                if (BOdy.Motion.x == 0) {
                     return context.Immediate(typeof(GroundStateIdle));
                 } else {
-                    EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.Friction,
-                        EnemyConfig.StopIfSpeedIsLessThan);
-                    EnemyZombie.MoveSnapping();
+                    BOdy.StopLateralMotionWithFriction(MotionConfig.Friction,
+                        MotionConfig.StopIfSpeedIsLessThan);
+                    BOdy.MoveSnapping();
                 }
                 return context.Current();
             }
@@ -48,10 +48,10 @@ namespace Veronenger.Game.Character.Enemy.States {
                 return context.NextFrame(typeof(GroundStatePatrolWait));
             }
 
-            EnemyZombie.AddLateralMotion(EnemyZombie.IsFacingRight ? 1 : -1, EnemyConfig.Acceleration,
-                EnemyConfig.AirResistance, EnemyConfig.StopIfSpeedIsLessThan, 0);
-            EnemyZombie.LimitMotion();
-            EnemyZombie.MoveSnapping();
+            BOdy.AddLateralMotion(BOdy.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
+                MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
+            BOdy.LimitMotion();
+            BOdy.MoveSnapping();
             return context.Current();
         }
     }
@@ -67,8 +67,8 @@ namespace Veronenger.Game.Character.Enemy.States {
             if (!EnemyZombie.IsOnFloor()) {
                 return context.Immediate(typeof(GroundStatePatrolStep));
             }
-            EnemyZombie.StopLateralMotionWithFriction(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
-            EnemyZombie.MoveSnapping();
+            BOdy.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
+            BOdy.MoveSnapping();
 
             return context.NextFrameIfElapsed(0.3f, typeof(GroundStatePatrolStep));
         }

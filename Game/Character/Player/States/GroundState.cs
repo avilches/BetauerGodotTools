@@ -3,28 +3,28 @@ using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class GroundState : PlayerState {
-        public GroundState(Player2DPlatformController player2DPlatform) : base(player2DPlatform) {
+        public GroundState(PlayerController player) : base(player) {
         }
 
         protected bool CheckAttack() {
             if (!Attack.JustPressed) return false;
             // Attack was pressed
-            Player2DPlatform.AnimationAttack.PlayOnce();
+            Player.AnimationAttack.PlayOnce();
             return true;
         }
 
         protected void EnableSlopeStairs() {
-            if (Player2DPlatform.IsOnSlopeStairsDown()) {
+            if (Player.IsOnSlopeStairsDown()) {
                 if (IsUp) {
-                    Player2DPlatform.EnableSlopeStairs();
+                    Player.EnableSlopeStairs();
                 } else {
-                    Player2DPlatform.DisableSlopeStairs();
+                    Player.DisableSlopeStairs();
                 }
-            } else if (Player2DPlatform.IsOnSlopeStairsUp()) {
+            } else if (Player.IsOnSlopeStairsUp()) {
                 if (IsDown) {
-                    Player2DPlatform.EnableSlopeStairs();
+                    Player.EnableSlopeStairs();
                 } else {
-                    Player2DPlatform.DisableSlopeStairs();
+                    Player.DisableSlopeStairs();
                 }
             }
         }

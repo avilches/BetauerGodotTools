@@ -7,7 +7,7 @@ using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class EnemyZombieController : Character2DPlatformController {
+    public sealed class EnemyZombieController : KinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly StateMachine _stateMachine;
@@ -17,6 +17,8 @@ namespace Veronenger.Game.Controller.Character {
 
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
+        public readonly MotionBody MotionBody;
+
         public EnemyZombieController() {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
@@ -25,26 +27,24 @@ namespace Veronenger.Game.Controller.Character {
                 .AddState(new GroundStatePatrolWait(this))
                 .AddState(new GroundStateIdle(this))
                 .SetNextState(typeof(GroundStateIdle));
+            MotionBody = new MotionBody(GameManager.Instance, this, _name, EnemyConfig.MotionConfig);
         }
 
-        protected override Platform2DCharacterConfig Platform2DCharacterConfig => EnemyConfig;
-        protected override string GetName() => _name;
-
-        protected override void EnterTree() {
+        public override void _EnterTree() {
+            MotionBody.EnterTree();
             var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             var animationStack = new AnimationStack(_name, animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
             AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
-
         }
 
         public override void _Ready() {
-            base._Ready();
             GameManager.Instance.CharacterManager.ConfigureEnemyCollisions(this);
         }
 
-        protected override void PhysicsProcess() {
-            _stateMachine.Execute(Delta);
+        public override void _PhysicsProcess(float delta) {
+            MotionBody.StartFrame(delta);
+            _stateMachine.Execute(delta);
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +
@@ -52,6 +52,7 @@ namespace Veronenger.Game.Controller.Character {
                           "Moving: " + IsOnMovingPlatform() + "\n" +
                           "Falling: " + IsOnFallingPlatform();
             */
+            MotionBody.EndFrame();
         }
     }
 }

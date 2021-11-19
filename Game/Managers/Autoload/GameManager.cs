@@ -53,7 +53,7 @@ namespace Veronenger.Game.Managers.Autoload {
             PlatformManager = new PlatformManager();
             SlopeStairsManager = new SlopeStairsManager();
             SceneManager = new SceneManager();
-            CharacterManager = new CharacterManager();
+            CharacterManager = new CharacterManager(PlatformManager, SlopeStairsManager);
         }
 
         public override void _EnterTree() {
@@ -148,18 +148,18 @@ namespace Veronenger.Game.Managers.Autoload {
         /**
          * Variables globales que se guardan. Se actualizan cada vez que el propio PlayerController se registra
          */
-        public Player2DPlatformController Player2DPlatformController { get; private set; }
+        public PlayerController PlayerController { get; private set; }
 
-        public void RegisterPlayerController(Player2DPlatformController player2DPlatformController) {
-            Player2DPlatformController = player2DPlatformController;
+        public void RegisterPlayerController(PlayerController playerController) {
+            PlayerController = playerController;
         }
 
         public bool IsPlayer(KinematicBody2D player) {
-            return Player2DPlatformController == player;
+            return PlayerController == player;
         }
 
         public void PlayerEnteredDeathZone(Area2D deathArea2D) {
-            Player2DPlatformController.DeathZone(deathArea2D);
+            PlayerController.DeathZone(deathArea2D);
         }
     }
 }

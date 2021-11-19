@@ -1,7 +1,7 @@
 using Godot;
 
 namespace Veronenger.Game.Character {
-    public abstract class Platform2DCharacterConfig {
+    public sealed class MotionConfig {
 
         // CONFIG: ground
         public float MaxSpeed = 120f; // pixels/seconds
