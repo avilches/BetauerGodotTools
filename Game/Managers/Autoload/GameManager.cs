@@ -106,9 +106,9 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
             // LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
 
-            LoggerFactory.SetTraceLevel("Zombie:*", "StateMachine", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Zombie:*", "Animation", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Zombie:*", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Off);
 
 
             LoggerFactory.Start(this);

@@ -12,7 +12,7 @@ namespace Veronenger.Game.Controller.Character {
         private StateMachine _stateMachine;
         private AnimationStack _animationStack;
         private string _name;
-        private Logger _logger = LoggerFactory.GetLogger("Zombie:");
+        private Logger _logger = LoggerFactory.GetLogger("Enemy.Zombie:");
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
         public OnceAnimationStatus AnimationStep { get; private set; }
@@ -27,7 +27,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void _EnterTree() {
-            _name = "Zombie:" + GetHashCode().ToString("x8");
+            _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
             base._EnterTree();
             _logger = LoggerFactory.GetLogger(_name);
             var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
