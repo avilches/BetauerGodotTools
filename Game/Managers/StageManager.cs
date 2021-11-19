@@ -11,6 +11,8 @@ namespace Veronenger.Game.Managers {
         private bool _exitedStage;
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
+        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(StageManager));
+
         private readonly Area2DShapeOnArea2DTopic _stageTopic = new Area2DShapeOnArea2DTopic("StageTopic");
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
@@ -37,42 +39,40 @@ namespace Veronenger.Game.Managers {
             Area2D stageEnteredArea2D = (Area2D)e.Origin;
             Area2D stageDetector = e.Detected;
             var stageToEnter = new Stage(stageEnteredArea2D);
+            var stageDetectorName = stageDetector.Name;
             if (_currentStage == null) {
-                Debug.Stage($"{stageDetector.Name}.Enter",
-                    $"{stageEnteredArea2D.Name}. No current stage: changing now");
+                _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" and no current stage: changing now");
                 ChangeStage(stageToEnter);
                 return;
             }
             if (stageEnteredArea2D.Equals(_currentStage.Area2D)) {
-                Debug.Stage(
-                    $"{stageDetector.Name}.Enter",
-                    $"{stageEnteredArea2D.Name} == current stage (we are already here): ignoring!");
+                _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" but it's the same as current stage: ignoring!");
                 return;
             }
-            Debug.Stage($"{stageDetector.Name}.Enter", $"{stageEnteredArea2D.Name}. Ok");
+            _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\". Transition enter is ok.");
             _enteredStage = stageToEnter;
-            CheckChangeStage(false);
+            CheckChangeStage(stageDetectorName, false);
         }
 
         public void OnExitStage(Area2DShapeOnArea2D e) {
             Area2D stageExitedArea2D = (Area2D)e.Origin;
             Area2D stageDetector = e.Detected;
+            var stageDetectorName = stageDetector.Name;
+            var stageExitedName = stageExitedArea2D.Name;
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
                 _enteredStage = null;
                 _exitedStage = false;
-                Debug.Stage($"{stageDetector.Name}.Exit",
-                    $"{stageExitedArea2D.Name} == entered stage. Rollback!");
-                return;
+                _logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\" == entered stage. Rollback whole transition.");
             }
-            Debug.Stage($"{stageDetector.Name}.Exit", $"{stageExitedArea2D.Name}. Ok");
+            _logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\". Transition exit is ok.");
             _exitedStage = true;
-            CheckChangeStage(true);
+            CheckChangeStage(stageDetectorName, true);
         }
 
-        private void CheckChangeStage(bool enterFirstThenExit) {
+        private void CheckChangeStage(string stageDetectorName, bool enterFirstThenExit) {
             if (_exitedStage && _enteredStage != null) {
-                Debug.Stage("Change", "From " + _currentStage.Name + " to " + _enteredStage.Name +
-                                      (enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)"));
+                var reversedFirstExitThenEnter = enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)";
+                _logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
                 ChangeStage(_enteredStage);
             }
         }

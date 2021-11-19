@@ -9,32 +9,37 @@ using Veronenger.Game.Managers.Autoload;
 namespace Veronenger.Game.Controller.Character {
     public class EnemyZombieController : CharacterController {
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
-        private StateMachine StateMachine;
-
-        public EnemyZombieController() {
-        }
+        private StateMachine _stateMachine;
+        private AnimationStack _animationStack;
+        private string _name;
+        private Logger _logger = LoggerFactory.GetLogger("Zombie:");
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
         public OnceAnimationStatus AnimationStep { get; private set; }
 
         protected override CharacterConfig CreateCharacterConfig() {
+            // TODO: rename
             return EnemyConfig;
         }
 
-        protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
-            var animationStack = new AnimationStack(animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
-            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
-            return animationStack;
+        protected override Logger GetLogger() {
+            return _logger;
         }
 
         public override void _EnterTree() {
+            _name = "Zombie:" + GetHashCode().ToString("x8");
             base._EnterTree();
-            StateMachine = new StateMachine("Zombie:" + GetHashCode().ToString("x8"))
+            _logger = LoggerFactory.GetLogger(_name);
+            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
+            var animationStack = new AnimationStack(_name, animationPlayer);
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
+            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
+
+            _stateMachine = new StateMachine(_name)
                 .AddState(new GroundStatePatrolStep(this))
                 .AddState(new GroundStatePatrolWait(this))
-                .AddState(new GroundStateIdle(this));
-            StateMachine.SetNextState(typeof(GroundStateIdle));
+                .AddState(new GroundStateIdle(this))
+                .SetNextState(typeof(GroundStateIdle));
         }
 
         public override void _Ready() {
@@ -43,7 +48,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void PhysicsProcess() {
-            StateMachine.Execute(Delta);
+            _stateMachine.Execute(Delta);
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +

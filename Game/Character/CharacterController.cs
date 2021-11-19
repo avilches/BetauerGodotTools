@@ -1,7 +1,6 @@
 using System;
 using Godot;
 using Tools;
-using Tools.Statemachine;
 using Veronenger.Game.Managers;
 using Veronenger.Game.Managers.Autoload;
 
@@ -9,7 +8,6 @@ namespace Veronenger.Game.Character {
     public abstract class CharacterController : KinematicBody2D {
         protected CharacterConfig CharacterConfig { get; set; }
         protected Sprite MainSprite { get; private set; }
-        protected AnimationStack AnimationStack { get; private set; }
         protected Label Label { get; private set; }
         protected Node2D Parent { get; private set; }
 
@@ -23,18 +21,14 @@ namespace Veronenger.Game.Character {
         public float Delta { get; private set; } = 0;
 
         protected abstract CharacterConfig CreateCharacterConfig();
-        protected abstract AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer);
+        protected abstract Logger GetLogger();
 
         public override void _EnterTree() {
+            // TODO: remove this code from here
             CharacterConfig = CreateCharacterConfig();
-
-            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            AnimationStack = CreateAnimationStack(animationPlayer);
-
             MainSprite = GetNode<Sprite>("Sprite");
             Parent = GetParent<Node2D>();
             Label = Parent.GetNode<Label>("Label");
-
             _isFacingRight = !MainSprite.FlipH; // FlipH is true when you flip the sprite to the left
         }
 
@@ -52,16 +46,6 @@ namespace Veronenger.Game.Character {
                     MainSprite.FlipH = !_isFacingRight;
                 }
             }
-        }
-
-        public void Debug(bool flag, string message) {
-            if (flag) {
-                Debug(message);
-            }
-        }
-
-        public void Debug(string message) {
-            GD.Print($"{GetType().Name} | {message}");
         }
 
         public void SetMotion(Vector2 motion) {
@@ -91,7 +75,7 @@ namespace Veronenger.Game.Character {
             _lastMotion = Motion;
             PhysicsProcess();
             if (CharacterConfig.DEBUG_MOTION && Motion != _lastMotion) {
-                GD.Print($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
+                GetLogger().Debug($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
             }
         }
 
@@ -223,7 +207,7 @@ namespace Veronenger.Game.Character {
         public CharacterController UpdateFloorCollisions() {
             ResetCollisionFlags();
             if (!IsOnFloor()) {
-                // GD.Print("UpdateFloorCollisions end: floor/falling:", IsOnFloor(),"/"+_isOnFallingPlatform, " (0 checks: air?)");
+                GetLogger().Debug($"UpdateFloorCollisions end: floor/falling: {IsOnFloor()}/{_isOnFallingPlatform} (0 checks: air?)");
                 return this;
             }
 
@@ -245,7 +229,7 @@ namespace Veronenger.Game.Character {
                     _isOnFallingPlatform != __isOnFallingPlatform ||
                     _isOnMovingPlatform != __isOnMovingPlatform ||
                     _colliderNormal != __colliderNormal) {
-                    string diff = "UpdateFloorCollisions(" + slideCount + ")";
+                    string diff = "";
                     if (IsOnFloor() != FloorDetector.IsColliding()) {
                         diff += " Floor:" + IsOnFloor() + "/" + FloorDetector.IsColliding();
                     }
@@ -261,10 +245,12 @@ namespace Veronenger.Game.Character {
                     if (_isOnMovingPlatform != __isOnMovingPlatform) {
                         diff += " Moving:" + _isOnMovingPlatform + "/" + __isOnMovingPlatform;
                     }
-                    if (_colliderNormal != __colliderNormal) {
-                        diff += " Normal:" + _colliderNormal + "/" + __colliderNormal;
+                    // if (_colliderNormal != __colliderNormal) {
+                        // diff += " Normal:" + _colliderNormal + "/" + __colliderNormal;
+                    // }
+                    if (diff.Length > 0) {
+                        GetLogger().Debug("Diff in collisions: "+diff.Trim());
                     }
-                    GD.Print(diff);
                 }
             }
 
@@ -276,14 +262,9 @@ namespace Veronenger.Game.Character {
             _colliderNormal = _colliderNormal != Vector2.Zero ? _colliderNormal : __colliderNormal;
 
             if (CharacterConfig.DEBUG_COLLISION) {
-                GD.Print("UpdateFloorCollisions. Floor:", IsOnFloor(),
-                    // " Falling:"+_isOnFallingPlatform,"/",__isOnFallingPlatform,
-                    " Slope:", _isOnSlope,
-                    " Stairs:", _isOnSlopeStairs,
-                    " Falling:", _isOnFallingPlatform,
-                    " Moving:", _isOnMovingPlatform,
-                    " Normal:", _colliderNormal,
-                    " (", slideCount, "/", FloorDetector.IsColliding(), ")");
+                GetLogger().Debug(
+                    $"UpdateFloorCollisions({slideCount}). Floor:{IsOnFloor()} Slope:{_isOnSlope} Stairs:{_isOnSlopeStairs} Falling:{_isOnFallingPlatform} Moving:{_isOnMovingPlatform} Normal:{_colliderNormal}");
+                // FloorDetector.IsColliding()
             }
 
             Update(); // this allow to call to _draw() with the colliderNormal updated

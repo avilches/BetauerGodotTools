@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using Tools;
+using Veronenger.Game.Character;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Stage {
@@ -14,7 +15,6 @@ namespace Veronenger.Game.Controller.Stage {
      *   +- StageCameraController (this class)
      */
     public class StageCameraController : Camera2D {
-
         public override void _EnterTree() {
             var stageDetector = GetNode<Area2D>("../StageDetector");
             if (stageDetector == null) {
@@ -24,12 +24,11 @@ namespace Veronenger.Game.Controller.Stage {
         }
 
         public void ChangeStage(Rect2 rect2) {
-            Debug.Stage("Camera",rect2.Position + " " + rect2.End);
+            LoggerFactory.GetLogger(typeof(StageCameraController)).Debug($"Camera {rect2.Position} {rect2.End}");
             LimitLeft = (int)rect2.Position.x;
             LimitTop = (int)rect2.Position.y;
             LimitRight = (int)rect2.End.x;
             LimitBottom = (int)rect2.End.y;
         }
     }
-
 }

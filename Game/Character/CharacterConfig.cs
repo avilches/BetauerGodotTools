@@ -1,21 +1,10 @@
 using Godot;
-using Tools.Statemachine;
 
 namespace Veronenger.Game.Character {
     public abstract class CharacterConfig {
-        public virtual bool DEBUG_STATEMACHINE_FLOW => false;
-        public bool DEBUG_MAX_SPEED = false;
-        public bool DEBUG_ACCELERATION = false;
-        public bool DEBUG_SLOPE_STAIRS = false;
-        public bool DEBUG_COLLISION = false;
-        public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = false;
-        public bool DEBUG_MOTION = false;
-        public bool DEBUG_JUMP_VELOCITY = false;
-
-        // Only for the player...
-        public bool DEBUG_JUMP_HELPER = false;
-        public bool DEBUG_JUMP_COYOTE = true;
-        public bool DEBUG_INPUT_EVENTS = false;
+        public bool DEBUG_COLLISION = true;
+        public bool DEBUG_COLLISION_RAYSCAST_VS_SLIDECOUNT = true;
+        public bool DEBUG_MOTION = true;
 
         // CONFIG: ground
         public float MAX_SPEED = 120f; // pixels/seconds

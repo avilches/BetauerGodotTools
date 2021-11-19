@@ -5,6 +5,7 @@ using Veronenger.Game.Managers.Autoload;
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateRun : GroundState {
         private readonly StateConfig COYOTE_JUMP_ENABLED = new StateConfig().AddFlag("CoyoteJumpEnabled");
+
         public GroundStateRun(PlayerController player) : base(player) {
         }
 
@@ -35,7 +36,7 @@ namespace Veronenger.Game.Character.Player.States {
             EnableSlopeStairs();
 
             if (Player.IsAttacking) {
-                Player.StopLateralMotionWithFriction(PlayerConfig.FRICTION,PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN);
+                Player.StopLateralMotionWithFriction(PlayerConfig.FRICTION, PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN);
             } else {
                 Player.AddLateralMotion(XInput, PlayerConfig.ACCELERATION, PlayerConfig.FRICTION,
                     PlayerConfig.STOP_IF_SPEED_IS_LESS_THAN, 0);

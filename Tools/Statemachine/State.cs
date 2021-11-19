@@ -15,7 +15,31 @@ namespace Tools.Statemachine {
         public virtual void End() {
         }
 
+        protected Logger Logger;
+
+        public void OnAddedToStateMachine(StateMachine stateMachine) {
+            ConfigureLogging(stateMachine);
+        }
+
+        public virtual void ConfigureLogging(StateMachine stateMachine) {
+        }
+
+
         public string Name => GetType().Name;
+    }
+
+    public static class StateHelper {
+        public static bool HasStartImplemented(State state) {
+            var startMethod = ReflectionTools.FindMethod(state, "Start", typeof(void),
+                new Type[] { typeof(Context), typeof(StateConfig) });
+            return startMethod != null;
+        }
+
+        public static bool HasEndImplemented(State state) {
+            var endMethod = ReflectionTools.FindMethod(state, "End", typeof(void));
+            return endMethod != null;
+        }
+
     }
 
     public class StateConfig {
@@ -46,6 +70,5 @@ namespace Tools.Statemachine {
         public T Get<T>(string key) => (T)Dictionary[key];
         public bool ContainsKey<T>(string key) => Dictionary.ContainsKey(key);
         public bool Remove(string key) => Dictionary.Remove(key);
-
     }
 }

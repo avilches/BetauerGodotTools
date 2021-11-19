@@ -1,9 +1,9 @@
 using System;
-using System.Diagnostics;
 using Godot;
 using Tools;
-using Tools.Statemachine;
+using Tools.Bus;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Controller.Stage;
 using Veronenger.Game.Tools.Resolution;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
@@ -55,38 +55,61 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         public override void _EnterTree() {
-            ConfigureLoggerFactory();
-
             var runningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
-            if (runningTests) {
-                ScreenManager = new ScreenManager(new Vector2(1200, 900), SceneTree.StretchMode.Disabled,
-                    SceneTree.StretchAspect.Expand);
-                ScreenManager.Start(this, nameof(OnScreenResized));
-                ScreenManager.SetAll(false, 1, false);
-            } else {
-                ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Viewport,
-                    SceneTree.StretchAspect.Keep);
-                ScreenManager.Start(this, nameof(OnScreenResized));
-                ScreenManager.SetAll(false, 3, false);
-            }
+            if (runningTests) RunTests();
+            else RunGame();
         }
 
+        private void RunGame() {
+            ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Viewport,
+                SceneTree.StretchAspect.Keep);
+            ScreenManager.Start(this, nameof(OnScreenResized));
+            ScreenManager.SetAll(false, 3, false);
+
+            ConfigureLoggerFactory();
+        }
+
+        private void RunTests() {
+            ScreenManager = new ScreenManager(new Vector2(1200, 900), SceneTree.StretchMode.Disabled,
+                SceneTree.StretchAspect.Expand);
+            ScreenManager.Start(this, nameof(OnScreenResized));
+            ScreenManager.SetAll(false, 1, false);
+        }
+
+        private bool _logToFileEnabled = false;
+
         private void ConfigureLoggerFactory() {
-            var folder = Directory.GetCurrentDirectory();
-            var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
-            LoggerFactory.AddFileWriter(logPath);
+            if (_logToFileEnabled) {
+                var folder = Directory.GetCurrentDirectory();
+                var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
+                LoggerFactory.AddFileWriter(logPath);
+            }
             LoggerFactory.AddGodotPrinter();
 
-            LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.Info);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
+            // Tools
+            LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
+            // Managers
+            LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(SceneManager), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Off);
 
-            var l = LoggerFactory.GetLogger(typeof(GameManager));
-            l.Info("bar");
-            l.Debug("foo");
-            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.Debug);
-            l.Info("bar");
-            l.Debug("foo");
-            // LoggerFactory.SetTraceLevel(typeof(StateMachine), "Player", TraceLevel.Debug);
+            // Player and enemies
+            LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "StateMachine", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
+            // LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
+
+            LoggerFactory.SetTraceLevel("Zombie:*", "StateMachine", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Zombie:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Zombie:*", TraceLevel.Off);
+
 
             LoggerFactory.Start(this);
         }

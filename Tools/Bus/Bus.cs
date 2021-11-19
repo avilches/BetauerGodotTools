@@ -25,10 +25,12 @@ namespace Tools.Bus {
         }
 
         public virtual void Subscribe(E eventListener) {
-            if (eventListener != null) EventListeners.Add(eventListener);
+            if (eventListener == null) return;
+            EventListeners.Add(eventListener);
         }
 
         public virtual void Publish(T @event) {
+            if (@event == null) return;
             EventListeners.ForEach(listener => listener.OnEvent(@event));
         }
     }

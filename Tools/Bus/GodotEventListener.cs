@@ -7,20 +7,30 @@ namespace Tools.Bus {
 
     public abstract class GodotListener<T> : EventListener<T> where T : IGodotEvent {
         public Node Owner { get; }
-        public string TopicName { get; set; }
+        public string TopicName { get; private set; }
         public string Name { get; }
+        protected Logger _logger;
 
         protected GodotListener(string name, Node owner) {
             Name = name;
             Owner = owner;
         }
 
+        public void OnSubscribed<T>(GodotTopic<T> godotTopic) where T : IGodotEvent {
+            TopicName = godotTopic.Name;
+            _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotListener<T>)), TopicName);
+        }
+
+        public void Debug(string message) {
+            _logger.Debug($"Received: \"{Name}\" | {message}");
+        }
+
         public virtual bool IsDisposed() {
             if (!GodotTools.IsDisposed(Owner)) return false;
-            Debug.Event(TopicName, Name, $"Disposed. Owner: {GetNodeInfo(Owner)}");
+            Debug($"Disposed. Owner: {GetNodeInfo(Owner)}");
             return true;
-
         }
+
         protected static string GetNodeInfo(Node node) {
             if (node == null) return "all";
             var nodeName = GodotTools.IsDisposed(node) ? "(disposed)" : $"\"{node.Name}\"";
@@ -30,7 +40,7 @@ namespace Tools.Bus {
         public abstract void OnEvent(T @event);
     }
 
-    public interface IGodotFilterEvent: IGodotEvent {
+    public interface IGodotFilterEvent : IGodotEvent {
         public Node Filter { get; }
     }
 
@@ -44,22 +54,21 @@ namespace Tools.Bus {
         public override bool IsDisposed() {
             if (base.IsDisposed()) return true;
             if (!GodotTools.IsDisposed(Filter)) return false;
-            Debug.Event(TopicName, Name, $"Disposed. Filter: {GetNodeInfo(Filter)}");
+            Debug($"Disposed. Filter: {GetNodeInfo(Filter)}");
             return true;
         }
 
         public override void OnEvent(T @event) {
             if (Filter == null) {
-                Debug.Event(TopicName, Name, $"Origin: {GetNodeInfo(@event.Origin)} | -> Ok");
+                Debug($"Origin: {GetNodeInfo(@event.Origin)} | -> Ok");
             } else {
                 var matches = @event.Filter == Filter;
                 if (!matches) {
-                    Debug.Event(TopicName, Name,
+                    Debug(
                         $"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | Rejected {GetNodeInfo(@event.Filter)}");
                     return;
                 }
-                Debug.Event(TopicName, Name,
-                    $"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | -> Ok");
+                Debug($"Origin: {GetNodeInfo(@event.Origin)} | Filter: {GetNodeInfo(Filter)} | -> Ok");
             }
             Execute(@event);
         }

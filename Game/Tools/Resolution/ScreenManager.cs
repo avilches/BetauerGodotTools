@@ -18,6 +18,7 @@ namespace Veronenger.Game.Tools.Resolution {
         private SceneTree _tree;
         private Viewport _root;
         private int _maxScale;
+        private Logger _logger = LoggerFactory.GetLogger(typeof(ScreenManager));
 
         public ScreenManager(Vector2 baseResolution, SceneTree.StretchMode stretchMode,
             SceneTree.StretchAspect stretchAspect, int stretchShrink = 1) {
@@ -38,8 +39,9 @@ namespace Veronenger.Game.Tools.Resolution {
                 _baseResolution, 1);
 
             var screenSize = OS.GetScreenSize();
-            _maxScale = (int) Max(Floor(Min(screenSize.x / _baseResolution.x, screenSize.y / _baseResolution.y)), 1);
-            _tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, gameManager, gameManagerUpdateResolutionMethodName);
+            _maxScale = (int)Max(Floor(Min(screenSize.x / _baseResolution.x, screenSize.y / _baseResolution.y)), 1);
+            _tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, gameManager,
+                gameManagerUpdateResolutionMethodName);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;
@@ -86,7 +88,7 @@ namespace Veronenger.Game.Tools.Resolution {
 
         public void UpdateResolution() {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            var scale = (int) Max(Floor(Min(windowSize.x / _baseResolution.x, windowSize.y / _baseResolution.y)), 1);
+            var scale = (int)Max(Floor(Min(windowSize.x / _baseResolution.x, windowSize.y / _baseResolution.y)), 1);
 
             var screenSize = _baseResolution;
             var viewportSize = screenSize * scale;
@@ -124,13 +126,10 @@ namespace Veronenger.Game.Tools.Resolution {
                     _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     _root.SizeOverrideStretch = false;
                     _root.SetSizeOverride(false);
-                    if (Debug._DEBUG_RESOLUTION) {
-                        GD.Print("(Viewport Mode) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
-                            " Video resolution:", windowSize.x, "x", windowSize.y,
-                            " Size:", (screenSize / _stretchShrink).Floor(), "(Screen size ", screenSize, "/",
-                            _stretchShrink, " stretch shrink)");
-                    }
-
+                    _logger.Debug("(Viewport Mode) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
+                        " Video resolution:", windowSize.x, "x", windowSize.y,
+                        " Size:", (screenSize / _stretchShrink).Floor(), "(Screen size ", screenSize, "/",
+                        _stretchShrink, " stretch shrink)");
                     break;
                 }
                 case SceneTree.StretchMode.Mode2d:
@@ -139,24 +138,21 @@ namespace Veronenger.Game.Tools.Resolution {
                     _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     _root.SizeOverrideStretch = true;
                     _root.SetSizeOverride(true, (screenSize / _stretchShrink).Floor());
-                    if (Debug._DEBUG_RESOLUTION) {
-                        GD.Print("(2D model) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
-                            " Video resolution:", windowSize.x, "x", windowSize.y,
-                            " Size:", (viewportSize / _stretchShrink).Floor(), " (Viewport size ", viewportSize, "/",
-                            _stretchShrink, " stretch shrink)");
-                        //	" Viewport rect: ", margin, " ", viewportSize);
-                        // Size override:", (screen_size / stretch_shrink).floor(), "(Screen size ", screen_size,"/",_stretchShrink," stretch shrink)")
-                    }
-
+                    _logger.Debug("(2D model) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
+                        " Video resolution:", windowSize.x, "x", windowSize.y,
+                        " Size:", (viewportSize / _stretchShrink).Floor(), " (Viewport size ", viewportSize, "/",
+                        _stretchShrink, " stretch shrink)");
+                    //	" Viewport rect: ", margin, " ", viewportSize);
+                    // Size override:", (screen_size / stretch_shrink).floor(), "(Screen size ", screen_size,"/",_stretchShrink," stretch shrink)")
                     break;
                 }
             }
 
             VisualServer.BlackBarsSetMargins(
-                Max(0, (int) margin.x),
-                Max(0, (int) margin.y),
-                Max(0, (int) margin2.x),
-                Max(0, (int) margin2.y));
+                Max(0, (int)margin.x),
+                Max(0, (int)margin.y),
+                Max(0, (int)margin2.x),
+                Max(0, (int)margin2.y));
         }
 
         public void LoadProjectSettings() {

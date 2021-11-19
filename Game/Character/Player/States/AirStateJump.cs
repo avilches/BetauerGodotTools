@@ -8,8 +8,7 @@ namespace Veronenger.Game.Character.Player.States {
 
         public override void Start(Context context, StateConfig config) {
             Player.SetMotionY(-PlayerConfig.JUMP_FORCE);
-            Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
-                "Jump: decelerating to " + -PlayerConfig.JUMP_FORCE);
+            DebugJump("Jump start: decelerating to " + -PlayerConfig.JUMP_FORCE);
             Player.AnimationJump.PlayLoop();
         }
 
@@ -17,8 +16,7 @@ namespace Veronenger.Game.Character.Player.States {
             CheckAttack();
 
             if (Jump.JustReleased && Motion.y < -PlayerConfig.JUMP_FORCE_MIN) {
-                Debug(PlayerConfig.DEBUG_JUMP_VELOCITY,
-                    "Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JUMP_FORCE_MIN);
+                DebugJump("Short jump: decelerating from " + Motion.y + " to " + -PlayerConfig.JUMP_FORCE_MIN);
                 Player.SetMotionY(-PlayerConfig.JUMP_FORCE_MIN);
             }
 
@@ -34,7 +32,6 @@ namespace Veronenger.Game.Character.Player.States {
             }
 
             return CheckLanding(context);
-
         }
     }
 }

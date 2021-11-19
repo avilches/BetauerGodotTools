@@ -67,17 +67,16 @@ namespace Tools {
         private readonly System.Collections.Generic.Dictionary<Type, OnceAnimationStatus> _onceAnimationsStatuses =
             new System.Collections.Generic.Dictionary<Type, OnceAnimationStatus>();
 
-        // private readonly System.Collections.Generic.Dictionary<string, Animation> _animationsByName =
-        // new System.Collections.Generic.Dictionary<string, Animation>();
-
         private readonly AnimationPlayer _animationPlayer;
         private LoopAnimation _currentLoopAnimation;
         private OnceAnimationStatus _currentOnceAnimationStatus;
+        private readonly Logger _logger;
 
-        public AnimationStack(AnimationPlayer animationPlayer) {
+        public AnimationStack(string name, AnimationPlayer animationPlayer) {
             _animationPlayer = animationPlayer;
             _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
-                nameof(OnAnimationOnceFinished));
+                nameof(OnceAnimationFinished));
+            _logger = LoggerFactory.GetLogger(name, "Animation");
         }
 
         public AnimationStack AddLoopAnimation(LoopAnimation newAnimation) {
@@ -139,7 +138,7 @@ namespace Tools {
 
         protected internal void PlayLoop(LoopAnimationStatus loopAnimation) {
             if (_currentLoopAnimation != loopAnimation.Animation) {
-                // GD.Print("PlayLoop From: "+_loopAnimation?.Name+" | To: "+newAnimation?.Name);
+                _logger.Debug("PlayLoop \"" + loopAnimation.Animation.Name + "\"");
                 _currentLoopAnimation = loopAnimation.Animation;
                 if (_currentOnceAnimationStatus == null) {
                     _animationPlayer.Play(loopAnimation.Animation.Name);
@@ -155,20 +154,20 @@ namespace Tools {
         protected internal OnceAnimationStatus PlayOnce(OnceAnimationStatus newOnceAnimationStatus) {
             if (_currentOnceAnimationStatus == null || _currentOnceAnimationStatus.CanBeInterrupted) {
                 if (_currentOnceAnimationStatus != null) {
-                    GD.Print("PlayOnce Interrupting: " + _currentOnceAnimationStatus.Animation.Name + ".Playing = false " +
-                             _currentOnceAnimationStatus.GetHashCode());
+                    _logger.Debug("PlayOnce \"" + newOnceAnimationStatus.Animation.Name + "\" (Interrupting: " +
+                                  _currentOnceAnimationStatus.Animation.Name + "\")");
                     _currentOnceAnimationStatus.Playing = false;
                     _currentOnceAnimationStatus.Interrupted = true;
                     _currentOnceAnimationStatus.Animation.OnEnd();
                     if (_currentOnceAnimationStatus == newOnceAnimationStatus) {
                         _animationPlayer.Stop();
                     }
+                } else {
+                    _logger.Debug("PlayOnce \"" + newOnceAnimationStatus.Animation.Name + "\"");
                 }
                 _currentOnceAnimationStatus = newOnceAnimationStatus;
                 newOnceAnimationStatus.Playing = true;
                 newOnceAnimationStatus.Interrupted = false;
-                GD.Print("PlayOnce new: " + newOnceAnimationStatus.Animation.Name + ".Playing = true " +
-                         newOnceAnimationStatus.GetHashCode());
                 newOnceAnimationStatus.Animation.OnStart();
                 _animationPlayer.Play(newOnceAnimationStatus.Animation.Name);
             }
@@ -193,9 +192,8 @@ namespace Tools {
             return _currentOnceAnimationStatus == null;
         }
 
-        public void OnAnimationOnceFinished(string animation) {
-            GD.Print("OnAnimationOnceFinished: " + _currentOnceAnimationStatus.Animation.Name + ".Playing = false " +
-                     _currentOnceAnimationStatus.GetHashCode());
+        public void OnceAnimationFinished(string animation) {
+            _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimationStatus.Animation.Name + "\"");
             _currentOnceAnimationStatus.Playing = false;
             _currentOnceAnimationStatus.Animation.OnEnd();
             _currentOnceAnimationStatus = null;

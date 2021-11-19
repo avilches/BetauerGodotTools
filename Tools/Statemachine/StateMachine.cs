@@ -79,7 +79,8 @@ namespace Tools.Statemachine {
     public class StateMachine {
         private readonly StateConfig _emptyConfig = new StateConfig();
         private const int MaxChanges = 2;
-        private readonly Logger _logger;
+        public readonly Logger Logger;
+        public readonly string Name;
 
         internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
 
@@ -87,23 +88,28 @@ namespace Tools.Statemachine {
         private Context CurrentContext { get; set; }
 
         public StateMachine(string name) {
-            _logger = LoggerFactory.GetLogger(GetType(), name);
+            Name = name;
+            Logger = LoggerFactory.GetLogger(name, "StateMachine");
         }
+
+        public void Debug(string message) => Logger.Debug(message);
 
         public StateMachine AddState(State state) {
             States[state.GetType()] = state;
+            state.OnAddedToStateMachine(this);
             return this;
         }
 
-        public void SetNextState(Type nextState, bool immediate = false) {
+        public StateMachine SetNextState(Type nextState, bool immediate = false) {
             NextState = new NextState(this, nextState, immediate);
+            return this;
         }
 
         public void Execute(float delta) {
             if (NextState.State == null)
                 throw new Exception(
                     "Please, initialize the state machine with the next state, even if the next state is the same as the current one");
-           _Execute(delta, CurrentContext?.CurrentState, NextState, new List<string>());
+            _Execute(delta, CurrentContext?.CurrentState, NextState, new List<string>());
         }
 
         private void _Execute(float delta, State initialState, NextState nextState, List<string> immediateChanges) {
@@ -120,15 +126,16 @@ namespace Tools.Statemachine {
 
         private void _EndPreviousStateIfNeeded(NextState nextState) {
             if (CurrentContext == null || CurrentContext.CurrentState == nextState.State) return;
+            if (!StateHelper.HasEndImplemented(CurrentContext.CurrentState)) return;
             // End the current state
-            _logger.Debug($"{CurrentContext.CurrentState.Name}.End()");
+            Logger.Debug($"End: \"{CurrentContext.CurrentState.Name}\"");
             CurrentContext.CurrentState.End();
         }
 
         private void _StartNextStateIfNeeded(State initialState, NextState nextState, List<string> immediateChanges) {
             if (CurrentContext?.CurrentState == nextState.State) return;
             // Change the current state
-            // _logger.Debug($"{CurrentContext.State?.Name} -> {nextState.State.Name}");
+            Logger.Debug($"New State: \"{nextState.State.Name}\"");
             var fromState =
                 CurrentContext?.CurrentState ??
                 nextState.State; // To avoid NPE in states, the first execution will use the current state as the from state
@@ -138,12 +145,14 @@ namespace Tools.Statemachine {
 
             // Start the new state
             CurrentContext.StateTimer.Reset().Start();
-            _logger.Debug($"{nextState.State.Name}.Start()");
-            nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
+            if (StateHelper.HasStartImplemented(CurrentContext.CurrentState)) {
+                Logger.Debug($"Start: \"{nextState.State.Name}\"");
+                nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
+            }
         }
 
-        private static void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
-            // GD.Print(initialState?.Name + " : " + string.Join(", ", immediateChanges));
+        private void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
+            // _logger.Debug(initialState?.Name + " : " + string.Join(", ", immediateChanges));
             if (immediateChanges.Count > MaxChanges) {
                 if (immediateChanges.Count != immediateChanges.Distinct().Count()) {
                     throw new Exception(
@@ -155,7 +164,7 @@ namespace Tools.Statemachine {
         }
 
         public void _UnhandledInput(InputEvent @event) {
-            CurrentContext.CurrentState?._UnhandledInput(@event);
+            CurrentContext?.CurrentState?._UnhandledInput(@event);
         }
     }
 }

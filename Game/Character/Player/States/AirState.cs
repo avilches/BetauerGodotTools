@@ -16,12 +16,10 @@ namespace Veronenger.Game.Character.Player.States {
             if (!Player.FallingJumpTimer.Stopped) {
                 Player.FallingJumpTimer.Stop();
                 if (Player.FallingJumpTimer.Elapsed <= PlayerConfig.JUMP_HELPER_TIME) {
-                    Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} Done!");
+                    DebugJumpHelper($"{Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} Done!");
                     return context.Immediate(typeof(AirStateJump));
                 } else {
-                    Debug(PlayerConfig.DEBUG_JUMP_HELPER,
-                        $"Helper jump: {Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
+                    DebugJumpHelper($"{Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JUMP_HELPER_TIME} TOO MUCH TIME");
                 }
             }
 
@@ -48,12 +46,10 @@ namespace Veronenger.Game.Character.Player.States {
             // Jump was pressed
             Player.FallingJumpTimer.Reset().Start();
             if (Player.FallingTimer.Elapsed <= PlayerConfig.COYOTE_TIME) {
-                Debug(PlayerConfig.DEBUG_JUMP_COYOTE,
-                    $"Coyote jump: {Player.FallingTimer.Elapsed} <= {PlayerConfig.COYOTE_TIME} Done!");
+                DebugCoyoteJump($"{Player.FallingTimer.Elapsed} <= {PlayerConfig.COYOTE_TIME} Done!");
                 return true;
             }
-            Debug(PlayerConfig.DEBUG_JUMP_COYOTE,
-                $"Coyote jump: {Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME} TOO LATE");
+            DebugCoyoteJump($"{Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME} TOO LATE");
             return false;
         }
     }

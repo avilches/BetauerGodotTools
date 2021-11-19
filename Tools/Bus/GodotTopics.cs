@@ -1,11 +1,16 @@
 namespace Tools.Bus {
     public class GodotTopic<T> : Topic<GodotListener<T>, T>
         where T : IGodotEvent {
+
+        private Logger _logger;
+
         public GodotTopic(string name) : base(name) {
+            _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotTopic<T>)), name);
         }
 
         public override void Subscribe(GodotListener<T> eventListener) {
-            if (eventListener != null) eventListener.TopicName = Name;
+            if (eventListener == null) return;
+            eventListener.OnSubscribed(this);
             base.Subscribe(eventListener);
         }
 
@@ -16,10 +21,9 @@ namespace Tools.Bus {
         public override void Publish(T @event) {
             int deleted = DisposeListeners();
             if (deleted > 0) {
-                Debug.Topic($"Topic:{Name}",
-                    $"Event published to {EventListeners.Count} listeners ({deleted} have been disposed)");
+                _logger.Debug($"Event published to {EventListeners.Count} listeners ({deleted} of {deleted+EventListeners.Count} have been disposed)");
             } else {
-                Debug.Topic($"Topic:{Name}", $"Event published to {EventListeners.Count} listeners");
+                _logger.Debug($"Event published to {EventListeners.Count} listeners");
             }
 
             EventListeners.ForEach(listener => listener.OnEvent(@event));

@@ -4,14 +4,12 @@ using Godot;
 using NUnit.Framework;
 using Tools.Bus;
 using Tools.Bus.Topics;
-using Debug = Tools.Debug;
 
 namespace Veronenger.Tests {
     [TestFixture]
     public class GodotTopicTests : Node {
         [SetUp]
         public void Setup() {
-            Debug.TESTING = true;
         }
 
         [Test]

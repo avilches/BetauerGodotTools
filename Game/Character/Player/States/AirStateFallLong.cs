@@ -1,3 +1,4 @@
+using Godot;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
@@ -8,7 +9,8 @@ namespace Veronenger.Game.Character.Player.States {
 
         public override void Start(Context context, StateConfig config) {
             if (Player.FallingTimer.Elapsed > PlayerConfig.COYOTE_TIME) {
-                Debug(PlayerConfig.DEBUG_JUMP_COYOTE, $"Coyote jump will never happen in FallLong state: {Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME}");
+                DebugCoyoteJump(
+                    $"Coyote jump will never happen in FallLong state: {Player.FallingTimer.Elapsed} > {PlayerConfig.COYOTE_TIME}");
             }
             Player.AnimationFall.PlayLoop();
         }

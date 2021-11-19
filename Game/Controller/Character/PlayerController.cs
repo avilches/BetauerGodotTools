@@ -13,8 +13,12 @@ namespace Veronenger.Game.Controller.Character {
     public class PlayerController : CharacterController {
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
+        private AnimationStack _animationStack;
+        private string _name;
         private Area2D _attack;
-        private StateMachine StateMachine;
+        private StateMachine _stateMachine;
+        private Logger _logger = LoggerFactory.GetLogger("Player:");
+        private Logger _loggerInput = LoggerFactory.GetLogger("Player:");
 
         public readonly Timer FallingJumpTimer = new Timer().Stop();
         public readonly Timer FallingTimer = new Timer().Stop();
@@ -35,27 +39,30 @@ namespace Veronenger.Game.Controller.Character {
             return PlayerConfig;
         }
 
-        protected override AnimationStack CreateAnimationStack(AnimationPlayer animationPlayer) {
-            var animationStack = new AnimationStack(animationPlayer);
+        protected override Logger GetLogger() {
+            return _logger;
+        }
+
+        public override void _EnterTree() {
+            _name = "Player:" + GetHashCode().ToString("x8");
+            _logger = LoggerFactory.GetLogger(_name);
+            _loggerInput = LoggerFactory.GetLogger(_name, "Input");
+            base._EnterTree();
+            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
+            var animationStack = new AnimationStack(_name, animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
             AnimationRun = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationRun());
             AnimationJump = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationJump());
             AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
             AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
             AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
-            return animationStack;
-        }
-
-        public override void _EnterTree() {
-            base._EnterTree();
-
-            StateMachine = new StateMachine("Player:" + GetHashCode().ToString("x8"))
+            _stateMachine = new StateMachine(_name)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
                 .AddState(new AirStateFallShort(this))
                 .AddState(new AirStateFallLong(this))
-                .AddState(new AirStateJump(this));
-            StateMachine.SetNextState(typeof(GroundStateIdle));
+                .AddState(new AirStateJump(this))
+                .SetNextState(typeof(GroundStateIdle));
             _attack = GetNode<Area2D>("AttackArea");
         }
 
@@ -87,13 +94,11 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void EnableSlopeStairs() {
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Enabling slope stairs");
             SlopeStairsManager.DisableSlopeStairsCoverForBody(this);
             SlopeStairsManager.EnableSlopeStairsForBody(this);
         }
 
         public void DisableSlopeStairs() {
-            Debug(PlayerConfig.DEBUG_SLOPE_STAIRS, "Disabling slope stairs");
             SlopeStairsManager.EnableSlopeStairsCoverForBody(this);
             SlopeStairsManager.DisableSlopeStairsForBody(this);
         }
@@ -109,7 +114,7 @@ namespace Veronenger.Game.Controller.Character {
             FallingJumpTimer.Update(Delta);
             FallingTimer.Update(Delta);
 
-            StateMachine.Execute(Delta);
+            _stateMachine.Execute(Delta);
 
             PlayerActions.ClearJustStates();
             /*
@@ -126,7 +131,7 @@ namespace Veronenger.Game.Controller.Character {
         public override void _UnhandledInput(InputEvent @event) {
             w.@event = @event;
             if (!PlayerActions.Update(w)) {
-                StateMachine._UnhandledInput(@event);
+                _stateMachine._UnhandledInput(@event);
             }
 
             TestJumpActions();
@@ -135,11 +140,11 @@ namespace Veronenger.Game.Controller.Character {
         private void TestJumpActions() {
             if (PlayerConfig.DEBUG_INPUT_EVENTS) {
                 if (w.IsMotion()) {
-                    GD.Print($"Axis {w.Device}[{w.Axis}]:{w.GetStrength()} ({w.AxisValue})");
+                    _loggerInput.Debug($"Axis {w.Device}[{w.Axis}]:{w.GetStrength()} ({w.AxisValue})");
                 } else if (w.IsAnyButton()) {
-                    GD.Print($"Button {w.Device}[{w.Button}]:{w.Pressed} ({w.Pressure})");
+                    _loggerInput.Debug($"Button {w.Device}[{w.Button}]:{w.Pressed} ({w.Pressure})");
                 } else if (w.IsAnyKey()) {
-                    GD.Print($"Key {w.KeyString} [{w.Key}] {w.Pressed}/{w.Echo}");
+                    _loggerInput.Debug($"Key \"{w.KeyString}\" #{w.Key} Pressed:{w.Pressed}/Echo:{w.Echo}");
                 } else {
                 }
             }
@@ -153,15 +158,15 @@ namespace Veronenger.Game.Controller.Character {
             // var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") + " " +
             // Input.IsActionPressed("ui_select");
             // if (!mine.Equals(godot)) {
-            // GD.Print("Mine:" + mine);
-            // GD.Print("Godo:" + godot);
+            // _logger.Debug("Mine :" + mine);
+            // _logger.Debug("Godot:" + godot);
             // }
         }
 
         public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 
         public void DeathZone(Area2D deathArea2D) {
-            GD.Print("MUETO!!");
+            _logger.Debug("MUETO!!");
         }
     }
 }

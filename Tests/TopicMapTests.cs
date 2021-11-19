@@ -1,9 +1,7 @@
-using System.Collections;
 using Godot;
 using NUnit.Framework;
 using Tools.Bus;
 using Tools.Bus.Topics;
-using Debug = Tools.Debug;
 
 namespace Veronenger.Tests {
     [TestFixture]
@@ -13,7 +11,6 @@ namespace Veronenger.Tests {
 
         [SetUp]
         public void Setup() {
-            Debug.TESTING = true;
             Area1.Name = "Area1";
             Area2.Name = "Area2";
         }

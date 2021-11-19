@@ -1,5 +1,8 @@
 namespace Veronenger.Game.Character.Player {
     public class PlayerConfig : CharacterConfig {
+        // Only for the player...
+        public bool DEBUG_INPUT_EVENTS = true;
+
         public float COYOTE_TIME = 0.1f; // seconds. How much time the player can jump when falling
         public float JUMP_HELPER_TIME = 0.1f; // seconds. If the user press jump just before land
 
