@@ -1,6 +1,7 @@
 using System;
 using Godot;
-using Veronenger.Game.Managers.Autoload;
+using Tools;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Stage {
     /**
@@ -14,12 +15,14 @@ namespace Veronenger.Game.Controller.Stage {
      *        +- ...
      * Non Area2D elements will be ignored. Non RectangleShape2D collision shapes will be ignored too.
      */
-    public class StageListController : Node {
+    public class StageListController : DiNode {
+        [Inject] public StageManager StageManager;
+
         public override void _EnterTree() {
             foreach (var node in GetChildren()) {
                 if (node is Area2D area2D) {
                     ValidateStageArea2D(area2D);
-                    GameManager.Instance.StageManager.ConfigureStage(area2D);
+                    StageManager.ConfigureStage(area2D);
                 }
             }
         }

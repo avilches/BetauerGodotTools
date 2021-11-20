@@ -3,7 +3,6 @@ using System.Text;
 using Godot;
 using Tools;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
 using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Character {
@@ -38,7 +37,7 @@ namespace Veronenger.Game.Character {
         }
     }
 
-    public class MotionBody {
+    public class MotionBody : Di {
         private Logger _loggerMotion;
         private Logger _loggerCollision;
         private Vector2 _lastMotion = Vector2.Zero;
@@ -49,17 +48,16 @@ namespace Veronenger.Game.Character {
         protected SpriteFlipper _spriteFlipper;
 
         public Vector2 Motion = Vector2.Zero;
-        public readonly GameManager GameManager;
-        public PlatformManager PlatformManager => GameManager.PlatformManager;
-        public SlopeStairsManager SlopeStairsManager => GameManager.SlopeStairsManager;
+        [Inject] public PlatformManager PlatformManager;
+        [Inject] public SlopeStairsManager SlopeStairsManager;
+
         public float Delta { get; private set; } = 0;
 
         private readonly KinematicBody2D _body;
         private readonly string _name;
         private readonly MotionConfig _motionConfig;
 
-        public MotionBody(GameManager gameManager, KinematicBody2D body, string name, MotionConfig motionConfig) {
-            GameManager = gameManager;
+        public MotionBody(KinematicBody2D body, string name, MotionConfig motionConfig) {
             _body = body;
             _name = name;
             _loggerCollision = LoggerFactory.GetLogger(_name,"Collision");

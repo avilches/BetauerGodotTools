@@ -1,14 +1,14 @@
 using Godot;
+using Tools;
 using Tools.Bus;
 using Tools.Bus.Topics;
-using Veronenger.Game.Character;
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
     public class SlopeStairsManager {
-        public PlatformManager PlatformManager => GameManager.Instance.PlatformManager;
+        [Inject] public PlatformManager PlatformManager;
+
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
         private readonly BodyOnArea2DTopic _downTopic = new BodyOnArea2DTopic("SlopeStairsDown");
         private readonly BodyOnArea2DTopic _upTopic = new BodyOnArea2DTopic("SlopeStairsUp");
@@ -34,7 +34,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ConfigureSlopeStairsDown(Area2D area2D) {
-            GameManager.Instance.PlatformManager.ConfigureArea2DAsPlatform(area2D);
+            PlatformManager.ConfigureArea2DAsPlatform(area2D);
             _downTopic.AddArea2D(area2D);
         }
 

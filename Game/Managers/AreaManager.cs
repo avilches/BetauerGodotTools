@@ -7,6 +7,9 @@ using static Veronenger.Game.Tools.LayerConstants;
 namespace Veronenger.Game.Managers {
     public class AreaManager : Object /* needed to signal listen */{
 
+        [Inject] public CharacterManager CharacterManager;
+        [Inject] public GameManager GameManager;
+
         public void ConfigureDeathZone(Area2D deathArea2D) {
             deathArea2D.CollisionLayer = 0;
             deathArea2D.CollisionMask = 0;
@@ -17,7 +20,8 @@ namespace Veronenger.Game.Managers {
         }
 
         public void _on_player_entered_death_zone(Area2D player, Area2D deathArea2D) {
-            GameManager.Instance.PlayerEnteredDeathZone(deathArea2D);
+            // TODO Send and event instead
+            CharacterManager.PlayerEnteredDeathZone(deathArea2D);
         }
 
         // TODO: World complete area2d should
@@ -31,7 +35,8 @@ namespace Veronenger.Game.Managers {
         }
 
         public void _on_player_entered_scene_change(Area2D player, Area2D stageEnteredArea2D, string scene) {
-            GameManager.Instance.SceneManager.ChangeScene(scene);
+            // TODO: Send an event instead
+            GameManager.ChangeScene(scene);
         }
     }
 }

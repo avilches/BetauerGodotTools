@@ -1,9 +1,6 @@
 using System;
 using Godot;
 using Tools;
-using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
-using Veronenger.Game.Tools;
 
 namespace Veronenger.Game.Controller.Platforms {
 	public class PlatformFollowPathController : PlatformController {
@@ -24,7 +21,7 @@ namespace Veronenger.Game.Controller.Platforms {
 		}
 
 		private void Configure() {
-			GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
+			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
 				var path2D = GodotTools.FindChild<Path2D>(this);

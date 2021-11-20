@@ -1,4 +1,5 @@
 using Godot;
+using Tools;
 using Tools.Bus.Topics;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.Tools.LayerConstants;
@@ -7,18 +8,16 @@ namespace Veronenger.Game.Managers {
     public class CharacterManager {
         private const string GROUP_ENEMY = "enemy";
 
+        public PlayerController PlayerController { get; private set; }
+
+        [Inject] public PlatformManager PlatformManager;
+        [Inject] public SlopeStairsManager SlopeStairsManager;
+
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
-        private readonly PlatformManager PlatformManager;
-        private readonly SlopeStairsManager SlopeStairsManager;
 
-        public CharacterManager(PlatformManager platformManager, SlopeStairsManager slopeStairsManager) {
-            PlatformManager = platformManager;
-            SlopeStairsManager = slopeStairsManager;
+        public void RegisterPlayerController(PlayerController playerController) {
+            PlayerController = playerController;
         }
-
-        /**
-         * No almacena nada, solo permite que enemigos y armas se suscriban a cambios
-         */
 
         public void ConfigurePlayerCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
@@ -43,5 +42,14 @@ namespace Veronenger.Game.Managers {
             playerWeaponArea2D.SetCollisionMaskBit(LayerEnemy, true);
             _playerAttackTopic.AddArea2D(playerWeaponArea2D);
         }
+
+        // public bool IsPlayer(KinematicBody2D player) {
+            // return PlayerController == player;
+        // }
+
+        public void PlayerEnteredDeathZone(Area2D deathArea2D) {
+            PlayerController.DeathZone(deathArea2D);
+        }
+
     }
 }

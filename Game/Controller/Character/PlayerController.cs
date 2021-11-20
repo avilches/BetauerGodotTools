@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Tools;
 using Tools.Bus.Topics;
@@ -7,25 +8,10 @@ using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
 using Timer = Tools.Timer;
 
 namespace Veronenger.Game.Controller.Character {
-    public class DIKinematicBody2D : KinematicBody2D {
-        public readonly GameManager GameManager;
-        public PlatformManager PlatformManager => GameManager.PlatformManager;
-        public CharacterManager CharacterManager => GameManager.CharacterManager;
-        public SlopeStairsManager SlopeStairsManager => GameManager.SlopeStairsManager;
-
-        public DIKinematicBody2D() : this(GameManager.Instance) {
-        }
-
-        public DIKinematicBody2D(GameManager gameManager) {
-            GameManager = gameManager;
-        }
-    }
-
-    public sealed class PlayerController : DIKinematicBody2D {
+    public sealed class PlayerController : DiKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly Logger _loggerInput;
@@ -36,6 +22,10 @@ namespace Veronenger.Game.Controller.Character {
         public readonly MyPlayerActions PlayerActions;
         public readonly Timer FallingJumpTimer = new Timer().Stop();
         public readonly Timer FallingTimer = new Timer().Stop();
+
+        [Inject] public PlatformManager PlatformManager;
+        [Inject] public CharacterManager CharacterManager;
+        [Inject] public SlopeStairsManager SlopeStairsManager;
 
         public MotionBody MotionBody;
 
@@ -52,7 +42,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AddState(new AirStateFallLong(this))
                 .AddState(new AirStateJump(this))
                 .SetNextState(typeof(GroundStateIdle));
-            MotionBody = new MotionBody(GameManager, this, _name, PlayerConfig.MotionConfig);
+            MotionBody = new MotionBody(this, _name, PlayerConfig.MotionConfig);
         }
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
@@ -86,7 +76,7 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsUp;
 
         public override void _Ready() {
-            GameManager.Instance.RegisterPlayerController(this);
+            CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
             CharacterManager.ConfigurePlayerAreaAttack(_attack);
 

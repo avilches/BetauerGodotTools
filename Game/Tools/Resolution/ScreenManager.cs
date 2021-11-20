@@ -28,6 +28,7 @@ namespace Veronenger.Game.Tools.Resolution {
             _stretchShrink = stretchShrink;
         }
 
+        // TODO remove this dependency
         public void Start(GameManager gameManager, string gameManagerUpdateResolutionMethodName) {
             _tree = gameManager.GetTree();
             _root = gameManager.GetNode<Viewport>("/root");

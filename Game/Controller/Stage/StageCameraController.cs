@@ -1,8 +1,7 @@
 using System;
 using Godot;
 using Tools;
-using Veronenger.Game.Character;
-using Veronenger.Game.Managers.Autoload;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Stage {
     /**
@@ -14,13 +13,17 @@ namespace Veronenger.Game.Controller.Stage {
      *   +- StageDetector : Area2D
      *   +- StageCameraController (this class)
      */
-    public class StageCameraController : Camera2D {
+    public class StageCameraController : DiCamera2D {
+
+        [Inject] public StageManager StageManager;
+
+
         public override void _EnterTree() {
             var stageDetector = GetNode<Area2D>("../StageDetector");
             if (stageDetector == null) {
                 throw new Exception("Missing parent node Area2D 'StageDetector'");
             }
-            GameManager.Instance.StageManager.ConfigureStageCamera(this, stageDetector);
+            StageManager.ConfigureStageCamera(this, stageDetector);
         }
 
         public void ChangeStage(Rect2 rect2) {

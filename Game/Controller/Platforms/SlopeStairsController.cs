@@ -1,9 +1,12 @@
 using System;
 using Godot;
-using Veronenger.Game.Managers.Autoload;
+using Tools;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Platforms {
-    public class SlopeStairsController : Node {
+    public class SlopeStairsController : DiNode {
+        [Inject] public SlopeStairsManager SlopeStairsManager;
+
         public override void _EnterTree() {
             try {
                 var slopeStairs = GetNode<StaticBody2D>("SlopeStairs");
@@ -13,12 +16,12 @@ namespace Veronenger.Game.Controller.Platforms {
                 var enabler = GetNode<Area2D>("EnablerAndDisabler/Enabler");
                 var disabler = GetNode<Area2D>("EnablerAndDisabler/Disabler");
 
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairs(slopeStairs);
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsCover(cover);
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsUp(upHall);
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsDown(downHall);
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsEnabler(enabler);
-                GameManager.Instance.SlopeStairsManager.ConfigureSlopeStairsDisabler(disabler);
+                SlopeStairsManager.ConfigureSlopeStairs(slopeStairs);
+                SlopeStairsManager.ConfigureSlopeStairsCover(cover);
+                SlopeStairsManager.ConfigureSlopeStairsUp(upHall);
+                SlopeStairsManager.ConfigureSlopeStairsDown(downHall);
+                SlopeStairsManager.ConfigureSlopeStairsEnabler(enabler);
+                SlopeStairsManager.ConfigureSlopeStairsDisabler(disabler);
             } catch (InvalidCastException e) {
                 Console.WriteLine("Slope stairs node has a wrong name or a wrong node type");
                 Console.WriteLine(e);

@@ -1,12 +1,13 @@
 using Godot;
+using Tools;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
-using Veronenger.Game.Tools;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class AnimatedPlatformController : KinematicBody2D {
+    public class AnimatedPlatformController : DiKinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
+        [Inject] public PlatformManager PlatformManager;
+
 
         private Vector2 _original;
         public Vector2 follow;
@@ -21,7 +22,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Configure() {
-            GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
+            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 
             _original = Position;
 

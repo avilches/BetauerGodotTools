@@ -428,7 +428,7 @@ script = ExtResource( 19 )
 color = Color( 0.054902, 0.698039, 0.141176, 1 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 117.777, -21.6804 )
+position = Vector2( 628.212, 80.5493 )
 script = ExtResource( 17 )
 next_scene = "res://Worlds/World2.tscn"
 
@@ -436,6 +436,7 @@ next_scene = "res://Worlds/World2.tscn"
 format = 1
 
 [node name="Stages" type="Node2D" parent="."]
+visible = false
 script = ExtResource( 18 )
 
 [node name="Stage11" type="Area2D" parent="Stages"]

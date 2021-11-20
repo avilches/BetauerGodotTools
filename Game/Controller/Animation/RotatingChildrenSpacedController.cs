@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using Godot;
+using Tools;
 using Tools.Effects;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
-using Veronenger.Game.Tools;
 using static Tools.GodotTools;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class RotatingChildrenSpacedController : Node2D {
+    public class RotatingChildrenSpacedController : DiNode2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
+        [Inject] public PlatformManager PlatformManager;
+
 
         private List<PhysicsBody2D> _platforms;
         private TweenSequence _sequence;
@@ -30,7 +31,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence = new TweenSequence(true);
             _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear);
 
-            _platforms = GameManager.Instance.PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
+            _platforms = PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
         }
     }
 }

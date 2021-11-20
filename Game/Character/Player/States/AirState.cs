@@ -1,6 +1,5 @@
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class AirState : PlayerState {
@@ -10,7 +9,7 @@ namespace Veronenger.Game.Character.Player.States {
         protected NextState CheckLanding(Context context) {
             if (!Player.IsOnFloor()) return context.Current(); // Still in the air! :)
 
-            GameManager.Instance.PlatformManager.BodyStopFallFromPlatform(Player);
+            PlatformManager.BodyStopFallFromPlatform(Player);
 
             // Check helper jump
             if (!Player.FallingJumpTimer.Stopped) {

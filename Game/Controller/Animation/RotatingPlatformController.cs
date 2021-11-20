@@ -1,14 +1,16 @@
 using Godot;
-using Veronenger.Game.Managers.Autoload;
+using Tools;
+using Veronenger.Game.Managers;
 using static Godot.Mathf;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class RotatingPlatformController : KinematicBody2D {
+    public class RotatingPlatformController : DiKinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
         [Export] public bool Enabled = true;
+        [Inject] public PlatformManager PlatformManager;
         private float _angle = 0;
         private float _speed;
 
@@ -23,7 +25,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         private void Configure() {
-            GameManager.Instance.PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
+            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _speed = Tau / RotationDuration;
         }
 

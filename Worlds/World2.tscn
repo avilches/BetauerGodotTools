@@ -45,11 +45,12 @@ rotation = 3.14159
 scale = Vector2( 1, -1 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 528, -40 )
+position = Vector2( 115.436, 20.7512 )
 script = ExtResource( 8 )
 next_scene = "res://Worlds/World1.tscn"
 
 [node name="Stages" type="Node2D" parent="."]
+visible = false
 position = Vector2( 300, 0 )
 script = ExtResource( 7 )
 

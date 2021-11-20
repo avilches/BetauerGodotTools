@@ -4,13 +4,15 @@ using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Character.Enemy.States;
-using Veronenger.Game.Managers.Autoload;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class EnemyZombieController : KinematicBody2D {
+    public sealed class EnemyZombieController : DiKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly StateMachine _stateMachine;
+
+        [Inject] public CharacterManager CharacterManager;
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
         public OnceAnimationStatus AnimationStep { get; private set; }
@@ -27,7 +29,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AddState(new GroundStatePatrolWait(this))
                 .AddState(new GroundStateIdle(this))
                 .SetNextState(typeof(GroundStateIdle));
-            MotionBody = new MotionBody(GameManager.Instance, this, _name, EnemyConfig.MotionConfig);
+            MotionBody = new MotionBody( this, _name, EnemyConfig.MotionConfig);
         }
 
         public override void _EnterTree() {
@@ -39,7 +41,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void _Ready() {
-            GameManager.Instance.CharacterManager.ConfigureEnemyCollisions(this);
+            CharacterManager.ConfigureEnemyCollisions(this);
         }
 
         public override void _PhysicsProcess(float delta) {

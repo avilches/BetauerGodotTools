@@ -28,7 +28,7 @@ namespace Veronenger.Game.Character.Player.States {
 
             if (Jump.JustPressed) {
                 if (IsDown && Body.IsOnFallingPlatform()) {
-                    GameManager.Instance.PlatformManager.BodyFallFromPlatform(Player);
+                    PlatformManager.BodyFallFromPlatform(Player);
                 } else {
                     return context.Immediate(typeof(AirStateJump));
                 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Godot;
 
 namespace Tools.Statemachine {
-    public abstract class State {
+    public abstract class State : Di {
         public abstract NextState Execute(Context context);
 
         public virtual void _UnhandledInput(InputEvent @event) {

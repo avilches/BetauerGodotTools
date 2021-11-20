@@ -3,12 +3,10 @@ using System.Diagnostics;
 using Godot;
 using Tools;
 using Tools.Bus;
-using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
 using Veronenger.Game.Tools.Resolution;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
-using Timer = Godot.Timer;
 using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Managers.Autoload {
@@ -26,16 +24,17 @@ namespace Veronenger.Game.Managers.Autoload {
     public class GameManager : Node /* needed to receive _EnterTree and OnScreenResized signals */ {
         public static GameManager Instance { get; private set; }
 
-        public readonly AreaManager AreaManager;
-        public readonly StageManager StageManager;
-        public readonly PlatformManager PlatformManager;
-        public readonly SlopeStairsManager SlopeStairsManager;
+        private readonly GodotDiRepository DiRepository = GodotDiRepository.Instance;
 
-        public readonly SceneManager SceneManager;
+        private readonly AreaManager AreaManager;
+        private readonly StageManager StageManager;
+        private readonly PlatformManager PlatformManager;
+        private readonly SlopeStairsManager SlopeStairsManager;
+        private readonly CharacterManager CharacterManager;
+
 
         // public Logger Logger;
         private ScreenManager ScreenManager;
-        public readonly CharacterManager CharacterManager;
 
         public static Vector2 FULL_DIV6 = new Vector2(320, 180); // 1920x1080 / 6
         public static Vector2 FULL_DIV4 = new Vector2(480, 270); // 1920x1080 / 4
@@ -47,17 +46,21 @@ namespace Veronenger.Game.Managers.Autoload {
             if (Instance != null) {
                 throw new Exception("Only one instance");
             }
-            Instance = this;
-            AreaManager = new AreaManager();
-            StageManager = new StageManager();
-            PlatformManager = new PlatformManager();
-            SlopeStairsManager = new SlopeStairsManager();
-            SceneManager = new SceneManager();
-            CharacterManager = new CharacterManager(PlatformManager, SlopeStairsManager);
+            Instance = DiRepository.AddSingleton(this);
+            SlopeStairsManager = DiRepository.AddSingleton(new SlopeStairsManager());
+            AreaManager = DiRepository.AddSingleton(new AreaManager());
+            StageManager = DiRepository.AddSingleton(new StageManager());
+            PlatformManager = DiRepository.AddSingleton(new PlatformManager());
+            CharacterManager = DiRepository.AddSingleton(new CharacterManager());
+            DiRepository.Finish();
+        }
+
+        public void AutoWire(object instance) {
+            DiRepository.InjectFields(instance);
         }
 
         public override void _EnterTree() {
-            MicroBenchmarks();
+            // MicroBenchmarks();
             var runningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
             if (runningTests) RunTests();
             else RunGame();
@@ -90,14 +93,13 @@ namespace Veronenger.Game.Managers.Autoload {
 
             LoggerFactory.AddGodotPrinter();
 
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Off);
             // Tools
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
             // Managers
             LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);
-            LoggerFactory.SetTraceLevel(typeof(SceneManager), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Off);
 
             // Player and enemies
@@ -108,20 +110,18 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Off);
 
-
             LoggerFactory.Start(this);
         }
 
         private void MicroBenchmarks() {
-
             var x = Stopwatch.StartNew();
             LoggerFactory.GetLogger("x");
             int calls = 100000;
@@ -140,26 +140,15 @@ namespace Veronenger.Game.Managers.Autoload {
             ScreenManager.UpdateResolution();
         }
 
+        public void ChangeScene(string scene) {
+            // _logger.Debug($"Change scene to: {scene}");
+            Error error = GetTree().ChangeScene(scene);
+        }
+
         public void Quit() {
             LoggerFactory.Dispose();
             GetTree().Quit();
         }
 
-        /**
-         * Variables globales que se guardan. Se actualizan cada vez que el propio PlayerController se registra
-         */
-        public PlayerController PlayerController { get; private set; }
-
-        public void RegisterPlayerController(PlayerController playerController) {
-            PlayerController = playerController;
-        }
-
-        public bool IsPlayer(KinematicBody2D player) {
-            return PlayerController == player;
-        }
-
-        public void PlayerEnteredDeathZone(Area2D deathArea2D) {
-            PlayerController.DeathZone(deathArea2D);
-        }
     }
 }
