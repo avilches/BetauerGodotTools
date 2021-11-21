@@ -1,10 +1,11 @@
 using Godot;
 using Godot.Collections;
 using Tools;
-using Veronenger.Game.Managers.Autoload;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
+
+    [Singleton]
     public class AreaManager : Object /* needed to signal listen */{
 
         [Inject] public CharacterManager CharacterManager;

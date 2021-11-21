@@ -7,7 +7,7 @@
 [ext_resource path="res://Worlds/Environment/anokalisa/LegacyVania.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Scenes/Zombie.tscn" type="PackedScene" id=6]
 [ext_resource path="res://Game/Controller/Stage/StageListController.cs" type="Script" id=7]
-[ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=8]
+[ext_resource path="res://Game/Controller/Stage/WorldCompleteArea2DController.cs" type="Script" id=8]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 300, 240 )
@@ -47,7 +47,7 @@ scale = Vector2( 1, -1 )
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 115.436, 20.7512 )
 script = ExtResource( 8 )
-next_scene = "res://Worlds/World1.tscn"
+nextScene = "res://Worlds/World1.tscn"
 
 [node name="Stages" type="Node2D" parent="."]
 visible = false

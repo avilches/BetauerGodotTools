@@ -14,7 +14,7 @@
 [ext_resource path="res://Game/Controller/Animation/RotatingChildrenSpacedController.cs" type="Script" id=13]
 [ext_resource path="res://Worlds/OnEnterStart.gd" type="Script" id=14]
 [ext_resource path="res://Worlds/OnEnterStop.gd" type="Script" id=15]
-[ext_resource path="res://Scenes/WorldComplete.gd" type="Script" id=17]
+[ext_resource path="res://Game/Controller/Stage/WorldCompleteArea2DController.cs" type="Script" id=17]
 [ext_resource path="res://Game/Controller/Stage/StageListController.cs" type="Script" id=18]
 [ext_resource path="res://Game/Controller/Tools/Collored2DController.cs" type="Script" id=19]
 
@@ -430,7 +430,7 @@ color = Color( 0.054902, 0.698039, 0.141176, 1 )
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 628.212, 80.5493 )
 script = ExtResource( 17 )
-next_scene = "res://Worlds/World2.tscn"
+nextScene = "res://Worlds/World2.tscn"
 
 [node name="TileMap" type="TileMap" parent="."]
 format = 1

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Tools;
 using Tools.Bus;
@@ -6,6 +7,8 @@ using Veronenger.Game.Controller.Stage;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
+
+    [Singleton]
     public class StageManager {
         private Stage _enteredStage;
         private bool _exitedStage;
@@ -72,6 +75,7 @@ namespace Veronenger.Game.Managers {
         private void CheckChangeStage(string stageDetectorName, bool enterFirstThenExit) {
             if (_exitedStage && _enteredStage != null) {
                 var reversedFirstExitThenEnter = enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)";
+                Console.WriteLine(GodotTools.IsDisposed(_currentStage.Area2D));
                 _logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
                 ChangeStage(_enteredStage);
             }
@@ -84,6 +88,11 @@ namespace Veronenger.Game.Managers {
             _stageCameraController.ChangeStage(_currentStage.CreateAbsoluteRect2());
         }
 
+        public void ClearTransition() {
+            // _exitedStage = false;
+            // _currentStage = null;
+            // _enteredStage = null;
+        }
     }
 
     public class Stage {

@@ -6,6 +6,8 @@ using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
+
+    [Singleton]
     public class SlopeStairsManager {
         [Inject] public PlatformManager PlatformManager;
 

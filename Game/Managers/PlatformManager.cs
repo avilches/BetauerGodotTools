@@ -1,13 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using Godot;
+using Tools;
 using Tools.Bus;
 using Tools.Bus.Topics;
-using Veronenger.Game.Character;
 using static Veronenger.Game.Tools.LayerConstants;
 using static Tools.GodotTools;
 
 namespace Veronenger.Game.Managers {
+
+    [Singleton]
     public class PlatformManager {
         private const string GROUP_PLATFORMS = "platform";
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";

@@ -5,6 +5,8 @@ using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.Tools.LayerConstants;
 
 namespace Veronenger.Game.Managers {
+
+    [Singleton]
     public class CharacterManager {
         private const string GROUP_ENEMY = "enemy";
 
