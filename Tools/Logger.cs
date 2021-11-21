@@ -42,6 +42,7 @@ namespace Tools {
         private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
         private ITextWriter[] _writers = { };
         private int _frame = -1;
+        internal bool _includeTimestamp = false;
 
         private TraceLevelConfig _defaultTraceLevelConfig =
             new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
@@ -77,6 +78,11 @@ namespace Tools {
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
             SetTraceLevel(ReflectionTools.GetTypeWithoutGenerics(type), "*", traceLevel);
+            return Instance;
+        }
+
+        public static LoggerFactory IncludeTimestamp(bool includeTimestamp) {
+            Instance._includeTimestamp = includeTimestamp;
             return Instance;
         }
 
@@ -200,7 +206,6 @@ namespace Tools {
     }
 
     public class Logger {
-        public readonly string TimeFormat;
         public readonly string TraceFormat;
 
         internal TraceLevelConfig TraceLevelConfig { get; set; }
@@ -221,13 +226,11 @@ namespace Tools {
             string type,
             string name,
             TraceLevelConfig traceLevelConfig,
-            string timeFormat = "yyyy-M-dd HH:mm:ss.fff",
-            string traceFormat = "{0,23} [{1,4}] {2,5} {3} {4}") {
+            string traceFormat = "[{0,4}] {1,5} {2} {3}") {
             Type = type;
             Name = name;
             _title = _CreateLoggerString(type, name);
             TraceLevelConfig = traceLevelConfig;
-            TimeFormat = timeFormat;
             TraceFormat = traceFormat;
         }
 
@@ -283,10 +286,10 @@ namespace Tools {
             _lastLog = message;
             _lastLogTimes = 1;
             WriteLog(FastDateFormat(), level.ToString(), message);
-            // WriteLog("", level.ToString(), message);
         }
 
         private string FastDateFormat() {
+            if (!LoggerFactory.Instance._includeTimestamp) return "";
             // return ""; //DateTime.Now.ToString(TimeFormat);
             var now = DateTime.Now;
             var hour = now.Hour;
@@ -296,25 +299,20 @@ namespace Tools {
             StringBuilder date = new StringBuilder().Append(now.Year).Append("-").Append(now.Month).Append("-")
                 .Append(now.Day).Append(" ");
             date.Append(
-                hour > 9 ? hour.ToString() : " " + hour).Append(":").Append(
-                minute > 9 ? minute.ToString() : " " + minute).Append(":").Append(
-                seconds > 9 ? seconds.ToString() : " " + seconds).Append(".").Append(
+                hour > 9 ? hour.ToString() : "0" + hour).Append(":").Append(
+                minute > 9 ? minute.ToString() : "0" + minute).Append(":").Append(
+                seconds > 9 ? seconds.ToString() : "0" + seconds).Append(".").Append(
                 millis > 99
                     ? millis.ToString()
                     : "0" +
                       (millis > 9 ? millis.ToString() : "0" + millis)
             );
             ;
-            // if (!now.ToString(TimeFormat).Equals(date)) {
-            // GD.Print(now.ToString(TimeFormat));
-            // GD.Print(date);
-            // }
             return date.ToString();
         }
 
         private void WriteLog(string timestamp, string level, string message) {
-            var logLine = string.Format(TraceFormat, timestamp, Frame, level, _title, message);
-            // var logLine = TraceFormat+""+timestamp+""+Frame+""+level+""+_title+""+message;
+            var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "")+string.Format(TraceFormat, Frame, level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
                 writer.Flush();
