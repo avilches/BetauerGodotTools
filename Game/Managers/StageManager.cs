@@ -75,7 +75,6 @@ namespace Veronenger.Game.Managers {
         private void CheckChangeStage(string stageDetectorName, bool enterFirstThenExit) {
             if (_exitedStage && _enteredStage != null) {
                 var reversedFirstExitThenEnter = enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)";
-                Console.WriteLine(GodotTools.IsDisposed(_currentStage.Area2D));
                 _logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
                 ChangeStage(_enteredStage);
             }
@@ -89,24 +88,24 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ClearTransition() {
-            // _exitedStage = false;
-            // _currentStage = null;
-            // _enteredStage = null;
+            _exitedStage = false;
+            _currentStage = null;
+            _enteredStage = null;
         }
     }
 
     public class Stage {
         public readonly Area2D Area2D;
+        public readonly string Name;
 
         public Rect2 CreateAbsoluteRect2() {
             RectangleShape2D shape2D = (Area2D.GetChild(0) as CollisionShape2D)?.Shape as RectangleShape2D;
             return new Rect2(Area2D.GlobalPosition - shape2D.Extents, shape2D.Extents * 2f);
         }
 
-        public string Name => Area2D.Name;
-
         public Stage(Area2D area2D) {
             Area2D = area2D;
+            Name = area2D.Name;
         }
     }
 }
