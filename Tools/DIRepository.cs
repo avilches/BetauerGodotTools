@@ -31,7 +31,7 @@ namespace Tools {
                         false) is SingletonAttribute sa) {
                         var instance = CreateSingletonInstance(type);
                         AddSingleton(instance);
-                        Console.WriteLine("Added Singleton "+type.Name+ " (" + type.FullName+ ", Assembly: "+assembly.FullName+")");
+                        _logger.Info("Added Singleton "+type.Name+ " (" + type.FullName+ ", Assembly: "+assembly.FullName+")");
                     }
                 }
             }
@@ -68,7 +68,7 @@ namespace Tools {
                     continue;
                 var found = _singletons.TryGetValue(property.FieldType, out object instance);
                 if (!found) {
-                    Console.WriteLine("Injectable property ["+property.FieldType.Name+" "+property.Name+"] not found");
+                    _logger.Error("Injectable property ["+property.FieldType.Name+" "+property.Name+"] not found");
                     error = true;
                 }
                 property.SetValue(target, instance);
@@ -78,33 +78,37 @@ namespace Tools {
     }
 
     public class GodotDiRepository : DiRepository {
-        public static readonly GodotDiRepository Instance = new GodotDiRepository();
+        public static DiRepository DefaultRepository = new DiRepository();
+
+        public static void SetDefaultRepository(DiRepository repository) {
+            DefaultRepository = repository;
+        }
 
         private GodotDiRepository() {
         }
     }
 
     public class DiKinematicBody2D : KinematicBody2D {
-        public DiKinematicBody2D() => GodotDiRepository.Instance.AutoWire(this);
+        public DiKinematicBody2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 
     public class Di {
-        public Di() => GodotDiRepository.Instance.AutoWire(this);
+        public Di() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 
     public class DiNode : Node {
-        public DiNode() => GodotDiRepository.Instance.AutoWire(this);
+        public DiNode() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 
     public class DiNode2D : Node2D {
-        public DiNode2D() => GodotDiRepository.Instance.AutoWire(this);
+        public DiNode2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 
     public class DiCamera2D : Camera2D {
-        public DiCamera2D() => GodotDiRepository.Instance.AutoWire(this);
+        public DiCamera2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 
     public class DiArea2D : Area2D {
-        public DiArea2D() => GodotDiRepository.Instance.AutoWire(this);
+        public DiArea2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
     }
 }
