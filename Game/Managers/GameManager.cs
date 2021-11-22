@@ -28,17 +28,22 @@ namespace Veronenger.Game.Managers {
         public bool IsRunningTests = false;
 
         public override void _EnterTree() {
+            ConfigureScreen();
+        }
+
+        private void ConfigureScreen() {
+            SceneTree tree = GetTree();
+            Viewport rootViewport = GetNode<Viewport>("/root");
             if (IsRunningTests) {
-                ScreenManager = new ScreenManager(new Vector2(1200, 900), SceneTree.StretchMode.Disabled,
+                ScreenManager = new ScreenManager(tree, rootViewport, new Vector2(1200, 900), SceneTree.StretchMode.Disabled,
                     SceneTree.StretchAspect.Expand);
-                ScreenManager.Start(this, nameof(OnScreenResized));
-                ScreenManager.SetAll(false, 1, false);
+                ScreenManager.Configure(false, 1, false);
             } else {
-                ScreenManager = new ScreenManager(FULL_DIV4, SceneTree.StretchMode.Viewport,
+                ScreenManager = new ScreenManager(tree, rootViewport, FULL_DIV4, SceneTree.StretchMode.Viewport,
                     SceneTree.StretchAspect.Keep);
-                ScreenManager.Start(this, nameof(OnScreenResized));
-                ScreenManager.SetAll(false, 3, false);
+                ScreenManager.Configure(false, 3, false);
             }
+            tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, this, nameof(OnScreenResized));
         }
 
         public void OnScreenResized() {

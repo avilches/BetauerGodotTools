@@ -16,8 +16,8 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public Bootstrap() {
             ConfigureLoggerFactory();
-            GodotDiRepository.Instance.Scan(this);
-            GodotDiRepository.Instance.AutoWire(this);
+            GodotDiRepository.DefaultRepository.Scan(this);
+            GodotDiRepository.DefaultRepository.AutoWire(this);
         }
 
         public override void _EnterTree() {
@@ -38,7 +38,6 @@ namespace Veronenger.Game.Managers.Autoload {
 
             LoggerFactory.Start(this);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
-            return;
             // Tools
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
@@ -55,7 +54,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Debug);
             LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 

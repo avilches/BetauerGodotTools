@@ -16,23 +16,20 @@ namespace Veronenger.Game.Tools.Resolution {
         private readonly SceneTree.StretchAspect _stretchAspect;
         private readonly int _stretchShrink;
 
-        private SceneTree _tree;
-        private Viewport _root;
+        private readonly SceneTree _tree;
+        private readonly Viewport _rootViewport;
         private int _maxScale;
         private Logger _logger = LoggerFactory.GetLogger(typeof(ScreenManager));
 
-        public ScreenManager(Vector2 baseResolution, SceneTree.StretchMode stretchMode,
+        public ScreenManager(SceneTree sceneTree, Viewport rootViewport,
+            Vector2 baseResolution, SceneTree.StretchMode stretchMode,
             SceneTree.StretchAspect stretchAspect, int stretchShrink = 1) {
+            _tree = sceneTree;
+            _rootViewport = rootViewport;
             _baseResolution = baseResolution;
             _stretchMode = stretchMode;
             _stretchAspect = stretchAspect;
             _stretchShrink = stretchShrink;
-        }
-
-        // TODO remove this dependency
-        public void Start(GameManager gameManager, string gameManagerUpdateResolutionMethodName) {
-            _tree = gameManager.GetTree();
-            _root = gameManager.GetNode<Viewport>("/root");
 
             // Enforce minimum resolution.
             OS.MinWindowSize = _baseResolution;
@@ -42,8 +39,6 @@ namespace Veronenger.Game.Tools.Resolution {
 
             var screenSize = OS.GetScreenSize();
             _maxScale = (int)Max(Floor(Min(screenSize.x / _baseResolution.x, screenSize.y / _baseResolution.y)), 1);
-            _tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, gameManager,
-                gameManagerUpdateResolutionMethodName);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;
@@ -69,7 +64,7 @@ namespace Veronenger.Game.Tools.Resolution {
             UpdateResolution();
         }
 
-        public void SetAll(bool fs, int scale, bool borderless) {
+        public void Configure(bool fs, int scale, bool borderless) {
             if (fs) {
                 OS.WindowFullscreen = true;
             } else {
@@ -124,10 +119,10 @@ namespace Veronenger.Game.Tools.Resolution {
             Vector2 margin2) {
             switch (_stretchMode) {
                 case SceneTree.StretchMode.Viewport: {
-                    _root.Size = (screenSize / _stretchShrink).Floor();
-                    _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    _root.SizeOverrideStretch = false;
-                    _root.SetSizeOverride(false);
+                    _rootViewport.Size = (screenSize / _stretchShrink).Floor();
+                    _rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
+                    _rootViewport.SizeOverrideStretch = false;
+                    _rootViewport.SetSizeOverride(false);
                     _logger.Debug("(Viewport Mode) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
                         " Video resolution:", windowSize.x, "x", windowSize.y,
                         " Size:", (screenSize / _stretchShrink).Floor(), "(Screen size ", screenSize, "/",
@@ -136,10 +131,10 @@ namespace Veronenger.Game.Tools.Resolution {
                 }
                 case SceneTree.StretchMode.Mode2d:
                 case SceneTree.StretchMode.Disabled: {
-                    _root.Size = (viewportSize / _stretchShrink).Floor();
-                    _root.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    _root.SizeOverrideStretch = true;
-                    _root.SetSizeOverride(true, (screenSize / _stretchShrink).Floor());
+                    _rootViewport.Size = (viewportSize / _stretchShrink).Floor();
+                    _rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
+                    _rootViewport.SizeOverrideStretch = true;
+                    _rootViewport.SetSizeOverride(true, (screenSize / _stretchShrink).Floor());
                     _logger.Debug("(2D model) Base resolution:", _baseResolution.x, "x", _baseResolution.y,
                         " Video resolution:", windowSize.x, "x", windowSize.y,
                         " Size:", (viewportSize / _stretchShrink).Floor(), " (Viewport size ", viewportSize, "/",
