@@ -7,7 +7,7 @@ namespace Veronenger.Game.Controller.Stage {
     public class WorldCompleteArea2DController : DiArea2D {
         [Inject] public AreaManager AreaManager;
 
-        [Export(PropertyHint.File, "*.tscn")] private String nextScene;
+        [Export(PropertyHint.File, "*.tscn")] private string nextScene;
 
 
         public override void _EnterTree() {

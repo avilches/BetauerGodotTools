@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Tools;
 using Tools.Bus.Topics;
@@ -28,6 +29,25 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
+        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D) {
+            attackArea2D.CollisionMask = 0;
+            attackArea2D.CollisionLayer = 0;
+            attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
+            _playerAttackTopic.Subscribe("Player", attackArea2D, attackArea2D, _OnSlopeStairsEnablerEnter);
+        }
+
+        private void _OnSlopeStairsEnablerEnter(Area2DOnArea2D @event) {
+            LoggerFactory.GetLogger(GetType()).RemoveDuplicates = false;
+            LoggerFactory.GetLogger(GetType()).Debug("Collision from Origin:"+@event.Origin.GetParent().Name+"."+@event.Origin.Name+" / Detected:"+@event.Detected.GetParent().Name+"."+@event.Detected.Name);
+        }
+
+        // public void ConfigurePlayerDamageArea2D(Area2D damageArea2D) {
+            // damageArea2D.CollisionMask = 0;
+            // damageArea2D.CollisionLayer = 0;
+            // damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
+            // _playerAttackTopic.AddArea2D(attackArea2D);
+        // }
+
         public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
@@ -36,14 +56,21 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(enemy);
         }
 
-        public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
+        // public void ConfigureEnemyAttackArea2D(Area2D attackArea2D) {
+            // attackArea2D.CollisionMask = 0;
+            // attackArea2D.CollisionLayer = 0;
+            // attackArea2D.SetCollisionMaskBit(LayerPlayer, true);
+            // _playerAttackTopic.AddArea2D(attackArea2D);
+        // }
 
-        public void ConfigurePlayerAreaAttack(Area2D playerWeaponArea2D) {
-            playerWeaponArea2D.CollisionMask = 0;
-            playerWeaponArea2D.CollisionLayer = 0;
-            playerWeaponArea2D.SetCollisionMaskBit(LayerEnemy, true);
-            _playerAttackTopic.AddArea2D(playerWeaponArea2D);
+        public void ConfigureEnemyDamageArea2D(Area2D damageArea2D) {
+            damageArea2D.CollisionMask = 0;
+            damageArea2D.CollisionLayer = 0;
+            damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
+            _playerAttackTopic.AddArea2D(damageArea2D);
         }
+
+        public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
         // public bool IsPlayer(KinematicBody2D player) {
             // return PlayerController == player;

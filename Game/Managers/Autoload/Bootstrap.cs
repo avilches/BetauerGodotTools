@@ -11,6 +11,7 @@ using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
+
         [Inject]
         public GameManager GameManager;
 
@@ -54,7 +55,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 

@@ -11,6 +11,8 @@ namespace Veronenger.Game.Controller.Character {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly StateMachine _stateMachine;
+        private Area2D _attack;
+        private Area2D _damageArea;
 
         [Inject] public CharacterManager CharacterManager;
 
@@ -38,10 +40,16 @@ namespace Veronenger.Game.Controller.Character {
             var animationStack = new AnimationStack(_name, animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
             AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
+
+            _attack = GetNode<Area2D>("AttackArea");
+            _damageArea = GetNode<Area2D>("DamageArea");
         }
 
         public override void _Ready() {
             CharacterManager.ConfigureEnemyCollisions(this);
+            // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
+            CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
+
         }
 
         public override void _PhysicsProcess(float delta) {

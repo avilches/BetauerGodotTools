@@ -17,6 +17,7 @@ namespace Veronenger.Game.Controller.Character {
         private readonly Logger _loggerInput;
         private readonly StateMachine _stateMachine;
         private Area2D _attack;
+        private Area2D _damageArea;
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
@@ -64,6 +65,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
 
             _attack = GetNode<Area2D>("AttackArea");
+            _damageArea = GetNode<Area2D>("DamageArea");
         }
 
         /**
@@ -78,7 +80,8 @@ namespace Veronenger.Game.Controller.Character {
         public override void _Ready() {
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
-            CharacterManager.ConfigurePlayerAreaAttack(_attack);
+            CharacterManager.ConfigurePlayerAttackArea2D(_attack);
+            // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
             _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
             _slopeStairsDown = SlopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);

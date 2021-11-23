@@ -1,6 +1,6 @@
 [gd_scene format=2]
 
-[node name="EnemyNode2" type="Node2D"]
+[node name="EnemyNode" type="Node2D"]
 
 [node name="Label" type="Label" parent="."]
 margin_top = -40.0
@@ -34,5 +34,9 @@ __meta__ = {
 }
 
 [node name="AttackArea" type="Area2D" parent="EnemyBody"]
+collision_layer = 0
+collision_mask = 0
+
+[node name="DamageArea" type="Area2D" parent="EnemyBody"]
 collision_layer = 0
 collision_mask = 0
