@@ -206,26 +206,19 @@ namespace Tools {
     }
 
     public class Logger {
+        public TraceLevel MaxTraceLevel => TraceLevelConfig.TraceLevel;
+        public bool Enabled { get; set; } = true;
+        public bool RemoveDuplicates { get; set; } = true;
+        public readonly string Type;
+        public readonly string Name;
         public readonly string TraceFormat;
 
         internal TraceLevelConfig TraceLevelConfig { get; set; }
-        public TraceLevel MaxTraceLevel => TraceLevelConfig.TraceLevel;
-        public bool Enabled { get; set; } = true;
-
-        public readonly string Type;
-        public readonly string Name;
         private readonly string _title;
+        private string _lastLog = "";
+        private int _lastLogTimes = 0;
 
-        public static int Frame => LoggerFactory.Frame;
-        // public static float Delta => LoggerFactory.Delta;
-
-        private String _lastLog;
-        private int _lastLogTimes;
-
-        internal Logger(
-            string type,
-            string name,
-            TraceLevelConfig traceLevelConfig,
+        internal Logger(string type, string name, TraceLevelConfig traceLevelConfig,
             string traceFormat = "[{0,4}] {1,5} {2} {3}") {
             Type = type;
             Name = name;
@@ -274,7 +267,7 @@ namespace Tools {
 
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
-            if (_lastLog != null && _lastLog.Equals(message)) {
+            if (RemoveDuplicates && _lastLog.Equals(message)) {
                 _lastLogTimes++;
                 return;
             }
@@ -312,7 +305,8 @@ namespace Tools {
         }
 
         private void WriteLog(string timestamp, string level, string message) {
-            var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "")+string.Format(TraceFormat, Frame, level, _title, message);
+            var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "") +
+                          string.Format(TraceFormat, LoggerFactory.Frame, level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
                 writer.Flush();
