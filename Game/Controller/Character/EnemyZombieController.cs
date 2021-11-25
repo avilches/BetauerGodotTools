@@ -12,6 +12,7 @@ namespace Veronenger.Game.Controller.Character {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly StateMachine _stateMachine;
+        private Sprite _mainSprite;
         private Area2D _attackArea;
         private Area2D _damageArea;
         protected Label Label { get; private set; }
@@ -47,16 +48,13 @@ namespace Veronenger.Game.Controller.Character {
             AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
             AnimationDie = animationStack.AddOnceAnimationAndGetStatus(new AnimationDie());
 
+            _mainSprite = GetNode<Sprite>("Sprite");
             _attackArea = GetNode<Area2D>("AttackArea");
             _damageArea = GetNode<Area2D>("DamageArea");
             _position2D = GetNode<Position2D>("Position2D");
-
             Label = GetParent().GetNode<Label>("Label");
-            var mainSprite = GetNode<Sprite>("Sprite");
-            var spriteFlipper = new SpriteFlipper(mainSprite);
-            var attackAreaFlipper = new Node2DFlipper(_attackArea);
-            _flippers = new FlipperList(spriteFlipper, attackAreaFlipper);
 
+            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);
             MotionBody.EnterTree();
 

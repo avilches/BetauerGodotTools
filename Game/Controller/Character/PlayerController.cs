@@ -15,9 +15,9 @@ namespace Veronenger.Game.Controller.Character {
         private readonly Logger _logger;
         private readonly Logger _loggerInput;
         private readonly StateMachine _stateMachine;
+        private Sprite _mainSprite;
         private Area2D _attackArea;
         private Area2D _damageArea;
-        public Area2D _playerDetector;
         protected Label Label { get; private set; }
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
@@ -30,6 +30,8 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] public SlopeStairsManager SlopeStairsManager;
 
         public MotionBody MotionBody;
+        public IFlipper _flippers;
+        public Area2D _playerDetector;
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
@@ -62,15 +64,15 @@ namespace Veronenger.Game.Controller.Character {
             AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
             AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
             AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
+
+            _mainSprite = GetNode<Sprite>("Sprite");
             _attackArea = GetNode<Area2D>("AttackArea");
             _damageArea = GetNode<Area2D>("DamageArea");
             _playerDetector = GetNode<Area2D>("Detector");
             Label = GetParent().GetNode<Label>("Label");
 
-            var mainSprite = GetNode<Sprite>("Sprite");
-            var spriteFlipper = new SpriteFlipper(mainSprite);
-            var attackAreaFlipper = new Node2DFlipper(_attackArea);
-            MotionBody = new MotionBody(this, new FlipperList(spriteFlipper, attackAreaFlipper), _name, PlayerConfig.MotionConfig);
+            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+            MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
             MotionBody.EnterTree();
 
         }
