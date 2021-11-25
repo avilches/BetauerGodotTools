@@ -40,10 +40,20 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public void ConfigureJump(float jumpHeight, float maxJumpTime) {
-            Gravity = (2 * jumpHeight) / Mathf.Pow(maxJumpTime, 2);
-            JumpForce = Gravity * maxJumpTime;
-            JumpForceMin = JumpForce / 2;
+        public static JumpConfig ConfigureJump(float jumpHeight, float maxJumpTime) {
+            float gravity = (2 * jumpHeight) / Mathf.Pow(maxJumpTime, 2);
+            float jumpForce = gravity * maxJumpTime;
+            return new JumpConfig(gravity, jumpForce);
+        }
+
+        public struct JumpConfig {
+            public readonly float Gravity;
+            public readonly float JumpForce;
+
+            public JumpConfig(float gravity, float jumpForce) {
+                Gravity = gravity;
+                JumpForce = jumpForce;
+            }
         }
     }
 }

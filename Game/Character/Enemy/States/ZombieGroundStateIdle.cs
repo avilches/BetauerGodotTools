@@ -13,19 +13,17 @@ namespace Veronenger.Game.Character.Enemy.States {
 
         public override NextState Execute(Context context) {
             if (!EnemyZombie.IsOnFloor()) {
-                BOdy.ApplyGravity();
-                BOdy.LimitMotion();
-                BOdy.Slide();
+                Body.Fall();
                 return context.Current();
             }
 
-            if (!BOdy.IsOnMovingPlatform()) {
+            if (!Body.IsOnMovingPlatform()) {
                 // No gravity in moving platforms
                 // Gravity in slopes to avoid go down slowly
-                BOdy.ApplyGravity();
+                Body.ApplyGravity();
             }
 
-            BOdy.MoveSnapping();
+            Body.MoveSnapping();
             return context.ImmediateIfElapsed(2, typeof(GroundStatePatrolStep));
         }
     }

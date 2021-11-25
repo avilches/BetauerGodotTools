@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Tools;
 using Tools.Bus.Topics;
@@ -16,8 +15,10 @@ namespace Veronenger.Game.Controller.Character {
         private readonly Logger _logger;
         private readonly Logger _loggerInput;
         private readonly StateMachine _stateMachine;
-        private Area2D _attack;
+        private Area2D _attackArea;
         private Area2D _damageArea;
+        public Area2D _playerDetector;
+        protected Label Label { get; private set; }
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
@@ -43,7 +44,6 @@ namespace Veronenger.Game.Controller.Character {
                 .AddState(new AirStateFallLong(this))
                 .AddState(new AirStateJump(this))
                 .SetNextState(typeof(GroundStateIdle));
-            MotionBody = new MotionBody(this, _name, PlayerConfig.MotionConfig);
         }
 
         public LoopAnimationStatus AnimationIdle { get; private set; }
@@ -54,7 +54,6 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimationStatus AnimationJumpAttack { get; private set; }
 
         public override void _EnterTree() {
-            MotionBody.EnterTree();
             var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
             var animationStack = new AnimationStack(_name, animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
@@ -63,9 +62,17 @@ namespace Veronenger.Game.Controller.Character {
             AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
             AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
             AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
-
-            _attack = GetNode<Area2D>("AttackArea");
+            _attackArea = GetNode<Area2D>("AttackArea");
             _damageArea = GetNode<Area2D>("DamageArea");
+            _playerDetector = GetNode<Area2D>("Detector");
+            Label = GetParent().GetNode<Label>("Label");
+
+            var mainSprite = GetNode<Sprite>("Sprite");
+            var spriteFlipper = new SpriteFlipper(mainSprite);
+            var attackAreaFlipper = new Node2DFlipper(_attackArea);
+            MotionBody = new MotionBody(this, new FlipperList(spriteFlipper, attackAreaFlipper), _name, PlayerConfig.MotionConfig);
+            MotionBody.EnterTree();
+
         }
 
         /**
@@ -80,7 +87,7 @@ namespace Veronenger.Game.Controller.Character {
         public override void _Ready() {
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
-            CharacterManager.ConfigurePlayerAttackArea2D(_attack);
+            CharacterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
             _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
@@ -93,6 +100,15 @@ namespace Veronenger.Game.Controller.Character {
 
             PlatformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
+        }
+
+        private void _OnPlayerAttackedEnemy(Area2DOnArea2D @event) {
+            // LoggerFactory.GetLogger(GetType()).RemoveDuplicates = false;
+            // LoggerFactory.GetLogger(GetType()).Debug("Collision from Origin:"+originParent.Name+"."+originParent.Name+" / Detected:"+@event.Detected.GetParent().Name+"."+@event.Detected.Name);
+            var originParent = @event.Origin.GetParent();
+            if (originParent is EnemyZombieController zombieController) {
+                zombieController.AttackedByPlayer(this);
+            }
         }
 
         public void EnableSlopeStairs() {
@@ -112,7 +128,10 @@ namespace Veronenger.Game.Controller.Character {
 
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
+
         public override void _PhysicsProcess(float Delta) {
+            // Update();
+            // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
             MotionBody.StartFrame(Delta);
             FallingJumpTimer.Update(Delta);
             FallingTimer.Update(Delta);
@@ -166,6 +185,10 @@ namespace Veronenger.Game.Controller.Character {
             }
         }
 
+        public override void _Draw() {
+            // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);
+            // DrawLine(_playerDetector.Position, GetLocalMousePosition(), Colors.Blue, 3F);
+        }
         public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 
         public void DeathZone(Area2D deathArea2D) {

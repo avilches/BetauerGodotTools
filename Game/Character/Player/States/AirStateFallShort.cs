@@ -29,9 +29,7 @@ namespace Veronenger.Game.Character.Player.States {
                 MotionConfig.StopIfSpeedIsLessThan, 0);
             Body.Flip(XInput);
 
-            Body.ApplyGravity();
-            Body.LimitMotion();
-            Body.Slide();
+            Body.Fall();
 
             return CheckLanding(context);
         }

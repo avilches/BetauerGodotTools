@@ -14,9 +14,11 @@ namespace Veronenger.Game.Character.Player {
             MotionConfig.Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
 
             // CONFIG: air
-            const float _jumpHeight = 80f; // jump max pixels
-            const float _maxJumpTime = 0.5f; // jump max time
-            MotionConfig.ConfigureJump(_jumpHeight, _maxJumpTime);
+            const float jumpHeight = 80f; // jump max pixels
+            const float maxJumpTime = 0.5f; // jump max time
+            var jump = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
+            MotionConfig.Gravity = jump.Gravity;
+            MotionConfig.JumpForce = jump.JumpForce;
             MotionConfig.JumpForceMin = MotionConfig.JumpForce / 2;
 
             MotionConfig.MaxFallingSpeed = 2000; // max speed in free fall

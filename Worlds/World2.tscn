@@ -17,11 +17,13 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="EnemyNode" parent="." instance=ExtResource( 6 )]
-position = Vector2( -55.4676, 139.89 )
-
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( -12.3771, 140.991 )
+position = Vector2( -22.026, 138.248 )
+
+[node name="WorldComplete" parent="." instance=ExtResource( 3 )]
+position = Vector2( 115.436, 20.7512 )
+script = ExtResource( 8 )
+nextScene = "res://Worlds/World1.tscn"
 
 [node name="MockTileMapBack" parent="." instance=ExtResource( 4 )]
 modulate = Color( 0.47451, 0.47451, 0.47451, 1 )
@@ -48,10 +50,6 @@ scale = Vector2( 1, -1 )
 position = Vector2( 432, 1056 )
 rotation = -3.14159
 scale = Vector2( 1, -1 )
-
-[node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 115.436, 20.7512 )
-script = ExtResource( 8 )
 
 [node name="Stages" type="Node2D" parent="."]
 visible = false
@@ -209,3 +207,9 @@ __meta__ = {
 "_edit_group_": true,
 "_edit_lock_": true
 }
+
+[node name="ZombieNode" parent="." instance=ExtResource( 6 )]
+position = Vector2( 72.4047, 141.997 )
+
+[node name="ZombieNode2" parent="." instance=ExtResource( 6 )]
+position = Vector2( 118.331, 141.06 )

@@ -4,9 +4,8 @@
 
 [node name="Label" type="Label" parent="."]
 margin_top = -40.0
-margin_right = 400.0
-margin_bottom = 60.0
-rect_scale = Vector2( 0.5, 0.5 )
+margin_right = 735.0
+margin_bottom = 314.0
 autowrap = true
 __meta__ = {
 "_edit_use_anchors_": false
@@ -40,3 +39,5 @@ collision_mask = 0
 [node name="DamageArea" type="Area2D" parent="EnemyBody"]
 collision_layer = 0
 collision_mask = 0
+
+[node name="Position2D" type="Position2D" parent="EnemyBody"]

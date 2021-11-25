@@ -14,6 +14,30 @@ namespace Veronenger.Game.Character {
         public bool IsFacingRight { get; }
     }
 
+    public class FlipperList : IFlipper {
+        private IFlipper _main;
+        private IFlipper[] _flippers = Array.Empty<IFlipper>();
+
+        public FlipperList(params IFlipper[] flippers) {
+            _main = flippers[0];
+            if (flippers.Length <= 1) return;
+            _flippers = new IFlipper[flippers.Length - 1];
+            Array.Copy(flippers, 1, _flippers, 0, flippers.Length - 1);
+        }
+
+        public bool Flip() {
+            Array.ForEach(_flippers, flipper => flipper.Flip());
+            return _main.Flip();
+        }
+
+        public bool Flip(float xInput) {
+            Array.ForEach(_flippers, flipper => flipper.Flip(xInput));
+            return _main.Flip(xInput);
+        }
+
+        public bool IsFacingRight => _main.IsFacingRight;
+    }
+
     public abstract class Flipper<T> : IFlipper {
         protected T Node2D { get; }
         private bool _isFacingRight = false;
@@ -60,7 +84,6 @@ namespace Veronenger.Game.Character {
         public override void ChangeFacingRight(bool right) {
             Node2D.FlipH = !right;
         }
-
     }
 
     public class Node2DFlipper : Flipper<Node2D> {
@@ -74,7 +97,7 @@ namespace Veronenger.Game.Character {
         public override void ChangeFacingRight(bool right) {
             if (right) {
                 // Return to normal position
-                Node2D.Scale = Vector2.One;  // 1,1
+                Node2D.Scale = Vector2.One; // 1,1
                 Node2D.Rotation = 0;
             } else {
                 // Flip to the left: scale y -1 and rotate 180 degrees
@@ -82,49 +105,50 @@ namespace Veronenger.Game.Character {
                 Node2D.Rotate(Mathf.Pi);
             }
         }
-
     }
 
-    public class MotionBody : Di {
+    public class MotionBody : Di, IFlipper {
         private Logger _loggerMotion;
         private Logger _loggerCollision;
         private Vector2 _lastMotion = Vector2.Zero;
-
-        protected Sprite MainSprite { get; private set; }
-        protected Label Label { get; private set; }
-        protected Node2D Parent { get; private set; }
-        protected IFlipper _spriteFlipper;
-
-        public Vector2 Motion = Vector2.Zero;
-        [Inject] public PlatformManager PlatformManager;
-        [Inject] public SlopeStairsManager SlopeStairsManager;
+        private IFlipper _flippers;
 
         public float Delta { get; private set; } = 0;
+        public RayCast2D FloorDetector { get; private set; }
+
+        public Vector2 Motion = Vector2.Zero;
+
+        [Inject] public PlatformManager PlatformManager;
+        [Inject] public SlopeStairsManager SlopeStairsManager;
 
         private readonly KinematicBody2D _body;
         private readonly string _name;
         private readonly MotionConfig _motionConfig;
 
-        public MotionBody(KinematicBody2D body, string name, MotionConfig motionConfig) {
+        public MotionBody(KinematicBody2D body, IFlipper flippers, string name, MotionConfig motionConfig) {
             _body = body;
             _name = name;
-            _loggerCollision = LoggerFactory.GetLogger(_name,"Collision");
-            _loggerMotion = LoggerFactory.GetLogger(_name,"Motion");
+            _flippers = flippers;
             _motionConfig = motionConfig;
+            _loggerCollision = LoggerFactory.GetLogger(_name, "Collision");
+            _loggerMotion = LoggerFactory.GetLogger(_name, "Motion");
         }
 
         public void EnterTree() {
-            MainSprite = _body.GetNode<Sprite>("Sprite");
-            Parent = _body.GetParent<Node2D>();
-            Label = Parent.GetNode<Label>("Label");
-            _spriteFlipper = new Node2DFlipper(_body);
+            FloorDetector = _body.GetNode("RayCasts").GetNode<RayCast2D>("SlopeDetector");
+            // Label = _body.GetNode<Label>("Label");
         }
 
-        public bool IsFacingRight => _spriteFlipper.IsFacingRight;
-        public void Flip() => _spriteFlipper.Flip();
-        public void Flip(float xInput) => _spriteFlipper.Flip(xInput);
+        public bool IsFacingRight => _flippers.IsFacingRight;
+        public bool Flip() => _flippers.Flip();
+        public bool Flip(float xInput) => _flippers.Flip(xInput);
+
         public void SetMotionX(float x) => Motion.x = x;
+        public void AddMotionX(float x) => Motion += new Vector2(x, 0);
+
         public void SetMotionY(float y) => Motion.y = y;
+        public void AddMotionY(float y) => Motion += new Vector2(0, y);
+
         public void ApplyGravity(float factor = 1.0F) => Motion.y += _motionConfig.Gravity * factor * Delta;
 
         public void StartFrame(float delta) {
@@ -162,10 +186,18 @@ namespace Veronenger.Game.Character {
         }
 
         public void LimitMotion(float maxSpeedFactor = 1.0F) {
-            var realMaxSpeed = _motionConfig.MaxSpeed * maxSpeedFactor;
-            Motion.x = Mathf.Clamp(Motion.x, -realMaxSpeed, realMaxSpeed);
+            LimitLateralMotion(maxSpeedFactor);
+            LimitVerticalMotion();
+        }
+
+        public void LimitVerticalMotion(float maxSpeedFactor = 1.0F) {
             Motion.y = Mathf.Min(Motion.y,
                 _motionConfig.MaxFallingSpeed); //  avoid gravity continue forever in free fall
+        }
+
+        public void LimitLateralMotion(float maxSpeedFactor = 1.0F) {
+            var realMaxSpeed = _motionConfig.MaxSpeed * maxSpeedFactor;
+            Motion.x = Mathf.Clamp(Motion.x, -realMaxSpeed, realMaxSpeed);
         }
 
         public void MoveSnapping() => MoveSnapping(Vector2.One);
@@ -234,18 +266,6 @@ namespace Veronenger.Game.Character {
 
         public bool IsOnSlopeStairs() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._isOnSlopeStairs;
         public Vector2 GetColliderNormal() => (_dirtyGroundCollisions ? UpdateFloorCollisions() : this)._colliderNormal;
-
-        private RayCast2D _floorDetector;
-
-        public RayCast2D FloorDetector {
-            get {
-                if (_floorDetector == null) {
-                    _floorDetector = _body.GetNode("RayCasts").GetNode<RayCast2D>("SlopeDetector");
-                }
-
-                return _floorDetector;
-            }
-        }
 
         private void ResetCollisionFlags() {
             _dirtyGroundCollisions = false;
@@ -349,7 +369,7 @@ namespace Veronenger.Game.Character {
             if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
                 __isOnSlopeStairs = true;
             }
-            _body. Update(); // this allow to call to _draw() with the colliderNormal updated
+            _body.Update(); // this allow to call to _draw() with the colliderNormal updated
             return true;
         }
 
@@ -391,8 +411,10 @@ namespace Veronenger.Game.Character {
 
         public bool HasFloorLateralMovement() => _body.GetFloorVelocity().x != 0;
 
-        // public override void _Draw() {
-        // DrawLine(slopeDetector.Position, slopeDetector.Position + slopeDetector.CastTo, Colors.Red, 3F);
-        // }
+        public void Fall() {
+            ApplyGravity();
+            LimitMotion();
+            Slide();
+        }
     }
 }

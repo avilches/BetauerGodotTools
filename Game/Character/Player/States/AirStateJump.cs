@@ -23,9 +23,7 @@ namespace Veronenger.Game.Character.Player.States {
             Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
                 MotionConfig.StopIfSpeedIsLessThan, 0);
             Body.Flip(XInput);
-            Body.ApplyGravity();
-            Body.LimitMotion();
-            Body.Slide();
+            Body.Fall();
 
             if (Motion.y >= 0) {
                 return context.Immediate(typeof(AirStateFallShort));

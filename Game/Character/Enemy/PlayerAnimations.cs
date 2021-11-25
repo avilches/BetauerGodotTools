@@ -17,6 +17,11 @@ namespace Veronenger.Game.Character.Enemy {
         public override string Name => "Run";
     }
 
+    public class AnimationDie : OnceAnimation {
+        public override string Name => "Die";
+        public override bool CanBeInterrupted => false;
+    }
+
     public class AnimationZombieStep : OnceAnimation {
         public override string Name => "Step";
         public override bool CanBeInterrupted => false;

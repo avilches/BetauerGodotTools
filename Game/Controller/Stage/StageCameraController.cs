@@ -19,7 +19,7 @@ namespace Veronenger.Game.Controller.Stage {
 
 
         public override void _EnterTree() {
-            var stageDetector = GetNode<Area2D>("../StageDetector");
+            var stageDetector = GetNode<Area2D>("../Detector");
             if (stageDetector == null) {
                 throw new Exception("Missing parent node Area2D 'StageDetector'");
             }
