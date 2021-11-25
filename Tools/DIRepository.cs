@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Godot;
 
 namespace Tools {
@@ -63,7 +64,9 @@ namespace Tools {
 
         private bool InjectFields(object target) {
             bool error = false;
-            foreach (var property in target.GetType().GetFields()) {
+            var publicFields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var privateFields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var property in privateFields.Concat(publicFields)) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
                 var found = _singletons.TryGetValue(property.FieldType, out object instance);
