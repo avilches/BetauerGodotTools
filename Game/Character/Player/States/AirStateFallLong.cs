@@ -7,7 +7,7 @@ namespace Veronenger.Game.Character.Player.States {
         public AirStateFallLong(PlayerController player) : base(player) {
         }
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             if (Player.FallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
                 DebugCoyoteJump(
                     $"Coyote jump will never happen in FallLong state: {Player.FallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime}");

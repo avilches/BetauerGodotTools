@@ -13,7 +13,7 @@ namespace Veronenger.Game.Character.Enemy.States {
 
         private Timer _patrolTimer = new Timer().Start();
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             if (context.FromState is GroundStatePatrolWait) {
                 // State come from the wait, do nothing...
             } else {

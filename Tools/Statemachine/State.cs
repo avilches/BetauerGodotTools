@@ -11,7 +11,7 @@ namespace Tools.Statemachine {
         public virtual void _UnhandledInput(InputEvent @event) {
         }
 
-        public virtual void Start(Context context, StateConfig config) {
+        public virtual void Start(Context context) {
         }
 
         public virtual void End() {
@@ -33,7 +33,7 @@ namespace Tools.Statemachine {
     public static class StateHelper {
         public static bool HasStartImplemented(State state) {
             var startMethod = ReflectionTools.FindMethod(state, "Start", typeof(void),
-                new Type[] { typeof(Context), typeof(StateConfig) });
+                new Type[] { typeof(Context) });
             return startMethod != null;
         }
 

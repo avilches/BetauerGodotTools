@@ -7,7 +7,7 @@ namespace Veronenger.Game.Character.Enemy.States {
         public GroundStateIdle(EnemyZombieController enemyZombie) : base(enemyZombie) {
         }
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             EnemyZombie.AnimationIdle.PlayLoop();
         }
 

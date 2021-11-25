@@ -9,7 +9,7 @@ namespace Veronenger.Game.Character.Player.States {
         public GroundStateIdle(PlayerController player) : base(player) {
         }
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             Player.AnimationIdle.PlayLoop();
         }
 

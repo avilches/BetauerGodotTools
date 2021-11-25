@@ -6,17 +6,19 @@ using Godot;
 namespace Tools.Statemachine {
     public class Context {
         public readonly State CurrentState;
+        public readonly StateConfig Config;
         public readonly StateMachine StateMachine;
         public readonly Timer StateTimer;
         public readonly State FromState;
         public int FrameCount { get; private set; }
         public float Delta { get; private set; }
 
-        public Context(StateMachine stateMachine, State currentState, State fromState) {
+        public Context(StateMachine stateMachine, State currentState, State fromState, StateConfig config) {
             StateMachine = stateMachine;
             CurrentState = currentState;
             FromState = fromState;
             StateTimer = new Timer().Start();
+            Config = config;
             FrameCount = 0;
             Delta = 0.16f;
         }
@@ -142,18 +144,18 @@ namespace Tools.Statemachine {
             if (CurrentContext?.CurrentState == nextState.State) return;
             // Change the current state
             Logger.Debug($"New State: \"{nextState.State.Name}\"");
+            immediateChanges.Add(nextState.State.Name);
+            CheckImmediateChanges(initialState, immediateChanges);
             var fromState =
                 CurrentContext?.CurrentState ??
                 nextState.State; // To avoid NPE in states, the first execution will use the current state as the from state
-            CurrentContext = new Context(this, nextState.State, fromState);
-            immediateChanges.Add(nextState.State.Name);
-            CheckImmediateChanges(initialState, immediateChanges);
+            CurrentContext = new Context(this, nextState.State, fromState, nextState.Config ?? _emptyConfig);
 
             // Start the new state
             CurrentContext.StateTimer.Reset().Start();
             if (StateHelper.HasStartImplemented(CurrentContext.CurrentState)) {
                 Logger.Debug($"Start: \"{nextState.State.Name}\"");
-                nextState.State.Start(CurrentContext, nextState.Config ?? _emptyConfig);
+                nextState.State.Start(CurrentContext);
             }
         }
 

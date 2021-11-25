@@ -3,15 +3,17 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateFallShort : AirState {
+        public static string COYOTE_JUMP_ENABLED_KEY = "CoyoteJumpEnabled";
+
         public AirStateFallShort(PlayerController player) : base(player) {
         }
 
         private bool CoyoteJumpEnabled = false;
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             // Only if the state comes from running -> fall, the Coyote jump is enabled
             // Other cases (state comes from idle or jump), the coyote is not enabled
-            CoyoteJumpEnabled = config.HasFlag("CoyoteJumpEnabled");
+            CoyoteJumpEnabled = context.Config.HasFlag(COYOTE_JUMP_ENABLED_KEY);
             Player.FallingTimer.Reset().Start();
         }
 

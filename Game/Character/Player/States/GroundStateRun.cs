@@ -3,12 +3,13 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateRun : GroundState {
-        private readonly StateConfig COYOTE_JUMP_ENABLED = new StateConfig().AddFlag("CoyoteJumpEnabled");
+        private static readonly StateConfig ConfigWithCoyoteJumpEnabled =
+            new StateConfig().AddFlag(AirStateFallShort.COYOTE_JUMP_ENABLED_KEY);
 
         public GroundStateRun(PlayerController player) : base(player) {
         }
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             Player.AnimationRun.PlayLoop();
         }
 
@@ -16,7 +17,7 @@ namespace Veronenger.Game.Character.Player.States {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                return context.Immediate(typeof(AirStateFallShort), COYOTE_JUMP_ENABLED);
+                return context.Immediate(typeof(AirStateFallShort), ConfigWithCoyoteJumpEnabled);
             }
 
             if (XInput == 0 && Motion.x == 0) {

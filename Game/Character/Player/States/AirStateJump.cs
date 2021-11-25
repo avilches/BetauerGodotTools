@@ -6,7 +6,7 @@ namespace Veronenger.Game.Character.Player.States {
         public AirStateJump(PlayerController player) : base(player) {
         }
 
-        public override void Start(Context context, StateConfig config) {
+        public override void Start(Context context) {
             Body.SetMotionY(-MotionConfig.JumpForce);
             DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
             Player.AnimationJump.PlayLoop();
