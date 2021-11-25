@@ -1,5 +1,4 @@
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class GroundState : PlayerState {

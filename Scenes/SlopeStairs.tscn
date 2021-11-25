@@ -143,10 +143,10 @@ extents = Vector2( 4, 4 )
 extents = Vector2( 4, 4 )
 
 [sub_resource type="RectangleShape2D" id=5]
-extents = Vector2( 8, 40 )
+extents = Vector2( 1, 40 )
 
 [sub_resource type="RectangleShape2D" id=6]
-extents = Vector2( 8, 40 )
+extents = Vector2( 1, 40 )
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource( 10 )
@@ -235,6 +235,7 @@ collision_mask = 0
 [node name="Up" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
 position = Vector2( -24, -8 )
 shape = SubResource( 5 )
+disabled = true
 script = ExtResource( 4 )
 enabled_game = false
 color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )
@@ -242,6 +243,7 @@ color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )
 [node name="Down" type="CollisionShape2D" parent="EnablerAndDisabler/Enabler"]
 position = Vector2( 136, 136 )
 shape = SubResource( 5 )
+disabled = true
 script = ExtResource( 4 )
 enabled_game = false
 color = Color( 0.0588235, 0.85098, 0.164706, 0.670588 )

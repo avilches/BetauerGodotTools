@@ -6,35 +6,83 @@ using Veronenger.Game.Managers;
 using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Character {
-    public class SpriteFlipper {
-        private Sprite Sprite { get; }
+    public interface IFlipper {
+        public bool Flip();
+
+        public bool Flip(float xInput);
+
+        public bool IsFacingRight { get; }
+    }
+
+    public abstract class Flipper<T> : IFlipper {
+        protected T Node2D { get; }
         private bool _isFacingRight = false;
 
-        public SpriteFlipper(Sprite sprite) {
-            Sprite = sprite;
-            _isFacingRight = !Sprite.FlipH; // FlipH is true when looks left
+        public Flipper(T node2D) {
+            Node2D = node2D;
+            _isFacingRight = LoadIsFacingRight();
         }
 
-        public void Flip() {
-            IsFacingRight = !IsFacingRight;
+        public abstract bool LoadIsFacingRight();
+        public abstract void ChangeFacingRight(bool right);
+
+        public bool Flip() {
+            IsFacingRight = !_isFacingRight;
+            return _isFacingRight;
         }
 
-        public void Flip(float xInput) {
-            if (xInput == 0) return;
-            bool shouldFaceRight = xInput > 0;
-            IsFacingRight = shouldFaceRight;
+        public bool Flip(float xInput) {
+            if (xInput != 0) {
+                bool shouldFaceRight = xInput > 0;
+                IsFacingRight = shouldFaceRight;
+            }
+            return _isFacingRight;
         }
 
         public bool IsFacingRight {
             get => _isFacingRight;
             set {
-                if (value != _isFacingRight) {
-                    _isFacingRight = value;
-                    // TODO: use scale instead of flip the sprite, so collider areas will flip together
-                    Sprite.FlipH = !_isFacingRight;
-                }
+                if (value == _isFacingRight) return;
+                _isFacingRight = value;
+                ChangeFacingRight(_isFacingRight);
             }
         }
+    }
+
+    public class SpriteFlipper : Flipper<Sprite> {
+        public SpriteFlipper(Sprite node2D) : base(node2D) {
+        }
+
+        public override bool LoadIsFacingRight() {
+            return !Node2D.FlipH;
+        }
+
+        public override void ChangeFacingRight(bool right) {
+            Node2D.FlipH = !right;
+        }
+
+    }
+
+    public class Node2DFlipper : Flipper<Node2D> {
+        public Node2DFlipper(Node2D node2D) : base(node2D) {
+        }
+
+        public override bool LoadIsFacingRight() {
+            return (int)Node2D.Scale.y == 1 && (Node2D.Transform.Rotation == 0);
+        }
+
+        public override void ChangeFacingRight(bool right) {
+            if (right) {
+                // Return to normal position
+                Node2D.Scale = Vector2.One;  // 1,1
+                Node2D.Rotation = 0;
+            } else {
+                // Flip to the left: scale y -1 and rotate 180 degrees
+                Node2D.Scale = new Vector2(1, -1);
+                Node2D.Rotate(Mathf.Pi);
+            }
+        }
+
     }
 
     public class MotionBody : Di {
@@ -45,7 +93,7 @@ namespace Veronenger.Game.Character {
         protected Sprite MainSprite { get; private set; }
         protected Label Label { get; private set; }
         protected Node2D Parent { get; private set; }
-        protected SpriteFlipper _spriteFlipper;
+        protected IFlipper _spriteFlipper;
 
         public Vector2 Motion = Vector2.Zero;
         [Inject] public PlatformManager PlatformManager;
@@ -69,7 +117,7 @@ namespace Veronenger.Game.Character {
             MainSprite = _body.GetNode<Sprite>("Sprite");
             Parent = _body.GetParent<Node2D>();
             Label = Parent.GetNode<Label>("Label");
-            _spriteFlipper = new SpriteFlipper(MainSprite);
+            _spriteFlipper = new Node2DFlipper(_body);
         }
 
         public bool IsFacingRight => _spriteFlipper.IsFacingRight;
