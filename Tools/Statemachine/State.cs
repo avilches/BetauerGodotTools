@@ -4,7 +4,9 @@ using Godot;
 
 namespace Tools.Statemachine {
     public abstract class State : Di {
-        public abstract NextState Execute(Context context);
+        public virtual NextState Execute(Context context) {
+            return context.Current();
+        }
 
         public virtual void _UnhandledInput(InputEvent @event) {
         }

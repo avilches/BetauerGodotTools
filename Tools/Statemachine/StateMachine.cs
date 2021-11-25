@@ -81,6 +81,7 @@ namespace Tools.Statemachine {
         private const int MaxChanges = 2;
         public readonly Logger Logger;
         public readonly string Name;
+        private bool _disposed = false;
 
         internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
 
@@ -100,12 +101,14 @@ namespace Tools.Statemachine {
             return this;
         }
 
-        public StateMachine SetNextState(Type nextState, bool immediate = false) {
-            NextState = new NextState(this, nextState, immediate);
+        public StateMachine SetNextState(Type nextState, StateConfig config = null) {
+            if (_disposed) return this;
+            NextState = new NextState(this, nextState, true, config);
             return this;
         }
 
         public void Execute(float delta) {
+            if (_disposed) return;
             if (NextState.State == null)
                 throw new Exception(
                     "Please, initialize the state machine with the next state, even if the next state is the same as the current one");
@@ -113,6 +116,7 @@ namespace Tools.Statemachine {
         }
 
         private void _Execute(float delta, State initialState, NextState nextState, List<string> immediateChanges) {
+            if (_disposed) return;
             _EndPreviousStateIfNeeded(nextState);
             _StartNextStateIfNeeded(initialState, nextState, immediateChanges);
             // Execute the state
@@ -125,6 +129,7 @@ namespace Tools.Statemachine {
         }
 
         private void _EndPreviousStateIfNeeded(NextState nextState) {
+            if (_disposed) return;
             if (CurrentContext == null || CurrentContext.CurrentState == nextState.State) return;
             if (!StateHelper.HasEndImplemented(CurrentContext.CurrentState)) return;
             // End the current state
@@ -133,6 +138,7 @@ namespace Tools.Statemachine {
         }
 
         private void _StartNextStateIfNeeded(State initialState, NextState nextState, List<string> immediateChanges) {
+            if (_disposed) return;
             if (CurrentContext?.CurrentState == nextState.State) return;
             // Change the current state
             Logger.Debug($"New State: \"{nextState.State.Name}\"");
@@ -164,7 +170,12 @@ namespace Tools.Statemachine {
         }
 
         public void _UnhandledInput(InputEvent @event) {
+            if (_disposed) return;
             CurrentContext?.CurrentState?._UnhandledInput(@event);
+        }
+
+        public void Dispose() {
+            _disposed = true;
         }
     }
 }
