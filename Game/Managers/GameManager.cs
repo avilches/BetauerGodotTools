@@ -53,6 +53,9 @@ namespace Veronenger.Game.Managers {
         public void ChangeScene(string scene) {
             // _logger.Debug($"Change scene to: {scene}");
             StageManager.ClearTransition();
+            // https://godotengine.org/qa/24773/how-to-load-and-change-scenes
+            // https://docs.godotengine.org/en/3.1/getting_started/step_by_step/singletons_autoload.html#custom-scene-switcher
+            // https://github.com/kurtsev0103/godot-app-delegate
             Error error = GetTree().ChangeScene(scene);
         }
 
