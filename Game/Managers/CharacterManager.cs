@@ -1,20 +1,22 @@
-using System;
 using Godot;
 using Tools;
 using Tools.Bus;
 using Tools.Bus.Topics;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.Tools.LayerConstants;
+using Array = Godot.Collections.Array;
+using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class CharacterManager {
+    public class CharacterManager : Object /* needed to receive signals */ {
         private const string GROUP_ENEMY = "enemy";
 
         public PlayerController PlayerController { get; private set; }
 
         [Inject] public PlatformManager PlatformManager;
         [Inject] public SlopeStairsManager SlopeStairsManager;
+        [Inject] public GameManager GameManager;
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 
@@ -72,9 +74,34 @@ namespace Veronenger.Game.Managers {
         // return PlayerController == player;
         // }
 
-        public void PlayerEnteredDeathZone(Area2D deathArea2D) {
+        public void ConfigurePlayerDeathZone(Area2D deathArea2D) {
+            deathArea2D.CollisionLayer = 0;
+            deathArea2D.CollisionMask = 0;
+            // TODO: this should be a topic, so other places can subscribe like remove all bullets
+            deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
+            deathArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(PlayerEnteredDeathZone),
+                new Array { deathArea2D });
+        }
+
+        public void PlayerEnteredDeathZone(Area2D playerDetector, Area2D deathArea2D) {
+            // TODO Send and event instead ?
             GD.Print("a");
             // PlayerController.DeathZone(deathArea2D);
         }
+
+        public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
+            sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this,
+                nameof(_on_player_entered_scene_change),
+                new Array { sceneChangeArea2D, scene });
+            sceneChangeArea2D.CollisionLayer = 0;
+            sceneChangeArea2D.CollisionMask = 0;
+            sceneChangeArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
+        }
+
+        public void _on_player_entered_scene_change(Area2D player, Area2D stageEnteredArea2D, string scene) {
+            // TODO: Send an event instead?
+            GameManager.ChangeScene(scene);
+        }
+
     }
 }
