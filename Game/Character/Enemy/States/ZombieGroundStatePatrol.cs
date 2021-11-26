@@ -11,9 +11,10 @@ namespace Veronenger.Game.Character.Enemy.States {
 
         [Inject] private CharacterManager CharacterManager;
 
-        private Timer _patrolTimer = new Timer().Start();
+        private Timer _patrolTimer;
 
         public override void Start(Context context) {
+            _patrolTimer ??= new AutoTimer(context.Owner).Start();
             if (context.FromState is GroundStatePatrolWait) {
                 // State come from the wait, do nothing...
             } else {
@@ -28,7 +29,6 @@ namespace Veronenger.Game.Character.Enemy.States {
          * AnimationStep + lateral move -> wait(1,2) + stop
          */
         public override NextState Execute(Context context) {
-            _patrolTimer.Update(context.Delta);
             if (!EnemyZombie.IsOnFloor()) {
                 EnemyZombie.AnimationIdle.PlayLoop();
                 Body.Fall();

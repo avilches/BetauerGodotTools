@@ -5,27 +5,32 @@ using Godot;
 
 namespace Tools.Statemachine {
     public class Context {
-        public readonly State CurrentState;
-        public readonly StateConfig Config;
         public readonly StateMachine StateMachine;
         public readonly Timer StateTimer;
-        public readonly State FromState;
+        public Node Owner => StateMachine.Owner;
+
+        public State FromState { get; private set; }
+        public State CurrentState { get; private set; }
+        public StateConfig Config { get; private set; }
         public int FrameCount { get; private set; }
         public float Delta { get; private set; }
 
-        public Context(StateMachine stateMachine, State currentState, State fromState, StateConfig config) {
+        public Context(StateMachine stateMachine) {
             StateMachine = stateMachine;
+            StateTimer = new AutoTimer(StateMachine.Owner).Start();
+        }
+
+        internal void Reset(State currentState, State fromState, StateConfig config) {
             CurrentState = currentState;
             FromState = fromState;
-            StateTimer = new Timer().Start();
             Config = config;
             FrameCount = 0;
             Delta = 0.16f;
+            StateTimer.Reset().Start();
         }
 
         internal void Update(float delta) {
             Delta = delta;
-            StateTimer.Update(delta);
             FrameCount++;
         }
 
@@ -83,15 +88,18 @@ namespace Tools.Statemachine {
         private const int MaxChanges = 2;
         public readonly Logger Logger;
         public readonly string Name;
+        public readonly Node Owner;
         private bool _disposed = false;
 
         internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
 
         private NextState NextState { get; set; }
-        private Context CurrentContext { get; set; }
+        private readonly Context _currentContext;
 
-        public StateMachine(string name) {
+        public StateMachine(Node owner, string name) {
+            Owner = owner;
             Name = name;
+            _currentContext = new Context(this);
             Logger = LoggerFactory.GetLogger(name, "StateMachine");
         }
 
@@ -114,7 +122,7 @@ namespace Tools.Statemachine {
             if (NextState.State == null)
                 throw new Exception(
                     "Please, initialize the state machine with the next state, even if the next state is the same as the current one");
-            _Execute(delta, CurrentContext?.CurrentState, NextState, new List<string>());
+            _Execute(delta, _currentContext.CurrentState, NextState, new List<string>());
         }
 
         private void _Execute(float delta, State initialState, NextState nextState, List<string> immediateChanges) {
@@ -122,9 +130,9 @@ namespace Tools.Statemachine {
             _EndPreviousStateIfNeeded(nextState);
             _StartNextStateIfNeeded(initialState, nextState, immediateChanges);
             // Execute the state
-            CurrentContext.Update(delta);
-            NextState newNextState = CurrentContext.CurrentState.Execute(CurrentContext);
-            if (newNextState.State == CurrentContext.CurrentState) return;
+            _currentContext.Update(delta);
+            NextState newNextState = _currentContext.CurrentState.Execute(_currentContext);
+            if (newNextState.State == _currentContext.CurrentState) return;
             NextState = newNextState;
             if (!newNextState.IsImmediate) return;
             _Execute(delta, initialState, NextState, immediateChanges);
@@ -132,31 +140,29 @@ namespace Tools.Statemachine {
 
         private void _EndPreviousStateIfNeeded(NextState nextState) {
             if (_disposed) return;
-            if (CurrentContext == null || CurrentContext.CurrentState == nextState.State) return;
-            if (!StateHelper.HasEndImplemented(CurrentContext.CurrentState)) return;
+            if (_currentContext.CurrentState == null || _currentContext.CurrentState == nextState.State) return;
+            if (!StateHelper.HasEndImplemented(_currentContext.CurrentState)) return;
             // End the current state
-            Logger.Debug($"End: \"{CurrentContext.CurrentState.Name}\"");
-            CurrentContext.CurrentState.End();
+            Logger.Debug($"End: \"{_currentContext.CurrentState.Name}\"");
+            _currentContext.CurrentState.End();
         }
 
         private void _StartNextStateIfNeeded(State initialState, NextState nextState, List<string> immediateChanges) {
             if (_disposed) return;
-            if (CurrentContext?.CurrentState == nextState.State) return;
+            if (_currentContext.CurrentState == nextState.State) return;
             // Change the current state
             Logger.Debug($"New State: \"{nextState.State.Name}\"");
             immediateChanges.Add(nextState.State.Name);
             CheckImmediateChanges(initialState, immediateChanges);
             var fromState =
-                CurrentContext?.CurrentState ??
+                _currentContext.CurrentState ??
                 nextState.State; // To avoid NPE in states, the first execution will use the current state as the from state
-            CurrentContext = new Context(this, nextState.State, fromState, nextState.Config ?? _emptyConfig);
+            _currentContext.Reset(nextState.State, fromState, nextState.Config ?? _emptyConfig);
 
             // Start the new state
-            CurrentContext.StateTimer.Reset().Start();
-            if (StateHelper.HasStartImplemented(CurrentContext.CurrentState)) {
-                Logger.Debug($"Start: \"{nextState.State.Name}\"");
-                nextState.State.Start(CurrentContext);
-            }
+            if (!StateHelper.HasStartImplemented(_currentContext.CurrentState)) return;
+            Logger.Debug($"Start: \"{nextState.State.Name}\"");
+            nextState.State.Start(_currentContext);
         }
 
         private void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
@@ -173,7 +179,7 @@ namespace Tools.Statemachine {
 
         public void _UnhandledInput(InputEvent @event) {
             if (_disposed) return;
-            CurrentContext?.CurrentState?._UnhandledInput(@event);
+            _currentContext?.CurrentState?._UnhandledInput(@event);
         }
 
         public void Dispose() {

@@ -33,13 +33,12 @@ namespace Veronenger.Game.Controller.Character {
         public EnemyZombieController() {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
-            _stateMachine = new StateMachine(_name)
+            _stateMachine = new StateMachine(this, _name)
                 .AddState(new GroundStatePatrolStep(this))
                 .AddState(new GroundStatePatrolWait(this))
                 .AddState(new GroundStateIdle(this))
                 .AddState(new ZombieAttacked(this))
                 .SetNextState(typeof(GroundStateIdle));
-
         }
 
         public override void Ready() {

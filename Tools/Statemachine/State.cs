@@ -26,7 +26,6 @@ namespace Tools.Statemachine {
         public virtual void ConfigureLogging(StateMachine stateMachine) {
         }
 
-
         public string Name => GetType().Name;
     }
 

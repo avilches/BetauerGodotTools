@@ -24,8 +24,8 @@ namespace Veronenger.Game.Controller.Character {
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
-        public readonly Timer FallingJumpTimer = new Timer().Stop();
-        public readonly Timer FallingTimer = new Timer().Stop();
+        public readonly Timer FallingJumpTimer;
+        public readonly Timer FallingTimer;
 
         [Inject] public PlatformManager PlatformManager;
         [Inject] public CharacterManager CharacterManager;
@@ -35,12 +35,14 @@ namespace Veronenger.Game.Controller.Character {
         public IFlipper _flippers;
 
         public PlayerController() {
+            FallingJumpTimer = new AutoTimer(this).Stop();
+            FallingTimer = new AutoTimer(this).Stop();
             _name = "Player:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
             _loggerInput = LoggerFactory.GetLogger("Player:" + GetHashCode().ToString("x8"), "Input");
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
             PlayerActions.ConfigureMapping();
-            _stateMachine = new StateMachine(_name)
+            _stateMachine = new StateMachine(this, _name)
                 .AddState(new GroundStateIdle(this))
                 .AddState(new GroundStateRun(this))
                 .AddState(new AirStateFallShort(this))
@@ -124,8 +126,6 @@ namespace Veronenger.Game.Controller.Character {
             // Update();
             // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
             MotionBody.StartFrame(Delta);
-            FallingJumpTimer.Update(Delta);
-            FallingTimer.Update(Delta);
             _stateMachine.Execute(Delta);
             PlayerActions.ClearJustStates();
             /*
