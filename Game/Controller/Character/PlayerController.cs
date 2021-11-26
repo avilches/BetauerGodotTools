@@ -15,10 +15,12 @@ namespace Veronenger.Game.Controller.Character {
         private readonly Logger _logger;
         private readonly Logger _loggerInput;
         private readonly StateMachine _stateMachine;
-        private Sprite _mainSprite;
-        private Area2D _attackArea;
-        private Area2D _damageArea;
-        protected Label Label { get; private set; }
+        [OnReady("Sprite")] private Sprite _mainSprite;
+        [OnReady("AttackArea")] private Area2D _attackArea;
+        [OnReady("DamageArea")] private Area2D _damageArea;
+        [OnReady("../Label")] protected Label Label;
+        [OnReady("Detector")] public Area2D _playerDetector;
+        [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
         public readonly MyPlayerActions PlayerActions;
@@ -31,7 +33,6 @@ namespace Veronenger.Game.Controller.Character {
 
         public MotionBody MotionBody;
         public IFlipper _flippers;
-        public Area2D _playerDetector;
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
@@ -55,28 +56,6 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimationStatus AnimationAttack { get; private set; }
         public OnceAnimationStatus AnimationJumpAttack { get; private set; }
 
-        public override void _EnterTree() {
-            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            var animationStack = new AnimationStack(_name, animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
-            AnimationRun = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationRun());
-            AnimationJump = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationJump());
-            AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
-            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
-            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
-
-            _mainSprite = GetNode<Sprite>("Sprite");
-            _attackArea = GetNode<Area2D>("AttackArea");
-            _damageArea = GetNode<Area2D>("DamageArea");
-            _playerDetector = GetNode<Area2D>("Detector");
-            Label = GetParent().GetNode<Label>("Label");
-
-            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
-            MotionBody.EnterTree();
-
-        }
-
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
@@ -86,7 +65,17 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsDown;
         private BodyOnArea2DStatus _slopeStairsUp;
 
-        public override void _Ready() {
+        public override void Ready() {
+            var animationStack = new AnimationStack(_name, _animationPlayer);
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
+            AnimationRun = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationRun());
+            AnimationJump = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationJump());
+            AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
+            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
+            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
+
+            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+            MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
             CharacterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);

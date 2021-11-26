@@ -12,10 +12,12 @@ namespace Veronenger.Game.Controller.Character {
         private readonly string _name;
         private readonly Logger _logger;
         private readonly StateMachine _stateMachine;
-        private Sprite _mainSprite;
-        private Area2D _attackArea;
-        private Area2D _damageArea;
-        protected Label Label { get; private set; }
+        [OnReady("Sprite")] private Sprite _mainSprite;
+        [OnReady("AttackArea")] private Area2D _attackArea;
+        [OnReady("DamageArea")] private Area2D _damageArea;
+        [OnReady("../Label")] protected Label Label;
+        [OnReady("Position2D")] public Position2D _position2D;
+        [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
         [Inject] public CharacterManager CharacterManager;
 
@@ -27,7 +29,6 @@ namespace Veronenger.Game.Controller.Character {
 
         public MotionBody MotionBody;
         public IFlipper _flippers;
-        public Position2D _position2D;
 
         public EnemyZombieController() {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
@@ -41,26 +42,15 @@ namespace Veronenger.Game.Controller.Character {
 
         }
 
-        public override void _EnterTree() {
-            var animationPlayer = GetNode<AnimationPlayer>("Sprite/AnimationPlayer");
-            var animationStack = new AnimationStack(_name, animationPlayer);
+        public override void Ready() {
+            var animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
             AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
             AnimationDie = animationStack.AddOnceAnimationAndGetStatus(new AnimationDie());
 
-            _mainSprite = GetNode<Sprite>("Sprite");
-            _attackArea = GetNode<Area2D>("AttackArea");
-            _damageArea = GetNode<Area2D>("DamageArea");
-            _position2D = GetNode<Position2D>("Position2D");
-            Label = GetParent().GetNode<Label>("Label");
-
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);
-            MotionBody.EnterTree();
 
-        }
-
-        public override void _Ready() {
             CharacterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
             CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
@@ -70,9 +60,9 @@ namespace Veronenger.Game.Controller.Character {
             MotionBody.StartFrame(delta);
             _stateMachine.Execute(delta);
 
-            // if (CharacterManager.PlayerController?._playerDetector?.Position != null) {
-            Label.Text = "" + DegreesTo(CharacterManager.PlayerController._playerDetector);
-            // }
+            if (CharacterManager.PlayerController?._playerDetector?.Position != null) {
+                Label.Text = "" + DegreesTo(CharacterManager.PlayerController._playerDetector);
+            }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +

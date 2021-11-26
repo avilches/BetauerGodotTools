@@ -5,9 +5,20 @@ using System.Reflection;
 using Godot;
 
 namespace Tools {
+    [AttributeUsage(AttributeTargets.Field)]
     public class InjectAttribute : Attribute {
     }
 
+    [AttributeUsage(AttributeTargets.Field)]
+    public class OnReadyAttribute : Attribute {
+        public string Path;
+
+        public OnReadyAttribute(string path) {
+            Path = path;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
     public class SingletonAttribute : Attribute {
     }
 
@@ -32,7 +43,8 @@ namespace Tools {
                         false) is SingletonAttribute sa) {
                         var instance = CreateSingletonInstance(type);
                         AddSingleton(instance);
-                        _logger.Info("Added Singleton "+type.Name+ " (" + type.FullName+ ", Assembly: "+assembly.FullName+")");
+                        _logger.Info("Added Singleton " + type.Name + " (" + type.FullName + ", Assembly: " +
+                                     assembly.FullName + ")");
                     }
                 }
             }
@@ -58,7 +70,7 @@ namespace Tools {
         public void AutoWire(object instance) {
             var error = InjectFields(instance);
             if (error) {
-                throw new Exception("AutoWire error in "+instance.GetType().FullName+": Check the console output");
+                throw new Exception("AutoWire error in " + instance.GetType().FullName + ": Check the console output");
             }
         }
 
@@ -71,12 +83,35 @@ namespace Tools {
                     continue;
                 var found = _singletons.TryGetValue(property.FieldType, out object instance);
                 if (!found) {
-                    _logger.Error("Injectable property ["+property.FieldType.Name+" "+property.Name+"] not found");
+                    _logger.Error("Injectable property [" + property.FieldType.Name + " " + property.Name +
+                                  "] not found");
                     error = true;
                 }
                 property.SetValue(target, instance);
             }
             return error;
+        }
+
+        public void LoadOnReadyNodes(Node target) {
+            var publicFields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var privateFields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var property in privateFields.Concat(publicFields)) {
+                if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
+                    onReady))
+                    continue;
+                var instance = target.GetNode(onReady.Path);
+                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.FieldType.Name + " " +
+                                property.Name;
+                if (instance == null) {
+                    throw new Exception("OnReady path is null in field " + fieldInfo + ", class " +
+                                        target.GetType().Name);
+                } else if (instance.GetType() != property.FieldType) {
+                    throw new Exception("OnReady path returned a wrong type (" + instance.GetType().Name +
+                                        ") in field " + fieldInfo + ", class " +
+                                        target.GetType().Name);
+                }
+                property.SetValue(target, instance);
+            }
         }
     }
 
@@ -93,6 +128,14 @@ namespace Tools {
 
     public class DiKinematicBody2D : KinematicBody2D {
         public DiKinematicBody2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
     }
 
     public class Di {
@@ -101,17 +144,49 @@ namespace Tools {
 
     public class DiNode : Node {
         public DiNode() => GodotDiRepository.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
     }
 
     public class DiNode2D : Node2D {
         public DiNode2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
     }
 
     public class DiCamera2D : Camera2D {
         public DiCamera2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
     }
 
     public class DiArea2D : Area2D {
         public DiArea2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
     }
 }

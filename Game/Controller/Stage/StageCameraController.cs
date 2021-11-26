@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Tools;
 using Veronenger.Game.Managers;
@@ -17,12 +16,9 @@ namespace Veronenger.Game.Controller.Stage {
 
         [Inject] public StageManager StageManager;
 
+        [OnReady("../Detector")] private Area2D stageDetector;
 
-        public override void _EnterTree() {
-            var stageDetector = GetNode<Area2D>("../Detector");
-            if (stageDetector == null) {
-                throw new Exception("Missing parent node Area2D 'StageDetector'");
-            }
+        public override void Ready() {
             StageManager.ConfigureStageCamera(this, stageDetector);
         }
 

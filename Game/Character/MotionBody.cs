@@ -31,11 +31,7 @@ namespace Veronenger.Game.Character {
             _motionConfig = motionConfig;
             _loggerCollision = LoggerFactory.GetLogger(_name, "Collision");
             _loggerMotion = LoggerFactory.GetLogger(_name, "Motion");
-        }
-
-        public void EnterTree() {
-            FloorDetector = _body.GetNode("RayCasts").GetNode<RayCast2D>("SlopeDetector");
-            // Label = _body.GetNode<Label>("Label");
+            FloorDetector = _body.GetNode<RayCast2D>("RayCasts/SlopeDetector");
         }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
