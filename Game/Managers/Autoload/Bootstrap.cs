@@ -47,16 +47,19 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "StateMachine", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
+            
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Input", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Motion", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Collision", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Debug);
         }
 
         private void MicroBenchmarks() {

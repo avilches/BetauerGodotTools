@@ -12,7 +12,8 @@ namespace Tools {
     }
 
     public abstract class OnceAnimation : Animation {
-        public abstract bool CanBeInterrupted { get; }
+        public virtual bool CanBeInterrupted { get; }
+        public virtual bool KillPreviousAnimation { get; }
 
         public virtual void OnStart() {
         }
@@ -48,14 +49,15 @@ namespace Tools {
         public bool Playing { get; set; } = false;
         public bool Interrupted { get; set; } = false;
         public bool CanBeInterrupted => Animation.CanBeInterrupted;
+        public bool KillPreviousAnimation => Animation.KillPreviousAnimation;
 
         protected internal OnceAnimationStatus(AnimationStack animationStack, OnceAnimation animation) : base(
             animationStack) {
             Animation = animation;
         }
 
-        public void PlayOnce() {
-            _animationStack.PlayOnce(this);
+        public void PlayOnce(bool killPreviousAnimation = false) {
+            _animationStack.PlayOnce(this, killPreviousAnimation);
         }
     }
 
@@ -146,13 +148,13 @@ namespace Tools {
             }
         }
 
-        public OnceAnimationStatus PlayOnce(Type newAnimationType) {
+        public OnceAnimationStatus PlayOnce(Type newAnimationType, bool killPreviousAnimation = false) {
             OnceAnimationStatus newOnceAnimationStatus = GetOnceAnimationStatus(newAnimationType);
-            return PlayOnce(newOnceAnimationStatus);
+            return PlayOnce(newOnceAnimationStatus, killPreviousAnimation);
         }
 
-        protected internal OnceAnimationStatus PlayOnce(OnceAnimationStatus newOnceAnimationStatus) {
-            if (_currentOnceAnimationStatus == null || _currentOnceAnimationStatus.CanBeInterrupted) {
+        protected internal OnceAnimationStatus PlayOnce(OnceAnimationStatus newOnceAnimationStatus, bool killPreviousAnimation = false) {
+            if (_currentOnceAnimationStatus == null || _currentOnceAnimationStatus.CanBeInterrupted || newOnceAnimationStatus.KillPreviousAnimation || killPreviousAnimation) {
                 if (_currentOnceAnimationStatus != null) {
                     _logger.Debug("PlayOnce \"" + newOnceAnimationStatus.Animation.Name + "\" (Interrupting: " +
                                   _currentOnceAnimationStatus.Animation.Name + "\")");
@@ -170,6 +172,9 @@ namespace Tools {
                 newOnceAnimationStatus.Interrupted = false;
                 newOnceAnimationStatus.Animation.OnStart();
                 _animationPlayer.Play(newOnceAnimationStatus.Animation.Name);
+            } else if (!_currentOnceAnimationStatus.CanBeInterrupted) {
+                _logger.Error("PlayOnce \"" + newOnceAnimationStatus.Animation.Name + "\" not played: current animation \"" +
+                              _currentOnceAnimationStatus.Animation.Name + "\" can't be interrupted)");
             }
             return newOnceAnimationStatus;
         }

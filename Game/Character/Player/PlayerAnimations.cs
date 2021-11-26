@@ -19,11 +19,9 @@ namespace Veronenger.Game.Character.Player {
 
     public class AnimationAttack : OnceAnimation {
         public override string Name => "Attack";
-        public override bool CanBeInterrupted => false;
     }
 
     public class AnimationJumpAttack : OnceAnimation {
         public override string Name => "JumpAttack";
-        public override bool CanBeInterrupted => false;
     }
 }
