@@ -37,17 +37,21 @@ namespace Tools {
 
         public void Scan(Node node) {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            int types = 0, added = 0;
             foreach (var assembly in assemblies) {
                 foreach (Type type in assembly.GetTypes()) {
+                    types++;
                     if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
                         false) is SingletonAttribute sa) {
                         var instance = CreateSingletonInstance(type);
                         AddSingleton(instance);
+                        added++;
                         _logger.Info("Added Singleton " + type.Name + " (" + type.FullName + ", Assembly: " +
                                      assembly.FullName + ")");
                     }
                 }
             }
+            _logger.Info("Scanned "+types+" types. Added "+added);
 
             bool error = false;
             foreach (var instance in _singletons.Values) {
@@ -62,9 +66,14 @@ namespace Tools {
         }
 
         private object CreateSingletonInstance(Type type) {
-            var emptyConstructor = type.GetConstructors().Single(info => info.GetParameters().Length == 0);
-            var instance = emptyConstructor.Invoke(null);
-            return instance;
+            try {
+                var emptyConstructor = type.GetConstructors().Single(info => info.GetParameters().Length == 0);
+                var instance = emptyConstructor.Invoke(null);
+                return instance;
+            } catch (Exception e) {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public void AutoWire(object instance) {
@@ -84,7 +93,7 @@ namespace Tools {
                 var found = _singletons.TryGetValue(property.FieldType, out object instance);
                 if (!found) {
                     _logger.Error("Injectable property [" + property.FieldType.Name + " " + property.Name +
-                                  "] not found");
+                                  "] not found while injecting fields in "+target.GetType().Name);
                     error = true;
                 }
                 property.SetValue(target, instance);
@@ -115,38 +124,15 @@ namespace Tools {
         }
     }
 
-    public class GodotDiRepository : DiRepository {
-        public static DiRepository DefaultRepository = new DiRepository();
-
-        public static void SetDefaultRepository(DiRepository repository) {
-            DefaultRepository = repository;
-        }
-
-        private GodotDiRepository() {
-        }
-    }
-
-    public class DiKinematicBody2D : KinematicBody2D {
-        public DiKinematicBody2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
-
-        public sealed override void _Ready() {
-            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
-            Ready();
-        }
-
-        public virtual void Ready() {
-        }
-    }
-
     public class Di {
-        public Di() => GodotDiRepository.DefaultRepository.AutoWire(this);
+        public Di() => DiBootstrap.DefaultRepository.AutoWire(this);
     }
 
     public class DiNode : Node {
-        public DiNode() => GodotDiRepository.DefaultRepository.AutoWire(this);
+        public DiNode() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
-            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -155,10 +141,22 @@ namespace Tools {
     }
 
     public class DiNode2D : Node2D {
-        public DiNode2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+        public DiNode2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
-            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
+
+    public class DiKinematicBody2D : KinematicBody2D {
+        public DiKinematicBody2D() => DiBootstrap.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -167,10 +165,10 @@ namespace Tools {
     }
 
     public class DiCamera2D : Camera2D {
-        public DiCamera2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+        public DiCamera2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
-            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -179,14 +177,42 @@ namespace Tools {
     }
 
     public class DiArea2D : Area2D {
-        public DiArea2D() => GodotDiRepository.DefaultRepository.AutoWire(this);
+        public DiArea2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
-            GodotDiRepository.DefaultRepository.LoadOnReadyNodes(this);
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
             Ready();
         }
 
         public virtual void Ready() {
         }
     }
+
+
+    /**
+     * DiAutoload. Singleton + Node + Special Di (scan all + autowire ifself)
+     */
+    public abstract class DiBootstrap : Node {
+        public static DiRepository DefaultRepository;
+        public static DiBootstrap Instance;
+
+        public DiBootstrap() {
+            if (Instance != null) {
+                throw new Exception("DiBootstrap can't be instantiated more than once: " + GetType().Name);
+            }
+            Instance = this;
+            ConfigureLoggerFactory();
+            DefaultRepository = CreateDiRepository();
+            DefaultRepository.Scan(this);
+            DefaultRepository.AutoWire(this);
+        }
+
+        public virtual DiRepository CreateDiRepository() {
+            return new DiRepository();
+        }
+        public virtual void ConfigureLoggerFactory() {
+        }
+    }
+
+
 }

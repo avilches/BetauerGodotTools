@@ -10,25 +10,19 @@ using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
+    public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
 
         [Inject]
         public GameManager GameManager;
 
-        public Bootstrap() {
-            ConfigureLoggerFactory();
-            GodotDiRepository.DefaultRepository.Scan(this);
-            GodotDiRepository.DefaultRepository.AutoWire(this);
-        }
-
-        public override void _EnterTree() {
+        public override void _Ready() {
             // MicroBenchmarks();
             GameManager.IsRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
         }
 
         private bool _logToFileEnabled = false;
 
-        private void ConfigureLoggerFactory() {
+        public override void ConfigureLoggerFactory() {
             if (_logToFileEnabled) {
                 var folder = Directory.GetCurrentDirectory();
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
@@ -40,6 +34,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.Start(this);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
             // Tools
+            LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.Debug);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
