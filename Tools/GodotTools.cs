@@ -38,14 +38,16 @@ namespace Tools {
         }
 
         /*
-         * Alinea las plataformas como si fueran una aguja de un reloj y la gira
+         * Alinea las plataformas como si fueran una aguja de un reloj y la gira. La primera primera plataforma
+         * mantiene su posicion y las demás se van espaciando hasta llegar al radius
          */
-        public static void RotateAligned(List<PhysicsBody2D> nodes, float angle, float radius) {
+        public static void RotateAligned(List<PhysicsBody2D> nodes, float angle, float radius, float initialOffset = 20) {
             var count = nodes.Count;
             var spacing = radius / count;
             for (var i = 0; i < count; i++) {
-                var newX = Sin(angle) * spacing * (i + 1);
-                var newY = Cos(angle) * spacing * (i + 1);
+                float offset = ((spacing * i) + initialOffset);
+                var newX = Sin(angle) * offset;
+                var newY = Cos(angle) * offset;
                 var newPos = new Vector2(newX, newY);
                 nodes[i].Position = newPos;
             }
