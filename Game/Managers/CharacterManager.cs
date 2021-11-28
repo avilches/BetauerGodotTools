@@ -70,9 +70,9 @@ namespace Veronenger.Game.Managers {
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
-        // public bool IsPlayer(KinematicBody2D player) {
-        // return PlayerController == player;
-        // }
+        public bool IsPlayer(KinematicBody2D player) {
+            return PlayerController == player;
+        }
 
         public void ConfigurePlayerDeathZone(Area2D deathArea2D) {
             deathArea2D.CollisionLayer = 0;

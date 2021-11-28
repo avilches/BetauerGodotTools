@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.QuadraticEaseInOut);
             _sequence.AddReverseAll();
 
-            _platforms = Filter<PhysicsBody2D>(GetChildren());
+            _platforms = FindAllChildren<PhysicsBody2D>(this);
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 

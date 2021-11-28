@@ -1,8 +1,6 @@
-using System.Dynamic;
 using Tools;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateIdle : GroundState {
