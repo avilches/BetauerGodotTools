@@ -20,10 +20,15 @@ namespace Veronenger.Game.Managers.Autoload {
             GameManager.IsRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
         }
 
-        private bool _logToFileEnabled = false;
+        public override DiRepository CreateDiRepository() {
+            ConfigureLoggerFactory();
+            return new DiRepository();
+        }
 
-        public override void ConfigureLoggerFactory() {
-            if (_logToFileEnabled) {
+        private const bool LogToFileEnabled = false;
+
+        private void ConfigureLoggerFactory() {
+            if (LogToFileEnabled) {
                 var folder = Directory.GetCurrentDirectory();
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
                 LoggerFactory.AddFileWriter(logPath);
@@ -49,7 +54,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Player:*", "Animation", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
-            
+
             LoggerFactory.SetTraceLevel("Player:*", "JumpHelper", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "CoyoteJump", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "JumpVelocity", TraceLevel.Off);

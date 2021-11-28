@@ -190,9 +190,9 @@ namespace Tools {
 
 
     /**
-     * DiAutoload. Singleton + Node + Special Di (scan all + autowire ifself)
+     * DiBootstrap. Singleton + Node + Special Di (scan all + autowire ifself)
      */
-    public abstract class DiBootstrap : Node {
+    public abstract class DiBootstrap : Node /* needed because 1) it's an autoload 2) all Node singletons scanned will be added as child */ {
         public static DiRepository DefaultRepository;
         public static DiBootstrap Instance;
 
@@ -201,7 +201,6 @@ namespace Tools {
                 throw new Exception("DiBootstrap can't be instantiated more than once: " + GetType().Name);
             }
             Instance = this;
-            ConfigureLoggerFactory();
             DefaultRepository = CreateDiRepository();
             DefaultRepository.Scan(this);
             DefaultRepository.AutoWire(this);
@@ -210,9 +209,6 @@ namespace Tools {
         public virtual DiRepository CreateDiRepository() {
             return new DiRepository();
         }
-        public virtual void ConfigureLoggerFactory() {
-        }
     }
-
 
 }
