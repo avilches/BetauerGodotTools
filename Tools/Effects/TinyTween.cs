@@ -134,7 +134,7 @@ namespace Tools.Effects {
             new DelayTweenStep(Delay, CurrentValue, _onUpdateAction, _onCompleteAction);
     }
 
-    public class TweenSequence : Node {
+    public class TinyTweenSequence : Node {
         private List<IStep<float>> steps = new List<IStep<float>>();
 
         private int _pos = 0;
@@ -142,11 +142,11 @@ namespace Tools.Effects {
         public bool Loop;
         private IStep<float>.OnUpdateAction _onUpdateAction;
 
-        public TweenSequence(bool loop = false) {
+        public TinyTweenSequence(bool loop = false) {
             Loop = loop;
         }
 
-        public TweenSequence Add(float start, float end, int duration, ScaleFunc scaleFunc,
+        public TinyTweenSequence Add(float start, float end, int duration, ScaleFunc scaleFunc,
             IStep<float>.OnUpdateAction onUpdateAction = null,
             OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
@@ -156,7 +156,7 @@ namespace Tools.Effects {
             return this;
         }
 
-        public TweenSequence AutoUpdate(Node owner, IStep<float>.OnUpdateAction onUpdateAction = null) {
+        public TinyTweenSequence AutoUpdate(Node owner, IStep<float>.OnUpdateAction onUpdateAction = null) {
             if (!_disposed) {
                 owner.AddChild(this);
                 _onUpdateAction = onUpdateAction;
@@ -175,18 +175,18 @@ namespace Tools.Effects {
         }
 
 
-        public TweenSequence AddDelay(float delay, float value, IStep<float>.OnUpdateAction onUpdateAction, OnFinishAction onCompleteAction = null) {
+        public TinyTweenSequence AddDelay(float delay, float value, IStep<float>.OnUpdateAction onUpdateAction, OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
                 steps.Add(new DelayTweenStep(delay, value, onUpdateAction, onCompleteAction));
             }
             return this;
         }
 
-        public TweenSequence AddReverseAll() {
+        public TinyTweenSequence AddReverseAll() {
             return AddReverse(steps.Count);
         }
 
-        public TweenSequence AddReverse(int elements = 1) {
+        public TinyTweenSequence AddReverse(int elements = 1) {
             if (!_disposed) {
                 elements = Godot.Mathf.Clamp(elements, 0, steps.Count);
                 var part = steps.GetRange(steps.Count - elements, elements);

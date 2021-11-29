@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Animation {
 
 
         private List<PhysicsBody2D> _platforms;
-        private TweenSequence _sequence;
+        private TinyTweenSequence _sequence;
 
         public override void _EnterTree() {
             Configure();
@@ -24,7 +24,7 @@ namespace Veronenger.Game.Controller.Animation {
         // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
 
         private void Configure() {
-            _sequence = new TweenSequence(true);
+            _sequence = new TinyTweenSequence(true);
             _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear,
                 delegate(float angle) {
                     RotateSpaced(_platforms, angle, Radius);

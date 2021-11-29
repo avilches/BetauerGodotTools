@@ -14,7 +14,7 @@ extends Reference
 #	changing the Sprite to red color in one second
 #	and then making it transparent after a delay.
 
-# Tweener for tweening properties.	
+# Tweener for tweening properties.
 class PropertyTweener extends Tweener:
 	var _target: Object
 	var _property: NodePath
@@ -125,6 +125,7 @@ class CallbackTweener extends Tweener:
 		if not is_instance_valid(_target):
 			push_warning("Target object freed, aborting Tweener.")
 			return
+
 		tween.interpolate_callback(_target, _delay, _method,
 			_get_argument(0), _get_argument(1), _get_argument(2),
 			_get_argument(3), _get_argument(4))

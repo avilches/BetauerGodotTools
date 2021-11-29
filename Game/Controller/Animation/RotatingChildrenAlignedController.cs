@@ -16,14 +16,14 @@ namespace Veronenger.Game.Controller.Animation {
 
 
         private List<PhysicsBody2D> _platforms;
-        private TweenSequence _sequence;
+        private TinyTweenSequence _sequence;
 
         public override void _EnterTree() {
             Configure();
         }
 
         private void Configure() {
-            _sequence = new TweenSequence(true);
+            _sequence = new TinyTweenSequence(true);
             _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.QuadraticEaseInOut);
             _sequence.AddReverseAll();
             _sequence.AutoUpdate(this, delegate(float angle) {

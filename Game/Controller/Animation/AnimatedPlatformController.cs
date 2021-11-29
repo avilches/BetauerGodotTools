@@ -1,5 +1,7 @@
 using Godot;
+using Godot.Collections;
 using Tools;
+using Tools.Effects;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
@@ -21,24 +23,22 @@ namespace Veronenger.Game.Controller.Animation {
             UpdatePosition();
         }
 
+        private void bla() {
+            // GD.Print("bla");
+        }
+
         public void Configure() {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 
             _original = Position;
 
-            // TODO: pasar a C#
-            GDScript MyGDScript = (GDScript) GD.Load("res://Tools/Effects/TweenSequence.gd");
-            Object myGDScriptNode = (Object) MyGDScript.New(GetTree());
-            Object tweener1 = (Object) myGDScriptNode.Call("append", this, nameof(follow), new Vector2(100, 0), 2);
-            tweener1.Call("set_trans", Tween.TransitionType.Cubic);
-            Object tweener2 = (Object) myGDScriptNode.Call("append", this, nameof(follow), new Vector2(0, 0), 2);
-            tweener2.Call("set_trans", Tween.TransitionType.Cubic);
-            myGDScriptNode.Call("set_loops");
-
-            // var seq := TweenSequence.new(get_tree())
-            // seq.append(self, "follow", Vector2(100, 0), 2).set_trans(Tween.TRANS_CUBIC)
-            // seq.append(self, "follow", Vector2.ZERO, 2).set_trans(Tween.TRANS_CUBIC)
-            // seq.set_loops()
+            TweenSequence seq = new TweenSequence(GetTree());
+            seq.append( this, nameof(follow), new Vector2(100, 0), 2).set_trans(Tween.TransitionType.Cubic);
+            seq.parallel().append( this, "modulate", new Color(1, 1, 1, 0), 2).set_trans(Tween.TransitionType.Cubic);
+            seq.append_callback( this, nameof(bla), new Array());
+            seq.append( this, nameof(follow), new Vector2(50, 0), 2).set_trans(Tween.TransitionType.Cubic);
+            seq.parallel().append( this, "modulate", new Color(1, 1, 1, 1), 2).set_trans(Tween.TransitionType.Cubic);
+            seq.set_loops();
         }
 
         public void UpdatePosition() {
