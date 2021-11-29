@@ -32,7 +32,7 @@ namespace Tools.Effects {
         restart
     }
 
-    public delegate TweenReturn OnFinish();
+    public delegate TweenReturn OnFinishAction();
 
     public interface IStep<T> {
         float GetCurrentValue();
@@ -42,22 +42,35 @@ namespace Tools.Effects {
         void Update(float time);
         TweenState GetState();
         TweenReturn OnComplete();
+        void OnUpdate(T delta);
+        bool HasOnUpdate();
         IStep<float> CreateReverse();
-        public delegate void OnUpdate(T value);
+
+        public delegate void OnUpdateAction(T value);
     }
 
     public abstract class TweenStep<T> : IStep<T> {
-        private static readonly OnFinish OnCompleteNext = () => TweenReturn.next;
+        private static readonly OnFinishAction OnCompleteNext = () => TweenReturn.next;
 
-        private readonly OnFinish _onComplete;
+        protected readonly IStep<T>.OnUpdateAction _onUpdateAction;
+        protected readonly OnFinishAction _onCompleteAction;
         private IStep<T> _stepImplementation;
 
-        protected TweenStep(OnFinish onComplete = null) {
-            _onComplete = onComplete ?? OnCompleteNext;
+        protected TweenStep(IStep<T>.OnUpdateAction onUpdateAction = null, OnFinishAction onCompleteAction = null) {
+            _onUpdateAction = onUpdateAction;
+            _onCompleteAction = onCompleteAction ?? OnCompleteNext;
         }
 
         public TweenReturn OnComplete() {
-            return _onComplete();
+            return _onCompleteAction();
+        }
+
+        public bool HasOnUpdate() {
+            return _onUpdateAction != null;
+        }
+
+        public void OnUpdate(T delta) {
+            _onUpdateAction?.Invoke(delta);
         }
 
         public abstract IStep<float> CreateReverse();
@@ -82,7 +95,8 @@ namespace Tools.Effects {
         private float _consumed;
         public TweenState State { get; private set; } = TweenState.Running;
 
-        public DelayTweenStep(float delay, float value, OnFinish onComplete = null) : base(onComplete) {
+        public DelayTweenStep(float delay, float value, IStep<float>.OnUpdateAction onUpdate = null,
+            OnFinishAction onCompleteAction = null) : base(onUpdate, onCompleteAction) {
             Delay = delay;
             CurrentValue = value;
         }
@@ -116,7 +130,8 @@ namespace Tools.Effects {
 
         public override TweenState GetState() => State;
 
-        public override IStep<float> CreateReverse() => new DelayTweenStep(Delay, CurrentValue, OnComplete);
+        public override IStep<float> CreateReverse() =>
+            new DelayTweenStep(Delay, CurrentValue, _onUpdateAction, _onCompleteAction);
     }
 
     public class TweenSequence : Node {
@@ -125,38 +140,44 @@ namespace Tools.Effects {
         private int _pos = 0;
         private bool _disposed = false;
         public bool Loop;
-        private IStep<float>.OnUpdate _onUpdate;
+        private IStep<float>.OnUpdateAction _onUpdateAction;
 
         public TweenSequence(bool loop = false) {
             Loop = loop;
         }
 
         public TweenSequence Add(float start, float end, int duration, ScaleFunc scaleFunc,
-            OnFinish onComplete = null) {
+            IStep<float>.OnUpdateAction onUpdateAction = null,
+            OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
-                steps.Add(new FloatTweenStep(new FloatTween(start, end, duration, scaleFunc), onComplete));
+                steps.Add(new FloatTweenStep(new FloatTween(start, end, duration, scaleFunc), onUpdateAction,
+                    onCompleteAction));
             }
             return this;
         }
 
-        public TweenSequence AutoUpdate(Node owner, IStep<float>.OnUpdate onUpdate) {
-            if (!_disposed && onUpdate != null && _onUpdate == null) {
-                _onUpdate = onUpdate;
+        public TweenSequence AutoUpdate(Node owner, IStep<float>.OnUpdateAction onUpdateAction = null) {
+            if (!_disposed) {
                 owner.AddChild(this);
+                _onUpdateAction = onUpdateAction;
             }
             return this;
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (!_disposed && _onUpdate != null) {
-                _onUpdate(Update(delta));
+            if (!_disposed) {
+                if (CurrentStep.HasOnUpdate()) {
+                    CurrentStep.OnUpdate(delta);
+                } else {
+                    _onUpdateAction?.Invoke(Update(delta));
+                }
             }
         }
 
 
-        public TweenSequence AddDelay(float delay, float value, OnFinish onComplete = null) {
+        public TweenSequence AddDelay(float delay, float value, IStep<float>.OnUpdateAction onUpdateAction, OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
-                steps.Add(new DelayTweenStep(delay, value, onComplete));
+                steps.Add(new DelayTweenStep(delay, value, onUpdateAction, onCompleteAction));
             }
             return this;
         }
@@ -260,7 +281,9 @@ namespace Tools.Effects {
     public class FloatTweenStep : TweenStep<float> {
         private readonly FloatTween _tween;
 
-        public FloatTweenStep(FloatTween tween, OnFinish onComplete = null) : base(onComplete) {
+        public FloatTweenStep(FloatTween tween, IStep<float>.OnUpdateAction onUpdateAction = null,
+            OnFinishAction onCompleteAction = null) :
+            base(onUpdateAction, onCompleteAction) {
             _tween = tween;
         }
 
@@ -277,7 +300,7 @@ namespace Tools.Effects {
         public override TweenState GetState() => _tween.State;
 
         public override IStep<float> CreateReverse() {
-            return new FloatTweenStep(_tween.CreateReverse(), OnComplete);
+            return new FloatTweenStep(_tween.CreateReverse(), _onUpdateAction, _onCompleteAction);
         }
     }
 
@@ -561,79 +584,6 @@ namespace Tools.Effects {
         }
     }
 
-// If XNA or Unity we can leverage their types to create more tween types to simplify usage.
-#if XNA
-    /// <summary>
-    /// Object used to tween Vector2 values.
-    /// </summary>
-    public class Vector2Tween : Tween<Vector2>
-    {
-        // Static readonly delegate to avoid multiple delegate allocations
-        private static readonly LerpFunc<Vector2> LerpFunc = Mathf.Lerp();
-
-        /// <summary>
-        /// Initializes a new Vector2Tween instance.
-        /// </summary>
-        public Vector2Tween() : base(LerpFunc) { }
-    }
-
-    /// <summary>
-    /// Object used to tween Vector3 values.
-    /// </summary>
-    public class Vector3Tween : Tween<Vector3>
-    {
-        // Static readonly delegate to avoid multiple delegate allocations
-        private static readonly LerpFunc<Vector3> LerpFunc = Vector3.Lerp;
-
-        /// <summary>
-        /// Initializes a new Vector3Tween instance.
-        /// </summary>
-        public Vector3Tween() : base(LerpFunc) { }
-    }
-
-    /// <summary>
-    /// Object used to tween Vector4 values.
-    /// </summary>
-    public class Vector4Tween : Tween<Vector4>
-    {
-        // Static readonly delegate to avoid multiple delegate allocations
-        private static readonly LerpFunc<Vector4> LerpFunc = Vector4.Lerp;
-
-        /// <summary>
-        /// Initializes a new Vector4Tween instance.
-        /// </summary>
-        public Vector4Tween() : base(LerpFunc) { }
-    }
-
-    /// <summary>
-    /// Object used to tween Color values.
-    /// </summary>
-    public class ColorTween : Tween<Color>
-    {
-        // Static readonly delegate to avoid multiple delegate allocations
-        private static readonly LerpFunc<Color> LerpFunc = Color.Lerp;
-
-        /// <summary>
-        /// Initializes a new ColorTween instance.
-        /// </summary>
-        public ColorTween() : base(LerpFunc) { }
-    }
-
-    /// <summary>
-    /// Object used to tween Quaternion values.
-    /// </summary>
-    public class QuaternionTween : Tween<Quaternion>
-    {
-        // Static readonly delegate to avoid multiple delegate allocations
-        private static readonly LerpFunc<Quaternion> LerpFunc = Quaternion.Lerp;
-
-        /// <summary>
-        /// Initializes a new QuaternionTween instance.
-        /// </summary>
-        public QuaternionTween() : base(LerpFunc) { }
-    }
-#endif
-
     /// <summary>
     /// Defines a set of premade scale functions for use with tweens.
     /// </summary>
@@ -725,7 +675,7 @@ namespace Tools.Effects {
         /// </summary>
         public static readonly ScaleFunc SineEaseInOut = SineEaseInOutImpl;
 
-        private const float Pi = (float) Math.PI;
+        private const float Pi = (float)Math.PI;
         private const float HalfPi = Pi / 2f;
 
         private static float LinearImpl(float progress) {
@@ -781,34 +731,34 @@ namespace Tools.Effects {
         }
 
         private static float EaseInPower(float progress, int power) {
-            return (float) Math.Pow(progress, power);
+            return (float)Math.Pow(progress, power);
         }
 
         private static float EaseOutPower(float progress, int power) {
             int sign = power % 2 == 0 ? -1 : 1;
-            return (float) (sign * (Math.Pow(progress - 1, power) + sign));
+            return (float)(sign * (Math.Pow(progress - 1, power) + sign));
         }
 
         private static float EaseInOutPower(float progress, int power) {
             progress *= 2;
             if (progress < 1) {
-                return (float) Math.Pow(progress, power) / 2f;
+                return (float)Math.Pow(progress, power) / 2f;
             } else {
                 int sign = power % 2 == 0 ? -1 : 1;
-                return (float) (sign / 2.0 * (Math.Pow(progress - 2, power) + sign * 2));
+                return (float)(sign / 2.0 * (Math.Pow(progress - 2, power) + sign * 2));
             }
         }
 
         private static float SineEaseInImpl(float progress) {
-            return (float) Math.Sin(progress * HalfPi - HalfPi) + 1;
+            return (float)Math.Sin(progress * HalfPi - HalfPi) + 1;
         }
 
         private static float SineEaseOutImpl(float progress) {
-            return (float) Math.Sin(progress * HalfPi);
+            return (float)Math.Sin(progress * HalfPi);
         }
 
         private static float SineEaseInOutImpl(float progress) {
-            return (float) (Math.Sin(progress * Pi - HalfPi) + 1) / 2;
+            return (float)(Math.Sin(progress * Pi - HalfPi) + 1) / 2;
         }
     }
 }
