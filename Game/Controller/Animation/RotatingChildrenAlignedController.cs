@@ -22,17 +22,15 @@ namespace Veronenger.Game.Controller.Animation {
             Configure();
         }
 
-        public override void _PhysicsProcess(float delta) {
-            // var _speed = Tau / RotationDuration;
-            // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
-            var angle = _sequence.Update(delta);
-            RotateAligned(_platforms, angle, Radius);
-        }
-
         private void Configure() {
             _sequence = new TweenSequence(true);
             _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.QuadraticEaseInOut);
             _sequence.AddReverseAll();
+            _sequence.AutoUpdate(this, delegate(float angle) {
+                // var _speed = Tau / RotationDuration;
+                // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
+                RotateAligned(_platforms, angle, Radius);
+            });
 
             _platforms = FindAllChildren<PhysicsBody2D>(this);
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
@@ -43,7 +41,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Pause() {
-            _sequence.Pause();
+            _sequence.Dispose();
         }
     }
 }

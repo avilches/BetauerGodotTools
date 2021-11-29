@@ -20,16 +20,14 @@ namespace Veronenger.Game.Controller.Animation {
             Configure();
         }
 
-        public override void _PhysicsProcess(float delta) {
-            // var _speed = Tau / RotationDuration;
-            // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
-            var angle = _sequence.Update(delta);
-            RotateSpaced(_platforms, angle, Radius);
-        }
-
         private void Configure() {
             _sequence = new TweenSequence(true);
             _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear);
+            _sequence.AutoUpdate(this, delegate(float angle) {
+                // var _speed = Tau / RotationDuration;
+                // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
+                RotateSpaced(_platforms, angle, Radius);
+            });
 
             _platforms = PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
         }

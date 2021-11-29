@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using Godot;
 
 namespace Tools.Effects {
     public enum TweenReturn {
@@ -31,7 +32,7 @@ namespace Tools.Effects {
         restart
     }
 
-    public delegate TweenReturn TweenAction();
+    public delegate TweenReturn OnFinish();
 
     public interface IStep<T> {
         float GetCurrentValue();
@@ -42,15 +43,16 @@ namespace Tools.Effects {
         TweenState GetState();
         TweenReturn OnComplete();
         IStep<float> CreateReverse();
+        public delegate void OnUpdate(T value);
     }
 
     public abstract class TweenStep<T> : IStep<T> {
-        private static readonly TweenAction OnCompleteNext = () => TweenReturn.next;
+        private static readonly OnFinish OnCompleteNext = () => TweenReturn.next;
 
-        private readonly TweenAction _onComplete;
+        private readonly OnFinish _onComplete;
         private IStep<T> _stepImplementation;
 
-        protected TweenStep(TweenAction onComplete = null) {
+        protected TweenStep(OnFinish onComplete = null) {
             _onComplete = onComplete ?? OnCompleteNext;
         }
 
@@ -80,7 +82,7 @@ namespace Tools.Effects {
         private float _consumed;
         public TweenState State { get; private set; } = TweenState.Running;
 
-        public DelayTweenStep(float delay, float value, TweenAction onComplete = null) : base(onComplete) {
+        public DelayTweenStep(float delay, float value, OnFinish onComplete = null) : base(onComplete) {
             Delay = delay;
             CurrentValue = value;
         }
@@ -117,25 +119,45 @@ namespace Tools.Effects {
         public override IStep<float> CreateReverse() => new DelayTweenStep(Delay, CurrentValue, OnComplete);
     }
 
-    public class TweenSequence {
+    public class TweenSequence : Node {
         private List<IStep<float>> steps = new List<IStep<float>>();
 
         private int _pos = 0;
+        private bool _disposed = false;
         public bool Loop;
+        private IStep<float>.OnUpdate _onUpdate;
 
         public TweenSequence(bool loop = false) {
             Loop = loop;
         }
 
         public TweenSequence Add(float start, float end, int duration, ScaleFunc scaleFunc,
-            TweenAction onComplete = null) {
-            steps.Add(new FloatTweenStep(new FloatTween(start, end, duration, scaleFunc), onComplete));
+            OnFinish onComplete = null) {
+            if (!_disposed) {
+                steps.Add(new FloatTweenStep(new FloatTween(start, end, duration, scaleFunc), onComplete));
+            }
             return this;
         }
 
+        public TweenSequence AutoUpdate(Node owner, IStep<float>.OnUpdate onUpdate) {
+            if (!_disposed && onUpdate != null && _onUpdate == null) {
+                _onUpdate = onUpdate;
+                owner.AddChild(this);
+            }
+            return this;
+        }
 
-        public TweenSequence AddDelay(float delay, float value, TweenAction onComplete = null) {
-            steps.Add(new DelayTweenStep(delay, value, onComplete));
+        public override void _PhysicsProcess(float delta) {
+            if (!_disposed && _onUpdate != null) {
+                _onUpdate(Update(delta));
+            }
+        }
+
+
+        public TweenSequence AddDelay(float delay, float value, OnFinish onComplete = null) {
+            if (!_disposed) {
+                steps.Add(new DelayTweenStep(delay, value, onComplete));
+            }
             return this;
         }
 
@@ -144,19 +166,21 @@ namespace Tools.Effects {
         }
 
         public TweenSequence AddReverse(int elements = 1) {
-            elements = Godot.Mathf.Clamp(elements, 0, steps.Count);
-            var part = steps.GetRange(steps.Count - elements, elements);
-            part.Reverse();
-            part.ForEach(input => steps.Add(input.CreateReverse()));
+            if (!_disposed) {
+                elements = Godot.Mathf.Clamp(elements, 0, steps.Count);
+                var part = steps.GetRange(steps.Count - elements, elements);
+                part.Reverse();
+                part.ForEach(input => steps.Add(input.CreateReverse()));
+            }
             return this;
         }
 
         private IStep<float> CurrentStep => steps[_pos];
-        public float CurrentValue => CurrentStep.GetCurrentValue();
 
         private bool _end = false;
 
         public void Start() {
+            if (_disposed) return;
             if (_end) {
                 _end = false;
                 _pos = 0;
@@ -166,6 +190,7 @@ namespace Tools.Effects {
         }
 
         public void Restart() {
+            if (_disposed) return;
             _pos = 0;
             _end = false;
             CurrentStep.Reset();
@@ -173,19 +198,29 @@ namespace Tools.Effects {
         }
 
         public void Pause() {
+            if (_disposed) return;
             CurrentStep.Pause();
         }
 
         public float Update(float time) {
-            CurrentStep.Update(time);
-            if (CurrentStep.GetState() == TweenState.End) {
-                NextStep();
+            if (!_disposed) {
+                CurrentStep.Update(time);
+                if (CurrentStep.GetState() == TweenState.End) {
+                    NextStep();
+                }
             }
-
             return CurrentStep.GetCurrentValue();
         }
 
+        public void Dispose() {
+            if (_disposed) return;
+            _disposed = true;
+            Pause();
+            QueueFree();
+        }
+
         public void NextStep() {
+            if (_disposed) return;
             var ret = CurrentStep.OnComplete();
             switch (ret) {
                 case TweenReturn.next:
@@ -223,26 +258,26 @@ namespace Tools.Effects {
     }
 
     public class FloatTweenStep : TweenStep<float> {
-        private readonly FloatTween Tween;
+        private readonly FloatTween _tween;
 
-        public FloatTweenStep(FloatTween tween, TweenAction onComplete = null) : base(onComplete) {
-            Tween = tween;
+        public FloatTweenStep(FloatTween tween, OnFinish onComplete = null) : base(onComplete) {
+            _tween = tween;
         }
 
-        public override float GetCurrentValue() => Tween.CurrentValue;
+        public override float GetCurrentValue() => _tween.CurrentValue;
 
-        public override void Start() => Tween.Start();
+        public override void Start() => _tween.Start();
 
-        public override void Reset() => Tween.Reset();
+        public override void Reset() => _tween.Reset();
 
-        public override void Pause() => Tween.Pause();
+        public override void Pause() => _tween.Pause();
 
-        public override void Update(float time) => Tween.Update(time);
+        public override void Update(float time) => _tween.Update(time);
 
-        public override TweenState GetState() => Tween.State;
+        public override TweenState GetState() => _tween.State;
 
         public override IStep<float> CreateReverse() {
-            return new FloatTweenStep(Tween.CreateReverse(), OnComplete);
+            return new FloatTweenStep(_tween.CreateReverse(), OnComplete);
         }
     }
 
