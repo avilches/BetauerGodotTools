@@ -26,7 +26,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ConfigureStage(Area2D stageArea2D) {
-            _stageTopic.AddArea2D(stageArea2D);
+            _stageTopic.ListenSignalsOf(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);

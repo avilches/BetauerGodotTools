@@ -65,7 +65,7 @@ namespace Veronenger.Game.Managers {
             damageArea2D.CollisionMask = 0;
             damageArea2D.CollisionLayer = 0;
             damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
-            _playerAttackTopic.AddArea2D(damageArea2D);
+            _playerAttackTopic.ListenSignalsOf(damageArea2D);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

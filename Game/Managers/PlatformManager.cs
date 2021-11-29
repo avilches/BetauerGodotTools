@@ -81,7 +81,7 @@ namespace Veronenger.Game.Managers {
 
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
         private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");
-        private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.AddArea2D(area2D);
+        private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.ListenSignalsOf(area2D);
         public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) => _platformBodyOutTopic.Subscribe(enterListener);
 
     }
