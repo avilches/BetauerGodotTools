@@ -64,7 +64,7 @@ namespace Tools.Bus.Topics {
             Name = name;
         }
 
-        public void AddArea2D(Area2D area2DToListen) {
+        public void ListenSignalsOf(Area2D area2DToListen) {
             var binds = new Array { area2DToListen };
             area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this, nameof(_BodyEntered), binds);
             area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_exited, this, nameof(_BodyExited), binds);

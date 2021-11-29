@@ -37,22 +37,22 @@ namespace Veronenger.Game.Managers {
 
         public void ConfigureSlopeStairsDown(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _downTopic.AddArea2D(area2D);
+            _downTopic.ListenSignalsOf(area2D);
         }
 
         public void ConfigureSlopeStairsUp(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _upTopic.AddArea2D(area2D);
+            _upTopic.ListenSignalsOf(area2D);
         }
 
         public void ConfigureSlopeStairsEnabler(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _enablerTopic.AddArea2D(area2D);
+            _enablerTopic.ListenSignalsOf(area2D);
         }
 
         public void ConfigureSlopeStairsDisabler(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _disablerTopic.AddArea2D(area2D);
+            _disablerTopic.ListenSignalsOf(area2D);
         }
 
         public void SubscribeSlopeStairsDown(GodotListener<BodyOnArea2D> enterListener,

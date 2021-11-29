@@ -91,7 +91,7 @@ namespace Veronenger.Tests {
             Area2D area2D = CreateArea2D("slopeDown", 2000, 2000);
 
             BodyOnArea2DTopic topic = new BodyOnArea2DTopic("T");
-            topic.AddArea2D(area2D);
+            topic.ListenSignalsOf(area2D);
             topic.Subscribe(
                 new BodyOnArea2DListenerDelegate("Body", body, body, delegate(BodyOnArea2D @event) {
                     Assert.That(@event.Detected, Is.EqualTo(body));
@@ -153,7 +153,7 @@ namespace Veronenger.Tests {
             Area2D area2D = CreateArea2D("slopeDown", 2000, 2000);
 
             Area2DOnArea2DTopic topic = new Area2DOnArea2DTopic("T");
-            topic.AddArea2D(area2D);
+            topic.ListenSignalsOf(area2D);
             topic.Subscribe(
                 new Area2DOnArea2DListenerDelegate("From", from, from, delegate(Area2DOnArea2D @event) {
                     Assert.That(@event.Detected, Is.EqualTo(from));
@@ -217,7 +217,7 @@ namespace Veronenger.Tests {
             AddCollisionShape(area2D);
 
             Area2DShapeOnArea2DTopic topic = new Area2DShapeOnArea2DTopic("T");
-            topic.AddArea2D(area2D);
+            topic.ListenSignalsOf(area2D);
             List<int> enteredOriginShapes = new List<int>();
             List<int> exitedOriginShapes = new List<int>();
             topic.Subscribe(
