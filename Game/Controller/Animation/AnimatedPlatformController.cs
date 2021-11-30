@@ -23,9 +23,9 @@ namespace Veronenger.Game.Controller.Animation {
             UpdatePosition();
         }
 
-        private void bla() {
+        // private void bla() {
             // GD.Print("bla");
-        }
+        // }
 
         public void Configure() {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
@@ -33,12 +33,15 @@ namespace Veronenger.Game.Controller.Animation {
             _original = Position;
 
             TweenSequence seq = new TweenSequence(GetTree());
-            seq.append( this, nameof(follow), new Vector2(100, 0), 2).set_trans(Tween.TransitionType.Cubic);
-            seq.parallel().append( this, "modulate", new Color(1, 1, 1, 0), 2).set_trans(Tween.TransitionType.Cubic);
-            seq.append_callback( this, nameof(bla), new Array());
-            seq.append( this, nameof(follow), new Vector2(50, 0), 2).set_trans(Tween.TransitionType.Cubic);
-            seq.parallel().append( this, "modulate", new Color(1, 1, 1, 1), 2).set_trans(Tween.TransitionType.Cubic);
-            seq.set_loops();
+            seq.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
+                .SetTrans(Tween.TransitionType.Cubic);
+            // seq.AddCallback(this, nameof(bla), new Array());
+            // seq.AddCallback(delegate { GD.Print("callback"); });
+            // seq.AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 1);
+            seq.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
+            seq.SetLoops();
         }
 
         public void UpdatePosition() {

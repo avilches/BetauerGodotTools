@@ -1,45 +1,44 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Godot.Collections;
 using Array = Godot.Collections.Array;
-using Object = System.Object;
+using GodotObject = Godot.Object;
 
 namespace Tools.Effects {
-    public abstract class Tweener : Reference {
-        internal abstract void _start(Tween tween);
+    public interface Tweener {
+        public void _start(Tween tween);
     }
 
-    public class PropertyTweener : Tweener {
-        private readonly Godot.Object _target;
+    public class PropertyTweener<T> : Tweener {
+        private readonly GodotObject _target;
         private readonly NodePath _property;
-        private readonly object _to;
+        private readonly T _to;
         private readonly float _duration;
-        private object _from;
+        private T _from;
         Tween.TransitionType _trans;
         Tween.EaseType _ease;
 
         private float _delay;
         bool _continue = true;
-        public bool _advance = false;
+        public bool _relative = false;
 
-        public PropertyTweener(Godot.Object target, NodePath property, object to_value, float duration) {
+        // Sets custom starting value for the tweener.
+        // By default, it starts from value at the start of this tweener.
+        public PropertyTweener(GodotObject target, NodePath property, T to_value, float duration) {
             System.Diagnostics.Debug.Assert(target != null, "Invalid target Object.");
             _target = target;
             _property = property;
-            _from = _target.GetIndexed(property);
             _to = to_value;
+            _continue = true;
+            // _from is calculated when the tween start by default
             _duration = duration;
             _trans = Tween.TransitionType.Linear; // TRANS_LINEAR;
             _ease = Tween.EaseType.InOut; // EASE_IN_OUT;
-
-            // Sets custom starting value for the tweener.
-            // By default, it starts from value at the start of this tweener.
         }
 
         // Sets the starting value to the current value,
         // i.e. value at the time of creating sequence.
-        public PropertyTweener from(object val) {
+        public PropertyTweener<T> From(T val) {
             _from = val;
             _continue = false;
             return this;
@@ -47,59 +46,70 @@ namespace Tools.Effects {
 
         // Sets the starting value to the current value,
         // i.e. value at the time of creating sequence.
-        public PropertyTweener from_current() {
+        public PropertyTweener<T> FromCurrent() {
+            _from = (T)_target.GetIndexed(_property);
             _continue = false;
             return this;
-
-            // Sets transition type of this tweener, from Tween.TransitionType.
         }
 
-        public PropertyTweener set_trans(Tween.TransitionType t) {
+        // Sets transition type of this tweener, from Tween.TransitionType.
+        public PropertyTweener<T> SetTrans(Tween.TransitionType t) {
             _trans = t;
             return this;
-
-            // Sets ease type of this tweener, from Tween.EaseType.
         }
 
-        public PropertyTweener set_ease(Tween.EaseType e) {
+        // Sets ease type of this tweener, from Tween.EaseType.
+        public PropertyTweener<T> SetEase(Tween.EaseType e) {
             _ease = e;
             return this;
-
-            // Sets the delay after which this tweener will start.
         }
 
-        public PropertyTweener set_delay(float d) {
+        // Sets the delay after which this tweener will start.
+        public PropertyTweener<T> SetDelay(float d) {
             _delay = d;
             return this;
         }
 
-        internal override void _start(Tween tween) {
-            if (!IsInstanceValid(_target)) {
+        void Tweener._start(Tween tween) {
+            if (!GodotObject.IsInstanceValid(_target)) {
                 GD.PushWarning("Target object freed, aborting Tweener.");
                 return;
             }
             if (_continue) {
-                _from = _target.GetIndexed(_property);
+                _from = (T)_target.GetIndexed(_property);
             }
-            if (_advance) {
-                // tween.InterpolateProperty(_target, _property, _from, _from + _to, _duration, _trans, _ease,
-                // _delay);
+            object advancedTo = null;
+            if (_relative) {
+                if (_from is float fromFloat && _to is float toFloat) {
+                    advancedTo = fromFloat + toFloat;
+                } else if (_from is int fromInt && _to is int toInt) {
+                    advancedTo = fromInt + toInt;
+                } else if (_from is Color fromColor && _to is Color toColor) {
+                    advancedTo = fromColor + toColor;
+                } else if (_from is Vector2 fromVector2 && _to is Vector2 toVector2) {
+                    advancedTo = fromVector2 + toVector2;
+                } else if (_from is Vector3 fromVector3 && _to is Vector3 toVector3) {
+                    advancedTo = fromVector3 + toVector3;
+                }
+            }
+            if (advancedTo != null) {
+                tween.InterpolateProperty(_target, _property, _from, advancedTo, _duration, _trans, _ease,
+                    _delay);
             } else {
                 tween.InterpolateProperty(_target, _property, _from, _to, _duration, _trans, _ease, _delay);
-
-                // Generic tweener for creating delays in sequence.
             }
         }
     }
 
-    public class IntervalTweener : Tweener {
+    // Generic tweener for creating delays in sequence.
+    public class IntervalTweener : Reference, Tweener {
         private float _time;
 
         public IntervalTweener(float time) {
             _time = time;
         }
 
-        internal override void _start(Tween tween) {
+        public void _start(Tween tween) {
             tween.InterpolateCallback(this, _time, "_");
         }
 
@@ -108,26 +118,25 @@ namespace Tools.Effects {
     }
 
     public class CallbackTweener : Tweener {
-        Godot.Object _target;
+        GodotObject _target;
         float _delay;
         string _method;
-        Array _args;
+        object[] _args;
 
-        public CallbackTweener(Godot.Object target, string method, Array args) {
+        public CallbackTweener(GodotObject target, string method, params object[] args) {
             _target = target;
             _method = method;
             _args = args;
-
-            // Set delay after which the method will be called.
         }
 
-        public Tweener set_delay(float d) {
+        // Set delay after which the method will be called.
+        public Tweener SetDelay(float d) {
             _delay = d;
             return this;
         }
 
-        internal override void _start(Tween tween) {
-            if (!IsInstanceValid(_target)) {
+        public void _start(Tween tween) {
+            if (!GodotObject.IsInstanceValid(_target)) {
                 GD.PushWarning("Target object freed, aborting Tweener.");
                 return;
             }
@@ -136,28 +145,52 @@ namespace Tools.Effects {
                 SafeGetArg(3), SafeGetArg(4));
         }
 
-        public Object SafeGetArg(int i) {
-            if (i < _args.Count) {
-                return _args[i];
-            } else {
-                return null;
-                // Tweener for tweening arbitrary values using getter/setter method.
-            }
+        private object SafeGetArg(int i) {
+            return i < _args.Length ? _args[i] : null;
         }
     }
 
-    public class MethodTweener : Tweener {
-        Godot.Object _target;
+    public class CallbackDelegateTweener : GodotObject, Tweener {
+        public delegate void Callback();
+
+        private Callback _callback;
+        float _delay;
+
+        // Set delay after which the method will be called.
+        public Tweener SetDelay(float d) {
+            _delay = d;
+            return this;
+        }
+
+        public CallbackDelegateTweener(Callback callback) {
+            _callback = callback;
+        }
+
+        public void _start(Tween tween) {
+            if (!GodotObject.IsInstanceValid(this)) {
+                GD.PushWarning("Target object freed, aborting Tweener.");
+                return;
+            }
+            tween.InterpolateCallback(this, _delay, "_");
+        }
+
+        private void _() {
+            _callback();
+        }
+    }
+
+    public class MethodTweener<T> : GodotObject, Tweener {
+        GodotObject _target;
         string _method;
-        private Object _from;
-        private Object _to;
+        private T _from;
+        private T _to;
         float _duration;
         private Tween.TransitionType _trans;
         Tween.EaseType _ease;
 
         private float _delay;
 
-        public MethodTweener(Godot.Object target, string method, Object from_value, Object to_value,
+        public MethodTweener(GodotObject target, string method, T from_value, T to_value,
             float duration) {
             _target = target;
             _method = method;
@@ -166,41 +199,89 @@ namespace Tools.Effects {
             _duration = duration;
             _trans = Tween.TransitionType.Linear;
             _ease = Tween.EaseType.InOut;
-
-            // Sets transition type of this tweener, from Tween.TransitionType.
         }
 
-        public Tweener set_trans(Tween.TransitionType t) {
+        // Sets transition type of this tweener, from Tween.TransitionType.
+        public Tweener SetTrans(Tween.TransitionType t) {
             _trans = t;
             return this;
-
-            // Sets ease type of this tweener, from Tween.EaseType.
         }
 
-        public Tweener set_ease(Tween.EaseType e) {
+        // Sets ease type of this tweener, from Tween.EaseType.
+        public Tweener SetEase(Tween.EaseType e) {
             _ease = e;
             return this;
-
-            // Sets the delay after which this tweener will start.
         }
 
-        public Tweener set_delay(float d) {
+        // Sets the delay after which this tweener will start.
+        public Tweener SetDelay(float d) {
             _delay = d;
             return this;
         }
 
-        internal override void _start(Tween tween) {
-            if (!IsInstanceValid(_target)) {
+        public void _start(Tween tween) {
+            if (!GodotObject.IsInstanceValid(_target)) {
                 GD.PushWarning("Target object freed, aborting Tweener.");
                 return;
             }
             tween.InterpolateMethod(_target, _method, _from, _to, _duration, _trans, _ease, _delay);
-
-            // Emited when one step of the sequence is finished.
         }
     }
 
+    public class MethodDelegateTweener<T> : GodotObject, Tweener {
+        public delegate void MethodCallback(T value);
+
+        private MethodCallback _methodCallback;
+        private T _from;
+        private T _to;
+        float _duration;
+        private Tween.TransitionType _trans;
+        Tween.EaseType _ease;
+        private float _delay;
+
+        public MethodDelegateTweener(MethodCallback methodCallback, T from_value, T to_value, float duration) {
+            _methodCallback = methodCallback;
+            _from = from_value;
+            _to = to_value;
+            _duration = duration;
+            _trans = Tween.TransitionType.Linear;
+            _ease = Tween.EaseType.InOut;
+        }
+
+        // Sets transition type of this tweener, from Tween.TransitionType.
+        public Tweener SetTrans(Tween.TransitionType t) {
+            _trans = t;
+            return this;
+        }
+
+        // Sets ease type of this tweener, from Tween.EaseType.
+        public Tweener SetEase(Tween.EaseType e) {
+            _ease = e;
+            return this;
+        }
+
+        // Sets the delay after which this tweener will start.
+        public Tweener SetDelay(float d) {
+            _delay = d;
+            return this;
+        }
+
+        public void _start(Tween tween) {
+            if (!GodotObject.IsInstanceValid(this)) {
+                GD.PushWarning("Target object freed, aborting Tweener.");
+                return;
+            }
+            tween.InterpolateMethod(this, "_", _from, _to, _duration, _trans, _ease, _delay);
+        }
+
+        private void _(T value) {
+            _methodCallback(value);
+        }
+
+    }
+
     public class TweenSequence : Reference {
+        // Emited when one step of the sequence is finished.
         [Signal]
         delegate void step_finished(int idx);
 
@@ -208,7 +289,7 @@ namespace Tools.Effects {
         [Signal]
         delegate void loop_finished();
 
-        // Emitted when whole sequence is finished. Doesn't happen with inifnite loops.
+        // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
         [Signal]
         delegate void finished();
 
@@ -233,52 +314,332 @@ namespace Tools.Effects {
             _tree.Root.CallDeferred("add_child", _tween);
 
             var binds = new Array();
-            _tree.Connect("idle_frame", this, "start", binds, (uint)ConnectFlags.Oneshot);
-            _tween.Connect("tween_all_completed", this, "_step_complete");
+            _tree.Connect("idle_frame", this, nameof(Start), binds, (uint)ConnectFlags.Oneshot);
+            _tween.Connect("tween_all_completed", this, nameof(OnFinishTween));
         }
 
         // All Tweener-creating methods will return the Tweeners for further chained usage.
-        // Appends a PropertyTweener for tweening properties.
-        public PropertyTweener append(Godot.Object target, NodePath property, Object to_value, float duration) {
-            var tweener = new PropertyTweener(target, property, to_value, duration);
-            _add_tweener(tweener);
+
+        // Adds a PropertyTweener for tweening properties.
+        public PropertyTweener<float> Add(GodotObject target, NodePath property, float to_value, float duration) {
+            var tweener = new PropertyTweener<float>(target, property, to_value, duration);
+            AddTweener(tweener);
             return tweener;
         }
 
-        // Appends a PropertyTweener operating on relative values.
-        public PropertyTweener append_advance(Godot.Object target, NodePath property, Object by_value, float duration) {
-            var tweener = new PropertyTweener(target, property, by_value, duration);
-            tweener._advance = true;
-            _add_tweener(tweener);
+        public PropertyTweener<int> Add(GodotObject target, NodePath property, int to_value, float duration) {
+            var tweener = new PropertyTweener<int>(target, property, to_value, duration);
+            AddTweener(tweener);
             return tweener;
         }
 
-        // Appends an IntervalTweener for creating delay intervals.
-        public IntervalTweener append_interval(float time) {
-            var tweener = new IntervalTweener(time);
-            _add_tweener(tweener);
+        public PropertyTweener<bool> Add(GodotObject target, NodePath property, bool to_value, float duration) {
+            var tweener = new PropertyTweener<bool>(target, property, to_value, duration);
+            AddTweener(tweener);
             return tweener;
         }
 
-
-        // Appends a CallbackTweener for calling methods on target object.
-        public CallbackTweener append_callback(Godot.Object target, string method, Array args) {
-            var tweener = new CallbackTweener(target, method, args);
-            _add_tweener(tweener);
-            return tweener;
-        }
-
-        // Appends a MethodTweener for tweening arbitrary values using methods.
-        public MethodTweener append_method(Godot.Object target, string method, Object from_value, Object to_value,
+        public PropertyTweener<Vector2> Add(GodotObject target, NodePath property, Vector2 to_value,
             float duration) {
-            var tweener = new MethodTweener(target, method, from_value, to_value, duration);
-            _add_tweener(tweener);
+            var tweener = new PropertyTweener<Vector2>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Vector3> Add(GodotObject target, NodePath property, Vector3 to_value,
+            float duration) {
+            var tweener = new PropertyTweener<Vector3>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Rect2> Add(GodotObject target, NodePath property, Rect2 to_value, float duration) {
+            var tweener = new PropertyTweener<Rect2>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Transform2D> Add(GodotObject target, NodePath property, Transform2D to_value,
+            float duration) {
+            var tweener = new PropertyTweener<Transform2D>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Transform> Add(GodotObject target, NodePath property, Transform to_value,
+            float duration) {
+            var tweener = new PropertyTweener<Transform>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Quat> Add(GodotObject target, NodePath property, Quat to_value, float duration) {
+            var tweener = new PropertyTweener<Quat>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Basis> Add(GodotObject target, NodePath property, Basis to_value, float duration) {
+            var tweener = new PropertyTweener<Basis>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Color> Add(GodotObject target, NodePath property, Color to_value, float duration) {
+            var tweener = new PropertyTweener<Color>(target, property, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a PropertyTweener operating on relative values.
+        public PropertyTweener<float> AddOffset(GodotObject target, NodePath property, float offset,
+            float duration) {
+            var tweener = new PropertyTweener<float>(target, property, offset, duration);
+            tweener._relative = true;
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<int> AddOffset(GodotObject target, NodePath property, int offset, float duration) {
+            var tweener = new PropertyTweener<int>(target, property, offset, duration);
+            tweener._relative = true;
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Color> AddOffset(GodotObject target, NodePath property, Color offset,
+            float duration) {
+            var tweener = new PropertyTweener<Color>(target, property, offset, duration);
+            tweener._relative = true;
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Vector2> AddOffset(GodotObject target, NodePath property, Vector2 offset,
+            float duration) {
+            var tweener = new PropertyTweener<Vector2>(target, property, offset, duration);
+            tweener._relative = true;
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<Vector3> AddOffset(GodotObject target, NodePath property, Vector3 offset,
+            float duration) {
+            var tweener = new PropertyTweener<Vector3>(target, property, offset, duration);
+            tweener._relative = true;
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds an IntervalTweener for creating delay intervals.
+        public IntervalTweener AddInterval(float time) {
+            var tweener = new IntervalTweener(time);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+
+        // Adds a CallbackTweener for calling methods on target object.
+        public CallbackTweener AddCallback(GodotObject target, string method, params object[] args) {
+            var tweener = new CallbackTweener(target, method, args);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a CallbackTweener for calling methods on target object.
+        public CallbackDelegateTweener AddCallback(CallbackDelegateTweener.Callback callback) {
+            var tweener = new CallbackDelegateTweener(callback);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<float> AddMethod(GodotObject target, string method, float from_value, float to_value,
+            float duration) {
+            var tweener = new MethodTweener<float>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<int> AddMethod(GodotObject target, string method, int from_value, int to_value,
+            float duration) {
+            var tweener = new MethodTweener<int>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<bool> AddMethod(GodotObject target, string method, bool from_value, bool to_value,
+            float duration) {
+            var tweener = new MethodTweener<bool>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Vector2> AddMethod(GodotObject target, string method, Vector2 from_value,
+            Vector2 to_value,
+            float duration) {
+            var tweener = new MethodTweener<Vector2>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Vector3> AddMethod(GodotObject target, string method, Vector3 from_value,
+            Vector3 to_value,
+            float duration) {
+            var tweener = new MethodTweener<Vector3>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Rect2> AddMethod(GodotObject target, string method, Rect2 from_value, Rect2 to_value,
+            float duration) {
+            var tweener = new MethodTweener<Rect2>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Transform2D> AddMethod(GodotObject target, string method, Transform2D from_value,
+            Transform2D to_value,
+            float duration) {
+            var tweener = new MethodTweener<Transform2D>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Transform> AddMethod(GodotObject target, string method, Transform from_value,
+            Transform to_value,
+            float duration) {
+            var tweener = new MethodTweener<Transform>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Quat> AddMethod(GodotObject target, string method, Quat from_value, Quat to_value,
+            float duration) {
+            var tweener = new MethodTweener<Quat>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Basis> AddMethod(GodotObject target, string method, Basis from_value, Basis to_value,
+            float duration) {
+            var tweener = new MethodTweener<Basis>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodTweener<Color> AddMethod(GodotObject target, string method, Color from_value, Color to_value,
+            float duration) {
+            var tweener = new MethodTweener<Color>(target, method, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<float> AddMethod(MethodDelegateTweener<float>.MethodCallback methodCallback, float from_value, float to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<float>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<int> AddMethod(MethodDelegateTweener<int>.MethodCallback methodCallback, int from_value, int to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<int>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<bool> AddMethod(MethodDelegateTweener<bool>.MethodCallback methodCallback, bool from_value, bool to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<bool>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Vector2> AddMethod(MethodDelegateTweener<Vector2>.MethodCallback methodCallback, Vector2 from_value,
+            Vector2 to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Vector2>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Vector3> AddMethod(MethodDelegateTweener<Vector3>.MethodCallback methodCallback, Vector3 from_value,
+            Vector3 to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Vector3>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Rect2> AddMethod(MethodDelegateTweener<Rect2>.MethodCallback methodCallback, Rect2 from_value, Rect2 to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Rect2>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Transform2D> AddMethod(MethodDelegateTweener<Transform2D>.MethodCallback methodCallback, Transform2D from_value,
+            Transform2D to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Transform2D>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Transform> AddMethod(MethodDelegateTweener<Transform>.MethodCallback methodCallback, Transform from_value,
+            Transform to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Transform>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Quat> AddMethod(MethodDelegateTweener<Quat>.MethodCallback methodCallback, Quat from_value, Quat to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Quat>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Basis> AddMethod(MethodDelegateTweener<Basis>.MethodCallback methodCallback, Basis from_value, Basis to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Basis>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        // Adds a MethodTweener for tweening arbitrary values using methods.
+        public MethodDelegateTweener<Color> AddMethod(MethodDelegateTweener<Color>.MethodCallback methodCallback, Color from_value, Color to_value,
+            float duration) {
+            var tweener = new MethodDelegateTweener<Color>(methodCallback, from_value, to_value, duration);
+            AddTweener(tweener);
             return tweener;
         }
 
         // When used, next Tweener will be added as a parallel to previous one.
         // Example: sequence.parallel().append(...)
-        public TweenSequence parallel() {
+        public TweenSequence Parallel() {
             if (_tweeners.Count == 0) {
                 _tweeners.Add(new List<Tweener>(3));
             }
@@ -287,7 +648,7 @@ namespace Tools.Effects {
         }
 
         // Alias to parallel(), except it won't work without first tweener.
-        public TweenSequence join() {
+        public TweenSequence Join() {
             System.Diagnostics.Debug.Assert(_tweeners.Count == 0, "Cant join with empty sequence!");
             _parallel = true;
             return this;
@@ -295,21 +656,21 @@ namespace Tools.Effects {
 
 
         // Sets the speed scale of tweening.
-        public TweenSequence set_speed(float speed) {
+        public TweenSequence SetSpeed(float speed) {
             _tween.PlaybackSpeed = speed;
             return this;
         }
 
         // Sets how many the sequence should repeat.
         // When used without arguments, sequence will run infinitely.
-        public TweenSequence set_loops(int loops = -1) {
+        public TweenSequence SetLoops(int loops = -1) {
             _loops = loops;
             return this;
         }
 
         // Whether the sequence should autostart || not.
         // Enabled by default.
-        public TweenSequence set_autostart(bool autostart) {
+        public TweenSequence SetAutostart(bool autostart) {
             if (_autostart && !autostart) {
                 _tree.Disconnect("idle_frame", this, "start");
             } else if (!_autostart && autostart) {
@@ -321,43 +682,40 @@ namespace Tools.Effects {
         }
 
         // Starts the sequence manually, unless it"s already started.
-        public void start() {
+        public void Start() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             System.Diagnostics.Debug.Assert(!_started, "Sequence already started!");
             _started = true;
             _running = true;
-            _run_next_step();
+            RunNextStep();
         }
 
         // Returns whether the sequence is currently running.
-        public bool is_running() {
+        public bool IsRunning() {
             return _running;
-
         }
 
         // Pauses the execution of the tweens.
-        public void pause() {
+        public void Pause() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             System.Diagnostics.Debug.Assert(_running, "Sequence !running!");
             _tween.StopAll();
             _running = false;
-
         }
 
         // Resumes the execution of the tweens.
-        public void resume() {
+        public void Resume() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             System.Diagnostics.Debug.Assert(!_running, "Sequence already running!");
             _tween.ResumeAll();
             _running = true;
-
         }
 
         // Stops the sequence && resets it to the beginning.
-        public void reset() {
+        public void Reset() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             if (_running) {
-                pause();
+                Pause();
             }
             _started = false;
             _current_step = 0;
@@ -365,22 +723,21 @@ namespace Tools.Effects {
         }
 
         // Frees the underlying Tween. Sequence is unusable after this operation.
-        public void kill() {
+        public void Kill() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was already removed!");
             if (_running) {
-                pause();
+                Pause();
             }
             _tween.QueueFree();
-
         }
 
         // Whether the Tween should be freed when sequence finishes.
         // Default is true. If set to false, sequence will restart on end.
-        public void set_autokill(bool autokill) {
+        public void SetAutokill(bool autokill) {
             _kill_when_finised = autokill;
         }
 
-        public void _add_tweener(Tweener tweener) {
+        public void AddTweener(Tweener tweener) {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             System.Diagnostics.Debug.Assert(!_started, "Can't append to a started sequence!");
             if (!_parallel) {
@@ -390,7 +747,7 @@ namespace Tools.Effects {
             _parallel = false;
         }
 
-        public void _run_next_step() {
+        public void RunNextStep() {
             System.Diagnostics.Debug.Assert(_tweeners.Count != 0, "Sequence has no steps!");
             var group = _tweeners[_current_step];
             foreach (var tweener in group) {
@@ -399,26 +756,26 @@ namespace Tools.Effects {
             _tween.Start();
         }
 
-        public void _step_complete() {
-            EmitSignal("step_finished", _current_step);
+        public void OnFinishTween() {
+            EmitSignal(nameof(step_finished), _current_step);
             _current_step += 1;
 
             if (_current_step == _tweeners.Count) {
                 _loops -= 1;
                 if (_loops == -1) {
-                    EmitSignal("finished");
+                    EmitSignal(nameof(finished));
                     if (_kill_when_finised) {
-                        kill();
+                        Kill();
                     } else {
-                        reset();
+                        Reset();
                     }
                 } else {
-                    EmitSignal("loop_finished");
+                    EmitSignal(nameof(loop_finished));
                     _current_step = 0;
-                    _run_next_step();
+                    RunNextStep();
                 }
             } else {
-                _run_next_step();
+                RunNextStep();
             }
         }
     }
