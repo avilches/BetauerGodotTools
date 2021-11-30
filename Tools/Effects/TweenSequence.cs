@@ -293,13 +293,12 @@ namespace Tools.Effects {
         [Signal]
         delegate void finished();
 
-        public SceneTree _tree;
         public Tween _tween;
         public List<List<Tweener>> _tweeners = new List<List<Tweener>>(10);
 
         public int _current_step = 0;
         public int _loops = 0;
-        public bool _autostart = true;
+        public bool _autostart = false;
         public bool _started = false;
         public bool _running = false;
 
@@ -307,18 +306,17 @@ namespace Tools.Effects {
         public bool _parallel = false;
 
         // You need to provide SceneTree to be used by the sequence.
-        public TweenSequence(SceneTree tree) {
-            _tree = tree;
+        public TweenSequence(Node node, bool startNextFrame = false) {
             _tween = new Tween();
-            _tween.SetMeta("sequence", this);
-            _tree.Root.CallDeferred("add_child", _tween);
-
-            var binds = new Array();
-            _tree.Connect("idle_frame", this, nameof(Start), binds, (uint)ConnectFlags.Oneshot);
+            // _tween.SetMeta("sequence", this);
+            // node.CallDeferred("add_child", _tween);
+            node.AddChild(_tween);
+            if (startNextFrame) {
+                var binds = new Array();
+                node.GetTree().Connect("idle_frame", this, nameof(Start), binds, (uint)ConnectFlags.Oneshot);
+            }
             _tween.Connect("tween_all_completed", this, nameof(OnFinishTween));
         }
-
-        // All Tweener-creating methods will return the Tweeners for further chained usage.
 
         // Adds a PropertyTweener for tweening properties.
         public PropertyTweener<float> Add(GodotObject target, NodePath property, float to_value, float duration) {
@@ -668,19 +666,6 @@ namespace Tools.Effects {
             return this;
         }
 
-        // Whether the sequence should autostart || not.
-        // Enabled by default.
-        public TweenSequence SetAutostart(bool autostart) {
-            if (_autostart && !autostart) {
-                _tree.Disconnect("idle_frame", this, "start");
-            } else if (!_autostart && autostart) {
-                var binds = new Array();
-                _tree.Connect("idle_frame", this, "start", binds, (uint)ConnectFlags.Oneshot);
-            }
-            _autostart = autostart;
-            return this;
-        }
-
         // Starts the sequence manually, unless it"s already started.
         public void Start() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
@@ -756,7 +741,7 @@ namespace Tools.Effects {
             _tween.Start();
         }
 
-        public void OnFinishTween() {
+        private void OnFinishTween() {
             EmitSignal(nameof(step_finished), _current_step);
             _current_step += 1;
 

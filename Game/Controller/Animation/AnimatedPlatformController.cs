@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            TweenSequence seq = new TweenSequence(GetTree());
+            TweenSequence seq = new TweenSequence(this);
             seq.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
             seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
                 .SetTrans(Tween.TransitionType.Cubic);
@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.Animation {
             // seq.AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 1);
             seq.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
             seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
-            seq.SetLoops();
+            seq.SetLoops().Start();
         }
 
         public void UpdatePosition() {
