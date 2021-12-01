@@ -26,14 +26,14 @@ namespace Tools.Bus {
         }
 
         public virtual bool IsDisposed() {
-            if (!GodotTools.IsDisposed(Owner)) return false;
+            if (!Object.IsInstanceValid(Owner)) return false;
             Debug($"Disposed. Owner: {GetNodeInfo(Owner)}");
             return true;
         }
 
         protected static string GetNodeInfo(Node node) {
             if (node == null) return "all";
-            var nodeName = GodotTools.IsDisposed(node) ? "(disposed)" : $"\"{node.Name}\"";
+            var nodeName = Object.IsInstanceValid(node) ? "(disposed)" : $"\"{node.Name}\"";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
@@ -53,7 +53,7 @@ namespace Tools.Bus {
 
         public override bool IsDisposed() {
             if (base.IsDisposed()) return true;
-            if (!GodotTools.IsDisposed(Filter)) return false;
+            if (!Object.IsInstanceValid(Filter)) return false;
             Debug($"Disposed. Filter: {GetNodeInfo(Filter)}");
             return true;
         }

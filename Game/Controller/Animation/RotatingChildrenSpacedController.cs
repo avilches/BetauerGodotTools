@@ -27,7 +27,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence = new TinyTweenSequence(true);
             _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear,
                 delegate(float angle) {
-                    RotateSpaced(_platforms, angle, Radius);
+                    AnimationTools.RotateSpaced(_platforms, angle, Radius);
                 }
             );
             _sequence.AutoUpdate(this);

@@ -29,7 +29,7 @@ namespace Veronenger.Game.Controller.Animation {
             _sequence.AutoUpdate(this, delegate(float angle) {
                 // var _speed = Tau / RotationDuration;
                 // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
-                RotateAligned(_platforms, angle, Radius);
+                AnimationTools.RotateAligned(_platforms, angle, Radius);
             });
 
             _platforms = FindAllChildren<PhysicsBody2D>(this);

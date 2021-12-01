@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Object = Godot.Object;
 
 namespace Tools.Statemachine {
     public class Context {
@@ -82,7 +81,7 @@ namespace Tools.Statemachine {
         private const int MaxChanges = 2;
         public readonly Logger Logger;
         public readonly string Name;
-        public readonly Node Owner;
+        public readonly Node Owner; // Node Owner is needed to setup the state Timer
         private bool _disposed = false;
 
         internal readonly Dictionary<string, State> States = new Dictionary<string, State>();

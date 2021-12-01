@@ -4,11 +4,7 @@ using Godot;
 using static Godot.Mathf;
 
 namespace Tools {
-    public delegate void BodyOnArea2DSignalMethod(Node body, Area2D area2D);
-
     public class GodotTools {
-        public static bool IsDisposed(Object @object) => @object != null && @object.NativeInstance == System.IntPtr.Zero;
-
         public static T FindChild<T>(Node parent) where T : class {
             var nodes = parent.GetChildren();
             var count = nodes.Count;
@@ -36,12 +32,15 @@ namespace Tools {
 
             return children;
         }
+    }
 
+    public static class AnimationTools {
         /*
          * Alinea las plataformas como si fueran una aguja de un reloj y la gira. La primera primera plataforma
          * mantiene su posicion y las demás se van espaciando hasta llegar al radius
          */
-        public static void RotateAligned(List<PhysicsBody2D> nodes, float angle, float radius, float initialOffset = 20) {
+        public static void RotateAligned(List<PhysicsBody2D> nodes, float angle, float radius,
+            float initialOffset = 20) {
             var count = nodes.Count;
             var spacing = radius / count;
             for (var i = 0; i < count; i++) {
@@ -66,6 +65,5 @@ namespace Tools {
                 nodes[i].Position = newPos;
             }
         }
-
     }
 }
