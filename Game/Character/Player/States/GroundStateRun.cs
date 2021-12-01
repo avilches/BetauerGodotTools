@@ -4,9 +4,10 @@ using Veronenger.Game.Controller.Character;
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateRun : GroundState {
         private static readonly StateConfig ConfigWithCoyoteJumpEnabled =
-            new StateConfig().AddFlag(AirStateFallShort.COYOTE_JUMP_ENABLED_KEY);
+            new StateConfig().AddFlag(CoyoteJumpEnabledKey);
 
-        public GroundStateRun(PlayerController player) : base(player) {
+
+        public GroundStateRun(string name, PlayerController player) : base(name, player) {
         }
 
         public override void Start(Context context) {
@@ -17,18 +18,18 @@ namespace Veronenger.Game.Character.Player.States {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                return context.Immediate(typeof(AirStateFallShort), ConfigWithCoyoteJumpEnabled);
+                return context.Immediate(StateFallShort, ConfigWithCoyoteJumpEnabled);
             }
 
             if (XInput == 0 && Motion.x == 0) {
-                return context.Immediate(typeof(GroundStateIdle));
+                return context.Immediate(StateIdle);
             }
 
             if (Jump.JustPressed) {
                 if (IsDown && Body.IsOnFallingPlatform()) {
                     PlatformManager.BodyFallFromPlatform(Player);
                 } else {
-                    return context.Immediate(typeof(AirStateJump));
+                    return context.Immediate(StateJump);
                 }
             }
 

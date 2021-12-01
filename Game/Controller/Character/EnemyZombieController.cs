@@ -34,11 +34,11 @@ namespace Veronenger.Game.Controller.Character {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
             _stateMachine = new StateMachine(this, _name)
-                .AddState(new GroundStatePatrolStep(this))
-                .AddState(new GroundStatePatrolWait(this))
-                .AddState(new GroundStateIdle(this))
-                .AddState(new ZombieAttacked(this))
-                .SetNextState(typeof(GroundStateIdle));
+                .AddState(new ZombieStatePatrolStep(ZombieState.PatrolStep, this))
+                .AddState(new ZombieStatePatrolWait(ZombieState.PatrolWait, this))
+                .AddState(new ZombieStateIdle(ZombieState.Idle, this))
+                .AddState(new ZombieStateAttacked(ZombieState.Attacked, this))
+                .SetNextState(ZombieState.Idle);
         }
 
         public override void Ready() {
@@ -123,7 +123,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.SetNextState(typeof(ZombieAttacked), new StateConfig().Add(ZombieAttacked.PLAYER_KEY, playerController));
+            _stateMachine.SetNextState(ZombieState.Attacked, new StateConfig().Add(ZombieStateAttacked.PLAYER_KEY, playerController));
         }
     }
 }

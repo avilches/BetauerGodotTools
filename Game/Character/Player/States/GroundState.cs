@@ -2,7 +2,7 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class GroundState : PlayerState {
-        public GroundState(PlayerController player) : base(player) {
+        protected GroundState(string name, PlayerController player) : base(name, player) {
         }
 
         protected bool CheckAttack() {

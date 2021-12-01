@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Animation {
         private Vector2 _original;
         public Vector2 follow;
 
-        public override void _EnterTree() {
+        public override void Ready() {
             Configure();
         }
 

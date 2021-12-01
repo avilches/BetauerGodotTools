@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Tools;
 using Veronenger.Game.Managers;
@@ -10,7 +9,7 @@ namespace Veronenger.Game.Controller.Stage {
         [Export(PropertyHint.File, "*.tscn")] private string nextScene;
 
 
-        public override void _EnterTree() {
+        public override void Ready() {
             CharacterManager.ConfigureSceneChange(this, nextScene);
         }
     }

@@ -2,9 +2,8 @@ using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Enemy.States {
-    public class GroundStateIdle : GroundState {
-
-        public GroundStateIdle(EnemyZombieController enemyZombie) : base(enemyZombie) {
+    public class ZombieStateIdle : ZombieState {
+        public ZombieStateIdle(string name, EnemyZombieController enemyZombie) : base(name, enemyZombie) {
         }
 
         public override void Start(Context context) {
@@ -24,7 +23,7 @@ namespace Veronenger.Game.Character.Enemy.States {
             }
 
             Body.MoveSnapping();
-            return context.ImmediateIfElapsed(2, typeof(GroundStatePatrolStep));
+            return context.ImmediateIfElapsed(2, PatrolStep);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Animation {
         private float _angle = 0;
         private float _speed;
 
-        public override void _EnterTree() {
+        public override void Ready() {
             Configure();
         }
 

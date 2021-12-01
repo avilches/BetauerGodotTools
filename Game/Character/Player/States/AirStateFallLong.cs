@@ -4,7 +4,7 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateFallLong : AirState {
-        public AirStateFallLong(PlayerController player) : base(player) {
+        public AirStateFallLong(string name, PlayerController player) : base(name, player) {
         }
 
         public override void Start(Context context) {
@@ -19,7 +19,7 @@ namespace Veronenger.Game.Character.Player.States {
             CheckAttack();
 
             if (CheckCoyoteJump()) {
-                return context.Immediate(typeof(AirStateJump));
+                return context.Immediate(StateJump);
             }
 
             Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,

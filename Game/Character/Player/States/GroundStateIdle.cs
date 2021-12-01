@@ -4,7 +4,7 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class GroundStateIdle : GroundState {
-        public GroundStateIdle(PlayerController player) : base(player) {
+        public GroundStateIdle(string name, PlayerController player) : base(name, player) {
         }
 
         public override void Start(Context context) {
@@ -17,18 +17,18 @@ namespace Veronenger.Game.Character.Player.States {
             CheckAttack();
 
             if (!Player.IsOnFloor()) {
-                return context.NextFrame(typeof(AirStateFallShort));
+                return context.NextFrame(StateFallShort);
             }
 
             if (XInput != 0) {
-                return context.Immediate(typeof(GroundStateRun));
+                return context.Immediate(StateRun);
             }
 
             if (Jump.JustPressed) {
                 if (IsDown && Body.IsOnFallingPlatform()) {
                     PlatformManager.BodyFallFromPlatform(Player);
                 } else {
-                    return context.Immediate(typeof(AirStateJump));
+                    return context.Immediate(StateJump);
                 }
             }
 

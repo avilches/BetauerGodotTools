@@ -15,7 +15,7 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class GameManager : Node /* needed to receive _EnterTree and OnScreenResized signals */ {
+    public class GameManager : Node /* needed to receive _Ready and OnScreenResized signals */ {
         private ScreenManager ScreenManager;
         [Inject] public StageManager StageManager;
 
@@ -27,7 +27,7 @@ namespace Veronenger.Game.Managers {
 
         public bool IsRunningTests = false;
 
-        public override void _EnterTree() {
+        public override void _Ready() {
             ConfigureScreen();
         }
 

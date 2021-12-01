@@ -9,7 +9,7 @@ namespace Veronenger.Game.Controller.Platforms {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool IsMovingPlatform = false;
 
-        public override void _EnterTree() {
+        public override void Ready() {
             Configure();
         }
 

@@ -43,12 +43,12 @@ namespace Veronenger.Game.Controller.Character {
             PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
             PlayerActions.ConfigureMapping();
             _stateMachine = new StateMachine(this, _name)
-                .AddState(new GroundStateIdle(this))
-                .AddState(new GroundStateRun(this))
-                .AddState(new AirStateFallShort(this))
-                .AddState(new AirStateFallLong(this))
-                .AddState(new AirStateJump(this))
-                .SetNextState(typeof(GroundStateIdle));
+                .AddState(new GroundStateIdle(PlayerState.StateIdle, this))
+                .AddState(new GroundStateRun(PlayerState.StateRun, this))
+                .AddState(new AirStateFallShort(PlayerState.StateFallShort, this))
+                .AddState(new AirStateFallLong(PlayerState.StateFallLong, this))
+                .AddState(new AirStateJump(PlayerState.StateJump, this))
+                .SetNextState(PlayerState.StateIdle);
         }
 
         public LoopAnimationStatus AnimationIdle { get; private set; }

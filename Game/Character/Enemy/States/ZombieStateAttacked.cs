@@ -2,13 +2,13 @@ using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Enemy.States {
-    public class ZombieAttacked : GroundState {
+    public class ZombieStateAttacked : ZombieState {
 
         public static string PLAYER_KEY = "player";
 
         private PlayerController _player;
 
-        public ZombieAttacked(EnemyZombieController enemyZombie) : base(enemyZombie) {
+        public ZombieStateAttacked(string name, EnemyZombieController enemyZombie) : base(name, enemyZombie) {
         }
 
         public override void Start(Context context) {

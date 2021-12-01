@@ -3,7 +3,8 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public abstract class AirState : PlayerState {
-        public AirState(PlayerController player) : base(player) {
+
+        protected AirState(string name, PlayerController player) : base(name, player) {
         }
 
         protected NextState CheckLanding(Context context) {
@@ -16,7 +17,7 @@ namespace Veronenger.Game.Character.Player.States {
                 Player.FallingJumpTimer.Stop();
                 if (Player.FallingJumpTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
                     DebugJumpHelper($"{Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!");
-                    return context.Immediate(typeof(AirStateJump));
+                    return context.Immediate(StateJump);
                 }
                 DebugJumpHelper($"{Player.FallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME");
             }
@@ -27,9 +28,9 @@ namespace Veronenger.Game.Character.Player.States {
                     // Evita resbalarse hacia abajo al caer sobre un slope
                     Body.SetMotionX(0);
                 }
-                return context.Immediate(typeof(GroundStateIdle));
+                return context.Immediate(StateIdle);
             }
-            return context.Immediate(typeof(GroundStateRun));
+            return context.Immediate(StateRun);
         }
 
         protected bool CheckAttack() {

@@ -3,7 +3,7 @@ using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Player.States {
     public class AirStateJump : AirState {
-        public AirStateJump(PlayerController player) : base(player) {
+        public AirStateJump(string name, PlayerController player) : base(name, player) {
         }
 
         public override void Start(Context context) {
@@ -26,7 +26,7 @@ namespace Veronenger.Game.Character.Player.States {
             Body.Fall();
 
             if (Motion.y >= 0) {
-                return context.Immediate(typeof(AirStateFallShort));
+                return context.Immediate(StateFallShort);
             }
 
             return CheckLanding(context);

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Object = Godot.Object;
 
 namespace Tools.Statemachine {
     public class Context {
         public readonly StateMachine StateMachine;
         public readonly Timer StateTimer;
         public Node Owner => StateMachine.Owner;
-
         public State FromState { get; private set; }
         public State CurrentState { get; private set; }
         public StateConfig Config { get; private set; }
@@ -34,32 +34,34 @@ namespace Tools.Statemachine {
             FrameCount++;
         }
 
-        public NextState NextFrame(Type state, StateConfig config = null) {
-            return new NextState(StateMachine, state, false, config);
+        public NextState NextFrame(string name, StateConfig config = null) {
+            State state = StateMachine.GetState(name);
+            return new NextState(state, false, config);
         }
 
-        public NextState Immediate(Type state, StateConfig config = null) {
-            return new NextState(StateMachine, state, true, config);
+        public NextState Immediate(string name, StateConfig config = null) {
+            State state = StateMachine.GetState(name);
+            return new NextState(state, true, config);
         }
 
         public NextState Current() {
-            return new NextState(StateMachine, CurrentState.GetType(), true);
+            return new NextState(CurrentState, true);
         }
 
-        public NextState ImmediateIfAlarm(Type type, StateConfig config = null) {
-            return StateTimer.IsAlarm() ? Immediate(type, config) : Current();
+        public NextState ImmediateIfAlarm(string name, StateConfig config = null) {
+            return StateTimer.IsAlarm() ? Immediate(name, config) : Current();
         }
 
-        public NextState ImmediateIfElapsed(float elapsed, Type type, StateConfig config = null) {
-            return StateTimer.Elapsed > elapsed ? Immediate(type, config) : Current();
+        public NextState ImmediateIfElapsed(float elapsed, string name, StateConfig config = null) {
+            return StateTimer.Elapsed > elapsed ? Immediate(name, config) : Current();
         }
 
-        public NextState NextFrameIfAlarm(Type type, StateConfig config = null) {
-            return StateTimer.IsAlarm() ? NextFrame(type, config) : Current();
+        public NextState NextFrameIfAlarm(string name, StateConfig config = null) {
+            return StateTimer.IsAlarm() ? NextFrame(name, config) : Current();
         }
 
-        public NextState NextFrameIfElapsed(float elapsed, Type type, StateConfig config = null) {
-            return StateTimer.Elapsed > elapsed ? NextFrame(type, config) : Current();
+        public NextState NextFrameIfElapsed(float elapsed, string name, StateConfig config = null) {
+            return StateTimer.Elapsed > elapsed ? NextFrame(name, config) : Current();
         }
     }
 
@@ -68,16 +70,8 @@ namespace Tools.Statemachine {
         public readonly bool IsImmediate;
         public readonly StateConfig Config;
 
-        internal NextState(StateMachine stateMachine, Type stateType, bool isImmediate) {
-            State = stateMachine.States[stateType];
-            if (State == null) throw new Exception("State " + stateType.Name + " not found in StateMachine");
-            IsImmediate = isImmediate;
-            Config = null;
-        }
-
-        internal NextState(StateMachine stateMachine, Type stateType, bool isImmediate, StateConfig config) {
-            State = stateMachine.States[stateType];
-            if (State == null) throw new Exception("State " + stateType.Name + " not found in StateMachine");
+        internal NextState(State state, bool isImmediate, StateConfig config = null) {
+            State = state;
             IsImmediate = isImmediate;
             Config = config;
         }
@@ -91,7 +85,7 @@ namespace Tools.Statemachine {
         public readonly Node Owner;
         private bool _disposed = false;
 
-        internal readonly Dictionary<Type, State> States = new Dictionary<Type, State>();
+        internal readonly Dictionary<string, State> States = new Dictionary<string, State>();
 
         private NextState NextState { get; set; }
         private readonly Context _currentContext;
@@ -103,17 +97,18 @@ namespace Tools.Statemachine {
             Logger = LoggerFactory.GetLogger(name, "StateMachine");
         }
 
-        public void Debug(string message) => Logger.Debug(message);
-
         public StateMachine AddState(State state) {
-            States[state.GetType()] = state;
+            States[state.Name] = state;
             state.OnAddedToStateMachine(this);
             return this;
         }
 
-        public StateMachine SetNextState(Type nextState, StateConfig config = null) {
-            if (_disposed) return this;
-            NextState = new NextState(this, nextState, true, config);
+        public State GetState(string stateTypeName) {
+            return States[stateTypeName];
+        }
+
+        public StateMachine SetNextState(string nextState, StateConfig config = null) {
+            NextState = _currentContext.NextFrame(nextState, config);
             return this;
         }
 
@@ -121,11 +116,12 @@ namespace Tools.Statemachine {
             if (_disposed) return;
             if (NextState.State == null)
                 throw new Exception(
-                    "Please, initialize the state machine with the next state, even if the next state is the same as the current one");
+                    "Please, initialize the state machine with the next state");
             _Execute(delta, _currentContext.CurrentState, NextState, new List<string>());
         }
 
-        private void _Execute(float delta, State initialState, NextState nextState, List<string> immediateChanges) {
+        private void _Execute(float delta, State initialState, NextState nextState,
+            List<string> immediateChanges) {
             if (_disposed) return;
             _EndPreviousStateIfNeeded(nextState);
             _StartNextStateIfNeeded(initialState, nextState, immediateChanges);
@@ -141,13 +137,13 @@ namespace Tools.Statemachine {
         private void _EndPreviousStateIfNeeded(NextState nextState) {
             if (_disposed) return;
             if (_currentContext.CurrentState == null || _currentContext.CurrentState == nextState.State) return;
-            if (!StateHelper.HasEndImplemented(_currentContext.CurrentState)) return;
             // End the current state
             Logger.Debug($"End: \"{_currentContext.CurrentState.Name}\"");
             _currentContext.CurrentState.End();
         }
 
-        private void _StartNextStateIfNeeded(State initialState, NextState nextState, List<string> immediateChanges) {
+        private void _StartNextStateIfNeeded(State initialState, NextState nextState,
+            List<string> immediateChanges) {
             if (_disposed) return;
             if (_currentContext.CurrentState == nextState.State) return;
             // Change the current state
@@ -160,7 +156,6 @@ namespace Tools.Statemachine {
             _currentContext.Reset(nextState.State, fromState, nextState.Config ?? _emptyConfig);
 
             // Start the new state
-            if (!StateHelper.HasStartImplemented(_currentContext.CurrentState)) return;
             Logger.Debug($"Start: \"{nextState.State.Name}\"");
             nextState.State.Start(_currentContext);
         }

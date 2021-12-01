@@ -18,7 +18,7 @@ namespace Veronenger.Game.Controller.Animation {
         private List<PhysicsBody2D> _platforms;
         private TinyTweenSequence _sequence;
 
-        public override void _EnterTree() {
+        public override void Ready() {
             Configure();
         }
 

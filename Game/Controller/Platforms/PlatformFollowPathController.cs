@@ -11,7 +11,7 @@ namespace Veronenger.Game.Controller.Platforms {
 
 		private Vector2 _original;
 
-		public override void _EnterTree() {
+		public override void Ready() {
 			Configure();
 		}
 

@@ -18,7 +18,7 @@ namespace Veronenger.Game.Controller.Stage {
     public class StageListController : DiNode {
         [Inject] public StageManager StageManager;
 
-        public override void _EnterTree() {
+        public override void Ready() {
             foreach (var node in GetChildren()) {
                 if (node is Area2D area2D) {
                     ValidateStageArea2D(area2D);

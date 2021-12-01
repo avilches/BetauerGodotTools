@@ -4,6 +4,13 @@ using Godot;
 
 namespace Tools.Statemachine {
     public abstract class State : Di {
+
+        public readonly string Name;
+
+        protected State(string name) {
+            Name = name;
+        }
+
         public virtual NextState Execute(Context context) {
             return context.Current();
         }
@@ -25,8 +32,6 @@ namespace Tools.Statemachine {
 
         public virtual void ConfigureLogging(StateMachine stateMachine) {
         }
-
-        public string Name => GetType().Name;
     }
 
     public static class StateHelper {
