@@ -153,7 +153,6 @@ __meta__ = {
 IsFallingPlatform = true
 IsMovingPlatform = null
 Speed = null
-PathFollow2D = null
 Enabled = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
