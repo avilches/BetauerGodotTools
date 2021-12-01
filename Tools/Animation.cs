@@ -3,6 +3,8 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Tools {
+
+    public delegate void Callback();
     public class AnimationStatus : Object {
         protected AnimationStack _animationStack;
 
@@ -29,6 +31,9 @@ namespace Tools {
         public bool Playing { get; set; } = false;
         public bool Interrupted { get; set; } = false;
 
+        private Callback _onStart;
+        private Callback _onEnd;
+
         public bool CanBeInterrupted;
         public bool KillPreviousAnimation;
 
@@ -41,6 +46,24 @@ namespace Tools {
 
         public void PlayOnce(bool killPreviousAnimation = false) {
             _animationStack.PlayOnceAnimation(this, killPreviousAnimation);
+        }
+
+        public OnceAnimation OnStart(Callback callback) {
+            _onStart = callback;
+            return this;
+        }
+
+        public OnceAnimation OnEnd(Callback callback) {
+            _onEnd = callback;
+            return this;
+        }
+
+        internal void Start() {
+            _onStart.Invoke();
+        }
+
+        internal void End() {
+            _onEnd.Invoke();
         }
     }
 
@@ -131,6 +154,7 @@ namespace Tools {
                                   _currentOnceAnimation.Name + "\")");
                     _currentOnceAnimation.Playing = false;
                     _currentOnceAnimation.Interrupted = true;
+                    _currentOnceAnimation.End();
                     if (_currentOnceAnimation == newOnceAnimation) {
                         _animationPlayer.Stop();
                     }
@@ -140,6 +164,7 @@ namespace Tools {
                 _currentOnceAnimation = newOnceAnimation;
                 newOnceAnimation.Playing = true;
                 newOnceAnimation.Interrupted = false;
+                _currentOnceAnimation.Start();
                 _animationPlayer.Play(newOnceAnimation.Name);
             } else if (!_currentOnceAnimation.CanBeInterrupted) {
                 _logger.Error("PlayOnce \"" + newOnceAnimation.Name +
@@ -169,6 +194,7 @@ namespace Tools {
 
         public void OnceAnimationFinished(string animation) {
             _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
+            _currentOnceAnimation.End();
             _currentOnceAnimation.Playing = false;
             _currentOnceAnimation = null;
             if (_currentLoopAnimation != null) {
