@@ -57,6 +57,8 @@ namespace Tools {
             foreach (var instance in _singletons.Values) {
                 error |= InjectFields(instance);
                 if (instance is Node nodeInstance) {
+                    nodeInstance.Name = nodeInstance.GetType().Name;
+                    _logger.Info("Adding singleton node "+nodeInstance.GetType().Name+" as Bootstrap child");
                     node.AddChild(nodeInstance);
                 }
             }

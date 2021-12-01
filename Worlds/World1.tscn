@@ -151,6 +151,9 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = true
+IsMovingPlatform = null
+Speed = null
+Enabled = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 150, 1 )

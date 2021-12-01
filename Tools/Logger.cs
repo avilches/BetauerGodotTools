@@ -201,6 +201,7 @@ namespace Tools {
         }
 
         public static void Start(Node node) {
+            Instance.Name = nameof(Logger);
             node.AddChild(Instance);
         }
     }

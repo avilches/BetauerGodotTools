@@ -16,6 +16,7 @@ namespace Veronenger.Game.Managers.Autoload {
         public GameManager GameManager;
 
         public override void _Ready() {
+            Name = nameof(Bootstrap);
             // MicroBenchmarks();
             GameManager.IsRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
         }
