@@ -15,7 +15,7 @@ namespace Veronenger.Game.Character.Enemy.States {
             EnemyZombie.DisableAll();
             _player = context.Config.Get<PlayerController>(PLAYER_KEY);
 
-            EnemyZombie.AnimationDie.PlayOnce();
+            EnemyZombie.AnimationDie.PlayOnce(true);
         }
 
         public override NextState Execute(Context context) {

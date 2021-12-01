@@ -34,7 +34,7 @@ namespace Tools.Bus.Topics {
         public bool IsOverlapping { get; protected internal set; }
 
         public bool IsDisposed() {
-            return Object.IsInstanceValid(_owner);
+            return !Object.IsInstanceValid(_owner);
         }
     }
 

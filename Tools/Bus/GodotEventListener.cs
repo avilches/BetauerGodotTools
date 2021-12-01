@@ -18,7 +18,8 @@ namespace Tools.Bus {
 
         public void OnSubscribed<T>(GodotTopic<T> godotTopic) where T : IGodotEvent {
             TopicName = godotTopic.Name;
-            _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotListener<T>)), TopicName);
+            _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotListener<T>)),
+                TopicName);
         }
 
         public void Debug(string message) {
@@ -26,14 +27,14 @@ namespace Tools.Bus {
         }
 
         public virtual bool IsDisposed() {
-            if (!Object.IsInstanceValid(Owner)) return false;
+            if (Object.IsInstanceValid(Owner)) return false;
             Debug($"Disposed. Owner: {GetNodeInfo(Owner)}");
             return true;
         }
 
         protected static string GetNodeInfo(Node node) {
             if (node == null) return "all";
-            var nodeName = Object.IsInstanceValid(node) ? "(disposed)" : $"\"{node.Name}\"";
+            var nodeName = Object.IsInstanceValid(node) ? $"\"{node.Name}\"" : "(disposed)";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
 
@@ -53,7 +54,7 @@ namespace Tools.Bus {
 
         public override bool IsDisposed() {
             if (base.IsDisposed()) return true;
-            if (!Object.IsInstanceValid(Filter)) return false;
+            if (Object.IsInstanceValid(Filter)) return false;
             Debug($"Disposed. Filter: {GetNodeInfo(Filter)}");
             return true;
         }

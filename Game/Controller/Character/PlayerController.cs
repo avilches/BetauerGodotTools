@@ -51,12 +51,12 @@ namespace Veronenger.Game.Controller.Character {
                 .SetNextState(PlayerState.StateIdle);
         }
 
-        public LoopAnimationStatus AnimationIdle { get; private set; }
-        public LoopAnimationStatus AnimationRun { get; private set; }
-        public LoopAnimationStatus AnimationJump { get; private set; }
-        public LoopAnimationStatus AnimationFall { get; private set; }
-        public OnceAnimationStatus AnimationAttack { get; private set; }
-        public OnceAnimationStatus AnimationJumpAttack { get; private set; }
+        public LoopAnimation AnimationIdle { get; private set; }
+        public LoopAnimation AnimationRun { get; private set; }
+        public LoopAnimation AnimationJump { get; private set; }
+        public LoopAnimation AnimationFall { get; private set; }
+        public OnceAnimation AnimationAttack { get; private set; }
+        public OnceAnimation AnimationJumpAttack { get; private set; }
 
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
@@ -69,12 +69,12 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void Ready() {
             var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus("Idle");
-            AnimationRun = animationStack.AddLoopAnimationAndGetStatus("Run");
-            AnimationJump = animationStack.AddLoopAnimationAndGetStatus("Jump");
-            AnimationFall = animationStack.AddLoopAnimationAndGetStatus("Fall");
-            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus("Attack");
-            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus("JumpAttack");
+            AnimationIdle = animationStack.AddLoopAnimation("Idle");
+            AnimationRun = animationStack.AddLoopAnimation("Run");
+            AnimationJump = animationStack.AddLoopAnimation("Jump");
+            AnimationFall = animationStack.AddLoopAnimation("Fall");
+            AnimationAttack = animationStack.AddOnceAnimation("Attack");
+            AnimationJumpAttack = animationStack.AddOnceAnimation("JumpAttack");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);

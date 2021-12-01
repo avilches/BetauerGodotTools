@@ -21,9 +21,9 @@ namespace Veronenger.Game.Controller.Character {
 
         [Inject] public CharacterManager CharacterManager;
 
-        public LoopAnimationStatus AnimationIdle { get; private set; }
-        public OnceAnimationStatus AnimationStep { get; private set; }
-        public OnceAnimationStatus AnimationDie { get; private set; }
+        public LoopAnimation AnimationIdle { get; private set; }
+        public OnceAnimation AnimationStep { get; private set; }
+        public OnceAnimation AnimationDie { get; private set; }
 
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
@@ -43,9 +43,9 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void Ready() {
             var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus("Loop");
-            AnimationStep = animationStack.AddOnceAnimationAndGetStatus("Step");
-            AnimationDie = animationStack.AddOnceAnimationAndGetStatus("Die");
+            AnimationIdle = animationStack.AddLoopAnimation("Idle");
+            AnimationStep = animationStack.AddOnceAnimation("Step");
+            AnimationDie = animationStack.AddOnceAnimation("Die");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);

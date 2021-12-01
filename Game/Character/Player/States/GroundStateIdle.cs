@@ -11,7 +11,7 @@ namespace Veronenger.Game.Character.Player.States {
             Player.AnimationIdle.PlayLoop();
         }
 
-        private OnceAnimationStatus status;
+        private OnceAnimation status;
 
         public override NextState Execute(Context context) {
             CheckAttack();
