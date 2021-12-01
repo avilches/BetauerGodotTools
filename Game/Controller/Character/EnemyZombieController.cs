@@ -43,9 +43,9 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void Ready() {
             var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
-            AnimationStep = animationStack.AddOnceAnimationAndGetStatus(new AnimationZombieStep());
-            AnimationDie = animationStack.AddOnceAnimationAndGetStatus(new AnimationDie());
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus("Loop");
+            AnimationStep = animationStack.AddOnceAnimationAndGetStatus("Step");
+            AnimationDie = animationStack.AddOnceAnimationAndGetStatus("Die");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);

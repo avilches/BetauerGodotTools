@@ -69,12 +69,12 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void Ready() {
             var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationIdle());
-            AnimationRun = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationRun());
-            AnimationJump = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationJump());
-            AnimationFall = animationStack.AddLoopAnimationAndGetStatus(new LoopAnimationFall());
-            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationAttack());
-            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus(new AnimationJumpAttack());
+            AnimationIdle = animationStack.AddLoopAnimationAndGetStatus("Idle");
+            AnimationRun = animationStack.AddLoopAnimationAndGetStatus("Run");
+            AnimationJump = animationStack.AddLoopAnimationAndGetStatus("Jump");
+            AnimationFall = animationStack.AddLoopAnimationAndGetStatus("Fall");
+            AnimationAttack = animationStack.AddOnceAnimationAndGetStatus("Attack");
+            AnimationJumpAttack = animationStack.AddOnceAnimationAndGetStatus("JumpAttack");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
