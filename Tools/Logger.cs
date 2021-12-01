@@ -16,6 +16,7 @@ namespace Tools {
         Warning = 3,
         Info = 4,
         Debug = 5,
+        All = 5,
     }
 
     internal class TraceLevelConfig {

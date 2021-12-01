@@ -123,7 +123,8 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.SetNextState(ZombieState.Attacked, new StateConfig().Add(ZombieStateAttacked.PLAYER_KEY, playerController));
+            _stateMachine.SetNextState(ZombieState.Attacked,
+                new StateConfig().Add(ZombieStateAttacked.PLAYER_KEY, playerController));
         }
     }
 }

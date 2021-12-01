@@ -30,7 +30,7 @@ length = 0.6
 loop = true
 step = 0.05
 tracks/0/type = "value"
-tracks/0/path = NodePath("..:position:y")
+tracks/0/path = NodePath("../..:position:y")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/imported = false
@@ -42,7 +42,7 @@ tracks/0/keys = {
 "values": [ 0, -30, 0 ]
 }
 tracks/1/type = "value"
-tracks/1/path = NodePath("..:position:x")
+tracks/1/path = NodePath("../..:position:x")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/imported = false
@@ -116,37 +116,36 @@ height = 19.0
 
 [node name="ZombieNode" instance=ExtResource( 1 )]
 
-[node name="EnemyBody" parent="." index="1"]
-position = Vector2( -30, 0 )
+[node name="EnemyBody" parent="Node2D" index="1"]
 collision_layer = 0
 script = ExtResource( 3 )
 
-[node name="CollisionShape2D" parent="EnemyBody" index="0"]
+[node name="CollisionShape2D" parent="Node2D/EnemyBody" index="0"]
 visible = false
 position = Vector2( 0, -14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" parent="EnemyBody" index="1"]
+[node name="Sprite" parent="Node2D/EnemyBody" index="1"]
 position = Vector2( 0, -14 )
 texture = ExtResource( 2 )
 hframes = 10
 
-[node name="AnimationPlayer" parent="EnemyBody/Sprite" index="0"]
+[node name="AnimationPlayer" parent="Node2D/EnemyBody/Sprite" index="0"]
 anims/Attack = SubResource( 2 )
 anims/Die = SubResource( 3 )
 anims/Idle = SubResource( 4 )
 anims/Step = SubResource( 5 )
 
-[node name="AttackArea" parent="EnemyBody" index="3"]
+[node name="AttackArea" parent="Node2D/EnemyBody" index="3"]
 visible = false
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="EnemyBody/AttackArea" index="0"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Node2D/EnemyBody/AttackArea" index="0"]
 position = Vector2( 0, 0.0677719 )
 polygon = PoolVector2Array( 2.90794, -11.8251, 9.18351, -12.9741, 17.934, -15.5374, 22.9721, -18.9845, 15.6359, -24.7298, -3.6328, -20.9291 )
 
 [node name="DamageArea" parent="EnemyBody" index="4"]
 visible = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyBody/DamageArea" index="0"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/EnemyBody/DamageArea" index="0"]
 position = Vector2( 0, -14 )
 shape = SubResource( 6 )

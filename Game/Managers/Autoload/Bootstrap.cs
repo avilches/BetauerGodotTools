@@ -38,9 +38,9 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.AddGodotPrinter();
 
             LoggerFactory.Start(this);
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Debug);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
             // Tools
-            LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
@@ -63,9 +63,9 @@ namespace Veronenger.Game.Managers.Autoload {
 
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Collision", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.All);
         }
 
         private void MicroBenchmarks() {
