@@ -23,7 +23,8 @@ namespace Veronenger.Game.Controller.Character {
 
         public LoopAnimation AnimationIdle { get; private set; }
         public OnceAnimation AnimationStep { get; private set; }
-        public OnceAnimation AnimationDie { get; private set; }
+        public OnceAnimation AnimationDieRight { get; private set; }
+        public OnceAnimation AnimationDieLeft { get; private set; }
 
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
@@ -45,7 +46,8 @@ namespace Veronenger.Game.Controller.Character {
             var animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = animationStack.AddLoopAnimation("Idle");
             AnimationStep = animationStack.AddOnceAnimation("Step");
-            AnimationDie = animationStack.AddOnceAnimation("Die");
+            AnimationDieRight = animationStack.AddOnceAnimation("DieRight");
+            AnimationDieLeft = animationStack.AddOnceAnimation("DieLeft");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);
@@ -86,6 +88,8 @@ namespace Veronenger.Game.Controller.Character {
             GetParent().QueueFree();
         }
 
+        public bool IsFacingRight => _flippers.IsFacingRight;
+
 
         /**
          * node is | I'm facing  | flip?
@@ -96,17 +100,16 @@ namespace Veronenger.Game.Controller.Character {
          *
          */
         public void FaceTo(Node2D node2D) {
-            var isOnMyRight = IsOnMyRight(node2D);
-            if (isOnMyRight != _flippers.IsFacingRight) {
+            if (IsToTheRightOf(node2D) != _flippers.IsFacingRight) {
                 _flippers.Flip();
             }
         }
 
-        public bool IsOnMyLeft(Node2D node2D) {
+        public bool IsToTheLeftOf(Node2D node2D) {
             return Math.Abs(DegreesTo(node2D) - 180f) < 0.1f;
         }
 
-        public bool IsOnMyRight(Node2D node2D) {
+        public bool IsToTheRightOf(Node2D node2D) {
             return DegreesTo(node2D) == 0f;
         }
 
@@ -123,8 +126,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.SetNextState(ZombieState.Attacked,
-                new StateConfig().Add(ZombieStateAttacked.PLAYER_KEY, playerController));
+            _stateMachine.SetNextState(ZombieState.Attacked);
         }
     }
 }

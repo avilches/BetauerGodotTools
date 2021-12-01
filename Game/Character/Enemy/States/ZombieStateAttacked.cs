@@ -1,25 +1,28 @@
+using Tools;
 using Tools.Statemachine;
 using Veronenger.Game.Controller.Character;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Enemy.States {
     public class ZombieStateAttacked : ZombieState {
 
-        public static string PLAYER_KEY = "player";
-
-        private PlayerController _player;
+        [Inject] private CharacterManager CharacterManager;
 
         public ZombieStateAttacked(string name, EnemyZombieController enemyZombie) : base(name, enemyZombie) {
         }
 
         public override void Start(Context context) {
             EnemyZombie.DisableAll();
-            _player = context.Config.Get<PlayerController>(PLAYER_KEY);
 
-            EnemyZombie.AnimationDie.PlayOnce(true);
+            if (EnemyZombie.IsToTheLeftOf(CharacterManager.PlayerController._playerDetector)) {
+                EnemyZombie.AnimationDieLeft.PlayOnce(true);
+            } else {
+                EnemyZombie.AnimationDieRight.PlayOnce(true);
+            }
         }
 
         public override NextState Execute(Context context) {
-            if (!EnemyZombie.AnimationDie.Playing) {
+            if (!EnemyZombie.AnimationDieRight.Playing && !EnemyZombie.AnimationDieLeft.Playing) {
                 EnemyZombie.Dispose();;
             }
             return context.Current();

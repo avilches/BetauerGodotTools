@@ -6,6 +6,8 @@ namespace Tools {
     public interface IFlipper {
         public bool Flip();
 
+        public bool Flip(bool left);
+
         public bool Flip(float xInput);
 
         public bool IsFacingRight { get; }
@@ -53,6 +55,11 @@ namespace Tools {
             return _main.Flip();
         }
 
+        public bool Flip(bool left) {
+            Array.ForEach(_flippers, flipper => flipper.Flip(left));
+            return _main.Flip(left);
+        }
+
         public bool Flip(float xInput) {
             Array.ForEach(_flippers, flipper => flipper.Flip(xInput));
             return _main.Flip(xInput);
@@ -75,6 +82,11 @@ namespace Tools {
 
         public bool Flip() {
             IsFacingRight = !_isFacingRight;
+            return _isFacingRight;
+        }
+
+        public bool Flip(bool left) {
+            IsFacingRight = !left;
             return _isFacingRight;
         }
 
