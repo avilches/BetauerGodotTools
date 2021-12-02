@@ -59,11 +59,11 @@ namespace Tools {
         }
 
         internal void Start() {
-            _onStart.Invoke();
+            _onStart?.Invoke();
         }
 
         internal void End() {
-            _onEnd.Invoke();
+            _onEnd?.Invoke();
         }
     }
 
