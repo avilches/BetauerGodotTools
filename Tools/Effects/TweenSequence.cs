@@ -6,7 +6,7 @@ using GodotObject = Godot.Object;
 
 namespace Tools.Effects {
     public interface Tweener {
-        public void _start(Tween tween, bool reset);
+        public void _start(Tween tween);
     }
 
     public class PropertyTweener<T> : Tweener {
@@ -69,25 +69,14 @@ namespace Tools.Effects {
             return this;
         }
 
-        private bool _first = true;
-        private T _firstFrom; // Used to remember the "from" value from the first step, so it can be used when reset
-
-        void Tweener._start(Tween tween, bool reset) {
+        void Tweener._start(Tween tween) {
             if (!GodotObject.IsInstanceValid(_target)) {
-                GD.PushWarning("Can't create InterpolateProperty in a freed target instance");
+                TweenSequence.Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return;
             }
 
-            if (reset && !_first) {
-                tween.InterpolateProperty(_target, _property, _firstFrom, _to, _duration, _trans, _ease, _delay);
-                return;
-            }
             if (_continue) {
                 _from = (T)_target.GetIndexed(_property);
-            }
-            if (_first) {
-                _first = false;
-                _firstFrom = _from;
             }
             object advancedTo = null;
             if (_relative) {
@@ -120,8 +109,7 @@ namespace Tools.Effects {
             _time = time;
         }
 
-        public void _start(Tween tween, bool reset) {
-            if (reset) return;
+        public void _start(Tween tween) {
             tween.InterpolateCallback(this, _time, "_");
         }
 
@@ -147,10 +135,9 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween, bool reset) {
-            if (reset) return;
+        public void _start(Tween tween) {
             if (!GodotObject.IsInstanceValid(_target)) {
-                GD.PushWarning("Can't create InterpolateCallback in a freed target instance");
+                TweenSequence.Logger.Warning("Can't create InterpolateCallback in a freed target instance");
                 return;
             }
             tween.InterpolateCallback(_target, _delay, _method,
@@ -179,10 +166,9 @@ namespace Tools.Effects {
             _callback = callback;
         }
 
-        public void _start(Tween tween, bool reset) {
-            if (reset) return;
+        public void _start(Tween tween) {
             if (!IsInstanceValid(this)) {
-                GD.PushWarning("Can't create InterpolateCallback (delegate) in a freed target (this) instance");
+                TweenSequence.Logger.Warning("Can't create InterpolateCallback (delegate) in a freed target (this) instance");
                 return;
             }
             tween.InterpolateCallback(this, _delay, "_");
@@ -233,9 +219,9 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween, bool reset) {
+        public void _start(Tween tween) {
             if (!IsInstanceValid(_target)) {
-                GD.PushWarning("Can't create InterpolateMethod in a freed target instance");
+                TweenSequence.Logger.Warning("Can't create InterpolateMethod in a freed target instance");
                 return;
             }
             tween.InterpolateMethod(_target, _method, _from, _to, _duration, _trans, _ease, _delay);
@@ -280,9 +266,9 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween, bool reset) {
+        public void _start(Tween tween) {
             if (!IsInstanceValid(this)) {
-                GD.PushWarning("Can't create InterpolateMethod (delegate) in a freed target (this) instance");
+                TweenSequence.Logger.Warning("Can't create InterpolateMethod (delegate) in a freed target (this) instance");
                 return;
             }
             tween.InterpolateMethod(this, "_", _from, _to, _duration, _trans, _ease, _delay);
@@ -305,6 +291,9 @@ namespace Tools.Effects {
         // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
         // [Signal]
         // delegate void finished();
+
+        private static Logger _logger;
+        internal static Logger Logger => _logger ??= LoggerFactory.GetLogger(typeof(TweenSequence));
 
         public Tween _tween;
         public List<List<Tweener>> _tweeners = new List<List<Tweener>>(10);
@@ -695,7 +684,7 @@ namespace Tools.Effects {
         // Starts the sequence manually, unless it"s already started.
         public TweenSequence Start() {
             if (!IsInstanceValid(_tween)) {
-                GD.PushWarning("Can't Start TweenSequence in a freed Tween instance");
+                Logger.Warning("Can't Start TweenSequence in a freed Tween instance");
                 return this;
             }
             if (!_started) {
@@ -719,7 +708,7 @@ namespace Tools.Effects {
         // Pauses the execution of the tweens.
         public TweenSequence Stop() {
             if (!IsInstanceValid(_tween)) {
-                GD.PushWarning("Can't Stop TweenSequence in a freed Tween instance");
+                Logger.Warning("Can't Stop TweenSequence in a freed Tween instance");
                 return this;
             }
             if (_running) {
@@ -732,22 +721,14 @@ namespace Tools.Effects {
         // Stops the sequence && resets it to the beginning.
         public TweenSequence Reset() {
             if (!IsInstanceValid(_tween)) {
-                GD.PushWarning("Can't Reset TweenSequence in a freed Tween instance");
+                Logger.Warning("Can't Reset TweenSequence in a freed Tween instance");
                 return this;
             }
-            var wasRunning = _running;
-            if (_running) {
-                Stop();
-            }
-            _started = false;
-            _current_step = 0;
+            _tween.StopAll();
             _tween.RemoveAll();
-            foreach (var tweener in _tweeners[0]) {
-                tweener._start(_tween, true);
-            }
-            _tween.ResetAll();
-            if (wasRunning) {
-                Start();
+            _current_step = 0;
+            if (_running) {
+                RunNextStep();
             }
             return this;
         }
@@ -769,7 +750,7 @@ namespace Tools.Effects {
 
         public TweenSequence AddTweener(Tweener tweener) {
             if (!IsInstanceValid(_tween)) {
-                GD.PushWarning("Can't Add Tweener in a freed Tween instance");
+                Logger.Warning("Can't Add Tweener in a freed Tween instance");
                 return this;
             }
             if (_parallel) {
@@ -783,12 +764,12 @@ namespace Tools.Effects {
 
         private void RunNextStep() {
             if (_tweeners.Count == 0) {
-                GD.PushWarning("Sequence has no steps!");
+                Logger.Warning("Sequence has no steps!");
                 return;
             }
             var group = _tweeners[_current_step];
             foreach (var tweener in group) {
-                tweener._start(_tween, false);
+                tweener._start(_tween);
             }
             _tween.Start();
         }

@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            seqMove = new TweenSequence(this, true);
+            seqMove = new TweenSequence(this);
             seqMove.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
             // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
             seqMove.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
@@ -53,6 +53,8 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Pause() {
+            follow = Vector2.Zero;
+            Modulate = new Color(1, 1, 1, 1);
             seqMove.Reset();
         }
 
