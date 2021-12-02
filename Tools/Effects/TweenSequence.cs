@@ -282,16 +282,16 @@ namespace Tools.Effects {
 
     public class TweenSequence : Reference {
         // Emited when one step of the sequence is finished.
-        [Signal]
-        delegate void step_finished(int idx);
+        // [Signal]
+        // delegate void step_finished(int idx);
 
         // Emited when a loop of the sequence is finished.
-        [Signal]
-        delegate void loop_finished();
+        // [Signal]
+        // delegate void loop_finished();
 
         // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
-        [Signal]
-        delegate void finished();
+        // [Signal]
+        // delegate void finished();
 
         public Tween _tween;
         public List<List<Tweener>> _tweeners = new List<List<Tweener>>(10);
@@ -305,7 +305,11 @@ namespace Tools.Effects {
         public bool _kill_when_finised = true;
         public bool _parallel = false;
 
-        // You need to provide SceneTree to be used by the sequence.
+        public TweenSequence(Tween tween) {
+            _tween = tween;
+            _tween.Connect("tween_all_completed", this, nameof(OnFinishTween));
+        }
+
         public TweenSequence(Node node, bool startNextFrame = false) {
             _tween = new Tween();
             // _tween.SetMeta("sequence", this);
@@ -683,17 +687,19 @@ namespace Tools.Effects {
         // Pauses the execution of the tweens.
         public void Pause() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
-            System.Diagnostics.Debug.Assert(_running, "Sequence !running!");
-            _tween.StopAll();
-            _running = false;
+            if (_running) {
+                _tween.StopAll();
+                _running = false;
+            }
         }
 
         // Resumes the execution of the tweens.
         public void Resume() {
             System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
-            System.Diagnostics.Debug.Assert(!_running, "Sequence already running!");
-            _tween.ResumeAll();
-            _running = true;
+            if (!_running) {
+                _tween.ResumeAll();
+                _running = true;
+            }
         }
 
         // Stops the sequence && resets it to the beginning.
@@ -709,7 +715,7 @@ namespace Tools.Effects {
 
         // Frees the underlying Tween. Sequence is unusable after this operation.
         public void Kill() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was already removed!");
+            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
             if (_running) {
                 Pause();
             }
@@ -742,20 +748,20 @@ namespace Tools.Effects {
         }
 
         private void OnFinishTween() {
-            EmitSignal(nameof(step_finished), _current_step);
+            // EmitSignal(nameof(step_finished), _current_step);
             _current_step += 1;
 
             if (_current_step == _tweeners.Count) {
                 _loops -= 1;
                 if (_loops == -1) {
-                    EmitSignal(nameof(finished));
+                    // EmitSignal(nameof(finished));
                     if (_kill_when_finised) {
                         Kill();
                     } else {
                         Reset();
                     }
                 } else {
-                    EmitSignal(nameof(loop_finished));
+                    // EmitSignal(nameof(loop_finished));
                     _current_step = 0;
                     RunNextStep();
                 }
