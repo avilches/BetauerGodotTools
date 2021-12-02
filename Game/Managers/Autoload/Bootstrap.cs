@@ -29,15 +29,16 @@ namespace Veronenger.Game.Managers.Autoload {
         private const bool LogToFileEnabled = false;
 
         private void ConfigureLoggerFactory() {
+            LoggerFactory.Start(this);
+
             if (LogToFileEnabled) {
                 var folder = Directory.GetCurrentDirectory();
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
                 LoggerFactory.AddFileWriter(logPath);
             }
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
+            LoggerFactory.IncludeTimestamp(true);
 
-            LoggerFactory.AddGodotPrinter();
-
-            LoggerFactory.Start(this);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
             // Tools
             LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.All);

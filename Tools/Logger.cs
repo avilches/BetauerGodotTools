@@ -19,6 +19,12 @@ namespace Tools {
         All = 5,
     }
 
+    public enum ConsoleOutput {
+        Godot,
+        Standard,
+        Off
+    }
+
     internal class TraceLevelConfig {
         internal string Type { get; }
         internal string Name { get; }
@@ -53,6 +59,8 @@ namespace Tools {
 
         public static int Frame => Instance._frame;
 
+        public ConsoleOutput ConsoleOutput;
+
         public static void Reset() {
             Instance._loggers.Clear();
             Instance._traceLevelConfig.Clear();
@@ -61,8 +69,9 @@ namespace Tools {
             Instance._defaultTraceLevelConfig = new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
         }
 
-        public static LoggerFactory AddConsoleOut() {
-            return AddTextWriter(Console.Out);
+        public static LoggerFactory SetConsoleOutput(ConsoleOutput consoleOutput) {
+            Instance.ConsoleOutput = consoleOutput;
+            return Instance;
         }
 
         public static LoggerFactory AddFileWriter(string logPath) {
@@ -143,7 +152,7 @@ namespace Tools {
         }
 
         public static Logger GetLogger(Type type, string name = null) {
-            return GetLogger(type.Name, name);
+            return GetLogger(ReflectionTools.GetTypeWithoutGenerics(type), name);
         }
 
         public static Logger GetLogger(string type, string name = null) {
@@ -219,6 +228,7 @@ namespace Tools {
         private readonly string _title;
         private string _lastLog = "";
         private int _lastLogTimes = 0;
+        private TraceLevel _lastLogTraceLevel;
 
         internal Logger(string type, string name, TraceLevelConfig traceLevelConfig,
             string traceFormat = "[{0,4}] {1,5} {2} {3}") {
@@ -271,16 +281,17 @@ namespace Tools {
             if (!IsEnabled(level)) return;
             if (RemoveDuplicates && _lastLog.Equals(message)) {
                 _lastLogTimes++;
+                _lastLogTraceLevel = level;
                 return;
             }
             // New line is different
             if (_lastLogTimes > 1) {
                 // Print old lines + times
-                WriteLog("", _lastLogTimes.ToString(), _lastLog);
+                WriteLog(_lastLogTraceLevel, "", _lastLogTimes.ToString(), _lastLog);
             }
             _lastLog = message;
             _lastLogTimes = 1;
-            WriteLog(FastDateFormat(), level.ToString(), message);
+            WriteLog(level, FastDateFormat(), level.ToString(), message);
         }
 
         private string FastDateFormat() {
@@ -306,13 +317,41 @@ namespace Tools {
             return date.ToString();
         }
 
-        private void WriteLog(string timestamp, string level, string message) {
+        private void WriteLog(TraceLevel level, string timestamp, string slevel, string message) {
             var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "") +
-                          string.Format(TraceFormat, LoggerFactory.Frame, level, _title, message);
+                          string.Format(TraceFormat, LoggerFactory.Frame,
+                              slevel.Length > 5 ? slevel.Substring(0, 5) : slevel, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
                 writer.Flush();
             }
+
+            switch (LoggerFactory.Instance.ConsoleOutput) {
+                case ConsoleOutput.Godot:
+                    GD.Print(logLine);
+                    break;
+                case ConsoleOutput.Standard when level == TraceLevel.Fatal:
+                    ConsolePrint(ConsoleColor.Red, logLine);
+                    break;
+                case ConsoleOutput.Standard when level == TraceLevel.Error:
+                    ConsolePrint(ConsoleColor.Red, logLine);
+                    break;
+                case ConsoleOutput.Standard when level == TraceLevel.Warning:
+                    ConsolePrint(ConsoleColor.DarkYellow, logLine);
+                    break;
+                case ConsoleOutput.Standard when level == TraceLevel.Info:
+                    Console.WriteLine(logLine);
+                    break;
+                case ConsoleOutput.Standard when level == TraceLevel.Debug:
+                    Console.WriteLine(logLine);
+                    break;
+            }
+        }
+
+        private void ConsolePrint(ConsoleColor color, string logLine) {
+            Console.ForegroundColor = color;
+            Console.WriteLine(logLine);
+            Console.ResetColor();
         }
     }
 
