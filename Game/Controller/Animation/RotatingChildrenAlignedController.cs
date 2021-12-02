@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Pause() {
-            _sequence.Dispose();
+            _sequence.Pause();
         }
     }
 }

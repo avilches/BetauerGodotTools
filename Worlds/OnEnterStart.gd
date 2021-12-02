@@ -7,3 +7,4 @@ func _ready():
 func on_enter(body):
 	if Global.IsPlayer(body):
 		$"../MultipleAligned".Start()
+		$"../TweenPlatform".Start()

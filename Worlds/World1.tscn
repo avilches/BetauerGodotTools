@@ -138,7 +138,7 @@ texture = ExtResource( 8 )
 offset = Vector2( 1216, 0 )
 
 [node name="Player" parent="." instance=ExtResource( 7 )]
-position = Vector2( 680.213, 130.141 )
+position = Vector2( 510.564, 142.232 )
 
 [node name="Platforms" type="Node" parent="."]
 
@@ -263,7 +263,6 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = null
-Enabled = null
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform"]
 scale = Vector2( 2.24, 0.434 )

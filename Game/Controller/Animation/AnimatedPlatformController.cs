@@ -1,5 +1,4 @@
 using Godot;
-using Godot.Collections;
 using Tools;
 using Tools.Effects;
 using Veronenger.Game.Managers;
@@ -13,6 +12,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private Vector2 _original;
         public Vector2 follow;
+        private TweenSequence seqMove;
 
         public override void Ready() {
             Configure();
@@ -32,20 +32,29 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            TweenSequence seq = new TweenSequence(this);
-            seq.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
-            seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
+            seqMove = new TweenSequence(this, true);
+            seqMove.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
+            seqMove.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
                 .SetTrans(Tween.TransitionType.Cubic);
-            // seq.AddCallback(this, nameof(bla), new Array());
-            // seq.AddCallback(delegate { GD.Print("callback"); });
-            // seq.AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 1);
-            seq.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
-            seq.Parallel().Add(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
-            seq.SetLoops().Start();
+            // seqMove.AddCallback(this, nameof(bla), new Array());
+            // seqMove.AddCallback(delegate { GD.Print("callback"); });
+            seqMove.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seqMove.Parallel().Add(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
+            seqMove.SetLoops();
         }
 
         public void UpdatePosition() {
             Position = _original + follow;
         }
+
+        public void Start() {
+            seqMove.Start();
+        }
+
+        public void Pause() {
+            seqMove.Reset();
+        }
+
     }
 }

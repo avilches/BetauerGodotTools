@@ -6,6 +6,13 @@ namespace Tools {
         public bool Stopped { get; private set; } = true;
         public float Alarm { get; private set; } = float.MaxValue;
 
+
+        /*
+         * Flow:
+         * 1 Start <-> Stop
+         * 2 Reset keeps the current status
+         */
+
         public Timer Start() {
             Stopped = false;
             return this;

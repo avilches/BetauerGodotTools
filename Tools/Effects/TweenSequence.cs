@@ -6,7 +6,7 @@ using GodotObject = Godot.Object;
 
 namespace Tools.Effects {
     public interface Tweener {
-        public void _start(Tween tween);
+        public void _start(Tween tween, bool reset);
     }
 
     public class PropertyTweener<T> : Tweener {
@@ -25,7 +25,6 @@ namespace Tools.Effects {
         // Sets custom starting value for the tweener.
         // By default, it starts from value at the start of this tweener.
         public PropertyTweener(GodotObject target, NodePath property, T to_value, float duration) {
-            System.Diagnostics.Debug.Assert(target != null, "Invalid target Object.");
             _target = target;
             _property = property;
             _to = to_value;
@@ -70,13 +69,25 @@ namespace Tools.Effects {
             return this;
         }
 
-        void Tweener._start(Tween tween) {
+        private bool _first = true;
+        private T _firstFrom; // Used to remember the "from" value from the first step, so it can be used when reset
+
+        void Tweener._start(Tween tween, bool reset) {
             if (!GodotObject.IsInstanceValid(_target)) {
-                GD.PushWarning("Target object freed, aborting Tweener.");
+                GD.PushWarning("Can't create InterpolateProperty in a freed target instance");
+                return;
+            }
+
+            if (reset && !_first) {
+                tween.InterpolateProperty(_target, _property, _firstFrom, _to, _duration, _trans, _ease, _delay);
                 return;
             }
             if (_continue) {
                 _from = (T)_target.GetIndexed(_property);
+            }
+            if (_first) {
+                _first = false;
+                _firstFrom = _from;
             }
             object advancedTo = null;
             if (_relative) {
@@ -109,7 +120,8 @@ namespace Tools.Effects {
             _time = time;
         }
 
-        public void _start(Tween tween) {
+        public void _start(Tween tween, bool reset) {
+            if (reset) return;
             tween.InterpolateCallback(this, _time, "_");
         }
 
@@ -135,9 +147,10 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween) {
+        public void _start(Tween tween, bool reset) {
+            if (reset) return;
             if (!GodotObject.IsInstanceValid(_target)) {
-                GD.PushWarning("Target object freed, aborting Tweener.");
+                GD.PushWarning("Can't create InterpolateCallback in a freed target instance");
                 return;
             }
             tween.InterpolateCallback(_target, _delay, _method,
@@ -166,9 +179,10 @@ namespace Tools.Effects {
             _callback = callback;
         }
 
-        public void _start(Tween tween) {
-            if (!GodotObject.IsInstanceValid(this)) {
-                GD.PushWarning("Target object freed, aborting Tweener.");
+        public void _start(Tween tween, bool reset) {
+            if (reset) return;
+            if (!IsInstanceValid(this)) {
+                GD.PushWarning("Can't create InterpolateCallback (delegate) in a freed target (this) instance");
                 return;
             }
             tween.InterpolateCallback(this, _delay, "_");
@@ -219,9 +233,9 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween) {
-            if (!GodotObject.IsInstanceValid(_target)) {
-                GD.PushWarning("Target object freed, aborting Tweener.");
+        public void _start(Tween tween, bool reset) {
+            if (!IsInstanceValid(_target)) {
+                GD.PushWarning("Can't create InterpolateMethod in a freed target instance");
                 return;
             }
             tween.InterpolateMethod(_target, _method, _from, _to, _duration, _trans, _ease, _delay);
@@ -266,9 +280,9 @@ namespace Tools.Effects {
             return this;
         }
 
-        public void _start(Tween tween) {
-            if (!GodotObject.IsInstanceValid(this)) {
-                GD.PushWarning("Target object freed, aborting Tweener.");
+        public void _start(Tween tween, bool reset) {
+            if (!IsInstanceValid(this)) {
+                GD.PushWarning("Can't create InterpolateMethod (delegate) in a freed target (this) instance");
                 return;
             }
             tween.InterpolateMethod(this, "_", _from, _to, _duration, _trans, _ease, _delay);
@@ -277,7 +291,6 @@ namespace Tools.Effects {
         private void _(T value) {
             _methodCallback(value);
         }
-
     }
 
     public class TweenSequence : Reference {
@@ -310,12 +323,18 @@ namespace Tools.Effects {
             _tween.Connect("tween_all_completed", this, nameof(OnFinishTween));
         }
 
-        public TweenSequence(Node node, bool startNextFrame = false) {
+        /*
+         * Flow:
+         * 1 Start <-> Stop
+         * 2 Reset keeps the current status
+         */
+
+        public TweenSequence(Node node, bool deferredStart = false) {
             _tween = new Tween();
             // _tween.SetMeta("sequence", this);
             // node.CallDeferred("add_child", _tween);
             node.AddChild(_tween);
-            if (startNextFrame) {
+            if (deferredStart) {
                 var binds = new Array();
                 node.GetTree().Connect("idle_frame", this, nameof(Start), binds, (uint)ConnectFlags.Oneshot);
             }
@@ -548,7 +567,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<float> AddMethod(MethodDelegateTweener<float>.MethodCallback methodCallback, float from_value, float to_value,
+        public MethodDelegateTweener<float> AddMethod(MethodDelegateTweener<float>.MethodCallback methodCallback,
+            float from_value, float to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<float>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -556,7 +576,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<int> AddMethod(MethodDelegateTweener<int>.MethodCallback methodCallback, int from_value, int to_value,
+        public MethodDelegateTweener<int> AddMethod(MethodDelegateTweener<int>.MethodCallback methodCallback,
+            int from_value, int to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<int>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -564,7 +585,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<bool> AddMethod(MethodDelegateTweener<bool>.MethodCallback methodCallback, bool from_value, bool to_value,
+        public MethodDelegateTweener<bool> AddMethod(MethodDelegateTweener<bool>.MethodCallback methodCallback,
+            bool from_value, bool to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<bool>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -572,7 +594,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Vector2> AddMethod(MethodDelegateTweener<Vector2>.MethodCallback methodCallback, Vector2 from_value,
+        public MethodDelegateTweener<Vector2> AddMethod(MethodDelegateTweener<Vector2>.MethodCallback methodCallback,
+            Vector2 from_value,
             Vector2 to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Vector2>(methodCallback, from_value, to_value, duration);
@@ -581,7 +604,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Vector3> AddMethod(MethodDelegateTweener<Vector3>.MethodCallback methodCallback, Vector3 from_value,
+        public MethodDelegateTweener<Vector3> AddMethod(MethodDelegateTweener<Vector3>.MethodCallback methodCallback,
+            Vector3 from_value,
             Vector3 to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Vector3>(methodCallback, from_value, to_value, duration);
@@ -590,7 +614,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Rect2> AddMethod(MethodDelegateTweener<Rect2>.MethodCallback methodCallback, Rect2 from_value, Rect2 to_value,
+        public MethodDelegateTweener<Rect2> AddMethod(MethodDelegateTweener<Rect2>.MethodCallback methodCallback,
+            Rect2 from_value, Rect2 to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Rect2>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -598,7 +623,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Transform2D> AddMethod(MethodDelegateTweener<Transform2D>.MethodCallback methodCallback, Transform2D from_value,
+        public MethodDelegateTweener<Transform2D> AddMethod(
+            MethodDelegateTweener<Transform2D>.MethodCallback methodCallback, Transform2D from_value,
             Transform2D to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Transform2D>(methodCallback, from_value, to_value, duration);
@@ -607,7 +633,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Transform> AddMethod(MethodDelegateTweener<Transform>.MethodCallback methodCallback, Transform from_value,
+        public MethodDelegateTweener<Transform> AddMethod(
+            MethodDelegateTweener<Transform>.MethodCallback methodCallback, Transform from_value,
             Transform to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Transform>(methodCallback, from_value, to_value, duration);
@@ -616,7 +643,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Quat> AddMethod(MethodDelegateTweener<Quat>.MethodCallback methodCallback, Quat from_value, Quat to_value,
+        public MethodDelegateTweener<Quat> AddMethod(MethodDelegateTweener<Quat>.MethodCallback methodCallback,
+            Quat from_value, Quat to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Quat>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -624,7 +652,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Basis> AddMethod(MethodDelegateTweener<Basis>.MethodCallback methodCallback, Basis from_value, Basis to_value,
+        public MethodDelegateTweener<Basis> AddMethod(MethodDelegateTweener<Basis>.MethodCallback methodCallback,
+            Basis from_value, Basis to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Basis>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -632,7 +661,8 @@ namespace Tools.Effects {
         }
 
         // Adds a MethodTweener for tweening arbitrary values using methods.
-        public MethodDelegateTweener<Color> AddMethod(MethodDelegateTweener<Color>.MethodCallback methodCallback, Color from_value, Color to_value,
+        public MethodDelegateTweener<Color> AddMethod(MethodDelegateTweener<Color>.MethodCallback methodCallback,
+            Color from_value, Color to_value,
             float duration) {
             var tweener = new MethodDelegateTweener<Color>(methodCallback, from_value, to_value, duration);
             AddTweener(tweener);
@@ -649,14 +679,6 @@ namespace Tools.Effects {
             return this;
         }
 
-        // Alias to parallel(), except it won't work without first tweener.
-        public TweenSequence Join() {
-            System.Diagnostics.Debug.Assert(_tweeners.Count == 0, "Cant join with empty sequence!");
-            _parallel = true;
-            return this;
-        }
-
-
         // Sets the speed scale of tweening.
         public TweenSequence SetSpeed(float speed) {
             _tween.PlaybackSpeed = speed;
@@ -671,12 +693,22 @@ namespace Tools.Effects {
         }
 
         // Starts the sequence manually, unless it"s already started.
-        public void Start() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
-            System.Diagnostics.Debug.Assert(!_started, "Sequence already started!");
-            _started = true;
-            _running = true;
-            RunNextStep();
+        public TweenSequence Start() {
+            if (!IsInstanceValid(_tween)) {
+                GD.PushWarning("Can't Start TweenSequence in a freed Tween instance");
+                return this;
+            }
+            if (!_started) {
+                _started = true;
+                _running = true;
+                RunNextStep();
+            } else {
+                if (!_running) {
+                    _tween.ResumeAll();
+                    _running = true;
+                }
+            }
+            return this;
         }
 
         // Returns whether the sequence is currently running.
@@ -685,39 +717,46 @@ namespace Tools.Effects {
         }
 
         // Pauses the execution of the tweens.
-        public void Pause() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
+        public TweenSequence Stop() {
+            if (!IsInstanceValid(_tween)) {
+                GD.PushWarning("Can't Stop TweenSequence in a freed Tween instance");
+                return this;
+            }
             if (_running) {
                 _tween.StopAll();
                 _running = false;
             }
-        }
-
-        // Resumes the execution of the tweens.
-        public void Resume() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
-            if (!_running) {
-                _tween.ResumeAll();
-                _running = true;
-            }
+            return this;
         }
 
         // Stops the sequence && resets it to the beginning.
-        public void Reset() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
+        public TweenSequence Reset() {
+            if (!IsInstanceValid(_tween)) {
+                GD.PushWarning("Can't Reset TweenSequence in a freed Tween instance");
+                return this;
+            }
+            var wasRunning = _running;
             if (_running) {
-                Pause();
+                Stop();
             }
             _started = false;
             _current_step = 0;
+            _tween.RemoveAll();
+            foreach (var tweener in _tweeners[0]) {
+                tweener._start(_tween, true);
+            }
             _tween.ResetAll();
+            if (wasRunning) {
+                Start();
+            }
+            return this;
         }
 
         // Frees the underlying Tween. Sequence is unusable after this operation.
         public void Kill() {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
+            if (!IsInstanceValid(_tween)) return;
             if (_running) {
-                Pause();
+                Stop();
             }
             _tween.QueueFree();
         }
@@ -728,21 +767,28 @@ namespace Tools.Effects {
             _kill_when_finised = autokill;
         }
 
-        public void AddTweener(Tweener tweener) {
-            System.Diagnostics.Debug.Assert(_tween != null, "Tween was removed!");
-            System.Diagnostics.Debug.Assert(!_started, "Can't append to a started sequence!");
-            if (!_parallel) {
-                _tweeners.Add(new List<Tweener>(3));
+        public TweenSequence AddTweener(Tweener tweener) {
+            if (!IsInstanceValid(_tween)) {
+                GD.PushWarning("Can't Add Tweener in a freed Tween instance");
+                return this;
             }
-            _tweeners.Last().Add(tweener);
-            _parallel = false;
+            if (_parallel) {
+                _tweeners.Last().Add(tweener);
+                _parallel = false;
+            } else {
+                _tweeners.Add(new List<Tweener>(3) { tweener });
+            }
+            return this;
         }
 
-        public void RunNextStep() {
-            System.Diagnostics.Debug.Assert(_tweeners.Count != 0, "Sequence has no steps!");
+        private void RunNextStep() {
+            if (_tweeners.Count == 0) {
+                GD.PushWarning("Sequence has no steps!");
+                return;
+            }
             var group = _tweeners[_current_step];
             foreach (var tweener in group) {
-                tweener._start(_tween);
+                tweener._start(_tween, false);
             }
             _tween.Start();
         }
