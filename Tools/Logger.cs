@@ -291,11 +291,10 @@ namespace Tools {
             }
             _lastLog = message;
             _lastLogTimes = 1;
-            WriteLog(level, FastDateFormat(), level.ToString(), message);
+            WriteLog(level, LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "", level.ToString(), message);
         }
 
-        private string FastDateFormat() {
-            if (!LoggerFactory.Instance._includeTimestamp) return "";
+        private static string FastDateFormat() {
             // return ""; //DateTime.Now.ToString(TimeFormat);
             var now = DateTime.Now;
             var hour = now.Hour;
@@ -326,32 +325,8 @@ namespace Tools {
                 writer.Flush();
             }
 
-            switch (LoggerFactory.Instance.ConsoleOutput) {
-                case ConsoleOutput.Godot:
-                    GD.Print(logLine);
-                    break;
-                case ConsoleOutput.Standard when level == TraceLevel.Fatal:
-                    ConsolePrint(ConsoleColor.Red, logLine);
-                    break;
-                case ConsoleOutput.Standard when level == TraceLevel.Error:
-                    ConsolePrint(ConsoleColor.Red, logLine);
-                    break;
-                case ConsoleOutput.Standard when level == TraceLevel.Warning:
-                    ConsolePrint(ConsoleColor.DarkYellow, logLine);
-                    break;
-                case ConsoleOutput.Standard when level == TraceLevel.Info:
-                    Console.WriteLine(logLine);
-                    break;
-                case ConsoleOutput.Standard when level == TraceLevel.Debug:
-                    Console.WriteLine(logLine);
-                    break;
-            }
-        }
-
-        private void ConsolePrint(ConsoleColor color, string logLine) {
-            Console.ForegroundColor = color;
-            Console.WriteLine(logLine);
-            Console.ResetColor();
+            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.Godot) GD.Print(logLine);
+            else if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.Standard) Console.WriteLine(logLine);
         }
     }
 
