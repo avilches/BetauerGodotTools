@@ -419,28 +419,43 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="StopAttack" type="Button" parent="PlayerBody/VBoxContainer"]
-margin_right = 97.0
-margin_bottom = 20.0
-text = "StopAttack"
-
-[node name="StartAttack" type="Button" parent="PlayerBody/VBoxContainer"]
-margin_top = 24.0
-margin_right = 97.0
-margin_bottom = 44.0
-text = "StartAttack"
-
 [node name="StopIdle" type="Button" parent="PlayerBody/VBoxContainer"]
-margin_top = 48.0
-margin_right = 97.0
-margin_bottom = 68.0
-text = "StopIdle"
+margin_right = 113.0
+margin_bottom = 20.0
+text = "Stop Idle"
 
 [node name="StartIdle" type="Button" parent="PlayerBody/VBoxContainer"]
+margin_top = 24.0
+margin_right = 113.0
+margin_bottom = 44.0
+text = "Start Idle"
+
+[node name="StopModulate" type="Button" parent="PlayerBody/VBoxContainer"]
+margin_top = 48.0
+margin_right = 113.0
+margin_bottom = 68.0
+text = "Stop Modulate"
+
+[node name="StartModulate" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 72.0
-margin_right = 97.0
+margin_right = 113.0
 margin_bottom = 92.0
-text = "StartIdle"
+text = "Start Modulate"
+
+[node name="StopSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
+margin_top = 96.0
+margin_right = 113.0
+margin_bottom = 116.0
+text = "Stop Squeeze"
+
+[node name="StartSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
+margin_top = 120.0
+margin_right = 113.0
+margin_bottom = 140.0
+text = "Start Squeeze"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
 margin_top = -88.0
@@ -509,7 +524,9 @@ polygon = PoolVector2Array( 32.2994, -10.9505, 48.9701, -14.4312, 63.9738, -22.9
 position = Vector2( 0, -21 )
 shape = SubResource( 10 )
 
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StopAttack" to="PlayerBody" method="StopOnce"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StartAttack" to="PlayerBody" method="StartAttack"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StopIdle" to="PlayerBody" method="StopLoop"]
+[connection signal="pressed" from="PlayerBody/VBoxContainer/StopIdle" to="PlayerBody" method="StopIdle"]
 [connection signal="pressed" from="PlayerBody/VBoxContainer/StartIdle" to="PlayerBody" method="StartIdle"]
+[connection signal="pressed" from="PlayerBody/VBoxContainer/StopModulate" to="PlayerBody" method="StopModulate"]
+[connection signal="pressed" from="PlayerBody/VBoxContainer/StartModulate" to="PlayerBody" method="StartModulate"]
+[connection signal="pressed" from="PlayerBody/VBoxContainer/StopSqueeze" to="PlayerBody" method="StopSqueeze"]
+[connection signal="pressed" from="PlayerBody/VBoxContainer/StartSqueeze" to="PlayerBody" method="StartSqueeze"]

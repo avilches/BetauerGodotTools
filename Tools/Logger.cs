@@ -78,10 +78,6 @@ namespace Tools {
             return AddTextWriter(File.CreateText(logPath));
         }
 
-        public static LoggerFactory AddGodotPrinter() {
-            return Instance.AddTextWriter(new GodotPrinter());
-        }
-
         public static LoggerFactory AddTextWriter(TextWriter textWriter) {
             return Instance.AddTextWriter(new TextWriterDelegate(textWriter));
         }
@@ -353,18 +349,6 @@ namespace Tools {
 
         public void Dispose() {
             _delegate.Dispose();
-        }
-    }
-
-    public class GodotPrinter : ITextWriter {
-        public void WriteLine(string line) {
-            GD.Print(line);
-        }
-
-        public void Flush() {
-        }
-
-        public void Dispose() {
         }
     }
 

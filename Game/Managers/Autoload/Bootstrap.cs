@@ -51,9 +51,11 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Debug);
             LoggerFactory.SetTraceLevel("Player:*", "StateMachine", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "Animation", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "AnimationStack", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "TweenSequence", TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel("Player:*", "TweenStack", TraceLevel.Debug);
             LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 
@@ -66,7 +68,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Collision", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.All);
+            LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Off);
         }
 
         private void MicroBenchmarks() {

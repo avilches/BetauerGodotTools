@@ -1,6 +1,7 @@
 using Godot;
 using Tools;
 using Tools.Bus.Topics;
+using Tools.Effects;
 using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
@@ -18,7 +19,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
-        [OnReady("../Label")] protected Label Label;
+        [OnReady("RichTextLabel")] protected RichTextLabel Label;
         [OnReady("Detector")] public Area2D _playerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
@@ -58,6 +59,11 @@ namespace Veronenger.Game.Controller.Character {
         public OnceAnimation AnimationAttack { get; private set; }
         public OnceAnimation AnimationJumpAttack { get; private set; }
 
+        public LoopTween PulsateTween;
+        public LoopTween DangerTween;
+        public LoopTween ResetTween;
+        public OnceTween SqueezeTween;
+
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
@@ -67,14 +73,24 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsDown;
         private BodyOnArea2DStatus _slopeStairsUp;
 
+        private AnimationStack _animationStack;
+        private TweenStack _tweenStack;
+
         public override void Ready() {
-            var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimation("Idle");
-            AnimationRun = animationStack.AddLoopAnimation("Run");
-            AnimationJump = animationStack.AddLoopAnimation("Jump");
-            AnimationFall = animationStack.AddLoopAnimation("Fall");
-            AnimationAttack = animationStack.AddOnceAnimation("Attack");
-            AnimationJumpAttack = animationStack.AddOnceAnimation("JumpAttack");
+            _animationStack = new AnimationStack(_name, _animationPlayer);
+            AnimationIdle = _animationStack.AddLoopAnimation("Idle");
+            AnimationRun = _animationStack.AddLoopAnimation("Run");
+            AnimationJump = _animationStack.AddLoopAnimation("Jump");
+            AnimationFall = _animationStack.AddLoopAnimation("Fall");
+            AnimationAttack = _animationStack.AddOnceAnimation("Attack");
+            AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
+
+            _tweenStack = new TweenStack(_name);
+
+            PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
+            DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
+            ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());
+            SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
@@ -93,6 +109,61 @@ namespace Veronenger.Game.Controller.Character {
 
             PlatformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
+        }
+
+
+        public void StopIdle() {
+            DangerTween.Stop();
+        }
+
+        public void StartIdle() {
+            DangerTween.PlayLoop();
+        }
+
+        public void StopModulate() {
+            PulsateTween.Stop();
+        }
+
+        public void StartModulate() {
+            PulsateTween.PlayLoop();
+        }
+
+        public void StopSqueeze() {
+            SqueezeTween.Stop(true);
+        }
+
+        public void StartSqueeze() {
+            SqueezeTween.PlayOnce();
+        }
+
+
+        private TweenSequence CreateReset() {
+            var seq = new TweenSequence(this);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
+            seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
+            return seq;
+        }
+
+        private TweenSequence CreatePulsate() {
+            var seq = new TweenSequence(this);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            return seq;
+        }
+
+        private TweenSequence CreateDanger() {
+            var seq = new TweenSequence(this);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 0, 0, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            return seq;
+        }
+
+        private TweenSequence CreateSqueeze() {
+            var seq = new TweenSequence(this);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f).SetTrans(Tween.TransitionType.Cubic);
+            seq.Parallel().AddProperty(this, "scale", new Vector2(1.4f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(this, "scale", new Vector2(1f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
+            return seq;
         }
 
         private void _OnPlayerAttackedEnemy(Area2DOnArea2D @event) {
@@ -125,6 +196,10 @@ namespace Veronenger.Game.Controller.Character {
         public override void _PhysicsProcess(float Delta) {
             // Update();
             // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
+            // Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
+                               // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
+            Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
+                               _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
             MotionBody.StartFrame(Delta);
             _stateMachine.Execute(Delta);
             PlayerActions.ClearJustStates();

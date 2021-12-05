@@ -35,13 +35,13 @@ namespace Veronenger.Game.Controller.Animation {
             seqMove = new TweenSequence(this);
             seqMove.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
             // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
-            seqMove.Parallel().Add(this, "modulate", new Color(1, 1, 1, 0), 2)
+            seqMove.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 0.5f), 2)
                 .SetTrans(Tween.TransitionType.Cubic);
             // seqMove.AddCallback(this, nameof(bla), new Array());
             // seqMove.AddCallback(delegate { GD.Print("callback"); });
             seqMove.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
-            seqMove.Parallel().Add(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
-            seqMove.SetLoops();
+            seqMove.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
+            seqMove.SetInfiniteLoops();
         }
 
         public void UpdatePosition() {
