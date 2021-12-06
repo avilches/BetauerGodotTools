@@ -74,6 +74,7 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsUp;
 
         private AnimationStack _animationStack;
+        private AnimationStack _tweenStack;
 
         public override void Ready() {
             _animationStack = new AnimationStack(_name, _animationPlayer);
@@ -84,10 +85,11 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            PulsateTween = _animationStack.AddLoopTween("Pulsate", CreatePulsate());
-            DangerTween = _animationStack.AddLoopTween("Danger", CreateDanger());
-            ResetTween = _animationStack.AddLoopTween("Reset", CreateReset());
-            SqueezeTween = _animationStack.AddOnceTween("Squeeze", CreateSqueeze());
+            _tweenStack = new AnimationStack(_name, _animationPlayer, new TweenPlayer(this));
+            PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
+            DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
+            ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());
+            SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
@@ -135,31 +137,34 @@ namespace Veronenger.Game.Controller.Character {
 
 
         private TweenSequence CreateReset() {
-            var seq = new TweenSequence(this);
+            var seq = new TweenSequence();
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
             seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
             return seq;
         }
 
         private TweenSequence CreatePulsate() {
-            var seq = new TweenSequence(this);
+            var seq = new TweenSequence();
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 0.05f).SetTrans(Tween.TransitionType.Cubic);
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.SetInfiniteLoops();
             return seq;
         }
 
         private TweenSequence CreateDanger() {
-            var seq = new TweenSequence(this);
+            var seq = new TweenSequence();
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 0, 0, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.SetInfiniteLoops();
             return seq;
         }
 
         private TweenSequence CreateSqueeze() {
-            var seq = new TweenSequence(this);
+            var seq = new TweenSequence();
             seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f).SetTrans(Tween.TransitionType.Cubic);
             seq.Parallel().AddProperty(this, "scale", new Vector2(1.4f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
             seq.AddProperty(this, "scale", new Vector2(1f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
+            seq.SetLoops(1);
             return seq;
         }
 
@@ -194,9 +199,10 @@ namespace Veronenger.Game.Controller.Character {
             // Update();
             // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
             // Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
-                               // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
-            Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
-                               _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
+            // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
+            Label.BbcodeText = _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name +
+                               "\n" +
+                               _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name;
             MotionBody.StartFrame(Delta);
             _stateMachine.Execute(Delta);
             PlayerActions.ClearJustStates();
@@ -252,6 +258,7 @@ namespace Veronenger.Game.Controller.Character {
             // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);
             // DrawLine(_playerDetector.Position, GetLocalMousePosition(), Colors.Blue, 3F);
         }
+
         public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 
         public void DeathZone(Area2D deathArea2D) {

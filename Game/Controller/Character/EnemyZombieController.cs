@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using Tools;
+using Tools.Effects;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
@@ -43,7 +44,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void Ready() {
-            var animationStack = new AnimationStack(_name, _animationPlayer);
+            var animationStack = new AnimationStack(_name, _animationPlayer, new TweenPlayer(this));
             AnimationIdle = animationStack.AddLoopAnimation("Idle");
             AnimationStep = animationStack.AddOnceAnimation("Step");
             AnimationDieRight = animationStack.AddOnceAnimation("DieRight");

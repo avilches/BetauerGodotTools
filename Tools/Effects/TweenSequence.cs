@@ -4,7 +4,7 @@ using Godot;
 using Array = Godot.Collections.Array;
 
 namespace Tools.Effects {
-    public delegate void OnFinishTween();
+    public delegate void OnFinishTweenSequence(TweenSequence tweenSequence);
 
     public delegate void TweenCallback();
 
@@ -100,7 +100,7 @@ namespace Tools.Effects {
                 tween.InterpolateProperty(_target, _property, _from, advancedTo, _duration, _trans, _ease,
                     _delay);
             } else {
-                // TweenSequence.Logger.Debug(_target.Name+"."+_property+": "+typeof(T).Name+"("+_from+" -> "+_to+") in "+_delay.ToString("F")+"s");
+                // TweenSequence.Logger.Info(_target.Name+"."+_property+": "+typeof(T).Name+"("+_from+" -> "+_to+") in "+_delay.ToString("F")+"s");
                 tween.InterpolateProperty(_target, _property, _from, _to, _duration, _trans, _ease, _delay);
             }
         }
@@ -284,59 +284,12 @@ namespace Tools.Effects {
         }
     }
 
-    public class TweenSequence : Reference {
-        // Emited when one step of the sequence is finished.
-        // [Signal]
-        // delegate void step_finished(int idx);
+    public class TweenSequence {
+        internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
 
-        // Emited when a loop of the sequence is finished.
-        // [Signal]
-        // delegate void loop_finished();
+        internal readonly List<List<Tweener>> _tweeners = new List<List<Tweener>>(10);
 
-        // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
-        // [Signal]
-        // delegate void finished();
-
-        public readonly string Name;
-        private static Logger _logger;
-        internal static Logger Logger => _logger ??= LoggerFactory.GetLogger(typeof(TweenSequence));
-
-        private readonly Tween _tween;
-        private readonly List<List<Tweener>> _tweeners = new List<List<Tweener>>(10);
-
-        private int _currentStep = 0;
-        private int _maxLoops = 0;
-        private int _loops = 0;
-        private bool _started = false;
-        private bool _running = false;
-
-        private bool _killWhenFinished = false;
         private bool _parallel = false;
-
-        public TweenSequence(Tween tween) {
-            Name = tween.Name;
-            _tween = tween;
-            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
-        }
-
-        /*
-         * Flow:
-         * 1 Start <-> Stop
-         * 2 Reset keeps the current status
-         */
-
-        public TweenSequence(Node node, bool deferredStart = false) {
-            Name = node.Name;
-            _tween = new Tween();
-            // _tween.SetMeta("sequence", this);
-            // node.CallDeferred("add_child", _tween);
-            node.AddChild(_tween);
-            if (deferredStart) {
-                var binds = new Array();
-                node.GetTree().Connect("idle_frame", this, nameof(Start), binds, (uint)ConnectFlags.Oneshot);
-            }
-            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
-        }
 
         // Adds a PropertyTweener for tweening properties.
         public PropertyTweener<float> AddProperty(Node target, NodePath property, float to_value, float duration) {
@@ -676,31 +629,127 @@ namespace Tools.Effects {
             return this;
         }
 
+        public TweenSequence AddTweener(Tweener tweener) {
+            if (_parallel) {
+                _tweeners.Last().Add(tweener);
+                _parallel = false;
+            } else {
+                _tweeners.Add(new List<Tweener>(3) { tweener });
+            }
+            return this;
+        }
+
+        public int Loops = -1;
+        public float Speed = 1.0f;
+
+        public int GetLoops() => Loops;
+        public bool IsInfiniteLoop() => Loops == -1;
+
+
         // Sets the speed scale of tweening.
         public TweenSequence SetSpeed(float speed) {
+            Speed = speed;
+            return this;
+        }
+
+        public TweenSequence SetInfiniteLoops() {
+            Loops = -1;
+            return this;
+        }
+
+        public TweenSequence SetLoops(int maxLoops) {
+            Loops = maxLoops;
+            return this;
+        }
+
+    }
+
+    public class TweenPlayer : Reference {
+        // Emited when one step of the sequence is finished.
+        // [Signal]
+        // delegate void step_finished(int idx);
+
+        // Emited when a loop of the sequence is finished.
+        // [Signal]
+        // delegate void loop_finished();
+
+        // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
+        // [Signal]
+        // delegate void finished();
+
+        public readonly string Name;
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
+
+        private readonly Tween _tween;
+        private TweenSequence _tweenSequence;
+
+        private int _currentStep = 0;
+        private int _loops = 0;
+        private bool _started = false;
+        private bool _running = false;
+
+        public int Loops = 0;
+        private bool _killWhenFinished = false;
+
+        public TweenPlayer(Tween tween, string name = null) {
+            Name = name ?? tween.Name;
+            _tween = tween;
+            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+        }
+
+        public TweenPlayer(Node node): this(new Tween()) {
+            node.AddChild(_tween);
+        }
+
+        public TweenPlayer LoadSequence(TweenSequence tweenSequence) {
+            Reset(tweenSequence);
+            return this;
+        }
+
+        // Sets the speed scale of tweening.
+        public TweenPlayer SetSpeed(float speed) {
             _tween.PlaybackSpeed = speed;
             return this;
         }
 
-        // Sets how many the sequence should repeat.
-        // When used without arguments, sequence will run infinitely.
-        public TweenSequence SetInfiniteLoops() {
-            _maxLoops = -1;
+        public TweenPlayer SetInfiniteLoops() {
+            Loops = -1;
             return this;
         }
 
-        public TweenSequence SetLoops(int loops) {
-            _maxLoops = loops;
+        public TweenPlayer SetLoops(int maxLoops) {
+            Loops = maxLoops;
             return this;
         }
 
-        public int GetMaxLoops() => _maxLoops;
+        // Whether the Tween should be freed when sequence finishes.
+        // Default is true. If set to false, sequence will restart on end.
+        public TweenPlayer SetAutoKill(bool autoKill) {
+            _killWhenFinished = autoKill;
+            return this;
+        }
 
-        public bool IsInfiniteLoop() => _maxLoops == -1;
+        private void _loadSequence(TweenSequence tweenSequence) {
+            _tweenSequence = tweenSequence;
+            Loops = tweenSequence.Loops;
+            _tween.PlaybackSpeed = tweenSequence.Speed;
+        }
 
+        public int GetLoops() => Loops;
+        public bool IsInfiniteLoop() => Loops == -1;
 
-        // Starts the sequence manually, unless it"s already started.
-        public TweenSequence Start() {
+        // Returns whether the sequence is currently running.
+        public bool IsRunning() {
+            return _running;
+        }
+
+        /*
+         * Flow:
+         * 1 Start <-> Stop
+         * 2 Reset keeps the current status
+         */
+
+        public TweenPlayer Start() {
             if (!IsInstanceValid(_tween)) {
                 Logger.Warning("Can't Start TweenSequence in a freed Tween instance");
                 return this;
@@ -718,13 +767,8 @@ namespace Tools.Effects {
             return this;
         }
 
-        // Returns whether the sequence is currently running.
-        public bool IsRunning() {
-            return _running;
-        }
-
         // Pauses the execution of the tweens.
-        public TweenSequence Stop() {
+        public TweenPlayer Stop() {
             if (!IsInstanceValid(_tween)) {
                 Logger.Warning("Can't Stop TweenSequence in a freed Tween instance");
                 return this;
@@ -737,7 +781,7 @@ namespace Tools.Effects {
         }
 
         // Stops the sequence && resets it to the beginning.
-        public TweenSequence Reset() {
+        public TweenPlayer Reset(TweenSequence tweenSequence = null) {
             if (!IsInstanceValid(_tween)) {
                 Logger.Warning("Can't Reset TweenSequence in a freed Tween instance");
                 return this;
@@ -746,6 +790,9 @@ namespace Tools.Effects {
             _tween.RemoveAll();
             _currentStep = 0;
             _loops = 0;
+            if (tweenSequence != null) {
+                _loadSequence(tweenSequence);
+            }
             if (_running) {
                 RunNextStep();
             } else {
@@ -763,33 +810,13 @@ namespace Tools.Effects {
             _tween.QueueFree();
         }
 
-        // Whether the Tween should be freed when sequence finishes.
-        // Default is true. If set to false, sequence will restart on end.
-        public void SetAutokill(bool autokill) {
-            _killWhenFinished = autokill;
-        }
-
-        public TweenSequence AddTweener(Tweener tweener) {
-            if (!IsInstanceValid(_tween)) {
-                Logger.Warning("Can't Add Tweener in a freed Tween instance");
-                return this;
-            }
-            if (_parallel) {
-                _tweeners.Last().Add(tweener);
-                _parallel = false;
-            } else {
-                _tweeners.Add(new List<Tweener>(3) { tweener });
-            }
-            return this;
-        }
-
         private void RunNextStep() {
             // if (_tweeners.Count == 0) {
-                // Logger.Warning("Sequence has no steps!");
-                // return;
+            // Logger.Warning("Sequence has no steps!");
+            // return;
             // }
-            if (_tweeners.Count > _currentStep) {
-                var group = _tweeners[_currentStep];
+            if (_tweenSequence._tweeners.Count > _currentStep) {
+                var group = _tweenSequence._tweeners[_currentStep];
                 foreach (var tweener in group) {
                     tweener._start(_tween);
                 }
@@ -797,9 +824,9 @@ namespace Tools.Effects {
             }
         }
 
-        private List<OnFinishTween> _onFinishTween;
+        private List<OnFinishTweenSequence> _onFinishTween;
 
-        public void AddOnFinishTween(OnFinishTween onFinishTween) {
+        public void AddOnFinishTween(OnFinishTweenSequence onFinishTweenSequence) {
             // An array it's needed because the TweenAnimation uses this callback to return from a finished Once tween
             // to the previous loop tween stored in the stack. So, if a user creates a sequence with something in
             // the OnFinishTween, and it adds this sequence to the TweenAnimation, the callback will be lost. So, with
@@ -811,9 +838,9 @@ namespace Tools.Effects {
             // The main difference is the OnEnd callback will be invoked in the TweenAnimation when a OnceTween is
             // finished or interrupted. But the TweenSequence.OnFinishTween callback will be invoked only when finished.
             if (_onFinishTween == null) {
-                _onFinishTween = new List<OnFinishTween>(1) { onFinishTween };
+                _onFinishTween = new List<OnFinishTweenSequence>(1) { onFinishTweenSequence };
             } else {
-                _onFinishTween.Add(onFinishTween);
+                _onFinishTween.Add(onFinishTweenSequence);
             }
         }
 
@@ -821,15 +848,15 @@ namespace Tools.Effects {
         private void OnTweenAllCompletedSignaled() {
             // EmitSignal(nameof(step_finished), _current_step);
             _currentStep++;
-            if (_currentStep == _tweeners.Count) {
+            if (_currentStep == _tweenSequence._tweeners.Count) {
                 _loops++;
-                if (IsInfiniteLoop() || _loops < _maxLoops) {
+                if (IsInfiniteLoop() || _loops < Loops) {
                     // EmitSignal(nameof(loop_finished));
                     _currentStep = 0;
                     RunNextStep();
                 } else {
                     // EmitSignal(nameof(finished));
-                    _onFinishTween?.ForEach(callback => callback.Invoke());
+                    _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequence));
                     // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
                     Stop().Reset();
                     if (_killWhenFinished) Kill();

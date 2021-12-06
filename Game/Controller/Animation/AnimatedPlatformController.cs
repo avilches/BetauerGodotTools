@@ -12,7 +12,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private Vector2 _original;
         public Vector2 follow;
-        private TweenSequence seqMove;
+        private TweenPlayer seqMove;
 
         public override void Ready() {
             Configure();
@@ -32,16 +32,17 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            seqMove = new TweenSequence(this);
-            seqMove.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seqMove = new TweenPlayer(this);
+            TweenSequence seq = new TweenSequence();
+            seq.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
             // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
-            seqMove.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 0.5f), 2)
+            seq.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 0.5f), 2)
                 .SetTrans(Tween.TransitionType.Cubic);
             // seqMove.AddCallback(this, nameof(bla), new Array());
             // seqMove.AddCallback(delegate { GD.Print("callback"); });
-            seqMove.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
-            seqMove.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
-            seqMove.SetInfiniteLoops();
+            seq.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seq.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
+            seqMove.LoadSequence(seq).SetInfiniteLoops();
         }
 
         public void UpdatePosition() {

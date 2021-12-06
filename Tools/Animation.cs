@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Godot;
 using Tools.Effects;
 using Object = Godot.Object;
@@ -120,47 +121,54 @@ namespace Tools {
         }
 
         private class LoopTween : LoopStatus {
+            private readonly TweenPlayer _tweenPlayer;
             private readonly TweenSequence _sequence;
 
-            public LoopTween(AnimationStack animationStack, Logger logger, string name, TweenSequence sequence) : base(
+            public LoopTween(AnimationStack animationStack, Logger logger, string name, TweenPlayer tweenPlayer,
+                TweenSequence sequence) : base(
                 animationStack, logger, name) {
+                _tweenPlayer = tweenPlayer;
                 _sequence = sequence;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sequence.Reset().Start();
+                _tweenPlayer.LoadSequence(_sequence).Start();
             }
 
             internal override void ExecuteOnEnd() {
                 base.ExecuteOnEnd();
-                _sequence.Stop();
+                _tweenPlayer.Stop();
             }
         }
 
         private class OnceTween : OnceStatus {
+            private readonly TweenPlayer _tweenPlayer;
             private readonly TweenSequence _sequence;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, TweenSequence sequence) : base(animationStack, logger,
+                bool killPrevious, TweenPlayer tweenPlayer, TweenSequence sequence) : base(animationStack, logger,
                 name, canBeInterrupted, killPrevious) {
+                _tweenPlayer = tweenPlayer;
                 _sequence = sequence;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sequence.Reset().Start();
+                _tweenPlayer.LoadSequence(_sequence).Start();
             }
 
             internal override void ExecuteOnEnd() {
                 base.ExecuteOnEnd();
-                _sequence.Stop();
+                _tweenPlayer.Stop();
             }
         }
 
         private class LoopAnimation : LoopStatus {
-            private readonly  AnimationPlayer _animationPlayer;
-            public LoopAnimation(AnimationStack animationStack, Logger logger, string name, AnimationPlayer animationPlayer) : base(animationStack,
+            private readonly AnimationPlayer _animationPlayer;
+
+            public LoopAnimation(AnimationStack animationStack, Logger logger, string name,
+                AnimationPlayer animationPlayer) : base(animationStack,
                 logger, name) {
                 _animationPlayer = animationPlayer;
             }
@@ -177,9 +185,11 @@ namespace Tools {
         }
 
         private class OnceAnimation : OnceStatus {
-            private readonly  AnimationPlayer _animationPlayer;
+            private readonly AnimationPlayer _animationPlayer;
+
             public OnceAnimation(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, AnimationPlayer animationPlayer) : base(animationStack, logger, name, canBeInterrupted, killPrevious) {
+                bool killPrevious, AnimationPlayer animationPlayer) : base(animationStack, logger, name,
+                canBeInterrupted, killPrevious) {
                 _animationPlayer = animationPlayer;
             }
 
@@ -201,18 +211,28 @@ namespace Tools {
             new System.Collections.Generic.Dictionary<string, OnceStatus>();
 
         private readonly AnimationPlayer _animationPlayer;
+        private readonly TweenPlayer _tweenPlayer;
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
         private readonly Logger _logger;
 
-        public AnimationStack(string name, AnimationPlayer animationPlayer) {
-            _animationPlayer = animationPlayer;
-            _animationPlayer.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
-                nameof(OnceAnimationFinished));
+        public AnimationStack(string name, TweenPlayer tweenPlayer, AnimationPlayer animationPlayer = null) :
+            this(name, animationPlayer, tweenPlayer) {
+        }
+
+        public AnimationStack(string name, AnimationPlayer animationPlayer, TweenPlayer tweenPlayer = null) {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
+
+            _animationPlayer = animationPlayer;
+            _animationPlayer?.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
+                nameof(OnceAnimationFinished));
+
+            _tweenPlayer = tweenPlayer;
+            _tweenPlayer?.AddOnFinishTween(OnceTweenFinished);
         }
 
         public ILoopStatus AddLoopAnimation(string name) {
+            Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
             Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
@@ -226,6 +246,7 @@ namespace Tools {
 
         public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false,
             bool killPrevious = false) {
+            Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
             Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
@@ -239,24 +260,17 @@ namespace Tools {
         }
 
         public ILoopStatus AddLoopTween(string name, TweenSequence tweenSequence) {
-            tweenSequence.SetInfiniteLoops();
-            var loopTweenStatus = new LoopTween(this, _logger, name, tweenSequence);
+            Debug.Assert(_tweenPlayer != null, "_tweenPlayer != null");
+            var loopTweenStatus = new LoopTween(this, _logger, name, _tweenPlayer, tweenSequence);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
         public IOnceStatus AddOnceTween(string name, TweenSequence tweenSequence, bool canBeInterrupted = false,
             bool killPrevious = false) {
-            if (tweenSequence.IsInfiniteLoop()) {
-                tweenSequence.SetLoops(1);
-            } else {
-                // It has a finite amount of loops, which is correct.
-            }
-
-            tweenSequence.SetAutokill(false);
-            tweenSequence.AddOnFinishTween(delegate { OnceAnimationFinished(name); });
+            Debug.Assert(_tweenPlayer != null, "_tweenPlayer != null");
             var onceTweenStatus =
-                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, tweenSequence);
+                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _tweenPlayer, tweenSequence);
             _onceAnimations.Add(name, onceTweenStatus);
             return onceTweenStatus;
         }
@@ -364,7 +378,24 @@ namespace Tools {
             }
         }
 
+        private void OnceTweenFinished(TweenSequence tweenSequence) {
+            if (_currentOnceAnimation == null) {
+                // This could happen when a LoopTween is not infinite (lit a Tween that just rest the values)
+                // so ignore the event
+                return;
+            }
+            _logger.Debug("OnceTweenFinished: \"" + _currentOnceAnimation.Name + "\"");
+            _currentOnceAnimation.ExecuteOnEnd();
+            _currentOnceAnimation = null;
+            _currentLoopAnimation?.ExecuteOnStart();
+        }
+
         private void OnceAnimationFinished(string animation) {
+            if (_currentOnceAnimation == null) {
+                // This could happen when a LoopAnimation is not infinite (configured as loop in the animator)
+                // This event is very unusual, but just in case, ignore it
+                return;
+            }
             _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
