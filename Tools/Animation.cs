@@ -1,106 +1,208 @@
 using System;
 using Godot;
+using Tools.Effects;
 using Object = Godot.Object;
 
 namespace Tools {
     public delegate void Callback();
 
-    public class AnimationStatus : Object {
-        protected AnimationStack _animationStack;
-        protected Logger _logger;
-        public readonly string Name;
+    public interface ILoopStatus {
+        public string Name { get; }
+        public bool Playing { get; }
+        public void Stop();
+        public void PlayLoop();
 
-        public bool Playing { get; private set; } = false;
-
-        private protected Callback _onStart;
-        private protected Callback _onEnd;
-
-        internal AnimationStatus(AnimationStack animationStack, Logger logger, string name) {
-            _animationStack = animationStack;
-            _logger = logger;
-            Name = name;
-        }
-
-        internal void ExecuteOnStart() {
-            _logger.Debug("Start " + GetType().Name + " \"" + Name + "\"");
-            Playing = true;
-            _onStart?.Invoke();
-        }
-
-        internal void ExecuteOnEnd() {
-            _logger.Debug("End " + GetType().Name + " \"" + Name + "\"");
-            _onEnd?.Invoke();
-            Playing = false;
-        }
+        // Builder chained methods
+        public ILoopStatus OnStart(Callback callback);
+        public ILoopStatus OnEnd(Callback callback);
     }
 
-    public class LoopAnimation : AnimationStatus {
-        internal LoopAnimation(AnimationStack animationStack, Logger logger, string name) :
-            base(animationStack, logger, name) {
-        }
+    public interface IOnceStatus {
+        public string Name { get; }
+        public bool Playing { get; }
+        public void PlayOnce(bool killPrevious = false);
+        public void Stop(bool killPrevious = false);
 
-        public void Stop() {
-            if (_animationStack.IsPlayingLoop(Name)) {
-                _animationStack.StopLoopAnimation();
-            }
-        }
+        // Builder chained methods
+        public bool CanBeInterrupted { get; set; }
+        public bool KillPrevious { get; set; }
 
-        public void PlayLoop() {
-            _animationStack.PlayLoopAnimation(this);
-        }
-
-        public LoopAnimation OnStart(Callback callback) {
-            _onStart = callback;
-            return this;
-        }
-
-        public LoopAnimation OnEnd(Callback callback) {
-            _onEnd = callback;
-            return this;
-        }
-    }
-
-    public class OnceAnimation : AnimationStatus {
-        public bool CanBeInterrupted;
-        public bool KillPreviousAnimation;
-
-        protected internal OnceAnimation(AnimationStack animationStack, Logger logger, string name,
-            bool canBeInterrupted, bool killPreviousAnimation) : base(animationStack, logger, name) {
-            CanBeInterrupted = canBeInterrupted;
-            KillPreviousAnimation = killPreviousAnimation;
-        }
-
-        public void PlayOnce(bool killPreviousAnimation = false) {
-            _animationStack.PlayOnceAnimation(this, killPreviousAnimation);
-        }
-
-        public void Stop(bool killPreviousAnimation = false) {
-            if (_animationStack.IsPlayingOnce(Name)) {
-                _animationStack.StopOnceAnimation(killPreviousAnimation);
-            }
-        }
-
-        public OnceAnimation OnStart(Callback callback) {
-            _onStart = callback;
-            return this;
-        }
-
-        public OnceAnimation OnEnd(Callback callback) {
-            _onEnd = callback;
-            return this;
-        }
+        public IOnceStatus OnStart(Callback callback);
+        public IOnceStatus OnEnd(Callback callback);
     }
 
     public class AnimationStack : Object /* needed to listen signals */ {
-        private readonly System.Collections.Generic.Dictionary<string, LoopAnimation> _loopAnimations =
-            new System.Collections.Generic.Dictionary<string, LoopAnimation>();
+        private class Status {
+            public string Name { get; }
+            public bool Playing { get; private set; }
 
-        private readonly System.Collections.Generic.Dictionary<string, OnceAnimation> _onceAnimations =
-            new System.Collections.Generic.Dictionary<string, OnceAnimation>();
+            protected Logger _logger;
+            private protected Callback _onStart;
+            private protected Callback _onEnd;
+
+            public Status(Logger logger, string name) {
+                _logger = logger;
+                Name = name;
+            }
+
+            internal virtual void ExecuteOnStart() {
+                _logger.Debug("Start " + GetType().Name + " \"" + Name + "\"");
+                Playing = true;
+                _onStart?.Invoke();
+            }
+
+            internal virtual void ExecuteOnEnd() {
+                _logger.Debug("End " + GetType().Name + " \"" + Name + "\"");
+                _onEnd?.Invoke();
+                Playing = false;
+            }
+        }
+
+        private abstract class OnceStatus : Status, IOnceStatus {
+            private readonly AnimationStack _animationStack;
+            public bool CanBeInterrupted { get; set; }
+            public bool KillPrevious { get; set; }
+
+            protected OnceStatus(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
+                bool killPrevious) : base(logger, name) {
+                _animationStack = animationStack;
+                CanBeInterrupted = canBeInterrupted;
+                KillPrevious = killPrevious;
+            }
+
+            public IOnceStatus OnStart(Callback callback) {
+                _onStart = callback;
+                return this;
+            }
+
+            public IOnceStatus OnEnd(Callback callback) {
+                _onEnd = callback;
+                return this;
+            }
+
+            public void PlayOnce(bool killPrevious = false) {
+                _animationStack.PlayOnce(this, killPrevious);
+            }
+
+            public void Stop(bool killPrevious = false) {
+                if (_animationStack.IsPlayingOnce(Name)) {
+                    _animationStack.StopPlayingOnce(killPrevious);
+                }
+            }
+        }
+
+        private abstract class LoopStatus : Status, ILoopStatus {
+            private readonly AnimationStack _animationStack;
+
+            protected LoopStatus(AnimationStack animationStack, Logger logger, string name) : base(logger, name) {
+                _animationStack = animationStack;
+            }
+
+            public ILoopStatus OnStart(Callback callback) {
+                _onStart = callback;
+                return this;
+            }
+
+            public ILoopStatus OnEnd(Callback callback) {
+                _onEnd = callback;
+                return this;
+            }
+
+            public void PlayLoop() {
+                _animationStack.PlayLoop(this);
+            }
+
+            public void Stop() {
+                if (_animationStack.IsPlayingLoop(Name)) {
+                    _animationStack.StopPlayingLoop();
+                }
+            }
+        }
+
+        private class LoopTween : LoopStatus {
+            private readonly TweenSequence _sequence;
+
+            public LoopTween(AnimationStack animationStack, Logger logger, string name, TweenSequence sequence) : base(
+                animationStack, logger, name) {
+                _sequence = sequence;
+            }
+
+            internal override void ExecuteOnStart() {
+                base.ExecuteOnStart();
+                _sequence.Reset().Start();
+            }
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                _sequence.Stop();
+            }
+        }
+
+        private class OnceTween : OnceStatus {
+            private readonly TweenSequence _sequence;
+
+            public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
+                bool killPrevious, TweenSequence sequence) : base(animationStack, logger,
+                name, canBeInterrupted, killPrevious) {
+                _sequence = sequence;
+            }
+
+            internal override void ExecuteOnStart() {
+                base.ExecuteOnStart();
+                _sequence.Reset().Start();
+            }
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                _sequence.Stop();
+            }
+        }
+
+        private class LoopAnimation : LoopStatus {
+            private readonly  AnimationPlayer _animationPlayer;
+            public LoopAnimation(AnimationStack animationStack, Logger logger, string name, AnimationPlayer animationPlayer) : base(animationStack,
+                logger, name) {
+                _animationPlayer = animationPlayer;
+            }
+
+            internal override void ExecuteOnStart() {
+                base.ExecuteOnStart();
+                _animationPlayer.Play(Name);
+            }
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                _animationPlayer.Stop();
+            }
+        }
+
+        private class OnceAnimation : OnceStatus {
+            private readonly  AnimationPlayer _animationPlayer;
+            public OnceAnimation(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
+                bool killPrevious, AnimationPlayer animationPlayer) : base(animationStack, logger, name, canBeInterrupted, killPrevious) {
+                _animationPlayer = animationPlayer;
+            }
+
+            internal override void ExecuteOnStart() {
+                base.ExecuteOnStart();
+                _animationPlayer.Play(Name);
+            }
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                _animationPlayer.Stop();
+            }
+        }
+
+        private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations =
+            new System.Collections.Generic.Dictionary<string, LoopStatus>();
+
+        private readonly System.Collections.Generic.Dictionary<string, OnceStatus> _onceAnimations =
+            new System.Collections.Generic.Dictionary<string, OnceStatus>();
 
         private readonly AnimationPlayer _animationPlayer;
-        private LoopAnimation _currentLoopAnimation;
-        private OnceAnimation _currentOnceAnimation;
+        private LoopStatus _currentLoopAnimation;
+        private OnceStatus _currentOnceAnimation;
         private readonly Logger _logger;
 
         public AnimationStack(string name, AnimationPlayer animationPlayer) {
@@ -110,20 +212,20 @@ namespace Tools {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
         }
 
-        public LoopAnimation AddLoopAnimation(string name) {
+        public ILoopStatus AddLoopAnimation(string name) {
             Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {_animationPlayer.Name}");
             }
             animation.Loop = true;
-            var loopAnimationStatus = new LoopAnimation(this, _logger, name);
+            var loopAnimationStatus = new LoopAnimation(this, _logger, name, _animationPlayer);
             _loopAnimations.Add(name, loopAnimationStatus);
             return loopAnimationStatus;
         }
 
-        public OnceAnimation AddOnceAnimation(string name, bool canBeInterrupted = false,
-            bool killPreviousAnimation = false) {
+        public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false,
+            bool killPrevious = false) {
             Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
@@ -131,15 +233,38 @@ namespace Tools {
             }
             animation.Loop = false;
             var onceAnimationStatus =
-                new OnceAnimation(this, _logger, name, canBeInterrupted, killPreviousAnimation);
+                new OnceAnimation(this, _logger, name, canBeInterrupted, killPrevious, _animationPlayer);
             _onceAnimations.Add(name, onceAnimationStatus);
             return onceAnimationStatus;
         }
 
-        public LoopAnimation GetLoopAnimation(string name) => _loopAnimations[name];
-        public OnceAnimation GetOnceAnimation(string name) => _onceAnimations[name];
-        public LoopAnimation GetPlayingLoop() => _currentLoopAnimation;
-        public OnceAnimation GetPlayingOnce() => _currentOnceAnimation;
+        public ILoopStatus AddLoopTween(string name, TweenSequence tweenSequence) {
+            tweenSequence.SetInfiniteLoops();
+            var loopTweenStatus = new LoopTween(this, _logger, name, tweenSequence);
+            _loopAnimations.Add(name, loopTweenStatus);
+            return loopTweenStatus;
+        }
+
+        public IOnceStatus AddOnceTween(string name, TweenSequence tweenSequence, bool canBeInterrupted = false,
+            bool killPrevious = false) {
+            if (tweenSequence.IsInfiniteLoop()) {
+                tweenSequence.SetLoops(1);
+            } else {
+                // It has a finite amount of loops, which is correct.
+            }
+
+            tweenSequence.SetAutokill(false);
+            tweenSequence.AddOnFinishTween(delegate { OnceAnimationFinished(name); });
+            var onceTweenStatus =
+                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, tweenSequence);
+            _onceAnimations.Add(name, onceTweenStatus);
+            return onceTweenStatus;
+        }
+
+        public ILoopStatus GetLoop(string name) => _loopAnimations[name];
+        public IOnceStatus GetOnce(string name) => _onceAnimations[name];
+        public ILoopStatus GetPlayingLoop() => _currentLoopAnimation;
+        public IOnceStatus GetPlayingOnce() => _currentOnceAnimation;
         public bool IsPlayingLoop(string name) => _currentOnceAnimation == null && _currentLoopAnimation?.Name == name;
         public bool IsPlayingLoop() => _currentOnceAnimation == null && _currentLoopAnimation != null;
         public bool IsPlayingOnce(string name) => _currentOnceAnimation?.Name == name;
@@ -148,10 +273,10 @@ namespace Tools {
         public bool IsPlaying(string name) =>
             _currentLoopAnimation?.Name == name || _currentLoopAnimation?.Name == name;
 
-        public void PlayLoopAnimation(string name) => PlayLoopAnimation(_loopAnimations[name]);
+        public void PlayLoop(string name) => PlayLoop(_loopAnimations[name]);
 
-        public void PlayOnceAnimation(string name, bool killPreviousAnimation = false) =>
-            PlayOnceAnimation(_onceAnimations[name], killPreviousAnimation);
+        public void PlayOnce(string name, bool killPrevious = false) =>
+            PlayOnce(_onceAnimations[name], killPrevious);
 
         /*
          * currentLoop currentOnce newLoop
@@ -160,15 +285,13 @@ namespace Tools {
          * null        p(x)        null       currentLoop = null (nothing to do)
          * a           p(x)        null       currentLoop = null
          */
-        public void StopLoopAnimation() {
+        public void StopPlayingLoop() {
             // Stop and remove the currentLoopAnimation
             if (_currentOnceAnimation == null) {
-                _animationPlayer.Stop();
                 _currentLoopAnimation.ExecuteOnEnd();
             }
             _currentLoopAnimation = null;
         }
-
 
         /*
         * null        null        a          currentLoop = p(a)
@@ -181,20 +304,18 @@ namespace Tools {
         * null        p(x)        b          currentLoop = b
         * a           p(x)        b          currentLoop = b
         */
-        protected internal void PlayLoopAnimation(LoopAnimation loopAnimation) {
+        private void PlayLoop(LoopStatus loopAnimation) {
             if (_currentLoopAnimation == null || _currentLoopAnimation.Name != loopAnimation.Name) {
-                _logger.Debug("PlayLoop \"" + loopAnimation.Name + "\"");
+                _logger.Debug($"PlayLoop \"{loopAnimation.Name}\"");
                 if (_currentOnceAnimation == null) {
                     _currentLoopAnimation?.ExecuteOnEnd();
                     _currentLoopAnimation = loopAnimation;
-                    _animationPlayer.Play(_currentLoopAnimation.Name);
                     _currentLoopAnimation.ExecuteOnStart();
                 } else {
                     _currentLoopAnimation = loopAnimation;
                 }
             }
         }
-
 
         /*
         * currentLoop currentOnce newOnce
@@ -203,17 +324,12 @@ namespace Tools {
         * null        p(x)        null       stop(x), currentOnce = null
         * a           p(x)        null       stop(x), play(a), currentOnce = null
         */
-        public void StopOnceAnimation(bool killPreviousAnimation = false) {
+        public void StopPlayingOnce(bool killPrevious = false) {
             if (_currentOnceAnimation == null) return;
-            if (_currentOnceAnimation.CanBeInterrupted || killPreviousAnimation) {
+            if (_currentOnceAnimation.CanBeInterrupted || killPrevious) {
                 _currentOnceAnimation.ExecuteOnEnd();
                 _currentOnceAnimation = null;
-                if (_currentLoopAnimation == null) {
-                    _animationPlayer.Stop();
-                } else {
-                    _animationPlayer.Play(_currentLoopAnimation.Name);
-                    _currentLoopAnimation.ExecuteOnStart();
-                }
+                _currentLoopAnimation?.ExecuteOnStart();
             }
         }
 
@@ -228,40 +344,31 @@ namespace Tools {
         * null        p(a)        b          stop(a), currentOnce = p(b)
         * x           p(a)        b          stop(a), currentOnce = p(b)
         */
-        protected internal void PlayOnceAnimation(OnceAnimation newOnceAnimation,
-            bool killPreviousAnimation) {
+        private void PlayOnce(OnceStatus newOnceAnimation,
+            bool killPrevious) {
             if (_currentOnceAnimation == null || _currentOnceAnimation.CanBeInterrupted ||
-                newOnceAnimation.KillPreviousAnimation || killPreviousAnimation) {
+                newOnceAnimation.KillPrevious || killPrevious) {
                 if (_currentOnceAnimation != null) {
-                    _logger.Debug("PlayOnce \"" + newOnceAnimation.Name + "\" (Interrupting: " +
-                                  _currentOnceAnimation.Name + "\")");
+                    _logger.Debug(
+                        $"PlayOnce \"{newOnceAnimation.Name}\" (Interrupting: {_currentOnceAnimation.Name}\")");
                     _currentOnceAnimation.ExecuteOnEnd();
-                    if (_currentOnceAnimation == newOnceAnimation) {
-                        // The animation is interrupting it self!
-                        _animationPlayer.Stop(); // This is needed to force play animation from begining
-                    }
                 } else {
-                    _logger.Debug("PlayOnce \"" + newOnceAnimation.Name + "\"");
+                    _logger.Debug($"PlayOnce \"{newOnceAnimation.Name}\"");
                 }
                 _currentLoopAnimation?.ExecuteOnEnd();
                 _currentOnceAnimation = newOnceAnimation;
-                _animationPlayer.Play(_currentOnceAnimation.Name);
                 _currentOnceAnimation.ExecuteOnStart();
             } else if (!_currentOnceAnimation.CanBeInterrupted) {
-                _logger.Warning("PlayOnce \"" + newOnceAnimation.Name +
-                                "\" not played: current animation \"" +
-                                _currentOnceAnimation.Name + "\" can't be interrupted)");
+                _logger.Warning(
+                    $"PlayOnce \"{newOnceAnimation.Name}\" not played: current animation \"{_currentOnceAnimation.Name}\" can't be interrupted)");
             }
         }
 
-        public void OnceAnimationFinished(string animation) {
+        private void OnceAnimationFinished(string animation) {
             _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
-            if (_currentLoopAnimation != null) {
-                _animationPlayer.Play(_currentLoopAnimation.Name);
-                _currentLoopAnimation.ExecuteOnStart();
-            }
+            _currentLoopAnimation?.ExecuteOnStart();
         }
     }
 }

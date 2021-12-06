@@ -52,17 +52,17 @@ namespace Veronenger.Game.Controller.Character {
                 .SetNextState(PlayerState.StateIdle);
         }
 
-        public LoopAnimation AnimationIdle { get; private set; }
-        public LoopAnimation AnimationRun { get; private set; }
-        public LoopAnimation AnimationJump { get; private set; }
-        public LoopAnimation AnimationFall { get; private set; }
-        public OnceAnimation AnimationAttack { get; private set; }
-        public OnceAnimation AnimationJumpAttack { get; private set; }
+        public ILoopStatus AnimationIdle { get; private set; }
+        public ILoopStatus AnimationRun { get; private set; }
+        public ILoopStatus AnimationJump { get; private set; }
+        public ILoopStatus AnimationFall { get; private set; }
+        public IOnceStatus AnimationAttack { get; private set; }
+        public IOnceStatus AnimationJumpAttack { get; private set; }
 
-        public LoopTween PulsateTween;
-        public LoopTween DangerTween;
-        public LoopTween ResetTween;
-        public OnceTween SqueezeTween;
+        public ILoopStatus PulsateTween;
+        public ILoopStatus DangerTween;
+        public ILoopStatus ResetTween;
+        public IOnceStatus SqueezeTween;
 
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
@@ -74,7 +74,6 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsUp;
 
         private AnimationStack _animationStack;
-        private TweenStack _tweenStack;
 
         public override void Ready() {
             _animationStack = new AnimationStack(_name, _animationPlayer);
@@ -85,12 +84,10 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _tweenStack = new TweenStack(_name);
-
-            PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
-            DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
-            ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());
-            SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
+            PulsateTween = _animationStack.AddLoopTween("Pulsate", CreatePulsate());
+            DangerTween = _animationStack.AddLoopTween("Danger", CreateDanger());
+            ResetTween = _animationStack.AddLoopTween("Reset", CreateReset());
+            SqueezeTween = _animationStack.AddOnceTween("Squeeze", CreateSqueeze());
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
@@ -133,7 +130,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void StartSqueeze() {
-            SqueezeTween.PlayOnce();
+            SqueezeTween.PlayOnce(true);
         }
 
 

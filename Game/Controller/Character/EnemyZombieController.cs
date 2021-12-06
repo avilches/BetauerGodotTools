@@ -21,10 +21,10 @@ namespace Veronenger.Game.Controller.Character {
 
         [Inject] public CharacterManager CharacterManager;
 
-        public LoopAnimation AnimationIdle { get; private set; }
-        public OnceAnimation AnimationStep { get; private set; }
-        public OnceAnimation AnimationDieRight { get; private set; }
-        public OnceAnimation AnimationDieLeft { get; private set; }
+        public ILoopStatus AnimationIdle { get; private set; }
+        public IOnceStatus AnimationStep { get; private set; }
+        public IOnceStatus AnimationDieRight { get; private set; }
+        public IOnceStatus AnimationDieLeft { get; private set; }
 
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 

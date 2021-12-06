@@ -100,7 +100,7 @@ namespace Tools.Effects {
                 tween.InterpolateProperty(_target, _property, _from, advancedTo, _duration, _trans, _ease,
                     _delay);
             } else {
-                TweenSequence.Logger.Info(_target.Name+"."+_property+": "+typeof(T).Name+"("+_from+" -> "+_to+") in "+_delay.ToString("F")+"s");
+                // TweenSequence.Logger.Debug(_target.Name+"."+_property+": "+typeof(T).Name+"("+_from+" -> "+_to+") in "+_delay.ToString("F")+"s");
                 tween.InterpolateProperty(_target, _property, _from, _to, _duration, _trans, _ease, _delay);
             }
         }
