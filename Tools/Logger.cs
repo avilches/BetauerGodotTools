@@ -51,6 +51,10 @@ namespace Tools {
         private int _frame = -1;
         internal bool _includeTimestamp = false;
 
+        public bool RemoveDuplicates { get; set; } = true;
+        internal string _lastLog = "";
+        internal int _lastLogTimes = 0;
+
         private TraceLevelConfig _defaultTraceLevelConfig =
             new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
 
@@ -215,15 +219,12 @@ namespace Tools {
     public class Logger {
         public TraceLevel MaxTraceLevel => TraceLevelConfig.TraceLevel;
         public bool Enabled { get; set; } = true;
-        public bool RemoveDuplicates { get; set; } = true;
         public readonly string Type;
         public readonly string Name;
         public readonly string TraceFormat;
 
         internal TraceLevelConfig TraceLevelConfig { get; set; }
         private readonly string _title;
-        private string _lastLog = "";
-        private int _lastLogTimes = 0;
         private TraceLevel _lastLogTraceLevel;
 
         internal Logger(string type, string name, TraceLevelConfig traceLevelConfig,
@@ -275,19 +276,19 @@ namespace Tools {
 
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
-            if (RemoveDuplicates && _lastLog.Equals(message)) {
-                _lastLogTimes++;
+            if (LoggerFactory.Instance.RemoveDuplicates && LoggerFactory.Instance._lastLog.Equals(message)) {
+                LoggerFactory.Instance._lastLogTimes++;
                 _lastLogTraceLevel = level;
                 return;
             }
             // New line is different
-            if (_lastLogTimes > 1) {
+            if (LoggerFactory.Instance._lastLogTimes > 1) {
                 // Print old lines + times
                 var timestamp = LoggerFactory.Instance._includeTimestamp ? "                      " : "";
-                WriteLog(_lastLogTraceLevel, timestamp,_lastLogTimes.ToString(), _lastLog);
+                WriteLog(_lastLogTraceLevel, timestamp,LoggerFactory.Instance._lastLogTimes.ToString(), LoggerFactory.Instance._lastLog);
             }
-            _lastLog = message;
-            _lastLogTimes = 1;
+            LoggerFactory.Instance._lastLog = message;
+            LoggerFactory.Instance._lastLogTimes = 1;
             var fastDateFormat = LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "";
             WriteLog(level, fastDateFormat, level.ToString(),
                 message);
