@@ -145,16 +145,16 @@ namespace Veronenger.Game.Controller.Character {
 
         private TweenSequence CreatePulsate() {
             var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 0.05f).SetTrans(Tween.TransitionType.Cubic);
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
             seq.SetInfiniteLoops();
             return seq;
         }
 
         private TweenSequence CreateDanger() {
             var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 0, 0, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.05f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 0, 0, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
+            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
             seq.SetInfiniteLoops();
             return seq;
         }

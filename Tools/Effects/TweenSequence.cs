@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Array = Godot.Collections.Array;
+using Object = Godot.Object;
 
 namespace Tools.Effects {
     public delegate void OnFinishTweenSequence(TweenSequence tweenSequence);
@@ -28,12 +29,11 @@ namespace Tools.Effects {
 
         // Sets custom starting value for the tweener.
         // By default, it starts from value at the start of this tweener.
-        public PropertyTweener(Node target, NodePath property, T to_value, float duration) {
+        public PropertyTweener(Node target, NodePath property, T to, float duration) {
             _target = target;
             _property = property;
-            _to = to_value;
-            _continue = true;
-            // _from is calculated when the tween start by default
+            _to = to;
+            _continue = true; // continue true means _from is calculated when the tween start
             _duration = duration;
             _trans = Tween.TransitionType.Linear; // TRANS_LINEAR;
             _ease = Tween.EaseType.InOut; // EASE_IN_OUT;
