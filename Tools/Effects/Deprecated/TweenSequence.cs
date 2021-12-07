@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Object = Godot.Object;
 
-namespace Tools.Effects {
+namespace Tools.Effects.Deprecated {
     public delegate void OnFinishTweenSequence(TweenSequence tweenSequence);
 
     public delegate void TweenCallback();

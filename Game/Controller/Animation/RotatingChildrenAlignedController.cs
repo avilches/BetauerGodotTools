@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Tools;
-using Tools.Effects;
+using Tools.Effects.Deprecated;
 using Veronenger.Game.Managers;
 using static Tools.GodotConstants;
 using static Tools.GodotTools;

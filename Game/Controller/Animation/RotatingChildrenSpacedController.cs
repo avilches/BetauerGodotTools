@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using Godot;
 using Tools;
-using Tools.Effects;
+using Tools.Effects.Deprecated;
 using Veronenger.Game.Managers;
-using static Tools.GodotTools;
 
 namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenSpacedController : DiNode2D {

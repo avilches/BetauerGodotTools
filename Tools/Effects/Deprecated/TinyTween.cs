@@ -25,7 +25,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Tools.Effects {
+namespace Tools.Effects.Deprecated {
     public enum TweenReturn {
         pause,
         next,
@@ -167,7 +167,7 @@ namespace Tools.Effects {
         public override void _PhysicsProcess(float delta) {
             if (!_disposed) {
                 if (CurrentStep.HasOnUpdate()) {
-                    CurrentStep.OnUpdate(delta);
+                    CurrentStep.OnUpdate(Update(delta));
                 } else {
                     _onUpdateAction?.Invoke(Update(delta));
                 }
