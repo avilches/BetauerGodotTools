@@ -137,34 +137,49 @@ namespace Veronenger.Game.Controller.Character {
 
 
         private TweenSequence CreateReset() {
-            var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
-            seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
+            var seq = new TweenSequence()
+                .AnimateColor(_mainSprite, "modulate").From(new Color(1, 1, 1, 0)).To(new Color(1, 1, 1, 1), 1).End();
+            // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
+            // seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
             return seq;
         }
 
         private TweenSequence CreatePulsate() {
-            var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
+            var seq = new TweenSequence()
+                .AnimateColor(_mainSprite, "modulate")
+                .From()
+                .To(new Color(1, 1, 1, 0), 1f)
+                .To(new Color(1, 1, 1, 1), 1f)
+                .End()
+                .Parallel()
+                .AnimateVector2(this, "scale")
+                .From()
+                .To(new Vector2(1.4f, 1f), 0.5f)
+                .To(new Vector2(1f, 1f), 0.5f)
+                .End();
+            // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
+            // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
             seq.SetInfiniteLoops();
             return seq;
         }
 
         private TweenSequence CreateDanger() {
-            var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 0, 0, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.SetInfiniteLoops();
+            var seq = new TweenSequence()
+                .AnimateColor(_mainSprite, "modulate", Tween.TransitionType.Cubic)
+                .To(new Color(1, 0, 0, 1), 1)
+                .To(new Color(1, 1, 1, 1), 1)
+                .End()
+                .SetInfiniteLoops();
             return seq;
         }
 
         private TweenSequence CreateSqueeze() {
-            var seq = new TweenSequence();
-            seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.Parallel().AddProperty(this, "scale", new Vector2(1.4f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.AddProperty(this, "scale", new Vector2(1f, 1f), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.SetLoops(1);
+            var seq = new TweenSequence()
+                .AnimateVector2(this, "scale", Tween.TransitionType.Cubic)
+                .To(new Vector2(1.4f, 1f), 0.5f)
+                .To(new Vector2(1f, 1f), 0.5f)
+                .End()
+                .SetLoops(1);
             return seq;
         }
 

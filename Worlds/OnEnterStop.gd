@@ -7,4 +7,4 @@ func _ready():
 func on_enter(body):
 	if Global.CharacterManager.IsPlayer(body):
 		$"../MultipleAligned".Pause()
-		$"../TweenPlatform".Pause()
+		$"../TweenPlatform/Body".Pause()

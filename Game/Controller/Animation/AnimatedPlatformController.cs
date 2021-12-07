@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Godot;
 using Tools;
 using Tools.Effects;
@@ -12,7 +13,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private Vector2 _original;
         public Vector2 follow;
-        private TweenPlayer seqMove;
+        private TweenPlayer _player;
 
         public override void Ready() {
             Configure();
@@ -24,7 +25,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         // private void bla() {
-            // GD.Print("bla");
+        // GD.Print("bla");
         // }
 
         public void Configure() {
@@ -32,17 +33,33 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            seqMove = new TweenPlayer(this);
+            _player = new TweenPlayer(this);
+
+            Stopwatch x = Stopwatch.StartNew();
             TweenSequence seq = new TweenSequence();
-            seq.AddOffset(this, nameof(follow), new Vector2(100, 0), 2).SetTrans(Tween.TransitionType.Cubic);
+            seq.Callback(() => x = Stopwatch.StartNew());
+            seq.AnimateVector2(this, nameof(follow), Tween.TransitionType.Cubic)
+                .AddOffset(new Vector2(100, 0), 1)
+                .AddOffset(new Vector2(-50, 0), 1,
+                    () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
+                .End();
             // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
-            seq.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 0.5f), 2)
-                .SetTrans(Tween.TransitionType.Cubic);
+            // seq.Parallel().Animate(this, "modulate", new Color(1, 1, 1, 0), 2,Tween.TransitionType.Cubic);
             // seqMove.AddCallback(this, nameof(bla), new Array());
             // seqMove.AddCallback(delegate { GD.Print("callback"); });
-            seq.AddOffset(this, nameof(follow), new Vector2(-50, 0), 2).SetTrans(Tween.TransitionType.Cubic);
-            seq.Parallel().AddProperty(this, "modulate", new Color(1, 1, 1, 1), 2).SetTrans(Tween.TransitionType.Cubic);
-            seqMove.LoadSequence(seq).SetInfiniteLoops();
+            seq.Callback(() =>
+                LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
+            seq.Pause(3).Callback(() => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Ya"));
+            seq.Parallel().AnimateColor(this, "modulate")
+                .To(new Color(1, 0, 0, 1f), 1, Tween.TransitionType.Cubic);
+            seq.AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Tween.TransitionType.Cubic);
+            seq.Callback(() => {
+                x.Stop();
+                GD.Print("Elapsed:" + x.ElapsedMilliseconds);
+            });
+            seq.SetInfiniteLoops();
+
+            _player.LoadSequence(seq);
         }
 
         public void UpdatePosition() {
@@ -50,14 +67,13 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Start() {
-            seqMove.Start();
+            _player.Start();
         }
 
         public void Pause() {
             follow = Vector2.Zero;
             Modulate = new Color(1, 1, 1, 1);
-            seqMove.Reset();
+            _player.Reset();
         }
-
     }
 }

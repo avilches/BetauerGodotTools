@@ -222,7 +222,7 @@ shape = SubResource( 5 )
 script = ExtResource( 19 )
 color = Color( 0.764706, 0.203922, 0.203922, 1 )
 
-[node name="Platform1" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform1" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 214.213, 47.5319 )
 collision_mask = 0
 script = ExtResource( 10 )
@@ -232,13 +232,13 @@ __meta__ = {
 IsFallingPlatform = true
 IsMovingPlatform = null
 
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/Platform1"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform1"]
 scale = Vector2( 4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 19 )
 
-[node name="Platform2" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform2" type="KinematicBody2D" parent="Platforms"]
 position = Vector2( 170, 99 )
 rotation = 1.40848
 collision_mask = 0
@@ -250,21 +250,22 @@ __meta__ = {
 IsFallingPlatform = null
 IsMovingPlatform = null
 
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/Platform2"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform2"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 script = ExtResource( 19 )
 
-[node name="TweenPlatform" type="KinematicBody2D" parent="Platforms"]
+[node name="TweenPlatform" type="Node2D" parent="Platforms"]
 position = Vector2( 391, 101 )
+
+[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform"]
 collision_mask = 0
 script = ExtResource( 12 )
 __meta__ = {
 "_edit_group_": true
 }
-IsFallingPlatform = null
 
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform/Body"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
@@ -302,7 +303,6 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = true
-Radius = null
 RotationDuration = 10.0
 
 [node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
