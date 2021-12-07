@@ -684,7 +684,7 @@ namespace Tools.Effects {
         private TweenSequence _tweenSequence;
 
         private int _currentStep = 0;
-        private int _loops = 0;
+        private int _currentLoop = 0;
         private bool _started = false;
         private bool _running = false;
 
@@ -789,7 +789,7 @@ namespace Tools.Effects {
             _tween.StopAll();
             _tween.RemoveAll();
             _currentStep = 0;
-            _loops = 0;
+            _currentLoop = 0;
             if (tweenSequence != null) {
                 _loadSequence(tweenSequence);
             }
@@ -816,11 +816,14 @@ namespace Tools.Effects {
             // return;
             // }
             if (_tweenSequence._tweeners.Count > _currentStep) {
+                GD.Print("RunNextStep "+(1+_currentStep)+"/"+_tweenSequence._tweeners.Count);
                 var group = _tweenSequence._tweeners[_currentStep];
                 foreach (var tweener in group) {
                     tweener._start(_tween);
                 }
                 _tween.Start();
+            } else {
+                GD.Print("RunNextStep out of bounds!!");
             }
         }
 
@@ -849,16 +852,17 @@ namespace Tools.Effects {
             // EmitSignal(nameof(step_finished), _current_step);
             _currentStep++;
             if (_currentStep == _tweenSequence._tweeners.Count) {
-                _loops++;
-                if (IsInfiniteLoop() || _loops < Loops) {
+                _currentLoop++;
+                if (IsInfiniteLoop() || _currentLoop < Loops) {
                     // EmitSignal(nameof(loop_finished));
                     _currentStep = 0;
                     RunNextStep();
                 } else {
-                    // EmitSignal(nameof(finished));
-                    _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequence));
                     // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
                     Stop().Reset();
+                    // It's very important the event must be called the last
+                    // EmitSignal(nameof(finished));
+                    _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequence));
                     if (_killWhenFinished) Kill();
                 }
             } else {

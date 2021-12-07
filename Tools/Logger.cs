@@ -283,11 +283,14 @@ namespace Tools {
             // New line is different
             if (_lastLogTimes > 1) {
                 // Print old lines + times
-                WriteLog(_lastLogTraceLevel, "", _lastLogTimes.ToString(), _lastLog);
+                var timestamp = LoggerFactory.Instance._includeTimestamp ? "                      " : "";
+                WriteLog(_lastLogTraceLevel, timestamp,_lastLogTimes.ToString(), _lastLog);
             }
             _lastLog = message;
             _lastLogTimes = 1;
-            WriteLog(level, LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "", level.ToString(), message);
+            var fastDateFormat = LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "";
+            WriteLog(level, fastDateFormat, level.ToString(),
+                message);
         }
 
         private static string FastDateFormat() {
