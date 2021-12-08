@@ -159,7 +159,6 @@ namespace Veronenger.Game.Controller.Character {
                 .End();
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
-            seq.SetInfiniteLoops();
             return seq;
         }
 
@@ -168,8 +167,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AnimateColor(_mainSprite, "modulate", Tween.TransitionType.Cubic)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
-                .End()
-                .SetInfiniteLoops();
+                .End();
             return seq;
         }
 
@@ -179,7 +177,7 @@ namespace Veronenger.Game.Controller.Character {
                 .To(new Vector2(1.4f, 1f), 0.5f)
                 .To(new Vector2(1f, 1f), 0.5f)
                 .End()
-                .SetLoops(1);
+                .SetLoops(2);
             return seq;
         }
 

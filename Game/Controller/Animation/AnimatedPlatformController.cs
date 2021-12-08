@@ -37,19 +37,17 @@ namespace Veronenger.Game.Controller.Animation {
 
             Stopwatch x = Stopwatch.StartNew();
             TweenSequence seq = new TweenSequence();
+
             seq.Callback(() => x = Stopwatch.StartNew());
+
             seq.AnimateVector2(this, nameof(follow), Tween.TransitionType.Cubic)
                 .AddOffset(new Vector2(100, 0), 1)
                 .AddOffset(new Vector2(-50, 0), 1,
                     () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
                 .End();
-            // seqMove.Parallel().AddMethod(delegate(Vector2 value) { GD.Print(value); }, Vector2.Down, Vector2.Up, 0.3f);
-            // seq.Parallel().Animate(this, "modulate", new Color(1, 1, 1, 0), 2,Tween.TransitionType.Cubic);
-            // seqMove.AddCallback(this, nameof(bla), new Array());
-            // seqMove.AddCallback(delegate { GD.Print("callback"); });
-            seq.Callback(() =>
-                LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
-            seq.Pause(3).Callback(() => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Ya"));
+            // seq.Callback(() =>
+                // LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
+            // seq.Pause(3).Callback(() => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Ya"));
             seq.Parallel().AnimateColor(this, "modulate")
                 .To(new Color(1, 0, 0, 1f), 1, Tween.TransitionType.Cubic);
             seq.AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Tween.TransitionType.Cubic);
@@ -57,9 +55,9 @@ namespace Veronenger.Game.Controller.Animation {
                 x.Stop();
                 GD.Print("Elapsed:" + x.ElapsedMilliseconds);
             });
-            seq.SetInfiniteLoops();
 
-            _player.LoadSequence(seq);
+            _player.AddSequence(seq);
+            _player.SetInfiniteLoops();
         }
 
         public void UpdatePosition() {

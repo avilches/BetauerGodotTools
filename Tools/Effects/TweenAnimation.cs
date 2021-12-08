@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -8,6 +9,7 @@ namespace Tools.Effects {
 
     internal interface ITweener {
         public void _start(float initialDelay, Tween tween);
+        public float TotalTime { get; }
     }
 
     public delegate void TweenCallback();
@@ -56,13 +58,13 @@ namespace Tools.Effects {
             }
 
             var start = StepDelay + initialDelay;
-            var end = start + Duration;
 
-            // TweenSequence.Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
-                                      // From + " to " + absoluteTo +
-                                      // " Start: " + start.ToString("F") +
-                                      // " End: " + end.ToString("F") +
-                                      // " (+" + Duration.ToString("F") + ")");
+            var end = start + Duration;
+            TweenSequence.Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
+                                      From + " to " + absoluteTo +
+                                      " Start: " + start.ToString("F") +
+                                      " End: " + end.ToString("F") +
+                                      " (+" + Duration.ToString("F") + ")");
             tween.InterpolateProperty(target, property, From, absoluteTo, Duration, _trans, _ease, start);
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
@@ -87,18 +89,21 @@ namespace Tools.Effects {
 
     internal class CallbackTweener : TweenCallbackHolder, ITweener {
         internal static readonly TweenCallback EmptyCallback = () => { };
+
         // private readonly TweenSequence _tweenSequence;
         private readonly float _delay;
+        public float TotalTime => _delay;
 
-        internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback):base(callback) {
+        internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback) : base(callback) {
             // _tweenSequence = tweenSequence;
             _delay = delay;
         }
 
         public void _start(float initialDelay, Tween tween) {
-            tween.InterpolateCallback(this, _delay, nameof(Call));
+            var start = _delay + initialDelay;
+            TweenSequence.Logger.Info(" Callback: " + start.ToString("F"));
+            tween.InterpolateCallback(this, initialDelay + _delay, nameof(Call));
         }
-
     }
 
     public class PropertyTweener<T> : ITweener {
@@ -114,6 +119,8 @@ namespace Tools.Effects {
 
         private T _from;
         private bool _liveFrom = true;
+        public float _time;
+        public float TotalTime => _time;
 
         public PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
             Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
@@ -152,6 +159,7 @@ namespace Tools.Effects {
             TweenCallback callback = null) {
             var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, trans, ease, callback);
             _steps.Add(animationStepPropertyTweener);
+            _time += duration;
             return this;
         }
 
@@ -169,6 +177,7 @@ namespace Tools.Effects {
             var step = new AnimationStep<T>(offset, duration, trans, ease, callback) {
                 Relative = true
             };
+            _time += duration;
             _steps.Add(step);
             return this;
         }
@@ -237,20 +246,13 @@ namespace Tools.Effects {
             }
         }
 
-        public int Loops = -1;
+        public int Loops = 1;
         public float Speed = 1.0f;
-
         public int GetLoops() => Loops;
-        public bool IsInfiniteLoop() => Loops == -1;
 
         // Sets the speed scale of tweening.
         public TweenSequence SetSpeed(float speed) {
             Speed = speed;
-            return this;
-        }
-
-        public TweenSequence SetInfiniteLoops() {
-            Loops = -1;
             return this;
         }
 
@@ -277,10 +279,11 @@ namespace Tools.Effects {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
         private readonly Tween _tween;
-        private TweenSequence _tweenSequence;
+        private List<TweenSequence> _tweenSequences = new List<TweenSequence>(6);
 
-        private int _currentStep = 0;
-        private int _currentLoop = 0;
+        private int _currentSequence = 0;
+        private int _sequenceLoop = 0;
+        private int _currentPlayerLoop = 0;
         private bool _started = false;
         private bool _running = false;
 
@@ -290,7 +293,6 @@ namespace Tools.Effects {
         public TweenPlayer(Tween tween, string name = null) {
             Name = name ?? tween.Name;
             _tween = tween;
-            // _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
             _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
         }
 
@@ -298,8 +300,8 @@ namespace Tools.Effects {
             node.AddChild(_tween);
         }
 
-        public TweenPlayer LoadSequence(TweenSequence tweenTweenPlayer) {
-            Reset(tweenTweenPlayer);
+        public TweenPlayer AddSequence(TweenSequence tweenSequence) {
+            _tweenSequences.Add(tweenSequence);
             return this;
         }
 
@@ -326,12 +328,6 @@ namespace Tools.Effects {
             return this;
         }
 
-        private void _loadSequence(TweenSequence tweenTweenPlayer) {
-            _tweenSequence = tweenTweenPlayer;
-            Loops = tweenTweenPlayer.Loops;
-            _tween.PlaybackSpeed = tweenTweenPlayer.Speed;
-        }
-
         public int GetLoops() => Loops;
         public bool IsInfiniteLoop() => Loops == -1;
 
@@ -354,7 +350,7 @@ namespace Tools.Effects {
             if (!_started) {
                 _started = true;
                 _running = true;
-                RunNextStep();
+                RunCurrentSequence();
             } else {
                 if (!_running) {
                     _tween.ResumeAll();
@@ -377,21 +373,26 @@ namespace Tools.Effects {
             return this;
         }
 
+        public TweenPlayer Clear() {
+            _running = false;
+            Reset();
+            _tweenSequences.Clear();
+            return this;
+        }
+
         // Stops the sequence && resets it to the beginning.
-        public TweenPlayer Reset(TweenSequence tweenTweenPlayer = null) {
+        public TweenPlayer Reset() {
             if (!IsInstanceValid(_tween)) {
                 Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
             _tween.StopAll();
             _tween.RemoveAll();
-            _currentLoop = 0;
-            _currentStep = 0;
-            if (tweenTweenPlayer != null) {
-                _loadSequence(tweenTweenPlayer);
-            }
+            _currentPlayerLoop = 0;
+            _sequenceLoop = 0;
+            _currentSequence = 0;
             if (_running) {
-                RunNextStep();
+                RunCurrentSequence();
             } else {
                 _started = false;
             }
@@ -407,21 +408,20 @@ namespace Tools.Effects {
             _tween.QueueFree();
         }
 
-        private void RunNextStep() {
-            // if (_tweeners.Count == 0) {
-            // Logger.Warning("Sequence has no steps!");
-            // return;
-            // }
-            if (_tweenSequence.TweenList.Count > _currentStep) {
-                // GD.Print("RunNextStep " + (1 + _currentStep) + "/" + _tweenSequence._tweeners.Count);
-                var group = _tweenSequence.TweenList[_currentStep];
+        private void RunCurrentSequence() {
+            GD.Print("RunNextStep " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
+            float accumulated = 0;
+            var currentSequence = _tweenSequences[_currentSequence];
+            foreach (var group in currentSequence.TweenList) {
+                float maxFinishTime = 0;
                 foreach (var tweener in group) {
-                    tweener._start(0, _tween);
+                    tweener._start(accumulated, _tween);
+                    maxFinishTime = Math.Max(maxFinishTime, tweener.TotalTime);
                 }
-                _tween.Start();
-            } else {
-                GD.Print("RunNextStep out of bounds!!");
+                accumulated += maxFinishTime;
             }
+            _tween.PlaybackSpeed = currentSequence.Speed;
+            _tween.Start();
         }
 
         private List<OnFinishAnimationTweener> _onFinishTween;
@@ -447,24 +447,34 @@ namespace Tools.Effects {
 
         private void OnTweenAllCompletedSignaled() {
             // EmitSignal(nameof(step_finished), _current_step);
-            _currentStep++;
-            if (_currentStep == _tweenSequence.TweenList.Count) {
-                _currentLoop++;
-                if (IsInfiniteLoop() || _currentLoop < Loops) {
-                    // EmitSignal(nameof(loop_finished));
-                    _currentStep = 0;
-                    RunNextStep();
-                } else {
-                    // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
-                    Stop().Reset();
-                    // It's very important the event must be called the last
-                    // EmitSignal(nameof(finished));
-                    _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequence));
-                    if (_killWhenFinished) Kill();
-                }
-            } else {
-                RunNextStep();
+            _sequenceLoop++;
+            var currentSequence = _tweenSequences[_currentSequence];
+            if (_sequenceLoop < currentSequence.Loops) {
+                RunCurrentSequence();
+                return;
             }
+
+            _sequenceLoop = 0;
+            _currentSequence++;
+            if (_currentSequence < _tweenSequences.Count) {
+                RunCurrentSequence();
+                return;
+            }
+
+            _currentSequence = 0;
+            _currentPlayerLoop++;
+            if (IsInfiniteLoop() || _currentPlayerLoop < Loops) {
+                // EmitSignal(nameof(loop_finished));
+                RunCurrentSequence();
+                return;
+            }
+            
+            // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
+            Stop().Reset();
+            // It's very important the event must be called the last
+            // EmitSignal(nameof(finished));
+            _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequences[_currentSequence]));
+            if (_killWhenFinished) Kill();
         }
     }
 }

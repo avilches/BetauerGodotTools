@@ -850,7 +850,9 @@ namespace Tools.Effects.Deprecated {
         private void OnTweenAllCompletedSignaled() {
             // EmitSignal(nameof(step_finished), _current_step);
             _currentStep++;
-            if (_currentStep == _tweenSequence._tweeners.Count) {
+            if (_currentStep < _tweenSequence._tweeners.Count) {
+                RunNextStep();
+            } else {
                 _currentLoop++;
                 if (IsInfiniteLoop() || _currentLoop < Loops) {
                     // EmitSignal(nameof(loop_finished));
@@ -864,8 +866,6 @@ namespace Tools.Effects.Deprecated {
                     _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequence));
                     if (_killWhenFinished) Kill();
                 }
-            } else {
-                RunNextStep();
             }
         }
     }

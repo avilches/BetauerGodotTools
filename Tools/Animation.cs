@@ -133,7 +133,7 @@ namespace Tools {
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _tweenPlayer.LoadSequence(_sequence).Start();
+                _tweenPlayer.Clear().AddSequence(_sequence).SetInfiniteLoops().Start();
             }
 
             internal override void ExecuteOnEnd() {
@@ -155,7 +155,7 @@ namespace Tools {
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _tweenPlayer.LoadSequence(_sequence).Start();
+                _tweenPlayer.Clear().AddSequence(_sequence).SetLoops(1).Start();
             }
 
             internal override void ExecuteOnEnd() {
