@@ -33,7 +33,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            _player = new TweenPlayer(this);
+            _player = new TweenPlayer("Platform").NewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
             TweenSequence seq = new TweenSequence();
@@ -54,6 +54,7 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Callback(() => {
                 x.Stop();
                 GD.Print("Elapsed:" + x.ElapsedMilliseconds);
+                // _player.SetTween(new Tween());
             });
 
             _player.AddSequence(seq);

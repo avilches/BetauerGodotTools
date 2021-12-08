@@ -15,10 +15,9 @@ namespace Tools.Effects {
     public delegate void TweenCallback();
 
     public class AnimationStep<T> {
-        internal T From;
-        internal float StepDelay;
-
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal readonly float Duration;
+
         private readonly T _offset;
         private readonly bool _relative = false;
         private readonly TweenCallback _callback;
@@ -35,20 +34,19 @@ namespace Tools.Effects {
             _relative = relative;
         }
 
-        public T StartAndGetFinalValue(float initialDelay, Tween tween, Node target, string property) {
+        public T StartAndGetFinalValue(T from, float start, Tween tween, Node target, string property) {
             if (!Object.IsInstanceValid(target)) {
-                TweenSequence.Logger.Warning("Can't create InterpolateProperty in a freed target instance");
+                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return default;
             }
-            var absoluteTo = _relative ? GodotTools.SumVariant(From, _offset) : _offset;
-            var start = StepDelay + initialDelay;
+            var absoluteTo = _relative ? GodotTools.SumVariant(from, _offset) : _offset;
             var end = start + Duration;
-            TweenSequence.Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
-                                      From + " to " + absoluteTo +
+            Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
+                                      from + " to " + absoluteTo +
                                       " Start: " + start.ToString("F") +
                                       " End: " + end.ToString("F") +
                                       " (+" + Duration.ToString("F") + ") " + _trans + "/" + _ease);
-            tween.InterpolateProperty(target, property, From, absoluteTo, Duration, _trans, _ease, start);
+            tween.InterpolateProperty(target, property, from, absoluteTo, Duration, _trans, _ease, start);
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
                 tween.InterpolateCallback(holder, start, nameof(TweenCallbackHolder.Call));
@@ -71,6 +69,7 @@ namespace Tools.Effects {
 
 
     internal class CallbackTweener : TweenCallbackHolder, ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal static readonly TweenCallback EmptyCallback = () => { };
 
         // private readonly TweenSequence _tweenSequence;
@@ -83,16 +82,18 @@ namespace Tools.Effects {
 
         public void _start(float initialDelay, Tween tween) {
             var start = TotalTime + initialDelay;
-            TweenSequence.Logger.Info(" Callback: " + start.ToString("F"));
+            Logger.Info(" Callback: " + start.ToString("F"));
             tween.InterpolateCallback(this, initialDelay + TotalTime, nameof(Call));
         }
     }
 
     public class PropertyTweener<T> : ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         private readonly TweenSequence _tweenSequence;
 
         private readonly Node _target;
         private readonly string _member;
+        // TODO: create method/delegate interpolator
         private readonly bool _memberIsProperty;
 
         private readonly List<AnimationStep<T>> _steps = new List<AnimationStep<T>>(5);
@@ -167,16 +168,14 @@ namespace Tools.Effects {
 
         public void _start(float initialDelay, Tween tween) {
             if (!Object.IsInstanceValid(_target)) {
-                TweenSequence.Logger.Warning("Can't create InterpolateProperty in a freed target instance");
+                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return;
             }
             var from = _liveFrom ? (T)_target.GetIndexed(_member) : _from;
             var start = 0f;
             foreach (var step in _steps) {
-                step.StepDelay = start;
                 start += step.Duration;
-                step.From = from;
-                from = step.StartAndGetFinalValue(initialDelay, tween, _target, _member);
+                from = step.StartAndGetFinalValue(from, initialDelay + start, tween, _target, _member);
             }
         }
     }
@@ -257,7 +256,7 @@ namespace Tools.Effects {
         private readonly string Name;
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
-        private readonly Tween _tween;
+        private Tween _tween;
         private readonly List<TweenSequence> _tweenSequences = new List<TweenSequence>(6);
 
         private int _currentSequence = 0;
@@ -269,14 +268,32 @@ namespace Tools.Effects {
         public int Loops = 0;
         private bool _killWhenFinished = false;
 
-        public TweenPlayer(Tween tween, string name = null) {
-            Name = name ?? tween.Name;
-            _tween = tween;
-            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+        public TweenPlayer(string name) {
+            Name = name;
         }
 
-        public TweenPlayer(Node node) : this(new Tween()) {
-            node.AddChild(_tween);
+        public TweenPlayer NewTween(Node node) {
+            RemoveTween();
+            var tween = new Tween();
+            node.AddChild(tween);
+            return SetTween(tween);
+        }
+
+        public TweenPlayer SetTween(Tween tween) {
+            RemoveTween();
+            _tween = tween;
+            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+            return this;
+        }
+
+        public TweenPlayer RemoveTween() {
+            if (_tween != null) {
+                _running = false;
+                Reset();
+                _tween.Disconnect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+                _tween = null;
+            }
+            return this;
         }
 
         public TweenPlayer AddSequence(TweenSequence tweenSequence) {

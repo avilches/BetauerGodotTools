@@ -175,7 +175,8 @@ namespace Tools.Effects.Deprecated {
         }
 
 
-        public TinyTweenSequence AddDelay(float delay, float value, IStep<float>.OnUpdateAction onUpdateAction, OnFinishAction onCompleteAction = null) {
+        public TinyTweenSequence AddDelay(float delay, float value, IStep<float>.OnUpdateAction onUpdateAction,
+            OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
                 steps.Add(new DelayTweenStep(delay, value, onUpdateAction, onCompleteAction));
             }
@@ -682,29 +683,35 @@ namespace Tools.Effects.Deprecated {
             return progress;
         }
 
-        private static float QuadraticEaseInImpl(float progress) {
-            return EaseInPower(progress, 2);
+
+
+        private static float SineEaseInImpl(float progress) {
+            return (float)Math.Sin(progress * HalfPi - HalfPi) + 1;
         }
 
-        private static float QuadraticEaseOutImpl(float progress) {
-            return EaseOutPower(progress, 2);
+        private static float SineEaseOutImpl(float progress) {
+            return (float)Math.Sin(progress * HalfPi);
         }
 
-        private static float QuadraticEaseInOutImpl(float progress) {
-            return EaseInOutPower(progress, 2);
+        private static float SineEaseInOutImpl(float progress) {
+            return (float)(Math.Sin(progress * Pi - HalfPi) + 1) / 2;
         }
 
-        private static float CubicEaseInImpl(float progress) {
-            return EaseInPower(progress, 3);
+
+
+        private static float QuinticEaseInImpl(float progress) {
+            return EaseInPower(progress, 5);
         }
 
-        private static float CubicEaseOutImpl(float progress) {
-            return EaseOutPower(progress, 3);
+        private static float QuinticEaseOutImpl(float progress) {
+            return EaseOutPower(progress, 5);
         }
 
-        private static float CubicEaseInOutImpl(float progress) {
-            return EaseInOutPower(progress, 3);
+        private static float QuinticEaseInOutImpl(float progress) {
+            return EaseInOutPower(progress, 5);
         }
+
+
 
         private static float QuarticEaseInImpl(float progress) {
             return EaseInPower(progress, 4);
@@ -718,16 +725,38 @@ namespace Tools.Effects.Deprecated {
             return EaseInOutPower(progress, 4);
         }
 
-        private static float QuinticEaseInImpl(float progress) {
-            return EaseInPower(progress, 5);
+
+
+
+        private static float QuadraticEaseInImpl(float progress) {
+            return EaseInPower(progress, 2);
         }
 
-        private static float QuinticEaseOutImpl(float progress) {
-            return EaseOutPower(progress, 5);
+        private static float QuadraticEaseOutImpl(float progress) {
+            return EaseOutPower(progress, 2);
         }
 
-        private static float QuinticEaseInOutImpl(float progress) {
-            return EaseInOutPower(progress, 5);
+        private static float QuadraticEaseInOutImpl(float progress) {
+            return EaseInOutPower(progress, 2);
+        }
+
+        // Missing:
+        // Expo
+        // Elastic
+        // Circ
+        // Bounce
+
+
+        private static float CubicEaseInImpl(float progress) {
+            return EaseInPower(progress, 3);
+        }
+
+        private static float CubicEaseOutImpl(float progress) {
+            return EaseOutPower(progress, 3);
+        }
+
+        private static float CubicEaseInOutImpl(float progress) {
+            return EaseInOutPower(progress, 3);
         }
 
         private static float EaseInPower(float progress, int power) {
@@ -747,18 +776,6 @@ namespace Tools.Effects.Deprecated {
                 int sign = power % 2 == 0 ? -1 : 1;
                 return (float)(sign / 2.0 * (Math.Pow(progress - 2, power) + sign * 2));
             }
-        }
-
-        private static float SineEaseInImpl(float progress) {
-            return (float)Math.Sin(progress * HalfPi - HalfPi) + 1;
-        }
-
-        private static float SineEaseOutImpl(float progress) {
-            return (float)Math.Sin(progress * HalfPi);
-        }
-
-        private static float SineEaseInOutImpl(float progress) {
-            return (float)(Math.Sin(progress * Pi - HalfPi) + 1) / 2;
         }
     }
 }
