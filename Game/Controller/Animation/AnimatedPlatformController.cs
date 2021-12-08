@@ -42,8 +42,8 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Callback(() => x = Stopwatch.StartNew());
 
             seq.AnimateVector2(this, nameof(follow), Tween.TransitionType.Cubic)
-                .AddOffset(new Vector2(100, 0), 1)
-                .AddOffset(new Vector2(-50, 0), 1,
+                .Offset(new Vector2(100, 0), 1)
+                .Offset(new Vector2(-50, 0), 1,
                     () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
                 .EndAnimate();
             // seq.Callback(() =>

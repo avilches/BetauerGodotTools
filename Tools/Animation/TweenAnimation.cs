@@ -8,8 +8,7 @@ namespace Tools.Animation {
     public delegate void OnFinishAnimationTweener(TweenSequence tweenSequence);
 
     internal interface ITweener {
-        public void _start(float initialDelay, Tween tween);
-        public float TotalTime { get; }
+        public float _start(float initialDelay, Tween tween);
     }
 
     public delegate void TweenCallback();
@@ -19,7 +18,7 @@ namespace Tools.Animation {
         public delegate void PropertyMethodCallback(T value);
 
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
-        internal readonly float Duration;
+        internal readonly float DurationOrPercentage;
 
         private readonly T _offset;
         private readonly bool _relative = false;
@@ -28,11 +27,11 @@ namespace Tools.Animation {
         private readonly Tween.EaseType _ease;
         private readonly BezierCurve _bezierCurve;
 
-        public AnimationStep(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
+        public AnimationStep(T offset, float durationOrPercentage, Tween.TransitionType trans, Tween.EaseType ease,
             BezierCurve bezierCurveCurve,
             TweenCallback callback, bool relative) {
             _offset = offset;
-            Duration = duration;
+            DurationOrPercentage = durationOrPercentage;
             _trans = trans;
             _ease = ease;
             _bezierCurve = bezierCurveCurve;
@@ -40,21 +39,22 @@ namespace Tools.Animation {
             _relative = relative;
         }
 
-        public T StartAndGetFinalValue(T from, float start, Tween tween, Node target, string property) {
+        public T StartAndGetFinalValue(T from, float start, float fixedDuration, Tween tween, Node target, string property) {
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return default;
             }
+            var realDuration = DurationOrPercentage * fixedDuration;
             var absoluteTo = _relative ? GodotTools.SumVariant(from, _offset) : _offset;
-            var end = start + Duration;
+            var end = start + realDuration;
             Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
                         from + " to " + absoluteTo +
                         " Start: " + start.ToString("F") +
                         " End: " + end.ToString("F") +
-                        " (+" + Duration.ToString("F") + ") " + _trans + "/" + _ease);
+                        " (+" + realDuration.ToString("F") + ") " + _trans + "/" + _ease);
 
             if (_bezierCurve == null) {
-                tween.InterpolateProperty(target, property, from, absoluteTo, Duration, _trans, _ease, start);
+                tween.InterpolateProperty(target, property, from, absoluteTo, realDuration, _trans, _ease, start);
             } else {
                 // TODO: pending
                 TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
@@ -62,7 +62,7 @@ namespace Tools.Animation {
                         // Logger.Debug(""+value);
                     } );
                 tween.PlaybackProcessMode = Tween.TweenProcessMode.Physics;
-                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from, absoluteTo, Duration, _trans, _ease, start);
+                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from, absoluteTo, realDuration, _trans, _ease, start);
             }
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
@@ -102,17 +102,18 @@ namespace Tools.Animation {
         internal static readonly TweenCallback EmptyCallback = () => { };
 
         // private readonly TweenSequence _tweenSequence;
-        public float TotalTime { get; }
+        public float _delay;
 
         internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback) : base(callback) {
             // _tweenSequence = tweenSequence;
-            TotalTime = delay;
+            _delay = delay;
         }
 
-        public void _start(float initialDelay, Tween tween) {
-            var start = TotalTime + initialDelay;
+        public float _start(float initialDelay, Tween tween) {
+            var start = _delay + initialDelay;
             Logger.Info(" Callback: " + start.ToString("F"));
-            tween.InterpolateCallback(this, initialDelay + TotalTime, nameof(Call));
+            tween.InterpolateCallback(this, start, nameof(Call));
+            return _delay;
         }
     }
 
@@ -134,7 +135,7 @@ namespace Tools.Animation {
 
         private T _from;
         private bool _liveFrom = true;
-        public float TotalTime { get; private set; }
+        private float _allStepsDuration = 1;
 
         private PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty) {
             _tweenSequence = tweenSequence;
@@ -168,55 +169,61 @@ namespace Tools.Animation {
             return this;
         }
 
-        public PropertyTweener<T> To(T offset, float duration, TweenCallback callback = null) {
-            return To(offset, duration, _trans, _ease, callback);
+        /**
+         * If you use Duration, then the To() and AddOffset() method will use percentages
+         */
+        public PropertyTweener<T> Duration(float duration) {
+            _allStepsDuration = duration;
+            return this;
         }
 
-        public PropertyTweener<T> To(T offset, float duration, Tween.TransitionType trans,
+        public PropertyTweener<T> To(T offset, float durationOrPercent, TweenCallback callback = null) {
+            return To(offset, durationOrPercent, _trans, _ease, callback);
+        }
+
+        public PropertyTweener<T> To(T offset, float durationOrPercent, Tween.TransitionType trans,
             TweenCallback callback = null) {
-            return To(offset, duration, trans, _ease, callback);
+            return To(offset, durationOrPercent, trans, _ease, callback);
         }
 
-        public PropertyTweener<T> To(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
+        public PropertyTweener<T> To(T offset, float durationOrPercent, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
             var animationStepPropertyTweener =
-                new AnimationStep<T>(offset, duration, trans, ease, null, callback, false);
+                new AnimationStep<T>(offset, durationOrPercent, trans, ease, null, callback, false);
             _steps.Add(animationStepPropertyTweener);
-            TotalTime += duration;
             return this;
         }
 
-        public PropertyTweener<T> To(T offset, float duration, BezierCurve bezierCurve,
+        // TODO: can be the BezierCurve be a shortcut to Tween.TransitionType/EaseType ?
+        // So we will have only one method for To and only one for Offset
+        public PropertyTweener<T> To(T offset, float durationOrPercent, BezierCurve bezierCurve,
             TweenCallback callback = null) {
-            var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, Tween.TransitionType.Linear,
+            var animationStepPropertyTweener = new AnimationStep<T>(offset, durationOrPercent, Tween.TransitionType.Linear,
                 Tween.EaseType.InOut, bezierCurve, callback, false);
             _steps.Add(animationStepPropertyTweener);
-            TotalTime += duration;
             return this;
         }
 
-        public PropertyTweener<T> AddOffset(T offset, float duration, TweenCallback callback = null) {
-            return AddOffset(offset, duration, _trans, _ease, callback);
+        public PropertyTweener<T> Offset(T offset, float durationOrPercent, TweenCallback callback = null) {
+            return Offset(offset, durationOrPercent, _trans, _ease, callback);
         }
 
-        public PropertyTweener<T> AddOffset(T offset, float duration, Tween.TransitionType trans,
+        public PropertyTweener<T> Offset(T offset, float durationOrPercent, Tween.TransitionType trans,
             TweenCallback callback = null) {
-            return AddOffset(offset, duration, trans, _ease, callback);
+            return Offset(offset, durationOrPercent, trans, _ease, callback);
         }
 
-        public PropertyTweener<T> AddOffset(T offset, float duration, BezierCurve bezierCurve,
+        public PropertyTweener<T> Offset(T offset, float durationOrPercent, BezierCurve bezierCurve,
             TweenCallback callback = null) {
-            var step = new AnimationStep<T>(offset, duration, Tween.TransitionType.Linear,
+            var step = new AnimationStep<T>(offset, durationOrPercent, Tween.TransitionType.Linear,
                 Tween.EaseType.InOut, bezierCurve, callback, true);
-            TotalTime += duration;
             _steps.Add(step);
             return this;
         }
 
-        public PropertyTweener<T> AddOffset(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
+        public PropertyTweener<T> Offset(T offset, float durationOrPercent, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
-            var step = new AnimationStep<T>(offset, duration, trans, ease, null, callback, true);
-            TotalTime += duration;
+            var step = new AnimationStep<T>(offset, durationOrPercent, trans, ease, null, callback, true);
             _steps.Add(step);
             return this;
         }
@@ -225,17 +232,18 @@ namespace Tools.Animation {
             return _tweenSequence;
         }
 
-        public void _start(float initialDelay, Tween tween) {
+        public float _start(float initialDelay, Tween tween) {
             if (!Object.IsInstanceValid(_target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return;
+                return 0;
             }
             var from = _liveFrom ? (T)_target.GetIndexed(_member) : _from;
             var start = 0f;
             foreach (var step in _steps) {
-                from = step.StartAndGetFinalValue(from, initialDelay + start, tween, _target, _member);
-                start += step.Duration;
+                from = step.StartAndGetFinalValue(from, initialDelay + start, _allStepsDuration, tween, _target, _member);
+                start += step.DurationOrPercentage * _allStepsDuration;
             }
+            return start;
         }
     }
 
@@ -501,8 +509,8 @@ namespace Tools.Animation {
             foreach (var group in currentSequence.TweenList) {
                 float maxFinishTime = 0;
                 foreach (var tweener in group) {
-                    tweener._start(accumulated, _tween);
-                    maxFinishTime = Math.Max(maxFinishTime, tweener.TotalTime);
+                    var totalTime = tweener._start(accumulated, _tween);
+                    maxFinishTime = Math.Max(maxFinishTime, totalTime);
                 }
                 accumulated += maxFinishTime;
             }
