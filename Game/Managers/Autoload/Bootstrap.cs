@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using Godot;
 using Tools;
+using Tools.Animation;
 using Tools.Bus;
 using Veronenger.Game.Controller.Stage;
 using Veronenger.Game.Tools.Resolution;

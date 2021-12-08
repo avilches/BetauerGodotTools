@@ -1,7 +1,7 @@
 using Godot;
 using Tools;
+using Tools.Animation;
 using Tools.Bus.Topics;
-using Tools.Effects;
 using Tools.Input;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
@@ -138,7 +138,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private TweenSequence CreateReset() {
             var seq = new TweenSequence()
-                .AnimateColor(_mainSprite, "modulate").From(new Color(1, 1, 1, 0)).To(new Color(1, 1, 1, 1), 1).End();
+                .AnimateColor(_mainSprite, "modulate").From(new Color(1, 1, 1, 0)).To(new Color(1, 1, 1, 1), 1).EndAnimate();
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
             // seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
             return seq;
@@ -150,13 +150,13 @@ namespace Veronenger.Game.Controller.Character {
                 .From()
                 .To(new Color(1, 1, 1, 0), 1f)
                 .To(new Color(1, 1, 1, 1), 1f)
-                .End()
+                .EndAnimate()
                 .Parallel()
                 .AnimateVector2(this, "scale")
                 .From()
                 .To(new Vector2(1.4f, 1f), 0.5f)
                 .To(new Vector2(1f, 1f), 0.5f)
-                .End();
+                .EndAnimate();
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
             return seq;
@@ -167,7 +167,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AnimateColor(_mainSprite, "modulate", Tween.TransitionType.Cubic)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
-                .End();
+                .EndAnimate();
             return seq;
         }
 
@@ -176,7 +176,7 @@ namespace Veronenger.Game.Controller.Character {
                 .AnimateVector2(this, "scale", Tween.TransitionType.Sine)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
-                .End()
+                .EndAnimate()
                 .SetLoops(2);
             return seq;
         }

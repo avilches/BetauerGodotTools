@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Godot;
 using Tools;
+using Tools.Animation;
 using Tools.Effects;
 using Veronenger.Game.Managers;
 
@@ -44,7 +45,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .AddOffset(new Vector2(100, 0), 1)
                 .AddOffset(new Vector2(-50, 0), 1,
                     () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
-                .End();
+                .EndAnimate();
             // seq.Callback(() =>
                 // LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
             // seq.Pause(3).Callback(() => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Ya"));

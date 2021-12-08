@@ -1,7 +1,7 @@
 using System;
 using Godot;
 using Tools;
-using Tools.Effects;
+using Tools.Animation;
 using Tools.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;

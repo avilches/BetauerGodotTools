@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using Tools;
+using Tools.Animation;
 using Tools.Effects.Deprecated;
 using Veronenger.Game.Managers;
 
