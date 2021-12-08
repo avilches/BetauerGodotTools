@@ -2,7 +2,7 @@ using Godot;
 
 namespace Tools.Animation {
     // Got from https://www.icode.com/c-function-for-a-bezier-curve/
-    public struct BezierCurve {
+    public class BezierCurve {
         float p0x;
         float p0y;
         float cx;

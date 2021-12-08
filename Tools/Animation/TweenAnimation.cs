@@ -23,13 +23,16 @@ namespace Tools.Animation {
         private readonly TweenCallback _callback;
         private readonly Tween.TransitionType _trans;
         private readonly Tween.EaseType _ease;
+        private readonly BezierCurve _bezierCurve;
 
         public AnimationStep(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
+            BezierCurve bezierCurveCurve,
             TweenCallback callback, bool relative) {
             _offset = offset;
             Duration = duration;
             _trans = trans;
             _ease = ease;
+            _bezierCurve = bezierCurveCurve;
             _callback = callback;
             _relative = relative;
         }
@@ -42,11 +45,14 @@ namespace Tools.Animation {
             var absoluteTo = _relative ? GodotTools.SumVariant(from, _offset) : _offset;
             var end = start + Duration;
             Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
-                                      from + " to " + absoluteTo +
-                                      " Start: " + start.ToString("F") +
-                                      " End: " + end.ToString("F") +
-                                      " (+" + Duration.ToString("F") + ") " + _trans + "/" + _ease);
-            tween.InterpolateProperty(target, property, from, absoluteTo, Duration, _trans, _ease, start);
+                        from + " to " + absoluteTo +
+                        " Start: " + start.ToString("F") +
+                        " End: " + end.ToString("F") +
+                        " (+" + Duration.ToString("F") + ") " + _trans + "/" + _ease);
+
+            if (_bezierCurve == null) {
+                tween.InterpolateProperty(target, property, from, absoluteTo, Duration, _trans, _ease, start);
+            }
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
                 tween.InterpolateCallback(holder, start, nameof(TweenCallbackHolder.Call));
@@ -92,11 +98,14 @@ namespace Tools.Animation {
         private readonly TweenSequence _tweenSequence;
 
         private readonly Node _target;
+
         private readonly string _member;
+
         // TODO: create method/delegate interpolator
         private readonly bool _memberIsProperty;
 
         private readonly List<AnimationStep<T>> _steps = new List<AnimationStep<T>>(5);
+        private readonly BezierCurve _bezierCurve;
         private readonly Tween.TransitionType _trans;
         private readonly Tween.EaseType _ease;
 
@@ -104,16 +113,24 @@ namespace Tools.Animation {
         private bool _liveFrom = true;
         public float TotalTime { get; private set; }
 
-        public PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
-            Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
+        private PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty) {
             _tweenSequence = tweenSequence;
             _target = target;
             _member = member;
             _memberIsProperty = memberIsProperty;
-            _trans = trans;
-            _ease = ease;
             _from = default;
             _liveFrom = true;
+        }
+
+        public PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
+            Tween.TransitionType trans, Tween.EaseType ease) : this(tweenSequence, target, member, memberIsProperty) {
+            _trans = trans;
+            _ease = ease;
+        }
+
+        public PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
+            BezierCurve bezierCurve) : this(tweenSequence, target, member, memberIsProperty) {
+            _bezierCurve = bezierCurve;
         }
 
         public PropertyTweener<T> From(T from) {
@@ -139,7 +156,17 @@ namespace Tools.Animation {
 
         public PropertyTweener<T> To(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
-            var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, trans, ease, callback, false);
+            var animationStepPropertyTweener =
+                new AnimationStep<T>(offset, duration, trans, ease, null, callback, false);
+            _steps.Add(animationStepPropertyTweener);
+            TotalTime += duration;
+            return this;
+        }
+
+        public PropertyTweener<T> To(T offset, float duration, BezierCurve bezierCurve,
+            TweenCallback callback = null) {
+            var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, Tween.TransitionType.Linear,
+                Tween.EaseType.InOut, bezierCurve, callback, false);
             _steps.Add(animationStepPropertyTweener);
             TotalTime += duration;
             return this;
@@ -154,9 +181,18 @@ namespace Tools.Animation {
             return AddOffset(offset, duration, trans, _ease, callback);
         }
 
+        public PropertyTweener<T> AddOffset(T offset, float duration, BezierCurve bezierCurve,
+            TweenCallback callback = null) {
+            var step = new AnimationStep<T>(offset, duration, Tween.TransitionType.Linear,
+                Tween.EaseType.InOut, bezierCurve, callback, true);
+            TotalTime += duration;
+            _steps.Add(step);
+            return this;
+        }
+
         public PropertyTweener<T> AddOffset(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
-            var step = new AnimationStep<T>(offset, duration, trans, ease, callback, true);
+            var step = new AnimationStep<T>(offset, duration, trans, ease, null, callback, true);
             TotalTime += duration;
             _steps.Add(step);
             return this;
@@ -204,6 +240,12 @@ namespace Tools.Animation {
         public PropertyTweener<float> AnimateFloat(Node target, string property,
             Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
             var tweener = new PropertyTweener<float>(this, target, property, true, trans, ease);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<float> AnimateFloat(Node target, string property, BezierCurve bezierCurve) {
+            var tweener = new PropertyTweener<float>(this, target, property, true, bezierCurve);
             AddTweener(tweener);
             return tweener;
         }
