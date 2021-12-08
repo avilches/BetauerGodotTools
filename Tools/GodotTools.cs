@@ -32,6 +32,14 @@ namespace Tools {
 
             return children;
         }
+
+        public static void DisableAllNotifications(Node node) {
+            node.SetProcess(false);
+            node.SetProcessInput(false);
+            node.SetProcessUnhandledInput(false);
+            node.SetProcessUnhandledKeyInput(false);
+            node.SetPhysicsProcess(false);
+        }
     }
 
     public static class AnimationTools {

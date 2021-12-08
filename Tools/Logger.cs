@@ -212,6 +212,8 @@ namespace Tools {
 
         public static void Start(Node node) {
             Instance.Name = nameof(Logger);
+            GodotTools.DisableAllNotifications(Instance);
+            Instance.SetPhysicsProcess(true);
             node.AddChild(Instance);
         }
     }

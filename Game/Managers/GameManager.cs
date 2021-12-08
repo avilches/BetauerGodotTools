@@ -29,6 +29,7 @@ namespace Veronenger.Game.Managers {
 
         public override void _Ready() {
             ConfigureScreen();
+            GodotTools.DisableAllNotifications(this);
         }
 
         private void ConfigureScreen() {
