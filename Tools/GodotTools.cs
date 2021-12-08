@@ -40,6 +40,23 @@ namespace Tools {
             node.SetProcessUnhandledKeyInput(false);
             node.SetPhysicsProcess(false);
         }
+
+        public static object SumVariant(object op1, object op2) {
+            object absoluteTo = null;
+            if (op1 is float fromFloat && op2 is float toFloat) {
+                absoluteTo = fromFloat + toFloat;
+            } else if (op1 is int fromInt && op2 is int toInt) {
+                absoluteTo = fromInt + toInt;
+            } else if (op1 is Color fromColor && op2 is Color toColor) {
+                absoluteTo = fromColor + toColor;
+            } else if (op1 is Vector2 fromVector2 && op2 is Vector2 toVector2) {
+                absoluteTo = fromVector2 + toVector2;
+            } else if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3) {
+                absoluteTo = fromVector3 + toVector3;
+            }
+            return absoluteTo;
+        }
+
     }
 
     public static class AnimationTools {

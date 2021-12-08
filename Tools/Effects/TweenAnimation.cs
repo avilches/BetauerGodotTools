@@ -15,24 +15,24 @@ namespace Tools.Effects {
     public delegate void TweenCallback();
 
     public class AnimationStep<T> {
-        protected internal T From;
-        protected internal float StepDelay;
-        protected internal readonly T Offset;
-        protected internal readonly float Duration;
-        protected internal bool Relative = false;
+        internal T From;
+        internal float StepDelay;
 
-        private TweenCallback _callback;
-
+        internal readonly float Duration;
+        private readonly T _offset;
+        private readonly bool _relative = false;
+        private readonly TweenCallback _callback;
         private readonly Tween.TransitionType _trans;
         private readonly Tween.EaseType _ease;
 
         public AnimationStep(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
-            TweenCallback callback) {
-            Offset = offset;
+            TweenCallback callback, bool relative) {
+            _offset = offset;
             Duration = duration;
             _trans = trans;
             _ease = ease;
             _callback = callback;
+            _relative = relative;
         }
 
         public T StartAndGetFinalValue(float initialDelay, Tween tween, Node target, string property) {
@@ -40,31 +40,14 @@ namespace Tools.Effects {
                 TweenSequence.Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return default;
             }
-            object absoluteTo = null;
-            if (Relative) {
-                if (From is float fromFloat && Offset is float toFloat) {
-                    absoluteTo = fromFloat + toFloat;
-                } else if (From is int fromInt && Offset is int toInt) {
-                    absoluteTo = fromInt + toInt;
-                } else if (From is Color fromColor && Offset is Color toColor) {
-                    absoluteTo = fromColor + toColor;
-                } else if (From is Vector2 fromVector2 && Offset is Vector2 toVector2) {
-                    absoluteTo = fromVector2 + toVector2;
-                } else if (From is Vector3 fromVector3 && Offset is Vector3 toVector3) {
-                    absoluteTo = fromVector3 + toVector3;
-                }
-            } else {
-                absoluteTo = Offset;
-            }
-
+            var absoluteTo = _relative ? GodotTools.SumVariant(From, _offset) : _offset;
             var start = StepDelay + initialDelay;
-
             var end = start + Duration;
             TweenSequence.Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
                                       From + " to " + absoluteTo +
                                       " Start: " + start.ToString("F") +
                                       " End: " + end.ToString("F") +
-                                      " (+" + Duration.ToString("F") + ")");
+                                      " (+" + Duration.ToString("F") + ") " + _trans + "/" + _ease);
             tween.InterpolateProperty(target, property, From, absoluteTo, Duration, _trans, _ease, start);
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
@@ -75,7 +58,7 @@ namespace Tools.Effects {
     }
 
     internal class TweenCallbackHolder : Object {
-        private TweenCallback _callback;
+        private readonly TweenCallback _callback;
 
         public TweenCallbackHolder(TweenCallback callback) {
             _callback = callback;
@@ -91,18 +74,17 @@ namespace Tools.Effects {
         internal static readonly TweenCallback EmptyCallback = () => { };
 
         // private readonly TweenSequence _tweenSequence;
-        private readonly float _delay;
-        public float TotalTime => _delay;
+        public float TotalTime { get; }
 
         internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback) : base(callback) {
             // _tweenSequence = tweenSequence;
-            _delay = delay;
+            TotalTime = delay;
         }
 
         public void _start(float initialDelay, Tween tween) {
-            var start = _delay + initialDelay;
+            var start = TotalTime + initialDelay;
             TweenSequence.Logger.Info(" Callback: " + start.ToString("F"));
-            tween.InterpolateCallback(this, initialDelay + _delay, nameof(Call));
+            tween.InterpolateCallback(this, initialDelay + TotalTime, nameof(Call));
         }
     }
 
@@ -119,8 +101,7 @@ namespace Tools.Effects {
 
         private T _from;
         private bool _liveFrom = true;
-        public float _time;
-        public float TotalTime => _time;
+        public float TotalTime { get; private set; }
 
         public PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
             Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
@@ -157,9 +138,9 @@ namespace Tools.Effects {
 
         public PropertyTweener<T> To(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
-            var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, trans, ease, callback);
+            var animationStepPropertyTweener = new AnimationStep<T>(offset, duration, trans, ease, callback, false);
             _steps.Add(animationStepPropertyTweener);
-            _time += duration;
+            TotalTime += duration;
             return this;
         }
 
@@ -174,10 +155,8 @@ namespace Tools.Effects {
 
         public PropertyTweener<T> AddOffset(T offset, float duration, Tween.TransitionType trans, Tween.EaseType ease,
             TweenCallback callback = null) {
-            var step = new AnimationStep<T>(offset, duration, trans, ease, callback) {
-                Relative = true
-            };
-            _time += duration;
+            var step = new AnimationStep<T>(offset, duration, trans, ease, callback, true);
+            TotalTime += duration;
             _steps.Add(step);
             return this;
         }
@@ -275,11 +254,11 @@ namespace Tools.Effects {
         // [Signal]
         // delegate void finished();
 
-        public readonly string Name;
+        private readonly string Name;
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
         private readonly Tween _tween;
-        private List<TweenSequence> _tweenSequences = new List<TweenSequence>(6);
+        private readonly List<TweenSequence> _tweenSequences = new List<TweenSequence>(6);
 
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
@@ -468,7 +447,7 @@ namespace Tools.Effects {
                 RunCurrentSequence();
                 return;
             }
-            
+
             // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
             Stop().Reset();
             // It's very important the event must be called the last

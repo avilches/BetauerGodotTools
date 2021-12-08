@@ -173,9 +173,9 @@ namespace Veronenger.Game.Controller.Character {
 
         private TweenSequence CreateSqueeze() {
             var seq = new TweenSequence()
-                .AnimateVector2(this, "scale", Tween.TransitionType.Cubic)
-                .To(new Vector2(1.4f, 1f), 0.5f)
-                .To(new Vector2(1f, 1f), 0.5f)
+                .AnimateVector2(this, "scale", Tween.TransitionType.Sine)
+                .To(new Vector2(1.4f, 1f), 0.25f)
+                .To(new Vector2(1f, 1f), 0.25f)
                 .End()
                 .SetLoops(2);
             return seq;
