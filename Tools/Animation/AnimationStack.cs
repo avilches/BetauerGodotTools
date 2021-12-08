@@ -1,10 +1,9 @@
 using System;
 using System.Diagnostics;
 using Godot;
-using Tools.Effects;
 using Object = Godot.Object;
 
-namespace Tools {
+namespace Tools.Animation {
     public delegate void Callback();
 
     public interface ILoopStatus {
@@ -233,7 +232,7 @@ namespace Tools {
 
         public ILoopStatus AddLoopAnimation(string name) {
             Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
-            Animation animation = _animationPlayer.GetAnimation(name);
+            Godot.Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {_animationPlayer.Name}");
@@ -247,7 +246,7 @@ namespace Tools {
         public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false,
             bool killPrevious = false) {
             Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
-            Animation animation = _animationPlayer.GetAnimation(name);
+            Godot.Animation animation = _animationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {_animationPlayer.Name}");

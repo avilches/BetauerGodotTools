@@ -4,7 +4,7 @@ using System.Linq;
 using Godot;
 using Object = Godot.Object;
 
-namespace Tools.Effects {
+namespace Tools.Animation {
     public delegate void OnFinishAnimationTweener(TweenSequence tweenSequence);
 
     internal interface ITweener {
@@ -162,7 +162,7 @@ namespace Tools.Effects {
             return this;
         }
 
-        public TweenSequence End() {
+        public TweenSequence EndAnimate() {
             return _tweenSequence;
         }
 
@@ -174,8 +174,8 @@ namespace Tools.Effects {
             var from = _liveFrom ? (T)_target.GetIndexed(_member) : _from;
             var start = 0f;
             foreach (var step in _steps) {
-                start += step.Duration;
                 from = step.StartAndGetFinalValue(from, initialDelay + start, tween, _target, _member);
+                start += step.Duration;
             }
         }
     }
@@ -184,6 +184,7 @@ namespace Tools.Effects {
         internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal readonly List<List<ITweener>> TweenList = new List<List<ITweener>>(10);
         private bool _parallel = false;
+        private TweenPlayer _tweenPlayer;
 
         public PropertyTweener<Color> AnimateColor(
             Node target, string property,
@@ -196,6 +197,13 @@ namespace Tools.Effects {
         public PropertyTweener<Vector2> AnimateVector2(Node target, string property,
             Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
             var tweener = new PropertyTweener<Vector2>(this, target, property, true, trans, ease);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyTweener<float> AnimateFloat(Node target, string property,
+            Tween.TransitionType trans = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut) {
+            var tweener = new PropertyTweener<float>(this, target, property, true, trans, ease);
             AddTweener(tweener);
             return tweener;
         }
@@ -237,6 +245,14 @@ namespace Tools.Effects {
         public TweenSequence SetLoops(int maxLoops) {
             Loops = maxLoops;
             return this;
+        }
+
+        internal void OnAddedToPlayer(TweenPlayer tweenPlayer) {
+            _tweenPlayer = tweenPlayer;
+        }
+
+        public TweenPlayer EndSequence() {
+            return _tweenPlayer;
         }
     }
 
@@ -298,7 +314,16 @@ namespace Tools.Effects {
 
         public TweenPlayer AddSequence(TweenSequence tweenSequence) {
             _tweenSequences.Add(tweenSequence);
+            // tweenSequence.OnAddedToPlayer(this);
             return this;
+        }
+
+        public TweenSequence CreateSequence() {
+            var tweenSequence = new TweenSequence();
+            // Only the TweenSequence created by this method will have the reference to the player (needed)
+            tweenSequence.OnAddedToPlayer(this);
+            AddSequence(tweenSequence);
+            return tweenSequence;
         }
 
         // Sets the speed scale of tweening.
