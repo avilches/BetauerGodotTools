@@ -15,6 +15,9 @@ namespace Tools.Animation {
     public delegate void TweenCallback();
 
     public class AnimationStep<T> {
+
+        public delegate void PropertyMethodCallback(T value);
+
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal readonly float Duration;
 
@@ -52,6 +55,14 @@ namespace Tools.Animation {
 
             if (_bezierCurve == null) {
                 tween.InterpolateProperty(target, property, from, absoluteTo, Duration, _trans, _ease, start);
+            } else {
+                // TODO: pending
+                TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
+                    delegate(T value) {
+                        // Logger.Debug(""+value);
+                    } );
+                tween.PlaybackProcessMode = Tween.TweenProcessMode.Physics;
+                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from, absoluteTo, Duration, _trans, _ease, start);
             }
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
@@ -70,6 +81,18 @@ namespace Tools.Animation {
 
         internal void Call() {
             _callback.Invoke();
+        }
+    }
+
+    internal class TweenPropertyMethodHolder<T> : Object {
+        private readonly AnimationStep<T>.PropertyMethodCallback _callback;
+
+        public TweenPropertyMethodHolder(AnimationStep<T>.PropertyMethodCallback callback) {
+            _callback = callback;
+        }
+
+        internal void Call(T value) {
+            _callback.Invoke(value);
         }
     }
 

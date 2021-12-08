@@ -11,6 +11,7 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
 
+        private TweenPlayer tweenPlayer;
         public override void Ready() {
 
             TinyTweenSequence seq = new TinyTweenSequence(true);
@@ -28,7 +29,7 @@ namespace Veronenger.Game.Controller.Animation {
             seq2.AutoUpdate(this, value => body2.Position = new Vector2(value, body2.Position.y));
 
 
-            TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this);
+            tweenPlayer = new TweenPlayer("").NewTween(this);
             tweenPlayer
                 .CreateSequence()
                     .AnimateFloat(body3, "position:x", Tween.TransitionType.Sine)
@@ -39,6 +40,10 @@ namespace Veronenger.Game.Controller.Animation {
                 .SetInfiniteLoops()
                 .Start();
 
+        }
+
+        public override void _PhysicsProcess(float delta) {
+            base._PhysicsProcess(delta);
         }
     }
 
