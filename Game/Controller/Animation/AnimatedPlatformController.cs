@@ -42,16 +42,20 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Callback(() => x = Stopwatch.StartNew());
 
             seq.AnimateVector2(this, nameof(follow), Tween.TransitionType.Cubic)
-                .Offset(new Vector2(100, 0), 1)
-                .Offset(new Vector2(-50, 0), 1,
-                    () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
+                .Offset(new Vector2(100, 0), 1, () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
+                .Offset(new Vector2(-50, 0), 1)
                 .EndAnimate();
-            // seq.Callback(() =>
-                // LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
-            // seq.Pause(3).Callback(() => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Ya"));
-            seq.Parallel().AnimateColor(this, "modulate")
-                .To(new Color(1, 0, 0, 1f), 1, Tween.TransitionType.Cubic);
-            seq.AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Tween.TransitionType.Cubic);
+
+            seq.Callback(() =>
+                LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
+            seq.Pause(1);
+
+            seq.AnimateColor(this, "modulate")
+                .To(new Color(1, 0, 0, 1f), 1, Tween.TransitionType.Cubic)
+                .EndAnimate()
+                .AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Tween.TransitionType.Cubic)
+                .EndAnimate();
+
             seq.Callback(() => {
                 x.Stop();
                 GD.Print("Elapsed:" + x.ElapsedMilliseconds);

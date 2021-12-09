@@ -8,79 +8,90 @@ namespace Tools.Animation {
     public delegate void OnFinishAnimationTweener(TweenSequence tweenSequence);
 
     internal interface ITweener {
-        public float _start(float initialDelay, Tween tween);
+        public float Start(float initialDelay, Tween tween);
     }
 
     public delegate void TweenCallback();
 
     public class AnimationStep<T> {
-
         public delegate void PropertyMethodCallback(T value);
 
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
-        internal readonly float DurationOrPercentage;
 
-        private readonly T _offset;
-        private readonly bool _relative = false;
+        // The "from" value is only known when the Tween start, so, if the step an offset, it step needs the "from"
+        // to calculate the "to"
+        private readonly bool _toIsOffset = false;
+        private readonly T _offset; // _toIsOffset = true
+        private readonly T _absoluteTo; // _toIsOffset = false
+        internal T GetTo(T from) => _toIsOffset ? (T)GodotTools.SumVariant(from, _offset) : _absoluteTo;
+
         private readonly TweenCallback _callback;
         private readonly Tween.TransitionType _trans;
         private readonly Tween.EaseType _ease;
         private readonly BezierCurve _bezierCurve;
 
-        public AnimationStep(T offset, float durationOrPercentage, Tween.TransitionType trans, Tween.EaseType ease,
+        // The step has the duration as a absolute time or a % of the total time
+        private readonly float _durationOrPercentage;
+        internal float GetRealDuration(float allStepsDuration = 1) => _durationOrPercentage * allStepsDuration;
+
+        public AnimationStep(T absoluteToOrOffset, float durationOrPercentage, Tween.TransitionType trans,
+            Tween.EaseType ease,
             BezierCurve bezierCurveCurve,
-            TweenCallback callback, bool relative) {
-            _offset = offset;
-            DurationOrPercentage = durationOrPercentage;
+            TweenCallback callback, bool toIsOffset) {
+            _durationOrPercentage = durationOrPercentage;
             _trans = trans;
             _ease = ease;
             _bezierCurve = bezierCurveCurve;
             _callback = callback;
-            _relative = relative;
+            _toIsOffset = toIsOffset;
+            if (toIsOffset) {
+                _offset = absoluteToOrOffset;
+            } else {
+                _absoluteTo = absoluteToOrOffset;
+            }
         }
 
-        public T StartAndGetFinalValue(T from, float start, float fixedDuration, Tween tween, Node target, string property) {
+        public void RunStep(T from, T absoluteTo, float start, float duration, Tween tween, Node target,
+            string property) {
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return default;
+                return;
             }
-            var realDuration = DurationOrPercentage * fixedDuration;
-            var absoluteTo = _relative ? GodotTools.SumVariant(from, _offset) : _offset;
-            var end = start + realDuration;
+            var end = start + duration;
             Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
                         from + " to " + absoluteTo +
                         " Start: " + start.ToString("F") +
                         " End: " + end.ToString("F") +
-                        " (+" + realDuration.ToString("F") + ") " + _trans + "/" + _ease);
+                        " (+" + duration.ToString("F") + ") " + _trans + "/" + _ease);
 
             if (_bezierCurve == null) {
-                tween.InterpolateProperty(target, property, from, absoluteTo, realDuration, _trans, _ease, start);
+                tween.InterpolateProperty(target, property, from, absoluteTo, duration, _trans, _ease, start);
             } else {
                 // TODO: pending
                 TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
                     delegate(T value) {
                         // Logger.Debug(""+value);
-                    } );
+                    });
                 tween.PlaybackProcessMode = Tween.TweenProcessMode.Physics;
-                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from, absoluteTo, realDuration, _trans, _ease, start);
+                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from,
+                    absoluteTo, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
             }
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
                 tween.InterpolateCallback(holder, start, nameof(TweenCallbackHolder.Call));
             }
-            return (T)absoluteTo;
         }
     }
 
     internal class TweenCallbackHolder : Object {
-        private readonly TweenCallback _callback;
+        protected readonly TweenCallback Callback;
 
         public TweenCallbackHolder(TweenCallback callback) {
-            _callback = callback;
+            Callback = callback;
         }
 
         internal void Call() {
-            _callback.Invoke();
+            Callback?.Invoke();
         }
     }
 
@@ -99,19 +110,22 @@ namespace Tools.Animation {
 
     internal class CallbackTweener : TweenCallbackHolder, ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
-        internal static readonly TweenCallback EmptyCallback = () => { };
 
         // private readonly TweenSequence _tweenSequence;
-        public float _delay;
-
+        private readonly float _delay;
         internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback) : base(callback) {
             // _tweenSequence = tweenSequence;
             _delay = delay;
         }
 
-        public float _start(float initialDelay, Tween tween) {
+        public float Start(float initialDelay, Tween tween) {
             var start = _delay + initialDelay;
-            Logger.Info(" Callback: " + start.ToString("F"));
+            if (Callback != null) {
+                Logger.Info("Scheduling callback with "+_delay+"s delay. Start: " + start.ToString("F"));
+            } else {
+                Logger.Info("Scheduling "+_delay+"s delay. Start: "+initialDelay.ToString("F")+" End: " + start.ToString("F"));
+
+            }
             tween.InterpolateCallback(this, start, nameof(Call));
             return _delay;
         }
@@ -198,7 +212,8 @@ namespace Tools.Animation {
         // So we will have only one method for To and only one for Offset
         public PropertyTweener<T> To(T offset, float durationOrPercent, BezierCurve bezierCurve,
             TweenCallback callback = null) {
-            var animationStepPropertyTweener = new AnimationStep<T>(offset, durationOrPercent, Tween.TransitionType.Linear,
+            var animationStepPropertyTweener = new AnimationStep<T>(offset, durationOrPercent,
+                Tween.TransitionType.Linear,
                 Tween.EaseType.InOut, bezierCurve, callback, false);
             _steps.Add(animationStepPropertyTweener);
             return this;
@@ -221,7 +236,8 @@ namespace Tools.Animation {
             return this;
         }
 
-        public PropertyTweener<T> Offset(T offset, float durationOrPercent, Tween.TransitionType trans, Tween.EaseType ease,
+        public PropertyTweener<T> Offset(T offset, float durationOrPercent, Tween.TransitionType trans,
+            Tween.EaseType ease,
             TweenCallback callback = null) {
             var step = new AnimationStep<T>(offset, durationOrPercent, trans, ease, null, callback, true);
             _steps.Add(step);
@@ -232,26 +248,37 @@ namespace Tools.Animation {
             return _tweenSequence;
         }
 
-        public float _start(float initialDelay, Tween tween) {
+        public float Start(float initialDelay, Tween tween) {
             if (!Object.IsInstanceValid(_target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return 0;
             }
-            var from = _liveFrom ? (T)_target.GetIndexed(_member) : _from;
+            var from = GetFirstFromValue();
             var start = 0f;
             foreach (var step in _steps) {
-                from = step.StartAndGetFinalValue(from, initialDelay + start, _allStepsDuration, tween, _target, _member);
-                start += step.DurationOrPercentage * _allStepsDuration;
+                var to = step.GetTo(from);
+                var duration = step.GetRealDuration(_allStepsDuration);
+                step.RunStep(from, to, initialDelay + start, duration, tween, _target, _member);
+                from = to;
+                start += duration;
             }
             return start;
         }
+
+        private T GetFirstFromValue() => _liveFrom ? (T)_target.GetIndexed(_member) : _from;
     }
 
     public class TweenSequence {
         internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal readonly List<List<ITweener>> TweenList = new List<List<ITweener>>(10);
+
+        // Used during build the sequence
         private bool _parallel = false;
         private TweenPlayer _tweenPlayer;
+
+        public Tween.TweenProcessMode ProcessMode;
+        public int Loops = 1;
+        public float Speed = 1.0f;
 
         public PropertyTweener<Color> AnimateColor(
             Node target, string property,
@@ -287,7 +314,7 @@ namespace Tools.Animation {
         }
 
         public TweenSequence Pause(float delay) {
-            AddTweener(new CallbackTweener(this, delay, CallbackTweener.EmptyCallback));
+            AddTweener(new CallbackTweener(this, delay, null));
             return this;
         }
 
@@ -305,13 +332,14 @@ namespace Tools.Animation {
             }
         }
 
-        public int Loops = 1;
-        public float Speed = 1.0f;
-        public int GetLoops() => Loops;
-
         // Sets the speed scale of tweening.
         public TweenSequence SetSpeed(float speed) {
             Speed = speed;
+            return this;
+        }
+
+        public TweenSequence SetProcessMode(Tween.TweenProcessMode processMode) {
+            ProcessMode = processMode;
             return this;
         }
 
@@ -444,7 +472,7 @@ namespace Tools.Animation {
             if (!_started) {
                 _started = true;
                 _running = true;
-                RunCurrentSequence();
+                RunSequence();
             } else {
                 if (!_running) {
                     _tween.ResumeAll();
@@ -486,7 +514,7 @@ namespace Tools.Animation {
             _sequenceLoop = 0;
             _currentSequence = 0;
             if (_running) {
-                RunCurrentSequence();
+                RunSequence();
             } else {
                 _started = false;
             }
@@ -502,20 +530,32 @@ namespace Tools.Animation {
             _tween.QueueFree();
         }
 
-        private void RunCurrentSequence() {
-            GD.Print("RunNextStep " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
+        private void RunSequence() {
+            GD.Print("RunSequence " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
             float accumulated = 0;
             var currentSequence = _tweenSequences[_currentSequence];
-            foreach (var group in currentSequence.TweenList) {
-                float maxFinishTime = 0;
-                foreach (var tweener in group) {
-                    var totalTime = tweener._start(accumulated, _tween);
-                    maxFinishTime = Math.Max(maxFinishTime, totalTime);
-                }
+            for (var parallelGroupCount = 0; parallelGroupCount < currentSequence.TweenList.Count; parallelGroupCount++) {
+                var parallelGroup = currentSequence.TweenList[parallelGroupCount];
+                var maxFinishTime = ScheduleSequenceTweens(parallelGroupCount, currentSequence, parallelGroup, accumulated);
                 accumulated += maxFinishTime;
             }
             _tween.PlaybackSpeed = currentSequence.Speed;
+            _tween.PlaybackProcessMode = currentSequence.ProcessMode;
             _tween.Start();
+        }
+
+        private float ScheduleSequenceTweens(int parallelGroupCount, TweenSequence currentSequence, List<ITweener> parallelGroup,
+            float accumulated) {
+            float maxFinishTime = 0;
+            GD.Print("  Start Parallel group " + (parallelGroupCount + 1) + "/" + currentSequence.TweenList.Count +
+                     ": " + parallelGroup.Count + " in parallel:");
+            foreach (var tweener in parallelGroup) {
+                var totalTime = tweener.Start(accumulated, _tween);
+                GD.Print("      Launched tween. Time: " + totalTime.ToString("F") + "s");
+                maxFinishTime = Math.Max(maxFinishTime, totalTime);
+            }
+            GD.Print("  End parallel group. Total time: " + maxFinishTime.ToString("F") + "s");
+            return maxFinishTime;
         }
 
         private List<OnFinishAnimationTweener> _onFinishTween;
@@ -544,14 +584,14 @@ namespace Tools.Animation {
             _sequenceLoop++;
             var currentSequence = _tweenSequences[_currentSequence];
             if (_sequenceLoop < currentSequence.Loops) {
-                RunCurrentSequence();
+                RunSequence();
                 return;
             }
 
             _sequenceLoop = 0;
             _currentSequence++;
             if (_currentSequence < _tweenSequences.Count) {
-                RunCurrentSequence();
+                RunSequence();
                 return;
             }
 
@@ -559,7 +599,7 @@ namespace Tools.Animation {
             _currentPlayerLoop++;
             if (IsInfiniteLoop() || _currentPlayerLoop < Loops) {
                 // EmitSignal(nameof(loop_finished));
-                RunCurrentSequence();
+                RunSequence();
                 return;
             }
 
