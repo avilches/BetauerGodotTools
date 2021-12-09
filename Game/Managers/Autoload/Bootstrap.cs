@@ -47,6 +47,12 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
+
+            LoggerFactory.SetTraceLevel(typeof(TweenPlayer), TraceLevel.Debug);
+            // LoggerFactory.SetTraceLevel(typeof(TweenSequence), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(AnimationStep<>), TraceLevel.Debug);
+
             // Managers
             LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Off);
@@ -55,8 +61,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", TraceLevel.Debug);
             LoggerFactory.SetTraceLevel("Player:*", "StateMachine", TraceLevel.Off);
-            LoggerFactory.SetTraceLevel("Player:*", "AnimationStack", TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel("Player:*", "TweenSequence", TraceLevel.Off);
+            LoggerFactory.SetTraceLevel("Player:*", "AnimationStack", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Motion", TraceLevel.Off);
             LoggerFactory.SetTraceLevel("Player:*", "Collision", TraceLevel.Off);
 

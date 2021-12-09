@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Animation {
             tweenPlayer = new TweenPlayer("").NewTween(this);
             tweenPlayer
                 .CreateSequence()
-                    .AnimateFloat(body3, "position:x", Tween.TransitionType.Sine)
+                    .AnimateFloat(body3, "position:x", curve)
                         .Offset(100f, 5)
                         .Offset(-100f, 5)
                     .EndAnimate()

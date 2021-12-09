@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Godot;
 using Object = Godot.Object;
@@ -16,7 +17,7 @@ namespace Tools.Animation {
     public class AnimationStep<T> {
         public delegate void PropertyMethodCallback(T value);
 
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(AnimationStep<>));
 
         // The "from" value is only known when the Tween start, so, if the step an offset, it step needs the "from"
         // to calculate the "to"
@@ -31,14 +32,15 @@ namespace Tools.Animation {
         private readonly BezierCurve _bezierCurve;
 
         // The step has the duration as a absolute time or a % of the total time
-        private readonly float _durationOrPercentage;
-        internal float GetRealDuration(float allStepsDuration = 1) => _durationOrPercentage * allStepsDuration;
+        public float DurationOrPercentage { get; }
+        internal float CalculateDuration(float allStepsDuration) => DurationOrPercentage * allStepsDuration;
 
+        // TODO: split the AnimationStep in AnimationTimeStep and AnimationKeyframe
         public AnimationStep(T absoluteToOrOffset, float durationOrPercentage, Tween.TransitionType trans,
             Tween.EaseType ease,
             BezierCurve bezierCurveCurve,
             TweenCallback callback, bool toIsOffset) {
-            _durationOrPercentage = durationOrPercentage;
+            DurationOrPercentage = durationOrPercentage;
             _trans = trans;
             _ease = ease;
             _bezierCurve = bezierCurveCurve;
@@ -51,21 +53,24 @@ namespace Tools.Animation {
             }
         }
 
-        public void RunStep(T from, T absoluteTo, float start, float duration, Tween tween, Node target,
-            string property) {
+        public void RunStep(
+            Tween tween, Node target, string property,
+            T from, T to, float start, float duration, float totalTime, float percentStart, float percentEnd) {
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return;
             }
             var end = start + duration;
             Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
-                        from + " to " + absoluteTo +
+                        from + " to " + to +
                         " Start: " + start.ToString("F") +
                         " End: " + end.ToString("F") +
-                        " (+" + duration.ToString("F") + ") " + _trans + "/" + _ease);
+                        " (+" + duration.ToString("F") + ") " + _trans + "/" + _ease +
+                        " " + ((percentEnd - percentStart) * 100).ToString("F") + "% of " + totalTime.ToString("F") +
+                        "s (" + (percentStart * 100).ToString("F") + "% to " + (percentEnd * 100).ToString("F") + "%)");
 
             if (_bezierCurve == null) {
-                tween.InterpolateProperty(target, property, from, absoluteTo, duration, _trans, _ease, start);
+                tween.InterpolateProperty(target, property, from, to, duration, _trans, _ease, start);
             } else {
                 // TODO: pending
                 TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
@@ -74,7 +79,7 @@ namespace Tools.Animation {
                     });
                 tween.PlaybackProcessMode = Tween.TweenProcessMode.Physics;
                 tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call), from,
-                    absoluteTo, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
+                    to, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
             }
             if (_callback != null) {
                 TweenCallbackHolder holder = new TweenCallbackHolder(_callback);
@@ -109,10 +114,11 @@ namespace Tools.Animation {
 
 
     internal class CallbackTweener : TweenCallbackHolder, ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
         // private readonly TweenSequence _tweenSequence;
         private readonly float _delay;
+
         internal CallbackTweener(TweenSequence tweenSequence, float delay, TweenCallback callback) : base(callback) {
             // _tweenSequence = tweenSequence;
             _delay = delay;
@@ -121,10 +127,10 @@ namespace Tools.Animation {
         public float Start(float initialDelay, Tween tween) {
             var start = _delay + initialDelay;
             if (Callback != null) {
-                Logger.Info("Scheduling callback with "+_delay+"s delay. Start: " + start.ToString("F"));
+                Logger.Info("Scheduling callback with " + _delay + "s delay. Start: " + start.ToString("F"));
             } else {
-                Logger.Info("Scheduling "+_delay+"s delay. Start: "+initialDelay.ToString("F")+" End: " + start.ToString("F"));
-
+                Logger.Info("Scheduling " + _delay + "s delay. Start: " + initialDelay.ToString("F") + " End: " +
+                            start.ToString("F"));
             }
             tween.InterpolateCallback(this, start, nameof(Call));
             return _delay;
@@ -132,7 +138,7 @@ namespace Tools.Animation {
     }
 
     public class PropertyTweener<T> : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly TweenSequence _tweenSequence;
 
         private readonly Node _target;
@@ -149,7 +155,8 @@ namespace Tools.Animation {
 
         private T _from;
         private bool _liveFrom = true;
-        private float _allStepsDuration = 1;
+        private float _allStepsDuration = 0;
+        private bool _hasAllStepDuration = false;
 
         private PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty) {
             _tweenSequence = tweenSequence;
@@ -187,6 +194,7 @@ namespace Tools.Animation {
          * If you use Duration, then the To() and AddOffset() method will use percentages
          */
         public PropertyTweener<T> Duration(float duration) {
+            _hasAllStepDuration = true;
             _allStepsDuration = duration;
             return this;
         }
@@ -254,22 +262,51 @@ namespace Tools.Animation {
                 return 0;
             }
             var from = GetFirstFromValue();
-            var start = 0f;
-            foreach (var step in _steps) {
-                var to = step.GetTo(from);
-                var duration = step.GetRealDuration(_allStepsDuration);
-                step.RunStep(from, to, initialDelay + start, duration, tween, _target, _member);
-                from = to;
-                start += duration;
+            if (_hasAllStepDuration) {
+                /* _allStepsDuration = 2.5f (2.5s)
+                 * keyframe 0.2 ( 20%) endTime=0.2*2.5=0.5 ;
+                 * keyframe 0.8 ( 80%) endTime=0.8*2.5=2.0 ;
+                 * keyframe 1   (100%) endTime=  1*2.5=2.5 ;
+                 */
+                Debug.Assert(_steps.Last().DurationOrPercentage == 1f, "Last step should be 1 keyframe");
+                var startTime = 0f;
+                var percentStart = 0f;
+                foreach (var step in _steps) {
+                    var to = step.GetTo(from);
+                    var endTime = step.DurationOrPercentage * _allStepsDuration;
+                    var duration = endTime - startTime;
+                    var percentEnd = step.DurationOrPercentage;
+                    step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration,
+                        _allStepsDuration, percentStart,
+                        percentEnd);
+                    from = to;
+                    percentStart = percentEnd;
+                    startTime = endTime;
+                }
+                return _allStepsDuration;
+            } else {
+                var startTime = 0f;
+                var totalDuration = _steps.Sum(step => step.DurationOrPercentage);
+                foreach (var step in _steps) {
+                    var to = step.GetTo(from);
+                    var duration = step.DurationOrPercentage;
+                    var percentStart = startTime / totalDuration;
+                    var percentEnd = (startTime + duration) / totalDuration;
+                    step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration, totalDuration,
+                        percentStart,
+                        percentEnd);
+                    from = to;
+                    startTime += duration;
+                }
+                return startTime;
             }
-            return start;
         }
 
         private T GetFirstFromValue() => _liveFrom ? (T)_target.GetIndexed(_member) : _from;
     }
 
     public class TweenSequence {
-        internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
+        // internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
         internal readonly List<List<ITweener>> TweenList = new List<List<ITweener>>(10);
 
         // Used during build the sequence
@@ -531,31 +568,36 @@ namespace Tools.Animation {
         }
 
         private void RunSequence() {
-            GD.Print("RunSequence " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
-            float accumulated = 0;
-            var currentSequence = _tweenSequences[_currentSequence];
-            for (var parallelGroupCount = 0; parallelGroupCount < currentSequence.TweenList.Count; parallelGroupCount++) {
-                var parallelGroup = currentSequence.TweenList[parallelGroupCount];
-                var maxFinishTime = ScheduleSequenceTweens(parallelGroupCount, currentSequence, parallelGroup, accumulated);
-                accumulated += maxFinishTime;
-            }
-            _tween.PlaybackSpeed = currentSequence.Speed;
-            _tween.PlaybackProcessMode = currentSequence.ProcessMode;
-            _tween.Start();
-        }
+            Logger.Debug("RunSequence " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
+            var sequence = _tweenSequences[_currentSequence];
+            var tweenListCount = sequence.TweenList.Count;
+            float accumulatedDelay = 0;
+            for (var parallelGroupCount = 0; parallelGroupCount < tweenListCount; parallelGroupCount++) {
+                var parallelGroup = sequence.TweenList[parallelGroupCount];
 
-        private float ScheduleSequenceTweens(int parallelGroupCount, TweenSequence currentSequence, List<ITweener> parallelGroup,
-            float accumulated) {
-            float maxFinishTime = 0;
-            GD.Print("  Start Parallel group " + (parallelGroupCount + 1) + "/" + currentSequence.TweenList.Count +
-                     ": " + parallelGroup.Count + " in parallel:");
-            foreach (var tweener in parallelGroup) {
-                var totalTime = tweener.Start(accumulated, _tween);
-                GD.Print("      Launched tween. Time: " + totalTime.ToString("F") + "s");
-                maxFinishTime = Math.Max(maxFinishTime, totalTime);
+                if (parallelGroup.Count == 1) {
+                    Logger.Debug("Start single tween " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count);
+                    var tweenTime = parallelGroup[0].Start(accumulatedDelay, _tween);
+                    Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
+                    accumulatedDelay += tweenTime;
+
+                } else {
+                    Logger.Debug("Start parallel tweens " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count +
+                                 ": " + parallelGroup.Count + " in parallel:");
+
+                    float longestTime = 0;
+                    foreach (var tweener in parallelGroup) {
+                        var tweenTime = tweener.Start(accumulatedDelay, _tween);
+                        Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
+                        longestTime = Math.Max(longestTime, tweenTime);
+                    }
+                    Logger.Debug("End parallel group. Total time: " + longestTime.ToString("F") + "s");
+                    accumulatedDelay += longestTime;
+                }
             }
-            GD.Print("  End parallel group. Total time: " + maxFinishTime.ToString("F") + "s");
-            return maxFinishTime;
+            _tween.PlaybackSpeed = sequence.Speed;
+            _tween.PlaybackProcessMode = sequence.ProcessMode;
+            _tween.Start();
         }
 
         private List<OnFinishAnimationTweener> _onFinishTween;
@@ -584,25 +626,31 @@ namespace Tools.Animation {
             _sequenceLoop++;
             var currentSequence = _tweenSequences[_currentSequence];
             if (_sequenceLoop < currentSequence.Loops) {
+                Logger.Debug("OnTweenAllCompletedSignaled: Next loop in sequence: " + _sequenceLoop + "/" + currentSequence.Loops);
                 RunSequence();
                 return;
             }
+            Logger.Debug("OnTweenAllCompletedSignaled: End loop: " + _sequenceLoop + "/" + currentSequence.Loops);
 
             _sequenceLoop = 0;
             _currentSequence++;
             if (_currentSequence < _tweenSequences.Count) {
+                Logger.Debug("OnTweenAllCompletedSignaled: Next sequence: " + _currentSequence + "/" + _tweenSequences.Count);
                 RunSequence();
                 return;
             }
+            Logger.Debug("OnTweenAllCompletedSignaled: End sequence: " + _currentSequence + "/" + _tweenSequences.Count);
 
             _currentSequence = 0;
             _currentPlayerLoop++;
             if (IsInfiniteLoop() || _currentPlayerLoop < Loops) {
+                Logger.Debug("OnTweenAllCompletedSignaled: Next player loop: " +
+                             (IsInfiniteLoop() ? "infinite loop" : _currentPlayerLoop + "/" + Loops));
                 // EmitSignal(nameof(loop_finished));
                 RunSequence();
                 return;
             }
-
+            Logger.Debug("OnTweenAllCompletedSignaled: End player loop: " + _currentPlayerLoop + "/" + Loops);
             // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
             Stop().Reset();
             // It's very important the event must be called the last
