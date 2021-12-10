@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Godot;
 using Tools;
 using Tools.Animation;
-using Tools.Effects;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
@@ -37,7 +36,7 @@ namespace Veronenger.Game.Controller.Animation {
             _player = new TweenPlayer("Platform").NewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
-            TweenSequence seq = new TweenSequence();
+            TweenSequenceBuilder seq = new TweenSequenceBuilder();
 
             seq.Callback(() => x = Stopwatch.StartNew());
 

@@ -8,7 +8,7 @@ using Object = Godot.Object;
 namespace Tools.Animation {
     public delegate void OnFinishAnimationTweener(TweenSequence tweenSequence);
 
-    internal interface ITweener {
+    public interface ITweener {
         public float Start(float initialDelay, Tween tween);
     }
 
@@ -53,11 +53,11 @@ namespace Tools.Animation {
                 return;
             }
             var end = start + duration;
-            Logger.Info(target.Name + "." + property + ": " + typeof(T).Name + " " +
+            Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
                         from + " to " + to +
                         " Start: " + start.ToString("F") +
                         " End: " + end.ToString("F") +
-                        " (+" + duration.ToString("F") + ") " + _easing +
+                        " (+" + duration.ToString("F") + ") " + _easing.Name +
                         " " + ((percentEnd - percentStart) * 100).ToString("F") + "% of " + totalTime.ToString("F") +
                         "s (" + (percentStart * 100).ToString("F") + "% to " + (percentEnd * 100).ToString("F") + "%)");
 
@@ -69,6 +69,7 @@ namespace Tools.Animation {
                     delegate(float value) {
                         var y = bezierCurve.GetY(value);
                         var lerp = GodotTools.LerpVariant(from, to, y);
+                        // Logger.Debug(target.Name + "." + property + ": " + typeof(T).Name + " t:"+value+" y:"+lerp);
                         target.SetIndexed(property, lerp);
                     });
                 tween.PlaybackProcessMode = Tween.TweenProcessMode.Physics;
@@ -131,84 +132,36 @@ namespace Tools.Animation {
         }
     }
 
-    public class PropertyTweener<T> : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-        private readonly TweenSequence _tweenSequence;
+    public class PropertyTweener<T> {
+        protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
-        private readonly Node _target;
-
-        private readonly string _member;
+        protected readonly Node _target;
+        protected readonly string _member;
 
         // TODO: create method/delegate interpolator
-        private readonly bool _memberIsProperty;
+        protected readonly bool _memberIsProperty;
 
-        private readonly List<AnimationStep<T>> _steps = new List<AnimationStep<T>>(5);
-        private readonly Easing _easing;
+        protected readonly List<AnimationStep<T>> _steps = new List<AnimationStep<T>>(5);
+        protected readonly Easing _easing;
 
-        private T _from;
-        private bool _liveFrom = true;
-        private float _allStepsDuration = 0;
-        private bool _hasAllStepDuration = false;
+        protected T _from;
+        protected bool _liveFrom = true;
 
-        internal PropertyTweener(TweenSequence tweenSequence, Node target, string member, bool memberIsProperty,
-            Easing easing) {
-            _tweenSequence = tweenSequence;
+        internal PropertyTweener(Node target, string member, bool memberIsProperty, Easing easing) {
             _target = target;
             _member = member;
             _memberIsProperty = memberIsProperty;
             _easing = easing;
-
             _from = default;
             _liveFrom = true;
         }
 
-        public PropertyTweener<T> From(T from) {
-            _from = from;
-            _liveFrom = false;
-            return this;
-        }
+        protected T GetFirstFromValue() => _liveFrom ? (T)_target.GetIndexed(_member) : _from;
+    }
 
-        public PropertyTweener<T> From() {
-            _from = default;
-            _liveFrom = true;
-            return this;
-        }
-
-        /**
-         * If you use Duration, then the To() and AddOffset() method will use percentages
-         */
-        public PropertyTweener<T> Duration(float duration) {
-            _hasAllStepDuration = true;
-            _allStepsDuration = duration;
-            return this;
-        }
-
-        public PropertyTweener<T> To(T to, float durationOrPercent, TweenCallback callback) {
-            return To(to, durationOrPercent, Easing.LinearInOut, callback);
-        }
-
-        public PropertyTweener<T> To(T to, float durationOrPercent, Easing easing = null,
-            TweenCallback callback = null) {
-            var animationStepPropertyTweener =
-                new AnimationStep<T>(to, durationOrPercent, easing ?? _easing, callback, false);
-            _steps.Add(animationStepPropertyTweener);
-            return this;
-        }
-
-        public PropertyTweener<T> Offset(T offset, float durationOrPercent, TweenCallback callback) {
-            return Offset(offset, durationOrPercent, Easing.LinearInOut, callback);
-        }
-
-        public PropertyTweener<T> Offset(T offset, float durationOrPercent, Easing easing = null,
-            TweenCallback callback = null) {
-            var animationStepPropertyTweener =
-                new AnimationStep<T>(offset, durationOrPercent, easing ?? _easing, callback, true);
-            _steps.Add(animationStepPropertyTweener);
-            return this;
-        }
-
-        public TweenSequence EndAnimate() {
-            return _tweenSequence;
+    public class PropertyStepTweener<T> : PropertyTweener<T>, ITweener {
+        internal PropertyStepTweener(Node target, string member, bool memberIsProperty, Easing easing) : base(target,
+            member, memberIsProperty, easing) {
         }
 
         public float Start(float initialDelay, Tween tween) {
@@ -217,95 +170,246 @@ namespace Tools.Animation {
                 return 0;
             }
             var from = GetFirstFromValue();
-            if (_hasAllStepDuration) {
-                /* _allStepsDuration = 2.5f (2.5s)
-                 * keyframe 0.2 ( 20%) endTime=0.2*2.5=0.5 ;
-                 * keyframe 0.8 ( 80%) endTime=0.8*2.5=2.0 ;
-                 * keyframe 1   (100%) endTime=  1*2.5=2.5 ;
-                 */
-                Debug.Assert(_steps.Last().DurationOrKeyframePercentage == 1f, "Last step should be 1 keyframe");
-                var startTime = 0f;
-                var percentStart = 0f;
-                foreach (var step in _steps) {
-                    var to = step.GetTo(from);
-                    var endTime = step.DurationOrKeyframePercentage * _allStepsDuration;
-                    var duration = endTime - startTime;
-                    var percentEnd = step.DurationOrKeyframePercentage;
-                    step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration,
-                        _allStepsDuration, percentStart, percentEnd);
-                    from = to;
-                    percentStart = percentEnd;
-                    startTime = endTime;
-                }
-                return _allStepsDuration;
-            } else {
-                var startTime = 0f;
-                var totalDuration = _steps.Sum(step => step.DurationOrKeyframePercentage);
-                foreach (var step in _steps) {
-                    var to = step.GetTo(from);
-                    var duration = step.DurationOrKeyframePercentage;
-                    var percentStart = startTime / totalDuration;
-                    var percentEnd = (startTime + duration) / totalDuration;
-                    step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration, totalDuration,
-                        percentStart,
-                        percentEnd);
-                    from = to;
-                    startTime += duration;
-                }
-                return startTime;
+            var startTime = 0f;
+            var totalDuration = _steps.Sum(step => step.DurationOrKeyframePercentage);
+            foreach (var step in _steps) {
+                var to = step.GetTo(from);
+                var duration = step.DurationOrKeyframePercentage;
+                var percentStart = startTime / totalDuration;
+                var percentEnd = (startTime + duration) / totalDuration;
+                step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration, totalDuration,
+                    percentStart,
+                    percentEnd);
+                from = to;
+                startTime += duration;
             }
+            return startTime;
         }
-
-        private T GetFirstFromValue() => _liveFrom ? (T)_target.GetIndexed(_member) : _from;
     }
 
+    public class PropertyKeyframeTweener<T> : PropertyTweener<T>, ITweener {
+        protected float AllStepsDuration = 0;
+
+        internal PropertyKeyframeTweener(Node target, string member, bool memberIsProperty, Easing easing) : base(
+            target, member, memberIsProperty, easing) {
+        }
+
+        public float Start(float initialDelay, Tween tween) {
+            if (!Object.IsInstanceValid(_target)) {
+                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
+                return 0;
+            }
+            if (AllStepsDuration == 0) {
+                throw new Exception("Keyframe animation duration should be more than 0");
+            }
+            if (_steps?.Last()?.DurationOrKeyframePercentage != 1f) {
+                throw new Exception("Last step should be 1 keyframe");
+            }
+            var from = GetFirstFromValue();
+            /* _allStepsDuration = 2.5f (2.5s)
+             * keyframe 0.2 ( 20%) endTime=0.2*2.5=0.5 ;
+             * keyframe 0.8 ( 80%) endTime=0.8*2.5=2.0 ;
+             * keyframe 1   (100%) endTime=  1*2.5=2.5 ;
+             */
+            var startTime = 0f;
+            var percentStart = 0f;
+            foreach (var step in _steps) {
+                var to = step.GetTo(from);
+                var endTime = step.DurationOrKeyframePercentage * AllStepsDuration;
+                var duration = endTime - startTime;
+                var percentEnd = step.DurationOrKeyframePercentage;
+                step.RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration,
+                    AllStepsDuration, percentStart, percentEnd);
+                from = to;
+                percentStart = percentEnd;
+                startTime = endTime;
+            }
+            return AllStepsDuration;
+        }
+    }
+
+    public class PropertyStepTweenerBuilder<T> : PropertyStepTweener<T> {
+        private readonly TweenSequenceBuilder _tweenSequenceBuilder;
+
+        internal PropertyStepTweenerBuilder(TweenSequenceBuilder tweenSequenceBuilder, Node target, string member,
+            bool memberIsProperty, Easing easing) : base(target, member, memberIsProperty, easing) {
+            _tweenSequenceBuilder = tweenSequenceBuilder;
+        }
+
+        public PropertyStepTweenerBuilder<T> From(T from) {
+            _from = from;
+            _liveFrom = false;
+            return this;
+        }
+
+        public PropertyStepTweenerBuilder<T> To(T to, float durationOrPercent, TweenCallback callback) {
+            return To(to, durationOrPercent, null, callback);
+        }
+
+        public PropertyStepTweenerBuilder<T> To(T to, float durationOrPercent, Easing easing = null,
+            TweenCallback callback = null) {
+            var animationStepPropertyTweener =
+                new AnimationStep<T>(to, durationOrPercent, easing ?? _easing, callback, false);
+            _steps.Add(animationStepPropertyTweener);
+            return this;
+        }
+
+        public PropertyStepTweenerBuilder<T> Offset(T offset, float durationOrPercent, TweenCallback callback) {
+            return Offset(offset, durationOrPercent, null, callback);
+        }
+
+        public PropertyStepTweenerBuilder<T> Offset(T offset, float durationOrPercent, Easing easing = null,
+            TweenCallback callback = null) {
+            var animationStepPropertyTweener =
+                new AnimationStep<T>(offset, durationOrPercent, easing ?? _easing, callback, true);
+            _steps.Add(animationStepPropertyTweener);
+            return this;
+        }
+
+        public TweenSequenceBuilder EndAnimate() {
+            return _tweenSequenceBuilder;
+        }
+    }
+
+    public class PropertyKeyframeTweenerBuilder<T> : PropertyKeyframeTweener<T> {
+        private readonly TweenSequenceBuilder _tweenSequenceBuilder;
+
+        internal PropertyKeyframeTweenerBuilder(TweenSequenceBuilder tweenSequenceBuilder, Node target, string member,
+            bool memberIsProperty, Easing easing) : base(target, member, memberIsProperty, easing) {
+            _tweenSequenceBuilder = tweenSequenceBuilder;
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> Duration(float duration) {
+            AllStepsDuration = duration;
+            return this;
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> From(T from) {
+            _from = from;
+            _liveFrom = false;
+            return this;
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> KeyframeTo(float keyframe, T to, TweenCallback callback) {
+            return KeyframeTo(keyframe, to, null, callback);
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> KeyframeTo(float keyframe, T to, Easing easing = null,
+            TweenCallback callback = null) {
+            if (keyframe == 0f) {
+                From(to);
+            } else {
+                var animationStepPropertyTweener =
+                    new AnimationStep<T>(to, keyframe, easing ?? _easing, callback, false);
+                _steps.Add(animationStepPropertyTweener);
+            }
+            return this;
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> KeyframeOffset(float keyframe, T to, TweenCallback callback) {
+            return KeyframeOffset(keyframe, to, null, callback);
+        }
+
+        public PropertyKeyframeTweenerBuilder<T> KeyframeOffset(float keyframe, T to, Easing easing = null,
+            TweenCallback callback = null) {
+            if (keyframe == 0) {
+                throw new Exception(
+                    $"Can't set a 0 keyframe with offset. Use KeyframeTo(0,{to}) instead or From({to})");
+            }
+            var animationStepPropertyTweener =
+                new AnimationStep<T>(to, keyframe, easing ?? _easing, callback, true);
+            _steps.Add(animationStepPropertyTweener);
+            return this;
+        }
+
+        public TweenSequenceBuilder EndAnimate() {
+            return _tweenSequenceBuilder;
+        }
+    }
 
     public class TweenSequence {
         // internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenSequence));
-        internal readonly List<List<ITweener>> TweenList = new List<List<ITweener>>(10);
-
-        // Used during build the sequence
-        private bool _parallel = false;
-        private TweenPlayer _tweenPlayer;
-
+        internal readonly List<List<ITweener>> TweenList;
         public Tween.TweenProcessMode ProcessMode = Tween.TweenProcessMode.Physics;
         public int Loops = 1;
         public float Speed = 1.0f;
 
-        public PropertyTweener<Color> AnimateColor(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyTweener<Color>(this, target, property, true, easing);
+        public TweenSequence(List<List<ITweener>> tweenList) {
+            TweenList = tweenList;
+        }
+
+        // public TweenSequence(List<List<ITweener>> tweenList, Tween.TweenProcessMode processMode, int loops, float speed) {
+        // TweenList = tweenList;
+        // ProcessMode = processMode;
+        // Loops = loops;
+        // Speed = speed;
+        // }
+    }
+
+    public class TweenSequenceBuilder : TweenSequence {
+        private readonly TweenPlayer _tweenPlayer;
+        private bool _parallel = false;
+
+        public TweenSequenceBuilder() : this(null) {
+        }
+
+        public TweenSequenceBuilder(TweenPlayer tweenPlayer) : base(new List<List<ITweener>>()) {
+            _tweenPlayer = tweenPlayer;
+        }
+
+        public PropertyStepTweenerBuilder<Color> AnimateColor(Node target, string property, Easing easing = null) {
+            var tweener = new PropertyStepTweenerBuilder<Color>(this, target, property, true, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyTweener<Vector2> AnimateVector2(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyTweener<Vector2>(this, target, property, true, easing);
+        public PropertyKeyframeTweenerBuilder<Color> KeyframeColor(Node target, string property, Easing easing = null) {
+            var tweener = new PropertyKeyframeTweenerBuilder<Color>(this, target, property, true, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyTweener<float> AnimateFloat(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyTweener<float>(this, target, property, true, easing);
+        public PropertyStepTweenerBuilder<Vector2> AnimateVector2(Node target, string property, Easing easing = null) {
+            var tweener = new PropertyStepTweenerBuilder<Vector2>(this, target, property, true, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public TweenSequence Parallel() {
+        public PropertyKeyframeTweenerBuilder<Vector2> KeyframeVector2(Node target, string property,
+            Easing easing = null) {
+            var tweener = new PropertyKeyframeTweenerBuilder<Vector2>(this, target, property, true, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyStepTweenerBuilder<float> AnimateFloat(Node target, string property, Easing easing = null) {
+            var tweener = new PropertyStepTweenerBuilder<float>(this, target, property, true, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyframeTweenerBuilder<float> KeyframeFloat(Node target, string property, Easing easing = null) {
+            var tweener = new PropertyKeyframeTweenerBuilder<float>(this, target, property, true, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public TweenSequenceBuilder Parallel() {
             _parallel = true;
             return this;
         }
 
-        public TweenSequence Pause(float delay) {
+        public TweenSequenceBuilder Pause(float delay) {
             AddTweener(new CallbackTweener(this, delay, null));
             return this;
         }
 
-        public TweenSequence Callback(TweenCallback callback) {
+        public TweenSequenceBuilder Callback(TweenCallback callback) {
             AddTweener(new CallbackTweener(this, 0, callback));
             return this;
         }
 
-        internal void AddTweener(ITweener tweener) {
+        private void AddTweener(ITweener tweener) {
             if (_parallel) {
                 TweenList.Last().Add(tweener);
                 _parallel = false;
@@ -315,28 +419,28 @@ namespace Tools.Animation {
         }
 
         // Sets the speed scale of tweening.
-        public TweenSequence SetSpeed(float speed) {
+        public TweenSequenceBuilder SetSpeed(float speed) {
             Speed = speed;
             return this;
         }
 
-        public TweenSequence SetProcessMode(Tween.TweenProcessMode processMode) {
+        public TweenSequenceBuilder SetProcessMode(Tween.TweenProcessMode processMode) {
             ProcessMode = processMode;
             return this;
         }
 
-        public TweenSequence SetLoops(int maxLoops) {
+        public TweenSequenceBuilder SetLoops(int maxLoops) {
             Loops = maxLoops;
             return this;
-        }
-
-        internal void OnAddedToPlayer(TweenPlayer tweenPlayer) {
-            _tweenPlayer = tweenPlayer;
         }
 
         public TweenPlayer EndSequence() {
             return _tweenPlayer;
         }
+
+        // public TweenSequence Build() {
+        // return new TweenSequence(TweenList, ProcessMode, Loops, Speed);
+        // }
     }
 
     public class TweenPlayer : Reference {
@@ -397,14 +501,11 @@ namespace Tools.Animation {
 
         public TweenPlayer AddSequence(TweenSequence tweenSequence) {
             _tweenSequences.Add(tweenSequence);
-            // tweenSequence.OnAddedToPlayer(this);
             return this;
         }
 
-        public TweenSequence CreateSequence() {
-            var tweenSequence = new TweenSequence();
-            // Only the TweenSequence created by this method will have the reference to the player (needed)
-            tweenSequence.OnAddedToPlayer(this);
+        public TweenSequenceBuilder CreateSequence() {
+            var tweenSequence = new TweenSequenceBuilder(this);
             AddSequence(tweenSequence);
             return tweenSequence;
         }

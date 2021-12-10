@@ -12,17 +12,20 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
 
-        private TweenPlayer tweenPlayer;
-        private TweenPlayer seq2;
+        private TweenPlayer tweenPlayer1;
+        private TweenPlayer tweenPlayer2;
+        private TweenPlayer tweenPlayer3;
         public override void Ready() {
 
-            tweenPlayer = new TweenPlayer("").NewTween(this);
-            tweenPlayer
+            tweenPlayer1 = new TweenPlayer("").NewTween(this);
+            tweenPlayer1
                 .CreateSequence()
-                    .AnimateFloat(body2, "position:x", Easing.SineInOut)
-                        .Offset(50f, 0.5f)
-                        .Offset(-50f, 0.5f)
-                    .EndAnimate()
+                .KeyframeFloat(body2, "scale:y", Easing.SineInOut)
+                .From(1f)
+                .Duration(1)
+                .KeyframeTo(0.5f, 1.5f)
+                .KeyframeTo(1f, 1f)
+                .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
                 .Start();
@@ -31,16 +34,37 @@ namespace Veronenger.Game.Controller.Animation {
             https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            tweenPlayer = new TweenPlayer("").NewTween(this);
-            tweenPlayer
+            tweenPlayer2 = new TweenPlayer("").NewTween(this);
+            tweenPlayer2
                 .CreateSequence()
-                    .AnimateFloat(body3, "position:x", curve)
-                        .Offset(50f, 0.5f)
-                        .Offset(-50f, 0.5f)
-                    .EndAnimate()
+                .AnimateFloat(body3, "position:x", curve)
+                .Offset(50f, 0.5f)
+                .Offset(-50f, 0.5f)
+                .EndAnimate()
                 .EndSequence()
-                .SetInfiniteLoops()
+                .SetInfiniteLoops();
+                // .Start();
+
+
+                tweenPlayer3 = new TweenPlayer("").NewTween(this)
+                    .CreateSequence()
+                    .KeyframeFloat(body3, "scale:y")
+                    .From(1)
+                    .Duration(0.5f)
+                    .KeyframeTo(0.20f, 1)
+                    .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
+                    .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
+                    .KeyframeTo(0.53f, 1)
+                    .KeyframeTo(0.70f, 1.05f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeTo(0.80f, 0.95f)
+                    .KeyframeTo(0.90f, 1.02f)
+                    .KeyframeTo(1, 1f)
+                    .EndAnimate()
+                    .EndSequence()
+                    .SetInfiniteLoops()
                 .Start();
+                // .Parallel()
+
 
         }
 
