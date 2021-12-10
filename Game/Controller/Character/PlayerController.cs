@@ -166,7 +166,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private TweenSequence CreateDanger() {
             var seq = new TweenSequence()
-                .AnimateColor(_mainSprite, "modulate", Tween.TransitionType.Cubic)
+                .AnimateColor(_mainSprite, "modulate", Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -175,7 +175,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private TweenSequence CreateSqueeze() {
             var seq = new TweenSequence()
-                .AnimateVector2(this, "scale", Tween.TransitionType.Sine)
+                .AnimateVector2(this, "scale", Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()

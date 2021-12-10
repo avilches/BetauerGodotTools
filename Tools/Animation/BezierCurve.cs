@@ -1,18 +1,83 @@
 using Godot;
 
 namespace Tools.Animation {
-    // Got from https://www.icode.com/c-function-for-a-bezier-curve/
-    public class BezierCurve {
-        float p0x;
-        float p0y;
-        float cx;
-        float cy;
-        float bx;
-        float by;
-        float ax;
-        float ay;
+    public abstract class Easing {
+        public string Name { get; }
+        public static Easing LinearIn = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.In);
+        public static Easing LinearOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.Out);
+        public static Easing LinearInOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.InOut);
 
-        private BezierCurve(float p0x, float p0y, float cx, float cy, float bx, float by, float ax, float ay) {
+        public static Easing SineIn = new GodotEasing(Tween.TransitionType.Sine, Tween.EaseType.In);
+        public static Easing SineOut = new GodotEasing(Tween.TransitionType.Sine, Tween.EaseType.Out);
+        public static Easing SineInOut = new GodotEasing(Tween.TransitionType.Sine, Tween.EaseType.InOut);
+
+        public static Easing QuintIn = new GodotEasing(Tween.TransitionType.Quint, Tween.EaseType.In);
+        public static Easing QuintOut = new GodotEasing(Tween.TransitionType.Quint, Tween.EaseType.Out);
+        public static Easing QuintInOut = new GodotEasing(Tween.TransitionType.Quint, Tween.EaseType.InOut);
+
+        public static Easing QuartIn = new GodotEasing(Tween.TransitionType.Quart, Tween.EaseType.In);
+        public static Easing QuartOut = new GodotEasing(Tween.TransitionType.Quart, Tween.EaseType.Out);
+        public static Easing QuartInOut = new GodotEasing(Tween.TransitionType.Quart, Tween.EaseType.InOut);
+
+        public static Easing QuadIn = new GodotEasing(Tween.TransitionType.Quad, Tween.EaseType.In);
+        public static Easing QuadOut = new GodotEasing(Tween.TransitionType.Quad, Tween.EaseType.Out);
+        public static Easing QuadInOut = new GodotEasing(Tween.TransitionType.Quad, Tween.EaseType.InOut);
+
+        public static Easing ExpoIn = new GodotEasing(Tween.TransitionType.Expo, Tween.EaseType.In);
+        public static Easing ExpoOut = new GodotEasing(Tween.TransitionType.Expo, Tween.EaseType.Out);
+        public static Easing ExpoInOut = new GodotEasing(Tween.TransitionType.Expo, Tween.EaseType.InOut);
+
+        public static Easing ElasticIn = new GodotEasing(Tween.TransitionType.Elastic, Tween.EaseType.In);
+        public static Easing ElasticOut = new GodotEasing(Tween.TransitionType.Elastic, Tween.EaseType.Out);
+        public static Easing ElasticInOut = new GodotEasing(Tween.TransitionType.Elastic, Tween.EaseType.InOut);
+
+        public static Easing CubicIn = new GodotEasing(Tween.TransitionType.Cubic, Tween.EaseType.In);
+        public static Easing CubicOut = new GodotEasing(Tween.TransitionType.Cubic, Tween.EaseType.Out);
+        public static Easing CubicInOut = new GodotEasing(Tween.TransitionType.Cubic, Tween.EaseType.InOut);
+
+        public static Easing CircIn = new GodotEasing(Tween.TransitionType.Circ, Tween.EaseType.In);
+        public static Easing CircOut = new GodotEasing(Tween.TransitionType.Circ, Tween.EaseType.Out);
+        public static Easing CircInOut = new GodotEasing(Tween.TransitionType.Circ, Tween.EaseType.InOut);
+
+        public static Easing BounceIn = new GodotEasing(Tween.TransitionType.Bounce, Tween.EaseType.In);
+        public static Easing BounceOut = new GodotEasing(Tween.TransitionType.Bounce, Tween.EaseType.Out);
+        public static Easing BounceInOut = new GodotEasing(Tween.TransitionType.Bounce, Tween.EaseType.InOut);
+
+        public static Easing BackIn = new GodotEasing(Tween.TransitionType.Back, Tween.EaseType.In);
+        public static Easing BackOut = new GodotEasing(Tween.TransitionType.Back, Tween.EaseType.Out);
+        public static Easing BackInOut = new GodotEasing(Tween.TransitionType.Back, Tween.EaseType.InOut);
+
+        protected Easing(string name) {
+            Name = name;
+        }
+    }
+
+    public class GodotEasing : Easing {
+        public readonly Tween.EaseType EaseType;
+        public readonly Tween.TransitionType TransitionType;
+
+        internal GodotEasing(Tween.TransitionType transitionType, Tween.EaseType easeType) :
+            base($"{transitionType}{easeType}") {
+            TransitionType = transitionType;
+            EaseType = easeType;
+        }
+    }
+
+    // Got from https://www.icode.com/c-function-for-a-bezier-curve/
+    public class BezierCurve : Easing {
+        public readonly float p0x;
+        public readonly float p0y;
+        public readonly float cx;
+        public readonly float cy;
+        public readonly float bx;
+        public readonly float by;
+        public readonly float ax;
+        public readonly float ay;
+        public readonly string Name;
+
+        public BezierCurve(string name, float p0x, float p0y, float cx, float cy, float bx, float by, float ax,
+            float ay) : base(name){
+            Name = name;
             this.p0x = p0x;
             this.p0y = p0y;
             this.cx = cx;
@@ -21,6 +86,10 @@ namespace Tools.Animation {
             this.by = by;
             this.ax = ax;
             this.ay = ay;
+        }
+
+        public override string ToString() {
+            return Name;
         }
 
         public Vector2 GetPoint(float t) {
@@ -45,15 +114,17 @@ namespace Tools.Animation {
             return Create(0, 0, p1x, p1y, p2x, p2y, 1, 1);
         }
 
-        public static BezierCurve Create(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
+        public static BezierCurve Create(
+            float p0x, float p0y, float p1x, float p1y,
+            float p2x, float p2y, float p3x, float p3y) {
             var cx = 3 * (p1x - p0x);
             var cy = 3 * (p1y - p0y);
             var bx = 3 * (p2x - p1x) - cx;
             var by = 3 * (p2y - p1y) - cy;
             var ax = p3x - p0x - cx - bx;
-
             var ay = p3y - p0y - cy - by;
-            return new BezierCurve(p0x, p0y, cx, cy, bx, by, ax, ay);
+            var name = $"({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
+            return new BezierCurve(name, p0x, p0y, cx, cy, bx, by, ax, ay);
         }
 
         // Slower version using Godot LinearInterpolate function.

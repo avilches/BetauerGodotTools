@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Godot;
 using Tools;
 using Tools.Animation;
@@ -12,29 +13,30 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body3")] private KinematicBody2D body3;
 
         private TweenPlayer tweenPlayer;
+        private TweenPlayer seq2;
         public override void Ready() {
 
-            TinyTweenSequence seq = new TinyTweenSequence(true);
-            seq.Add(0, 100, 5, ScaleFuncs.SineEaseInOut);
-            seq.AddReverseAll();
-            seq.AutoUpdate(this, value => body1.Position = new Vector2(value, body1.Position.y));
+            tweenPlayer = new TweenPlayer("").NewTween(this);
+            tweenPlayer
+                .CreateSequence()
+                    .AnimateFloat(body2, "position:x", Easing.SineInOut)
+                        .Offset(50f, 0.5f)
+                        .Offset(-50f, 0.5f)
+                    .EndAnimate()
+                .EndSequence()
+                .SetInfiniteLoops()
+                .Start();
 
             BezierCurve curve = BezierCurve.Create(0.37f, 0.0f, 0.63f, 1f);
-
             https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
-            TinyTweenSequence seq2 = new TinyTweenSequence(true);
-            seq2.Add(0, 100, 5, curve.GetY);
-            seq2.AddReverseAll();
-            seq2.AutoUpdate(this, value => body2.Position = new Vector2(value, body2.Position.y));
-
 
             tweenPlayer = new TweenPlayer("").NewTween(this);
             tweenPlayer
                 .CreateSequence()
                     .AnimateFloat(body3, "position:x", curve)
-                        .Offset(100f, 5)
-                        .Offset(-100f, 5)
+                        .Offset(50f, 0.5f)
+                        .Offset(-50f, 0.5f)
                     .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
@@ -42,9 +44,12 @@ namespace Veronenger.Game.Controller.Animation {
 
         }
 
-        public override void _PhysicsProcess(float delta) {
-            base._PhysicsProcess(delta);
+        public override void _Process(float delta) {
+            // if (seq.G)
         }
+        // public override void _PhysicsProcess(float delta) {
+            // base._PhysicsProcess(delta);
+        // }
     }
 
 }

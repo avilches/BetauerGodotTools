@@ -140,13 +140,16 @@ namespace Tools.Effects.Deprecated {
         private int _pos = 0;
         private bool _disposed = false;
         public bool Loop;
+        public bool enabled = true;
         private IStep<float>.OnUpdateAction _onUpdateAction;
 
         public TinyTweenSequence(bool loop = false) {
+            GD.PushWarning("Please don't use TinyTween. When executed, the duration of every tween step is less than expected");
+            GD.PushWarning("This is happening because if the accumulated time + delta is > duration, the remainder is lost");
             Loop = loop;
         }
 
-        public TinyTweenSequence Add(float start, float end, int duration, ScaleFunc scaleFunc,
+        public TinyTweenSequence Add(float start, float end, float duration, ScaleFunc scaleFunc,
             IStep<float>.OnUpdateAction onUpdateAction = null,
             OnFinishAction onCompleteAction = null) {
             if (!_disposed) {
@@ -166,7 +169,7 @@ namespace Tools.Effects.Deprecated {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (!_disposed) {
+            if (!_disposed && enabled) {
                 if (CurrentStep.HasOnUpdate()) {
                     CurrentStep.OnUpdate(Update(delta));
                 } else {

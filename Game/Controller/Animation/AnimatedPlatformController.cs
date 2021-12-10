@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             seq.Callback(() => x = Stopwatch.StartNew());
 
-            seq.AnimateVector2(this, nameof(follow), Tween.TransitionType.Cubic)
+            seq.AnimateVector2(this, nameof(follow), Easing.CubicInOut)
                 .Offset(new Vector2(100, 0), 1, () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
                 .Offset(new Vector2(-50, 0), 1)
                 .EndAnimate();
@@ -51,9 +51,9 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Pause(1);
 
             seq.AnimateColor(this, "modulate")
-                .To(new Color(1, 0, 0, 1f), 1, Tween.TransitionType.Cubic)
+                .To(new Color(1, 0, 0, 1f), 1, Easing.CubicInOut)
                 .EndAnimate()
-                .AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Tween.TransitionType.Cubic)
+                .AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
                 .EndAnimate();
 
             seq.Callback(() => {
