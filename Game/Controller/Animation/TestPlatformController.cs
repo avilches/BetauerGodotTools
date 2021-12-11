@@ -46,24 +46,24 @@ namespace Veronenger.Game.Controller.Animation {
                 // .Start();
 
 
-                tweenPlayer3 = new TweenPlayer("").NewTween(this)
-                    .CreateSequence()
-                    .KeyframeFloat(body3, "scale:y")
-                    .From(1)
-                    .Duration(0.5f)
-                    .KeyframeTo(0.20f, 1)
-                    .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeTo(0.53f, 1)
-                    .KeyframeTo(0.70f, 1.05f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
-                    .KeyframeTo(0.80f, 0.95f)
-                    .KeyframeTo(0.90f, 1.02f)
-                    .KeyframeTo(1, 1f)
-                    .EndAnimate()
-                    .EndSequence()
-                    .SetInfiniteLoops()
-                .Start();
-                // .Parallel()
+            tweenPlayer3 = new TweenPlayer("").NewTween(this)
+                .CreateSequence()
+                .KeyframeFloat(body3, "scale:y")
+                .From(1)
+                .Duration(0.5f)
+                .KeyframeTo(0.20f, 1)
+                .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
+                .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
+                .KeyframeTo(0.53f, 1)
+                .KeyframeTo(0.70f, 1.05f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
+                .KeyframeTo(0.80f, 0.95f)
+                .KeyframeTo(0.90f, 1.02f)
+                .KeyframeTo(1, 1f)
+                .EndAnimate()
+                .EndSequence()
+                .SetInfiniteLoops()
+            .Start();
+            // .Parallel()
 
 
         }

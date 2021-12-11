@@ -35,7 +35,7 @@ namespace Veronenger.Game.Managers {
         private void ConfigureScreen() {
             SceneTree tree = GetTree();
             Viewport rootViewport = GetNode<Viewport>("/root");
-            if (IsRunningTests) {
+            if (IsRunningTests || true) {
                 ScreenManager = new ScreenManager(tree, rootViewport, new Vector2(1200, 900), SceneTree.StretchMode.Disabled,
                     SceneTree.StretchAspect.Expand);
                 ScreenManager.Configure(false, 1, false);
