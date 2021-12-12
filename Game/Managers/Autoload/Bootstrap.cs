@@ -51,7 +51,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(TweenPlayer), TraceLevel.Debug);
             // LoggerFactory.SetTraceLevel(typeof(TweenSequence), TraceLevel.Debug);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(AnimationStep<>), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Debug);
 
             // Managers
             LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);

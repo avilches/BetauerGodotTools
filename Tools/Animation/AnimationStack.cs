@@ -121,10 +121,10 @@ namespace Tools.Animation {
 
         private class LoopTween : LoopStatus {
             private readonly TweenPlayer _tweenPlayer;
-            private readonly TweenSequence _sequence;
+            private readonly ITweenSequence _sequence;
 
             public LoopTween(AnimationStack animationStack, Logger logger, string name, TweenPlayer tweenPlayer,
-                TweenSequence sequence) : base(
+                ITweenSequence sequence) : base(
                 animationStack, logger, name) {
                 _tweenPlayer = tweenPlayer;
                 _sequence = sequence;
@@ -143,10 +143,10 @@ namespace Tools.Animation {
 
         private class OnceTween : OnceStatus {
             private readonly TweenPlayer _tweenPlayer;
-            private readonly TweenSequence _sequence;
+            private readonly ITweenSequence _sequence;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, TweenPlayer tweenPlayer, TweenSequence sequence) : base(animationStack, logger,
+                bool killPrevious, TweenPlayer tweenPlayer, ITweenSequence sequence) : base(animationStack, logger,
                 name, canBeInterrupted, killPrevious) {
                 _tweenPlayer = tweenPlayer;
                 _sequence = sequence;
@@ -258,14 +258,14 @@ namespace Tools.Animation {
             return onceAnimationStatus;
         }
 
-        public ILoopStatus AddLoopTween(string name, TweenSequence tweenSequence) {
+        public ILoopStatus AddLoopTween(string name, ITweenSequence tweenSequence) {
             Debug.Assert(_tweenPlayer != null, "_tweenPlayer != null");
             var loopTweenStatus = new LoopTween(this, _logger, name, _tweenPlayer, tweenSequence);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
-        public IOnceStatus AddOnceTween(string name, TweenSequence tweenSequence, bool canBeInterrupted = false,
+        public IOnceStatus AddOnceTween(string name, ITweenSequence tweenSequence, bool canBeInterrupted = false,
             bool killPrevious = false) {
             Debug.Assert(_tweenPlayer != null, "_tweenPlayer != null");
             var onceTweenStatus =
@@ -377,7 +377,7 @@ namespace Tools.Animation {
             }
         }
 
-        private void OnceTweenFinished(TweenSequence tweenSequence) {
+        private void OnceTweenFinished(ITweenSequence tweenSequence) {
             if (_currentOnceAnimation == null) {
                 // This could happen when a LoopTween is not infinite (lit a Tween that just rest the values)
                 // so ignore the event

@@ -136,7 +136,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
 
-        private TweenSequence CreateReset() {
+        private ITweenSequence CreateReset() {
             var seq = new TweenSequenceBuilder()
                 .AnimateColor(_mainSprite, "modulate").From(new Color(1, 1, 1, 0)).To(new Color(1, 1, 1, 1), 1).EndAnimate();
             // seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
@@ -144,7 +144,7 @@ namespace Veronenger.Game.Controller.Character {
             return seq;
         }
 
-        private TweenSequence CreatePulsate() {
+        private ITweenSequence CreatePulsate() {
             var seq = new TweenSequenceBuilder()
                 .KeyframeColor(_mainSprite, "modulate")
                 .Duration(0.5f)
@@ -162,7 +162,7 @@ namespace Veronenger.Game.Controller.Character {
             return seq;
         }
 
-        private TweenSequence CreateDanger() {
+        private ITweenSequence CreateDanger() {
             var seq = new TweenSequenceBuilder()
                 .AnimateColor(_mainSprite, "modulate", Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
@@ -171,7 +171,7 @@ namespace Veronenger.Game.Controller.Character {
             return seq;
         }
 
-        private TweenSequence CreateSqueeze() {
+        private ITweenSequence CreateSqueeze() {
             var seq = new TweenSequenceBuilder()
                 .AnimateVector2(this, "scale", Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
