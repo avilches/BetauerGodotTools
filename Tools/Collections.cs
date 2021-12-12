@@ -12,6 +12,16 @@ namespace Tools {
             _last = _head;
         }
 
+        public void Clear() {
+            _head.next = null;
+            _last = _head;
+            Count = 0;
+        }
+
+        public T First() {
+            return Count > 0 ? _head.next.data : throw new Exception("There is no First() value for empty linked list");
+        }
+
         public void AddStart(T data) {
             Node<T> newHead = new Node<T>();
             newHead.next = _head.next;
@@ -34,6 +44,9 @@ namespace Tools {
 
             _head.next = _head.next.next;
             Count--;
+            if (Count == 0) {
+                _last = _head;
+            }
         }
 
         public void RemoveEnd() {
