@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Godot;
 using NUnit.Framework;
+using Tools;
 using Tools.Bus;
 using Tools.Bus.Topics;
 
@@ -10,6 +11,8 @@ namespace Veronenger.Tests {
     public class GodotTopicTests : Node {
         [SetUp]
         public void Setup() {
+            LoggerFactory.OverrideTraceLevel(TraceLevel.All);
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
         }
 
         [Test]
