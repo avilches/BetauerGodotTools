@@ -36,11 +36,11 @@ namespace Veronenger.Game.Controller.Animation {
             _player = new TweenPlayer("Platform").NewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
-            TweenSequenceBuilder seq = new TweenSequenceBuilder();
+            TweenSequenceBuilder seq = TweenSequenceBuilder.Create();
 
             seq.Callback(() => x = Stopwatch.StartNew());
 
-            seq.AnimateVector2(this, nameof(follow), Easing.CubicInOut)
+            seq.AnimateSteps<Vector2>(this, nameof(follow), Easing.CubicInOut)
                 .Offset(new Vector2(100, 0), 1, Easing.LinearInOut, () => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
                 .Offset(new Vector2(-50, 0), 1)
                 .EndAnimate();
@@ -49,10 +49,10 @@ namespace Veronenger.Game.Controller.Animation {
                 LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
             seq.Pause(1);
 
-            seq.AnimateColor(this, "modulate")
+            seq.AnimateSteps<Color>(this, "modulate")
                 .To(new Color(1, 0, 0, 1f), 1, Easing.CubicInOut)
                 .EndAnimate()
-                .AnimateColor(this, "modulate").To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
+                .AnimateSteps<Color>(this, "modulate").To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
                 .EndAnimate();
 
             seq.Callback(() => {

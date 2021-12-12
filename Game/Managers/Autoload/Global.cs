@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Tools;
 using Tools.Animation;
@@ -19,12 +20,9 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public void Animate(Node2D node, string animation, float duration) {
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
-
-            TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
-                .CreateSequence()
-                .KeyframeFloat(node, "scale:y")
+            ITweenSequence bounce = TweenSequenceBuilder.Create()
+                .AnimateKeys<float>(property: "scale:y")
                 .From(1)
-                .Duration(duration)
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
                 .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
@@ -34,8 +32,8 @@ namespace Veronenger.Game.Managers.Autoload {
                 .KeyframeTo(0.90f, 1.02f)
                 .KeyframeTo(1, 1f)
                 .EndAnimate()
-                .Parallel().KeyframeFloat(node, "position:y")
-                .Duration(duration)
+                .Parallel()
+                .AnimateKeys<float>(property: "position:y")
                 .From(0f)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(0.40f, -30f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
@@ -43,12 +41,17 @@ namespace Veronenger.Game.Managers.Autoload {
                 .KeyframeOffset(0.53f, +30f)
                 .KeyframeOffset(0.70f, -15f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
                 .KeyframeOffset(0.80f, +15f)
-                .KeyframeOffset(0.90f, -4f )
-                .KeyframeOffset(1f   , +4f )
+                .KeyframeOffset(0.90f, -4f)
+                .KeyframeOffset(1f, +4f)
                 .EndAnimate()
+                .Build();
+
+            TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
+                .ImportSequence(bounce, node)
+                .Parallel()
+                .SetDuration(duration)
                 .EndSequence()
                 .Start();
-            // .Parallel()
 
         }
     }

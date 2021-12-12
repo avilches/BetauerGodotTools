@@ -8,7 +8,8 @@ namespace Tools.Animation {
     public delegate void OnFinishAnimationTweener(ITweenSequence tweenSequence);
 
     public interface ITweener {
-        public float Start(float initialDelay, Tween tween);
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, string defaultMember,
+            float defaultDuration);
     }
 
     public delegate void TweenCallback();
@@ -42,15 +43,14 @@ namespace Tools.Animation {
     internal class CallbackTweener : TweenCallbackHolder, ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
-        // private readonly TweenSequence _tweenSequence;
         private readonly float _delay;
 
         internal CallbackTweener(float delay, TweenCallback callback) : base(callback) {
-            // _tweenSequence = tweenSequence;
             _delay = delay;
         }
 
-        public float Start(float initialDelay, Tween tween) {
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, string defaultMember,
+            float defaultDuration) {
             var start = _delay + initialDelay;
             if (Callback != null) {
                 Logger.Info("Scheduling callback with " + _delay + "s delay. Start: " + start.ToString("F"));
@@ -67,19 +67,17 @@ namespace Tools.Animation {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
         protected readonly Node _target;
-        protected readonly string _member;
-
-        // TODO: create method/delegate interpolator
-        protected readonly bool _memberIsProperty;
+        protected readonly string _member; // TODO: create method/delegate interpolator
         protected readonly Easing _defaultEasing;
+        protected readonly Callback _defaultCallback; // TODO: implement, why not?
+
 
         protected T _from;
         protected bool _liveFrom = true;
 
-        internal PropertyTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) {
+        internal PropertyTweener(Node target, string member, Easing defaultEasing) {
             _target = target;
             _member = member;
-            _memberIsProperty = memberIsProperty;
             _defaultEasing = defaultEasing;
             _from = default;
             _liveFrom = true;
@@ -87,13 +85,25 @@ namespace Tools.Animation {
 
         protected T GetFirstFromValue() => _liveFrom ? (T)_target.GetIndexed(_member) : _from;
 
-        public void RunStep(Tween tween, Node target, string property,
-            T from, T to, float start, float duration, Easing easing, TweenCallback callback) {
-            easing ??= Easing.LinearInOut;
+        protected bool Validate(int count, Node target, string member) {
+            if (count == 0) {
+                throw new Exception("Cant' start an animation with 0 steps or keys");
+            }
+            if (target == null) {
+                throw new Exception("No target defined for the tween");
+            }
+            if (member == null) {
+                throw new Exception("No member defined for the tween");
+            }
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return;
+                return false;
             }
+            return true;
+        }
+
+        public void RunStep(Tween tween, Node target, string property,
+            T from, T to, float start, float duration, Easing easing, TweenCallback callback) {
             var end = start + duration;
             Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
                         from + " to " + to +
@@ -123,17 +133,18 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyStepTweener<T> : PropertyTweener<T>, ITweener {
-        protected readonly List<AnimationKeyStep<T>> _steps = new List<AnimationKeyStep<T>>(5);
+        protected readonly SimpleLinkedList<AnimationKeyStep<T>> _steps = new SimpleLinkedList<AnimationKeyStep<T>>();
 
-        internal PropertyKeyStepTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) : base(target,
-            member, memberIsProperty, defaultEasing) {
+        internal PropertyKeyStepTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) :
+            base(target, member, defaultEasing) {
         }
 
-        public float Start(float initialDelay, Tween tween) {
-            if (!Object.IsInstanceValid(_target)) {
-                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return 0;
-            }
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, string defaultMember,
+            float defaultDuration) {
+            var target = _target ?? defaultTarget;
+            var member = _member ?? defaultMember;
+            if (!Validate(_steps.Count, target, member)) return 0;
+            // TODO: defaultDuration could be % or absolute or nothing
             var from = GetFirstFromValue();
             var startTime = 0f;
             // var totalDuration = _steps.Sum(step => step.Duration);
@@ -142,8 +153,8 @@ namespace Tools.Animation {
                 var duration = step.Duration;
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
-                RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration,
-                    step.Easing ?? _defaultEasing, step.Callback);
+                var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
+                RunStep(tween, target, member, from, to, initialDelay + startTime, duration, easing, step.Callback);
                 from = to;
                 startTime += duration;
             }
@@ -152,39 +163,39 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyPercentTweener<T> : PropertyTweener<T>, ITweener {
-        protected readonly List<AnimationKeyPercent<T>> _steps = new List<AnimationKeyPercent<T>>(5);
+        protected readonly SimpleLinkedList<AnimationKeyPercent<T>> _steps =
+            new SimpleLinkedList<AnimationKeyPercent<T>>();
+
         protected float AllStepsDuration = 0;
 
-        internal PropertyKeyPercentTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) : base(
-            target, member, memberIsProperty, defaultEasing) {
+        internal PropertyKeyPercentTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) :
+            base(
+                target, member, defaultEasing) {
         }
 
-        public float Start(float initialDelay, Tween tween) {
-            if (!Object.IsInstanceValid(_target)) {
-                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return 0;
-            }
-            if (AllStepsDuration == 0) {
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, string defaultMember,
+            float defaultDuration) {
+            var target = _target ?? defaultTarget;
+            var member = _member ?? defaultMember;
+            if (!Validate(_steps.Count, target, member)) return 0;
+            var allStepsDuration = AllStepsDuration > 0f ? AllStepsDuration : defaultDuration;
+            if (allStepsDuration <= 0)
                 throw new Exception("Keyframe animation duration should be more than 0");
-            }
-            if (_steps?.Last()?.Percent != 1f) {
-                throw new Exception("Last step should be 1 keyframe");
-            }
             var from = GetFirstFromValue();
             var startTime = 0f;
             // var percentStart = 0f;
             foreach (var step in _steps) {
                 var to = step.GetTo(from);
-                var endTime = step.Percent * AllStepsDuration;
-                var duration = endTime - startTime;
+                var endTime = step.Percent * allStepsDuration;
+                var keyDuration = endTime - startTime;
+                var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
                 // var percentEnd = step.Percent;
-                RunStep(tween, _target, _member, from, to, initialDelay + startTime, duration,
-                    step.Easing ?? _defaultEasing, step.Callback);
+                RunStep(tween, target, member, from, to, initialDelay + startTime, keyDuration, easing, step.Callback);
                 from = to;
                 // percentStart = percentEnd;
                 startTime = endTime;
             }
-            return AllStepsDuration;
+            return allStepsDuration;
         }
     }
 
@@ -272,73 +283,63 @@ namespace Tools.Animation {
     }
 
     public interface ITweenSequence {
-        public List<List<ITweener>> TweenList { get; }
-        public Tween.TweenProcessMode ProcessMode { get; }
+        public IList<IList<ITweener>> TweenList { get; }
+        public Node DefaultTarget { get; }
+        public string DefaultMember { get; }
         public int Loops { get; }
         public float Speed { get; }
+        public float Duration { get; }
+        public bool Template { get; }
+        public Tween.TweenProcessMode ProcessMode { get; }
     }
 
     public class TweenSequence : ITweenSequence {
-        public List<List<ITweener>> TweenList { get; }
-        public Tween.TweenProcessMode ProcessMode { get; set; } = Tween.TweenProcessMode.Physics;
-        public int Loops { get; set; } = 1;
-        public float Speed { get; set; } = 1.0f;
+        public IList<IList<ITweener>> TweenList { get; protected set; }
+        public Node DefaultTarget { get; protected set; }
+        public string DefaultMember { get; protected set; }
+        public float Duration { get; protected set; } = -1.0f;
+        public int Loops { get; protected set; } = 1;
+        public float Speed { get; protected set; } = 1.0f;
+        public bool Template { get; protected set; } = false;
+        public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Physics;
 
-        public TweenSequence(List<List<ITweener>> tweenList) {
-            TweenList = tweenList;
-        }
-
-        public TweenSequence(List<List<ITweener>> tweenList, Tween.TweenProcessMode processMode, int loops,
-            float speed) {
-            TweenList = tweenList;
-            ProcessMode = processMode;
-            Loops = loops;
-            Speed = speed;
+        public void ImportSequence(ITweenSequence tweenSequence, Node defaultTarget, string defaultMember,
+            float duration = -1.0f) {
+            // TODO: move the creation of the readonly or the immutable to a new method to export safe
+            // TweenList = ImmutableArray.Create<IList<ITweener>>(tweenSequence.TweenList.ToArray());
+            Template = tweenSequence.Template;
+            TweenList = tweenSequence.TweenList;
+            DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
+            DefaultMember = defaultMember ?? tweenSequence.DefaultMember;
+            Duration = duration > 0 ? duration : tweenSequence.Duration;
+            Loops = tweenSequence.Loops;
+            ProcessMode = tweenSequence.ProcessMode;
         }
     }
 
     public class TweenSequenceBuilder : TweenSequence {
         private bool _parallel = false;
+        private bool _template = false;
 
-        public TweenSequenceBuilder() : base(new List<List<ITweener>>()) {
+        public static TweenSequenceBuilder Create() {
+            return new TweenSequenceBuilder(true);
         }
 
-        public PropertyKeyStepTweenerBuilder<Color> AnimateColor(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<Color>(this, target, property, true, easing);
-            AddTweener(tweener);
-            return tweener;
+        internal TweenSequenceBuilder(bool template) {
+            _template = template;
+            TweenList = new List<IList<ITweener>>();
         }
 
-        public PropertyKeyPercentTweenerBuilder<Color>
-            KeyframeColor(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<Color>(this, target, property, true, easing);
-            AddTweener(tweener);
-            return tweener;
-        }
-
-        public PropertyKeyStepTweenerBuilder<Vector2>
-            AnimateVector2(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<Vector2>(this, target, property, true, easing);
-            AddTweener(tweener);
-            return tweener;
-        }
-
-        public PropertyKeyPercentTweenerBuilder<Vector2> KeyframeVector2(Node target, string property,
+        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, string property = null,
             Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<Vector2>(this, target, property, true, easing);
+            var tweener = new PropertyKeyStepTweenerBuilder<T>(this, target, property, true, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyStepTweenerBuilder<float> AnimateFloat(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<float>(this, target, property, true, easing);
-            AddTweener(tweener);
-            return tweener;
-        }
-
-        public PropertyKeyPercentTweenerBuilder<float>
-            KeyframeFloat(Node target, string property, Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<float>(this, target, property, true, easing);
+        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, string property = null,
+            Easing easing = null) {
+            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, property, true, easing);
             AddTweener(tweener);
             return tweener;
         }
@@ -359,6 +360,9 @@ namespace Tools.Animation {
         }
 
         private void AddTweener(ITweener tweener) {
+            if (Template) {
+                throw new Exception("Can't add twenners to a TweenSequence.Template = true animation");
+            }
             if (_parallel) {
                 TweenList.Last().Add(tweener);
                 _parallel = false;
@@ -370,6 +374,11 @@ namespace Tools.Animation {
         // Sets the speed scale of tweening.
         public TweenSequenceBuilder SetSpeed(float speed) {
             Speed = speed;
+            return this;
+        }
+
+        public TweenSequenceBuilder SetDuration(float duration) {
+            Duration = duration;
             return this;
         }
 
@@ -387,28 +396,24 @@ namespace Tools.Animation {
             return null;
         }
 
-        // public List<List<ITweener>> Export() {
-        // new System.Collections.Immutable.ImmutableList()
-        // return new
-        // }
-
-        // public TweenSequence Build() {
-        // return new TweenSequence(TweenList, ProcessMode, Loops, Speed);
-        // }
+        public ITweenSequence Build() {
+            if (_template) {
+                Template = true;
+            }
+            return this;
+        }
     }
 
     public class TweenPlayer : Reference {
         public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder {
             private readonly TweenPlayer _tweenPlayer;
 
-            private TweenSequenceWithPlayerBuilder() {
-            }
-
-            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer) {
+            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer) : base(false) {
                 _tweenPlayer = tweenPlayer;
             }
 
             public override TweenPlayer EndSequence() {
+                base.EndSequence();
                 return _tweenPlayer;
             }
         }
@@ -429,7 +434,7 @@ namespace Tools.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
         private Tween _tween;
-        private readonly List<ITweenSequence> _tweenSequences = new List<ITweenSequence>(6);
+        public readonly List<ITweenSequence> _tweenSequences = new List<ITweenSequence>(6);
 
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
@@ -473,9 +478,18 @@ namespace Tools.Animation {
             return this;
         }
 
+        public TweenSequenceWithPlayerBuilder ImportSequence(ITweenSequence tweenSequence,
+            Node defaultTarget = null, string defaultMember = null, float duration = -1) {
+            // int loops = 1, float speed = 1.0f, Tween.TweenProcessMode processMode = Tween.TweenProcessMode.Physics) {
+            var tweenSequenceWithPlayerBuilder = new TweenSequenceWithPlayerBuilder(this);
+            tweenSequenceWithPlayerBuilder.ImportSequence(tweenSequence, defaultTarget, defaultMember, duration);
+            _tweenSequences.Add(tweenSequenceWithPlayerBuilder);
+            return tweenSequenceWithPlayerBuilder;
+        }
+
         public TweenSequenceWithPlayerBuilder CreateSequence() {
             var tweenSequence = new TweenSequenceWithPlayerBuilder(this);
-            AddSequence(tweenSequence);
+            _tweenSequences.Add(tweenSequence);
             return tweenSequence;
         }
 
@@ -592,7 +606,8 @@ namespace Tools.Animation {
 
                 if (parallelGroup.Count == 1) {
                     Logger.Debug("Start single tween " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count);
-                    var tweenTime = parallelGroup[0].Start(accumulatedDelay, _tween);
+                    var tweenTime = parallelGroup[0].Start(_tween, accumulatedDelay, sequence.DefaultTarget,
+                        sequence.DefaultMember, sequence.Duration);
                     Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
                     accumulatedDelay += tweenTime;
                 } else {
@@ -601,7 +616,8 @@ namespace Tools.Animation {
 
                     float longestTime = 0;
                     foreach (var tweener in parallelGroup) {
-                        var tweenTime = tweener.Start(accumulatedDelay, _tween);
+                        var tweenTime = tweener.Start(_tween, accumulatedDelay, sequence.DefaultTarget,
+                            sequence.DefaultMember, sequence.Duration);
                         Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
                         longestTime = Math.Max(longestTime, tweenTime);
                     }
