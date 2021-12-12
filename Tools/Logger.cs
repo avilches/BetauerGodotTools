@@ -117,6 +117,14 @@ namespace Tools {
             return Instance;
         }
 
+        public static LoggerFactory OverrideTraceLevel(TraceLevel traceLevel) {
+            SetDefaultTraceLevel(traceLevel);
+            foreach (var logger in Instance._traceLevelConfig) {
+                logger.TraceLevel = traceLevel;
+            }
+            return Instance;
+        }
+
         public static LoggerFactory SetTraceLevel(string type, string name, TraceLevel traceLevel) {
             name ??= "*";
             TraceLevelConfig traceLevelConfig =

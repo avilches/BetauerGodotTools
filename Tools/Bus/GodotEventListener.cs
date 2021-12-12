@@ -1,4 +1,6 @@
+using System;
 using Godot;
+using Object = Godot.Object;
 
 namespace Tools.Bus {
     public interface IGodotEvent {
@@ -33,7 +35,7 @@ namespace Tools.Bus {
         }
 
         protected static string GetNodeInfo(Node node) {
-            if (node == null) return "all";
+            if (node == null) return "null";
             var nodeName = Object.IsInstanceValid(node) ? $"\"{node.Name}\"" : "(disposed)";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
         }
@@ -54,7 +56,8 @@ namespace Tools.Bus {
 
         public override bool IsDisposed() {
             if (base.IsDisposed()) return true;
-            if (Object.IsInstanceValid(Filter)) return false;
+            // null filter is allowed, don't dispose it
+            if (Filter == null || Object.IsInstanceValid(Filter)) return false;
             Debug($"Disposed. Filter: {GetNodeInfo(Filter)}");
             return true;
         }
