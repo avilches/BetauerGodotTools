@@ -1,21 +1,25 @@
 using System.Collections.Generic;
+using Godot;
 
 namespace Tools.Animation {
     public static class Template {
-        public static TweenSequenceTemplate Get(string name) => TemplateHolder._templates[name].Get();
-        public static readonly TweenSequenceTemplate Bounce = TemplateHolder._templates["bounce"].Get();
-        public static readonly TweenSequenceTemplate Flash = TemplateHolder._templates["flash"].Get();
+        public static TweenSequenceTemplate Get(string name) => TemplateHolder.Templates[name].Get();
+        public static readonly TweenSequenceTemplate Bounce = TemplateHolder.Templates["bounce"].Get();
+        public static readonly TweenSequenceTemplate Flash = TemplateHolder.Templates["flash"].Get();
+        public static readonly TweenSequenceTemplate Headshake = TemplateHolder.Templates["headshake"].Get();
 
         private static class TemplateHolder {
-            internal static readonly Dictionary<string, TemplateFactory> _templates;
+            internal static readonly Dictionary<string, TemplateFactory> Templates;
+
             static TemplateHolder() {
                 TemplateFactory[] factories = {
-                    new TemplateFactory("bounce", CreateBounce),
-                    new TemplateFactory("flash", CreateFlash),
+                    new TemplateFactory("bounce", Bounce),
+                    new TemplateFactory("flash", Flash),
+                    new TemplateFactory("headshake", Headshake),
                 };
-                _templates = new Dictionary<string, TemplateFactory>(factories.Length);
+                Templates = new Dictionary<string, TemplateFactory>(factories.Length);
                 foreach (var templateFactory in factories) {
-                    _templates[templateFactory.Name] = templateFactory;
+                    Templates[templateFactory.Name] = templateFactory;
                 }
             }
 
@@ -23,7 +27,7 @@ namespace Tools.Animation {
 
             internal class TemplateFactory {
                 private readonly TweenSequenceFactory _factory;
-                public string Name;
+                public readonly string Name;
                 private TweenSequenceTemplate _cached;
 
                 public TemplateFactory(string name, TweenSequenceFactory factory) {
@@ -34,7 +38,7 @@ namespace Tools.Animation {
                 public TweenSequenceTemplate Get() => _cached ??= _factory();
             }
 
-            private static TweenSequenceTemplate CreateBounce() {
+            private static TweenSequenceTemplate Bounce() {
                 return TweenSequenceBuilder.CreateTemplate()
                     .SetDuration(0.5f)
                     .AnimateKeys<float>(property: Property.ScaleY)
@@ -62,7 +66,7 @@ namespace Tools.Animation {
                     .Build();
             }
 
-            private static TweenSequenceTemplate CreateFlash() {
+            private static TweenSequenceTemplate Flash() {
                 return TweenSequenceBuilder.CreateTemplate()
                     .SetDuration(0.5f)
                     .AnimateKeys<float>(property: Property.Opacity)
@@ -71,6 +75,31 @@ namespace Tools.Animation {
                     .KeyframeTo(0.50f, 1)
                     .KeyframeTo(0.75f, 0)
                     .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Build();
+            }
+
+            private static TweenSequenceTemplate Headshake() {
+                return TweenSequenceBuilder.CreateTemplate()
+                    .SetDuration(0.5f)
+                    .AnimateKeys<float>(property: Property.PositionY)
+                    .KeyframeOffset(0.065f, -6)
+                    .KeyframeOffset(0.185f, +5)
+                    .KeyframeOffset(0.315f, -3)
+                    .KeyframeOffset(0.435f, +2)
+                    .KeyframeOffset(0.500f, 0)
+                    .KeyframeOffset(1.000f, 0)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys<float>(property: Property.RotateCenter)
+                    .From(0)
+                    .KeyframeTo(0.000f, 0)
+                    .KeyframeTo(0.065f, -9)
+                    .KeyframeTo(0.185f, +7)
+                    .KeyframeTo(0.315f, -5)
+                    .KeyframeTo(0.435f, +3)
+                    .KeyframeTo(0.500f, 0)
+                    .KeyframeTo(1.000f, 0)
                     .EndAnimate()
                     .Build();
             }

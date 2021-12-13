@@ -5,32 +5,38 @@ using Object = Godot.Object;
 
 namespace Tools.Animation {
     public interface ITweener {
-        float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty, float sequenceDuration);
+        float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
+            float sequenceDuration);
     }
 
     public interface ITweener<T> {
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property<T> defaultProperty, float defaultDuration);
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property<T> defaultProperty,
+            float defaultDuration);
     }
 
     public abstract class TweenerAdapter<T> : ITweener, ITweener<T> {
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty, float sequenceDuration) {
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
+            float sequenceDuration) {
             return Start(tween, initialDelay, defaultTarget, (Property<T>)defaultProperty, sequenceDuration);
         }
 
-        public abstract float Start(Tween tween, float initialDelay, Node defaultTarget, Property<T> defaultProperty, float defaultDuration);
+        public abstract float Start(Tween tween, float initialDelay, Node defaultTarget, Property<T> defaultProperty,
+            float defaultDuration);
     }
 
-    public delegate void TweenCallback();
+    public delegate void TweenCallback(Node node);
 
-    internal class TweenCallbackHolder : Object {
+    internal class TweenStepCallbackHolder : Object {
         protected readonly TweenCallback Callback;
+        protected readonly Node Node;
 
-        internal TweenCallbackHolder(TweenCallback callback) {
+        internal TweenStepCallbackHolder(TweenCallback callback, Node node) {
             Callback = callback;
+            Node = node;
         }
 
         internal void Call() {
-            Callback?.Invoke();
+            Callback?.Invoke(Node);
         }
     }
 
@@ -48,19 +54,20 @@ namespace Tools.Animation {
         }
     }
 
-    internal class CallbackTweener : TweenCallbackHolder, ITweener {
+    internal class CallbackTweener : Object, ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-
+        private readonly Action _callback;
         private readonly float _delay;
 
-        internal CallbackTweener(float delay, TweenCallback callback) : base(callback) {
+        internal CallbackTweener(float delay, Action callback) {
             _delay = delay;
+            _callback = callback;
         }
 
         public float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
             float defaultDuration) {
             var start = _delay + initialDelay;
-            if (Callback != null) {
+            if (_callback != null) {
                 Logger.Info("Scheduling callback with " + _delay + "s delay. Start: " + start.ToString("F"));
             } else {
                 Logger.Info("Scheduling " + _delay + "s delay. Start: " + initialDelay.ToString("F") + " End: " +
@@ -69,6 +76,11 @@ namespace Tools.Animation {
             tween.InterpolateCallback(this, start, nameof(Call));
             return _delay;
         }
+
+        internal void Call() {
+            _callback.Invoke();
+        }
+
     }
 
     public abstract class PropertyTweener<T> : TweenerAdapter<T> {
@@ -146,8 +158,8 @@ namespace Tools.Animation {
                     0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
             }
             if (callback != null) {
-                TweenCallbackHolder holder = new TweenCallbackHolder(callback);
-                tween.InterpolateCallback(holder, start, nameof(TweenCallbackHolder.Call));
+                TweenStepCallbackHolder holder = new TweenStepCallbackHolder(callback, target);
+                tween.InterpolateCallback(holder, start, nameof(TweenStepCallbackHolder.Call));
             }
         }
     }
@@ -210,7 +222,8 @@ namespace Tools.Animation {
                 var keyDuration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
                 // var percentEnd = step.Percent;
-                RunStep(tween, target, property, from, to, initialDelay + startTime, keyDuration, easing, step.Callback);
+                RunStep(tween, target, property, from, to, initialDelay + startTime, keyDuration, easing,
+                    step.Callback);
                 from = to;
                 // percentStart = percentEnd;
                 startTime = endTime;
@@ -289,10 +302,10 @@ namespace Tools.Animation {
 
         public PropertyKeyPercentTweenerBuilder<T> KeyframeOffset(float percentage, T offset, Easing easing = null,
             TweenCallback callback = null) {
-            if (percentage == 0) {
-                throw new Exception(
-                    $"Can't set a 0% keyframe with offset. Use KeyframeTo(0,{offset}) or From({offset}) instead");
-            }
+            // if (percentage == 0) {
+                // throw new Exception(
+                    // $"Can't set a 0% keyframe with offset. Use KeyframeTo(0,{offset}) or From({offset}) instead");
+            // }
             var animationStepPropertyTweener =
                 new AnimationKeyPercentOffset<T>(percentage, offset, easing, callback);
             _steps.Add(animationStepPropertyTweener);
@@ -301,6 +314,88 @@ namespace Tools.Animation {
 
         public TweenSequenceBuilder EndAnimate() {
             return _tweenSequenceBuilder;
+        }
+    }
+
+
+    /**
+     * Special thanks to Alessandro Senese (Ceceppa)
+     *
+     * All the tricks to set pivots in Control nodes and create fake pivot in Sprite nodes are possible because
+     * of his work in the wonderful library Anima: https://github.com/ceceppa/anima
+     *
+     * Thank you man! :)
+     */
+    public class PropertyTools {
+        public static Vector2 GetSpriteSize(Sprite sprite) {
+            return sprite.Texture.GetSize() * sprite.Scale;
+        }
+
+        public static void SetSpritePivot(Sprite node2D, Vector2 offset) {
+            var position = node2D.GlobalPosition;
+            node2D.Offset = offset;
+            node2D.GlobalPosition = position - node2D.Offset;
+        }
+
+        public static void SetPivotTopCenter(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(Vector2(size.x / 2, 0))
+                control.RectPivotOffset = new Vector2(control.RectSize.x / 2, 0);
+            } else if (node is Sprite sprite) {
+                // node.offset = Vector2(0, size.y / 2)
+                SetSpritePivot(sprite, new Vector2(0, GetSpriteSize(sprite).y / 2));
+            }
+        }
+
+        public static void SetPivotTopLeft(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(Vector2(0, 0))
+                control.RectPivotOffset = Vector2.Zero;
+            } else if (node is Sprite sprite) {
+                // node.offset = Vector2(size.x / 2, 0)
+                SetSpritePivot(sprite, new Vector2(GetSpriteSize(sprite).x / 2, 0));
+            }
+        }
+
+        public static void SetPivotCenter(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(size / 2)
+                control.RectPivotOffset = control.RectSize / 2;
+            }
+        }
+
+        public static void SetPivotCenterBottom(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
+                var size = control.RectSize;
+                control.RectPivotOffset = new Vector2(size.x / 2, size.y / 2);
+            } else if (node is Sprite sprite) {
+                // node.offset = Vector2(0, -size.y / 2)
+                SetSpritePivot(sprite, new Vector2(0, -GetSpriteSize(sprite).y / 2));
+            }
+        }
+
+        public static void SetPivotLeftBottom(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(Vector2(0, size.y))
+                control.RectPivotOffset = new Vector2(0, control.RectSize.y);
+            } else if (node is Sprite sprite) {
+                var size = GetSpriteSize(sprite);
+                // node.offset = Vector2(size.x / 2, size.y)
+                SetSpritePivot(sprite, new Vector2(size.x / 2, size.y));
+            }
+        }
+
+        public static void SetPivotRightBottom(Node node) {
+            if (node is Control control) {
+                // node.set_pivot_offset(Vector2(size.x, size.y / 2))
+                var size = control.RectSize;
+                control.RectPivotOffset = new Vector2(size.x, size.y / 2);
+            } else if (node is Sprite sprite) {
+                var size = GetSpriteSize(sprite);
+                // node.offset = Vector2(-size.x / 2, size.y / 2)
+                SetSpritePivot(sprite, new Vector2(-size.x / 2, -size.y / 2));
+            }
         }
     }
 
@@ -322,6 +417,7 @@ namespace Tools.Animation {
         public static readonly Property<float> ScaleY = new ScaleProperty("y");
         public static readonly Property<float> ScaleZ = new ScaleProperty("z");
 
+        public static readonly Property<float> RotateCenter = new RotationProperty();
     }
 
     public abstract class Property<T> : Property {
@@ -380,6 +476,16 @@ namespace Tools.Animation {
                 Control control => "rect_position",
                 Node2D node2D => "position",
                 _ => "global_transform:origin" // TODO: this case is not tested... 3D?
+            };
+        }
+    }
+
+    public class RotationProperty : IndexedProperty<float> {
+        public override string GetIndexedProperty(Node node) {
+            return node switch {
+                Control control => "rect_rotation",
+                Node2D node2D => "rotation_degrees",
+                _ => "rotation" // TODO: this case is not tested... 3D?
             };
         }
     }

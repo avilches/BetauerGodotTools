@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -126,7 +127,7 @@ namespace Tools.Animation {
             return this;
         }
 
-        public TweenSequenceBuilder Callback(TweenCallback callback) {
+        public TweenSequenceBuilder Callback(Action callback) {
             AddTweener(new CallbackTweener(0, callback));
             return this;
         }
