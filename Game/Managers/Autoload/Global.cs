@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Tools;
 using Tools.Animation;
@@ -21,44 +20,21 @@ namespace Veronenger.Game.Managers.Autoload {
         public void Animate(Node2D node, string animation, float duration) {
 
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
-            ITweenSequence bounce = TweenSequenceBuilder.CreateTemplate()
-                .AnimateKeys<float>(property: "scale:y")
-                .From(1)
-                .KeyframeTo(0.20f, 1)
-                .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                .KeyframeTo(0.53f, 1)
-                .KeyframeTo(0.70f, 1.05f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeTo(0.80f, 0.95f)
-                .KeyframeTo(0.90f, 1.02f)
-                .KeyframeTo(1, 1f)
-                .EndAnimate()
-                .Parallel()
-                .AnimateKeys<float>(property: "position:y")
-                .From(0f)
-                .KeyframeOffset(0.20f, 0f)
-                .KeyframeOffset(0.40f, -30f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                .KeyframeOffset(0.43f, 0f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                .KeyframeOffset(0.53f, +30f)
-                .KeyframeOffset(0.70f, -15f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeOffset(0.80f, +15f)
-                .KeyframeOffset(0.90f, -4f)
-                .KeyframeOffset(1f, +4f)
-                .EndAnimate()
-                .Build();
 
-            TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
-                .ImportTemplate(bounce, node)
-                .Parallel()
-                .AnimateSteps<Color>(node, "modulate")
-                .From(Colors.Aqua)
-                .To(Colors.Brown, 0.5f)
-                .To(Colors.White, 0.5f)
-                .EndAnimate()
-                .SetDuration(duration)
-                .EndSequence()
-                .Start();
+            TweenPlayer.Apply(node, Template.Bounce).Start();
 
+            // TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
+            //     .ImportTemplate(Template.bounce, node)
+            //     .Parallel()
+            //     .AnimateSteps<Color>(node, "modulate")
+            //     .From(Colors.Aqua)
+            //     .To(Colors.Brown, 0.5f)
+            //     .To(Colors.White, 0.5f)
+            //     .EndAnimate()
+            //     .SetDuration(duration)
+            //     .EndSequence()
+            //     .Start();
+            //
         }
     }
 }
