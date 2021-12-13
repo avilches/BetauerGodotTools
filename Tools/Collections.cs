@@ -6,6 +6,16 @@ namespace Tools {
     public class SimpleLinkedList<T> : ICollection<T> {
         private readonly Node<T> _head = new Node<T>();
         private Node<T> _last;
+
+        public SimpleLinkedList() {
+        }
+
+        public SimpleLinkedList(IEnumerable<T> tweenList) {
+            foreach (var o in tweenList) {
+                Add(o);
+            }
+        }
+
         public int Count { get; private set; } = 0;
 
         public void Clear() {

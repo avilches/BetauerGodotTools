@@ -137,7 +137,7 @@ namespace Veronenger.Game.Controller.Character {
 
 
         private ITweenSequence CreateReset() {
-            var seq = TweenSequenceBuilder.Create()
+            var seq = TweenSequenceBuilder.CreateTemplate()
                 .AnimateSteps<Color>(_mainSprite, "modulate")
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
@@ -148,7 +148,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ITweenSequence CreatePulsate() {
-            var seq = TweenSequenceBuilder.Create()
+            var seq = TweenSequenceBuilder.CreateTemplate()
                 .AnimateKeys<Color>(_mainSprite, "modulate")
                 .Duration(0.5f)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
@@ -166,7 +166,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ITweenSequence CreateDanger() {
-            var seq = TweenSequenceBuilder.Create()
+            var seq = TweenSequenceBuilder.CreateTemplate()
                 .AnimateSteps<Color>(_mainSprite, "modulate", Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
@@ -175,7 +175,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ITweenSequence CreateSqueeze() {
-            var seq = TweenSequenceBuilder.Create()
+            var seq = TweenSequenceBuilder.CreateTemplate()
                 .AnimateSteps<Vector2>(this, "scale", Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)

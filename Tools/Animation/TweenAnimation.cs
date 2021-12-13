@@ -133,7 +133,7 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyStepTweener<T> : PropertyTweener<T>, ITweener {
-        protected readonly SimpleLinkedList<AnimationKeyStep<T>> _steps = new SimpleLinkedList<AnimationKeyStep<T>>();
+        protected readonly ICollection<AnimationKeyStep<T>> _steps = new SimpleLinkedList<AnimationKeyStep<T>>();
 
         internal PropertyKeyStepTweener(Node target, string member, bool memberIsProperty, Easing defaultEasing) :
             base(target, member, defaultEasing) {
@@ -163,7 +163,7 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyPercentTweener<T> : PropertyTweener<T>, ITweener {
-        protected readonly SimpleLinkedList<AnimationKeyPercent<T>> _steps =
+        protected readonly ICollection<AnimationKeyPercent<T>> _steps =
             new SimpleLinkedList<AnimationKeyPercent<T>>();
 
         protected float AllStepsDuration = 0;
@@ -283,7 +283,7 @@ namespace Tools.Animation {
     }
 
     public interface ITweenSequence {
-        public IList<IList<ITweener>> TweenList { get; }
+        public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
         public string DefaultMember { get; }
         public int Loops { get; }
@@ -294,7 +294,7 @@ namespace Tools.Animation {
     }
 
     public class TweenSequence : ITweenSequence {
-        public IList<IList<ITweener>> TweenList { get; protected set; }
+        public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public Node DefaultTarget { get; protected set; }
         public string DefaultMember { get; protected set; }
         public float Duration { get; protected set; } = -1.0f;
@@ -303,16 +303,14 @@ namespace Tools.Animation {
         public bool Template { get; protected set; } = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Physics;
 
-        public void ImportSequence(ITweenSequence tweenSequence, Node defaultTarget, string defaultMember,
-            float duration = -1.0f) {
-            // TODO: move the creation of the readonly or the immutable to a new method to export safe
-            // TweenList = ImmutableArray.Create<IList<ITweener>>(tweenSequence.TweenList.ToArray());
-            Template = tweenSequence.Template;
+        public void ImportTemplate(ITweenSequence tweenSequence, Node defaultTarget, float duration = -1.0f) {
             TweenList = tweenSequence.TweenList;
             DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
-            DefaultMember = defaultMember ?? tweenSequence.DefaultMember;
-            Duration = duration > 0 ? duration : tweenSequence.Duration;
+            DefaultMember = tweenSequence.DefaultMember;
             Loops = tweenSequence.Loops;
+            Speed = tweenSequence.Speed;
+            Duration = duration > 0 ? duration : tweenSequence.Duration;
+            Template = tweenSequence.Template;
             ProcessMode = tweenSequence.ProcessMode;
         }
     }
@@ -321,13 +319,14 @@ namespace Tools.Animation {
         private bool _parallel = false;
         private bool _template = false;
 
-        public static TweenSequenceBuilder Create() {
-            return new TweenSequenceBuilder(true);
+        public static TweenSequenceBuilder CreateTemplate() {
+            var tweenSequenceBuilder = new TweenSequenceBuilder(true, new SimpleLinkedList<ICollection<ITweener>>());
+            return tweenSequenceBuilder;
         }
 
-        internal TweenSequenceBuilder(bool template) {
+        internal TweenSequenceBuilder(bool template, ICollection<ICollection<ITweener>> tweenList) {
             _template = template;
-            TweenList = new List<IList<ITweener>>();
+            TweenList = tweenList;
         }
 
         public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, string property = null,
@@ -361,13 +360,20 @@ namespace Tools.Animation {
 
         private void AddTweener(ITweener tweener) {
             if (Template) {
-                throw new Exception("Can't add twenners to a TweenSequence.Template = true animation");
+                var tweenListCloned = new SimpleLinkedList<ICollection<ITweener>>(TweenList);
+                if (_parallel) {
+                    var lastParallelCloned = new SimpleLinkedList<ITweener>(tweenListCloned.Last());
+                    tweenListCloned.RemoveEnd();
+                    tweenListCloned.Add(lastParallelCloned);
+                }
+                TweenList = tweenListCloned;
+                Template = false;
             }
             if (_parallel) {
                 TweenList.Last().Add(tweener);
                 _parallel = false;
             } else {
-                TweenList.Add(new List<ITweener>(3) { tweener });
+                TweenList.Add(new SimpleLinkedList<ITweener> { tweener });
             }
         }
 
@@ -408,7 +414,7 @@ namespace Tools.Animation {
         public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder {
             private readonly TweenPlayer _tweenPlayer;
 
-            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer) : base(false) {
+            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer, ICollection<ICollection<ITweener>> tweenList) : base(false, tweenList) {
                 _tweenPlayer = tweenPlayer;
             }
 
@@ -434,7 +440,7 @@ namespace Tools.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
         private Tween _tween;
-        public readonly List<ITweenSequence> _tweenSequences = new List<ITweenSequence>(6);
+        public readonly IList<ITweenSequence> _tweenSequences = new List<ITweenSequence>(4);
 
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
@@ -478,17 +484,17 @@ namespace Tools.Animation {
             return this;
         }
 
-        public TweenSequenceWithPlayerBuilder ImportSequence(ITweenSequence tweenSequence,
-            Node defaultTarget = null, string defaultMember = null, float duration = -1) {
+        public TweenSequenceWithPlayerBuilder ImportTemplate(ITweenSequence tweenSequence,
+            Node defaultTarget = null, float duration = -1) {
             // int loops = 1, float speed = 1.0f, Tween.TweenProcessMode processMode = Tween.TweenProcessMode.Physics) {
-            var tweenSequenceWithPlayerBuilder = new TweenSequenceWithPlayerBuilder(this);
-            tweenSequenceWithPlayerBuilder.ImportSequence(tweenSequence, defaultTarget, defaultMember, duration);
+            var tweenSequenceWithPlayerBuilder = new TweenSequenceWithPlayerBuilder(this, null);
+            tweenSequenceWithPlayerBuilder.ImportTemplate(tweenSequence, defaultTarget, duration);
             _tweenSequences.Add(tweenSequenceWithPlayerBuilder);
             return tweenSequenceWithPlayerBuilder;
         }
 
         public TweenSequenceWithPlayerBuilder CreateSequence() {
-            var tweenSequence = new TweenSequenceWithPlayerBuilder(this);
+            var tweenSequence = new TweenSequenceWithPlayerBuilder(this, new SimpleLinkedList<ICollection<ITweener>>());
             _tweenSequences.Add(tweenSequence);
             return tweenSequence;
         }
@@ -599,14 +605,13 @@ namespace Tools.Animation {
         private void RunSequence() {
             Logger.Debug("RunSequence " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
             var sequence = _tweenSequences[_currentSequence];
-            var tweenListCount = sequence.TweenList.Count;
             float accumulatedDelay = 0;
-            for (var parallelGroupCount = 0; parallelGroupCount < tweenListCount; parallelGroupCount++) {
-                var parallelGroup = sequence.TweenList[parallelGroupCount];
-
+            var parallelGroupCount = 0;
+            foreach (var parallelGroup in sequence.TweenList) {
+                parallelGroupCount++;
                 if (parallelGroup.Count == 1) {
                     Logger.Debug("Start single tween " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count);
-                    var tweenTime = parallelGroup[0].Start(_tween, accumulatedDelay, sequence.DefaultTarget,
+                    var tweenTime = parallelGroup.First().Start(_tween, accumulatedDelay, sequence.DefaultTarget,
                         sequence.DefaultMember, sequence.Duration);
                     Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
                     accumulatedDelay += tweenTime;
@@ -630,7 +635,7 @@ namespace Tools.Animation {
             _tween.Start();
         }
 
-        private List<OnFinishAnimationTweener> _onFinishTween;
+        private SimpleLinkedList<OnFinishAnimationTweener> _onFinishTween;
 
         public void AddOnFinishTween(OnFinishAnimationTweener onFinishTweenSequence) {
             // An array it's needed because the TweenAnimation uses this callback to return from a finished Once tween
@@ -644,7 +649,7 @@ namespace Tools.Animation {
             // The main difference is the OnEnd callback will be invoked in the TweenAnimation when a OnceTween is
             // finished or interrupted. But the AnimationTweenPlayer.OnFinishTween callback will be invoked only when finished.
             if (_onFinishTween == null) {
-                _onFinishTween = new List<OnFinishAnimationTweener>(1) { onFinishTweenSequence };
+                _onFinishTween = new SimpleLinkedList<OnFinishAnimationTweener> { onFinishTweenSequence };
             } else {
                 _onFinishTween.Add(onFinishTweenSequence);
             }

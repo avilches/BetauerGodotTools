@@ -42,6 +42,9 @@ namespace Veronenger.Tests {
                 list1.Add(i);
             }
             Assert.That(list1.ToArray(), Is.EqualTo(to));
+
+
+            Assert.That(new SimpleLinkedList<int>(new List<int>(to)).ToArray(), Is.EqualTo(to));
         }
 
         [Test]

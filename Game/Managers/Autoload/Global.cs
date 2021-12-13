@@ -19,8 +19,9 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         public void Animate(Node2D node, string animation, float duration) {
+
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
-            ITweenSequence bounce = TweenSequenceBuilder.Create()
+            ITweenSequence bounce = TweenSequenceBuilder.CreateTemplate()
                 .AnimateKeys<float>(property: "scale:y")
                 .From(1)
                 .KeyframeTo(0.20f, 1)
@@ -47,8 +48,13 @@ namespace Veronenger.Game.Managers.Autoload {
                 .Build();
 
             TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
-                .ImportSequence(bounce, node)
+                .ImportTemplate(bounce, node)
                 .Parallel()
+                .AnimateSteps<Color>(node, "modulate")
+                .From(Colors.Aqua)
+                .To(Colors.Brown, 0.5f)
+                .To(Colors.White, 0.5f)
+                .EndAnimate()
                 .SetDuration(duration)
                 .EndSequence()
                 .Start();
