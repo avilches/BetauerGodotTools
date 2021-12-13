@@ -215,7 +215,7 @@ namespace Tools.Animation {
                 if (parallelGroup.Count == 1) {
                     Logger.Debug("Start single tween " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count);
                     var tweenTime = parallelGroup.First().Start(_tween, accumulatedDelay, sequence.DefaultTarget,
-                        sequence.DefaultMember, sequence.Duration);
+                        sequence.DefaultProperty, sequence.Duration);
                     Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
                     accumulatedDelay += tweenTime;
                 } else {
@@ -225,7 +225,7 @@ namespace Tools.Animation {
                     float longestTime = 0;
                     foreach (var tweener in parallelGroup) {
                         var tweenTime = tweener.Start(_tween, accumulatedDelay, sequence.DefaultTarget,
-                            sequence.DefaultMember, sequence.Duration);
+                            sequence.DefaultProperty, sequence.Duration);
                         Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
                         longestTime = Math.Max(longestTime, tweenTime);
                     }

@@ -112,7 +112,7 @@ namespace Tools.Animation {
             return true;
         }
 
-        public void RunStep(Tween tween, Node target, Property<T> property,
+        protected void RunStep(Tween tween, Node target, Property<T> property,
             T from, T to, float start, float duration, Easing easing, TweenCallback callback) {
             var end = start + duration;
             Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
@@ -321,6 +321,7 @@ namespace Tools.Animation {
         public static readonly Property<float> ScaleX = new ScaleProperty("x");
         public static readonly Property<float> ScaleY = new ScaleProperty("y");
         public static readonly Property<float> ScaleZ = new ScaleProperty("z");
+
     }
 
     public abstract class Property<T> : Property {

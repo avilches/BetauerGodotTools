@@ -6,7 +6,7 @@ namespace Tools.Animation {
     public interface ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
-        public Property DefaultMember { get; }
+        public Property DefaultProperty { get; }
         public int Loops { get; }
         public float Speed { get; }
         public float Duration { get; }
@@ -24,7 +24,7 @@ namespace Tools.Animation {
     public class TweenSequenceTemplate : ITweenSequence {
         private readonly ICollection<ICollection<ITweener>> _tweenList;
         private readonly Node _defaultTarget;
-        private readonly Property _defaultMember;
+        private readonly Property _defaultProperty;
         private readonly float _duration;
         private readonly int _loops;
         private readonly float _speed;
@@ -32,7 +32,7 @@ namespace Tools.Animation {
 
         public ICollection<ICollection<ITweener>> TweenList => _tweenList;
         public Node DefaultTarget => _defaultTarget;
-        public Property DefaultMember => _defaultMember;
+        public Property DefaultProperty => _defaultProperty;
         public float Duration => _duration;
         public int Loops => _loops;
         public float Speed => _speed;
@@ -40,10 +40,10 @@ namespace Tools.Animation {
         public Tween.TweenProcessMode ProcessMode => _processMode;
 
         public TweenSequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
-            Property defaultMember, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
+            Property defaultProperty, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _defaultTarget = defaultTarget;
-            _defaultMember = defaultMember;
+            _defaultProperty = defaultProperty;
             _duration = duration;
             _loops = loops;
             _speed = speed;
@@ -51,7 +51,7 @@ namespace Tools.Animation {
         }
 
         public static TweenSequenceTemplate Create(ITweenSequence from) {
-            return new TweenSequenceTemplate(from.TweenList, from.DefaultTarget, from.DefaultMember,
+            return new TweenSequenceTemplate(from.TweenList, from.DefaultTarget, from.DefaultProperty,
                 from.Duration, from.Loops, from.Speed, from.ProcessMode);
         }
     }
@@ -59,7 +59,7 @@ namespace Tools.Animation {
     public class TweenSequence : ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public Node DefaultTarget { get; protected set; }
-        public Property DefaultMember { get; protected set; }
+        public Property DefaultProperty { get; protected set; }
         public float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
@@ -69,7 +69,7 @@ namespace Tools.Animation {
         public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1.0f) {
             TweenList = tweenSequence.TweenList;
             DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
-            DefaultMember = tweenSequence.DefaultMember;
+            DefaultProperty = tweenSequence.DefaultProperty;
             Loops = tweenSequence.Loops;
             Speed = tweenSequence.Speed;
             Duration = duration > 0 ? duration : tweenSequence.Duration;
@@ -90,6 +90,11 @@ namespace Tools.Animation {
             TweenList = tweenList;
         }
 
+        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, string propertyName = null,
+            Easing easing = null) {
+            return AnimateSteps(target, new BasicProperty<T>(propertyName), easing);
+        }
+
         public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, Property<T> property = null,
             Easing easing = null) {
             var tweener = new PropertyKeyStepTweenerBuilder<T>(this, target, property, easing);
@@ -97,10 +102,17 @@ namespace Tools.Animation {
             return tweener;
         }
 
+        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, string propertyName = null,
+            Easing easing = null) {
+            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, new BasicProperty<T>(propertyName), easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
         public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, Property<T> property = null,
             Easing easing = null) {
             var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, property, easing);
-            AddTweener((ITweener)tweener);
+            AddTweener(tweener);
             return tweener;
         }
 
