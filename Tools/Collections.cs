@@ -3,20 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Tools {
-    public class SimpleLinkedList<T> : IEnumerable<T> {
+    public class SimpleLinkedList<T> : ICollection<T> {
         private readonly Node<T> _head = new Node<T>();
         private Node<T> _last;
         public int Count { get; private set; } = 0;
-
-        public SimpleLinkedList() {
-            _last = _head;
-        }
 
         public void Clear() {
             _head.next = null;
             _last = _head;
             Count = 0;
         }
+
+        // TODO: implement??
+        public bool Contains(T item) {
+            throw new NotImplementedException();
+        }
+
+        public void CopyTo(T[] array, int arrayIndex) {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(T item) {
+            throw new NotImplementedException();
+        }
+
+        public bool IsReadOnly { get; }
 
         public T First() {
             return Count > 0 ? _head.next.data : throw new Exception("There is no First() value for empty linked list");
@@ -33,7 +44,11 @@ namespace Tools {
         public void Add(T data) {
             Node<T> newEnd = new Node<T>();
             newEnd.data = data;
-            _last.next = newEnd;
+            if (Count == 0) {
+                _head.next = newEnd;
+            } else {
+                _last.next = newEnd;
+            }
             _last = newEnd;
             Count++;
         }
