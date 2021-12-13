@@ -20,7 +20,7 @@ namespace Veronenger.Game.Controller.Animation {
             tweenPlayer1 = new TweenPlayer("").NewTween(this);
             tweenPlayer1
                 .CreateSequence()
-                .AnimateKeys<float>(body2, "scale:y", Easing.SineInOut)
+                .AnimateKeys<float>(body2, Property.ScaleY, Easing.SineInOut)
                 .From(1f)
                 .Duration(1)
                 .KeyframeTo(0.5f, 1.5f)
@@ -37,7 +37,7 @@ namespace Veronenger.Game.Controller.Animation {
             tweenPlayer2 = new TweenPlayer("").NewTween(this);
             tweenPlayer2
                 .CreateSequence()
-                .AnimateSteps<float>(body3, "position:x", curve)
+                .AnimateSteps<float>(body3, Property.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
                 .EndAnimate()
@@ -48,7 +48,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             tweenPlayer3 = new TweenPlayer("").NewTween(this)
                 .CreateSequence()
-                .AnimateKeys<float>(body3, "scale:y")
+                .AnimateKeys<float>(body3, Property.ScaleY)
                 .From(1)
                 .Duration(0.5f)
                 .KeyframeTo(0.20f, 1)

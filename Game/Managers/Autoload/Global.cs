@@ -21,7 +21,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
 
-            TweenPlayer.Apply(node, Template.Bounce).Start();
+            TweenPlayer.Apply(node, Template.Get(animation), duration).Start();
 
             // TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
             //     .ImportTemplate(Template.bounce, node)

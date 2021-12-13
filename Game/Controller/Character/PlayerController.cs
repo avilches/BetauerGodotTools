@@ -138,7 +138,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private ITweenSequence CreateReset() {
             var seq = TweenSequenceBuilder.CreateTemplate()
-                .AnimateSteps<Color>(_mainSprite, "modulate")
+                .AnimateSteps<Color>(_mainSprite, Property.Modulate)
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -149,14 +149,14 @@ namespace Veronenger.Game.Controller.Character {
 
         private ITweenSequence CreatePulsate() {
             var seq = TweenSequenceBuilder.CreateTemplate()
-                .AnimateKeys<Color>(_mainSprite, "modulate")
+                .AnimateKeys<Color>(_mainSprite, Property.Modulate)
                 .Duration(0.5f)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
                 .KeyframeTo(0.75f, new Color(1, 1, 1, 0.5f))
                 .KeyframeTo(1f, new Color(1, 1, 1, 1))
                 .EndAnimate()
                 .Parallel()
-                .AnimateSteps<Vector2>(this, "scale")
+                .AnimateSteps<Vector2>(this, Property.Scale2D)
                 .To(new Vector2(1.4f, 1f), 0.5f)
                 .To(new Vector2(1f, 1f), 0.5f)
                 .EndAnimate();
@@ -167,7 +167,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private ITweenSequence CreateDanger() {
             var seq = TweenSequenceBuilder.CreateTemplate()
-                .AnimateSteps<Color>(_mainSprite, "modulate", Easing.CubicInOut)
+                .AnimateSteps<Color>(_mainSprite, Property.Modulate, Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -176,7 +176,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private ITweenSequence CreateSqueeze() {
             var seq = TweenSequenceBuilder.CreateTemplate()
-                .AnimateSteps<Vector2>(this, "scale", Easing.SineInOut)
+                .AnimateSteps<Vector2>(this, Property.Scale2D, Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()

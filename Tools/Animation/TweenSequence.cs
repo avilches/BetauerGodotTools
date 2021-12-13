@@ -6,18 +6,25 @@ namespace Tools.Animation {
     public interface ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
-        public string DefaultMember { get; }
+        public Property DefaultMember { get; }
         public int Loops { get; }
         public float Speed { get; }
         public float Duration { get; }
-        // public bool Template { get; }
         public Tween.TweenProcessMode ProcessMode { get; }
     }
 
+    /**
+     * A readonly ITweenSequence
+     * Pay attention the internal _tweenList could be mutable.
+     *
+     * To protect this, when you use a template with ImportTemplate, all data is copied and the flag
+     * _importedFromTemplate is set to true, so, any future call to the AddTweener() will make a new copy of the
+     * internal collection
+     */
     public class TweenSequenceTemplate : ITweenSequence {
         private readonly ICollection<ICollection<ITweener>> _tweenList;
         private readonly Node _defaultTarget;
-        private readonly string _defaultMember;
+        private readonly Property _defaultMember;
         private readonly float _duration;
         private readonly int _loops;
         private readonly float _speed;
@@ -25,7 +32,7 @@ namespace Tools.Animation {
 
         public ICollection<ICollection<ITweener>> TweenList => _tweenList;
         public Node DefaultTarget => _defaultTarget;
-        public string DefaultMember => _defaultMember;
+        public Property DefaultMember => _defaultMember;
         public float Duration => _duration;
         public int Loops => _loops;
         public float Speed => _speed;
@@ -33,7 +40,7 @@ namespace Tools.Animation {
         public Tween.TweenProcessMode ProcessMode => _processMode;
 
         public TweenSequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
-            string defaultMember, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
+            Property defaultMember, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _defaultTarget = defaultTarget;
             _defaultMember = defaultMember;
@@ -52,7 +59,7 @@ namespace Tools.Animation {
     public class TweenSequence : ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public Node DefaultTarget { get; protected set; }
-        public string DefaultMember { get; protected set; }
+        public Property DefaultMember { get; protected set; }
         public float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
@@ -66,8 +73,8 @@ namespace Tools.Animation {
             Loops = tweenSequence.Loops;
             Speed = tweenSequence.Speed;
             Duration = duration > 0 ? duration : tweenSequence.Duration;
-            _importedFromTemplate = true;
             ProcessMode = tweenSequence.ProcessMode;
+            _importedFromTemplate = true;
         }
     }
 
@@ -83,17 +90,17 @@ namespace Tools.Animation {
             TweenList = tweenList;
         }
 
-        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, string property = null,
+        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, Property<T> property = null,
             Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<T>(this, target, property, true, easing);
-            AddTweener(tweener);
+            var tweener = new PropertyKeyStepTweenerBuilder<T>(this, target, property, easing);
+            AddTweener((ITweener)tweener);
             return tweener;
         }
 
-        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, string property = null,
+        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, Property<T> property = null,
             Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, property, true, easing);
-            AddTweener(tweener);
+            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, property, easing);
+            AddTweener((ITweener)tweener);
             return tweener;
         }
 
