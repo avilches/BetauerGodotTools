@@ -173,168 +173,54 @@ size_flags_horizontal = 3
 pressed = true
 text = "Sprite node"
 
-[node name="Timer" type="Timer" parent="Node2D/AnimationsPreview"]
-one_shot = true
-
 [node name="ShowAllDemos" parent="Node2D/AnimationsPreview" instance=ExtResource( 4 )]
 anchor_left = 0.3
 anchor_right = 0.3
 
 [node name="Node2D2" type="Node2D" parent="."]
-modulate = Color( 0.898039, 0.764706, 0.764706, 1 )
+modulate = Color( 0.784314, 0.196078, 0.196078, 1 )
 
-[node name="AnimationsPreview" type="Control" parent="Node2D2"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_right = 680.0
-margin_bottom = 600.0
-rect_min_size = Vector2( 680, 600 )
-script = ExtResource( 2 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Node2D2/AnimationsPreview"]
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="ControlContainer" type="CenterContainer" parent="Node2D2"]
+anchor_bottom = 131.0
+margin_left = -2.0
+margin_top = -166.0
+margin_right = 678.0
+margin_bottom = 478.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer"]
-margin_right = 676.0
-margin_bottom = 600.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="ControlLabel" type="Label" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer"]
-visible = false
-margin_right = 680.0
-margin_bottom = 14.0
-text = "Control node:"
-
-[node name="ControlContainer" type="CenterContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer"]
-margin_top = 18.0
-margin_right = 676.0
-margin_bottom = 294.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="ControlTest" type="Label" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer/ControlContainer"]
-margin_left = 192.0
-margin_top = 77.0
-margin_right = 483.0
-margin_bottom = 198.0
+[node name="ControlTest" type="Label" parent="Node2D2/ControlContainer"]
+margin_left = 194.0
+margin_top = 261.0
+margin_right = 485.0
+margin_bottom = 382.0
 custom_fonts/font = SubResource( 1 )
 text = "Anima"
 
-[node name="HSeparator" type="HSeparator" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer"]
-margin_top = 298.0
-margin_right = 676.0
-margin_bottom = 302.0
+[node name="SpriteContainer" type="CenterContainer" parent="Node2D2"]
+margin_left = -2.0
+margin_top = 334.0
+margin_right = 678.0
+margin_bottom = 591.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="SpriteLabel" type="Label" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer"]
-visible = false
-margin_top = 297.0
-margin_right = 680.0
-margin_bottom = 311.0
-text = "Sprite node:"
-
-[node name="SpriteContainer" type="CenterContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer"]
-margin_top = 324.0
-margin_right = 676.0
-margin_bottom = 600.0
+[node name="Control2" type="Control" parent="Node2D2/SpriteContainer"]
+margin_left = 340.0
+margin_top = 128.0
+margin_right = 340.0
+margin_bottom = 128.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Control2" type="Control" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer/SpriteContainer"]
-margin_left = 338.0
-margin_top = 138.0
-margin_right = 338.0
-margin_bottom = 138.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="SpriteTest" type="Sprite" parent="Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer/SpriteContainer/Control2"]
+[node name="SpriteTest" type="Sprite" parent="Node2D2/SpriteContainer/Control2"]
 texture = ExtResource( 1 )
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Node2D2/AnimationsPreview/HBoxContainer"]
-visible = false
-margin_left = 680.0
-margin_right = 1000.0
-margin_bottom = 600.0
-rect_min_size = Vector2( 320, 0 )
-custom_styles/bg = SubResource( 2 )
-
-[node name="PanelContainer" type="PanelContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer"]
-margin_right = 320.0
-margin_bottom = 600.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_styles/panel = SubResource( 3 )
-
-[node name="ListContainer" type="VBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer"]
-margin_left = 12.0
-margin_top = 12.0
-margin_right = 308.0
-margin_bottom = 588.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_constants/separation = 8
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer"]
-margin_right = 296.0
-
-[node name="Label" type="Label" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer"]
-visible = false
-margin_top = 5.0
-margin_right = 132.0
-margin_bottom = 19.0
-text = "Duration in seconds:"
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer"]
-margin_right = 296.0
-size_flags_horizontal = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer"]
-margin_right = 296.0
-
-[node name="DurationEdit" type="LineEdit" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
-visible = false
-margin_right = 296.0
-margin_bottom = 24.0
-hint_tooltip = "Speed value in seconds"
-size_flags_horizontal = 3
-text = "0.5"
-align = 2
-placeholder_text = "Speed in ms"
-caret_blink = true
-caret_blink_speed = 0.5
-
-[node name="VBoxContainer" type="HBoxContainer" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer"]
-margin_top = 8.0
-margin_right = 296.0
-margin_bottom = 32.0
-
-[node name="ControlCheckbox" type="CheckBox" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer"]
-margin_right = 146.0
-margin_bottom = 24.0
-size_flags_horizontal = 3
-pressed = true
-text = "Control node"
-
-[node name="SpriteCheckbox" type="CheckBox" parent="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer"]
-margin_left = 150.0
-margin_right = 296.0
-margin_bottom = 24.0
-size_flags_horizontal = 3
-pressed = true
-text = "Sprite node"
 
 [connection signal="pressed" from="Node2D/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer/ControlCheckbox" to="Node2D/AnimationsPreview" method="_on_ControlCheckbox_pressed"]
 [connection signal="pressed" from="Node2D/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer/SpriteCheckbox" to="Node2D/AnimationsPreview" method="_on_SpriteCheckbox_pressed"]
-[connection signal="timeout" from="Node2D/AnimationsPreview/Timer" to="Node2D/AnimationsPreview" method="_on_Timer_timeout"]
-[connection signal="pressed" from="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer/ControlCheckbox" to="Node2D2/AnimationsPreview" method="_on_ControlCheckbox_pressed"]
-[connection signal="pressed" from="Node2D2/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer/SpriteCheckbox" to="Node2D2/AnimationsPreview" method="_on_SpriteCheckbox_pressed"]

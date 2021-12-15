@@ -1,5 +1,7 @@
 extends Control
 
+onready var durationEdit = $HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer/HBoxContainer/DurationEdit
+
 func _ready():
 	_setup_list()
 
@@ -48,51 +50,57 @@ func create_new_header(text: String) -> PanelContainer:
 func _on_animation_button_pressed(button: Button) -> void:
 	var script_name: String = button.get_meta('script')
 
-	var duration = float($HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer/HBoxContainer/DurationEdit.text)
+	var duration = float(durationEdit.text)
 
-	_play_animation($HBoxContainer/VBoxContainer/ControlContainer/ControlTest, button)
-	_play_animation($HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest, button)
-	
-	_play_my_animation(get_node("/root/Node2D/Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer/ControlContainer/ControlTest"), button)
-	_play_my_animation(get_node("/root/Node2D/Node2D2/AnimationsPreview/HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest"), button)
+	_play_animation($HBoxContainer/VBoxContainer/ControlContainer/ControlTest, get_node("/root/Node2D/Node2D2/ControlContainer/ControlTest"), button)
+	_play_animation($HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest, get_node("/root/Node2D/Node2D2/SpriteContainer/Control2/SpriteTest"), button)
 
-func _play_my_animation(node: Node, button: Button):
+func _play_animation(animaNode: Node, node: Node, button: Button):
 	var script_name: String = button.get_meta('script')
+	var duration = float(durationEdit.text)
 
-	var duration = float($HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer/HBoxContainer/DurationEdit.text)
+	var animaParent = animaNode.get_parent()
+	var animaClone = animaNode.duplicate()
+	_remove_duplicate(animaParent, animaNode)
+	animaParent.add_child(animaClone)
+	animaClone.show()
+	animaNode.hide()
+
 	var parent = node.get_parent()
 	var clone = node.duplicate()
-
 	_remove_duplicate(parent, node)
-
 	parent.add_child(clone)
 	clone.show()
 	node.hide()
 
-	Global.Animate(clone, script_name, duration)
 
+	if node is Control:
+		print("Cnima y before:",animaClone.rect_position.x)
+		print("C     y before:",clone.rect_position.x)
+	else:
+		print("Snima y before:",animaClone.position.x)
+		print("S     y before:",clone.position.x)
 
-func _play_animation(node: Node, button: Button):
-	var script_name: String = button.get_meta('script')
-
-	var duration = float($HBoxContainer/ScrollContainer/PanelContainer/ListContainer/HBoxContainer/VBoxContainer/HBoxContainer/DurationEdit.text)
-	var parent = node.get_parent()
-	var clone = node.duplicate()
-
-	_remove_duplicate(parent, node)
-
-	parent.add_child(clone)
-	clone.show()
-	node.hide()
-
-	var anima = Anima.begin(clone, 'control_test')
-	anima.then({ node = clone, animation = script_name, duration = duration })
+	var anima = Anima.begin(animaClone, 'control_test')
+	anima.then({ node = animaClone, animation = script_name, duration = duration })
 	anima.play()
 	
+	Global.Animate(clone, script_name, duration)
+
 	yield(anima, "animation_completed")
 
-	if $Timer.is_stopped():
-		$Timer.start()
+	if node is Control:
+		print("Cnima y after:",animaClone.rect_position.x)
+		print("C     y after:",clone.rect_position.x)
+	else:
+		print("Snima y after:",animaClone.position.x)
+		print("S     y after:",clone.position.x)
+
+	_remove_duplicate(animaParent, animaNode)
+	_remove_duplicate(parent, node)
+
+	animaNode.show()
+	node.show()
 
 func _remove_duplicate(parent: Node, node_to_ignore: Node) -> void:
 	for child in parent.get_children():
@@ -115,12 +123,3 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 	return
 
 
-func _on_Timer_timeout():
-	var control := $HBoxContainer/VBoxContainer/ControlContainer/ControlTest
-	var sprite := $HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest
-	
-	_remove_duplicate(control.get_parent(), control)
-	_remove_duplicate(sprite.get_parent(), sprite)
-	
-	sprite.show()
-	control.show()
