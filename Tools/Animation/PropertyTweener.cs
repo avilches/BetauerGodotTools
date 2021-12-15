@@ -466,7 +466,7 @@ namespace Tools.Animation {
         }
 
         public override string GetIndexedProperty(Node node) {
-            return node is Control ? "rect_scale:" + _key : "scale" + _key;
+            return node is Control ? "rect_scale:" + _key : "scale:" + _key;
         }
     }
 
