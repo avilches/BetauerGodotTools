@@ -3,11 +3,11 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 
 	var shake_frames = [
 		{ percentage = 0, from = 0 },
-		{ percentage = 6.5, to = -6 },
-		{ percentage = 18.5, to = +5 },
-		{ percentage = 31.5, to = -3 },
-		{ percentage = 43.5, to = +2 },
-		{ percentage = 50, to = 0 },
+		{ percentage = 6.5,  to = -6 },
+		{ percentage = 18.5, to = +11 },
+		{ percentage = 31.5, to = -8  },
+		{ percentage = 43.5, to =  +5 },
+		{ percentage = 50,   to =  -2 },
 		{ percentage = 100, to = 0 },
 	]
 
