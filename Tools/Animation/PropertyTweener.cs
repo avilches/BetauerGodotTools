@@ -80,7 +80,6 @@ namespace Tools.Animation {
         internal void Call() {
             _callback.Invoke();
         }
-
     }
 
     public abstract class PropertyTweener<T> : TweenerAdapter<T> {
@@ -126,40 +125,53 @@ namespace Tools.Animation {
 
         protected void RunStep(Tween tween, Node target, Property<T> property,
             T from, T to, float start, float duration, Easing easing, TweenCallback callback) {
-            var end = start + duration;
-            Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
-                        from + " to " + to +
-                        " Start: " + start.ToString("F") +
-                        " End: " + end.ToString("F") +
-                        " (+" + duration.ToString("F") + ") " + easing.Name);
+            if (duration > 0 && !from.Equals(to)) {
+                var end = start + duration;
+                Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
+                            from + " to " + to +
+                            " Start: " + start.ToString("F") +
+                            " End: " + end.ToString("F") +
+                            " (+" + duration.ToString("F") + ") " + easing.Name);
 
-            if (easing is GodotEasing godotEasing) {
-                if (property is IndexedProperty<T> basicProperty) {
-                    tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), from, to, duration,
-                        godotEasing.TransitionType, godotEasing.EaseType, start);
-                } else {
-                    TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
-                        delegate(T value) {
-                            // Logger.Debug(target.Name + "." + property + ": " + typeof(T).Name + " t:"+value+" value:"+value);
-                            property.SetValue(target, value);
-                        });
-                    tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call),
-                        from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
+                if (easing is GodotEasing godotEasing) {
+                    RunEasingStep(tween, target, property, @from, to, start, duration, godotEasing);
+                } else if (easing is BezierCurve bezierCurve) {
+                    RunCurveBezierStep(tween, target, property, @from, to, start, duration, bezierCurve);
                 }
-            } else if (easing is BezierCurve bezierCurve) {
-                TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
-                    delegate(float linearY) {
-                        var curveY = bezierCurve.GetY(linearY);
-                        var value = (T)GodotTools.LerpVariant(from, to, curveY);
-                        // Logger.Debug(target.Name + "." + property + ": " + typeof(T).Name + " t:"+value+" y:"+lerp);
-                        property.SetValue(target, value);
-                    });
-                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call),
-                    0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
             }
             if (callback != null) {
                 TweenStepCallbackHolder holder = new TweenStepCallbackHolder(callback, target);
                 tween.InterpolateCallback(holder, start, nameof(TweenStepCallbackHolder.Call));
+            }
+        }
+
+        private static void RunCurveBezierStep(Tween tween, Node target, Property<T> property, T @from, T to,
+            float start,
+            float duration, BezierCurve bezierCurve) {
+            TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
+                delegate(float linearY) {
+                    var curveY = bezierCurve.GetY(linearY);
+                    var value = (T)GodotTools.LerpVariant(@from, to, curveY);
+                    // Logger.Debug(target.Name + "." + property + ": " + typeof(T).Name + " t:" + value + " y:" + value);
+                    property.SetValue(target, value);
+                });
+            tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call),
+                0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
+        }
+
+        private static void RunEasingStep(Tween tween, Node target, Property<T> property, T @from, T to, float start,
+            float duration, GodotEasing godotEasing) {
+            if (property is IndexedProperty<T> basicProperty) {
+                tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
+                    godotEasing.TransitionType, godotEasing.EaseType, start);
+            } else {
+                TweenPropertyMethodHolder<T> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<T>(
+                    delegate(T value) {
+                        // Logger.Debug(target.Name + "." + property + ": " + typeof(T).Name + " t:" + value + " y:" + value);
+                        property.SetValue(target, value);
+                    });
+                tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<T>.Call),
+                    @from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
             }
         }
     }
@@ -292,20 +304,15 @@ namespace Tools.Animation {
             TweenCallback callback = null) {
             if (percentage == 0f) {
                 From(to);
-            } else {
-                var animationStepPropertyTweener =
-                    new AnimationKeyPercentTo<T>(percentage, to, easing ?? _defaultEasing, callback);
-                _steps.Add(animationStepPropertyTweener);
             }
+            var animationStepPropertyTweener =
+                new AnimationKeyPercentTo<T>(percentage, to, easing ?? _defaultEasing, callback);
+            _steps.Add(animationStepPropertyTweener);
             return this;
         }
 
         public PropertyKeyPercentTweenerBuilder<T> KeyframeOffset(float percentage, T offset, Easing easing = null,
             TweenCallback callback = null) {
-            // if (percentage == 0) {
-                // throw new Exception(
-                    // $"Can't set a 0% keyframe with offset. Use KeyframeTo(0,{offset}) or From({offset}) instead");
-            // }
             var animationStepPropertyTweener =
                 new AnimationKeyPercentOffset<T>(percentage, offset, easing, callback);
             _steps.Add(animationStepPropertyTweener);
