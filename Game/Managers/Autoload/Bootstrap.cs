@@ -20,7 +20,7 @@ namespace Veronenger.Game.Managers.Autoload {
             Name = nameof(Bootstrap);
             // MicroBenchmarks();
             GameManager.IsRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
-            GodotTools.DisableAllNotifications(this);
+            this.DisableAllNotifications();
         }
 
         public override DiRepository CreateDiRepository() {

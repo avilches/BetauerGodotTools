@@ -5,12 +5,11 @@ using Godot;
 using static Godot.Mathf;
 
 namespace Tools {
-    public class GodotTools {
-        public static T FindChild<T>(Node parent) where T : class {
-            var nodes = parent.GetChildren();
-            var count = nodes.Count;
+    public static class GodotExtension {
+        public static T FindFirstChild<T>(this Node parent) where T : class {
+            var count = parent.GetChildCount();
             for (var i = 0; i < count; i++) {
-                if (nodes[i] is T result) {
+                if (parent.GetChild(i) is T result) {
                     return result;
                 }
             }
@@ -18,30 +17,28 @@ namespace Tools {
             return null;
         }
 
-        public static List<T> FindAllChildren<T>(Node parent) where T : class {
+        public static List<T> GetChildrenFilter<T>(this Node parent) where T : class {
             return Filter<T>(parent.GetChildren());
         }
 
         public static List<T> Filter<T>(IList nodes) where T : class {
             var children = new List<T>();
-            var count = nodes.Count;
-            for (var i = 0; i < count; i++) {
-                if (nodes[i] is T nodeTyped) {
-                    children.Add(nodeTyped);
-                }
+            foreach (var node in nodes) {
+                if (node is T nodeTyped) children.Add(nodeTyped);
             }
-
             return children;
         }
 
-        public static void DisableAllNotifications(Node node) {
+        public static void DisableAllNotifications(this Node node) {
             node.SetProcess(false);
             node.SetProcessInput(false);
             node.SetProcessUnhandledInput(false);
             node.SetProcessUnhandledKeyInput(false);
             node.SetPhysicsProcess(false);
         }
+    }
 
+    public static class GodotTools {
         public static object SumVariant(object op1, object op2) {
             if (op1 is float fromFloat && op2 is float toFloat)
                 return fromFloat + toFloat;
@@ -65,42 +62,45 @@ namespace Tools {
          * Missing: Transform3D (there is no C# class for it, why the tween.cpp can handle it?
          */
         public static object LerpVariant(object op1, object op2, float t) {
-            if (op1 is float fromFloat && op2 is float toFloat)
-                return Mathf.Lerp(fromFloat, toFloat, t);
+            switch (op1) {
+                case float fromFloat when op2 is float toFloat:
+                    return Mathf.Lerp(fromFloat, toFloat, t);
 
-            if (op1 is int fromInt && op2 is int toInt) 
-                return (int)Mathf.Lerp(fromInt, toInt, t);
+                case int fromInt when op2 is int toInt:
+                    return (int)Mathf.Lerp(fromInt, toInt, t);
 
-            if (op1 is bool fromBool && op2 is bool toBool)
-                return Lerp(fromBool, toBool, t);
+                case bool fromBool when op2 is bool toBool:
+                    return Lerp(fromBool, toBool, t);
 
-            if (op1 is Vector2 fromVector2 && op2 is Vector2 toVector2)
-                return Lerp(fromVector2, toVector2, t);
-                
-            if (op1 is Rect2 fromRect2 && op2 is Rect2 toRect2)
-                return Lerp(fromRect2, toRect2, t);
-                
-            if (op1 is Transform2D fromTransform2D && op2 is Transform2D toTransform2D)
-                return Lerp(fromTransform2D, toTransform2D, t);
-                
-            if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3)
-                return Lerp(fromVector3, toVector3, t);
-                
-            if (op1 is Color fromColor && op2 is Color toColor)
-                return Lerp(fromColor, toColor, t);
-                
-            if (op1 is AABB fromAabb && op2 is AABB toAabb)
-                return Lerp(fromAabb, toAabb, t);
-                
-            if (op1 is Basis fromBasis && op2 is Basis toBasis)
-                return Lerp(fromBasis, toBasis, t);
-            
-            throw new Exception("Lerp from " + op1.GetType().Name + " to " + op2.GetType().Name + " not implemented");
+                case Vector2 fromVector2 when op2 is Vector2 toVector2:
+                    return Lerp(fromVector2, toVector2, t);
+
+                case Rect2 fromRect2 when op2 is Rect2 toRect2:
+                    return Lerp(fromRect2, toRect2, t);
+
+                case Transform2D fromTransform2D when op2 is Transform2D toTransform2D:
+                    return Lerp(fromTransform2D, toTransform2D, t);
+
+                case Vector3 fromVector3 when op2 is Vector3 toVector3:
+                    return Lerp(fromVector3, toVector3, t);
+
+                case Color fromColor when op2 is Color toColor:
+                    return Lerp(fromColor, toColor, t);
+
+                case AABB fromAabb when op2 is AABB toAabb:
+                    return Lerp(fromAabb, toAabb, t);
+
+                case Basis fromBasis when op2 is Basis toBasis:
+                    return Lerp(fromBasis, toBasis, t);
+                default:
+                    throw new Exception("Lerp from " + op1.GetType().Name + " to " + op2.GetType().Name +
+                                        " not implemented");
+            }
         }
 
         public static bool Lerp(bool from, bool to, float t) {
             // TODO: is this correct? not tested. Make a test comparing Tween node and this
-            return Mathf.Lerp(from?1:0, to?1:0, t) > 0.5;
+            return Mathf.Lerp(from ? 1 : 0, to ? 1 : 0, t) > 0.5;
         }
 
         public static Vector2 Lerp(Vector2 from, Vector2 to, float t) {

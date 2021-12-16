@@ -33,7 +33,7 @@ namespace Veronenger.Game.Controller.Animation {
                 AnimationTools.RotateAligned(_platforms, angle, Radius);
             });
 
-            _platforms = FindAllChildren<PhysicsBody2D>(this);
+            _platforms = this.GetChildrenFilter<PhysicsBody2D>();
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 

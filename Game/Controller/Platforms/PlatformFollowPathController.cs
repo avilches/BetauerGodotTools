@@ -24,9 +24,9 @@ namespace Veronenger.Game.Controller.Platforms {
 			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
-				var path2D = GodotTools.FindChild<Path2D>(this);
+				var path2D = this.FindFirstChild<Path2D>();
 				if (path2D != null) {
-					PathFollow2D = GodotTools.FindChild<PathFollow2D>(path2D);
+					PathFollow2D = path2D.FindFirstChild<PathFollow2D>();
 				}
 			}
 
