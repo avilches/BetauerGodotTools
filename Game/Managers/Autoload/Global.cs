@@ -10,7 +10,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             DiBootstrap.DefaultRepository.AutoWire(this);
-            GodotTools.DisableAllNotifications(this);
+            this.DisableAllNotifications();
         }
 
         public bool IsPlayer(KinematicBody2D player) {
