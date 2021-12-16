@@ -76,11 +76,13 @@ namespace Veronenger.Tests.Runner {
 
             if (testPasses) {
                 Console.ForegroundColor = ConsoleColor.Green;
-                GD.Print($"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} Passed");
+                GD.Print(
+                    $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Passed");
                 Console.ResetColor();
             } else {
                 Console.ForegroundColor = ConsoleColor.Red;
-                GD.Print($"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} Failed");
+                GD.Print(
+                    $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Failed");
                 GD.Print(testMethod.Exception.Message);
                 Console.ResetColor();
                 GD.Print(testMethod.Exception.StackTrace);
@@ -109,7 +111,7 @@ namespace Veronenger.Tests.Runner {
             }
 
             TreeItem testItem = _tree.CreateItem(treeItems[classType]);
-            testItem.SetText(0, testMethod.Method.Name);
+            testItem.SetText(0, testMethod.Name);
             testItem.SetIcon(0, testPasses ? passedIcon : failedIcon);
 
             if (!testPasses) {
