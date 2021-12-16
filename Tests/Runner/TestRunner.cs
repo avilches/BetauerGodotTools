@@ -46,6 +46,8 @@ namespace Veronenger.Tests.Runner {
         }
 
         public class TestMethod {
+            private static readonly object[] EmptyParameters = { };
+
             private readonly object _instance;
             private readonly MethodInfo Method;
 
@@ -68,14 +70,15 @@ namespace Veronenger.Tests.Runner {
                 Only = only;
             }
 
+
             public async Task Execute(SceneTree sceneTree) {
                 try {
                     if (_instance is Node node) {
                         await SafeWait(sceneTree);
                         sceneTree.Root.AddChild(node);
                     }
-                    Setup?.Invoke(_instance, new object[] { });
-                    var obj = Method.Invoke(_instance, new object[] { });
+                    Setup?.Invoke(_instance, EmptyParameters);
+                    var obj = Method.Invoke(_instance, EmptyParameters);
                     if (obj is Task task) {
                         await task;
                     } else if (obj is IEnumerator coroutine) {
@@ -90,12 +93,12 @@ namespace Veronenger.Tests.Runner {
                         }
                     }
                     Result = Result.Passed;
-                    TearDown?.Invoke(_instance, new object[] { });
+                    TearDown?.Invoke(_instance, EmptyParameters);
                 } catch (Exception e) {
                     Exception = e.InnerException ?? e;
                     Result = Result.Failed;
                     try {
-                        TearDown?.Invoke(_instance, new object[] { });
+                        TearDown?.Invoke(_instance, EmptyParameters);
                     } catch (Exception tearDownError) {
                         // ignore tearDown error in failed tests
                     }
