@@ -22,7 +22,7 @@ namespace Veronenger.Game.Managers {
 
         // Configura el layer de la plataforma segun el tipo
         public List<PhysicsBody2D> ConfigurePlatformList(IList nodes, bool falling = false, bool moving = false) {
-            var platforms = Filter<PhysicsBody2D>(nodes);
+            var platforms = nodes.FilterByType<PhysicsBody2D>();
             platforms.ForEach(kb2d => ConfigurePlatform(kb2d, falling, moving));
             return platforms;
         }
