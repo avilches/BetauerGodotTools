@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Veronenger.Tests.Runner {
@@ -66,8 +67,15 @@ namespace Veronenger.Tests.Runner {
 
             PrintConsoleFinish(testRunner);
 
-            if (OS.GetCmdlineArgs().Contains("--no-window")) {
-                GetTree().Quit(testRunner.TestsFailed == 0 ? 0 : 1);
+            if (testRunner.TestsFailed == 0) {
+                await Task.Delay(50);
+                GD.Print("exit(0)");
+                GetTree().Quit(0);
+            } else {
+                if (OS.GetCmdlineArgs().Contains("--no-window")) {
+                    GD.Print("exit(1)");
+                    GetTree().Quit(1);
+                }
             }
         }
 
