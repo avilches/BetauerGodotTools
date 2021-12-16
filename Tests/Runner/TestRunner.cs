@@ -8,95 +8,105 @@ using NUnit.Framework;
 
 namespace Veronenger.Tests.Runner {
     public class TestRunner {
-        bool requireTestFixture;
+        public delegate void TestResultDelegate(TestMethod testResult);
 
-        public int currentTest { get; private set; }
+        private readonly bool _requireTestFixture;
+        private readonly List<TestMethod> _testMethods = new List<TestMethod>();
+        public int TestsTotal = 0;
+        public int TestsExecuted = 0;
+        public int TestsFailed = 0;
+        public int TestsPassed = 0;
 
-        public int testCount {
-            get {
-                if (testMethods != null) {
-                    return testMethods.Count;
-                }
+        private const int Delay = 50;
 
-                return 0;
+        public TestRunner(bool requireTestFixture = true) {
+            _requireTestFixture = requireTestFixture;
+            ScanTestsFromAssemblies();
+        }
+
+        public enum Result {
+            Passed,
+            Failed
+        }
+
+        public class TestMethod {
+            private readonly object _instance;
+
+            public MethodInfo Method { get; }
+            public Type Type { get; }
+            public string Name { get; }
+            public Exception Exception { get; private set; }
+            public Result Result { get; private set; }
+
+            public MethodInfo Setup { get; set; }
+            public MethodInfo TearDown { get; set; }
+
+            public TestMethod(MethodInfo method, object instance) {
+                _instance = instance;
+                Method = method;
+                Type = method.DeclaringType;
+                Name = method.Name;
             }
-        }
 
-        SceneTree sceneTree;
-
-        Dictionary<MethodInfo, object> testMethods = new Dictionary<MethodInfo, object>();
-        Dictionary<Type, MethodInfo> setupMethods = new Dictionary<Type, MethodInfo>();
-        Dictionary<Type, MethodInfo> teardownMethods = new Dictionary<Type, MethodInfo>();
-
-        List<TestResult> testResults = new List<TestResult>();
-
-        public TestResult[] TestResults {
-            get { return testResults.ToArray(); }
-        }
-
-        public delegate void TestResultDelegate(TestResult testResult);
-
-        public TestRunner(SceneTree sceneTree, bool requireTestFixture = true) {
-            this.sceneTree = sceneTree;
-            this.requireTestFixture = requireTestFixture;
-            IterateThroughAssemblies();
-        }
-
-        public async Task Run(TestResultDelegate resultCallback = null) {
-            int testsFailed = 0;
-            int testsPassed = 0;
-            foreach (MethodInfo method in testMethods.Keys) {
-                object testObject = testMethods[method];
-
-                TestResult testResult = new TestResult(method, null, TestResult.Result.Passed);
-                GD.Print($"+++{testResult.classType.Name}.{testResult.testMethod.Name}");
-
+            public async Task Execute(SceneTree sceneTree) {
                 try {
-                    if (testObject is Node node) {
-                        await Task.Delay(100);
+                    if (_instance is Node node) {
+                        await Task.Delay(Delay);
                         sceneTree.Root.AddChild(node);
                     }
+                    Setup?.Invoke(_instance, new object[] { });
+                    var obj = Method.Invoke(_instance, new object[] { });
+                    if (obj is Task task) {
+                        await task;
 
-                    if (setupMethods.ContainsKey(method.DeclaringType)) {
-                        setupMethods[method.DeclaringType].Invoke(testObject, new object[] { });
-                    }
-
-                    object obj = method.Invoke(testObject, new object[] { });
-                    if (obj is IEnumerator coroutine) {
+                    } else if (obj is IEnumerator coroutine) {
                         while (coroutine.MoveNext()) {
-                            await Task.Delay(100);
+                            var next = coroutine.Current;
+                            if (next is Task coTask) {
+                                await coTask;
+                            } else {
+                                await Task.Delay(Delay);
+                            }
                         }
                     }
-                    testsPassed++;
+                    Result = Result.Passed;
+                    TearDown?.Invoke(_instance, new object[] { });
                 } catch (Exception e) {
-                    testsFailed++;
-                    testResult = new TestResult(method, e.InnerException ?? e, TestResult.Result.Failed);
-                    GD.Print(
-                        $"*** Failed test: {testResult.classType.Name}.{testResult.testMethod.Name}\n{testResult.exception.Message}\n{testResult.exception.StackTrace}");
+                    Exception = e.InnerException ?? e;
+                    Result = Result.Failed;
+                    try {
+                        TearDown?.Invoke(_instance, new object[] { });
+                    } catch (Exception tearDownError) {
+                        // ignore tearDown error in failed tests
+                    }
                 }
-                testResults.Add(testResult);
-                if (teardownMethods.ContainsKey(method.DeclaringType)) {
-                    teardownMethods[method.DeclaringType].Invoke(testObject, new object[] { });
-                }
-
-                if (testObject is Node node2) {
+                if (_instance is Node node2) {
                     node2.QueueFree();
+                    await Task.Delay(Delay);
                 }
-
-                if (resultCallback != null) {
-                    resultCallback(testResult);
-                }
-
-                await Task.Delay(20);
-            }
-            if (testsFailed > 0) {
-                GD.Print($"*!*!* Passed: {testsPassed} | Failed: {testsFailed}");
-            } else {
-                GD.Print($"***** All passed: {testsPassed}!");
             }
         }
 
-        private void IterateThroughAssemblies() {
+        public async Task Run(SceneTree sceneTree, TestResultDelegate resultCallback = null) {
+            TestsFailed = 0;
+            TestsPassed = 0;
+            TestsExecuted = 0;
+            TestsTotal = _testMethods.Count;
+            for (var i = 0; i < TestsTotal; i++) {
+                TestsExecuted++;
+                var testMethod = _testMethods[i];
+                await testMethod.Execute(sceneTree);
+                if (testMethod.Result == Result.Passed) {
+                    TestsPassed++;
+                } else {
+                    TestsFailed++;
+                }
+                resultCallback?.Invoke(testMethod);
+                await Task.Delay(20);
+            }
+        }
+
+        private void ScanTestsFromAssemblies() {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 IterateThroughTypes(assembly.GetTypes());
@@ -104,14 +114,17 @@ namespace Veronenger.Tests.Runner {
         }
 
         private void IterateThroughTypes(Type[] types) {
+            Dictionary<Type, MethodInfo> setupMethods = new Dictionary<Type, MethodInfo>();
+            Dictionary<Type, MethodInfo> teardownMethods = new Dictionary<Type, MethodInfo>();
+
             foreach (Type type in types) {
                 if (Attribute.GetCustomAttribute(type, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
-                    // TODO: this is not tested
                     continue;
                 }
-                if (requireTestFixture &&
+                if (_requireTestFixture &&
                     !(Attribute.GetCustomAttribute(type, typeof(TestFixtureAttribute), false) is TestFixtureAttribute))
                     continue;
+
                 MethodInfo[] methods = type.GetMethods();
                 foreach (var method in methods) {
                     if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute
@@ -131,7 +144,7 @@ namespace Veronenger.Tests.Runner {
                             }
 
                             if (curTestObject != null) {
-                                testMethods[method] = curTestObject;
+                                _testMethods.Add(new TestMethod(method, curTestObject));
                             }
                         } catch {
                             // Fail the test here?
@@ -144,27 +157,14 @@ namespace Veronenger.Tests.Runner {
                     }
                 }
             }
-        }
-    }
-
-    public struct TestResult {
-        public Type classType {
-            get { return testMethod.DeclaringType; }
-        }
-
-        public MethodInfo testMethod { get; private set; }
-        public Exception exception { get; private set; }
-        public Result result { get; private set; }
-
-        public enum Result {
-            Passed,
-            Failed
-        }
-
-        public TestResult(MethodInfo testMethod, Exception exception, Result result) {
-            this.testMethod = testMethod;
-            this.exception = exception;
-            this.result = result;
+            foreach (var testMethod in _testMethods) {
+                if (setupMethods.ContainsKey(testMethod.Type)) {
+                    testMethod.Setup = setupMethods[testMethod.Type];
+                }
+                if (teardownMethods.ContainsKey(testMethod.Type)) {
+                    testMethod.TearDown = teardownMethods[testMethod.Type];
+                }
+            }
         }
     }
 }
