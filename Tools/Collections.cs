@@ -30,7 +30,7 @@ namespace Tools {
         }
 
         public void CopyTo(T[] array, int arrayIndex) {
-            throw new NotImplementedException();
+            ToList().CopyTo(array, arrayIndex);
         }
 
         public bool Remove(T item) {
