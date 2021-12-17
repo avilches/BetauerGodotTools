@@ -42,6 +42,7 @@ namespace Tools.Animation {
     }
 
     internal class DelayedCallbackNodeHolder : Object {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly CallbackNode _stepCallbackNode;
         private readonly Node _node;
         private SceneTreeTimer _timer;
@@ -52,6 +53,10 @@ namespace Tools.Animation {
         }
 
         internal void Start(float delay) {
+            if (!IsInstanceValid(_node)) {
+                Logger.Warning("Can't create a Delayed Callback from a freed target instance");
+                return;
+            }
             _timer = _node.GetTree().CreateTimer(delay);
             _timer.Connect("timeout", this, nameof(Call));
         }
@@ -82,6 +87,10 @@ namespace Tools.Animation {
 
 
         public float Start(Tween tween, float initialDelay) {
+            if (!IsInstanceValid(tween)) {
+                Logger.Warning("Can't create a CallbackTweener from a freed tween instance");
+                return 0;
+            }
             var start = _delay + initialDelay;
             var name = Name != null ? Name + " " : "";
             Logger.Info("Adding callback " + name + "with " + _delay + "s delay. Scheduled: " + start.ToString("F"));
@@ -104,8 +113,8 @@ namespace Tools.Animation {
             _delay = delay;
         }
 
-        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
-            Property ignoredDefaultProperty, float ignoredDefaultDuration) {
+        public float Start(Tween tween, float initialDelay,
+            Node ignoredDefaultTarget, Property ignoredDefaultProperty, float ignoredDefaultDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
                         delayEndTime.ToString("F"));
@@ -172,7 +181,7 @@ namespace Tools.Animation {
             }
             if (callbackNode != null) {
                 // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
-                new DelayedCallbackNodeHolder(callbackNode, target).Start(start);
+                new DelayedCallbackNodeHolder(callbackNode, tween).Start(start);
             }
         }
 
