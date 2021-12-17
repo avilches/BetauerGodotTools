@@ -61,7 +61,8 @@ namespace Tools.Animation {
             return new TweenPlayer()
                 .NewTween(node)
                 .ImportTemplate(template, node, duration)
-                .EndSequence();
+                .EndSequence()
+                .SetAutoKill(true);
         }
 
         public TweenPlayer NewTween(Node node) {
