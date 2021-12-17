@@ -77,7 +77,7 @@ namespace Tools.Animation {
         public readonly Curve2D curve;
 
         public BezierCurve(string name, float p0x, float p0y, float cx, float cy, float bx, float by, float ax,
-            float ay, Curve2D curve) : base(name){
+            float ay, Curve2D curve) : base(name) {
             Name = name;
             this.p0x = p0x;
             this.p0y = p0y;
@@ -88,6 +88,28 @@ namespace Tools.Animation {
             this.ax = ax;
             this.ay = ay;
             this.curve = curve;
+        }
+
+        public override int GetHashCode() {
+            return p0x.GetHashCode() ^
+                   p0y.GetHashCode() ^
+                   cx.GetHashCode() ^
+                   cy.GetHashCode() ^
+                   bx.GetHashCode() ^
+                   by.GetHashCode() ^
+                   ax.GetHashCode() ^
+                   ay.GetHashCode();
+        }
+
+        public override bool Equals(object obj) {
+            return obj is BezierCurve other && (p0x == other.p0x &&
+                                                p0y == other.p0y &&
+                                                cx == other.cx &&
+                                                cy == other.cy &&
+                                                bx == other.bx &&
+                                                @by == other.@by &&
+                                                ax == other.ax &&
+                                                ay == other.ay);
         }
 
         public override string ToString() {
@@ -127,21 +149,21 @@ namespace Tools.Animation {
             var ax = p3x - p0x - cx - bx;
             var ay = p3y - p0y - cy - by;
             var name = $"({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
-             /*
-            // https://godotengine.org/qa/80633/using-curve2d-to-draw-a-bezier-curve
-            // https://www.reddit.com/r/godot/comments/igkbjv/using_curve2d_to_draw_a_bezier_curve/
-            // https://www.khanacademy.org/science/physics/two-dimensional-motion/two-dimensional-projectile-mot/a/what-is-2d-projectile-motion
+            /*
+           // https://godotengine.org/qa/80633/using-curve2d-to-draw-a-bezier-curve
+           // https://www.reddit.com/r/godot/comments/igkbjv/using_curve2d_to_draw_a_bezier_curve/
+           // https://www.khanacademy.org/science/physics/two-dimensional-motion/two-dimensional-projectile-mot/a/what-is-2d-projectile-motion
 
-            var p0_in = Vector2.Zero; // This isn't used for the first curve
-            var p0_vertex = new Vector2(p0x, p0y); // First point of first line segment
-            var p0_out = new Vector2(p1x, p1y); // Second point of first line segment
-            var p1_in = new Vector2(p2x, p2y); // First point of second line segment
-            var p1_vertex = new Vector2(p3x, p3y); // Second point of second line segment
-            var p1_out = Vector2.One; // Not used unless another curve is added
-            var curve = new Curve2D();
-            curve.AddPoint(p0_vertex, p0_in, p0_out-p0_vertex);
-            curve.AddPoint(p1_vertex, p1_in-p1_vertex, p1_out);
-            */
+           var p0_in = Vector2.Zero; // This isn't used for the first curve
+           var p0_vertex = new Vector2(p0x, p0y); // First point of first line segment
+           var p0_out = new Vector2(p1x, p1y); // Second point of first line segment
+           var p1_in = new Vector2(p2x, p2y); // First point of second line segment
+           var p1_vertex = new Vector2(p3x, p3y); // Second point of second line segment
+           var p1_out = Vector2.One; // Not used unless another curve is added
+           var curve = new Curve2D();
+           curve.AddPoint(p0_vertex, p0_in, p0_out-p0_vertex);
+           curve.AddPoint(p1_vertex, p1_in-p1_vertex, p1_out);
+           */
 
             return new BezierCurve(name, p0x, p0y, cx, cy, bx, by, ax, ay, null);
         }
