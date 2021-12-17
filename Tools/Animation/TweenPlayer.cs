@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Tools.Animation {
@@ -308,6 +309,12 @@ namespace Tools.Animation {
                 return true;
             }
             return false;
+        }
+
+        public Task<TweenPlayer> Await() {
+            var promise = new TaskCompletionSource<TweenPlayer>();
+            AddOnTweenPlayerFinishAll(() => promise.TrySetResult(this));
+            return promise.Task;
         }
     }
 }
