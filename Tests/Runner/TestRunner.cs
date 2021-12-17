@@ -16,16 +16,16 @@ namespace Veronenger.Tests.Runner {
     public class TestRunner {
         public delegate void TestResultDelegate(TestMethod testResult);
 
-        private readonly bool _requireTestFixture;
         private readonly ICollection<TestMethod> _testMethods = new LinkedList<TestMethod>();
+
         public int TestsTotal = 0;
         public int TestsExecuted = 0;
         public int TestsFailed = 0;
         public int TestsPassed = 0;
 
-        public TestRunner(bool requireTestFixture = true) {
-            _requireTestFixture = requireTestFixture;
-            ScanTestsFromAssemblies();
+        public TestRunner() {
+            ScanFixturesFromAssemblies().ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
+            GD.Print("Loaded "+_testMethods.Count+" tests");
         }
 
         public enum Result {
@@ -49,7 +49,7 @@ namespace Veronenger.Tests.Runner {
             private static readonly object[] EmptyParameters = { };
 
             private readonly object _instance;
-            private readonly MethodInfo Method;
+            private readonly MethodInfo _method;
 
             public Type Type { get; }
             public string Name { get; }
@@ -63,7 +63,7 @@ namespace Veronenger.Tests.Runner {
 
             public TestMethod(MethodInfo method, object instance, string description, bool only) {
                 _instance = instance;
-                Method = method;
+                _method = method;
                 Type = method.DeclaringType;
                 Name = method.Name;
                 Description = description;
@@ -78,7 +78,7 @@ namespace Veronenger.Tests.Runner {
                         sceneTree.Root.AddChild(node);
                     }
                     Setup?.Invoke(_instance, EmptyParameters);
-                    var obj = Method.Invoke(_instance, EmptyParameters);
+                    var obj = _method.Invoke(_instance, EmptyParameters);
                     if (obj is Task task) {
                         await task;
                     } else if (obj is IEnumerator coroutine) {
@@ -115,8 +115,8 @@ namespace Veronenger.Tests.Runner {
         }
 
 
-
-        public async Task Run(SceneTree sceneTree, TestResultDelegate startCallback = null, TestResultDelegate resultCallback = null) {
+        public async Task Run(SceneTree sceneTree, TestResultDelegate startCallback = null,
+            TestResultDelegate resultCallback = null) {
             TestsFailed = 0;
             TestsPassed = 0;
             TestsExecuted = 0;
@@ -135,89 +135,86 @@ namespace Veronenger.Tests.Runner {
             }
         }
 
-        private void ScanTestsFromAssemblies() {
+        private List<TestFixture> ScanFixturesFromAssemblies() {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies) {
-                IterateThroughTypes(assembly.GetTypes());
-            }
-        }
-
-        private void IterateThroughTypes(Type[] types) {
             var cleanNotOnly = false;
+            GD.Print("Scanning fixtures from assemblies...");
             List<TestFixture> fixtures = new List<TestFixture>();
-            foreach (Type type in types) {
-                if (Attribute.GetCustomAttribute(type, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
-                    continue;
-                }
-                if (_requireTestFixture &&
-                    !(Attribute.GetCustomAttribute(type, typeof(TestFixtureAttribute), false) is TestFixtureAttribute))
-                    continue;
-
-                var onlyThisType = false;
-                if (Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute) {
-                    onlyThisType = true;
-                    cleanNotOnly = true;
-                }
-
-                List<TestMethod> testMethods = new List<TestMethod>();
-                MethodInfo setup = null;
-                MethodInfo tearDown = null;
-                var isAnyMethodWithOnly = false;
-                foreach (var method in type.GetMethods()) {
-                    if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute
-                        testAttribute) {
-                        try {
-                            if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute),
-                                false) is IgnoreAttribute) {
-                                continue;
-                            }
-
-                            ConstructorInfo[] constructors = type.GetConstructors();
-                            object curTestObject = null;
-                            if (constructors.Length > 0) {
-                                curTestObject = constructors[0].Invoke(null);
-                            }
-
-                            if (curTestObject != null) {
-                                var onlyThisMethod = false;
-                                if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
-                                    false) is OnlyAttribute) {
-                                    onlyThisMethod = true;
-                                    isAnyMethodWithOnly = true;
-                                    cleanNotOnly = true;
-                                }
-                                testMethods.Add(new TestMethod(method, curTestObject,
-                                    testAttribute.Description, onlyThisMethod));
-                            }
-                        } catch {
-                            // Fail the test here?
-                        }
-                    } else if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute), false) is SetUpAttribute) {
-                        setup = method;
-                    } else if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is
-                        TearDownAttribute) {
-                        tearDown = method;
+            foreach (var assembly in assemblies) {
+                foreach (Type type in assembly.GetTypes()) {
+                    if (IsTestFixture(type)) {
+                        var testFixture = CreateFixture(type);
+                        fixtures.Add(testFixture);
+                        cleanNotOnly = cleanNotOnly || testFixture.Only;
                     }
                 }
-                testMethods.ForEach(testMethod => {
-                    testMethod.Setup = setup;
-                    testMethod.TearDown = tearDown;
-                });
-                if (!isAnyMethodWithOnly && onlyThisType) {
-                    // None of the methods has Only, but the Fixture has, so mark all methods as Only too
-                    testMethods.ForEach(method => method.Only = true);
-                } else if (isAnyMethodWithOnly && !onlyThisType) {
-                    // At least one of the methods has Only, but the Fixture has not, so mark the Fixture as Only too
-                    onlyThisType = true;
-                }
-                fixtures.Add(new TestFixture(type, onlyThisType, testMethods));
             }
-
             if (cleanNotOnly) {
                 fixtures.RemoveAll(t => !t.Only);
                 fixtures.ForEach(fixture => fixture.Methods.RemoveAll(m => !m.Only));
             }
-            fixtures.ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
+            return fixtures;
+        }
+
+        private bool IsTestFixture(Type type) {
+            if (Attribute.GetCustomAttribute(type, typeof(TestFixtureAttribute), false) is TestFixtureAttribute) {
+                return !(Attribute.GetCustomAttribute(type, typeof(IgnoreAttribute), false) is IgnoreAttribute);
+            }
+            return false;
+        }
+
+        private static TestFixture CreateFixture(Type type) {
+            var onlyThisType = Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute;
+            List<TestMethod> testMethods = new List<TestMethod>();
+            MethodInfo setup = null;
+            MethodInfo tearDown = null;
+            var isAnyMethodWithOnly = false;
+            foreach (var method in type.GetMethods()) {
+                if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {
+                    try {
+                        if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
+                            continue;
+                        }
+
+                        ConstructorInfo[] constructors = type.GetConstructors();
+                        object curTestObject = null;
+                        if (constructors.Length > 0) {
+                            curTestObject = constructors[0].Invoke(null);
+                        }
+
+                        if (curTestObject != null) {
+                            var onlyThisMethod = false;
+                            if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
+                                false) is OnlyAttribute) {
+                                onlyThisMethod = true;
+                                isAnyMethodWithOnly = true;
+                            }
+                            testMethods.Add(new TestMethod(method, curTestObject,
+                                testAttribute.Description, onlyThisMethod));
+                        }
+                    } catch {
+                        // Fail the test here?
+                    }
+                } else if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),
+                    false) is SetUpAttribute) {
+                    setup = method;
+                } else if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is
+                    TearDownAttribute) {
+                    tearDown = method;
+                }
+            }
+            testMethods.ForEach(testMethod => {
+                testMethod.Setup = setup;
+                testMethod.TearDown = tearDown;
+            });
+            if (!isAnyMethodWithOnly && onlyThisType) {
+                // If none of the methods has Only, but the Fixture has Only, then mark all methods as Only too
+                testMethods.ForEach(method => method.Only = true);
+            } else if (isAnyMethodWithOnly && !onlyThisType) {
+                // If at least one of the methods has Only, but the Fixture has not Only, mark the Fixture as Only too
+                onlyThisType = true;
+            }
+            return new TestFixture(type, onlyThisType, testMethods);
         }
     }
 }
