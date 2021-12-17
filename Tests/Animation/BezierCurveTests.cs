@@ -7,7 +7,6 @@ namespace Veronenger.Tests.Animation {
     [TestFixture]
     public class BezierCurveTests : Node {
         [Test]
-        [Only]
         public void BezierCurveTest() {
             // Two identical curves, but different instances
             var a = new BezierCurve("a", 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, null);

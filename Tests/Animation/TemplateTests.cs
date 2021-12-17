@@ -2,9 +2,8 @@ using System.Linq;
 using Godot;
 using NUnit.Framework;
 using Tools.Animation;
-using Veronenger.Tests.Runner;
 
-namespace Veronenger.Tests {
+namespace Veronenger.Tests.Animation {
     [TestFixture]
     public class TemplateTests {
         [Test]
@@ -83,7 +82,8 @@ namespace Veronenger.Tests {
                 .SetProcessMode(tem.ProcessMode == Tween.TweenProcessMode.Physics
                     ? Tween.TweenProcessMode.Idle
                     : Tween.TweenProcessMode.Physics)
-                .EndSequence();
+                .EndSequence()
+                .SetAutoKill(true);
 
             ITweenSequence imported = player.TweenSequences[0];
 
@@ -98,7 +98,6 @@ namespace Veronenger.Tests {
             Assert.That(tem.Duration, Is.EqualTo(tem2.Duration));
             Assert.That(tem.Speed, Is.EqualTo(tem2.Speed));
             Assert.That(tem.ProcessMode, Is.EqualTo(tem2.ProcessMode));
-
         }
 
         [Test]
@@ -109,7 +108,8 @@ namespace Veronenger.Tests {
                 .AnimateKeys(null, Property.Modulate)
                 .KeyframeTo(1, Colors.Aqua)
                 .EndAnimate()
-                .EndSequence();
+                .EndSequence()
+                .SetAutoKill(true);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
             ITweenSequence imported = player.TweenSequences[0];
@@ -132,7 +132,8 @@ namespace Veronenger.Tests {
                 .AnimateKeys(null, Property.Modulate)
                 .KeyframeTo(1, Colors.Aqua)
                 .EndAnimate()
-                .EndSequence();
+                .EndSequence()
+                .SetAutoKill(true);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
             ITweenSequence imported = player.TweenSequences[0];
@@ -144,9 +145,8 @@ namespace Veronenger.Tests {
 
             Assert.That(tem.TweenList.First().Count, Is.EqualTo(2));
             Assert.That(imported.TweenList.First().Count, Is.EqualTo(3));
-            
-            Assert.That(imported.TweenList.First().First(), Is.EqualTo(tem.TweenList.First().First()));
 
+            Assert.That(imported.TweenList.First().First(), Is.EqualTo(tem.TweenList.First().First()));
         }
     }
 }
