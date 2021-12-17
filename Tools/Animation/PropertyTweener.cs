@@ -219,6 +219,8 @@ namespace Tools.Animation {
     public class PropertyKeyStepTweener<T> : PropertyTweener<T> {
         protected readonly ICollection<AnimationKeyStep<T>> _steps = new SimpleLinkedList<AnimationKeyStep<T>>();
 
+        public List<AnimationKeyStep<T>> CreateStepList() => new List<AnimationKeyStep<T>>(_steps);
+
         internal PropertyKeyStepTweener(Node target, Property<T> defaultProperty, Easing defaultEasing) :
             base(target, defaultProperty, defaultEasing) {
         }
@@ -251,7 +253,9 @@ namespace Tools.Animation {
         protected readonly ICollection<AnimationKeyPercent<T>> _steps =
             new SimpleLinkedList<AnimationKeyPercent<T>>();
 
-        protected float AllStepsDuration = 0;
+        public List<AnimationKeyPercent<T>> CreateStepList() => new List<AnimationKeyPercent<T>>(_steps);
+
+        public float AllStepsDuration = 0;
 
         internal PropertyKeyPercentTweener(Node target, Property<T> defaultProperty, Easing defaultEasing) :
             base(target, defaultProperty, defaultEasing) {
