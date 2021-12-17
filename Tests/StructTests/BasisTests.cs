@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 namespace GodotTests.StructTests {
     [TestFixture]
+    [Ignore("")]
     public class BasisTests {
         const float marginOfError = 0.01f;
         Basis b;

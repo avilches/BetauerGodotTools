@@ -47,16 +47,20 @@ namespace Veronenger.Tests.Runner {
             _stackTraceLabel.BbcodeText = "";
 
             TestRunner testRunner = new TestRunner();
-            await testRunner.Run(GetTree(), (TestRunner.TestMethod testMethod) => {
-                PrintConsole(testMethod, testRunner);
-                UpdateTreeWithTestResult(testMethod);
-
-                _overallStatusLabel.BbcodeText =
-                    $"Running tests: {testRunner.TestsPassed + testRunner.TestsFailed} of {testRunner.TestsTotal}\t\t[color=green]Passed: {testRunner.TestsPassed}[/color]";
-                if (testRunner.TestsFailed > 0) {
-                    _overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testRunner.TestsFailed}[/color]";
-                }
-            });
+            await testRunner.Run(GetTree(),
+                (testMethod) => {
+                    PrintConsoleStart(testRunner, testMethod);
+                    _overallStatusLabel.BbcodeText += "\n\nExecuting test " + testRunner.TestsExecuted +"/"+testRunner.TestsTotal+": "+testMethod.Name + "...";
+                },
+                (testMethod) => {
+                    PrintConsoleResult(testRunner, testMethod);
+                    UpdateTreeWithTestResult(testMethod);
+                    _overallStatusLabel.BbcodeText =
+                        $"[color=green]Passed: {testRunner.TestsPassed}[/color]";
+                    if (testRunner.TestsFailed > 0) {
+                        _overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testRunner.TestsFailed}[/color]";
+                    }
+                });
             _overallStatusLabel.BbcodeText = $"[color=green]Passed: {testRunner.TestsPassed}[/color]";
             if (testRunner.TestsFailed > 0) {
                 _overallStatusLabel.BbcodeText += $"\t\t[color=red]Failed: {testRunner.TestsFailed}[/color]";
@@ -79,7 +83,12 @@ namespace Veronenger.Tests.Runner {
             }
         }
 
-        private static void PrintConsole(TestRunner.TestMethod testMethod, TestRunner testRunner) {
+        private static void PrintConsoleStart(TestRunner testRunner, TestRunner.TestMethod testMethod) {
+            GD.Print(
+                $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" ...");
+        }
+
+        private static void PrintConsoleResult(TestRunner testRunner, TestRunner.TestMethod testMethod) {
             var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
             if (testPasses) {

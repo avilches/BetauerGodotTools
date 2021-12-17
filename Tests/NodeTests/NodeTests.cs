@@ -2,7 +2,8 @@
 using NUnit.Framework;
 
 namespace GodotTests.NodeTests {
-    // [TestFixture]
+    [TestFixture]
+    [Ignore("")]
     public class NodeTests : Node {
         [Test]
         public void SpawnAndFreeManyObjectsInLessThanFiveSeconds() {

@@ -3,7 +3,8 @@ using Godot;
 using NUnit.Framework;
 
 namespace GodotTests.NodeTests {
-    // [TestFixture]
+    [TestFixture]
+    [Ignore("")]
     public class RigidbodyTests : RigidBody {
         [Test]
         public IEnumerator RigidbodyShouldFallOverOneSecond() {

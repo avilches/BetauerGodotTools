@@ -116,14 +116,14 @@ namespace Veronenger.Tests.Runner {
 
 
 
-        public async Task Run(SceneTree sceneTree, TestResultDelegate resultCallback = null) {
+        public async Task Run(SceneTree sceneTree, TestResultDelegate startCallback = null, TestResultDelegate resultCallback = null) {
             TestsFailed = 0;
             TestsPassed = 0;
             TestsExecuted = 0;
             TestsTotal = _testMethods.Count;
             foreach (var testMethod in _testMethods) {
                 TestsExecuted++;
-                GD.Print($"#{TestsExecuted}/{TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" ...");
+                startCallback?.Invoke(testMethod);
                 await sceneTree.ToSignal(sceneTree, "idle_frame");
                 await testMethod.Execute(sceneTree);
                 if (testMethod.Result == Result.Passed) {

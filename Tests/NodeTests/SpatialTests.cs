@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace GodotTests.NodeTests {
     [TestFixture]
+    [Ignore("")]
     public class SpatialTests : Spatial {
         const float marginOfError = 0.01f;
 
