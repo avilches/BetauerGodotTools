@@ -17,6 +17,22 @@ namespace Tools {
             return null;
         }
 
+        public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
+            return sceneTree.ToSignal(sceneTree, GodotConstants.GODOT_SIGNAL_physics_frame);
+        }
+
+        public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
+            return AwaitPhysicsFrame(node.GetTree());
+        }
+
+        public static SignalAwaiter AwaitIdleFrame(this Node node) {
+            return AwaitIdleFrame(node.GetTree());
+        }
+
+        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree)  {
+            return sceneTree.ToSignal(sceneTree, GodotConstants.GODOT_SIGNAL_idle_frame);
+        }
+
         public static List<T> GetChildrenFilter<T>(this Node parent) where T : class {
             return FilterByType<T>(parent.GetChildren());
         }

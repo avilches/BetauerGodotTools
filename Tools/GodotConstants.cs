@@ -17,5 +17,8 @@ namespace Tools {
 
         public const string GODOT_SIGNAL_screen_resized = "screen_resized";
         public const string GODOT_SIGNAL_animation_finished = "animation_finished";
+
+        public const string GODOT_SIGNAL_physics_frame = "physics_frame";
+        public const string GODOT_SIGNAL_idle_frame = "idle_frame";
     }
 }

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
+using Tools;
 
 namespace Veronenger.Tests.Runner {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,
@@ -74,7 +75,7 @@ namespace Veronenger.Tests.Runner {
             public async Task Execute(SceneTree sceneTree) {
                 try {
                     if (_instance is Node node) {
-                        await SafeWait(sceneTree);
+                        await sceneTree.AwaitIdleFrame();
                         sceneTree.Root.AddChild(node);
                     }
                     Setup?.Invoke(_instance, EmptyParameters);
@@ -87,8 +88,7 @@ namespace Veronenger.Tests.Runner {
                             if (next is Task coTask) {
                                 await coTask;
                             } else {
-                                await SafeWait(sceneTree);
-                                await sceneTree.ToSignal(sceneTree, "physics_frame");
+                                await sceneTree.AwaitPhysicsFrame();
                             }
                         }
                     }
@@ -105,13 +105,10 @@ namespace Veronenger.Tests.Runner {
                 }
                 if (_instance is Node node2) {
                     node2.QueueFree();
-                    await SafeWait(sceneTree);
+                    await sceneTree.AwaitIdleFrame();
                 }
             }
 
-            private async Task SafeWait(SceneTree sceneTree) {
-                await sceneTree.ToSignal(sceneTree, "idle_frame");
-            }
         }
 
 
