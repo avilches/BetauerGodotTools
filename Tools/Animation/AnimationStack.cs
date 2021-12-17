@@ -227,7 +227,7 @@ namespace Tools.Animation {
                 nameof(OnceAnimationFinished));
 
             _tweenPlayer = tweenPlayer;
-            _tweenPlayer?.AddOnFinishTween(OnceTweenFinished);
+            _tweenPlayer?.AddOnTweenPlayerFinishAll(OnTweenPlayerFinishAll);
         }
 
         public ILoopStatus AddLoopAnimation(string name) {
@@ -377,13 +377,13 @@ namespace Tools.Animation {
             }
         }
 
-        private void OnceTweenFinished(ITweenSequence tweenSequence) {
+        private void OnTweenPlayerFinishAll() {
             if (_currentOnceAnimation == null) {
                 // This could happen when a LoopTween is not infinite (lit a Tween that just rest the values)
                 // so ignore the event
                 return;
             }
-            _logger.Debug("OnceTweenFinished: \"" + _currentOnceAnimation.Name + "\"");
+            _logger.Debug("OnTweenPlayerFinishAll: \"" + _currentOnceAnimation.Name + "\"");
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
             _currentLoopAnimation?.ExecuteOnStart();

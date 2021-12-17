@@ -49,10 +49,10 @@ namespace Veronenger.Game.Controller.Animation {
                 LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
             seq.Pause(1);
 
-            seq.AnimateSteps<Color>(this, Property.Modulate)
+            seq.AnimateSteps(this, Property.Modulate)
                 .To(new Color(1, 0, 0, 1f), 1, Easing.CubicInOut)
                 .EndAnimate()
-                .AnimateSteps<Color>(this, Property.Modulate).To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
+                .AnimateSteps(this, Property.Modulate).To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
                 .EndAnimate();
 
             seq.Callback(() => {

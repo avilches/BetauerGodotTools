@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using Godot;
 
 namespace Tools.Animation {
-    public delegate void OnFinishAnimationTweener(ITweenSequence tweenSequence);
+    public delegate void OnTweenPlayerFinishAll();
+
+    // public delegate void OnSequenceFinish(ITweenSequence tweenSequence);
 
     public class TweenPlayer : Reference {
         public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder {
             private readonly TweenPlayer _tweenPlayer;
 
-            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer, ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
+            internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer,
+                ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
                 _tweenPlayer = tweenPlayer;
             }
 
@@ -36,16 +39,19 @@ namespace Tools.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
         private Tween _tween;
-        public readonly IList<ITweenSequence> _tweenSequences = new List<ITweenSequence>(4);
+        public readonly IList<ITweenSequence> TweenSequences = new List<ITweenSequence>(4);
 
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
         private int _currentPlayerLoop = 0;
         private bool _started = false;
         private bool _running = false;
+        private bool _killWhenFinished = false;
+        private SimpleLinkedList<OnTweenPlayerFinishAll> _onTweenPlayerFinishAll;
 
         public int Loops = 0;
-        private bool _killWhenFinished = false;
+
+        public Tween Tween => _tween;
 
         public TweenPlayer(string name = null) {
             Name = name;
@@ -68,7 +74,9 @@ namespace Tools.Animation {
         public TweenPlayer SetTween(Tween tween) {
             RemoveTween();
             _tween = tween;
-            _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+            // _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
+            // _tween.Connect("tween_started", this, nameof(TweenStarted));
+            // _tween.Connect("tween_completed", this, nameof(TweenCompleted));
             return this;
         }
 
@@ -76,31 +84,50 @@ namespace Tools.Animation {
             if (_tween != null) {
                 _running = false;
                 Reset();
-                _tween.Disconnect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
                 _tween = null;
             }
             return this;
         }
 
         public TweenPlayer AddSequence(ITweenSequence tweenSequence) {
-            _tweenSequences.Add(tweenSequence);
+            TweenSequences.Add(tweenSequence);
             return this;
         }
 
         public TweenSequenceWithPlayerBuilder ImportTemplate(TweenSequenceTemplate tweenSequence,
             Node defaultTarget = null, float duration = -1) {
-            // int loops = 1, float speed = 1.0f, Tween.TweenProcessMode processMode = Tween.TweenProcessMode.Physics) {
             var tweenSequenceWithPlayerBuilder = new TweenSequenceWithPlayerBuilder(this, null);
             tweenSequenceWithPlayerBuilder.ImportTemplate(tweenSequence, defaultTarget, duration);
-            _tweenSequences.Add(tweenSequenceWithPlayerBuilder);
+            TweenSequences.Add(tweenSequenceWithPlayerBuilder);
             return tweenSequenceWithPlayerBuilder;
         }
 
         public TweenSequenceWithPlayerBuilder CreateSequence() {
             var tweenSequence = new TweenSequenceWithPlayerBuilder(this, new SimpleLinkedList<ICollection<ITweener>>());
-            _tweenSequences.Add(tweenSequence);
+            TweenSequences.Add(tweenSequence);
             return tweenSequence;
         }
+
+        public TweenPlayer AddOnTweenPlayerFinishAll(OnTweenPlayerFinishAll onTweenPlayerFinishAllTweenSequence) {
+            // An array it's needed because the TweenAnimation uses this callback to return from a finished Once tween
+            // to the previous loop tween stored in the stack. So, if a user creates a sequence with something in
+            // the OnFinishTween, and it adds this sequence to the TweenAnimation, the callback will be lost. So, with
+            // an array, the AnimationTweenPlayer can store the both OnFinishTween: the user one, and the AnimationTweenPlayer one.
+
+            // Pay attention that with TweenAnimation, all this callback can be used
+            // - AnimationTweenPlayer.OnFinishTween
+            // - OnceTween (from TweenAnimation) OnEnd
+            // The main difference is the OnEnd callback will be invoked in the TweenAnimation when a OnceTween is
+            // finished or interrupted. But the AnimationTweenPlayer.OnFinishTween callback will be invoked only when finished.
+            if (_onTweenPlayerFinishAll == null) {
+                _onTweenPlayerFinishAll = new SimpleLinkedList<OnTweenPlayerFinishAll>
+                    { onTweenPlayerFinishAllTweenSequence };
+            } else {
+                _onTweenPlayerFinishAll.Add(onTweenPlayerFinishAllTweenSequence);
+            }
+            return this;
+        }
+
 
         // Sets the speed scale of tweening.
         public TweenPlayer SetSpeed(float speed) {
@@ -150,6 +177,7 @@ namespace Tools.Animation {
                 RunSequence();
             } else {
                 if (!_running) {
+                    Logger.Info("Tween.ResumeAll()");
                     _tween.ResumeAll();
                     _running = true;
                 }
@@ -164,6 +192,7 @@ namespace Tools.Animation {
                 return this;
             }
             if (_running) {
+                Logger.Info("Tween.StopAll()");
                 _tween.StopAll();
                 _running = false;
             }
@@ -173,7 +202,7 @@ namespace Tools.Animation {
         public TweenPlayer Clear() {
             _running = false;
             Reset();
-            _tweenSequences.Clear();
+            TweenSequences.Clear();
             return this;
         }
 
@@ -183,7 +212,9 @@ namespace Tools.Animation {
                 Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
+            Logger.Info("Tween.StopAll()");
             _tween.StopAll();
+            Logger.Info("Tween.RemoveAll()");
             _tween.RemoveAll();
             _currentPlayerLoop = 0;
             _sequenceLoop = 0;
@@ -202,102 +233,80 @@ namespace Tools.Animation {
             if (_running) {
                 Stop();
             }
+            Logger.Info("Tween.QueueFree()");
             _tween.QueueFree();
         }
 
-        private void RunSequence() {
-            Logger.Debug("RunSequence " + (1 + _currentSequence) + "/" + _tweenSequences.Count);
-            var sequence = _tweenSequences[_currentSequence];
-            float accumulatedDelay = 0;
-            var parallelGroupCount = 0;
-            foreach (var parallelGroup in sequence.TweenList) {
-                parallelGroupCount++;
-                if (parallelGroup.Count == 1) {
-                    Logger.Debug("Start single tween " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count);
-                    var tweenTime = parallelGroup.First().Start(_tween, accumulatedDelay, sequence.DefaultTarget,
-                        sequence.DefaultProperty, sequence.Duration);
-                    Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
-                    accumulatedDelay += tweenTime;
-                } else {
-                    Logger.Debug("Start parallel tweens " + (parallelGroupCount + 1) + "/" + sequence.TweenList.Count +
-                                 ": " + parallelGroup.Count + " in parallel:");
+        private Stopwatch _sequenceStopwatch;
 
-                    float longestTime = 0;
-                    foreach (var tweener in parallelGroup) {
-                        var tweenTime = tweener.Start(_tween, accumulatedDelay, sequence.DefaultTarget,
-                            sequence.DefaultProperty, sequence.Duration);
-                        Logger.Debug("Launched tween. Time: " + tweenTime.ToString("F") + "s");
-                        longestTime = Math.Max(longestTime, tweenTime);
-                    }
-                    Logger.Debug("End parallel group. Total time: " + longestTime.ToString("F") + "s");
-                    accumulatedDelay += longestTime;
+        private void RunSequence() {
+            _sequenceStopwatch = Stopwatch.StartNew();
+            var sequence = TweenSequences[_currentSequence];
+            Logger.Debug(
+                $"RunSequence: Main loop: {(IsInfiniteLoop() ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{TweenSequences.Count}. Loop: {_sequenceLoop + 1}/{sequence.Loops}");
+            float accumulatedDelay = 0;
+            var tweens = 0;
+            foreach (var parallelGroup in sequence.TweenList) {
+                float longestTime = 0;
+                foreach (var tweener in parallelGroup) {
+                    var tweenTime = tweener.Start(_tween, accumulatedDelay, sequence.DefaultTarget,
+                        sequence.DefaultProperty, sequence.Duration);
+                    tweens++;
+                    longestTime = Math.Max(longestTime, tweenTime);
                 }
+                accumulatedDelay += longestTime;
             }
+            new CallbackTweener(0, OnSequenceFinished, nameof(OnSequenceFinished)).Start(_tween, accumulatedDelay);
             _tween.PlaybackSpeed = sequence.Speed;
             _tween.PlaybackProcessMode = sequence.ProcessMode;
+            Logger.Debug("RunSequence: Start " + tweens + " tweens. Estimated time: " +
+                         accumulatedDelay.ToString("F"));
             _tween.Start();
         }
 
-        private SimpleLinkedList<OnFinishAnimationTweener> _onFinishTween;
-
-        public void AddOnFinishTween(OnFinishAnimationTweener onFinishTweenSequence) {
-            // An array it's needed because the TweenAnimation uses this callback to return from a finished Once tween
-            // to the previous loop tween stored in the stack. So, if a user creates a sequence with something in
-            // the OnFinishTween, and it adds this sequence to the TweenAnimation, the callback will be lost. So, with
-            // an array, the AnimationTweenPlayer can store the both OnFinishTween: the user one, and the AnimationTweenPlayer one.
-
-            // Pay attention that with TweenAnimation, all this callback can be used
-            // - AnimationTweenPlayer.OnFinishTween
-            // - OnceTween (from TweenAnimation) OnEnd
-            // The main difference is the OnEnd callback will be invoked in the TweenAnimation when a OnceTween is
-            // finished or interrupted. But the AnimationTweenPlayer.OnFinishTween callback will be invoked only when finished.
-            if (_onFinishTween == null) {
-                _onFinishTween = new SimpleLinkedList<OnFinishAnimationTweener> { onFinishTweenSequence };
+        private void OnSequenceFinished() {
+            _sequenceStopwatch?.Stop();
+            Logger.Debug("RunSequence: OnSequenceFinished: " +
+                         ((_sequenceStopwatch?.ElapsedMilliseconds ?? 0) / 1000f).ToString("F") + "s");
+            _sequenceStopwatch = null;
+            if (More()) {
+                RunSequence();
             } else {
-                _onFinishTween.Add(onFinishTweenSequence);
+                Logger.Debug($"OnTweenAllCompleted. End: stop & reset. Kill {_killWhenFinished}");
+                // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
+                Stop().Reset();
+                // End of ALL THE LOOPS of all the sequences of the player
+                _onTweenPlayerFinishAll?.ForEach(callback => callback.Invoke());
+                // EmitSignal(nameof(finished));
+                if (_killWhenFinished) Kill();
             }
         }
 
-
-        private void OnTweenAllCompletedSignaled() {
+        private bool More() {
             // EmitSignal(nameof(step_finished), _current_step);
             _sequenceLoop++;
-            var currentSequence = _tweenSequences[_currentSequence];
+            var currentSequence = TweenSequences[_currentSequence];
             if (_sequenceLoop < currentSequence.Loops) {
-                Logger.Debug("OnTweenAllCompletedSignaled: Next loop in sequence: " + _sequenceLoop + "/" +
-                             currentSequence.Loops);
-                RunSequence();
-                return;
+                return true;
             }
-            Logger.Debug("OnTweenAllCompletedSignaled: End loop: " + _sequenceLoop + "/" + currentSequence.Loops);
+            // End of a single sequence including all of the loops of the sequence
+            // TODO: add a callback here?
 
             _sequenceLoop = 0;
             _currentSequence++;
-            if (_currentSequence < _tweenSequences.Count) {
-                Logger.Debug("OnTweenAllCompletedSignaled: Next sequence: " + _currentSequence + "/" +
-                             _tweenSequences.Count);
-                RunSequence();
-                return;
+            if (_currentSequence < TweenSequences.Count) {
+                return true;
             }
-            Logger.Debug("OnTweenAllCompletedSignaled: End sequence: " + _currentSequence + "/" +
-                         _tweenSequences.Count);
+            // End of a ONE LOOP of all the sequences of the player
+            // TODO: add a callback here?
 
             _currentSequence = 0;
             _currentPlayerLoop++;
             if (IsInfiniteLoop() || _currentPlayerLoop < Loops) {
-                Logger.Debug("OnTweenAllCompletedSignaled: Next player loop: " +
-                             (IsInfiniteLoop() ? "infinite loop" : _currentPlayerLoop + "/" + Loops));
                 // EmitSignal(nameof(loop_finished));
-                RunSequence();
-                return;
+                return true;
             }
-            Logger.Debug("OnTweenAllCompletedSignaled: End player loop: " + _currentPlayerLoop + "/" + Loops);
-            // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
-            Stop().Reset();
-            // It's very important the event must be called the last
-            // EmitSignal(nameof(finished));
-            _onFinishTween?.ForEach(callback => callback.Invoke(_tweenSequences[_currentSequence]));
-            if (_killWhenFinished) Kill();
+            return false;
         }
     }
 }

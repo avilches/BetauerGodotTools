@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Godot;
 using Object = Godot.Object;
 
@@ -24,21 +25,7 @@ namespace Tools.Animation {
             float defaultDuration);
     }
 
-    public delegate void TweenCallback(Node node);
-
-    internal class TweenStepCallbackHolder : Object {
-        protected readonly TweenCallback Callback;
-        protected readonly Node Node;
-
-        internal TweenStepCallbackHolder(TweenCallback callback, Node node) {
-            Callback = callback;
-            Node = node;
-        }
-
-        internal void Call() {
-            Callback?.Invoke(Node);
-        }
-    }
+    public delegate void CallbackNode(Node node);
 
     internal class TweenPropertyMethodHolder<T> : Object {
         public delegate void PropertyMethodCallback(T value);
@@ -54,31 +41,75 @@ namespace Tools.Animation {
         }
     }
 
+    internal class DelayedCallbackNodeHolder : Object {
+        private readonly CallbackNode _stepCallbackNode;
+        private readonly Node _node;
+        private SceneTreeTimer _timer;
+
+        internal DelayedCallbackNodeHolder(CallbackNode callbackNode, Node node) {
+            _stepCallbackNode = callbackNode;
+            _node = node;
+        }
+
+        internal void Start(float delay) {
+            _timer = _node.GetTree().CreateTimer(delay);
+            _timer.Connect("timeout", this, nameof(Call));
+        }
+
+        internal void Call() {
+            _stepCallbackNode?.Invoke(_node);
+            _timer.Dispose();
+        }
+    }
+
     internal class CallbackTweener : Object, ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
         private readonly float _delay;
+        public readonly string Name;
+        private SceneTreeTimer _timer;
 
-        internal CallbackTweener(float delay, Action callback) {
+        internal CallbackTweener(float delay, Action callback, string name = null) {
             _delay = delay;
             _callback = callback;
+            Name = name;
         }
 
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
-            float defaultDuration) {
+        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
+            Property ignoredDefaultProperty, float ignoredDefaultDuration) {
+            return Start(tween, initialDelay);
+        }
+
+
+        public float Start(Tween tween, float initialDelay) {
             var start = _delay + initialDelay;
-            if (_callback != null) {
-                Logger.Info("Scheduling callback with " + _delay + "s delay. Start: " + start.ToString("F"));
-            } else {
-                Logger.Info("Scheduling " + _delay + "s delay. Start: " + initialDelay.ToString("F") + " End: " +
-                            start.ToString("F"));
-            }
-            tween.InterpolateCallback(this, start, nameof(Call));
+            var name = Name != null ? Name + " " : "";
+            Logger.Info("Adding callback " + name + "with " + _delay + "s delay. Scheduled: " + start.ToString("F"));
+            _timer = tween.GetTree().CreateTimer(start);
+            _timer.Connect("timeout", this, nameof(Call));
             return _delay;
         }
 
         internal void Call() {
-            _callback.Invoke();
+            _callback?.Invoke();
+            _timer.Dispose();
+        }
+    }
+
+    internal class PauseTweener : ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
+        private readonly float _delay;
+
+        internal PauseTweener(float delay) {
+            _delay = delay;
+        }
+
+        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
+            Property ignoredDefaultProperty, float ignoredDefaultDuration) {
+            var delayEndTime = _delay + initialDelay;
+            Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
+                        delayEndTime.ToString("F"));
+            return _delay;
         }
     }
 
@@ -124,13 +155,13 @@ namespace Tools.Animation {
         }
 
         protected void RunStep(Tween tween, Node target, Property<T> property,
-            T from, T to, float start, float duration, Easing easing, TweenCallback callback) {
+            T from, T to, float start, float duration, Easing easing, CallbackNode callbackNode) {
             if (duration > 0 && !from.Equals(to)) {
                 var end = start + duration;
                 Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
                             from + " to " + to +
-                            " Start: " + start.ToString("F") +
-                            " End: " + end.ToString("F") +
+                            " Scheduled from " + start.ToString("F") +
+                            " to " + end.ToString("F") +
                             " (+" + duration.ToString("F") + ") " + easing.Name);
 
                 if (easing is GodotEasing godotEasing) {
@@ -139,9 +170,9 @@ namespace Tools.Animation {
                     RunCurveBezierStep(tween, target, property, @from, to, start, duration, bezierCurve);
                 }
             }
-            if (callback != null) {
-                TweenStepCallbackHolder holder = new TweenStepCallbackHolder(callback, target);
-                tween.InterpolateCallback(holder, start, nameof(TweenStepCallbackHolder.Call));
+            if (callbackNode != null) {
+                // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
+                new DelayedCallbackNodeHolder(callbackNode, target).Start(start);
             }
         }
 
@@ -198,7 +229,8 @@ namespace Tools.Animation {
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
-                RunStep(tween, target, property, from, to, initialDelay + startTime, duration, easing, step.Callback);
+                RunStep(tween, target, property, from, to, initialDelay + startTime, duration, easing,
+                    step.CallbackNode);
                 from = to;
                 startTime += duration;
             }
@@ -235,7 +267,7 @@ namespace Tools.Animation {
                 var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
                 // var percentEnd = step.Percent;
                 RunStep(tween, target, property, from, to, initialDelay + startTime, keyDuration, easing,
-                    step.Callback);
+                    step.CallbackNode);
                 from = to;
                 // percentStart = percentEnd;
                 startTime = endTime;
@@ -260,17 +292,17 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyStepTweenerBuilder<T> To(T to, float duration, Easing easing = null,
-            TweenCallback callback = null) {
+            CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
-                new AnimationKeyStepTo<T>(to, duration, easing ?? _defaultEasing, callback);
+                new AnimationKeyStepTo<T>(to, duration, easing ?? _defaultEasing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
             return this;
         }
 
         public PropertyKeyStepTweenerBuilder<T> Offset(T offset, float duration, Easing easing = null,
-            TweenCallback callback = null) {
+            CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
-                new AnimationKeyStepOffset<T>(offset, duration, easing ?? _defaultEasing, callback);
+                new AnimationKeyStepOffset<T>(offset, duration, easing ?? _defaultEasing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
             return this;
         }
@@ -301,20 +333,20 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyPercentTweenerBuilder<T> KeyframeTo(float percentage, T to, Easing easing = null,
-            TweenCallback callback = null) {
+            CallbackNode callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
             }
             var animationStepPropertyTweener =
-                new AnimationKeyPercentTo<T>(percentage, to, easing ?? _defaultEasing, callback);
+                new AnimationKeyPercentTo<T>(percentage, to, easing ?? _defaultEasing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
             return this;
         }
 
         public PropertyKeyPercentTweenerBuilder<T> KeyframeOffset(float percentage, T offset, Easing easing = null,
-            TweenCallback callback = null) {
+            CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
-                new AnimationKeyPercentOffset<T>(percentage, offset, easing, callback);
+                new AnimationKeyPercentOffset<T>(percentage, offset, easing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
             return this;
         }

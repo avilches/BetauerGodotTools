@@ -18,10 +18,10 @@ namespace Tools {
         }
 
         public static List<T> GetChildrenFilter<T>(this Node parent) where T : class {
-            return Filter<T>(parent.GetChildren());
+            return FilterByType<T>(parent.GetChildren());
         }
 
-        public static List<T> Filter<T>(IList nodes) where T : class {
+        public static List<T> FilterByType<T>(this IList nodes) where T : class {
             var children = new List<T>();
             foreach (var node in nodes) {
                 if (node is T nodeTyped) children.Add(nodeTyped);
@@ -92,6 +92,7 @@ namespace Tools {
 
                 case Basis fromBasis when op2 is Basis toBasis:
                     return Lerp(fromBasis, toBasis, t);
+
                 default:
                     throw new Exception("Lerp from " + op1.GetType().Name + " to " + op2.GetType().Name +
                                         " not implemented");

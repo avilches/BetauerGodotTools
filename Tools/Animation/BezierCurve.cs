@@ -74,9 +74,10 @@ namespace Tools.Animation {
         public readonly float ax;
         public readonly float ay;
         public readonly string Name;
+        public readonly Curve2D curve;
 
         public BezierCurve(string name, float p0x, float p0y, float cx, float cy, float bx, float by, float ax,
-            float ay) : base(name){
+            float ay, Curve2D curve) : base(name){
             Name = name;
             this.p0x = p0x;
             this.p0y = p0y;
@@ -86,6 +87,7 @@ namespace Tools.Animation {
             this.by = by;
             this.ax = ax;
             this.ay = ay;
+            this.curve = curve;
         }
 
         public override string ToString() {
@@ -114,6 +116,7 @@ namespace Tools.Animation {
             return Create(0, 0, p1x, p1y, p2x, p2y, 1, 1);
         }
 
+
         public static BezierCurve Create(
             float p0x, float p0y, float p1x, float p1y,
             float p2x, float p2y, float p3x, float p3y) {
@@ -124,7 +127,23 @@ namespace Tools.Animation {
             var ax = p3x - p0x - cx - bx;
             var ay = p3y - p0y - cy - by;
             var name = $"({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
-            return new BezierCurve(name, p0x, p0y, cx, cy, bx, by, ax, ay);
+             /*
+            // https://godotengine.org/qa/80633/using-curve2d-to-draw-a-bezier-curve
+            // https://www.reddit.com/r/godot/comments/igkbjv/using_curve2d_to_draw_a_bezier_curve/
+            // https://www.khanacademy.org/science/physics/two-dimensional-motion/two-dimensional-projectile-mot/a/what-is-2d-projectile-motion
+
+            var p0_in = Vector2.Zero; // This isn't used for the first curve
+            var p0_vertex = new Vector2(p0x, p0y); // First point of first line segment
+            var p0_out = new Vector2(p1x, p1y); // Second point of first line segment
+            var p1_in = new Vector2(p2x, p2y); // First point of second line segment
+            var p1_vertex = new Vector2(p3x, p3y); // Second point of second line segment
+            var p1_out = Vector2.One; // Not used unless another curve is added
+            var curve = new Curve2D();
+            curve.AddPoint(p0_vertex, p0_in, p0_out-p0_vertex);
+            curve.AddPoint(p1_vertex, p1_in-p1_vertex, p1_out);
+            */
+
+            return new BezierCurve(name, p0x, p0y, cx, cy, bx, by, ax, ay, null);
         }
 
         // Slower version using Godot LinearInterpolate function.

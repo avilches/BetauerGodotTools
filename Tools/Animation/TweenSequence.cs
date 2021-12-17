@@ -67,7 +67,7 @@ namespace Tools.Animation {
         private protected bool _importedFromTemplate = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Physics;
 
-        public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1.0f) {
+        public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1) {
             TweenList = tweenSequence.TweenList;
             DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
             DefaultProperty = tweenSequence.DefaultProperty;
@@ -123,12 +123,12 @@ namespace Tools.Animation {
         }
 
         public TweenSequenceBuilder Pause(float delay) {
-            AddTweener(new CallbackTweener(delay, null));
+            AddTweener(new PauseTweener(delay));
             return this;
         }
 
-        public TweenSequenceBuilder Callback(Action callback) {
-            AddTweener(new CallbackTweener(0, callback));
+        public TweenSequenceBuilder Callback(Action callback, float delay = 0) {
+            AddTweener(new CallbackTweener(delay, callback));
             return this;
         }
 

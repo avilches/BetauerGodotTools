@@ -1,11 +1,11 @@
 namespace Tools.Animation {
     public abstract class AnimationKey<T> {
         public readonly Easing Easing;
-        public readonly TweenCallback Callback;
+        public readonly CallbackNode CallbackNode;
 
-        internal AnimationKey(Easing easing, TweenCallback callback) {
+        internal AnimationKey(Easing easing, CallbackNode callbackNode) {
             Easing = easing;
-            Callback = callback;
+            CallbackNode = callbackNode;
         }
 
         public abstract T GetTo(T from);
@@ -17,7 +17,7 @@ namespace Tools.Animation {
     public abstract class AnimationKeyStep<T> : AnimationKey<T> {
         public readonly float Duration;
 
-        internal AnimationKeyStep(float duration, Easing easing, TweenCallback callback) : base(easing, callback) {
+        internal AnimationKeyStep(float duration, Easing easing, CallbackNode callbackNode) : base(easing, callbackNode) {
             Duration = duration;
         }
     }
@@ -25,8 +25,8 @@ namespace Tools.Animation {
     public class AnimationKeyStepTo<T> : AnimationKeyStep<T> {
         public readonly T To;
 
-        internal AnimationKeyStepTo(T to, float duration, Easing easing, TweenCallback callback) :
-            base(duration, easing, callback) {
+        internal AnimationKeyStepTo(T to, float duration, Easing easing, CallbackNode callbackNode) :
+            base(duration, easing, callbackNode) {
             To = to;
         }
 
@@ -38,8 +38,8 @@ namespace Tools.Animation {
     public class AnimationKeyStepOffset<T> : AnimationKeyStep<T> {
         public readonly T Offset;
 
-        internal AnimationKeyStepOffset(T offset, float duration, Easing easing, TweenCallback callback) :
-            base(duration, easing, callback) {
+        internal AnimationKeyStepOffset(T offset, float duration, Easing easing, CallbackNode callbackNode) :
+            base(duration, easing, callbackNode) {
             Offset = offset;
         }
 
@@ -54,7 +54,7 @@ namespace Tools.Animation {
     public abstract class AnimationKeyPercent<T> : AnimationKey<T> {
         public readonly float Percent;
 
-        internal AnimationKeyPercent(float percent, Easing easing, TweenCallback callback) : base(easing, callback) {
+        internal AnimationKeyPercent(float percent, Easing easing, CallbackNode callbackNode) : base(easing, callbackNode) {
             Percent = percent;
         }
     }
@@ -62,8 +62,8 @@ namespace Tools.Animation {
     public class AnimationKeyPercentTo<T> : AnimationKeyPercent<T> {
         public readonly T To;
 
-        internal AnimationKeyPercentTo(float percent, T to, Easing easing, TweenCallback callback) :
-            base(percent, easing, callback) {
+        internal AnimationKeyPercentTo(float percent, T to, Easing easing, CallbackNode callbackNode) :
+            base(percent, easing, callbackNode) {
             To = to;
         }
 
@@ -75,8 +75,8 @@ namespace Tools.Animation {
     public class AnimationKeyPercentOffset<T> : AnimationKeyPercent<T> {
         public readonly T Offset;
 
-        internal AnimationKeyPercentOffset(float percent, T offset, Easing easing, TweenCallback callback) :
-            base(percent, easing, callback) {
+        internal AnimationKeyPercentOffset(float percent, T offset, Easing easing, CallbackNode callbackNode) :
+            base(percent, easing, callbackNode) {
             Offset = offset;
         }
 
