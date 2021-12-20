@@ -74,11 +74,11 @@ namespace Veronenger.Tests.Runner {
 
             if (testRunner.TestsFailed == 0) {
                 await Task.Delay(50);
-                GD.Print("exit(0)");
+                Green("exit(0)");
                 GetTree().Quit(0);
             } else {
                 if (OS.GetCmdlineArgs().Contains("--no-window")) {
-                    GD.Print("exit(1)");
+                    Red("exit(1)");
                     GetTree().Quit(1);
                 }
             }
@@ -89,56 +89,62 @@ namespace Veronenger.Tests.Runner {
                 $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" ...");
         }
 
+        private static string GetTestMethodLine(TestRunner testRunner, TestRunner.TestMethod testMethod) {
+            var line = $"#{testMethod.Id}/{testRunner.TestsTotal} {testMethod.Type.Name}.{testMethod.Name}";
+            if (testMethod.Description != null) {
+                line += "\"" + testMethod.Description + "\"";
+            }
+            return line;
+        }
         private static void PrintConsoleResult(TestRunner testRunner, TestRunner.TestMethod testMethod) {
             var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
             if (testPasses) {
-                Console.ForegroundColor = ConsoleColor.Green;
-                GD.Print(
-                    $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Passed");
-                Console.ResetColor();
+                Green($"{GetTestMethodLine(testRunner, testMethod)}: Passed");
             } else {
-                Console.ForegroundColor = ConsoleColor.Red;
-                GD.Print(
-                    $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Failed");
-                GD.Print(testMethod.Exception.Message);
-                Console.ResetColor();
-                GD.Print(testMethod.Exception.StackTrace);
+                Red($"{GetTestMethodLine(testRunner, testMethod)}: Failed");
+                Red(testMethod.Exception.Message);
+                Normal(testMethod.Exception.StackTrace);
             }
         }
 
         private static void PrintConsoleFinish(TestRunner testRunner) {
             if (testRunner.TestsFailed > 0) {
-                Console.ForegroundColor = ConsoleColor.Green;
-                GD.Print($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Console.ForegroundColor = ConsoleColor.Red;
-                GD.Print($"--------------------------------------------------------------------------------");
-                GD.Print($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
-                Console.ResetColor();
+                Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Red("--------------------------------------------------------------------------------");
+                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
 
                 testRunner.TestsFailedResults.ForEach(testMethod => {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    GD.Print(
-                        $"#{testMethod.Id}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Failed");
-                    GD.Print(testMethod.Exception.Message);
-                    Console.ResetColor();
+                    Red($"{GetTestMethodLine(testRunner, testMethod)}: Failed");
+                    Red(testMethod.Exception.Message);
                     var stackTraceFiltered = testMethod.Exception.StackTrace.Split("\n").ToList()
                         .FindAll(line => !line.Trim().EndsWith(":0"));
-                    GD.Print(string.Join("\n", stackTraceFiltered));
+                    Normal(string.Join("\n", stackTraceFiltered));
                 });
 
-                Console.ForegroundColor = ConsoleColor.Red;
-                GD.Print($"--------------------------------------------------------------------------------");
-                Console.ForegroundColor = ConsoleColor.Green;
-                GD.Print($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Console.ForegroundColor = ConsoleColor.Red;
-                GD.Print($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
-                Console.ResetColor();
+                Red("--------------------------------------------------------------------------------");
+                Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
             } else {
-                Console.ForegroundColor = ConsoleColor.Green;
-                GD.Print($"All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Console.ResetColor();
+                Green($"All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
             }
+        }
+
+        private static void Normal(string print) {
+            Console.ResetColor();
+            GD.Print(print);
+        }
+
+        private static void Green(string print) {
+            Console.ForegroundColor = ConsoleColor.Green;
+            GD.Print(print);
+            Console.ResetColor();
+        }
+
+        private static void Red(string print) {
+            Console.ForegroundColor = ConsoleColor.Red;
+            GD.Print(print);
+            Console.ResetColor();
         }
 
         private void UpdateTreeWithTestResult(TestRunner.TestMethod testMethod) {
