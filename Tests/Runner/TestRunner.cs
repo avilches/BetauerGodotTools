@@ -19,10 +19,11 @@ namespace Veronenger.Tests.Runner {
 
         private readonly ICollection<TestMethod> _testMethods = new LinkedList<TestMethod>();
 
-        public int TestsTotal = 0;
-        public int TestsExecuted = 0;
-        public int TestsFailed = 0;
-        public int TestsPassed = 0;
+        public int TestsTotal;
+        public int TestsExecuted;
+        public int TestsFailed;
+        public List<TestMethod> TestsFailedResults;
+        public int TestsPassed;
 
         public TestRunner() {
             ScanFixturesFromAssemblies().ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
@@ -61,6 +62,7 @@ namespace Veronenger.Tests.Runner {
 
             public MethodInfo Setup { get; set; }
             public MethodInfo TearDown { get; set; }
+            public string Id { get; set; }
 
             public TestMethod(MethodInfo method, object instance, string description, bool only) {
                 _instance = instance;
@@ -72,7 +74,8 @@ namespace Veronenger.Tests.Runner {
             }
 
 
-            public async Task Execute(SceneTree sceneTree) {
+            public async Task Execute(string id, SceneTree sceneTree) {
+                Id = id;
                 try {
                     if (_instance is Node node) {
                         await sceneTree.AwaitIdleFrame();
@@ -114,6 +117,7 @@ namespace Veronenger.Tests.Runner {
 
         public async Task Run(SceneTree sceneTree, TestResultDelegate startCallback = null,
             TestResultDelegate resultCallback = null) {
+            TestsFailedResults = new List<TestMethod>();
             TestsFailed = 0;
             TestsPassed = 0;
             TestsExecuted = 0;
@@ -122,11 +126,12 @@ namespace Veronenger.Tests.Runner {
                 TestsExecuted++;
                 startCallback?.Invoke(testMethod);
                 await sceneTree.ToSignal(sceneTree, "idle_frame");
-                await testMethod.Execute(sceneTree);
+                await testMethod.Execute(TestsExecuted.ToString(), sceneTree);
                 if (testMethod.Result == Result.Passed) {
                     TestsPassed++;
                 } else {
                     TestsFailed++;
+                    TestsFailedResults.Add(testMethod);
                 }
                 resultCallback?.Invoke(testMethod);
             }

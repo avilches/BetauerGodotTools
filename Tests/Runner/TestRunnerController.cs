@@ -50,7 +50,8 @@ namespace Veronenger.Tests.Runner {
             await testRunner.Run(GetTree(),
                 (testMethod) => {
                     PrintConsoleStart(testRunner, testMethod);
-                    _overallStatusLabel.BbcodeText += "\n\nExecuting test " + testRunner.TestsExecuted +"/"+testRunner.TestsTotal+": "+testMethod.Name + "...";
+                    _overallStatusLabel.BbcodeText += "\n\nExecuting test " + testRunner.TestsExecuted + "/" +
+                                                      testRunner.TestsTotal + ": " + testMethod.Name + "...";
                 },
                 (testMethod) => {
                     PrintConsoleResult(testRunner, testMethod);
@@ -108,6 +109,26 @@ namespace Veronenger.Tests.Runner {
 
         private static void PrintConsoleFinish(TestRunner testRunner) {
             if (testRunner.TestsFailed > 0) {
+                Console.ForegroundColor = ConsoleColor.Green;
+                GD.Print($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                GD.Print($"--------------------------------------------------------------------------------");
+                GD.Print($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Console.ResetColor();
+
+                testRunner.TestsFailedResults.ForEach(testMethod => {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    GD.Print(
+                        $"#{testMethod.Id}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" Failed");
+                    GD.Print(testMethod.Exception.Message);
+                    Console.ResetColor();
+                    var stackTraceFiltered = testMethod.Exception.StackTrace.Split("\n").ToList()
+                        .FindAll(line => !line.Trim().EndsWith(":0"));
+                    GD.Print(string.Join("\n", stackTraceFiltered));
+                });
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                GD.Print($"--------------------------------------------------------------------------------");
                 Console.ForegroundColor = ConsoleColor.Green;
                 GD.Print($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
                 Console.ForegroundColor = ConsoleColor.Red;

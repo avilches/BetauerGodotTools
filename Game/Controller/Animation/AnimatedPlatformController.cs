@@ -36,7 +36,7 @@ namespace Veronenger.Game.Controller.Animation {
             _player = new TweenPlayer("Platform").NewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
-            TemplateTweenSequenceBuilder seq = TemplateTweenSequenceBuilder.CreateTemplate();
+            TweenSequenceBuilder seq = TweenSequenceBuilder.Create();
 
             seq.Callback(() => x = Stopwatch.StartNew());
 
