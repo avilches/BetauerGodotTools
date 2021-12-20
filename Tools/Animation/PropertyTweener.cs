@@ -115,16 +115,37 @@ namespace Tools.Animation {
         }
     }
 
+    public class DebugStep<TProperty> {
+        public readonly Node Node;
+        public readonly TProperty From;
+        public readonly TProperty To;
+        public readonly float Start;
+        public readonly float Duration;
+        public readonly Easing Easing;
+        public readonly CallbackNode CallbackNode;
+
+        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
+            Node = node;
+            From = from;
+            To = to;
+            Start = start;
+            Duration = duration;
+            Easing = easing;
+            CallbackNode = callbackNode;
+        }
+    }
+
     public abstract class PropertyTweener<TProperty> : TweenerAdapter<TProperty> {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
         protected readonly Node _target;
         protected readonly Property<TProperty> _defaultProperty;
         protected readonly Easing _defaultEasing;
-        // protected readonly Callback _defaultCallback; // TODO: implement, why not?
 
         protected TProperty _from;
         protected bool _liveFrom = true;
+
+        public List<DebugStep<TProperty>> DebugSteps = null;
 
         internal PropertyTweener(Node target, Property<TProperty> defaultProperty, Easing defaultEasing) {
             _target = target;
@@ -169,6 +190,9 @@ namespace Tools.Animation {
                     RunEasingStep(tween, target, property, @from, to, start, duration, godotEasing);
                 } else if (easing is BezierCurve bezierCurve) {
                     RunCurveBezierStep(tween, target, property, @from, to, start, duration, bezierCurve);
+                }
+                if (DebugSteps != null) {
+                    DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing, callbackNode));
                 }
             }
             if (callbackNode != null) {
