@@ -179,6 +179,7 @@ namespace Tools.Animation {
         protected void RunStep(Tween tween, Node target, Property<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
             if (duration > 0 && !from.Equals(to)) {
+                easing ??= Easing.LinearInOut;
                 var end = start + duration;
                 Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
                             from + " to " + to +
@@ -255,7 +256,7 @@ namespace Tools.Animation {
                 var duration = step.Duration;
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
-                var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
+                var easing = step.Easing ?? _defaultEasing;
                 RunStep(tween, target, property, from, to, initialDelay + startTime, duration, easing,
                     step.CallbackNode);
                 from = to;
@@ -293,7 +294,7 @@ namespace Tools.Animation {
                 var to = step.GetTo(from);
                 var endTime = step.Percent * allStepsDuration;
                 var keyDuration = endTime - startTime;
-                var easing = step.Easing ?? _defaultEasing ?? Easing.LinearInOut;
+                var easing = step.Easing ?? _defaultEasing;
                 // var percentEnd = step.Percent;
                 RunStep(tween, target, property, from, to, initialDelay + startTime, keyDuration, easing,
                     step.CallbackNode);
