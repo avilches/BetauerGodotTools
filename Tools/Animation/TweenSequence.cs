@@ -81,24 +81,32 @@ namespace Tools.Animation {
         }
     }
 
-    public class TemplateTweenSequenceBuilder : TweenSequenceBuilder<TemplateTweenSequenceBuilder> {
-        private TemplateTweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
+    public class TweenSequenceBuilder : AbstractTweenSequenceBuilder<TweenSequenceBuilder> {
+        private TweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
         }
 
-        public static TemplateTweenSequenceBuilder CreateTemplate() {
-            var tweenSequenceBuilder = new TemplateTweenSequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
+        public static TweenSequenceBuilder Create() {
+            var tweenSequenceBuilder = new TweenSequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
             return tweenSequenceBuilder;
         }
-    }
 
-    public abstract class TweenSequenceBuilder<TBuilder> : TweenSequence where TBuilder : class {
-        private bool _parallel = false;
-
-        public TweenSequenceTemplate Build() {
+        public TweenSequenceTemplate BuildTemplate() {
             return TweenSequenceTemplate.Create(this);
         }
 
-        internal TweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) {
+        public TweenPlayer CreatePlayer(Node node) {
+            return TweenPlayer.With(node, this);
+        }
+
+        public TweenPlayer Play(Node node, bool autoKill = false) {
+            return CreatePlayer(node).SetAutoKill(autoKill).Start();
+        }
+    }
+
+    public abstract class AbstractTweenSequenceBuilder<TBuilder> : TweenSequence where TBuilder : class {
+        private bool _parallel = false;
+
+        internal AbstractTweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) {
             TweenList = tweenList;
         }
 

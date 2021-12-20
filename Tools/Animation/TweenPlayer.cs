@@ -10,7 +10,7 @@ namespace Tools.Animation {
     // public delegate void OnSequenceFinish(ITweenSequence tweenSequence);
 
     public class TweenPlayer : Reference {
-        public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder<TweenSequenceWithPlayerBuilder> {
+        public class TweenSequenceWithPlayerBuilder : AbstractTweenSequenceBuilder<TweenSequenceWithPlayerBuilder> {
             private readonly TweenPlayer _tweenPlayer;
 
             internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer,
@@ -22,18 +22,6 @@ namespace Tools.Animation {
                 return _tweenPlayer;
             }
         }
-
-        // Emited when one step of the sequence is finished.
-        // [Signal]
-        // delegate void step_finished(int idx);
-
-        // Emited when a loop of the sequence is finished.
-        // [Signal]
-        // delegate void loop_finished();
-
-        // Emitted when whole sequence is finished. Doesn't happen with infinite loops.
-        // [Signal]
-        // delegate void finished();
 
         public readonly string Name;
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
@@ -56,12 +44,17 @@ namespace Tools.Animation {
             Name = name;
         }
 
-        public static TweenPlayer Apply(Node node, TweenSequenceTemplate template, float duration = -1) {
+        public static TweenPlayer With(Node node, ITweenSequence tweenSequence) {
+            return new TweenPlayer()
+                .NewTween(node)
+                .AddSequence(tweenSequence);
+        }
+
+        public static TweenPlayer With(Node node, TweenSequenceTemplate template, float duration = -1) {
             return new TweenPlayer()
                 .NewTween(node)
                 .ImportTemplate(template, node, duration)
-                .EndSequence()
-                .SetAutoKill(true);
+                .EndSequence();
         }
 
         public TweenPlayer NewTween(Node node) {

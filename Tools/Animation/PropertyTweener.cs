@@ -282,12 +282,12 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyStepTweenerBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty> where TBuilder : class {
-        private readonly TweenSequenceBuilder<TBuilder> _tweenSequenceBuilder;
+        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
-        internal PropertyKeyStepTweenerBuilder(TweenSequenceBuilder<TBuilder> tweenSequenceBuilder, Node target,
+        internal PropertyKeyStepTweenerBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder, Node target,
             Property<TProperty> defaultProperty,
             Easing defaultEasing) : base(target, defaultProperty, defaultEasing) {
-            _tweenSequenceBuilder = tweenSequenceBuilder;
+            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
 
         public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> From(TProperty from) {
@@ -312,18 +312,24 @@ namespace Tools.Animation {
             return this;
         }
 
-        public TBuilder EndAnimate() {
-            return _tweenSequenceBuilder as TBuilder;
+        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+            DebugSteps = debugSteps;
+            return this;
         }
+
+        public TBuilder EndAnimate() {
+            return _abstractTweenSequenceBuilder as TBuilder;
+        }
+
     }
 
     public class PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty> where TBuilder : class {
-        private readonly TweenSequenceBuilder<TBuilder> _tweenSequenceBuilder;
+        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
-        internal PropertyKeyPercentTweenerBuilder(TweenSequenceBuilder<TBuilder> tweenSequenceBuilder, Node target,
+        internal PropertyKeyPercentTweenerBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder, Node target,
             Property<TProperty> defaultProperty,
             Easing defaultEasing) : base(target, defaultProperty, defaultEasing) {
-            _tweenSequenceBuilder = tweenSequenceBuilder;
+            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
 
         public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> Duration(float duration) {
@@ -357,8 +363,13 @@ namespace Tools.Animation {
             return this;
         }
 
+        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+            DebugSteps = debugSteps;
+            return this;
+        }
+
         public TBuilder EndAnimate() {
-            return _tweenSequenceBuilder as TBuilder;
+            return _abstractTweenSequenceBuilder as TBuilder;
         }
     }
 
