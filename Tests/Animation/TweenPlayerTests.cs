@@ -14,7 +14,7 @@ namespace Veronenger.Tests.Animation {
     [TestFixture]
     public class TweenPlayerTests : Node {
         [Test(Description = "Loops and callbacks")]
-        public IEnumerator TweenPlayerLoops() {
+        public async Task TweenPlayerLoops() {
             var firstLoop = 0;
             var secondLoop = 0;
             const float pause = 0.1f;
@@ -24,8 +24,8 @@ namespace Veronenger.Tests.Animation {
 
             var promise = new TaskCompletionSource<object>();
 
-            Stopwatch x = null;
-            new TweenPlayer()
+            Stopwatch x = Stopwatch.StartNew();
+            await new TweenPlayer()
                 .NewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -42,12 +42,11 @@ namespace Veronenger.Tests.Animation {
                 .SetLoops(playerLoops)
                 .SetAutoKill(true)
                 .AddOnTweenPlayerFinishAll(delegate() {
-                    x?.Stop();
+                    x.Stop();
                     promise.TrySetResult(null);
                 })
-                .Start();
-            x = Stopwatch.StartNew();
-            yield return promise.Task;
+                .Start()
+                .Await();
             Console.WriteLine("It should take: " + ((seq1loops * pause + seq2loops * pause) * playerLoops) +
                               "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
 
@@ -104,7 +103,7 @@ namespace Veronenger.Tests.Animation {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
             AddChild(sprite);
-            await this.AwaitPhysicsFrame();
+            await this.AwaitIdleFrame();
 
             TweenPlayer tweenPlayer = await new TweenPlayer()
                 .NewTween(this)
@@ -134,11 +133,12 @@ namespace Veronenger.Tests.Animation {
         }
 
         [Test(Description = "Test values in steps")]
-        public IEnumerator TweenSequenceSteps() {
+        public async Task TweenSequenceSteps() {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
             AddChild(sprite);
-            yield return null;
+            await this.AwaitIdleFrame();
+
             var tweenPlayer = new TweenPlayer()
                 .NewTween(this);
 
@@ -159,11 +159,12 @@ namespace Veronenger.Tests.Animation {
         }
 
         [Test(Description = "Test values in keyframes")]
-        public IEnumerator TweenSequenceKey() {
+        public async Task TweenSequenceKey() {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
             AddChild(sprite);
-            yield return null;
+            await this.AwaitIdleFrame();
+
             var tweenPlayer = new TweenPlayer()
                 .NewTween(this);
 
