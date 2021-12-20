@@ -17,7 +17,10 @@ namespace Veronenger.Tests.Animation {
         public IEnumerator TweenPlayerLoops() {
             var firstLoop = 0;
             var secondLoop = 0;
-            const int loops = 2;
+            const float pause = 0.1f;
+            const int seq1loops = 9;
+            const int seq2loops = 5;
+            const int playerLoops = 2;
 
             var promise = new TaskCompletionSource<object>();
 
@@ -26,17 +29,17 @@ namespace Veronenger.Tests.Animation {
                 .NewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
-                .Pause(0.1f)
+                .Pause(pause)
                 .Callback(() => firstLoop++)
-                .SetLoops(9)
+                .SetLoops(seq1loops)
                 .EndSequence()
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
-                .Pause(0.1f)
+                .Pause(pause)
                 .Callback(() => secondLoop++)
-                .SetLoops(5)
+                .SetLoops(seq2loops)
                 .EndSequence()
-                .SetLoops(loops)
+                .SetLoops(playerLoops)
                 .SetAutoKill(true)
                 .AddOnTweenPlayerFinishAll(delegate() {
                     x?.Stop();
@@ -45,16 +48,57 @@ namespace Veronenger.Tests.Animation {
                 .Start();
             x = Stopwatch.StartNew();
             yield return promise.Task;
-            Console.WriteLine(x.ElapsedMilliseconds);
+            Console.WriteLine("It should take: " + ((seq1loops * pause + seq2loops * pause) * playerLoops) +
+                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
 
-            Assert.That(firstLoop, Is.EqualTo(loops * 9));
-            Assert.That(secondLoop, Is.EqualTo(loops * 5));
+            Assert.That(firstLoop, Is.EqualTo(playerLoops * seq1loops));
+            Assert.That(secondLoop, Is.EqualTo(playerLoops * seq2loops));
         }
 
-        [Test(Description = "Test values in steps")]
+        [Test(Description = "Cancel callbacks")]
+        public async Task TweenPlayerCancelCallbacks() {
+            var callback = 0;
+            var finished = 0;
+
+            Stopwatch x = null;
+            var tweenPlayer = new TweenPlayer()
+                .NewTween(this)
+                .CreateSequence()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(1f)
+                .Callback(() => callback++)
+                .EndSequence()
+                .AddOnTweenPlayerFinishAll(delegate() {
+                    x?.Stop();
+                    finished++;
+                })
+                .Start();
+            x = Stopwatch.StartNew();
+
+            await Task.Delay(200);
+            tweenPlayer.Stop();
+            Console.WriteLine(x.ElapsedMilliseconds);
+            Assert.That(callback, Is.EqualTo(0));
+            Assert.That(finished, Is.EqualTo(0));
+
+            // If the player is stopped, the callback shouldn't execute
+            await Task.Delay(1000);
+            Assert.That(callback, Is.EqualTo(0));
+            Assert.That(finished, Is.EqualTo(0));
+
+            // Player resume, callbacks were executed
+            tweenPlayer.Start();
+            await Task.Delay(900);
+            Assert.That(callback, Is.EqualTo(1));
+            Assert.That(finished, Is.EqualTo(1));
+        }
+
+        [Test(Description = "Test callbacks in steps")]
         public async Task TweenPlayerStepLoops() {
             var callbackStep1 = 0;
             var callbackStep2 = 0;
+            var callbackStep3 = 0;
+            var callbackStep4 = 0;
             const int loops = 2;
 
             Sprite sprite = new Sprite();
@@ -70,8 +114,14 @@ namespace Veronenger.Tests.Animation {
                 .To(12, 0.1f, Easing.BackIn, (node) => callbackStep2++)
                 .EndAnimate()
                 .SetLoops(loops)
+                .Parallel()
+                .AnimateKeys(sprite, Property.PositionX)
+                .Duration(0.1f)
+                .KeyframeTo(0.1f, 120f, Easing.BackIn, (node) => callbackStep3++)
+                .KeyframeTo(0.6f, -90f, Easing.BackIn, (node) => callbackStep4++)
+                .EndAnimate()
+                .SetLoops(loops)
                 .EndSequence()
-
                 .SetAutoKill(true)
                 .SetLoops(loops)
                 .Start()
@@ -79,6 +129,8 @@ namespace Veronenger.Tests.Animation {
 
             Assert.That(callbackStep1, Is.EqualTo(loops * loops));
             Assert.That(callbackStep2, Is.EqualTo(loops * loops));
+            Assert.That(callbackStep3, Is.EqualTo(loops * loops));
+            Assert.That(callbackStep4, Is.EqualTo(loops * loops));
         }
 
         [Test(Description = "Test values in steps")]
@@ -137,6 +189,7 @@ namespace Veronenger.Tests.Animation {
         private List<ITweener> GetParallelGroup(ITweenSequence sequence, int group) {
             return sequence.TweenList.ToList()[group].ToList();
         }
+
         private T GetTweener<T>(ITweenSequence sequence, int group, int pos = 0) where T : class {
             return sequence.TweenList.ToList()[group].ToList()[pos] as T;
         }

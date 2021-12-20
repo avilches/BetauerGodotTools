@@ -44,25 +44,22 @@ namespace Tools.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly CallbackNode _stepCallbackNode;
         private readonly Node _node;
-        private SceneTreeTimer _timer;
 
         internal DelayedCallbackNodeHolder(CallbackNode callbackNode, Node node) {
             _stepCallbackNode = callbackNode;
             _node = node;
         }
 
-        internal void Start(float delay) {
+        internal void Start(Tween tween, float start) {
             if (!IsInstanceValid(_node)) {
                 Logger.Warning("Can't create a Delayed Callback from a freed target instance");
                 return;
             }
-            _timer = _node.GetTree().CreateTimer(delay);
-            _timer.Connect("timeout", this, nameof(Call));
+            tween.InterpolateCallback(this, start, nameof(Call));
         }
 
         internal void Call() {
             _stepCallbackNode?.Invoke(_node);
-            _timer.Dispose();
         }
     }
 
@@ -71,7 +68,6 @@ namespace Tools.Animation {
         private readonly Action _callback;
         private readonly float _delay;
         public readonly string Name;
-        private SceneTreeTimer _timer;
 
         internal CallbackTweener(float delay, Action callback, string name = null) {
             _delay = delay;
@@ -93,14 +89,12 @@ namespace Tools.Animation {
             var start = _delay + initialDelay;
             var name = Name != null ? Name + " " : "";
             Logger.Info("Adding callback " + name + "with " + _delay + "s delay. Scheduled: " + start.ToString("F"));
-            _timer = tween.GetTree().CreateTimer(start);
-            _timer.Connect("timeout", this, nameof(Call));
+            tween.InterpolateCallback(this, start, nameof(Call));
             return _delay;
         }
 
         internal void Call() {
             _callback?.Invoke();
-            _timer.Dispose();
         }
     }
 
@@ -127,8 +121,7 @@ namespace Tools.Animation {
         protected readonly Node _target;
         protected readonly Property<TProperty> _defaultProperty;
         protected readonly Easing _defaultEasing;
-        protected readonly Callback _defaultCallback; // TODO: implement, why not?
-
+        // protected readonly Callback _defaultCallback; // TODO: implement, why not?
 
         protected TProperty _from;
         protected bool _liveFrom = true;
@@ -180,7 +173,7 @@ namespace Tools.Animation {
             }
             if (callbackNode != null) {
                 // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
-                new DelayedCallbackNodeHolder(callbackNode, tween).Start(start);
+                new DelayedCallbackNodeHolder(callbackNode, tween).Start(tween, start);
             }
         }
 
