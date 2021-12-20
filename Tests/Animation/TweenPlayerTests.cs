@@ -42,9 +42,7 @@ namespace Veronenger.Tests.Animation {
                 .EndSequence()
                 .SetLoops(playerLoops)
                 .SetAutoKill(true)
-                .AddOnTweenPlayerFinishAll(delegate() {
-                    finished++;
-                })
+                .AddOnTweenPlayerFinishAll(delegate() { finished++; })
                 .Start()
                 .Await();
 
@@ -56,7 +54,7 @@ namespace Veronenger.Tests.Animation {
             Assert.That(finished, Is.EqualTo(1));
         }
 
-        [Test(Description = "Cancel callbacks")]
+        [Test(Description = "Stop and resume callbacks")]
         public async Task TweenPlayerCancelCallbacks() {
             var callback = 0;
             var finished = 0;
@@ -68,9 +66,7 @@ namespace Veronenger.Tests.Animation {
                 .Pause(1f)
                 .Callback(() => callback++)
                 .EndSequence()
-                .AddOnTweenPlayerFinishAll(delegate() {
-                    finished++;
-                })
+                .AddOnTweenPlayerFinishAll(delegate() { finished++; })
                 .Start();
 
             await Task.Delay(200);
@@ -132,17 +128,8 @@ namespace Veronenger.Tests.Animation {
 
         [Test(Description = "Test values in steps")]
         public async Task TweenSequenceSteps() {
-            Sprite sprite = new Sprite();
-            sprite.Position = new Vector2(100, 100);
-            AddChild(sprite);
-            await this.AwaitIdleFrame();
-
-            var tweenPlayer = new TweenPlayer()
-                .NewTween(this);
-
-            var sequence = tweenPlayer
-                .CreateSequence()
-                .AnimateSteps(sprite, Property.PositionX)
+            var sequence = TweenSequenceBuilder.Create()
+                .AnimateSteps(new Sprite(), Property.PositionX)
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate();
@@ -151,24 +138,14 @@ namespace Veronenger.Tests.Animation {
             var steps = tweener.CreateStepList();
             Assert.That(steps[0].Duration, Is.EqualTo(0.1f));
             Assert.That(steps[0].Easing, Is.EqualTo(Easing.BackIn));
-
             Assert.That(steps[1].Duration, Is.EqualTo(0.2f));
             Assert.That(steps[1].Easing, Is.Null);
         }
 
         [Test(Description = "Test values in keyframes")]
         public async Task TweenSequenceKey() {
-            Sprite sprite = new Sprite();
-            sprite.Position = new Vector2(100, 100);
-            AddChild(sprite);
-            await this.AwaitIdleFrame();
-
-            var tweenPlayer = new TweenPlayer()
-                .NewTween(this);
-
-            var sequence = tweenPlayer
-                .CreateSequence()
-                .AnimateKeys(sprite, Property.PositionX)
+            var sequence = TweenSequenceBuilder.Create()
+                .AnimateKeys(new Sprite(), Property.PositionX)
                 .Duration(0.5f)
                 .KeyframeTo(0.1f, 120f, Easing.BackIn)
                 .KeyframeTo(0.6f, -90f)
