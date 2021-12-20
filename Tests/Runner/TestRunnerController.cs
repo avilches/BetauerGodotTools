@@ -77,7 +77,7 @@ namespace Veronenger.Tests.Runner {
                 Green("exit(0)");
                 GetTree().Quit(0);
             } else {
-                if (OS.GetCmdlineArgs().Contains("--no-window")) {
+                if (OS.GetCmdlineArgs().Contains("─no-window")) {
                     Red("exit(1)");
                     GetTree().Quit(1);
                 }
@@ -85,49 +85,54 @@ namespace Veronenger.Tests.Runner {
         }
 
         private static void PrintConsoleStart(TestRunner testRunner, TestRunner.TestMethod testMethod) {
-            GD.Print(
-                $"#{testRunner.TestsExecuted}/{testRunner.TestsTotal}: {testMethod.Type.Name}.{testMethod.Name} \"{testMethod.Description}\" ...");
+            Normal($"┌─────────────────────────────────────────────────────────────────────────────────");
+            Normal($"│ {GetTestMethodLine(testRunner, testMethod)}: Executing...");
         }
 
-        private static string GetTestMethodLine(TestRunner testRunner, TestRunner.TestMethod testMethod) {
-            var line = $"#{testMethod.Id}/{testRunner.TestsTotal} {testMethod.Type.Name}.{testMethod.Name}";
-            if (testMethod.Description != null) {
-                line += "\"" + testMethod.Description + "\"";
-            }
-            return line;
-        }
         private static void PrintConsoleResult(TestRunner testRunner, TestRunner.TestMethod testMethod) {
             var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
             if (testPasses) {
-                Green($"{GetTestMethodLine(testRunner, testMethod)}: Passed");
+                Green($"│ {GetTestMethodLine(testRunner, testMethod)}: Passed");
+                Green($"└─────────────────────────────────────────────────────────────────────────────────");
             } else {
-                Red($"{GetTestMethodLine(testRunner, testMethod)}: Failed");
+                Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
                 Red(testMethod.Exception.Message);
                 Normal(testMethod.Exception.StackTrace);
+                Red($"└──────────────────────────────────────────────────────────────────────────────────");
             }
         }
 
         private static void PrintConsoleFinish(TestRunner testRunner) {
             if (testRunner.TestsFailed > 0) {
                 Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Red("--------------------------------------------------------------------------------");
-                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Red($"┌─────────────────────────────────────────────────────────────────────────────────");
+                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
 
                 testRunner.TestsFailedResults.ForEach(testMethod => {
-                    Red($"{GetTestMethodLine(testRunner, testMethod)}: Failed");
+                    Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
                     Red(testMethod.Exception.Message);
                     var stackTraceFiltered = testMethod.Exception.StackTrace.Split("\n").ToList()
                         .FindAll(line => !line.Trim().EndsWith(":0"));
                     Normal(string.Join("\n", stackTraceFiltered));
+                    Red("├─────────────────────────────────────────────────────────────────────────────────");
                 });
 
-                Red("--------------------------------------------------------------------------------");
+                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Red($"└─────────────────────────────────────────────────────────────────────────────────");
                 Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
             } else {
-                Green($"All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Green($"│ All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Green($"└─────────────────────────────────────────────────────────────────────────────────");
             }
+        }
+
+        private static string GetTestMethodLine(TestRunner testRunner, TestRunner.TestMethod testMethod) {
+            var line = $"#{testMethod.Id}/{testRunner.TestsTotal} {testMethod.Type.Name}.{testMethod.Name}";
+            if (testMethod.Description != null) {
+                line += " \"" + testMethod.Description + "\"";
+            }
+            return line;
         }
 
         private static void Normal(string print) {
