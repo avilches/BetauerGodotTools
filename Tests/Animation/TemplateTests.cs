@@ -14,7 +14,7 @@ namespace Veronenger.Tests.Animation {
         }
 
         public TweenSequenceTemplate CreateTemplate() {
-            return TweenSequenceBuilder.CreateTemplate()
+            return TemplateTweenSequenceBuilder.CreateTemplate()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .SetDuration(0.5f)
                 .AnimateKeys(property: Property.PositionY)

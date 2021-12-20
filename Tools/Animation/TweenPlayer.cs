@@ -10,7 +10,7 @@ namespace Tools.Animation {
     // public delegate void OnSequenceFinish(ITweenSequence tweenSequence);
 
     public class TweenPlayer : Reference {
-        public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder {
+        public class TweenSequenceWithPlayerBuilder : TweenSequenceBuilder<TweenSequenceWithPlayerBuilder> {
             private readonly TweenPlayer _tweenPlayer;
 
             internal TweenSequenceWithPlayerBuilder(TweenPlayer tweenPlayer,
@@ -18,8 +18,7 @@ namespace Tools.Animation {
                 _tweenPlayer = tweenPlayer;
             }
 
-            public override TweenPlayer EndSequence() {
-                base.EndSequence();
+            public TweenPlayer EndSequence() {
                 return _tweenPlayer;
             }
         }
@@ -36,10 +35,9 @@ namespace Tools.Animation {
         // [Signal]
         // delegate void finished();
 
-        private readonly string Name;
+        public readonly string Name;
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer));
 
-        private Tween _tween;
         public readonly IList<ITweenSequence> TweenSequences = new List<ITweenSequence>(4);
 
         private int _currentSequence = 0;
@@ -50,9 +48,9 @@ namespace Tools.Animation {
         private bool _killWhenFinished = false;
         private SimpleLinkedList<OnTweenPlayerFinishAll> _onTweenPlayerFinishAll;
 
-        public int Loops = 0;
-
-        public Tween Tween => _tween;
+        public int Loops { get; private set; }
+        public bool IsInfiniteLoop => Loops == -1;
+        public Tween Tween { get; private set; }
 
         public TweenPlayer(string name = null) {
             Name = name;
@@ -75,7 +73,7 @@ namespace Tools.Animation {
 
         public TweenPlayer SetTween(Tween tween) {
             RemoveTween();
-            _tween = tween;
+            Tween = tween;
             // _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
             // _tween.Connect("tween_started", this, nameof(TweenStarted));
             // _tween.Connect("tween_completed", this, nameof(TweenCompleted));
@@ -83,10 +81,10 @@ namespace Tools.Animation {
         }
 
         public TweenPlayer RemoveTween() {
-            if (_tween != null) {
+            if (Tween != null) {
                 _running = false;
                 Reset();
-                _tween = null;
+                Tween = null;
             }
             return this;
         }
@@ -133,7 +131,7 @@ namespace Tools.Animation {
 
         // Sets the speed scale of tweening.
         public TweenPlayer SetSpeed(float speed) {
-            _tween.PlaybackSpeed = speed;
+            Tween.PlaybackSpeed = speed;
             return this;
         }
 
@@ -154,9 +152,6 @@ namespace Tools.Animation {
             return this;
         }
 
-        public int GetLoops() => Loops;
-        public bool IsInfiniteLoop() => Loops == -1;
-
         // Returns whether the sequence is currently running.
         public bool IsRunning() {
             return _running;
@@ -169,7 +164,7 @@ namespace Tools.Animation {
          */
 
         public TweenPlayer Start() {
-            if (!IsInstanceValid(_tween)) {
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Start AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
@@ -180,7 +175,7 @@ namespace Tools.Animation {
             } else {
                 if (!_running) {
                     Logger.Info("Tween.ResumeAll()");
-                    _tween.ResumeAll();
+                    Tween.ResumeAll();
                     _running = true;
                 }
             }
@@ -189,13 +184,13 @@ namespace Tools.Animation {
 
         // Pauses the execution of the tweens.
         public TweenPlayer Stop() {
-            if (!IsInstanceValid(_tween)) {
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Stop AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
             if (_running) {
                 Logger.Info("Tween.StopAll()");
-                _tween.StopAll();
+                Tween.StopAll();
                 _running = false;
             }
             return this;
@@ -210,14 +205,14 @@ namespace Tools.Animation {
 
         // Stops the sequence && resets it to the beginning.
         public TweenPlayer Reset() {
-            if (!IsInstanceValid(_tween)) {
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
             Logger.Info("Tween.StopAll()");
-            _tween.StopAll();
+            Tween.StopAll();
             Logger.Info("Tween.RemoveAll()");
-            _tween.RemoveAll();
+            Tween.RemoveAll();
             _currentPlayerLoop = 0;
             _sequenceLoop = 0;
             _currentSequence = 0;
@@ -231,12 +226,12 @@ namespace Tools.Animation {
 
         // Frees the underlying Tween. Sequence is unusable after this operation.
         public void Kill() {
-            if (!IsInstanceValid(_tween)) return;
+            if (!IsInstanceValid(Tween)) return;
             if (_running) {
                 Stop();
             }
             Logger.Info("Tween.QueueFree()");
-            _tween.QueueFree();
+            Tween.QueueFree();
         }
 
         private Stopwatch _sequenceStopwatch;
@@ -245,25 +240,25 @@ namespace Tools.Animation {
             _sequenceStopwatch = Stopwatch.StartNew();
             var sequence = TweenSequences[_currentSequence];
             Logger.Debug(
-                $"RunSequence: Main loop: {(IsInfiniteLoop() ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{TweenSequences.Count}. Loop: {_sequenceLoop + 1}/{sequence.Loops}");
+                $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{TweenSequences.Count}. Loop: {_sequenceLoop + 1}/{sequence.Loops}");
             float accumulatedDelay = 0;
             var tweens = 0;
             foreach (var parallelGroup in sequence.TweenList) {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
-                    var tweenTime = tweener.Start(_tween, accumulatedDelay, sequence.DefaultTarget,
+                    var tweenTime = tweener.Start(Tween, accumulatedDelay, sequence.DefaultTarget,
                         sequence.DefaultProperty, sequence.Duration);
                     tweens++;
                     longestTime = Math.Max(longestTime, tweenTime);
                 }
                 accumulatedDelay += longestTime;
             }
-            new CallbackTweener(0, OnSequenceFinished, nameof(OnSequenceFinished)).Start(_tween, accumulatedDelay);
-            _tween.PlaybackSpeed = sequence.Speed;
-            _tween.PlaybackProcessMode = sequence.ProcessMode;
+            new CallbackTweener(0, OnSequenceFinished, nameof(OnSequenceFinished)).Start(Tween, accumulatedDelay);
+            Tween.PlaybackSpeed = sequence.Speed;
+            Tween.PlaybackProcessMode = sequence.ProcessMode;
             Logger.Debug("RunSequence: Start " + tweens + " tweens. Estimated time: " +
                          accumulatedDelay.ToString("F"));
-            _tween.Start();
+            Tween.Start();
         }
 
         private void OnSequenceFinished() {
@@ -304,7 +299,7 @@ namespace Tools.Animation {
 
             _currentSequence = 0;
             _currentPlayerLoop++;
-            if (IsInfiniteLoop() || _currentPlayerLoop < Loops) {
+            if (IsInfiniteLoop || _currentPlayerLoop < Loops) {
                 // EmitSignal(nameof(loop_finished));
                 return true;
             }

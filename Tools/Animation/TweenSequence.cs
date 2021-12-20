@@ -36,7 +36,9 @@ namespace Tools.Animation {
         public Property DefaultProperty => _defaultProperty;
         public float Duration => _duration;
         public int Loops => _loops;
+
         public float Speed => _speed;
+
         // public bool Template => true;
         public Tween.TweenProcessMode ProcessMode => _processMode;
 
@@ -59,8 +61,8 @@ namespace Tools.Animation {
 
     public class TweenSequence : ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
-        public Node DefaultTarget { get; protected set; }
-        public Property DefaultProperty { get; protected set; }
+        public Node DefaultTarget { get; private set; }
+        public Property DefaultProperty { get; private set; }
         public float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
@@ -79,57 +81,93 @@ namespace Tools.Animation {
         }
     }
 
-    public class TweenSequenceBuilder : TweenSequence {
+    public class TemplateTweenSequenceBuilder : TweenSequenceBuilder<TemplateTweenSequenceBuilder> {
+        private TemplateTweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
+        }
+
+        public static TemplateTweenSequenceBuilder CreateTemplate() {
+            var tweenSequenceBuilder = new TemplateTweenSequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
+            return tweenSequenceBuilder;
+        }
+    }
+
+    public abstract class TweenSequenceBuilder<TBuilder> : TweenSequence where TBuilder : class {
         private bool _parallel = false;
 
-        public static TweenSequenceBuilder CreateTemplate() {
-            var tweenSequenceBuilder = new TweenSequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
-            return tweenSequenceBuilder;
+        public TweenSequenceTemplate Build() {
+            return TweenSequenceTemplate.Create(this);
         }
 
         internal TweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) {
             TweenList = tweenList;
         }
 
-        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, string propertyName = null,
-            Easing easing = null) {
-            return AnimateSteps(target, new BasicProperty<T>(propertyName), easing);
-        }
-
-        public PropertyKeyStepTweenerBuilder<T> AnimateSteps<T>(Node target = null, Property<T> property = null,
-            Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<T>(this, target, property, easing);
-            AddTweener((ITweener)tweener);
-            return tweener;
-        }
-
-        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, string propertyName = null,
-            Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, new BasicProperty<T>(propertyName), easing);
-            AddTweener(tweener);
-            return tweener;
-        }
-
-        public PropertyKeyPercentTweenerBuilder<T> AnimateKeys<T>(Node target = null, Property<T> property = null,
-            Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<T>(this, target, property, easing);
-            AddTweener(tweener);
-            return tweener;
-        }
-
-        public TweenSequenceBuilder Parallel() {
+        public TBuilder Parallel() {
             _parallel = true;
-            return this;
+            return this as TBuilder;
         }
 
-        public TweenSequenceBuilder Pause(float delay) {
+        public TBuilder Pause(float delay) {
             AddTweener(new PauseTweener(delay));
-            return this;
+            return this as TBuilder;
         }
 
-        public TweenSequenceBuilder Callback(Action callback, float delay = 0) {
+        public TBuilder Callback(Action callback, float delay = 0) {
             AddTweener(new CallbackTweener(delay, callback));
-            return this;
+            return this as TBuilder;
+        }
+
+        public TBuilder SetSpeed(float speed) {
+            Speed = speed;
+            return this as TBuilder;
+        }
+
+        public TBuilder SetDuration(float duration) {
+            Duration = duration;
+            return this as TBuilder;
+        }
+
+        public TBuilder SetProcessMode(Tween.TweenProcessMode processMode) {
+            ProcessMode = processMode;
+            return this as TBuilder;
+        }
+
+        public TBuilder SetLoops(int maxLoops) {
+            Loops = maxLoops;
+            return this as TBuilder;
+        }
+
+        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
+            string propertyName = null,
+            Easing easing = null) {
+            return AnimateSteps(target, new BasicProperty<TProperty>(propertyName), easing);
+        }
+
+        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
+            Property<TProperty> property = null,
+            Easing easing = null) {
+            var tweener = new PropertyKeyStepTweenerBuilder<TProperty, TBuilder>(this, target, property, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
+            string propertyName = null,
+            Easing easing = null) {
+            var tweener =
+                new PropertyKeyPercentTweenerBuilder<TProperty, TBuilder>(this, target,
+                    new BasicProperty<TProperty>(propertyName),
+                    easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
+            Property<TProperty> property = null,
+            Easing easing = null) {
+            var tweener = new PropertyKeyPercentTweenerBuilder<TProperty, TBuilder>(this, target, property, easing);
+            AddTweener(tweener);
+            return tweener;
         }
 
         private void AddTweener(ITweener tweener) {
@@ -149,35 +187,6 @@ namespace Tools.Animation {
             } else {
                 TweenList.Add(new SimpleLinkedList<ITweener> { tweener });
             }
-        }
-
-        // Sets the speed scale of tweening.
-        public TweenSequenceBuilder SetSpeed(float speed) {
-            Speed = speed;
-            return this;
-        }
-
-        public TweenSequenceBuilder SetDuration(float duration) {
-            Duration = duration;
-            return this;
-        }
-
-        public TweenSequenceBuilder SetProcessMode(Tween.TweenProcessMode processMode) {
-            ProcessMode = processMode;
-            return this;
-        }
-
-        public TweenSequenceBuilder SetLoops(int maxLoops) {
-            Loops = maxLoops;
-            return this;
-        }
-
-        public virtual TweenPlayer EndSequence() {
-            return null;
-        }
-
-        public TweenSequenceTemplate Build() {
-            return TweenSequenceTemplate.Create(this);
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Tools.Animation {
             }
 
             private static TweenSequenceTemplate Bounce() {
-                return TweenSequenceBuilder.CreateTemplate()
+                return TemplateTweenSequenceBuilder.CreateTemplate()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.PositionY)
                     .KeyframeOffset(0.20f, 0f)
@@ -66,7 +66,7 @@ namespace Tools.Animation {
             }
 
             private static TweenSequenceTemplate Flash() {
-                return TweenSequenceBuilder.CreateTemplate()
+                return TemplateTweenSequenceBuilder.CreateTemplate()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.Opacity)
                     .From(1)
@@ -79,7 +79,7 @@ namespace Tools.Animation {
             }
 
             private static TweenSequenceTemplate Headshake() {
-                return TweenSequenceBuilder.CreateTemplate()
+                return TemplateTweenSequenceBuilder.CreateTemplate()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.PositionX)
                     // TODO: we use offset to keep the original from value, but the original code uses relative position
