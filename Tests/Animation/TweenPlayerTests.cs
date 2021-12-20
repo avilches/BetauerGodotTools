@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,12 +16,14 @@ namespace Veronenger.Tests.Animation {
         public async Task TweenPlayerLoops() {
             var firstLoop = 0;
             var secondLoop = 0;
+            var finished = 0;
+
             const float pause = 0.1f;
-            const int seq1loops = 9;
-            const int seq2loops = 5;
+            const int seq1Loops = 9;
+            const int seq2Loops = 5;
             const int playerLoops = 2;
 
-            var promise = new TaskCompletionSource<object>();
+            const float estimatedDuration = (seq1Loops * pause + seq2Loops * pause) * playerLoops;
 
             Stopwatch x = Stopwatch.StartNew();
             await new TweenPlayer()
@@ -31,27 +32,28 @@ namespace Veronenger.Tests.Animation {
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
                 .Callback(() => firstLoop++)
-                .SetLoops(seq1loops)
+                .SetLoops(seq1Loops)
                 .EndSequence()
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
                 .Callback(() => secondLoop++)
-                .SetLoops(seq2loops)
+                .SetLoops(seq2Loops)
                 .EndSequence()
                 .SetLoops(playerLoops)
                 .SetAutoKill(true)
                 .AddOnTweenPlayerFinishAll(delegate() {
-                    x.Stop();
-                    promise.TrySetResult(null);
+                    finished++;
                 })
                 .Start()
                 .Await();
-            Console.WriteLine("It should take: " + ((seq1loops * pause + seq2loops * pause) * playerLoops) +
+
+            Console.WriteLine("It should take: " + estimatedDuration +
                               "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
 
-            Assert.That(firstLoop, Is.EqualTo(playerLoops * seq1loops));
-            Assert.That(secondLoop, Is.EqualTo(playerLoops * seq2loops));
+            Assert.That(firstLoop, Is.EqualTo(playerLoops * seq1Loops));
+            Assert.That(secondLoop, Is.EqualTo(playerLoops * seq2Loops));
+            Assert.That(finished, Is.EqualTo(1));
         }
 
         [Test(Description = "Cancel callbacks")]
@@ -59,7 +61,6 @@ namespace Veronenger.Tests.Animation {
             var callback = 0;
             var finished = 0;
 
-            Stopwatch x = null;
             var tweenPlayer = new TweenPlayer()
                 .NewTween(this)
                 .CreateSequence()
@@ -68,15 +69,12 @@ namespace Veronenger.Tests.Animation {
                 .Callback(() => callback++)
                 .EndSequence()
                 .AddOnTweenPlayerFinishAll(delegate() {
-                    x?.Stop();
                     finished++;
                 })
                 .Start();
-            x = Stopwatch.StartNew();
 
             await Task.Delay(200);
             tweenPlayer.Stop();
-            Console.WriteLine(x.ElapsedMilliseconds);
             Assert.That(callback, Is.EqualTo(0));
             Assert.That(finished, Is.EqualTo(0));
 
