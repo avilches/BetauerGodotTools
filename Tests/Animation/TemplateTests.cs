@@ -14,7 +14,7 @@ namespace Veronenger.Tests.Animation {
         }
 
         public TweenSequenceTemplate CreateTemplate() {
-            return TemplateTweenSequenceBuilder.CreateTemplate()
+            return TweenSequenceBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .SetDuration(0.5f)
                 .AnimateKeys(property: Property.PositionY)
@@ -26,14 +26,14 @@ namespace Veronenger.Tests.Animation {
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.50f, 1)
                 .EndAnimate()
-                .Build();
+                .BuildTemplate();
         }
 
         [Test]
         public void TweenPlayerApplyPattern() {
             Node2D node = new Sprite();
             TweenSequenceTemplate tem = CreateTemplate();
-            var player = TweenPlayer.Apply(node, tem);
+            var player = TweenPlayer.With(node, tem);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
 
@@ -61,7 +61,7 @@ namespace Veronenger.Tests.Animation {
         public void TweenPlayerApplyPatternWithDuration() {
             Node2D node = new Sprite();
             TweenSequenceTemplate tem = CreateTemplate();
-            var player = TweenPlayer.Apply(node, tem, 100);
+            var player = TweenPlayer.With(node, tem, 100);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
 
