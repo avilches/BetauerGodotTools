@@ -29,7 +29,7 @@ namespace Tools {
             return AwaitIdleFrame(node.GetTree());
         }
 
-        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree)  {
+        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
             return sceneTree.ToSignal(sceneTree, GodotConstants.GODOT_SIGNAL_idle_frame);
         }
 
@@ -55,23 +55,49 @@ namespace Tools {
     }
 
     public static class GodotTools {
-        public static object SumVariant(object op1, object op2) {
+        public static T SumVariant<T>(T op1, T op2) {
             if (op1 is float fromFloat && op2 is float toFloat)
-                return fromFloat + toFloat;
+                return (T)(object)(fromFloat + toFloat);
+
+            if (op1 is double fromDouble && op2 is double toDouble)
+                return (T)(object)(fromDouble + toDouble);
 
             if (op1 is int fromInt && op2 is int toInt)
-                return fromInt + toInt;
+                return (T)(object)(fromInt + toInt);
 
             if (op1 is Color fromColor && op2 is Color toColor)
-                return fromColor + toColor;
+                return (T)(object)(fromColor + toColor);
 
             if (op1 is Vector2 fromVector2 && op2 is Vector2 toVector2)
-                return fromVector2 + toVector2;
+                return (T)(object)(fromVector2 + toVector2);
 
             if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3)
-                return fromVector3 + toVector3;
+                return (T)(object)(fromVector3 + toVector3);
 
             throw new Exception("Sum Variant " + op1.GetType().Name + " + " + op2.GetType().Name + " not implemented");
+        }
+
+        public static T SubtractVariant<T>(T op1, T op2) {
+            if (op1 is float fromFloat && op2 is float toFloat)
+                return (T)(object)(fromFloat - toFloat);
+
+            if (op1 is double fromDouble && op2 is double toDouble)
+                return (T)(object)(fromDouble - toDouble);
+
+            if (op1 is int fromInt && op2 is int toInt)
+                return (T)(object)(fromInt - toInt);
+
+            if (op1 is Color fromColor && op2 is Color toColor)
+                return (T)(object)(fromColor - toColor);
+
+            if (op1 is Vector2 fromVector2 && op2 is Vector2 toVector2)
+                return (T)(object)(fromVector2 - toVector2);
+
+            if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3)
+                return (T)(object)(fromVector3 - toVector3);
+
+            throw new Exception("Substract Variant " + op1.GetType().Name + " + " + op2.GetType().Name +
+                                " not implemented");
         }
 
         /*

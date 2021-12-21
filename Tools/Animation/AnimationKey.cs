@@ -44,7 +44,7 @@ namespace Tools.Animation {
         }
 
         public override T GetTo(T from) {
-            return (T)GodotTools.SumVariant(from, Offset);
+            return GodotTools.SumVariant(from, Offset);
         }
     }
 
@@ -81,7 +81,7 @@ namespace Tools.Animation {
         }
 
         public override T GetTo(T from) {
-            return (T)GodotTools.SumVariant(from, Offset);
+            return GodotTools.SumVariant(from, Offset);
         }
     }
 }
