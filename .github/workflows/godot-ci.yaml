@@ -8,7 +8,7 @@ on: push
 
 env:
   GODOT_VERSION: 3.3.4
-  GODOT_VERSION_MODIFIER: "stable.mono.official"
+  GODOT_VERSION_MODIFIER: "stable.mono"
   EXPORT_NAME: veronenger
   GAME_SUBDIRECTORY: project.godot
   CUSTOM_ICON: "false"
