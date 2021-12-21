@@ -46,7 +46,7 @@ jobs:
 
       # run dotnet unit tests
       - name: Test
-        run: dotnet test
+        run: godot Tests/Runner/RunTests.tscn --no-window
 
   release:
     name: Create Release
