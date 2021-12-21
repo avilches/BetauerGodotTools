@@ -12,6 +12,7 @@ env:
   EXPORT_NAME: veronenger
   GAME_SUBDIRECTORY: project.godot
   CUSTOM_ICON: "false"
+  GITHUB_WORKSPACE: "/workspace"
 
 jobs:
   build:
