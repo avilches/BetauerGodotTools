@@ -84,18 +84,29 @@ namespace Veronenger.Tests.Runner {
             }
         }
 
+        private static void Banner(string line, ConsoleColor color = ConsoleColor.Gray) {
+            if (color == ConsoleColor.Gray) {
+                Console.ResetColor();
+            } else {
+                Console.ForegroundColor = color;
+            }
+            var fill = new string('─', line.Length);
+            GD.Print($"┌─{fill}─┐");
+            GD.Print($"│ {line} │");
+            GD.Print($"└─{fill}─┘");
+        }
+
         private static void PrintConsoleStart(TestRunner testRunner, TestRunner.TestMethod testMethod) {
-            Normal($"┌─────────────────────────────────────────────────────────────────────────────────");
-            Normal($"│ {GetTestMethodLine(testRunner, testMethod)}: Executing...");
+            Banner($"{GetTestMethodLine(testRunner, testMethod)}: Executing...");
         }
 
         private static void PrintConsoleResult(TestRunner testRunner, TestRunner.TestMethod testMethod) {
             var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
             if (testPasses) {
-                Green($"│ {GetTestMethodLine(testRunner, testMethod)}: Passed");
-                Green($"└─────────────────────────────────────────────────────────────────────────────────");
+                Banner($"{GetTestMethodLine(testRunner, testMethod)}: Passed", ConsoleColor.Green);
             } else {
+                Red($"┌─────────────────────────────────────────────────────────────────────────────────");
                 Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
                 Red(testMethod.Exception.Message);
                 Normal(testMethod.Exception.StackTrace);
@@ -106,24 +117,23 @@ namespace Veronenger.Tests.Runner {
         private static void PrintConsoleFinish(TestRunner testRunner) {
             if (testRunner.TestsFailed > 0) {
                 Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
                 Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
 
                 testRunner.TestsFailedResults.ForEach(testMethod => {
                     Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
                     Red(testMethod.Exception.Message);
                     var stackTraceFiltered = testMethod.Exception.StackTrace.Split("\n").ToList()
-                        .FindAll(line => !line.Trim().EndsWith(":0"));
+                        .FindAll(line => !line.Trim().EndsWith(":0") && !line.Contains("TestMethod.Execute"));
                     Normal(string.Join("\n", stackTraceFiltered));
                     Red("├─────────────────────────────────────────────────────────────────────────────────");
                 });
 
-                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
                 Red($"└─────────────────────────────────────────────────────────────────────────────────");
+                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
                 Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
             } else {
-                Green($"│ All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Green($"└─────────────────────────────────────────────────────────────────────────────────");
+                Banner($"All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}", ConsoleColor.Green);
             }
         }
 

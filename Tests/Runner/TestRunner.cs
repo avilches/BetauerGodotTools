@@ -74,8 +74,7 @@ namespace Veronenger.Tests.Runner {
             }
 
 
-            public async Task Execute(string id, SceneTree sceneTree) {
-                Id = id;
+            public async Task Execute(SceneTree sceneTree) {
                 try {
                     if (_instance is Node node) {
                         await sceneTree.AwaitIdleFrame();
@@ -124,9 +123,10 @@ namespace Veronenger.Tests.Runner {
             TestsTotal = _testMethods.Count;
             foreach (var testMethod in _testMethods) {
                 TestsExecuted++;
+                testMethod.Id = TestsExecuted.ToString();
                 startCallback?.Invoke(testMethod);
                 await sceneTree.ToSignal(sceneTree, "idle_frame");
-                await testMethod.Execute(TestsExecuted.ToString(), sceneTree);
+                await testMethod.Execute(sceneTree);
                 if (testMethod.Result == Result.Passed) {
                     TestsPassed++;
                 } else {
