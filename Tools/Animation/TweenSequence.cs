@@ -7,7 +7,7 @@ namespace Tools.Animation {
     public interface ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
-        public Property DefaultProperty { get; }
+        public IProperty DefaultProperty { get; }
         public int Loops { get; }
         public float Speed { get; }
         public float Duration { get; }
@@ -25,7 +25,7 @@ namespace Tools.Animation {
     public class TweenSequenceTemplate : ITweenSequence {
         private readonly ICollection<ICollection<ITweener>> _tweenList;
         private readonly Node _defaultTarget;
-        private readonly Property _defaultProperty;
+        private readonly IProperty _defaultProperty;
         private readonly float _duration;
         private readonly int _loops;
         private readonly float _speed;
@@ -33,7 +33,7 @@ namespace Tools.Animation {
 
         public ICollection<ICollection<ITweener>> TweenList => _tweenList;
         public Node DefaultTarget => _defaultTarget;
-        public Property DefaultProperty => _defaultProperty;
+        public IProperty DefaultProperty => _defaultProperty;
         public float Duration => _duration;
         public int Loops => _loops;
 
@@ -43,7 +43,7 @@ namespace Tools.Animation {
         public Tween.TweenProcessMode ProcessMode => _processMode;
 
         public TweenSequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
-            Property defaultProperty, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
+            IProperty defaultProperty, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _defaultTarget = defaultTarget;
             _defaultProperty = defaultProperty;
@@ -62,7 +62,7 @@ namespace Tools.Animation {
     public class TweenSequence : ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public Node DefaultTarget { get; private set; }
-        public Property DefaultProperty { get; private set; }
+        public IProperty DefaultProperty { get; private set; }
         public float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
@@ -146,42 +146,42 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, target, property, easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, target, property, easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(Node target = null,
-            Property<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty> property = null, Easing easing = null) {
             var tweener = new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
             AddTweener(tweener);
             return tweener;

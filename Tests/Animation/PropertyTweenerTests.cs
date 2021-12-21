@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Tools;
 using Tools.Animation;
-using Veronenger.Tests.Runner;
+using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Tests.Animation {
     [TestFixture]
-    public class PropertyTests : Node {
+    public class PropertyTweenerTests : Node {
         public async Task<Sprite> CreateSprite() {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
@@ -19,7 +18,7 @@ namespace Veronenger.Tests.Animation {
         }
 
         /**
-         * Step tests
+         * Step to tests
          */
         [Test(Description = "step to")]
         public async Task TweenSequenceStepsTo() {
@@ -93,6 +92,9 @@ namespace Veronenger.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
+        /**
+         * Step offset tests
+         */
         [Test(Description = "step offset")]
         public async Task TweenSequenceStepsOffset() {
             var sprite = await CreateSprite();
@@ -164,6 +166,9 @@ namespace Veronenger.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(80));
         }
 
+        /**
+         * Step relative offset tests
+         */
         [Test(Description = "step relative offset")]
         public async Task TweenSequenceStepsZeroOffset() {
             var sprite = await CreateSprite();
@@ -235,7 +240,7 @@ namespace Veronenger.Tests.Animation {
         }
 
         /**
-         * Keyframe tests
+         * Keyframe to tests
          */
         [Test(Description = "keyframe to")]
         public async Task TweenSequenceKeysTo() {
@@ -300,7 +305,9 @@ namespace Veronenger.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
-
+        /**
+         * Keyframe offset tests
+         */
         [Test(Description = "keyframe offset")]
         public async Task TweenSequenceKeysOffset() {
             var sprite = await CreateSprite();
@@ -366,6 +373,9 @@ namespace Veronenger.Tests.Animation {
             Assert.That(steps.Count, Is.EqualTo(2)); // Last offset 0 is ignored
         }
 
+        /**
+         * Keyframe relative offset tests
+         */
         [Test(Description = "keyframe relative offset")]
         public async Task TweenSequenceKeysRelativeOffset() {
             var sprite = await CreateSprite();

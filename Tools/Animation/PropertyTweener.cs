@@ -5,23 +5,23 @@ using Object = Godot.Object;
 
 namespace Tools.Animation {
     public interface ITweener {
-        float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
+        float Start(Tween tween, float initialDelay, Node defaultTarget, IProperty defaultProperty,
             float sequenceDuration);
     }
 
     public interface ITweener<TProperty> {
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property<TProperty> defaultProperty,
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, IProperty<TProperty> defaultProperty,
             float defaultDuration);
     }
 
     public abstract class TweenerAdapter<TProperty> : ITweener, ITweener<TProperty> {
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, Property defaultProperty,
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, IProperty defaultProperty,
             float sequenceDuration) {
-            return Start(tween, initialDelay, defaultTarget, (Property<TProperty>)defaultProperty, sequenceDuration);
+            return Start(tween, initialDelay, defaultTarget, (IProperty<TProperty>)defaultProperty, sequenceDuration);
         }
 
         public abstract float Start(Tween tween, float initialDelay, Node defaultTarget,
-            Property<TProperty> defaultProperty, float defaultDuration);
+            IProperty<TProperty> defaultProperty, float defaultDuration);
     }
 
     public delegate void CallbackNode(Node node);
@@ -76,7 +76,7 @@ namespace Tools.Animation {
         }
 
         public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
-            Property ignoredDefaultProperty, float ignoredDefaultDuration) {
+            IProperty ignoredDefaultProperty, float ignoredDefaultDuration) {
             return Start(tween, initialDelay);
         }
 
@@ -107,7 +107,7 @@ namespace Tools.Animation {
         }
 
         public float Start(Tween tween, float initialDelay,
-            Node ignoredDefaultTarget, Property ignoredDefaultProperty, float ignoredDefaultDuration) {
+            Node ignoredDefaultTarget, IProperty ignoredDefaultProperty, float ignoredDefaultDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
                         delayEndTime.ToString("F"));
@@ -140,7 +140,7 @@ namespace Tools.Animation {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
         protected readonly Node _target;
-        protected readonly Property<TProperty> _defaultProperty;
+        protected readonly IProperty<TProperty> _defaultProperty;
         protected readonly Easing _defaultEasing;
 
         protected TProperty _from;
@@ -149,7 +149,7 @@ namespace Tools.Animation {
 
         public List<DebugStep<TProperty>> DebugSteps = null;
 
-        internal PropertyTweener(Node target, Property<TProperty> defaultProperty, Easing defaultEasing) {
+        internal PropertyTweener(Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing) {
             _target = target;
             _defaultProperty = defaultProperty;
             _defaultEasing = defaultEasing;
@@ -159,7 +159,7 @@ namespace Tools.Animation {
             return _fromIsDefined ? _from : _defaultProperty.GetValue(target);
         }
 
-        protected bool Validate(int count, Node target, Property<TProperty> property) {
+        protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
                 throw new Exception("Cant' start an animation with 0 steps or keys");
             }
@@ -176,7 +176,7 @@ namespace Tools.Animation {
             return true;
         }
 
-        protected void RunStep(Tween tween, Node target, Property<TProperty> property,
+        protected void RunStep(Tween tween, Node target, IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
             if (duration > 0 && !from.Equals(to)) {
                 easing ??= Easing.LinearInOut;
@@ -202,7 +202,7 @@ namespace Tools.Animation {
             }
         }
 
-        private static void RunCurveBezierStep(Tween tween, Node target, Property<TProperty> property, TProperty @from,
+        private static void RunCurveBezierStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
             TProperty to,
             float start,
             float duration, BezierCurve bezierCurve) {
@@ -217,7 +217,7 @@ namespace Tools.Animation {
                 0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
         }
 
-        private static void RunEasingStep(Tween tween, Node target, Property<TProperty> property, TProperty @from,
+        private static void RunEasingStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
             TProperty to, float start,
             float duration, GodotEasing godotEasing) {
             if (property is IndexedProperty<TProperty> basicProperty) {
@@ -242,12 +242,12 @@ namespace Tools.Animation {
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
-        internal PropertyKeyStepTweener(Node target, Property<TProperty> defaultProperty, Easing defaultEasing) :
+        internal PropertyKeyStepTweener(Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing) :
             base(target, defaultProperty, defaultEasing) {
         }
 
         public override float Start(Tween tween, float initialDelay, Node defaultTarget,
-            Property<TProperty> defaultProperty,
+            IProperty<TProperty> defaultProperty,
             float defaultDuration) {
             var target = _target ?? defaultTarget;
             var property = _defaultProperty ?? defaultProperty;
@@ -258,7 +258,7 @@ namespace Tools.Animation {
             var startTime = 0f;
             // var totalDuration = _steps.Sum(step => step.Duration);
             foreach (var step in _steps) {
-                var to = step.GetTo(_relativeToFrom ? initialFrom: from);
+                var to = step.GetTo(_relativeToFrom ? initialFrom : from);
                 var duration = step.Duration;
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
@@ -281,12 +281,12 @@ namespace Tools.Animation {
 
         public float AllStepsDuration = 0;
 
-        internal PropertyKeyPercentTweener(Node target, Property<TProperty> defaultProperty, Easing defaultEasing) :
+        internal PropertyKeyPercentTweener(Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing) :
             base(target, defaultProperty, defaultEasing) {
         }
 
         public override float Start(Tween tween, float initialDelay, Node defaultTarget,
-            Property<TProperty> defaultProperty,
+            IProperty<TProperty> defaultProperty,
             float defaultDuration) {
             var allStepsDuration = AllStepsDuration > 0f ? AllStepsDuration : defaultDuration;
             if (allStepsDuration <= 0)
@@ -300,7 +300,7 @@ namespace Tools.Animation {
             var startTime = 0f;
             // var percentStart = 0f;
             foreach (var step in _steps) {
-                var to = step.GetTo(_relativeToFrom ? initialFrom: from);
+                var to = step.GetTo(_relativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * allStepsDuration;
                 var keyDuration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing;
@@ -321,7 +321,7 @@ namespace Tools.Animation {
 
         internal PropertyKeyStepToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
             Node target,
-            Property<TProperty> defaultProperty,
+            IProperty<TProperty> defaultProperty,
             Easing defaultEasing) : base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
@@ -355,7 +355,7 @@ namespace Tools.Animation {
         private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
         internal PropertyKeyStepOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
-            Node target, Property<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
+            Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
             base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
             _relativeToFrom = relativeToFrom;
@@ -391,7 +391,7 @@ namespace Tools.Animation {
         private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
         internal PropertyKeyPercentToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
-            Node target, Property<TProperty> defaultProperty, Easing defaultEasing) :
+            Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing) :
             base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
@@ -435,7 +435,7 @@ namespace Tools.Animation {
         private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
         internal PropertyKeyPercentOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
-            Node target, Property<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
+            Node target, IProperty<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
             base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
             _relativeToFrom = relativeToFrom;
@@ -469,195 +469,6 @@ namespace Tools.Animation {
 
         public TBuilder EndAnimate() {
             return _abstractTweenSequenceBuilder as TBuilder;
-        }
-    }
-
-
-    /**
-     * Special thanks to Alessandro Senese (Ceceppa)
-     *
-     * All the tricks to set pivots in Control nodes and create fake pivot in Sprite nodes are possible because
-     * of his work in the wonderful library Anima: https://github.com/ceceppa/anima
-     *
-     * Thank you man! :)
-     */
-    public class PropertyTools {
-        public static Vector2 GetSpriteSize(Sprite sprite) {
-            return sprite.Texture.GetSize() * sprite.Scale;
-        }
-
-        public static void SetSpritePivot(Sprite node2D, Vector2 offset) {
-            var position = node2D.GlobalPosition;
-            node2D.Offset = offset;
-            node2D.GlobalPosition = position - node2D.Offset;
-        }
-
-        public static void SetPivotTopCenter(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x / 2, 0))
-                control.RectPivotOffset = new Vector2(control.RectSize.x / 2, 0);
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(0, size.y / 2)
-                SetSpritePivot(sprite, new Vector2(0, GetSpriteSize(sprite).y / 2));
-            }
-        }
-
-        public static void SetPivotTopLeft(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(0, 0))
-                control.RectPivotOffset = Vector2.Zero;
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(size.x / 2, 0)
-                SetSpritePivot(sprite, new Vector2(GetSpriteSize(sprite).x / 2, 0));
-            }
-        }
-
-        public static void SetPivotCenter(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(size / 2)
-                control.RectPivotOffset = control.RectSize / 2;
-            }
-        }
-
-        public static void SetPivotCenterBottom(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
-                var size = control.RectSize;
-                control.RectPivotOffset = new Vector2(size.x / 2, size.y / 2);
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(0, -size.y / 2)
-                SetSpritePivot(sprite, new Vector2(0, -GetSpriteSize(sprite).y / 2));
-            }
-        }
-
-        public static void SetPivotLeftBottom(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(0, size.y))
-                control.RectPivotOffset = new Vector2(0, control.RectSize.y);
-            } else if (node is Sprite sprite) {
-                var size = GetSpriteSize(sprite);
-                // node.offset = Vector2(size.x / 2, size.y)
-                SetSpritePivot(sprite, new Vector2(size.x / 2, size.y));
-            }
-        }
-
-        public static void SetPivotRightBottom(Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x, size.y / 2))
-                var size = control.RectSize;
-                control.RectPivotOffset = new Vector2(size.x, size.y / 2);
-            } else if (node is Sprite sprite) {
-                var size = GetSpriteSize(sprite);
-                // node.offset = Vector2(-size.x / 2, size.y / 2)
-                SetSpritePivot(sprite, new Vector2(-size.x / 2, -size.y / 2));
-            }
-        }
-    }
-
-
-    public class Property {
-        public static readonly Property<Color> Modulate = new BasicProperty<Color>("modulate");
-        public static readonly Property<float> ModulateR = new BasicProperty<float>("modulate:r");
-        public static readonly Property<float> ModulateG = new BasicProperty<float>("modulate:g");
-        public static readonly Property<float> ModulateB = new BasicProperty<float>("modulate:b");
-        public static readonly Property<float> Opacity = new BasicProperty<float>("modulate:a");
-
-        public static readonly Property<Vector2> Position2D = new Position2DProperty();
-        public static readonly Property<float> PositionX = new PositionProperty("x");
-        public static readonly Property<float> PositionY = new PositionProperty("y");
-        public static readonly Property<float> PositionZ = new PositionProperty("z");
-
-        public static readonly Property<Vector2> Scale2D = new Scale2DProperty();
-        public static readonly Property<float> ScaleX = new ScaleProperty("x");
-        public static readonly Property<float> ScaleY = new ScaleProperty("y");
-        public static readonly Property<float> ScaleZ = new ScaleProperty("z");
-
-        public static readonly Property<float> RotateCenter = new RotationProperty();
-    }
-
-    public abstract class Property<TProperty> : Property {
-        protected Property() {
-        }
-
-        public abstract TProperty GetValue(Node node);
-        public abstract void SetValue(Node node, TProperty value);
-    }
-
-    public abstract class IndexedProperty<TProperty> : Property<TProperty> {
-        public abstract string GetIndexedProperty(Node node);
-
-        public override TProperty GetValue(Node node) {
-            return (TProperty)node.GetIndexed(GetIndexedProperty(node));
-        }
-
-        public override void SetValue(Node node, TProperty value) {
-            node.SetIndexed(GetIndexedProperty(node), value);
-        }
-    }
-
-    public class BasicProperty<TProperty> : IndexedProperty<TProperty> {
-        public readonly string IndexedProperty;
-
-        public BasicProperty(string indexedProperty) {
-            IndexedProperty = indexedProperty;
-        }
-
-        public override string GetIndexedProperty(Node node) {
-            return IndexedProperty;
-        }
-    }
-
-    public class Scale2DProperty : IndexedProperty<Vector2> {
-        public override string GetIndexedProperty(Node node) {
-            return node is Control ? "rect_scale" : "scale";
-        }
-    }
-
-    public class ScaleProperty : IndexedProperty<float> {
-        private readonly string _key;
-
-        public ScaleProperty(string key) {
-            _key = key;
-        }
-
-        public override string GetIndexedProperty(Node node) {
-            return node is Control ? "rect_scale:" + _key : "scale:" + _key;
-        }
-    }
-
-    public class Position2DProperty : IndexedProperty<Vector2> {
-        public override string GetIndexedProperty(Node node) {
-            return node switch {
-                Control control => "rect_position",
-                Node2D node2D => "position",
-                _ => "global_transform:origin" // TODO: this case is not tested... 3D?
-            };
-        }
-    }
-
-    public class RotationProperty : IndexedProperty<float> {
-        public override string GetIndexedProperty(Node node) {
-            return node switch {
-                Control control => "rect_rotation",
-                Node2D node2D => "rotation_degrees",
-                _ => "rotation" // TODO: this case is not tested... 3D?
-            };
-        }
-    }
-
-    public class PositionProperty : IndexedProperty<float> {
-        private readonly string _key;
-
-        public PositionProperty(string key) {
-            _key = key;
-        }
-
-        public override string GetIndexedProperty(Node node) {
-            return node switch {
-                Control control => "rect_position:" + _key,
-                Node2D node2D => "position:" + _key,
-                _ => "global_transform:origin:" + _key // TODO: this case is not tested... 3D?
-            };
         }
     }
 }
