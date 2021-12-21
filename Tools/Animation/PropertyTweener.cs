@@ -20,8 +20,8 @@ namespace Tools.Animation {
             return Start(tween, initialDelay, defaultTarget, (Property<TProperty>)defaultProperty, sequenceDuration);
         }
 
-        public abstract float Start(Tween tween, float initialDelay, Node defaultTarget, Property<TProperty> defaultProperty,
-            float defaultDuration);
+        public abstract float Start(Tween tween, float initialDelay, Node defaultTarget,
+            Property<TProperty> defaultProperty, float defaultDuration);
     }
 
     public delegate void CallbackNode(Node node);
@@ -124,7 +124,8 @@ namespace Tools.Animation {
         public readonly Easing Easing;
         public readonly CallbackNode CallbackNode;
 
-        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
+        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing,
+            CallbackNode callbackNode) {
             Node = node;
             From = from;
             To = to;
@@ -143,7 +144,8 @@ namespace Tools.Animation {
         protected readonly Easing _defaultEasing;
 
         protected TProperty _from;
-        protected bool _liveFrom = true;
+        protected bool _fromIsDefined = false;
+        protected bool _relativeToFrom = false;
 
         public List<DebugStep<TProperty>> DebugSteps = null;
 
@@ -151,12 +153,10 @@ namespace Tools.Animation {
             _target = target;
             _defaultProperty = defaultProperty;
             _defaultEasing = defaultEasing;
-            _from = default;
-            _liveFrom = true;
         }
 
         protected TProperty GetFirstFromValue(Node target) {
-            return _liveFrom ? _defaultProperty.GetValue(target) : _from;
+            return _fromIsDefined ? _from : _defaultProperty.GetValue(target);
         }
 
         protected bool Validate(int count, Node target, Property<TProperty> property) {
@@ -202,7 +202,8 @@ namespace Tools.Animation {
             }
         }
 
-        private static void RunCurveBezierStep(Tween tween, Node target, Property<TProperty> property, TProperty @from, TProperty to,
+        private static void RunCurveBezierStep(Tween tween, Node target, Property<TProperty> property, TProperty @from,
+            TProperty to,
             float start,
             float duration, BezierCurve bezierCurve) {
             TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
@@ -216,17 +217,19 @@ namespace Tools.Animation {
                 0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
         }
 
-        private static void RunEasingStep(Tween tween, Node target, Property<TProperty> property, TProperty @from, TProperty to, float start,
+        private static void RunEasingStep(Tween tween, Node target, Property<TProperty> property, TProperty @from,
+            TProperty to, float start,
             float duration, GodotEasing godotEasing) {
             if (property is IndexedProperty<TProperty> basicProperty) {
                 tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
             } else {
-                TweenPropertyMethodHolder<TProperty> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<TProperty>(
-                    delegate(TProperty value) {
-                        // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                        property.SetValue(target, value);
-                    });
+                TweenPropertyMethodHolder<TProperty> tweenPropertyMethodHolder =
+                    new TweenPropertyMethodHolder<TProperty>(
+                        delegate(TProperty value) {
+                            // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
+                            property.SetValue(target, value);
+                        });
                 tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
                     @from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
             }
@@ -234,7 +237,8 @@ namespace Tools.Animation {
     }
 
     public class PropertyKeyStepTweener<TProperty> : PropertyTweener<TProperty> {
-        protected readonly ICollection<AnimationKeyStep<TProperty>> _steps = new SimpleLinkedList<AnimationKeyStep<TProperty>>();
+        protected readonly ICollection<AnimationKeyStep<TProperty>> _steps =
+            new SimpleLinkedList<AnimationKeyStep<TProperty>>();
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
@@ -242,17 +246,19 @@ namespace Tools.Animation {
             base(target, defaultProperty, defaultEasing) {
         }
 
-        public override float Start(Tween tween, float initialDelay, Node defaultTarget, Property<TProperty> defaultProperty,
+        public override float Start(Tween tween, float initialDelay, Node defaultTarget,
+            Property<TProperty> defaultProperty,
             float defaultDuration) {
             var target = _target ?? defaultTarget;
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
             // TODO: defaultDuration could be % or absolute or nothing
             var from = GetFirstFromValue(target);
+            var initialFrom = from;
             var startTime = 0f;
             // var totalDuration = _steps.Sum(step => step.Duration);
             foreach (var step in _steps) {
-                var to = step.GetTo(from);
+                var to = step.GetTo(_relativeToFrom ? initialFrom: from);
                 var duration = step.Duration;
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
@@ -270,7 +276,8 @@ namespace Tools.Animation {
         protected readonly ICollection<AnimationKeyPercent<TProperty>> _steps =
             new SimpleLinkedList<AnimationKeyPercent<TProperty>>();
 
-        public List<AnimationKeyPercent<TProperty>> CreateStepList() => new List<AnimationKeyPercent<TProperty>>(_steps);
+        public List<AnimationKeyPercent<TProperty>> CreateStepList() =>
+            new List<AnimationKeyPercent<TProperty>>(_steps);
 
         public float AllStepsDuration = 0;
 
@@ -278,7 +285,8 @@ namespace Tools.Animation {
             base(target, defaultProperty, defaultEasing) {
         }
 
-        public override float Start(Tween tween, float initialDelay, Node defaultTarget, Property<TProperty> defaultProperty,
+        public override float Start(Tween tween, float initialDelay, Node defaultTarget,
+            Property<TProperty> defaultProperty,
             float defaultDuration) {
             var allStepsDuration = AllStepsDuration > 0f ? AllStepsDuration : defaultDuration;
             if (allStepsDuration <= 0)
@@ -288,10 +296,11 @@ namespace Tools.Animation {
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
             var from = GetFirstFromValue(target);
+            var initialFrom = from;
             var startTime = 0f;
             // var percentStart = 0f;
             foreach (var step in _steps) {
-                var to = step.GetTo(from);
+                var to = step.GetTo(_relativeToFrom ? initialFrom: from);
                 var endTime = step.Percent * allStepsDuration;
                 var keyDuration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing;
@@ -306,22 +315,24 @@ namespace Tools.Animation {
         }
     }
 
-    public class PropertyKeyStepTweenerBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty> where TBuilder : class {
+    public class PropertyKeyStepToBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty>
+        where TBuilder : class {
         private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
-        internal PropertyKeyStepTweenerBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder, Node target,
+        internal PropertyKeyStepToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+            Node target,
             Property<TProperty> defaultProperty,
             Easing defaultEasing) : base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
 
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> From(TProperty from) {
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> From(TProperty from) {
             _from = from;
-            _liveFrom = false;
+            _fromIsDefined = true;
             return this;
         }
 
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> To(TProperty to, float duration, Easing easing = null,
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> To(TProperty to, float duration, Easing easing = null,
             CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepTo<TProperty>(to, duration, easing ?? _defaultEasing, callbackNode);
@@ -329,15 +340,7 @@ namespace Tools.Animation {
             return this;
         }
 
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration, Easing easing = null,
-            CallbackNode callbackNode = null) {
-            var animationStepPropertyTweener =
-                new AnimationKeyStepOffset<TProperty>(offset, duration, easing ?? _defaultEasing, callbackNode);
-            _steps.Add(animationStepPropertyTweener);
-            return this;
-        }
-
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
             DebugSteps = debugSteps;
             return this;
         }
@@ -345,30 +348,67 @@ namespace Tools.Animation {
         public TBuilder EndAnimate() {
             return _abstractTweenSequenceBuilder as TBuilder;
         }
-
     }
 
-    public class PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty> where TBuilder : class {
+    public class PropertyKeyStepOffsetBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty>
+        where TBuilder : class {
         private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
 
-        internal PropertyKeyPercentTweenerBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder, Node target,
-            Property<TProperty> defaultProperty,
-            Easing defaultEasing) : base(target, defaultProperty, defaultEasing) {
+        internal PropertyKeyStepOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+            Node target, Property<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
+            base(target, defaultProperty, defaultEasing) {
+            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _relativeToFrom = relativeToFrom;
+        }
+
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
+            _from = from;
+            _fromIsDefined = true;
+            return this;
+        }
+
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
+            Easing easing = null,
+            CallbackNode callbackNode = null) {
+            var animationStepPropertyTweener =
+                new AnimationKeyStepOffset<TProperty>(offset, duration, easing ?? _defaultEasing, callbackNode);
+            _steps.Add(animationStepPropertyTweener);
+            return this;
+        }
+
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+            DebugSteps = debugSteps;
+            return this;
+        }
+
+        public TBuilder EndAnimate() {
+            return _abstractTweenSequenceBuilder as TBuilder;
+        }
+    }
+
+    public class PropertyKeyPercentToBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty>
+        where TBuilder : class {
+        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+
+        internal PropertyKeyPercentToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+            Node target, Property<TProperty> defaultProperty, Easing defaultEasing) :
+            base(target, defaultProperty, defaultEasing) {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> Duration(float duration) {
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> Duration(float duration) {
             AllStepsDuration = duration;
             return this;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> From(TProperty from) {
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> From(TProperty from) {
             _from = from;
-            _liveFrom = false;
+            _fromIsDefined = true;
             return this;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to, Easing easing = null,
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
+            Easing easing = null,
             CallbackNode callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
@@ -379,7 +419,40 @@ namespace Tools.Animation {
             return this;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> SetDebugSteps(
+            List<DebugStep<TProperty>> debugSteps) {
+            DebugSteps = debugSteps;
+            return this;
+        }
+
+        public TBuilder EndAnimate() {
+            return _abstractTweenSequenceBuilder as TBuilder;
+        }
+    }
+
+    public class PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty>
+        where TBuilder : class {
+        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+
+        internal PropertyKeyPercentOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+            Node target, Property<TProperty> defaultProperty, Easing defaultEasing, bool relativeToFrom) :
+            base(target, defaultProperty, defaultEasing) {
+            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _relativeToFrom = relativeToFrom;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> Duration(float duration) {
+            AllStepsDuration = duration;
+            return this;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
+            _from = from;
+            _fromIsDefined = true;
+            return this;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
             Easing easing = null,
             CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
@@ -388,7 +461,8 @@ namespace Tools.Animation {
             return this;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> SetDebugSteps(
+            List<DebugStep<TProperty>> debugSteps) {
             DebugSteps = debugSteps;
             return this;
         }

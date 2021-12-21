@@ -145,35 +145,44 @@ namespace Tools.Animation {
             return this as TBuilder;
         }
 
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
-            string propertyName = null,
-            Easing easing = null) {
-            return AnimateSteps(target, new BasicProperty<TProperty>(propertyName), easing);
-        }
-
-        public PropertyKeyStepTweenerBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
-            Property<TProperty> property = null,
-            Easing easing = null) {
-            var tweener = new PropertyKeyStepTweenerBuilder<TProperty, TBuilder>(this, target, property, easing);
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, target, property, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
-            string propertyName = null,
-            Easing easing = null) {
-            var tweener =
-                new PropertyKeyPercentTweenerBuilder<TProperty, TBuilder>(this, target,
-                    new BasicProperty<TProperty>(propertyName),
-                    easing);
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyPercentTweenerBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
-            Property<TProperty> property = null,
-            Easing easing = null) {
-            var tweener = new PropertyKeyPercentTweenerBuilder<TProperty, TBuilder>(this, target, property, easing);
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, target, property, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(Node target = null,
+            Property<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
             AddTweener(tweener);
             return tweener;
         }

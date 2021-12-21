@@ -41,7 +41,7 @@ namespace Tools.Animation {
             private static TweenSequenceTemplate Bounce() {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
-                    .AnimateKeys(property: Property.PositionY)
+                    .AnimateKeysBy(property: Property.PositionY)
                     .KeyframeOffset(0.20f, 0f)
                     .KeyframeOffset(0.40f, -30f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
                     .KeyframeOffset(0.43f, 0f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
@@ -81,7 +81,7 @@ namespace Tools.Animation {
             private static TweenSequenceTemplate Headshake() {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
-                    .AnimateKeys(property: Property.PositionX)
+                    .AnimateKeysBy(property: Property.PositionX)
                     // TODO: we use offset to keep the original from value, but the original code uses relative position
                     // TODO: add a new KeyframeRelativeTo() RelativeTo() could fix this ?
                     .KeyframeOffset(0.065f, -6)    // -6

@@ -17,7 +17,7 @@ namespace Veronenger.Tests.Animation {
             return TweenSequenceBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .SetDuration(0.5f)
-                .AnimateKeys(property: Property.PositionY)
+                .AnimateKeysBy(property: Property.PositionY)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(1f, +4f)
                 .EndAnimate()

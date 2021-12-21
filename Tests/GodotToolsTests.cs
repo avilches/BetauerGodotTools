@@ -7,7 +7,6 @@ using Vector3 = Godot.Vector3;
 
 namespace Veronenger.Tests {
     [TestFixture]
-    [Only]
     public class GodotToolsTests {
         [Test]
         public void SumVariantInt() {

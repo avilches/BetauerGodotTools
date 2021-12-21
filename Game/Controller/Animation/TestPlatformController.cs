@@ -37,7 +37,7 @@ namespace Veronenger.Game.Controller.Animation {
             tweenPlayer2 = new TweenPlayer("").NewTween(this);
             tweenPlayer2
                 .CreateSequence()
-                .AnimateSteps<float>(body3, Property.PositionX, curve)
+                .AnimateStepsBy(body3, Property.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
                 .EndAnimate()
