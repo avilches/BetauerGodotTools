@@ -116,8 +116,10 @@ namespace Veronenger.Tests.Runner {
 
         private static void PrintConsoleFinish(TestRunner testRunner) {
             if (testRunner.TestsFailed > 0) {
-                Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
-                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Red($"┌─────────────────────────────────────────────────────────────────────────────────");
+                Green($"| Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Red($"| Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Red($"└─────────────────────────────────────────────────────────────────────────────────");
                 Red($"┌─────────────────────────────────────────────────────────────────────────────────");
 
                 testRunner.TestsFailedResults.ForEach(testMethod => {
@@ -129,9 +131,9 @@ namespace Veronenger.Tests.Runner {
                     Red("├─────────────────────────────────────────────────────────────────────────────────");
                 });
 
+                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Green($"│ Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
                 Red($"└─────────────────────────────────────────────────────────────────────────────────");
-                Red($"Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
-                Green($"Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
             } else {
                 Banner($"All passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}", ConsoleColor.Green);
             }
