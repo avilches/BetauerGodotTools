@@ -48,137 +48,114 @@ jobs:
       - name: Test
         run: godot Tests/Runner/RunTests.tscn --no-window
 
-  release:
-    name: Create Release
+  export-windows:
+    name: Windows Export
     runs-on: ubuntu-latest
-    needs: build
-    outputs:
-      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
-      release_id: ${{ steps.create_release.outputs.id }}
-    steps:
-      - name: Create latest Release
-        id: create_release
-        uses: ncipollo/release-action@v1.8.10
-        with:
-          name: latest
-          tag: latest
-          body: ""
-          prerelease: true
-          allowUpdates: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  export:
-    name: Export
-    runs-on: ubuntu-latest
-    needs: release
-    strategy:
-      matrix:
-        include:
-          - platform: windows
-            extension: .exe
-            type: executable
-          # - platform: mac
-          #   extension: .dmg
-          #   type: archive
-          - platform: linux
-            extension: .x86_64
-            type: executable
-          # html support doesn't work with multithreading, so disabling for now
-          # - platform: html
-          #   extension: .html
-          #   type: executable
     container:
-      image: barichello/godot-ci:mono-3.3.4
+      image: barichello/godot-ci:3.3.4
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           lfs: true
-      - name: Setup WINE and rcedit for windows build
-        if: ${{ matrix.platform == 'windows' && env.CUSTOM_ICON == 'true' }}
-        run: |
-          dpkg --add-architecture i386 && apt-get update && apt-get install -y wine
-          chown root:root -R ~
-          wget https://github.com/electron/rcedit/releases/download/v1.1.1/rcedit-x64.exe && mkdir -v -p ~/.local/share/rcedit && mv rcedit-x64.exe ~/.local/share/rcedit/ && chmod +x ~/.local/share/rcedit/rcedit-x64.exe
-          mkdir dummy && godot -v --path dummy -q
-          echo 'export/windows/wine = "/usr/bin/wine64"' >> ~/.config/godot/editor_settings-3.tres && echo "export/windows/rcedit = \"$(realpath ~/.local/share/rcedit/rcedit-x64.exe)\"" >> ~/.config/godot/editor_settings-3.tres
+
       - name: Setup
         run: |
           mkdir -v -p ~/.local/share/godot/templates
-          mv /root/.local/share/godot/templates/${GODOT_VERSION}.${GODOT_VERSION_MODIFIER} ~/.local/share/godot/templates/${GODOT_VERSION}.${GODOT_VERSION_MODIFIER}
-      - name: File information setup
-        id: file-information
-        env:
-          EXPORT_PLATFORM: ${{ matrix.platform }}
-          FILE_EXTENSION: ${{ matrix.extension }}
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Windows Build
         run: |
-          if [ "${EXPORT_PLATFORM}" = "html" ]
-          then
-              echo "::set-output name=name::index${FILE_EXTENSION}"
-          else
-              echo "::set-output name=name::${EXPORT_NAME}${FILE_EXTENSION}"
-          fi
-
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v1
+          mkdir -v -p build/windows
+          cd $EXPORT_NAME
+          godot -v --export "Windows Desktop" ../build/windows/$EXPORT_NAME.exe
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
         with:
-          dotnet-version: 6.0.x
+          name: windows
+          path: build/windows
 
-      # copy the godot DLLs where they are expected
-      - name: Setup Godot dlls for dotnet Build
-        run: |
-          mkdir -p .mono/assemblies/Debug
-          cp /usr/local/bin/GodotSharp/Api/Release/* .mono/assemblies/Debug
-
-      # build the solution
-      - name: dotnet Build
-        run: dotnet build
-
-      - name: Build Export
-        id: build
-        env:
-          EXPORT_PLATFORM: ${{ matrix.platform }}
-          EXPORT_FILENAME: ${{ steps.file-information.outputs.name }}
-        run: |
-          buildPath="${GITHUB_WORKSPACE}/build/${EXPORT_PLATFORM}"
-          filePath="${buildPath}/${EXPORT_FILENAME}"
-          mkdir -v -p "${buildPath}"
-          godot -v --path ./project.godot --export "${EXPORT_PLATFORM}" "${filePath}"
-          echo "::set-output name=build_directory::${buildPath}"
-          echo "::set-output name=build_file::${filePath}"
-
-      - name: Archive
-        id: archive
-        env:
-          EXPORT_PLATFORM: ${{ matrix.platform }}
-          BUILD_DIRECTORY: ${{ steps.build.outputs.build_directory }}
-          BUILD_FILE: ${{ steps.build.outputs.build_file }}
-          FILE_TYPE: ${{ matrix.type }}
-          FILE_EXT: ${{ matrix.extension }}
-          VERSION: ${{ needs.release.outputs.version }}
-        run: |
-          rootBuildPath="${GITHUB_WORKSPACE}/build"
-          formattedExportName="$( echo ${EXPORT_NAME} | sed 's/./\L&/g' | sed 's/ /-/g' )"
-          filename="${formattedExportName}-${EXPORT_PLATFORM}-v${VERSION}-$(date +'%F-%H%M')${FILE_EXT}"
-          filePath="${rootBuildPath}/${filename}"
-          
-          if [ "${FILE_TYPE}" = "executable" ]
-          then
-              cd "${BUILD_DIRECTORY}" && zip -r "${filePath}" *
-          else
-              mv "${BUILD_FILE}" "${filePath}"
-          fi
-          echo "::set-output name=path::${filePath}"
-          echo "::set-output name=filename::${filename}"
-      - name: Upload Release Assets
-        id: upload-release-asset
-        uses: WebFreak001/deploy-nightly@v1.1.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
+  export-linux:
+    name: Linux Export
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:3.3.4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          upload_url: ${{ needs.release.outputs.release_upload_url }}
-          release_id: ${{ needs.release.outputs.release_id }}
-          asset_path: ${{ steps.archive.outputs.path }}
-          asset_name: ${{ steps.archive.outputs.filename }}
-          asset_content_type: application/zip
-          max_releases: 5
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Linux Build
+        run: |
+          mkdir -v -p build/linux
+          cd $EXPORT_NAME
+          godot -v --export "Linux/X11" ../build/linux/$EXPORT_NAME.x86_64
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: linux
+          path: build/linux
+
+  export-web:
+    name: Web Export
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:3.3.4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Web Build
+        run: |
+          mkdir -v -p build/web
+          cd $EXPORT_NAME
+          godot -v --export "HTML5" ../build/web/index.html
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: web
+          path: build/web
+      # Installing rsync is needed in order to deploy to GitHub Pages. Without it, the build will fail.
+      - name: Install rsync 📚
+        run: |
+          apt-get update && apt-get install -y rsync
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: build/web # The folder the action should deploy.
+
+  export-mac:
+    name: Mac Export
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:3.3.4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          mkdir -v -p ~/.local/share/godot/templates
+          mv /root/.local/share/godot/templates/${GODOT_VERSION}.stable ~/.local/share/godot/templates/${GODOT_VERSION}.stable
+      - name: Mac Build
+        run: |
+          mkdir -v -p build/mac
+          cd $EXPORT_NAME
+          godot -v --export "Mac OSX" ../build/mac/$EXPORT_NAME.zip
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: mac
+          path: build/mac
