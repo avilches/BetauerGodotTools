@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Tools {
     public class SimpleLinkedList<T> : ICollection<T> {
-        private readonly Node<T> _head = new Node<T>();
-        private Node<T> _last;
+        private readonly Node _head = new Node();
+        private Node _last;
 
         public SimpleLinkedList() {
         }
@@ -19,7 +19,7 @@ namespace Tools {
         public int Count { get; private set; } = 0;
 
         public void Clear() {
-            _head.next = null;
+            _head.Next = null;
             _last = _head;
             Count = 0;
         }
@@ -40,24 +40,24 @@ namespace Tools {
         public bool IsReadOnly { get; }
 
         public T First() {
-            return Count > 0 ? _head.next.data : throw new Exception("There is no First() value for empty linked list");
+            return Count > 0 ? _head.Next.Data : throw new Exception("There is no First() value for empty linked list");
         }
 
         public void AddStart(T data) {
-            Node<T> newHead = new Node<T>();
-            newHead.next = _head.next;
-            newHead.data = data;
-            _head.next = newHead;
+            Node newHead = new Node();
+            newHead.Next = _head.Next;
+            newHead.Data = data;
+            _head.Next = newHead;
             Count++;
         }
 
         public void Add(T data) {
-            Node<T> newEnd = new Node<T>();
-            newEnd.data = data;
+            Node newEnd = new Node();
+            newEnd.Data = data;
             if (Count == 0) {
-                _head.next = newEnd;
+                _head.Next = newEnd;
             } else {
-                _last.next = newEnd;
+                _last.Next = newEnd;
             }
             _last = newEnd;
             Count++;
@@ -67,7 +67,7 @@ namespace Tools {
             if (Count == 0)
                 throw new Exception("No element exist in this linked list.");
 
-            _head.next = _head.next.next;
+            _head.Next = _head.Next.Next;
             Count--;
             if (Count == 0) {
                 _last = _head;
@@ -78,13 +78,13 @@ namespace Tools {
             if (Count == 0)
                 throw new Exception("No element exist in this linked list.");
 
-            Node<T> prevNode = new Node<T>();
-            Node<T> cur = _head;
-            while (cur.next != null) {
+            Node prevNode = new Node();
+            Node cur = _head;
+            while (cur.Next != null) {
                 prevNode = cur;
-                cur = cur.next;
+                cur = cur.Next;
             }
-            prevNode.next = null;
+            prevNode.Next = null;
             _last = prevNode;
             Count--;
         }
@@ -100,19 +100,19 @@ namespace Tools {
         }
 
         public void ForEach(Action<T> action) {
-            Node<T> curr = _head;
-            while (curr.next != null) {
-                curr = curr.next;
-                action.Invoke(curr.data);
+            Node curr = _head;
+            while (curr.Next != null) {
+                curr = curr.Next;
+                action.Invoke(curr.Data);
             }
         }
 
         public T Find(Predicate<T> element) {
-            Node<T> curr = _head;
-            while (curr.next != null) {
-                curr = curr.next;
-                if (element.Invoke(curr.data)) {
-                    return curr.data;
+            Node curr = _head;
+            while (curr.Next != null) {
+                curr = curr.Next;
+                if (element.Invoke(curr.Data)) {
+                    return curr.Data;
                 }
             }
             return (T)(object)null;
@@ -123,12 +123,12 @@ namespace Tools {
         }
 
         public IEnumerator<T> GetEnumerator() {
-            return new Enumerator<T>(this);
+            return new Enumerator(this);
         }
 
-        private class Enumerator<T> : IEnumerator<T> {
+        private class Enumerator : IEnumerator<T> {
             private readonly SimpleLinkedList<T> _list;
-            private SimpleLinkedList<T>.Node<T> _current;
+            private Node _current;
 
             internal Enumerator(SimpleLinkedList<T> list) {
                 _list = list;
@@ -136,9 +136,9 @@ namespace Tools {
             }
 
             public bool MoveNext() {
-                if (_current.next == null) return false;
-                Current = _current.next.data;
-                _current = _current.next;
+                if (_current.Next == null) return false;
+                Current = _current.Next.Data;
+                _current = _current.Next;
                 return true;
             }
 
@@ -156,9 +156,9 @@ namespace Tools {
             public T Current { get; private set; }
         }
 
-        private class Node<T> {
-            public T data;
-            public Node<T> next;
+        private class Node {
+            internal T Data;
+            internal Node Next;
         }
     }
 }

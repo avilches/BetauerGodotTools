@@ -18,7 +18,7 @@ namespace Tools.Bus {
             Owner = owner;
         }
 
-        public void OnSubscribed<T>(GodotTopic<T> godotTopic) where T : IGodotEvent {
+        public void OnSubscribed(GodotTopic<T> godotTopic) {
             TopicName = godotTopic.Name;
             _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotListener<T>)),
                 TopicName);

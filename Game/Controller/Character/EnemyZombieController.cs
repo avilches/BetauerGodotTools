@@ -16,7 +16,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
-        [OnReady("../Label")] protected Label Label;
+        [OnReady("../Label")] private Label Label;
         [OnReady("Position2D")] public Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
@@ -62,8 +62,8 @@ namespace Veronenger.Game.Controller.Character {
             MotionBody.StartFrame(delta);
             _stateMachine.Execute(delta);
 
-            if (CharacterManager.PlayerController?._playerDetector?.Position != null) {
-                Label.Text = "" + DegreesTo(CharacterManager.PlayerController._playerDetector);
+            if (CharacterManager.PlayerController?.PlayerDetector?.Position != null) {
+                Label.Text = "" + DegreesTo(CharacterManager.PlayerController.PlayerDetector);
             }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
@@ -84,7 +84,7 @@ namespace Veronenger.Game.Controller.Character {
             // _attackArea.CollisionMask = 0;
         }
 
-        public void Dispose() {
+        public new void Dispose() {
             _stateMachine.Dispose();
             GetParent().QueueFree();
         }

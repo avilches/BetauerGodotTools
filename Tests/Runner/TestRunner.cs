@@ -101,7 +101,7 @@ namespace Veronenger.Tests.Runner {
                     Result = Result.Failed;
                     try {
                         TearDown?.Invoke(_instance, EmptyParameters);
-                    } catch (Exception tearDownError) {
+                    } catch (Exception) {
                         // ignore tearDown error in failed tests
                     }
                 }

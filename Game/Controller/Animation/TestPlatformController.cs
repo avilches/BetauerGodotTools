@@ -31,7 +31,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .Start();
 
             BezierCurve curve = BezierCurve.Create(0.37f, 0.0f, 0.63f, 1f);
-            https://css-tricks.com/snippets/sass/easing-map-get-function/
+            // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
             tweenPlayer2 = new TweenPlayer("").NewTween(this);

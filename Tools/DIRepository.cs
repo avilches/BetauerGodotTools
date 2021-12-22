@@ -126,12 +126,12 @@ namespace Tools {
         }
     }
 
-    public class Di {
-        public Di() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class Di {
+        protected Di() => DiBootstrap.DefaultRepository.AutoWire(this);
     }
 
-    public class DiNode : Node {
-        public DiNode() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class DiNode : Node {
+        protected DiNode() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
             DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
@@ -142,8 +142,8 @@ namespace Tools {
         }
     }
 
-    public class DiNode2D : Node2D {
-        public DiNode2D() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class DiNode2D : Node2D {
+        protected DiNode2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
             DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
@@ -154,8 +154,8 @@ namespace Tools {
         }
     }
 
-    public class DiKinematicBody2D : KinematicBody2D {
-        public DiKinematicBody2D() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class DiKinematicBody2D : KinematicBody2D {
+        protected DiKinematicBody2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
             DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
@@ -166,8 +166,8 @@ namespace Tools {
         }
     }
 
-    public class DiCamera2D : Camera2D {
-        public DiCamera2D() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class DiCamera2D : Camera2D {
+        protected DiCamera2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
             DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
@@ -178,8 +178,8 @@ namespace Tools {
         }
     }
 
-    public class DiArea2D : Area2D {
-        public DiArea2D() => DiBootstrap.DefaultRepository.AutoWire(this);
+    public abstract class DiArea2D : Area2D {
+        protected DiArea2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
         public sealed override void _Ready() {
             DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);

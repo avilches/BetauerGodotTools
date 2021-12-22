@@ -21,7 +21,7 @@ namespace Veronenger.Game.Character.Enemy.States {
                 // Body.Flip();
                 _patrolTimer.SetAlarm(4).Reset();
             }
-            EnemyZombie.FaceTo(CharacterManager.PlayerController._playerDetector);
+            EnemyZombie.FaceTo(CharacterManager.PlayerController.PlayerDetector);
             EnemyZombie.AnimationStep.PlayOnce();
         }
 

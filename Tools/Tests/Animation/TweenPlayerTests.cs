@@ -125,7 +125,7 @@ namespace Tools.Tests.Animation {
         }
 
         [Test(Description = "Test values in steps")]
-        public async Task TweenSequenceSteps() {
+        public void TweenSequenceSteps() {
             var sequence = TweenSequenceBuilder.Create()
                 .AnimateSteps(new Sprite(), Property.PositionX)
                 .To(120, 0.1f, Easing.BackIn)
@@ -141,7 +141,7 @@ namespace Tools.Tests.Animation {
         }
 
         [Test(Description = "Test values in keyframes")]
-        public async Task TweenSequenceKey() {
+        public void TweenSequenceKey() {
             var sequence = TweenSequenceBuilder.Create()
                 .AnimateKeys(new Sprite(), Property.PositionX)
                 .Duration(0.5f)

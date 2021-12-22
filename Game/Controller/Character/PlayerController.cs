@@ -19,8 +19,8 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
-        [OnReady("RichTextLabel")] protected RichTextLabel Label;
-        [OnReady("Detector")] public Area2D _playerDetector;
+        [OnReady("RichTextLabel")] private RichTextLabel Label;
+        [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();

@@ -14,7 +14,7 @@ namespace Veronenger.Game.Character.Enemy.States {
         public override void Start(Context context) {
             EnemyZombie.DisableAll();
 
-            if (EnemyZombie.IsToTheLeftOf(CharacterManager.PlayerController._playerDetector)) {
+            if (EnemyZombie.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector)) {
                 EnemyZombie.AnimationDieLeft.PlayOnce(true);
             } else {
                 EnemyZombie.AnimationDieRight.PlayOnce(true);

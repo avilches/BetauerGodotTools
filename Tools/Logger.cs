@@ -213,7 +213,7 @@ namespace Tools {
             return result;
         }
 
-        public static void Dispose() {
+        public new static void Dispose() {
             foreach (ITextWriter writer in Instance._writers) writer.Dispose();
         }
 

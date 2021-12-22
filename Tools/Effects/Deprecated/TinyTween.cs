@@ -54,7 +54,6 @@ namespace Tools.Effects.Deprecated {
 
         protected readonly IStep<T>.OnUpdateAction _onUpdateAction;
         protected readonly OnFinishAction _onCompleteAction;
-        private IStep<T> _stepImplementation;
 
         protected TweenStep(IStep<T>.OnUpdateAction onUpdateAction = null, OnFinishAction onCompleteAction = null) {
             _onUpdateAction = onUpdateAction;
@@ -193,7 +192,7 @@ namespace Tools.Effects.Deprecated {
 
         public TinyTweenSequence AddReverse(int elements = 1) {
             if (!_disposed) {
-                elements = Godot.Mathf.Clamp(elements, 0, steps.Count);
+                elements = Mathf.Clamp(elements, 0, steps.Count);
                 var part = steps.GetRange(steps.Count - elements, elements);
                 part.Reverse();
                 part.ForEach(input => steps.Add(input.CreateReverse()));
@@ -238,7 +237,7 @@ namespace Tools.Effects.Deprecated {
             return CurrentStep.GetCurrentValue();
         }
 
-        public void Dispose() {
+        public new void Dispose() {
             if (_disposed) return;
             _disposed = true;
             Pause();

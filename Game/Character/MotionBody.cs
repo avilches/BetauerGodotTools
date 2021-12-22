@@ -7,22 +7,23 @@ using TraceLevel = Tools.TraceLevel;
 
 namespace Veronenger.Game.Character {
     public class MotionBody : Di, IFlipper {
-        private Logger _loggerMotion;
-        private Logger _loggerCollision;
+        private readonly KinematicBody2D _body;
+        private readonly string _name;
+        private readonly IFlipper _flippers;
+        private readonly MotionConfig _motionConfig;
+        private readonly Logger _loggerCollision;
+        private readonly Logger _loggerMotion;
+        private readonly RayCast2D _floorDetector;
+
         private Vector2 _lastMotion = Vector2.Zero;
-        private IFlipper _flippers;
 
         public float Delta { get; private set; } = 0;
-        public RayCast2D FloorDetector { get; private set; }
 
         public Vector2 Motion = Vector2.Zero;
 
-        [Inject] public PlatformManager PlatformManager;
-        [Inject] public SlopeStairsManager SlopeStairsManager;
+        [Inject] private PlatformManager PlatformManager;
+        [Inject] private SlopeStairsManager SlopeStairsManager;
 
-        private readonly KinematicBody2D _body;
-        private readonly string _name;
-        private readonly MotionConfig _motionConfig;
 
         public MotionBody(KinematicBody2D body, IFlipper flippers, string name, MotionConfig motionConfig) {
             _body = body;
@@ -31,7 +32,7 @@ namespace Veronenger.Game.Character {
             _motionConfig = motionConfig;
             _loggerCollision = LoggerFactory.GetLogger(_name, "Collision");
             _loggerMotion = LoggerFactory.GetLogger(_name, "Motion");
-            FloorDetector = _body.GetNode<RayCast2D>("RayCasts/SlopeDetector");
+            _floorDetector = _body.GetNode<RayCast2D>("RayCasts/SlopeDetector");
         }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
@@ -201,8 +202,8 @@ namespace Veronenger.Game.Character {
                     _isOnMovingPlatform != __isOnMovingPlatform ||
                     _colliderNormal != __colliderNormal) {
                     StringBuilder diff = new StringBuilder();
-                    if (_body.IsOnFloor() != FloorDetector.IsColliding()) {
-                        diff.Append(" Floor:" + _body.IsOnFloor() + "/" + FloorDetector.IsColliding());
+                    if (_body.IsOnFloor() != _floorDetector.IsColliding()) {
+                        diff.Append(" Floor:" + _body.IsOnFloor() + "/" + _floorDetector.IsColliding());
                     }
                     if (_isOnSlope != __isOnSlope) {
                         diff.Append(" Slope:" + _isOnSlope + "/" + __isOnSlope);
@@ -243,11 +244,11 @@ namespace Veronenger.Game.Character {
         private bool CheckCollisionsWithFloorDetector(ref Vector2 __colliderNormal, ref bool __isOnSlope,
             ref bool __isOnFallingPlatform, ref bool __isOnMovingPlatform, ref bool __isOnSlopeStairs,
             ref bool __isOnSlopeUpRight) {
-            FloorDetector.ForceRaycastUpdate();
-            var collisionCollider = FloorDetector.GetCollider();
+            _floorDetector.ForceRaycastUpdate();
+            var collisionCollider = _floorDetector.GetCollider();
             if (collisionCollider == null) return false;
 
-            __colliderNormal = FloorDetector.GetCollisionNormal();
+            __colliderNormal = _floorDetector.GetCollisionNormal();
 
             if (__colliderNormal != Vector2.Zero && Mathf.Abs(__colliderNormal.y) < 1) {
                 __isOnSlope = true;

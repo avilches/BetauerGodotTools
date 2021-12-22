@@ -2,7 +2,7 @@ using Godot;
 
 namespace Tools.Animation {
     public abstract class Easing {
-        public string Name { get; }
+        public readonly string Name;
         public static Easing LinearIn = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.In);
         public static Easing LinearOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.Out);
         public static Easing LinearInOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.InOut);
@@ -73,12 +73,10 @@ namespace Tools.Animation {
         public readonly float by;
         public readonly float ax;
         public readonly float ay;
-        public readonly string Name;
         public readonly Curve2D curve;
 
         public BezierCurve(string name, float p0x, float p0y, float cx, float cy, float bx, float by, float ax,
             float ay, Curve2D curve) : base(name) {
-            Name = name;
             this.p0x = p0x;
             this.p0y = p0y;
             this.cx = cx;
