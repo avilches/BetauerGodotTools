@@ -7,6 +7,7 @@ namespace Tools.Animation {
         public static readonly TweenSequenceTemplate Bounce = TemplateHolder.Templates["bounce"].Get();
         public static readonly TweenSequenceTemplate Flash = TemplateHolder.Templates["flash"].Get();
         public static readonly TweenSequenceTemplate Headshake = TemplateHolder.Templates["headshake"].Get();
+        public static readonly TweenSequenceTemplate Heartbeat = TemplateHolder.Templates["heartbeat"].Get();
 
         private static class TemplateHolder {
             internal static readonly Dictionary<string, TemplateFactory> Templates;
@@ -16,6 +17,7 @@ namespace Tools.Animation {
                     new TemplateFactory("bounce", Bounce),
                     new TemplateFactory("flash", Flash),
                     new TemplateFactory("headshake", Headshake),
+                    new TemplateFactory("heartbeat", Heartbeat),
                 };
                 Templates = new Dictionary<string, TemplateFactory>(factories.Length);
                 foreach (var templateFactory in factories) {
@@ -39,6 +41,7 @@ namespace Tools.Animation {
             }
 
             private static readonly Dictionary<string, BezierCurve> Beziers = new Dictionary<string, BezierCurve>();
+
             private static BezierCurve Bezier(float p1x, float p1y, float p2x, float p2y) {
                 var bezierCurve = BezierCurve.Create(p1x, p1y, p2x, p2y);
                 if (Beziers.ContainsKey(bezierCurve.Name)) {
@@ -95,23 +98,38 @@ namespace Tools.Animation {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateRelativeKeys(property: Property.PositionX)
-                    .KeyframeOffset(0.065f, -6) // -6
-                    .KeyframeOffset(0.185f, +5) // +5
-                    .KeyframeOffset(0.315f, -3) // -3
-                    .KeyframeOffset(0.435f, +2) // +2
-                    .KeyframeOffset(0.500f, 0) //  0
+                    .KeyframeOffset(0.065f, -6)
+                    .KeyframeOffset(0.185f, +5)
+                    .KeyframeOffset(0.315f, -3)
+                    .KeyframeOffset(0.435f, +2)
+                    .KeyframeOffset(0.500f, 0)
                     .KeyframeOffset(1.000f, 0)
                     .EndAnimate()
                     .Parallel()
                     .AnimateKeys(property: Property.RotateCenter)
                     .From(0)
-                    .KeyframeTo(0.000f, 0, Easing.LinearInOut, PropertyTools.SetPivotCenter)
+                    .KeyframeTo(0.000f, 0, Easing.LinearInOut, node => node.SetPivotCenter())
                     .KeyframeTo(0.065f, -9)
                     .KeyframeTo(0.185f, +7)
                     .KeyframeTo(0.315f, -5)
                     .KeyframeTo(0.435f, +3)
                     .KeyframeTo(0.500f, 0)
                     .KeyframeTo(1.000f, 0)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            private static TweenSequenceTemplate Heartbeat() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, Easing.LinearIn, node => node.SetPivotCenter())
+                    .KeyframeTo(0.14f, new Vector2(1.3f, 1.3f))
+                    .KeyframeTo(0.28f, Vector2.One)
+                    .KeyframeTo(0.42f, new Vector2(1.3f, 1.3f))
+                    .KeyframeTo(0.70f, Vector2.One)
+                    .KeyframeTo(1.00f, Vector2.One)
                     .EndAnimate()
                     .BuildTemplate();
             }
