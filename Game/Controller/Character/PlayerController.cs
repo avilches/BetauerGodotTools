@@ -235,7 +235,7 @@ namespace Veronenger.Game.Controller.Character {
         private EventWrapper w = new EventWrapper(null);
 
         public override void _UnhandledInput(InputEvent @event) {
-            w.@event = @event;
+            w.Event = @event;
             if (!PlayerActions.Update(w)) {
                 _stateMachine._UnhandledInput(@event);
             }
