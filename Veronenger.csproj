@@ -17,4 +17,12 @@
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.12.0"/>
     </ItemGroup>
+    <ItemGroup>
+        <Content Include="*" Exclude="mono_crash*"/>
+        <Content Include="Scenes\*"/>
+        <Content Include="Worlds\*"/>
+        <Content Include="Tilemaps\*"/>
+        <Content Include="Docs\*"/>
+        <Content Include="Characters\*"/>
+    </ItemGroup>
 </Project>
