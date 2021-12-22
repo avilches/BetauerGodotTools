@@ -198,7 +198,7 @@ namespace Tools.Animation {
             }
             if (callbackNode != null) {
                 // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
-                new DelayedCallbackNodeHolder(callbackNode, tween).Start(tween, start);
+                new DelayedCallbackNodeHolder(callbackNode, target).Start(tween, start);
             }
         }
 
