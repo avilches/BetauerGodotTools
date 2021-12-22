@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Tools.Animation;
+using Tools.TestRunner;
 using Vector2 = Godot.Vector2;
 
 namespace Tools.Tests.Animation {
@@ -191,6 +192,54 @@ namespace Tools.Tests.Animation {
             AssertStep(steps[0], from, to, 0f, 0.1f, Easing.BackIn);
             Assert.That(steps.Count, Is.EqualTo(1));
             Assert.That(property.GetValue(node), Is.EqualTo(to));
+        }
+
+        [Test]
+        public void PivotControlRestoreTests() {
+            var control = new Control();
+            var original = new Vector2(2f, 3f);
+            control.RectPivotOffset = original;
+            GD.Print(control.RectPivotOffset);
+
+            var pivotCenterBottom = control.SetPivotCenterBottom();
+            GD.Print(control.RectPivotOffset);
+            Assert.That(control.RectPivotOffset, Is.Not.EqualTo(original));
+
+            pivotCenterBottom.Rollback();
+            GD.Print(control.RectPivotOffset);
+            Assert.That(control.RectPivotOffset, Is.EqualTo(original));
+
+        }
+
+        [Test]
+        public async Task PivotSpriteRestoreTests() {
+            var sprite = await CreateSprite();
+            var original = new Vector2(2f, 3f);
+            sprite.GlobalPosition = original;
+            sprite.Offset = original;
+            sprite.Scale = original;
+            var gradientTexture = new GradientTexture();
+            sprite.Texture = gradientTexture;
+            gradientTexture.Width = 300;
+            var gradient = new Gradient();
+            gradient.AddPoint(0, Colors.Aqua);
+            gradient.AddPoint(20, Colors.Red);
+            gradientTexture.Gradient = gradient;
+            GD.Print(sprite.Offset);
+            GD.Print(sprite.GlobalPosition);
+            await this.AwaitIdleFrame();
+
+            var pivotCenterBottom = sprite.SetPivotCenterBottom();
+            GD.Print(sprite.Offset);
+            GD.Print(sprite.GlobalPosition);
+            Assert.That(sprite.Offset, Is.Not.EqualTo(original));
+            Assert.That(sprite.GlobalPosition, Is.Not.EqualTo(original));
+
+            pivotCenterBottom.Rollback();
+            GD.Print(sprite.Offset);
+            GD.Print(sprite.GlobalPosition);
+            Assert.That(sprite.Offset, Is.EqualTo(original));
+            Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
         }
 
         private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, Easing easing) {

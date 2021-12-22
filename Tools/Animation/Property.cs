@@ -124,70 +124,139 @@ namespace Tools.Animation {
             return sprite.Texture.GetSize() * sprite.Scale;
         }
 
-        public static void SetSpritePivot(this Sprite node2D, Vector2 offset) {
-            var position = node2D.GlobalPosition;
-            node2D.Offset = offset;
-            node2D.GlobalPosition = position - node2D.Offset;
+        public interface IRestorer {
+            public void Rollback();
         }
 
-        public static void SetPivotTopCenter(this Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x / 2, 0))
-                control.RectPivotOffset = new Vector2(control.RectSize.x / 2, 0);
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(0, size.y / 2)
-                SetSpritePivot(sprite, new Vector2(0, GetSpriteSize(sprite).y / 2));
+        private class RectPivotOffsetRestorer : IRestorer {
+            private readonly Control _node;
+            private readonly Vector2 _originalRectPivotOffset;
+
+            public RectPivotOffsetRestorer(Control node) {
+                _node = node;
+                _originalRectPivotOffset = node.RectPivotOffset;
+            }
+
+            public void Rollback() {
+                _node.RectPivotOffset = _originalRectPivotOffset;
             }
         }
 
-        public static void SetPivotTopLeft(this Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(0, 0))
-                control.RectPivotOffset = Vector2.Zero;
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(size.x / 2, 0)
-                SetSpritePivot(sprite, new Vector2(GetSpriteSize(sprite).x / 2, 0));
+        private class SpritePivotOffsetRestorer : IRestorer {
+            private readonly Sprite _node;
+            private readonly Vector2 _offset;
+            private readonly Vector2 _globalPosition;
+
+            public SpritePivotOffsetRestorer(Sprite node) {
+                _node = node;
+                _offset = node.Offset;
+                _globalPosition = node.GlobalPosition;
+            }
+
+            public void Rollback() {
+                _node.Offset = _offset;
+                _node.GlobalPosition = _globalPosition;
             }
         }
 
-        public static void SetPivotCenter(this Node node) {
+        private class DummyRestorer : IRestorer {
+            public static readonly IRestorer Instance = new DummyRestorer();
+            public void Rollback() {
+            }
+        }
+
+        public static IRestorer SetControlPivot(this Control control, Vector2 offset) {
+            var restorer = new RectPivotOffsetRestorer(control);
+            control.RectPivotOffset = offset;
+            return restorer;
+        }
+
+        public static IRestorer SetSpritePivot(this Sprite sprite, Vector2 offset) {
+            var restorer = new SpritePivotOffsetRestorer(sprite);
+            var position = sprite.GlobalPosition;
+            sprite.Offset = offset;
+            sprite.GlobalPosition = position - sprite.Offset;
+            return restorer;
+        }
+
+        public static IRestorer SetPivotTopCenter(this Node node) {
+            switch (node) {
+                case Control control:
+                    // node.set_pivot_offset(Vector2(size.x / 2, 0))
+                    return SetControlPivot(control, new Vector2(control.RectSize.x / 2, 0));
+                case Sprite sprite:
+                    // node.offset = Vector2(0, size.y / 2)
+                    return SetSpritePivot(sprite, new Vector2(0, GetSpriteSize(sprite).y / 2));
+                default:
+                    return DummyRestorer.Instance;
+            }
+        }
+
+        public static IRestorer SetPivotTopLeft(this Node node) {
+            switch (node) {
+                case Control control:
+                    // node.set_pivot_offset(Vector2(0, 0))
+                    return SetControlPivot(control, Vector2.Zero);
+                case Sprite sprite:
+                    // node.offset = Vector2(size.x / 2, 0)
+                    return SetSpritePivot(sprite, new Vector2(GetSpriteSize(sprite).x / 2, 0));
+                default:
+                    return DummyRestorer.Instance;
+            }
+        }
+
+        public static IRestorer SetPivotCenter(this Node node) {
             if (node is Control control) {
                 // node.set_pivot_offset(size / 2)
-                control.RectPivotOffset = control.RectSize / 2;
+                return SetControlPivot(control, control.RectSize / 2);
+            }
+            return DummyRestorer.Instance;
+        }
+
+        public static IRestorer SetPivotCenterBottom(this Node node) {
+            switch (node) {
+                case Control control: {
+                    // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
+                    var size = control.RectSize;
+                    return SetControlPivot(control, new Vector2(size.x / 2, size.y / 2));
+                }
+                case Sprite sprite:
+                    // node.offset = Vector2(0, -size.y / 2)
+                    return SetSpritePivot(sprite, new Vector2(0, -GetSpriteSize(sprite).y / 2));
+                default:
+                    return DummyRestorer.Instance;
             }
         }
 
-        public static void SetPivotCenterBottom(this Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
-                var size = control.RectSize;
-                control.RectPivotOffset = new Vector2(size.x / 2, size.y / 2);
-            } else if (node is Sprite sprite) {
-                // node.offset = Vector2(0, -size.y / 2)
-                SetSpritePivot(sprite, new Vector2(0, -GetSpriteSize(sprite).y / 2));
+        public static IRestorer SetPivotLeftBottom(this Node node) {
+            switch (node) {
+                case Control control:
+                    // node.set_pivot_offset(Vector2(0, size.y))
+                    return SetControlPivot(control, new Vector2(0, control.RectSize.y));
+                case Sprite sprite: {
+                    var size = GetSpriteSize(sprite);
+                    // node.offset = Vector2(size.x / 2, size.y)
+                    return SetSpritePivot(sprite, new Vector2(size.x / 2, size.y));
+                }
+                default:
+                    return DummyRestorer.Instance;
             }
         }
 
-        public static void SetPivotLeftBottom(this Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(0, size.y))
-                control.RectPivotOffset = new Vector2(0, control.RectSize.y);
-            } else if (node is Sprite sprite) {
-                var size = GetSpriteSize(sprite);
-                // node.offset = Vector2(size.x / 2, size.y)
-                SetSpritePivot(sprite, new Vector2(size.x / 2, size.y));
-            }
-        }
-
-        public static void SetPivotRightBottom(this Node node) {
-            if (node is Control control) {
-                // node.set_pivot_offset(Vector2(size.x, size.y / 2))
-                var size = control.RectSize;
-                control.RectPivotOffset = new Vector2(size.x, size.y / 2);
-            } else if (node is Sprite sprite) {
-                var size = GetSpriteSize(sprite);
-                // node.offset = Vector2(-size.x / 2, size.y / 2)
-                SetSpritePivot(sprite, new Vector2(-size.x / 2, -size.y / 2));
+        public static IRestorer SetPivotRightBottom(this Node node) {
+            switch (node) {
+                case Control control: {
+                    // node.set_pivot_offset(Vector2(size.x, size.y / 2))
+                    var size = control.RectSize;
+                    return SetControlPivot(control, new Vector2(size.x, size.y / 2));
+                }
+                case Sprite sprite: {
+                    var size = GetSpriteSize(sprite);
+                    // node.offset = Vector2(-size.x / 2, size.y / 2)
+                    return SetSpritePivot(sprite, new Vector2(-size.x / 2, -size.y / 2));
+                }
+                default:
+                    return DummyRestorer.Instance;
             }
         }
     }
