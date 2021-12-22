@@ -286,8 +286,7 @@ namespace Tools.Animation {
         }
 
         public override float Start(Tween tween, float initialDelay, Node defaultTarget,
-            IProperty<TProperty> defaultProperty,
-            float defaultDuration) {
+            IProperty<TProperty> defaultProperty, float defaultDuration) {
             var allStepsDuration = AllStepsDuration > 0f ? AllStepsDuration : defaultDuration;
             if (allStepsDuration <= 0)
                 throw new Exception("Keyframe animation duration should be more than 0");
@@ -368,8 +367,7 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
-            Easing easing = null,
-            CallbackNode callbackNode = null) {
+            Easing easing = null, CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepOffset<TProperty>(offset, duration, easing ?? _defaultEasing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
@@ -408,8 +406,7 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
-            Easing easing = null,
-            CallbackNode callbackNode = null) {
+            Easing easing = null, CallbackNode callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
             }
@@ -453,8 +450,7 @@ namespace Tools.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
-            Easing easing = null,
-            CallbackNode callbackNode = null) {
+            Easing easing = null, CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyPercentOffset<TProperty>(percentage, offset, easing, callbackNode);
             _steps.Add(animationStepPropertyTweener);

@@ -38,34 +38,46 @@ namespace Tools.Animation {
                 public TweenSequenceTemplate Get() => _cached ??= _factory();
             }
 
+            private static readonly Dictionary<string, BezierCurve> Beziers = new Dictionary<string, BezierCurve>();
+            private static BezierCurve Bezier(float p1x, float p1y, float p2x, float p2y) {
+                var bezierCurve = BezierCurve.Create(p1x, p1y, p2x, p2y);
+                if (Beziers.ContainsKey(bezierCurve.Name)) {
+                    return Beziers[bezierCurve.Name];
+                }
+                Beziers[bezierCurve.Name] = bezierCurve;
+                return bezierCurve;
+            }
+
             private static TweenSequenceTemplate Bounce() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
-                    .AnimateKeysBy(property: Property.PositionY)
-                    .KeyframeOffset(0.20f, 0f)
-                    .KeyframeOffset(0.40f, -30f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeOffset(0.43f, 0f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeOffset(0.53f, +30f)
-                    .KeyframeOffset(0.70f, -15f, BezierCurve.Create(0.7555f, 0.05f, 0.855f, 0.06f))
-                    .KeyframeOffset(0.80f, +15f)
-                    .KeyframeOffset(0.90f, -4f)
-                    .KeyframeOffset(1f, +4f)
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.4f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeOffset(0.43f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeOffset(0.53f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.7f, -15, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeOffset(0.8f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.9f, -4)
+                    .KeyframeOffset(1, 0, Bezier(0.215f, 0.61f, 0.355f, 1))
                     .EndAnimate()
                     .Parallel()
                     .AnimateKeys(property: Property.ScaleY)
-                    .KeyframeTo(0.20f, 1)
-                    .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
-                    .KeyframeTo(0.53f, 1)
-                    .KeyframeTo(0.70f, 1.05f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f))
-                    .KeyframeTo(0.80f, 0.95f)
-                    .KeyframeTo(0.90f, 1.02f)
-                    .KeyframeTo(1, 1f)
+                    .KeyframeTo(0.20f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.4f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeTo(0.43f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeTo(0.53f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.7f, 1.05f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
+                    .KeyframeTo(0.8f, 0.95f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.9f, 1.02f)
+                    .KeyframeTo(1, 1, Bezier(0.215f, 0.61f, 0.355f, 1))
                     .EndAnimate()
                     .BuildTemplate();
             }
 
             private static TweenSequenceTemplate Flash() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.Opacity)
@@ -79,16 +91,15 @@ namespace Tools.Animation {
             }
 
             private static TweenSequenceTemplate Headshake() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
-                    .AnimateKeysBy(property: Property.PositionX)
-                    // TODO: we use offset to keep the original from value, but the original code uses relative position
-                    // TODO: add a new KeyframeRelativeTo() RelativeTo() could fix this ?
-                    .KeyframeOffset(0.065f, -6)    // -6
-                    .KeyframeOffset(0.185f, +11)   // +5
-                    .KeyframeOffset(0.315f, -8)    // -3
-                    .KeyframeOffset(0.435f, +5)    // +2
-                    .KeyframeOffset(0.500f, -2)    //  0
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.065f, -6) // -6
+                    .KeyframeOffset(0.185f, +5) // +5
+                    .KeyframeOffset(0.315f, -3) // -3
+                    .KeyframeOffset(0.435f, +2) // +2
+                    .KeyframeOffset(0.500f, 0) //  0
                     .KeyframeOffset(1.000f, 0)
                     .EndAnimate()
                     .Parallel()
