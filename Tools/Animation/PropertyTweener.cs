@@ -143,8 +143,7 @@ namespace Tools.Animation {
         protected readonly IProperty<TProperty> _defaultProperty;
         protected readonly Easing _defaultEasing;
 
-        protected TProperty _from;
-        protected bool _fromIsDefined = false;
+        protected Func<Node, TProperty> _fromFunction;
         protected bool _relativeToFrom = false;
 
         public List<DebugStep<TProperty>> DebugSteps = null;
@@ -156,7 +155,7 @@ namespace Tools.Animation {
         }
 
         protected TProperty GetFirstFromValue(Node target) {
-            return _fromIsDefined ? _from : _defaultProperty.GetValue(target);
+            return _fromFunction != null ? _fromFunction(target) : _defaultProperty.GetValue(target);
         }
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
@@ -325,9 +324,13 @@ namespace Tools.Animation {
             _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
         }
 
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> From(Func<Node, TProperty> fromFunction) {
+            _fromFunction = fromFunction;
+            return this;
+        }
+
         public PropertyKeyStepToBuilder<TProperty, TBuilder> From(TProperty from) {
-            _from = from;
-            _fromIsDefined = true;
+            _fromFunction = node => from;
             return this;
         }
 
@@ -360,9 +363,13 @@ namespace Tools.Animation {
             _relativeToFrom = relativeToFrom;
         }
 
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> From(Func<Node, TProperty> fromFunction) {
+            _fromFunction = fromFunction;
+            return this;
+        }
+
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
-            _from = from;
-            _fromIsDefined = true;
+            _fromFunction = node => from;
             return this;
         }
 
@@ -399,9 +406,13 @@ namespace Tools.Animation {
             return this;
         }
 
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> From(Func<Node, TProperty> fromFunction) {
+            _fromFunction = fromFunction;
+            return this;
+        }
+
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> From(TProperty from) {
-            _from = from;
-            _fromIsDefined = true;
+            _fromFunction = node => from;
             return this;
         }
 
@@ -443,9 +454,13 @@ namespace Tools.Animation {
             return this;
         }
 
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> From(Func<Node, TProperty> fromFunction) {
+            _fromFunction = fromFunction;
+            return this;
+        }
+
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
-            _from = from;
-            _fromIsDefined = true;
+            _fromFunction = node => from;
             return this;
         }
 
