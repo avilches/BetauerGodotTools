@@ -1,13 +1,13 @@
-<Project Sdk="Godot.NET.Sdk/3.3.0">
+﻿<Project Sdk="Godot.NET.Sdk/3.3.0">
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
-        <RootNamespace>Tools</RootNamespace>
+        <RootNamespace>ClassLibrary1</RootNamespace>
         <LangVersion>8</LangVersion>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
+            <HintPath>..\..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>

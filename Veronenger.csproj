@@ -1,28 +1,18 @@
 <Project Sdk="Godot.NET.Sdk/3.3.0">
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
-    <LangVersion>8</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="Tools/**" />
-    <Compile Remove=".mono\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Characters" />
-    <Folder Include="Scenes" />
-    <Folder Include="Worlds" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Tools/Tools.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove=".mono\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+        <LangVersion>8</LangVersion>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="**/*.cs" />
+        <Compile Remove="projects\**" />
+        <Compile Remove="Tools\**" />
+        <Compile Remove="Tests\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="projects\ClassLibrary1\ClassLibrary1.csproj" />
+        <ProjectReference Include="Tools\Tools.csproj" />
+    </ItemGroup>
 </Project>

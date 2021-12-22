@@ -1,0 +1,34 @@
+<Project Sdk="Godot.NET.Sdk/3.3.0">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <!--        <AssemblyName>NUnitTestProject</AssemblyName>-->
+        <RootNamespace>NUnitTestProject</RootNamespace>
+        <LangVersion>8</LangVersion>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <OutputPath>../../.mono/nunit/bin/$(Configuration)</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0"/>
+        <PackageReference Include="NUnit" Version="3.12.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ClassLibrary1\ClassLibrary1.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--        <None Remove="obj\project.packagespec.json" />-->
+        <!--        <None Remove="obj\project.nuget.cache" />-->
+        <!--        <None Remove="obj\project.assets.json" />-->
+        <!--        <None Remove="obj\TestProject1.csproj.nuget.g.targets" />-->
+        <!--        <None Remove="obj\TestProject1.csproj.nuget.g.props" />-->
+        <!--        <None Remove="obj\rider.project.restore.info" />-->
+    </ItemGroup>
+
+</Project>
