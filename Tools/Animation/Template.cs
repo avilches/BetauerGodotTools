@@ -8,6 +8,7 @@ namespace Tools.Animation {
         public static readonly TweenSequenceTemplate Flash = TemplateHolder.Templates["flash"].Get();
         public static readonly TweenSequenceTemplate Headshake = TemplateHolder.Templates["headshake"].Get();
         public static readonly TweenSequenceTemplate Heartbeat = TemplateHolder.Templates["heartbeat"].Get();
+        public static readonly TweenSequenceTemplate Jello = TemplateHolder.Templates["jello"].Get();
 
         private static class TemplateHolder {
             internal static readonly Dictionary<string, TemplateFactory> Templates;
@@ -18,6 +19,7 @@ namespace Tools.Animation {
                     new TemplateFactory("flash", Flash),
                     new TemplateFactory("headshake", Headshake),
                     new TemplateFactory("heartbeat", Heartbeat),
+                    new TemplateFactory("jello", Jello),
                 };
                 Templates = new Dictionary<string, TemplateFactory>(factories.Length);
                 foreach (var templateFactory in factories) {
@@ -130,6 +132,38 @@ namespace Tools.Animation {
                     .KeyframeTo(0.42f, new Vector2(1.3f, 1.3f))
                     .KeyframeTo(0.70f, Vector2.One)
                     .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            private static TweenSequenceTemplate Jello() {
+                // Ported from the Ceceppa/Anima animation:
+                // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.SkewX)
+                    .KeyframeOffset(0.000f, 0f, Easing.LinearInOut, node => node.SetPivotCenter())
+                    .KeyframeOffset(0.111f, 0f)
+                    .KeyframeOffset(0.222f, -0.3f)
+                    .KeyframeOffset(0.333f, +0.265f)
+                    .KeyframeOffset(0.444f, -0.1325f)
+                    .KeyframeOffset(0.555f, +0.06625f)
+                    .KeyframeOffset(0.666f, -0.033125f)
+                    .KeyframeOffset(0.777f, +0.0165625f)
+                    .KeyframeOffset(0.888f, -0.00828125f)
+                    .KeyframeOffset(1.000f, 0f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.SkewY)
+                    .KeyframeOffset(0.111f, 0f)
+                    .KeyframeOffset(0.222f, -0.3f)
+                    .KeyframeOffset(0.333f, +0.265f)
+                    .KeyframeOffset(0.444f, -0.1325f)
+                    .KeyframeOffset(0.555f, +0.06625f)
+                    .KeyframeOffset(0.666f, -0.033125f)
+                    .KeyframeOffset(0.777f, +0.0165625f)
+                    .KeyframeOffset(0.888f, -0.00828125f)
+                    .KeyframeOffset(1.000f, 0f)
                     .EndAnimate()
                     .BuildTemplate();
             }

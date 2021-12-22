@@ -11,6 +11,8 @@ namespace Tools.Tests.Animation {
             Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bounce")));
             Assert.That(Template.Flash, Is.EqualTo(Template.Get("flash")));
             Assert.That(Template.Headshake, Is.EqualTo(Template.Get("headshake")));
+            Assert.That(Template.Heartbeat, Is.EqualTo(Template.Get("heartbeat")));
+            Assert.That(Template.Jello, Is.EqualTo(Template.Get("jello")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {
