@@ -104,6 +104,21 @@ namespace Tools.Tests.Animation {
             Assert.That(control.RectScale.y, Is.EqualTo(to));
         }
 
+        [Test(Description = "Property SkewX, SkewY")]
+        public async Task TweenPropertySkewX_Y() {
+            const float from = 0.9f;
+            const float to = 1.2f;
+
+            var node2D = await CreateNode2D();
+            node2D.SetIndexed("transform:y:x", 0);
+            await CreateTweenPropertyVariants(node2D, Property.SkewX, from, to);
+            Assert.That(node2D.GetIndexed("transform:y:x"), Is.EqualTo(to));
+
+            node2D.SetIndexed("transform:x:y", 0);
+            await CreateTweenPropertyVariants(node2D, Property.SkewY, from, to);
+            Assert.That(node2D.GetIndexed("transform:x:y"), Is.EqualTo(to));
+        }
+
         [Test(Description = "Property Position2D")]
         public async Task TweenPropertyPosition2d() {
             var to = new Vector2(23f, -12f);

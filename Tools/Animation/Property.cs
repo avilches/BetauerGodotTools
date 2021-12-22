@@ -19,6 +19,9 @@ namespace Tools.Animation {
         public static readonly IProperty<float> ScaleZ = new ScaleProperty("z"); // TODO: not tested
 
         public static readonly IProperty<float> RotateCenter = new RotationProperty();
+
+        public static readonly IProperty<float> SkewX = new Property<float>("transform:y:x");
+        public static readonly IProperty<float> SkewY = new Property<float>("transform:x:y");
     }
 
     public interface IProperty {
