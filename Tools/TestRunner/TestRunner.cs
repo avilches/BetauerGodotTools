@@ -5,9 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using Tools;
 
-namespace Veronenger.Tests.Runner {
+namespace Tools.TestRunner {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,
         Inherited = false)]
     public class OnlyAttribute : Attribute {
