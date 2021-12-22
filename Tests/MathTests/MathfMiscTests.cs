@@ -1,7 +1,7 @@
 ﻿using Godot;
 using NUnit.Framework;
 
-namespace GodotTests.MathTests {
+namespace Veronenger.Tests.MathTests {
     [TestFixture]
     [Ignore("")]
     public class MathfMiscTests {

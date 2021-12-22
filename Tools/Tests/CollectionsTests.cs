@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Tools;
 
-namespace Veronenger.Tests {
+namespace Tools.Tests {
     [TestFixture]
     public class CollectionsTest {
         [SetUp]

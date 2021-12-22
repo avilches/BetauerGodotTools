@@ -3,7 +3,7 @@ using Godot;
 using NUnit.Framework;
 using Tools.Animation;
 
-namespace Veronenger.Tests.Animation {
+namespace Tools.Tests.Animation {
     [TestFixture]
     public class TemplateTests {
         [Test]

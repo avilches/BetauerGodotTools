@@ -1,8 +1,7 @@
-﻿using System;
-using Godot;
+﻿using Godot;
 using NUnit.Framework;
 
-namespace GodotTests.NodeTests {
+namespace Veronenger.Tests.NodeTests {
     [TestFixture]
     [Ignore("")]
     public class SpatialTests : Spatial {

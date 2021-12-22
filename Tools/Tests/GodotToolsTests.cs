@@ -1,11 +1,9 @@
 using Godot;
 using NUnit.Framework;
-using Tools;
-using Veronenger.Tests.Runner;
 using Vector2 = Godot.Vector2;
 using Vector3 = Godot.Vector3;
 
-namespace Veronenger.Tests {
+namespace Tools.Tests {
     [TestFixture]
     public class GodotToolsTests {
         [Test]

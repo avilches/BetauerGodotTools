@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Tools.Bus;
 using Tools.Bus.Topics;
 
-namespace Veronenger.Tests {
+namespace Tools.Tests {
     [TestFixture]
     public class TopicMapTests : Node {
         Area2D Area1 = new Area2D();

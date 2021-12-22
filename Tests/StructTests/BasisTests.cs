@@ -1,7 +1,7 @@
 ﻿using Godot;
 using NUnit.Framework;
 
-namespace GodotTests.StructTests {
+namespace Veronenger.Tests.StructTests {
     [TestFixture]
     [Ignore("")]
     public class BasisTests {

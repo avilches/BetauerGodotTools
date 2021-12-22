@@ -2,7 +2,7 @@
 using Godot;
 using NUnit.Framework;
 
-namespace GodotTests.NodeTests {
+namespace Veronenger.Tests.NodeTests {
     [TestFixture]
     [Ignore("")]
     public class RigidbodyTests : RigidBody {

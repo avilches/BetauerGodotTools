@@ -1,9 +1,8 @@
 using Godot;
 using NUnit.Framework;
 using Tools.Animation;
-using Veronenger.Tests.Runner;
 
-namespace Veronenger.Tests.Animation {
+namespace Tools.Tests.Animation {
     [TestFixture]
     public class BezierCurveTests : Node {
         [Test]

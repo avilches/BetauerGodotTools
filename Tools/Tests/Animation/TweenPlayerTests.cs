@@ -5,11 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using Tools;
 using Tools.Animation;
-using Veronenger.Tests.Runner;
 
-namespace Veronenger.Tests.Animation {
+namespace Tools.Tests.Animation {
     [TestFixture]
     public class TweenPlayerTests : Node {
         [Test(Description = "Loops and callbacks")]

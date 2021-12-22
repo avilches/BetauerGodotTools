@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using Godot;
 using NUnit.Framework;
-using Tools;
 using Tools.Bus;
 using Tools.Bus.Topics;
 
-namespace Veronenger.Tests {
+namespace Tools.Tests {
     [TestFixture]
     public class GodotTopicTests : Node {
         [SetUp]

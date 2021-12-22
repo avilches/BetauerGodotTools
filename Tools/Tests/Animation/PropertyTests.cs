@@ -1,15 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using Tools;
 using Tools.Animation;
-using Veronenger.Tests.Runner;
 using Vector2 = Godot.Vector2;
 
-namespace Veronenger.Tests.Animation {
+namespace Tools.Tests.Animation {
     [TestFixture]
     public class PropertyTests : Node {
         public async Task<Sprite> CreateSprite() {

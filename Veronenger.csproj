@@ -6,23 +6,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="Tools/**" />
-    <Compile Remove=".mono\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Characters" />
-    <Folder Include="Scenes" />
-    <Folder Include="Worlds" />
+    <Compile Remove=".mono/**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Tools/Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Remove=".mono\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+    <EmbeddedResource Remove=".mono/**" />
   </ItemGroup>
 </Project>

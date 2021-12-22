@@ -2,11 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using Tools;
 using Tools.Animation;
 using Vector2 = Godot.Vector2;
 
-namespace Veronenger.Tests.Animation {
+namespace Tools.Tests.Animation {
     [TestFixture]
     public class PropertyTweenerTests : Node {
         public async Task<Sprite> CreateSprite() {
