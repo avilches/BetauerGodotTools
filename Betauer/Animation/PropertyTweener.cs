@@ -172,6 +172,11 @@ namespace Betauer.Animation {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return false;
             }
+            if (!property.IsCompatibleWith(target)) {
+                Logger.Warning(
+                    $"Can't create InterpolateProperty in a not compatible node {target.GetType()} with the property {property}");
+                return false;
+            }
             return true;
         }
 
