@@ -1,14 +1,14 @@
 using Godot;
-using Tools;
-using Tools.Animation;
-using Tools.Bus.Topics;
-using Tools.Input;
-using Tools.Statemachine;
+using Betauer;
+using Betauer.Animation;
+using Betauer.Bus.Topics;
+using Betauer.Input;
+using Betauer.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers;
-using Timer = Tools.Timer;
+using Timer = Betauer.Timer;
 
 namespace Veronenger.Game.Controller.Character {
     public sealed class PlayerController : DiKinematicBody2D {

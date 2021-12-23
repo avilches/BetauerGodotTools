@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
-using Tools.TestRunner;
+using Betauer.TestRunner;
 
 namespace Veronenger.Tests.Runner {
     public class TestRunnerController : Node {

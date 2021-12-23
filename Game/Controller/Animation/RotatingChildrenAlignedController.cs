@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Tools;
-using Tools.Animation;
-using Tools.Effects.Deprecated;
+using Betauer;
+using Betauer.Animation;
+using Betauer.Effects.Deprecated;
 using Veronenger.Game.Managers;
-using static Tools.GodotConstants;
-using static Tools.GodotTools;
+using static Betauer.GodotConstants;
 
 namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenAlignedController : DiNode2D {

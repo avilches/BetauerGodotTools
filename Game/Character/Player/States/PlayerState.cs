@@ -1,7 +1,7 @@
 using Godot;
-using Tools;
-using Tools.Input;
-using Tools.Statemachine;
+using Betauer;
+using Betauer.Input;
+using Betauer.Statemachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 

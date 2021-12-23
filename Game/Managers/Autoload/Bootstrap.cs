@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using Godot;
-using Tools;
-using Tools.Animation;
-using Tools.Bus;
+using Betauer;
+using Betauer.Animation;
+using Betauer.Bus;
 using Veronenger.Game.Controller.Stage;
 using Veronenger.Game.Tools.Resolution;
-using TraceLevel = Tools.TraceLevel;
+using TraceLevel = Betauer.TraceLevel;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 

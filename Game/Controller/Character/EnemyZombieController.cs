@@ -1,8 +1,8 @@
 using System;
 using Godot;
-using Tools;
-using Tools.Animation;
-using Tools.Statemachine;
+using Betauer;
+using Betauer.Animation;
+using Betauer.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Character.Enemy.States;

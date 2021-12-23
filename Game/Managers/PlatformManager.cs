@@ -1,11 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using Godot;
-using Tools;
-using Tools.Bus;
-using Tools.Bus.Topics;
+using Betauer;
+using Betauer.Bus;
+using Betauer.Bus.Topics;
 using static Veronenger.Game.Tools.LayerConstants;
-using static Tools.GodotTools;
 
 namespace Veronenger.Game.Managers {
 

@@ -1,6 +1,7 @@
+using System;
 using Godot;
-using Tools;
-using Tools.Animation;
+using Betauer;
+using Betauer.Animation;
 
 namespace Veronenger.Game.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
@@ -17,7 +18,7 @@ namespace Veronenger.Game.Managers.Autoload {
             return CharacterManager.IsPlayer(player);
         }
 
-        public void Animate(Node2D node, string animation, float duration) {
+        public void Animate(Node node, string animation, float duration) {
 
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
 

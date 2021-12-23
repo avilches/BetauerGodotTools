@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Godot;
-using Tools;
-using Tools.Animation;
+using Betauer;
+using Betauer.Animation;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {

@@ -1,6 +1,5 @@
 using Godot;
-using Tools;
-using Veronenger.Game.Managers;
+using Betauer;
 using static Godot.Mathf;
 
 // https://github.com/Yukitty/godot-addon-integer_resolution_handler

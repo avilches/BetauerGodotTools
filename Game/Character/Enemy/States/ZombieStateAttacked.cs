@@ -1,5 +1,5 @@
-using Tools;
-using Tools.Statemachine;
+using Betauer;
+using Betauer.Statemachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 

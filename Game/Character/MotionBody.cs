@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 using Godot;
-using Tools;
+using Betauer;
 using Veronenger.Game.Managers;
-using TraceLevel = Tools.TraceLevel;
+using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
     public class MotionBody : Di, IFlipper {

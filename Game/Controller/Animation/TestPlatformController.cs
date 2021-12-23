@@ -1,9 +1,7 @@
-using System.Diagnostics;
 using Godot;
-using Tools;
-using Tools.Animation;
-using Tools.Effects.Deprecated;
-using TweenPlayer = Tools.Animation.TweenPlayer;
+using Betauer;
+using Betauer.Animation;
+using TweenPlayer = Betauer.Animation.TweenPlayer;
 
 namespace Veronenger.Game.Controller.Animation {
     public class TestPlatformController : DiNode2D {

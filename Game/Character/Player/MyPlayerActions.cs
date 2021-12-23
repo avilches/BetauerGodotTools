@@ -1,5 +1,5 @@
 using Godot;
-using Tools.Input;
+using Betauer.Input;
 
 namespace Veronenger.Game.Character.Player {
     public class MyPlayerActions : PlayerActions {

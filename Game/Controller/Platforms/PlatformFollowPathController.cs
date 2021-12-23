@@ -1,6 +1,6 @@
 using System;
 using Godot;
-using Tools;
+using Betauer;
 
 namespace Veronenger.Game.Controller.Platforms {
 	public class PlatformFollowPathController : PlatformController {
