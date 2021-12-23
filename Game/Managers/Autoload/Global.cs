@@ -22,7 +22,11 @@ namespace Veronenger.Game.Managers.Autoload {
 
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
 
-            TweenPlayer.With(node, Template.Get(animation), duration).Start();
+            try {
+                // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
+                TweenPlayer.With(node, Template.Get(animation), duration).Start();
+            } catch (Exception) {
+            }
 
             // TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
             //     .ImportTemplate(Template.bounce, node)
