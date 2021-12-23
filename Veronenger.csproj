@@ -25,7 +25,4 @@
         <Content Include="Docs\*"/>
         <Content Include="Characters\*"/>
     </ItemGroup>
-    <ItemGroup>
-        <Folder Include=".mono"/>
-    </ItemGroup>
 </Project>
