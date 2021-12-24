@@ -13,8 +13,10 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate Jello => JelloFactory.Get();
         public static TweenSequenceTemplate Pulse => PulseFactory.Get();
         public static TweenSequenceTemplate RubberBand => RubberBandFactory.Get();
+        public static TweenSequenceTemplate Shake => ShakeFactory.Get();
         public static TweenSequenceTemplate ShakeX => ShakeXFactory.Get();
         public static TweenSequenceTemplate ShakeY => ShakeYFactory.Get();
+        public static TweenSequenceTemplate Swing => SwingFactory.Get();
 
         private static readonly TemplateFactory BounceFactory;
         private static readonly TemplateFactory FlashFactory;
@@ -23,8 +25,10 @@ namespace Betauer.Animation {
         private static readonly TemplateFactory JelloFactory;
         private static readonly TemplateFactory PulseFactory;
         private static readonly TemplateFactory RubberBandFactory;
+        private static readonly TemplateFactory ShakeFactory;
         private static readonly TemplateFactory ShakeXFactory;
         private static readonly TemplateFactory ShakeYFactory;
+        private static readonly TemplateFactory SwingFactory;
 
         private static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -38,8 +42,10 @@ namespace Betauer.Animation {
             JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
             PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
             RubberBandFactory = new TemplateFactory(nameof(RubberBand), Templates.RubberBand);
+            ShakeFactory = new TemplateFactory(nameof(Shake), Templates.Shake);
             ShakeXFactory = new TemplateFactory(nameof(ShakeX), Templates.ShakeX);
             ShakeYFactory = new TemplateFactory(nameof(ShakeY), Templates.ShakeY);
+            SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
         }
 
         private class TemplateFactory {
@@ -211,8 +217,27 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate ShakeX() {
+            internal static TweenSequenceTemplate Shake() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.Position2D)
+                    .KeyframeOffset(0.10f, new Vector2(-10f, -10f))
+                    .KeyframeOffset(0.20f, new Vector2(+10f, +10f))
+                    .KeyframeOffset(0.30f, new Vector2(-10f, -10f))
+                    .KeyframeOffset(0.40f, new Vector2(+10f, +10f))
+                    .KeyframeOffset(0.50f, new Vector2(-10f, -10f))
+                    .KeyframeOffset(0.60f, new Vector2(+10f, +10f))
+                    .KeyframeOffset(0.70f, new Vector2(-10f, -10f))
+                    .KeyframeOffset(0.80f, new Vector2(+10f, +10f))
+                    .KeyframeOffset(0.90f, new Vector2(-10f, -10f))
+                    .KeyframeOffset(1.00f, Vector2.Zero) // a relative offset 0 returns to the original value
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate ShakeX() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeX.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateRelativeKeys(property: Property.PositionX)
@@ -231,7 +256,7 @@ namespace Betauer.Animation {
             }
 
             internal static TweenSequenceTemplate ShakeY() {
-                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeY.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateRelativeKeys(property: Property.PositionY)
@@ -245,6 +270,22 @@ namespace Betauer.Animation {
                     .KeyframeOffset(0.80f, +10f)
                     .KeyframeOffset(0.90f, -10f)
                     .KeyframeOffset(1.00f, 0f) // a relative offset 0 returns to the original value
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate Swing() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.RotateCenter)
+                    .From(0)
+                    .KeyframeOffset(0.0f, 0, node => node.SetPivotCenter())
+                    .KeyframeOffset(0.2f, +15)
+                    .KeyframeOffset(0.4f, -10)
+                    .KeyframeOffset(0.6f, +5)
+                    .KeyframeOffset(0.8f, -5)
+                    .KeyframeOffset(1.0f, 0)
                     .EndAnimate()
                     .BuildTemplate();
             }

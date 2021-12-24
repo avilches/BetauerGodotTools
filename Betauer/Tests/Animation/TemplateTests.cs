@@ -15,8 +15,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.Jello, Is.EqualTo(Template.Get("jEllo")));
             Assert.That(Template.Pulse, Is.EqualTo(Template.Get("pUlse")));
             Assert.That(Template.RubberBand, Is.EqualTo(Template.Get("rUbberband")));
+            Assert.That(Template.Shake, Is.EqualTo(Template.Get("sHake")));
             Assert.That(Template.ShakeX, Is.EqualTo(Template.Get("sHakex")));
             Assert.That(Template.ShakeY, Is.EqualTo(Template.Get("sHakey")));
+            Assert.That(Template.Swing, Is.EqualTo(Template.Get("sWing")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {
