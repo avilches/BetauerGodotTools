@@ -9,9 +9,16 @@ using Vector2 = Godot.Vector2;
 namespace Betauer.Tests.Animation {
     [TestFixture]
     public class PropertyTests : Node {
-        public async Task<Sprite> CreateSprite() {
+        public async Task<Sprite> CreateSprite(int width = 100) {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
+            var gradientTexture = new GradientTexture();
+            sprite.Texture = gradientTexture;
+            gradientTexture.Width = width;
+            var gradient = new Gradient();
+            gradient.AddPoint(0, Colors.Aqua);
+            gradient.AddPoint(20, Colors.Red);
+            gradientTexture.Gradient = gradient;
             AddChild(sprite);
             await this.AwaitIdleFrame();
             return sprite;
@@ -39,6 +46,13 @@ namespace Betauer.Tests.Animation {
             await this.AwaitIdleFrame();
             return control;
         }
+
+        [Test]
+        public async Task InternalTest_CreateSpriteWithTextureSize() {
+            var sprite = await CreateSprite(300);
+            Assert.That(sprite.GetSpriteSize().x, Is.EqualTo(300));
+        }
+
 
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
@@ -88,6 +102,25 @@ namespace Betauer.Tests.Animation {
 
         }
 
+            var control = await CreateLabel();
+            control.RectPosition = Vector2.Zero;
+            await CreateTweenPropertyVariants(control, Property.PositionXPercent, percentFrom, percentTo);
+            Assert.That(control.RectPosition.x, Is.EqualTo(endPosition));
+
+            // control.RectPosition = Vector2.Zero;
+            // await CreateTweenPropertyVariants(control, Property.PositionY, from, percent);
+            // Assert.That(control.RectPosition.y, Is.EqualTo(to));
+
+            var node = await CreateNode();
+            await CreateEmptyTweenPropertyVariants(node, Property.PositionXPercent, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PositionXPercent, percentFrom, percentTo);
+
+            var node2D = await CreateNode2D();
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
+
+        }
+*/
         [Test(Description = "Property ScaleX, ScaleY")]
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
@@ -222,11 +255,44 @@ namespace Betauer.Tests.Animation {
 
         public Vector2 follow;
 
-        [Test(Description = "BasicProperty")]
+        [Test(Description = "Custom IndexedProperty")]
         public async Task TweenPropertyBasicPropertyString() {
-            var prop = (Property<Vector2>)"follow";
+            var prop = (IndexedProperty<Vector2>)"follow";
             await CreateTweenPropertyVariants(this, prop, Vector2.Zero, Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
+        }
+
+        /**
+         * Callbacks
+         */
+        [Test(Description = "non IndexedProperty using the SetVale as a callback tween")]
+        [Only]
+        public async Task TweenSequenceStepsToWithCallbackProperty() {
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sprite = await CreateSprite();
+            var callbackProperty = new CallbackProperty();
+            Assert.That(callbackProperty.Calls, Is.EqualTo(0));
+
+            await CreateTweenPropertyVariants(sprite, callbackProperty, 0, -90);
+
+            Assert.That(callbackProperty.Calls, Is.GreaterThan(0));
+            Assert.That(sprite.Position.x, Is.EqualTo(-90));
+        }
+
+        private class CallbackProperty : IProperty<float> {
+            public int Calls = 0;
+            public float GetValue(Node node) {
+                return (float)node.GetIndexed("position:x");
+            }
+
+            public bool IsCompatibleWith(Node node) {
+                return true;
+            }
+
+            public void SetValue(Node node, float value) {
+                Calls++;
+                node.SetIndexed("position:x", value);
+            }
         }
 
         private static async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
@@ -282,13 +348,6 @@ namespace Betauer.Tests.Animation {
             sprite.GlobalPosition = original;
             sprite.Offset = original;
             sprite.Scale = original;
-            var gradientTexture = new GradientTexture();
-            sprite.Texture = gradientTexture;
-            gradientTexture.Width = 300;
-            var gradient = new Gradient();
-            gradient.AddPoint(0, Colors.Aqua);
-            gradient.AddPoint(20, Colors.Red);
-            gradientTexture.Gradient = gradient;
             GD.Print(sprite.Offset);
             GD.Print(sprite.GlobalPosition);
             await this.AwaitIdleFrame();

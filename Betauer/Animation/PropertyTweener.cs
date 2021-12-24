@@ -207,9 +207,7 @@ namespace Betauer.Animation {
         }
 
         private static void RunCurveBezierStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
-            TProperty to,
-            float start,
-            float duration, BezierCurve bezierCurve) {
+            TProperty to, float start, float duration, BezierCurve bezierCurve) {
             TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
                 delegate(float linearY) {
                     var curveY = bezierCurve.GetY(linearY);
@@ -222,9 +220,8 @@ namespace Betauer.Animation {
         }
 
         private static void RunEasingStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
-            TProperty to, float start,
-            float duration, GodotEasing godotEasing) {
-            if (property is IndexedProperty<TProperty> basicProperty) {
+            TProperty to, float start, float duration, GodotEasing godotEasing) {
+            if (property is IIndexedProperty<TProperty> basicProperty) {
                 tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
             } else {

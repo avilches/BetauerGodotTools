@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
+using Betauer.TestRunner;
 using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
@@ -442,6 +443,26 @@ namespace Betauer.Tests.Animation {
             AssertStep(steps[2], -10f, 80, 1.6f, 0.4f, Easing.LinearInOut);
 
             Assert.That(sprite.Position.x, Is.EqualTo(80)); // returns to the original value
+        }
+
+        /**
+         * Callbacks
+         */
+        [Test(Description = "with bezier curve using the SetVale as a callback tween")]
+        public async Task TweenSequenceStepsToWithBezier() {
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sprite = await CreateSprite();
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(sprite, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, BezierCurve.Create(Vector2.One, Vector2.One))
+                // Add the same absolute step is allowed, it can be used as pause and as a callback
+                .To(-90, 0.2f)
+                .EndAnimate()
+                .Play(sprite)
+                .Await();
+
+            Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
         private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, Easing easing) {
