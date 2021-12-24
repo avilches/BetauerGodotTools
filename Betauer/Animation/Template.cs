@@ -150,7 +150,7 @@ namespace Betauer.Animation {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateRelativeKeys(property: Property.SkewX)
-                    .KeyframeOffset(0.000f, 0f, node => node.SetPivotCenter())
+                    .KeyframeOffset(0.000f, 0f)
                     .KeyframeOffset(0.111f, 0f)
                     .KeyframeOffset(0.222f, -0.3f)
                     .KeyframeOffset(0.333f, +0.265f)
@@ -189,7 +189,7 @@ namespace Betauer.Animation {
             }
 
             internal static TweenSequenceTemplate RubberBand() {
-                https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.Scale2D)
