@@ -13,6 +13,8 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate Jello => JelloFactory.Get();
         public static TweenSequenceTemplate Pulse => PulseFactory.Get();
         public static TweenSequenceTemplate RubberBand => RubberBandFactory.Get();
+        public static TweenSequenceTemplate ShakeX => ShakeXFactory.Get();
+        public static TweenSequenceTemplate ShakeY => ShakeYFactory.Get();
 
         private static readonly TemplateFactory BounceFactory;
         private static readonly TemplateFactory FlashFactory;
@@ -21,8 +23,11 @@ namespace Betauer.Animation {
         private static readonly TemplateFactory JelloFactory;
         private static readonly TemplateFactory PulseFactory;
         private static readonly TemplateFactory RubberBandFactory;
+        private static readonly TemplateFactory ShakeXFactory;
+        private static readonly TemplateFactory ShakeYFactory;
 
-        private static readonly Dictionary<string, TemplateFactory> Factories = new Dictionary<string, TemplateFactory>();
+        private static readonly Dictionary<string, TemplateFactory> Factories =
+            new Dictionary<string, TemplateFactory>();
 
         static Template() {
             BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
@@ -33,6 +38,8 @@ namespace Betauer.Animation {
             JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
             PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
             RubberBandFactory = new TemplateFactory(nameof(RubberBand), Templates.RubberBand);
+            ShakeXFactory = new TemplateFactory(nameof(ShakeX), Templates.ShakeX);
+            ShakeYFactory = new TemplateFactory(nameof(ShakeY), Templates.ShakeY);
         }
 
         private class TemplateFactory {
@@ -159,7 +166,7 @@ namespace Betauer.Animation {
                     .KeyframeOffset(0.666f, -0.033125f)
                     .KeyframeOffset(0.777f, +0.0165625f)
                     .KeyframeOffset(0.888f, -0.00828125f)
-                    .KeyframeOffset(1.000f, 0f)
+                    .KeyframeOffset(1.000f, 0f) // a relative offset 0 returns to the original value
                     .EndAnimate()
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.SkewY)
@@ -171,7 +178,7 @@ namespace Betauer.Animation {
                     .KeyframeOffset(0.666f, -0.033125f)
                     .KeyframeOffset(0.777f, +0.0165625f)
                     .KeyframeOffset(0.888f, -0.00828125f)
-                    .KeyframeOffset(1.000f, 0f)
+                    .KeyframeOffset(1.000f, 0f) // a relative offset 0 returns to the original value
                     .EndAnimate()
                     .BuildTemplate();
             }
@@ -200,6 +207,44 @@ namespace Betauer.Animation {
                     .KeyframeTo(0.65f, new Vector2(0.95f, 1.05f))
                     .KeyframeTo(0.75f, new Vector2(1.05f, 0.95f))
                     .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate ShakeX() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.10f, -10f)
+                    .KeyframeOffset(0.20f, +10f)
+                    .KeyframeOffset(0.30f, -10f)
+                    .KeyframeOffset(0.40f, +10f)
+                    .KeyframeOffset(0.50f, -10f)
+                    .KeyframeOffset(0.60f, +10f)
+                    .KeyframeOffset(0.70f, -10f)
+                    .KeyframeOffset(0.80f, +10f)
+                    .KeyframeOffset(0.90f, -10f)
+                    .KeyframeOffset(1.00f, 0f) // a relative offset 0 returns to the original value
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate ShakeY() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.10f, -10f)
+                    .KeyframeOffset(0.20f, +10f)
+                    .KeyframeOffset(0.30f, -10f)
+                    .KeyframeOffset(0.40f, +10f)
+                    .KeyframeOffset(0.50f, -10f)
+                    .KeyframeOffset(0.60f, +10f)
+                    .KeyframeOffset(0.70f, -10f)
+                    .KeyframeOffset(0.80f, +10f)
+                    .KeyframeOffset(0.90f, -10f)
+                    .KeyframeOffset(1.00f, 0f) // a relative offset 0 returns to the original value
                     .EndAnimate()
                     .BuildTemplate();
             }
