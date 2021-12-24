@@ -18,6 +18,7 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate ShakeY => ShakeYFactory.Get();
         public static TweenSequenceTemplate Swing => SwingFactory.Get();
         public static TweenSequenceTemplate Tada => TadaFactory.Get();
+        public static TweenSequenceTemplate Wobble => WobbleFactory.Get();
 
         private static readonly TemplateFactory BounceFactory;
         private static readonly TemplateFactory FlashFactory;
@@ -31,6 +32,7 @@ namespace Betauer.Animation {
         private static readonly TemplateFactory ShakeYFactory;
         private static readonly TemplateFactory SwingFactory;
         private static readonly TemplateFactory TadaFactory;
+        private static readonly TemplateFactory WobbleFactory;
 
         private static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -49,6 +51,7 @@ namespace Betauer.Animation {
             ShakeYFactory = new TemplateFactory(nameof(ShakeY), Templates.ShakeY);
             SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
             TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
+            WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
         }
 
         private class TemplateFactory {
@@ -276,6 +279,7 @@ namespace Betauer.Animation {
             }
 
             internal static TweenSequenceTemplate Swing() {
+                // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control, not Node2D as RotateCenter is validatin
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
@@ -289,6 +293,7 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .BuildTemplate();
             }
+
             internal static TweenSequenceTemplate Tada() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/tada.css
                 return TweenSequenceBuilder.Create()
@@ -310,6 +315,31 @@ namespace Betauer.Animation {
                     .KeyframeOffset(0.7f, +3f)
                     .KeyframeOffset(0.8f, -3f)
                     .KeyframeOffset(0.9f, +3f)
+                    .KeyframeOffset(1.0f, 0)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate Wobble() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/wobble.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateRelativeKeys(property: Property.PositionXPercent)
+                    .KeyframeOffset(0.00f, +0.00f, node => node.SetPivotTopCenter())
+                    .KeyframeOffset(0.15f, -0.25f)
+                    .KeyframeOffset(0.30f, +0.20f)
+                    .KeyframeOffset(0.45f, -0.15f)
+                    .KeyframeOffset(0.60f, +0.10f)
+                    .KeyframeOffset(0.75f, -0.05f)
+                    .KeyframeOffset(1.00f, +0.00f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.RotateCenter)
+                    .KeyframeOffset(0.15f, -5f)
+                    .KeyframeOffset(0.30f, +3f)
+                    .KeyframeOffset(0.45f, -3f)
+                    .KeyframeOffset(0.60f, +2f)
+                    .KeyframeOffset(0.75f, -1f)
                     .KeyframeOffset(1.0f, 0)
                     .EndAnimate()
                     .BuildTemplate();
