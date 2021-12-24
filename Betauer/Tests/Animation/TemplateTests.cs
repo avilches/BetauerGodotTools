@@ -14,6 +14,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.HeartBeat, Is.EqualTo(Template.Get("hEartbeat")));
             Assert.That(Template.Jello, Is.EqualTo(Template.Get("jEllo")));
             Assert.That(Template.Pulse, Is.EqualTo(Template.Get("pUlse")));
+            Assert.That(Template.RubberBand, Is.EqualTo(Template.Get("rUbberband")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {

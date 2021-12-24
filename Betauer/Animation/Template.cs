@@ -12,6 +12,7 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate HeartBeat => HeartBeatFactory.Get();
         public static TweenSequenceTemplate Jello => JelloFactory.Get();
         public static TweenSequenceTemplate Pulse => PulseFactory.Get();
+        public static TweenSequenceTemplate RubberBand => RubberBandFactory.Get();
 
         private static readonly TemplateFactory BounceFactory;
         private static readonly TemplateFactory FlashFactory;
@@ -19,6 +20,7 @@ namespace Betauer.Animation {
         private static readonly TemplateFactory HeartBeatFactory;
         private static readonly TemplateFactory JelloFactory;
         private static readonly TemplateFactory PulseFactory;
+        private static readonly TemplateFactory RubberBandFactory;
 
         private static readonly Dictionary<string, TemplateFactory> Factories = new Dictionary<string, TemplateFactory>();
 
@@ -30,6 +32,7 @@ namespace Betauer.Animation {
             HeartBeatFactory = new TemplateFactory(nameof(HeartBeat), Templates.HeartBeat);
             JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
             PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
+            RubberBandFactory = new TemplateFactory(nameof(RubberBand), Templates.RubberBand);
         }
 
         private class TemplateFactory {
@@ -181,6 +184,22 @@ namespace Betauer.Animation {
                     .KeyframeTo(0.0f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.5f, new Vector2(1.05f, 1.05f))
                     .KeyframeTo(1.0f, Vector2.One)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate RubberBand() {
+                https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.30f, new Vector2(1.25f, 0.75f))
+                    .KeyframeTo(0.40f, new Vector2(0.75f, 1.25f))
+                    .KeyframeTo(0.50f, new Vector2(1.15f, 0.85f))
+                    .KeyframeTo(0.65f, new Vector2(0.95f, 1.05f))
+                    .KeyframeTo(0.75f, new Vector2(1.05f, 0.95f))
+                    .KeyframeTo(1.00f, Vector2.One)
                     .EndAnimate()
                     .BuildTemplate();
             }
