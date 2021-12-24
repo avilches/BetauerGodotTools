@@ -339,6 +339,11 @@ namespace Betauer.Animation {
             return this;
         }
 
+        public PropertyKeyStepToBuilder<TProperty, TBuilder>
+            To(TProperty to, float duration, CallbackNode callbackNode) {
+            return To(to, duration, null, callbackNode);
+        }
+
         public PropertyKeyStepToBuilder<TProperty, TBuilder> To(TProperty to, float duration, Easing easing = null,
             CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
@@ -376,6 +381,11 @@ namespace Betauer.Animation {
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
             _fromFunction = node => from;
             return this;
+        }
+
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
+            CallbackNode callbackNode) {
+            return Offset(offset, duration, null, callbackNode);
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
@@ -419,6 +429,11 @@ namespace Betauer.Animation {
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> From(TProperty from) {
             _fromFunction = node => from;
             return this;
+        }
+
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
+            CallbackNode callbackNode) {
+            return KeyframeTo(percentage, to, null, callbackNode);
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
@@ -467,6 +482,11 @@ namespace Betauer.Animation {
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> From(TProperty from) {
             _fromFunction = node => from;
             return this;
+        }
+
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
+            CallbackNode callbackNode) {
+            return KeyframeOffset(percentage, offset, null, callbackNode);
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
