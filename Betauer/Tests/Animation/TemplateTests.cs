@@ -13,6 +13,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.Headshake, Is.EqualTo(Template.Get("headshake")));
             Assert.That(Template.Heartbeat, Is.EqualTo(Template.Get("heartbeat")));
             Assert.That(Template.Jello, Is.EqualTo(Template.Get("jello")));
+            Assert.That(Template.Pulse, Is.EqualTo(Template.Get("pulse")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {

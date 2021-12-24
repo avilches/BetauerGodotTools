@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -9,6 +10,7 @@ namespace Betauer.Animation {
         public static readonly TweenSequenceTemplate Headshake = TemplateHolder.Templates["headshake"].Get();
         public static readonly TweenSequenceTemplate Heartbeat = TemplateHolder.Templates["heartbeat"].Get();
         public static readonly TweenSequenceTemplate Jello = TemplateHolder.Templates["jello"].Get();
+        public static readonly TweenSequenceTemplate Pulse = TemplateHolder.Templates["pulse"].Get();
 
         private static class TemplateHolder {
             internal static readonly Dictionary<string, TemplateFactory> Templates;
@@ -20,6 +22,7 @@ namespace Betauer.Animation {
                     new TemplateFactory("headshake", Headshake),
                     new TemplateFactory("heartbeat", Heartbeat),
                     new TemplateFactory("jello", Jello),
+                    new TemplateFactory("pulse", Pulse),
                 };
                 Templates = new Dictionary<string, TemplateFactory>(factories.Length);
                 foreach (var templateFactory in factories) {
@@ -27,14 +30,12 @@ namespace Betauer.Animation {
                 }
             }
 
-            internal delegate TweenSequenceTemplate TweenSequenceFactory();
-
             internal class TemplateFactory {
-                private readonly TweenSequenceFactory _factory;
+                private readonly Func<TweenSequenceTemplate> _factory;
                 public readonly string Name;
                 private TweenSequenceTemplate _cached;
 
-                public TemplateFactory(string name, TweenSequenceFactory factory) {
+                public TemplateFactory(string name, Func<TweenSequenceTemplate> factory) {
                     Name = name;
                     _factory = factory;
                 }
@@ -110,7 +111,7 @@ namespace Betauer.Animation {
                     .Parallel()
                     .AnimateKeys(property: Property.RotateCenter)
                     .From(0)
-                    .KeyframeTo(0.000f, 0, Easing.LinearInOut, node => node.SetPivotCenter())
+                    .KeyframeTo(0.000f, 0, node => node.SetPivotCenter())
                     .KeyframeTo(0.065f, -9)
                     .KeyframeTo(0.185f, +7)
                     .KeyframeTo(0.315f, -5)
@@ -126,7 +127,7 @@ namespace Betauer.Animation {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.Scale2D)
-                    .KeyframeTo(0.00f, Vector2.One, Easing.LinearIn, node => node.SetPivotCenter())
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.14f, new Vector2(1.3f, 1.3f))
                     .KeyframeTo(0.28f, Vector2.One)
                     .KeyframeTo(0.42f, new Vector2(1.3f, 1.3f))
@@ -142,7 +143,7 @@ namespace Betauer.Animation {
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateRelativeKeys(property: Property.SkewX)
-                    .KeyframeOffset(0.000f, 0f, Easing.LinearInOut, node => node.SetPivotCenter())
+                    .KeyframeOffset(0.000f, 0f, node => node.SetPivotCenter())
                     .KeyframeOffset(0.111f, 0f)
                     .KeyframeOffset(0.222f, -0.3f)
                     .KeyframeOffset(0.333f, +0.265f)
@@ -164,6 +165,18 @@ namespace Betauer.Animation {
                     .KeyframeOffset(0.777f, +0.0165625f)
                     .KeyframeOffset(0.888f, -0.00828125f)
                     .KeyframeOffset(1.000f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            private static TweenSequenceTemplate Pulse() {
+                // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(0.5f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.0f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.5f, new Vector2(1.05f, 1.05f))
+                    .KeyframeTo(1.0f,Vector2.One)
                     .EndAnimate()
                     .BuildTemplate();
             }
