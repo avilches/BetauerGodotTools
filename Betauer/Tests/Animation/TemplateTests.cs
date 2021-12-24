@@ -19,6 +19,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.ShakeX, Is.EqualTo(Template.Get("sHakex")));
             Assert.That(Template.ShakeY, Is.EqualTo(Template.Get("sHakey")));
             Assert.That(Template.Swing, Is.EqualTo(Template.Get("sWing")));
+            Assert.That(Template.Tada, Is.EqualTo(Template.Get("tAda")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {
