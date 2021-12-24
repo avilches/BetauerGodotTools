@@ -8,12 +8,12 @@ namespace Betauer.Tests.Animation {
     public class TemplateTests {
         [Test]
         public void TemplateNamesCheck() {
-            Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bounce")));
-            Assert.That(Template.Flash, Is.EqualTo(Template.Get("flash")));
-            Assert.That(Template.Headshake, Is.EqualTo(Template.Get("headshake")));
-            Assert.That(Template.Heartbeat, Is.EqualTo(Template.Get("heartbeat")));
-            Assert.That(Template.Jello, Is.EqualTo(Template.Get("jello")));
-            Assert.That(Template.Pulse, Is.EqualTo(Template.Get("pulse")));
+            Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bOunce")));
+            Assert.That(Template.Flash, Is.EqualTo(Template.Get("fLash")));
+            Assert.That(Template.HeadShake, Is.EqualTo(Template.Get("hEadshake")));
+            Assert.That(Template.HeartBeat, Is.EqualTo(Template.Get("hEartbeat")));
+            Assert.That(Template.Jello, Is.EqualTo(Template.Get("jEllo")));
+            Assert.That(Template.Pulse, Is.EqualTo(Template.Get("pUlse")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {

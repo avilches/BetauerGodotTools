@@ -4,45 +4,49 @@ using Godot;
 
 namespace Betauer.Animation {
     public static class Template {
-        public static TweenSequenceTemplate Get(string name) => TemplateHolder.Templates[name].Get();
-        public static readonly TweenSequenceTemplate Bounce = TemplateHolder.Templates["bounce"].Get();
-        public static readonly TweenSequenceTemplate Flash = TemplateHolder.Templates["flash"].Get();
-        public static readonly TweenSequenceTemplate Headshake = TemplateHolder.Templates["headshake"].Get();
-        public static readonly TweenSequenceTemplate Heartbeat = TemplateHolder.Templates["heartbeat"].Get();
-        public static readonly TweenSequenceTemplate Jello = TemplateHolder.Templates["jello"].Get();
-        public static readonly TweenSequenceTemplate Pulse = TemplateHolder.Templates["pulse"].Get();
+        public static TweenSequenceTemplate Get(string name) => Factories[name.ToLower()].Get();
 
-        private static class TemplateHolder {
-            internal static readonly Dictionary<string, TemplateFactory> Templates;
+        public static TweenSequenceTemplate Bounce => BounceFactory.Get();
+        public static TweenSequenceTemplate Flash => FlashFactory.Get();
+        public static TweenSequenceTemplate HeadShake => HeadShakeFactory.Get();
+        public static TweenSequenceTemplate HeartBeat => HeartBeatFactory.Get();
+        public static TweenSequenceTemplate Jello => JelloFactory.Get();
+        public static TweenSequenceTemplate Pulse => PulseFactory.Get();
 
-            static TemplateHolder() {
-                TemplateFactory[] factories = {
-                    new TemplateFactory("bounce", Bounce),
-                    new TemplateFactory("flash", Flash),
-                    new TemplateFactory("headshake", Headshake),
-                    new TemplateFactory("heartbeat", Heartbeat),
-                    new TemplateFactory("jello", Jello),
-                    new TemplateFactory("pulse", Pulse),
-                };
-                Templates = new Dictionary<string, TemplateFactory>(factories.Length);
-                foreach (var templateFactory in factories) {
-                    Templates[templateFactory.Name] = templateFactory;
-                }
+        private static readonly TemplateFactory BounceFactory;
+        private static readonly TemplateFactory FlashFactory;
+        private static readonly TemplateFactory HeadShakeFactory;
+        private static readonly TemplateFactory HeartBeatFactory;
+        private static readonly TemplateFactory JelloFactory;
+        private static readonly TemplateFactory PulseFactory;
+
+        private static readonly Dictionary<string, TemplateFactory> Factories = new Dictionary<string, TemplateFactory>();
+
+        static Template() {
+            BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
+            BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
+            FlashFactory = new TemplateFactory(nameof(Flash), Templates.Flash);
+            HeadShakeFactory = new TemplateFactory(nameof(HeadShake), Templates.HeadShake);
+            HeartBeatFactory = new TemplateFactory(nameof(HeartBeat), Templates.HeartBeat);
+            JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
+            PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
+        }
+
+        private class TemplateFactory {
+            private readonly Func<TweenSequenceTemplate> _factory;
+            public readonly string Name;
+            private TweenSequenceTemplate _cached;
+
+            public TemplateFactory(string name, Func<TweenSequenceTemplate> factory) {
+                Name = name;
+                _factory = factory;
+                Factories[name.ToLower()] = this;
             }
 
-            internal class TemplateFactory {
-                private readonly Func<TweenSequenceTemplate> _factory;
-                public readonly string Name;
-                private TweenSequenceTemplate _cached;
+            public TweenSequenceTemplate Get() => _cached ??= _factory();
+        }
 
-                public TemplateFactory(string name, Func<TweenSequenceTemplate> factory) {
-                    Name = name;
-                    _factory = factory;
-                }
-
-                public TweenSequenceTemplate Get() => _cached ??= _factory();
-            }
-
+        private static class Templates {
             private static readonly Dictionary<string, BezierCurve> Beziers = new Dictionary<string, BezierCurve>();
 
             private static BezierCurve Bezier(float p1x, float p1y, float p2x, float p2y) {
@@ -54,7 +58,7 @@ namespace Betauer.Animation {
                 return bezierCurve;
             }
 
-            private static TweenSequenceTemplate Bounce() {
+            internal static TweenSequenceTemplate Bounce() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
@@ -82,7 +86,7 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            private static TweenSequenceTemplate Flash() {
+            internal static TweenSequenceTemplate Flash() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
@@ -96,7 +100,7 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            private static TweenSequenceTemplate Headshake() {
+            internal static TweenSequenceTemplate HeadShake() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
@@ -122,7 +126,7 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            private static TweenSequenceTemplate Heartbeat() {
+            internal static TweenSequenceTemplate HeartBeat() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
@@ -137,7 +141,7 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            private static TweenSequenceTemplate Jello() {
+            internal static TweenSequenceTemplate Jello() {
                 // Ported from the Ceceppa/Anima animation:
                 // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
                 return TweenSequenceBuilder.Create()
@@ -169,14 +173,14 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            private static TweenSequenceTemplate Pulse() {
+            internal static TweenSequenceTemplate Pulse() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(0.5f)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.0f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.5f, new Vector2(1.05f, 1.05f))
-                    .KeyframeTo(1.0f,Vector2.One)
+                    .KeyframeTo(1.0f, Vector2.One)
                     .EndAnimate()
                     .BuildTemplate();
             }
