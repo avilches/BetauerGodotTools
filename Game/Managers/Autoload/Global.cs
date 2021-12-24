@@ -23,6 +23,7 @@ namespace Veronenger.Game.Managers.Autoload {
             GD.Print(node.GetType().Name+" "+node.Name+": "+animation+" "+duration+"s");
 
             try {
+                animation = animation.ReplaceN("_", "");
                 // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
                 TweenPlayer.With(node, Template.Get(animation), duration).Start();
             } catch (Exception) {

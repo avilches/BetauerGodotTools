@@ -154,10 +154,6 @@ namespace Betauer.Animation {
             _defaultEasing = defaultEasing;
         }
 
-        protected TProperty GetFirstFromValue(Node target) {
-            return _fromFunction != null ? _fromFunction(target) : _defaultProperty.GetValue(target);
-        }
-
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
                 throw new Exception("Cant' start an animation with 0 steps or keys");
@@ -180,7 +176,7 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(Tween tween, Node target, IProperty<TProperty> property,
+        protected void RunStep(Tween tween, Node target, IProperty<TProperty> property, TProperty initial,
             TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
             if (duration > 0 && !from.Equals(to)) {
                 easing ??= Easing.LinearInOut;
@@ -192,9 +188,9 @@ namespace Betauer.Animation {
                             " (+" + duration.ToString("F") + ") " + easing.Name);
 
                 if (easing is GodotEasing godotEasing) {
-                    RunEasingStep(tween, target, property, @from, to, start, duration, godotEasing);
+                    RunEasingStep(tween, target, property, initial, from, to, start, duration, godotEasing);
                 } else if (easing is BezierCurve bezierCurve) {
-                    RunCurveBezierStep(tween, target, property, @from, to, start, duration, bezierCurve);
+                    RunCurveBezierStep(tween, target, property, initial, from, to, start, duration, bezierCurve);
                 }
                 if (DebugSteps != null) {
                     DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing, callbackNode));
@@ -206,21 +202,22 @@ namespace Betauer.Animation {
             }
         }
 
-        private static void RunCurveBezierStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
-            TProperty to, float start, float duration, BezierCurve bezierCurve) {
+        private static void RunCurveBezierStep(Tween tween, Node target, IProperty<TProperty> property,
+            TProperty initial,
+            TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
             TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
                 delegate(float linearY) {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                    property.SetValue(target, value);
+                    property.SetValue(target, initial, value);
                 });
             tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
                 0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
         }
 
-        private static void RunEasingStep(Tween tween, Node target, IProperty<TProperty> property, TProperty @from,
-            TProperty to, float start, float duration, GodotEasing godotEasing) {
+        private static void RunEasingStep(Tween tween, Node target, IProperty<TProperty> property, TProperty initial,
+            TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             if (property is IIndexedProperty<TProperty> basicProperty) {
                 tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
@@ -229,7 +226,7 @@ namespace Betauer.Animation {
                     new TweenPropertyMethodHolder<TProperty>(
                         delegate(TProperty value) {
                             // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                            property.SetValue(target, value);
+                            property.SetValue(target, initial, value);
                         });
                 tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
                     @from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
@@ -254,7 +251,8 @@ namespace Betauer.Animation {
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
             // TODO: defaultDuration could be % or absolute or nothing
-            var from = GetFirstFromValue(target);
+            var initialValue = property.GetValue(target);
+            var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
             // var totalDuration = _steps.Sum(step => step.Duration);
@@ -264,7 +262,8 @@ namespace Betauer.Animation {
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var easing = step.Easing ?? _defaultEasing;
-                RunStep(tween, target, property, from, to, initialDelay + startTime, duration, easing,
+                var start = initialDelay + startTime;
+                RunStep(tween, target, property, initialValue, from, to, start, duration, easing,
                     step.CallbackNode);
                 from = to;
                 startTime += duration;
@@ -295,7 +294,8 @@ namespace Betauer.Animation {
             var target = _target ?? defaultTarget;
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
-            var from = GetFirstFromValue(target);
+            var initialValue = property.GetValue(target);
+            var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
             // var percentStart = 0f;
@@ -305,7 +305,8 @@ namespace Betauer.Animation {
                 var keyDuration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing;
                 // var percentEnd = step.Percent;
-                RunStep(tween, target, property, from, to, initialDelay + startTime, keyDuration, easing,
+                var start = initialDelay + startTime;
+                RunStep(tween, target, property, initialValue, from, to, start, keyDuration, easing,
                     step.CallbackNode);
                 from = to;
                 // percentStart = percentEnd;

@@ -2,7 +2,8 @@ using Godot;
 
 namespace Betauer.Animation {
     public static class Property {
-        public static readonly IProperty<Color> Modulate = new ControlOrNode2DIndexedProperty<Color>("modulate", "modulate");
+        public static readonly IProperty<Color> Modulate =
+            new ControlOrNode2DIndexedProperty<Color>("modulate", "modulate");
 
         public static readonly IProperty<float> ModulateR =
             new ControlOrNode2DIndexedProperty<float>("modulate:r", "modulate:r");
@@ -17,20 +18,18 @@ namespace Betauer.Animation {
             Opacity = new ControlOrNode2DIndexedProperty<float>("modulate:a", "modulate:a");
 
         public static readonly IProperty<Vector2> Position2D =
-            new ControlOrNode2DIndexedProperty<Vector2>("position",
-                "rect_position"); // TODO: enable & test ,"global_transform:origin");
+            new ControlOrNode2DIndexedProperty<Vector2>("position", "rect_position");
 
         public static readonly IProperty<float> PositionX =
-            new ControlOrNode2DIndexedProperty<float>("position:x",
-                "rect_position:x"); // TODO: enable & test ,"global_transform:origin:x");
+            new ControlOrNode2DIndexedProperty<float>("position:x", "rect_position:x");
+
+        public static readonly IProperty<float> PositionXPercent = new PositionXPercent();
 
         public static readonly IProperty<float> PositionY =
-            new ControlOrNode2DIndexedProperty<float>("position:y",
-                "rect_position:y"); // TODO: enable & test , "global_transform:origin:y");
+            new ControlOrNode2DIndexedProperty<float>("position:y", "rect_position:y");
 
         public static readonly IProperty<float> PositionZ =
-            new ControlOrNode2DIndexedProperty<float>("position:z",
-                "rect_position:z"); // TODO: enable & test , "global_transform:origin:z");
+            new ControlOrNode2DIndexedProperty<float>("position:z", "rect_position:z");
 
         public static readonly IProperty<Vector2> Scale2D =
             new ControlOrNode2DIndexedProperty<Vector2>("scale", "rect_scale");
@@ -45,8 +44,7 @@ namespace Betauer.Animation {
             new ControlOrNode2DIndexedProperty<float>("scale:z", "rect_scale:z");
 
         public static readonly IProperty<float> RotateCenter =
-            new ControlOrNode2DIndexedProperty<float>("rotation_degrees",
-                "rect_rotation"); // TODO: enable & test , "rotation");
+            new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
 
         public static readonly IProperty<float> SkewX =
             new ControlOrNode2DIndexedProperty<float>("transform:y:x", null);
@@ -60,7 +58,7 @@ namespace Betauer.Animation {
 
     public interface IProperty<TProperty> : IProperty {
         public TProperty GetValue(Node node);
-        public void SetValue(Node node, TProperty value);
+        public void SetValue(Node node, TProperty initialValue, TProperty value);
         public bool IsCompatibleWith(Node node);
     }
 
@@ -85,7 +83,7 @@ namespace Betauer.Animation {
             return (TProperty)node.GetIndexed(GetIndexedProperty(node));
         }
 
-        public void SetValue(Node node, TProperty value) {
+        public void SetValue(Node node, TProperty initialValue, TProperty value) {
             node.SetIndexed(GetIndexedProperty(node), value);
         }
 
@@ -111,11 +109,11 @@ namespace Betauer.Animation {
             return (TProperty)node.GetIndexed(GetIndexedProperty(node));
         }
 
-        public void SetValue(Node node, TProperty value) {
+        public virtual void SetValue(Node node, TProperty initialValue, TProperty value) {
             node.SetIndexed(GetIndexedProperty(node), value);
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public virtual bool IsCompatibleWith(Node node) {
             if (node is Control && _controlProperty != null) return true;
             if (node is Node2D && _node2DProperty != null) return true;
             return false;
@@ -130,6 +128,25 @@ namespace Betauer.Animation {
 
         public override string ToString() {
             return $"Control:{_controlProperty}, Node2D:{_node2DProperty}";
+        }
+    }
+
+    public class PositionXPercent : IProperty<float> {
+        public float GetValue(Node node) {
+            return Property.PositionX.GetValue(node);
+        }
+
+        public void SetValue(Node node, float initialValue, float percent) {
+            if (!IsCompatibleWith(node)) return;
+            var size = node switch {
+                Sprite sprite => sprite.GetSpriteSize(),
+                Control control => control.RectSize,
+            };
+            Property.PositionX.SetValue(node, initialValue, initialValue + (size.x * percent));
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            return node is Control || node is Sprite;
         }
     }
 }

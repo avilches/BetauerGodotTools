@@ -39,9 +39,10 @@ namespace Betauer.Tests.Animation {
             return node;
         }
 
-        public async Task<Label> CreateLabel() {
+        public async Task<Label> CreateLabel(int width = 100) {
             Label control = new Label();
             control.RectPosition = new Vector2(100, 100);
+            control.RectSize = new Vector2(width, width);
             AddChild(control);
             await this.AwaitIdleFrame();
             return control;
@@ -99,17 +100,41 @@ namespace Betauer.Tests.Animation {
             var node = await CreateNode();
             await CreateEmptyTweenPropertyVariants(node, Property.PositionX, from, to);
             await CreateEmptyTweenPropertyVariants(node, Property.PositionY, from, to);
-
         }
 
-            var control = await CreateLabel();
-            control.RectPosition = Vector2.Zero;
-            await CreateTweenPropertyVariants(control, Property.PositionXPercent, percentFrom, percentTo);
-            Assert.That(control.RectPosition.x, Is.EqualTo(endPosition));
+        [Test(Description = "Property PositionXPercent, PositionYPercent")]
+        public async Task TweenPropertyPositionPercentX_Y() {
+            const float percentFrom = 0f;
+            const float percentTo = 0.1f;
+            const float initialPosition = 50f;
+            const float endPosition = 120f;
+            const int width = 300;
 
-            // control.RectPosition = Vector2.Zero;
-            // await CreateTweenPropertyVariants(control, Property.PositionY, from, percent);
-            // Assert.That(control.RectPosition.y, Is.EqualTo(to));
+            var sprite = await CreateSprite(width);
+            sprite.Position = new Vector2(initialPosition, 0);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(sprite, Property.PositionXPercent)
+                .From(percentFrom)
+                .To(percentTo, 0.1f)
+                .To(percentTo * 2, 0.1f)
+                .EndAnimate()
+                .Play(sprite)
+                .Await();
+
+            Assert.That(sprite.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+
+            var control = await CreateLabel(width);
+            control.RectPosition = new Vector2(initialPosition, 0);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(control, Property.PositionXPercent)
+                .From(percentFrom)
+                .To(percentTo, 0.1f)
+                .To(percentTo * 2, 0.1f)
+                .EndAnimate()
+                .Play(control)
+                .Await();
+
+            Assert.That(control.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var node = await CreateNode();
             await CreateEmptyTweenPropertyVariants(node, Property.PositionXPercent, percentFrom, percentTo);
@@ -118,9 +143,8 @@ namespace Betauer.Tests.Animation {
             var node2D = await CreateNode2D();
             await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
             await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
-
         }
-*/
+
         [Test(Description = "Property ScaleX, ScaleY")]
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
@@ -147,7 +171,6 @@ namespace Betauer.Tests.Animation {
             var node = await CreateNode();
             await CreateEmptyTweenPropertyVariants(node, Property.ScaleX, from, to);
             await CreateEmptyTweenPropertyVariants(node, Property.ScaleY, from, to);
-
         }
 
         [Test(Description = "Property SkewX, SkewY")]
@@ -171,7 +194,6 @@ namespace Betauer.Tests.Animation {
             var node = await CreateNode();
             await CreateEmptyTweenPropertyVariants(node, Property.SkewX, from, to);
             await CreateEmptyTweenPropertyVariants(node, Property.SkewY, from, to);
-
         }
 
         [Test(Description = "Property Position2D")]
@@ -242,7 +264,6 @@ namespace Betauer.Tests.Animation {
                 node.Modulate = from;
                 await CreateTweenPropertyVariants(node, Property.Opacity, 0f, 1f);
                 Assert.That(node.Modulate, Is.EqualTo(fromA));
-
             }
 
             await CreateEmptyTweenPropertyVariants(await CreateNode(), Property.Modulate, from, to);
@@ -266,7 +287,6 @@ namespace Betauer.Tests.Animation {
          * Callbacks
          */
         [Test(Description = "non IndexedProperty using the SetVale as a callback tween")]
-        [Only]
         public async Task TweenSequenceStepsToWithCallbackProperty() {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
@@ -289,7 +309,7 @@ namespace Betauer.Tests.Animation {
                 return true;
             }
 
-            public void SetValue(Node node, float value) {
+            public void SetValue(Node node, float initialValue, float value) {
                 Calls++;
                 node.SetIndexed("position:x", value);
             }
@@ -338,7 +358,6 @@ namespace Betauer.Tests.Animation {
             pivotCenterBottom.Rollback();
             GD.Print(control.RectPivotOffset);
             Assert.That(control.RectPivotOffset, Is.EqualTo(original));
-
         }
 
         [Test]
