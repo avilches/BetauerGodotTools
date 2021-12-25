@@ -19,54 +19,41 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate Swing => SwingFactory.Get();
         public static TweenSequenceTemplate Tada => TadaFactory.Get();
         public static TweenSequenceTemplate Wobble => WobbleFactory.Get();
-        public static TweenSequenceTemplate BackInDown => BackInDownFactory.Get();
         public static TweenSequenceTemplate BackInUp => BackInUpFactory.Get();
+        public static TweenSequenceTemplate BackInDown => BackInDownFactory.Get();
         public static TweenSequenceTemplate BackInLeft => BackInLeftFactory.Get();
         public static TweenSequenceTemplate BackInRight => BackInRightFactory.Get();
-
-        private static readonly TemplateFactory BounceFactory;
-        private static readonly TemplateFactory FlashFactory;
-        private static readonly TemplateFactory HeadShakeFactory;
-        private static readonly TemplateFactory HeartBeatFactory;
-        private static readonly TemplateFactory JelloFactory;
-        private static readonly TemplateFactory PulseFactory;
-        private static readonly TemplateFactory RubberBandFactory;
-        private static readonly TemplateFactory ShakeFactory;
-        private static readonly TemplateFactory ShakeXFactory;
-        private static readonly TemplateFactory ShakeYFactory;
-        private static readonly TemplateFactory SwingFactory;
-        private static readonly TemplateFactory TadaFactory;
-        private static readonly TemplateFactory WobbleFactory;
-        private static readonly TemplateFactory BackInDownFactory;
-        private static readonly TemplateFactory BackInUpFactory;
-        private static readonly TemplateFactory BackInLeftFactory;
-        private static readonly TemplateFactory BackInRightFactory;
+        public static TweenSequenceTemplate BackOutUp => BackOutUpFactory.Get();
+        public static TweenSequenceTemplate BackOutDown => BackOutDownFactory.Get();
+        public static TweenSequenceTemplate BackOutLeft => BackOutLeftFactory.Get();
+        public static TweenSequenceTemplate BackOutRight => BackOutRightFactory.Get();
 
         private static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
-        static Template() {
-            BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
-            BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
-            FlashFactory = new TemplateFactory(nameof(Flash), Templates.Flash);
-            HeadShakeFactory = new TemplateFactory(nameof(HeadShake), Templates.HeadShake);
-            HeartBeatFactory = new TemplateFactory(nameof(HeartBeat), Templates.HeartBeat);
-            JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
-            PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
-            RubberBandFactory = new TemplateFactory(nameof(RubberBand), Templates.RubberBand);
-            ShakeFactory = new TemplateFactory(nameof(Shake), Templates.Shake);
-            ShakeXFactory = new TemplateFactory(nameof(ShakeX), Templates.ShakeX);
-            ShakeYFactory = new TemplateFactory(nameof(ShakeY), Templates.ShakeY);
-            SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
-            TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
-            WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
-            BackInDownFactory = new TemplateFactory(nameof(BackInDown), Templates.BackInDown);
-            BackInUpFactory = new TemplateFactory(nameof(BackInUp), Templates.BackInUp);
-            BackInLeftFactory = new TemplateFactory(nameof(BackInLeft), Templates.BackInLeft);
-            BackInRightFactory = new TemplateFactory(nameof(BackInRight), Templates.BackInRight);
-        }
+        public static readonly TemplateFactory BounceFactory = new TemplateFactory(nameof(Bounce), Templates.Bounce);
+        public static readonly TemplateFactory FlashFactory = new TemplateFactory(nameof(Flash), Templates.Flash);
+        public static readonly TemplateFactory HeadShakeFactory = new TemplateFactory(nameof(HeadShake), Templates.HeadShake);
+        public static readonly TemplateFactory HeartBeatFactory = new TemplateFactory(nameof(HeartBeat), Templates.HeartBeat);
+        public static readonly TemplateFactory JelloFactory = new TemplateFactory(nameof(Jello), Templates.Jello);
+        public static readonly TemplateFactory PulseFactory = new TemplateFactory(nameof(Pulse), Templates.Pulse);
+        public static readonly TemplateFactory RubberBandFactory = new TemplateFactory(nameof(RubberBand), Templates.RubberBand);
+        public static readonly TemplateFactory ShakeFactory = new TemplateFactory(nameof(Shake), Templates.Shake);
+        public static readonly TemplateFactory ShakeXFactory = new TemplateFactory(nameof(ShakeX), Templates.ShakeX);
+        public static readonly TemplateFactory ShakeYFactory = new TemplateFactory(nameof(ShakeY), Templates.ShakeY);
+        public static readonly TemplateFactory SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
+        public static readonly TemplateFactory TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
+        public static readonly TemplateFactory WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
+        public static readonly TemplateFactory BackInUpFactory = new TemplateFactory(nameof(BackInUp), Templates.BackInUp);
+        public static readonly TemplateFactory BackInDownFactory = new TemplateFactory(nameof(BackInDown), Templates.BackInDown);
+        public static readonly TemplateFactory BackInLeftFactory = new TemplateFactory(nameof(BackInLeft), Templates.BackInLeft);
+        public static readonly TemplateFactory BackInRightFactory = new TemplateFactory(nameof(BackInRight), Templates.BackInRight);
+        public static readonly TemplateFactory BackOutUpFactory = new TemplateFactory(nameof(BackOutUp), Templates.BackOutUp);
+        public static readonly TemplateFactory BackOutDownFactory = new TemplateFactory(nameof(BackOutDown), Templates.BackOutDown);
+        public static readonly TemplateFactory BackOutLeftFactory = new TemplateFactory(nameof(BackOutLeft), Templates.BackOutLeft);
+        public static readonly TemplateFactory BackOutRightFactory = new TemplateFactory(nameof(BackOutRight), Templates.BackOutRight);
 
-        private class TemplateFactory {
+        public class TemplateFactory {
             private readonly Func<TweenSequenceTemplate> _factory;
             public readonly string Name;
             private TweenSequenceTemplate _cached;
@@ -80,7 +67,7 @@ namespace Betauer.Animation {
             public TweenSequenceTemplate Get() => _cached ??= _factory();
         }
 
-        private static class Templates {
+        internal static class Templates {
             private static readonly Dictionary<string, BezierCurve> Beziers = new Dictionary<string, BezierCurve>();
 
             private static BezierCurve Bezier(float p1x, float p1y, float p2x, float p2y) {
@@ -358,6 +345,30 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
+            internal static TweenSequenceTemplate BackInUp() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.7f)
+                    .KeyframeTo(0.80f, 0.7f)
+                    .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, +1200f)
+                    .KeyframeOffset(0.80f, 0f)
+                    .KeyframeOffset(1.00f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
             internal static TweenSequenceTemplate BackInDown() {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
                 return TweenSequenceBuilder.Create()
@@ -382,55 +393,8 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackInUp() {
-                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
-                return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
-                    .AnimateKeys(property: Property.Scale2D)
-                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
-                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
-                    .KeyframeTo(1.00f, Vector2.One)
-                    .EndAnimate()
-                    .Parallel()
-                    .AnimateKeys(property: Property.Opacity)
-                    .KeyframeTo(0.00f, 0.7f)
-                    .KeyframeTo(0.80f, 0.7f)
-                    .KeyframeTo(1.00f, 1)
-                    .EndAnimate()
-                    .Parallel()
-                    .AnimateRelativeKeys(property: Property.PositionY)
-                    .KeyframeOffset(0.00f, +1200f)
-                    .KeyframeOffset(0.80f, 0f)
-                    .KeyframeOffset(1.00f, 0f)
-                    .EndAnimate()
-                    .BuildTemplate();
-            }
-
-            internal static TweenSequenceTemplate BackInRight() {
-                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
-                return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
-                    .AnimateKeys(property: Property.Scale2D)
-                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
-                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
-                    .KeyframeTo(1.00f, Vector2.One)
-                    .EndAnimate()
-                    .Parallel()
-                    .AnimateKeys(property: Property.Opacity)
-                    .KeyframeTo(0.00f, 0.7f)
-                    .KeyframeTo(0.80f, 0.7f)
-                    .KeyframeTo(1.00f, 1)
-                    .EndAnimate()
-                    .Parallel()
-                    .AnimateRelativeKeys(property: Property.PositionX)
-                    .KeyframeOffset(0.00f, +2000f)
-                    .KeyframeOffset(0.80f, 0f)
-                    .KeyframeOffset(1.00f, 0f)
-                    .EndAnimate()
-                    .BuildTemplate();
-            }
             internal static TweenSequenceTemplate BackInLeft() {
-                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
                     .AnimateKeys(property: Property.Scale2D)
@@ -452,6 +416,128 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .BuildTemplate();
             }
+
+            internal static TweenSequenceTemplate BackInRight() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.7f)
+                    .KeyframeTo(0.80f, 0.7f)
+                    .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, +2000f)
+                    .KeyframeOffset(0.80f, 0f)
+                    .KeyframeOffset(1.00f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackOutUp() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, new Vector2(0.7f, 0.7f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 1)
+                    .KeyframeTo(0.20f, 0.7f)
+                    .KeyframeTo(1.00f, 0.7f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, 0f)
+                    .KeyframeOffset(0.20f, 0f)
+                    .KeyframeOffset(1.00f, -700f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackOutDown() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, new Vector2(0.7f, 0.7f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 1)
+                    .KeyframeTo(0.20f, 0.7f)
+                    .KeyframeTo(1.00f, 0.7f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, 0f)
+                    .KeyframeOffset(0.20f, 0f)
+                    .KeyframeOffset(1.00f, +700f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackOutLeft() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, new Vector2(0.7f, 0.7f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 1)
+                    .KeyframeTo(0.20f, 0.7f)
+                    .KeyframeTo(1.00f, 0.7f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, 0f)
+                    .KeyframeOffset(0.20f, 0f)
+                    .KeyframeOffset(1.00f, -2000f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackOutRight() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                    .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, new Vector2(0.7f, 0.7f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 1)
+                    .KeyframeTo(0.20f, 0.7f)
+                    .KeyframeTo(1.00f, 0.7f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, 0f)
+                    .KeyframeOffset(0.20f, 0f)
+                    .KeyframeOffset(1.00f, +2000f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+
         }
     }
 }

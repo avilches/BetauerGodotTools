@@ -2,7 +2,7 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 	var y_frames = [
 		{ percentage = 0, to = 0 },
 		{ percentage = 20, to = 0 },
-		{ percentage = 100, to = 700 },
+		{ percentage = 100, to = -700 },
 	]
 
 	var scale_frames = [
