@@ -24,9 +24,13 @@ namespace Veronenger.Game.Managers.Autoload {
 
             try {
                 animation = animation.ReplaceN("_", "");
+                animation = animation.ReplaceN("bouncing", "bounce");
+
                 // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
                 TweenPlayer.With(node, Template.Get(animation), duration).Start();
-            } catch (Exception) {
+            } catch (Exception e) {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
             }
 
             // TweenPlayer tweenPlayer = new TweenPlayer("").NewTween(this)
