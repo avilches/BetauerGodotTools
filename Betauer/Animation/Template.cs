@@ -20,6 +20,9 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate Tada => TadaFactory.Get();
         public static TweenSequenceTemplate Wobble => WobbleFactory.Get();
         public static TweenSequenceTemplate BackInDown => BackInDownFactory.Get();
+        public static TweenSequenceTemplate BackInUp => BackInUpFactory.Get();
+        public static TweenSequenceTemplate BackInLeft => BackInLeftFactory.Get();
+        public static TweenSequenceTemplate BackInRight => BackInRightFactory.Get();
 
         private static readonly TemplateFactory BounceFactory;
         private static readonly TemplateFactory FlashFactory;
@@ -35,6 +38,9 @@ namespace Betauer.Animation {
         private static readonly TemplateFactory TadaFactory;
         private static readonly TemplateFactory WobbleFactory;
         private static readonly TemplateFactory BackInDownFactory;
+        private static readonly TemplateFactory BackInUpFactory;
+        private static readonly TemplateFactory BackInLeftFactory;
+        private static readonly TemplateFactory BackInRightFactory;
 
         private static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -55,6 +61,9 @@ namespace Betauer.Animation {
             TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
             WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
             BackInDownFactory = new TemplateFactory(nameof(BackInDown), Templates.BackInDown);
+            BackInUpFactory = new TemplateFactory(nameof(BackInUp), Templates.BackInUp);
+            BackInLeftFactory = new TemplateFactory(nameof(BackInLeft), Templates.BackInLeft);
+            BackInRightFactory = new TemplateFactory(nameof(BackInRight), Templates.BackInRight);
         }
 
         private class TemplateFactory {
@@ -367,6 +376,77 @@ namespace Betauer.Animation {
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.PositionY)
                     .KeyframeOffset(0.00f, -1200f)
+                    .KeyframeOffset(0.80f, 0f)
+                    .KeyframeOffset(1.00f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackInUp() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.7f)
+                    .KeyframeTo(0.80f, 0.7f)
+                    .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, +1200f)
+                    .KeyframeOffset(0.80f, 0f)
+                    .KeyframeOffset(1.00f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BackInRight() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.7f)
+                    .KeyframeTo(0.80f, 0.7f)
+                    .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, +2000f)
+                    .KeyframeOffset(0.80f, 0f)
+                    .KeyframeOffset(1.00f, 0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+            internal static TweenSequenceTemplate BackInLeft() {
+                // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
+                    .KeyframeTo(1.00f, Vector2.One)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.7f)
+                    .KeyframeTo(0.80f, 0.7f)
+                    .KeyframeTo(1.00f, 1)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, -2000f)
                     .KeyframeOffset(0.80f, 0f)
                     .KeyframeOffset(1.00f, 0f)
                     .EndAnimate()
