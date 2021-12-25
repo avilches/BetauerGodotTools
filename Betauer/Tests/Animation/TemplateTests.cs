@@ -6,6 +6,16 @@ using Betauer.Animation;
 namespace Betauer.Tests.Animation {
     [TestFixture]
     public class TemplateTests {
+        [SetUp]
+        public void SetUp() {
+            Engine.TimeScale = 10;
+        }
+
+        [TearDown]
+        public void TearDown() {
+            Engine.TimeScale = 1;
+        }
+
         [Test]
         public void TemplateNamesCheck() {
             Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bOunce")));

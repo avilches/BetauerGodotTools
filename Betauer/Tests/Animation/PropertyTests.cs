@@ -9,6 +9,16 @@ using Vector2 = Godot.Vector2;
 namespace Betauer.Tests.Animation {
     [TestFixture]
     public class PropertyTests : Node {
+        [SetUp]
+        public void SetUp() {
+            Engine.TimeScale = 10;
+        }
+
+        [TearDown]
+        public void TearDown() {
+            Engine.TimeScale = 1;
+        }
+
         public async Task<Sprite> CreateSprite(int width = 100) {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);

@@ -6,10 +6,22 @@ using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
+using Betauer.TestRunner;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
+    [Only]
     public class TweenPlayerTests : Node {
+        [SetUp]
+        public void SetUp() {
+            Engine.TimeScale = 10;
+        }
+
+        [TearDown]
+        public void TearDown() {
+            Engine.TimeScale = 1;
+        }
+
         [Test(Description = "Loops and callbacks")]
         public async Task TweenPlayerLoops() {
             var firstLoop = 0;
@@ -54,6 +66,8 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Stop and resume callbacks")]
         public async Task TweenPlayerCancelCallbacks() {
+            Engine.TimeScale = 1;
+
             var callback = 0;
             var finished = 0;
 
