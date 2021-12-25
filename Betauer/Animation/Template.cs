@@ -76,6 +76,10 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory<float> BounceInLeftFactory = new TemplateFactory<float>(nameof(BounceInLeft), () => Templates.BounceInLeft(), Templates.BounceInLeft);
         public static readonly TemplateFactory<float> BounceInRightFactory = new TemplateFactory<float>(nameof(BounceInRight), () => Templates.BounceInRight(), Templates.BounceInRight);
 
+        private const float AttentionSeekerDuration = 0.75f; // Animate.css: 1f
+        private const float BackEntranceDuration = 0.75f;  // Animate.css: 1f
+        private const float BounceInDuration = 0.75f;  // Animate.css: 0.75f
+        private const float BounceEntranceDuration = 1f;  // Animate.css: 1f
 
         public class TemplateFactory {
             private readonly Func<TweenSequenceTemplate> _factory;
@@ -123,7 +127,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate Bounce() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.PositionY)
                     .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
                     .KeyframeOffset(0.4f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
@@ -151,7 +155,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate Flash() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateKeys(property: Property.Opacity)
                     .From(1)
                     .KeyframeTo(0.25f, 0)
@@ -165,7 +169,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate HeadShake() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.PositionX)
                     .KeyframeOffset(0.065f, -6)
                     .KeyframeOffset(0.185f, +5)
@@ -190,7 +194,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate HeartBeat() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.14f, new Vector2(1.3f, 1.3f))
@@ -206,7 +210,7 @@ namespace Betauer.Animation {
                 // Ported from the Ceceppa/Anima animation:
                 // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.SkewX)
                     .KeyframeOffset(0.111f, 0f)
                     .KeyframeOffset(0.222f, -0.3f)
@@ -236,7 +240,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate Pulse() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.0f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.5f, new Vector2(1.05f, 1.05f))
@@ -248,7 +252,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate RubberBand() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.30f, new Vector2(1.25f, 0.75f))
@@ -264,7 +268,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate Shake() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.Position2D)
                     .KeyframeOffset(0.10f, new Vector2(-10f, -10f))
                     .KeyframeOffset(0.20f, new Vector2(+10f, +10f))
@@ -283,7 +287,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate ShakeX() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeX.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.PositionX)
                     .KeyframeOffset(0.10f, -10f)
                     .KeyframeOffset(0.20f, +10f)
@@ -302,7 +306,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate ShakeY() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeY.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.PositionY)
                     .KeyframeOffset(0.10f, -10f)
                     .KeyframeOffset(0.20f, +10f)
@@ -322,7 +326,7 @@ namespace Betauer.Animation {
                 // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control, not Node2D as RotateCenter is validatin
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.RotateCenter)
                     .KeyframeOffset(0.0f, 0, node => node.SetPivotTopCenter())
                     .KeyframeOffset(0.2f, +15)
@@ -337,7 +341,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate Tada() {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/tada.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.0f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.1f, new Vector2(0.9f, 0.9f))
@@ -364,7 +368,7 @@ namespace Betauer.Animation {
                 // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/wobble.css
                 // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control (not really needed because PositionXCenter already validate it...)
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(0.5f)
+                    .SetDuration(AttentionSeekerDuration)
                     .AnimateRelativeKeys(property: Property.PositionXPercent)
                     .KeyframeOffset(0.00f, +0.00f, node => node.SetPivotTopCenter())
                     .KeyframeOffset(0.15f, -0.25f)
@@ -389,7 +393,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackInUp(float distance = 1200f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
                     .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -413,7 +417,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackInDown(float distance = 1200f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
                     .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -437,7 +441,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackInLeft(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
                     .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -461,7 +465,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackInRight(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), node => node.SetPivotCenter())
                     .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -485,7 +489,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackOutUp(float distance = 700f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -509,7 +513,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackOutDown(float distance = 700f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -533,7 +537,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackOutLeft(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -557,7 +561,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BackOutRight(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BackEntranceDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
                     .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -581,7 +585,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BounceIn() {
                 // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BounceInDuration)
                     .AnimateKeys(property: Property.Scale2D)
                     .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), node => node.SetPivotCenter())
                     .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -602,7 +606,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BounceInUp(float distance = 3000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BounceEntranceDuration)
                     .AnimateKeys(property: Property.ScaleY)
                     .KeyframeTo(0.00f, 3.000f)
                     .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -630,7 +634,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BounceInDown(float distance = 3000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BounceEntranceDuration)
                     .AnimateKeys(property: Property.ScaleY)
                     .KeyframeTo(0.00f, 3.000f)
                     .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -658,7 +662,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BounceInLeft(float distance = 3000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BounceEntranceDuration)
                     .AnimateKeys(property: Property.ScaleY)
                     .KeyframeTo(0.00f, 3.000f)
                     .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -686,7 +690,7 @@ namespace Betauer.Animation {
             internal static TweenSequenceTemplate BounceInRight(float distance = 3000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
                 return TweenSequenceBuilder.Create()
-                    .SetDuration(1f)
+                    .SetDuration(BounceEntranceDuration)
                     .AnimateKeys(property: Property.ScaleY)
                     .KeyframeTo(0.00f, 3.000f)
                     .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
