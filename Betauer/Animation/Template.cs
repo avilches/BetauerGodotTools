@@ -6,6 +6,13 @@ namespace Betauer.Animation {
     public static class Template {
         public static TweenSequenceTemplate Get(string name) => Factories[name.ToLower()].Get();
 
+        public static TweenSequenceTemplate Get<T>(string name, T data) {
+            var templateFactory = Factories[name.ToLower()];
+            return templateFactory is TemplateFactory<T> templateFactoryTyped
+                ? templateFactoryTyped.Get(data)
+                : templateFactory.Get();
+        }
+
         public static TweenSequenceTemplate Bounce => BounceFactory.Get();
         public static TweenSequenceTemplate Flash => FlashFactory.Get();
         public static TweenSequenceTemplate HeadShake => HeadShakeFactory.Get();
@@ -44,14 +51,14 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
         public static readonly TemplateFactory TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
         public static readonly TemplateFactory WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
-        public static readonly TemplateFactory BackInUpFactory = new TemplateFactory(nameof(BackInUp), Templates.BackInUp);
-        public static readonly TemplateFactory BackInDownFactory = new TemplateFactory(nameof(BackInDown), Templates.BackInDown);
-        public static readonly TemplateFactory BackInLeftFactory = new TemplateFactory(nameof(BackInLeft), Templates.BackInLeft);
-        public static readonly TemplateFactory BackInRightFactory = new TemplateFactory(nameof(BackInRight), Templates.BackInRight);
-        public static readonly TemplateFactory BackOutUpFactory = new TemplateFactory(nameof(BackOutUp), Templates.BackOutUp);
-        public static readonly TemplateFactory BackOutDownFactory = new TemplateFactory(nameof(BackOutDown), Templates.BackOutDown);
-        public static readonly TemplateFactory BackOutLeftFactory = new TemplateFactory(nameof(BackOutLeft), Templates.BackOutLeft);
-        public static readonly TemplateFactory BackOutRightFactory = new TemplateFactory(nameof(BackOutRight), Templates.BackOutRight);
+        public static readonly TemplateFactory<float> BackInUpFactory = new TemplateFactory<float>(nameof(BackInUp), () => Templates.BackInUp(), Templates.BackInUp);
+        public static readonly TemplateFactory<float> BackInDownFactory = new TemplateFactory<float>(nameof(BackInDown), () => Templates.BackInDown(), Templates.BackInDown);
+        public static readonly TemplateFactory<float> BackInLeftFactory = new TemplateFactory<float>(nameof(BackInLeft), () => Templates.BackInLeft(), Templates.BackInLeft);
+        public static readonly TemplateFactory<float> BackInRightFactory = new TemplateFactory<float>(nameof(BackInRight), () => Templates.BackInRight(), Templates.BackInRight);
+        public static readonly TemplateFactory<float> BackOutUpFactory = new TemplateFactory<float>(nameof(BackOutUp), () => Templates.BackOutUp(), Templates.BackOutUp);
+        public static readonly TemplateFactory<float> BackOutDownFactory = new TemplateFactory<float>(nameof(BackOutDown), () => Templates.BackOutDown(), Templates.BackOutDown);
+        public static readonly TemplateFactory<float> BackOutLeftFactory = new TemplateFactory<float>(nameof(BackOutLeft), () => Templates.BackOutLeft(), Templates.BackOutLeft);
+        public static readonly TemplateFactory<float> BackOutRightFactory = new TemplateFactory<float>(nameof(BackOutRight), () => Templates.BackOutRight(), Templates.BackOutRight);
 
         public class TemplateFactory {
             private readonly Func<TweenSequenceTemplate> _factory;
@@ -65,6 +72,23 @@ namespace Betauer.Animation {
             }
 
             public TweenSequenceTemplate Get() => _cached ??= _factory();
+        }
+
+        public class TemplateFactory<T> : TemplateFactory {
+            private readonly Func<TweenSequenceTemplate> _factory;
+            private readonly Func<T, TweenSequenceTemplate> _factory1P;
+            private Dictionary<object, TweenSequenceTemplate> _cached;
+
+            public TemplateFactory(string name, Func<TweenSequenceTemplate> factory, Func<T, TweenSequenceTemplate> factory1P) : base(name, factory) {
+                _factory1P = factory1P;
+            }
+
+            public TweenSequenceTemplate Get(T data) {
+                _cached ??= new Dictionary<object, TweenSequenceTemplate>();
+                _cached.TryGetValue(data, out TweenSequenceTemplate template);
+                if (template != null) return template;
+                return _cached[data] = _factory1P(data);
+            }
         }
 
         internal static class Templates {
@@ -345,7 +369,7 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackInUp() {
+            internal static TweenSequenceTemplate BackInUp(float distance = 1200f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -362,14 +386,14 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.PositionY)
-                    .KeyframeOffset(0.00f, +1200f)
+                    .KeyframeOffset(0.00f, Math.Abs(distance))
                     .KeyframeOffset(0.80f, 0f)
                     .KeyframeOffset(1.00f, 0f)
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackInDown() {
+            internal static TweenSequenceTemplate BackInDown(float distance = 1200f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -386,14 +410,14 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.PositionY)
-                    .KeyframeOffset(0.00f, -1200f)
+                    .KeyframeOffset(0.00f, -Math.Abs(distance))
                     .KeyframeOffset(0.80f, 0f)
                     .KeyframeOffset(1.00f, 0f)
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackInLeft() {
+            internal static TweenSequenceTemplate BackInLeft(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -410,14 +434,14 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.PositionX)
-                    .KeyframeOffset(0.00f, -2000f)
+                    .KeyframeOffset(0.00f, -Math.Abs(distance))
                     .KeyframeOffset(0.80f, 0f)
                     .KeyframeOffset(1.00f, 0f)
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackInRight() {
+            internal static TweenSequenceTemplate BackInRight(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -434,14 +458,14 @@ namespace Betauer.Animation {
                     .EndAnimate()
                     .Parallel()
                     .AnimateRelativeKeys(property: Property.PositionX)
-                    .KeyframeOffset(0.00f, +2000f)
+                    .KeyframeOffset(0.00f, Math.Abs(distance))
                     .KeyframeOffset(0.80f, 0f)
                     .KeyframeOffset(1.00f, 0f)
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackOutUp() {
+            internal static TweenSequenceTemplate BackOutUp(float distance = 700f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -460,12 +484,12 @@ namespace Betauer.Animation {
                     .AnimateRelativeKeys(property: Property.PositionY)
                     .KeyframeOffset(0.00f, 0f)
                     .KeyframeOffset(0.20f, 0f)
-                    .KeyframeOffset(1.00f, -700f)
+                    .KeyframeOffset(1.00f, -Math.Abs(distance))
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackOutDown() {
+            internal static TweenSequenceTemplate BackOutDown(float distance = 700f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -484,12 +508,12 @@ namespace Betauer.Animation {
                     .AnimateRelativeKeys(property: Property.PositionY)
                     .KeyframeOffset(0.00f, 0f)
                     .KeyframeOffset(0.20f, 0f)
-                    .KeyframeOffset(1.00f, +700f)
+                    .KeyframeOffset(1.00f, Math.Abs(distance))
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackOutLeft() {
+            internal static TweenSequenceTemplate BackOutLeft(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -508,12 +532,12 @@ namespace Betauer.Animation {
                     .AnimateRelativeKeys(property: Property.PositionX)
                     .KeyframeOffset(0.00f, 0f)
                     .KeyframeOffset(0.20f, 0f)
-                    .KeyframeOffset(1.00f, -2000f)
+                    .KeyframeOffset(1.00f, -Math.Abs(distance))
                     .EndAnimate()
                     .BuildTemplate();
             }
 
-            internal static TweenSequenceTemplate BackOutRight() {
+            internal static TweenSequenceTemplate BackOutRight(float distance = 2000f) {
                 // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
                 return TweenSequenceBuilder.Create()
                     .SetDuration(1f)
@@ -532,7 +556,7 @@ namespace Betauer.Animation {
                     .AnimateRelativeKeys(property: Property.PositionX)
                     .KeyframeOffset(0.00f, 0f)
                     .KeyframeOffset(0.20f, 0f)
-                    .KeyframeOffset(1.00f, +2000f)
+                    .KeyframeOffset(1.00f, Math.Abs(distance))
                     .EndAnimate()
                     .BuildTemplate();
             }

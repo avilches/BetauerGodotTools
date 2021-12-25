@@ -2,6 +2,7 @@ using System.Linq;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
+using Betauer.TestRunner;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
@@ -31,14 +32,22 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.Swing, Is.EqualTo(Template.Get("sWing")));
             Assert.That(Template.Tada, Is.EqualTo(Template.Get("tAda")));
             Assert.That(Template.Wobble, Is.EqualTo(Template.Get("wObble")));
+            Assert.That(Template.BackInUp, Is.EqualTo(Template.Get("bAckInUp")));
             Assert.That(Template.BackInDown, Is.EqualTo(Template.Get("bAckINdowN")));
-            Assert.That(Template.BackInUp, Is.EqualTo(Template.Get("bAckInp")));
             Assert.That(Template.BackInLeft, Is.EqualTo(Template.Get("bAckinLeft")));
             Assert.That(Template.BackInRight, Is.EqualTo(Template.Get("bAckinRight")));
+            Assert.That(Template.BackOutUp, Is.EqualTo(Template.Get("bAckOUTup")));
             Assert.That(Template.BackOutDown, Is.EqualTo(Template.Get("bAckOUTdowN")));
-            Assert.That(Template.BackOutUp, Is.EqualTo(Template.Get("bAckOUTp")));
             Assert.That(Template.BackOutLeft, Is.EqualTo(Template.Get("bAckOUTLeft")));
             Assert.That(Template.BackOutRight, Is.EqualTo(Template.Get("bAckOUTRight")));
+            Assert.That(Template.BackInUpFactory.Get(100f), Is.EqualTo(Template.Get("bAckInUp", 100f)));
+            Assert.That(Template.BackInDownFactory.Get(100f), Is.EqualTo(Template.Get("bAckINdowN", 100f)));
+            Assert.That(Template.BackInLeftFactory.Get(100f), Is.EqualTo(Template.Get("bAckinLeft", 100f)));
+            Assert.That(Template.BackInRightFactory.Get(100f), Is.EqualTo(Template.Get("bAckinRight", 100f)));
+            Assert.That(Template.BackOutUpFactory.Get(100f), Is.EqualTo(Template.Get("bAckOUTup", 100f)));
+            Assert.That(Template.BackOutDownFactory.Get(100f), Is.EqualTo(Template.Get("bAckOUTdowN", 100f)));
+            Assert.That(Template.BackOutLeftFactory.Get(100f), Is.EqualTo(Template.Get("bAckOUTLeft", 100f)));
+            Assert.That(Template.BackOutRightFactory.Get(100f), Is.EqualTo(Template.Get("bAckOUTRight", 100f)));
         }
 
         public TweenSequenceTemplate CreateTemplate() {
