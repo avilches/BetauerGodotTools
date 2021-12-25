@@ -26,14 +26,22 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate Swing => SwingFactory.Get();
         public static TweenSequenceTemplate Tada => TadaFactory.Get();
         public static TweenSequenceTemplate Wobble => WobbleFactory.Get();
+
         public static TweenSequenceTemplate BackInUp => BackInUpFactory.Get();
         public static TweenSequenceTemplate BackInDown => BackInDownFactory.Get();
         public static TweenSequenceTemplate BackInLeft => BackInLeftFactory.Get();
         public static TweenSequenceTemplate BackInRight => BackInRightFactory.Get();
+
         public static TweenSequenceTemplate BackOutUp => BackOutUpFactory.Get();
         public static TweenSequenceTemplate BackOutDown => BackOutDownFactory.Get();
         public static TweenSequenceTemplate BackOutLeft => BackOutLeftFactory.Get();
         public static TweenSequenceTemplate BackOutRight => BackOutRightFactory.Get();
+
+        public static TweenSequenceTemplate BounceIn => BounceInFactory.Get();
+        public static TweenSequenceTemplate BounceInUp => BounceInUpFactory.Get();
+        public static TweenSequenceTemplate BounceInDown => BounceInDownFactory.Get();
+        public static TweenSequenceTemplate BounceInLeft => BounceInLeftFactory.Get();
+        public static TweenSequenceTemplate BounceInRight => BounceInRightFactory.Get();
 
         private static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -51,14 +59,23 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory SwingFactory = new TemplateFactory(nameof(Swing), Templates.Swing);
         public static readonly TemplateFactory TadaFactory = new TemplateFactory(nameof(Tada), Templates.Tada);
         public static readonly TemplateFactory WobbleFactory = new TemplateFactory(nameof(Wobble), Templates.Wobble);
+
         public static readonly TemplateFactory<float> BackInUpFactory = new TemplateFactory<float>(nameof(BackInUp), () => Templates.BackInUp(), Templates.BackInUp);
         public static readonly TemplateFactory<float> BackInDownFactory = new TemplateFactory<float>(nameof(BackInDown), () => Templates.BackInDown(), Templates.BackInDown);
         public static readonly TemplateFactory<float> BackInLeftFactory = new TemplateFactory<float>(nameof(BackInLeft), () => Templates.BackInLeft(), Templates.BackInLeft);
         public static readonly TemplateFactory<float> BackInRightFactory = new TemplateFactory<float>(nameof(BackInRight), () => Templates.BackInRight(), Templates.BackInRight);
+
         public static readonly TemplateFactory<float> BackOutUpFactory = new TemplateFactory<float>(nameof(BackOutUp), () => Templates.BackOutUp(), Templates.BackOutUp);
         public static readonly TemplateFactory<float> BackOutDownFactory = new TemplateFactory<float>(nameof(BackOutDown), () => Templates.BackOutDown(), Templates.BackOutDown);
         public static readonly TemplateFactory<float> BackOutLeftFactory = new TemplateFactory<float>(nameof(BackOutLeft), () => Templates.BackOutLeft(), Templates.BackOutLeft);
         public static readonly TemplateFactory<float> BackOutRightFactory = new TemplateFactory<float>(nameof(BackOutRight), () => Templates.BackOutRight(), Templates.BackOutRight);
+
+        public static readonly TemplateFactory BounceInFactory = new TemplateFactory(nameof(BounceIn), Templates.BounceIn);
+        public static readonly TemplateFactory<float> BounceInUpFactory = new TemplateFactory<float>(nameof(BounceInUp), () => Templates.BounceInUp(), Templates.BounceInUp);
+        public static readonly TemplateFactory<float> BounceInDownFactory = new TemplateFactory<float>(nameof(BounceInDown), () => Templates.BounceInDown(), Templates.BounceInDown);
+        public static readonly TemplateFactory<float> BounceInLeftFactory = new TemplateFactory<float>(nameof(BounceInLeft), () => Templates.BounceInLeft(), Templates.BounceInLeft);
+        public static readonly TemplateFactory<float> BounceInRightFactory = new TemplateFactory<float>(nameof(BounceInRight), () => Templates.BounceInRight(), Templates.BounceInRight);
+
 
         public class TemplateFactory {
             private readonly Func<TweenSequenceTemplate> _factory;
@@ -561,6 +578,138 @@ namespace Betauer.Animation {
                     .BuildTemplate();
             }
 
+            internal static TweenSequenceTemplate BounceIn() {
+                // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.Scale2D)
+                    .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), node => node.SetPivotCenter())
+                    .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.40f, new Vector2(0.90f, 0.90f), Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.60f, new Vector2(1.03f, 1.03f), Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.80f, new Vector2(0.97f, 0.97f), Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(1.00f, Vector2.One, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.0f)
+                    .KeyframeTo(0.60f, 1.0f)
+                    .KeyframeTo(1.00f, 1.0f)
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BounceInUp(float distance = 3000f) {
+                // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.ScaleY)
+                    .KeyframeTo(0.00f, 3.000f)
+                    .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.0f)
+                    .KeyframeTo(0.60f, 1.0f)
+                    .KeyframeTo(1.00f, 1.0f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, Math.Abs(distance))
+                    .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BounceInDown(float distance = 3000f) {
+                // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.ScaleY)
+                    .KeyframeTo(0.00f, 3.000f)
+                    .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.0f)
+                    .KeyframeTo(0.60f, 1.0f)
+                    .KeyframeTo(1.00f, 1.0f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionY)
+                    .KeyframeOffset(0.00f, -Math.Abs(distance))
+                    .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BounceInLeft(float distance = 3000f) {
+                // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.ScaleY)
+                    .KeyframeTo(0.00f, 3.000f)
+                    .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.0f)
+                    .KeyframeTo(0.60f, 1.0f)
+                    .KeyframeTo(1.00f, 1.0f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, -Math.Abs(distance))
+                    .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
+
+            internal static TweenSequenceTemplate BounceInRight(float distance = 3000f) {
+                // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
+                return TweenSequenceBuilder.Create()
+                    .SetDuration(1f)
+                    .AnimateKeys(property: Property.ScaleY)
+                    .KeyframeTo(0.00f, 3.000f)
+                    .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateKeys(property: Property.Opacity)
+                    .KeyframeTo(0.00f, 0.0f)
+                    .KeyframeTo(0.60f, 1.0f)
+                    .KeyframeTo(1.00f, 1.0f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateRelativeKeys(property: Property.PositionX)
+                    .KeyframeOffset(0.00f, Math.Abs(distance))
+                    .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                    .EndAnimate()
+                    .BuildTemplate();
+            }
 
         }
     }
