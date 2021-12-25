@@ -122,17 +122,14 @@ namespace Betauer.Animation {
         public readonly float Start;
         public readonly float Duration;
         public readonly Easing Easing;
-        public readonly CallbackNode CallbackNode;
 
-        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing,
-            CallbackNode callbackNode) {
+        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing) {
             Node = node;
             From = from;
             To = to;
             Start = start;
             Duration = duration;
             Easing = easing;
-            CallbackNode = callbackNode;
         }
     }
 
@@ -177,28 +174,22 @@ namespace Betauer.Animation {
         }
 
         protected void RunStep(Tween tween, Node target, IProperty<TProperty> property, TProperty initial,
-            TProperty from, TProperty to, float start, float duration, Easing easing, CallbackNode callbackNode) {
-            if (duration > 0 && !from.Equals(to)) {
-                easing ??= Easing.LinearInOut;
-                var end = start + duration;
-                Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
-                            from + " to " + to +
-                            " Scheduled from " + start.ToString("F") +
-                            " to " + end.ToString("F") +
-                            " (+" + duration.ToString("F") + ") " + easing.Name);
+            TProperty from, TProperty to, float start, float duration, Easing easing) {
+            easing ??= Easing.LinearInOut;
+            var end = start + duration;
+            Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
+                        from + " to " + to +
+                        " Scheduled from " + start.ToString("F") +
+                        " to " + end.ToString("F") +
+                        " (+" + duration.ToString("F") + ") " + easing.Name);
 
-                if (easing is GodotEasing godotEasing) {
-                    RunEasingStep(tween, target, property, initial, from, to, start, duration, godotEasing);
-                } else if (easing is BezierCurve bezierCurve) {
-                    RunCurveBezierStep(tween, target, property, initial, from, to, start, duration, bezierCurve);
-                }
-                if (DebugSteps != null) {
-                    DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing, callbackNode));
-                }
+            if (easing is GodotEasing godotEasing) {
+                RunEasingStep(tween, target, property, initial, from, to, start, duration, godotEasing);
+            } else if (easing is BezierCurve bezierCurve) {
+                RunCurveBezierStep(tween, target, property, initial, from, to, start, duration, bezierCurve);
             }
-            if (callbackNode != null) {
-                // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
-                new DelayedCallbackNodeHolder(callbackNode, target).Start(tween, start);
+            if (DebugSteps != null) {
+                DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
             }
         }
 
@@ -263,8 +254,13 @@ namespace Betauer.Animation {
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var easing = step.Easing ?? _defaultEasing;
                 var start = initialDelay + startTime;
-                RunStep(tween, target, property, initialValue, from, to, start, duration, easing,
-                    step.CallbackNode);
+                if (duration > 0 && !from.Equals(to)) {
+                    RunStep(tween, target, property, initialValue, from, to, start, duration, easing);
+                }
+                if (step.CallbackNode != null) {
+                    // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
+                    new DelayedCallbackNodeHolder(step.CallbackNode, target).Start(tween, start);
+                }
                 from = to;
                 startTime += duration;
             }
@@ -298,19 +294,31 @@ namespace Betauer.Animation {
             var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
-            // var percentStart = 0f;
+            var percentStart = 0f;
+            var i = 0;
             foreach (var step in _steps) {
                 var to = step.GetTo(_relativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * allStepsDuration;
-                var keyDuration = endTime - startTime;
+                var duration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing;
                 // var percentEnd = step.Percent;
                 var start = initialDelay + startTime;
-                RunStep(tween, target, property, initialValue, from, to, start, keyDuration, easing,
-                    step.CallbackNode);
+                if (i == 0 || (duration > 0 && !from.Equals(to))) {
+                    // always run the first keyframe, no matter if it's the 0% or any other
+                    if (step.Percent == 0f) {
+                        // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
+                        from = to;
+                    }
+                    RunStep(tween, target, property, initialValue, from, to, start, duration, easing);
+                }
+                if (step.CallbackNode != null) {
+                    // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
+                    new DelayedCallbackNodeHolder(step.CallbackNode, target).Start(tween, start);
+                }
                 from = to;
                 // percentStart = percentEnd;
                 startTime = endTime;
+                i++;
             }
             return allStepsDuration;
         }

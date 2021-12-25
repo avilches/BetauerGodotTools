@@ -294,6 +294,32 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
+        [Test(Description = "keyframe to with from where the first and second keyframe are equals")]
+        /*
+         * In this case, a frame with 0 duration must be created to ensure the frame 0 has the initial value set
+         * at the beginning of the animation
+         */
+        public async Task TweenSequenceKeysToWithFrom2() {
+            var sprite = await CreateSprite();
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            await TweenSequenceBuilder.Create()
+                .AnimateKeys(sprite, Property.PositionX)
+                .Duration(1)
+                .SetDebugSteps(steps)
+                .From(0.7f)
+                .KeyframeTo(0.00f, 0.7f)
+                .KeyframeTo(0.80f, 0.7f)
+                .KeyframeTo(1.00f, 1f)
+                .EndAnimate()
+                .Play(sprite)
+                .Await();
+
+            AssertStep(steps[0], 0.7f, 0.7f, 0f, 0f, Easing.LinearInOut);
+            AssertStep(steps[1], 0.7f, 1, 0.8f, 0.2f, Easing.LinearInOut);
+
+            Assert.That(sprite.Position.x, Is.EqualTo(1f));
+        }
+
         [Test(Description = "keyframe to with key 0 (same as from)")]
         public async Task TweenSequenceKeysToWithKey0() {
             var sprite = await CreateSprite();
@@ -310,8 +336,9 @@ namespace Betauer.Tests.Animation {
                 .Play(sprite)
                 .Await();
 
-            AssertStep(steps[0], 30f, 120f, 0f, 1f, Easing.BackIn);
-            AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
+            AssertStep(steps[0], 30f, 30f, 0f, 0f, Easing.CubicOut);
+            AssertStep(steps[1], 30f, 120f, 0f, 1f, Easing.BackIn);
+            AssertStep(steps[2], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
 
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
@@ -377,11 +404,12 @@ namespace Betauer.Tests.Animation {
                 .Play(sprite)
                 .Await();
 
-            AssertStep(steps[0], 110, 230, 0f, 1f, Easing.BackIn);
-            AssertStep(steps[1], 230f, 140f, 1f, 0.6f, Easing.LinearInOut);
+            AssertStep(steps[0], 110, 110f, 0f, 0f, Easing.CubicOut);
+            AssertStep(steps[1], 110, 230, 0f, 1f, Easing.BackIn);
+            AssertStep(steps[2], 230f, 140f, 1f, 0.6f, Easing.LinearInOut);
             Assert.That(sprite.Position.x, Is.EqualTo(140));
 
-            Assert.That(steps.Count, Is.EqualTo(2)); // Last offset 0 is ignored
+            Assert.That(steps.Count, Is.EqualTo(3)); // Last offset 0 is ignored
         }
 
         /**
