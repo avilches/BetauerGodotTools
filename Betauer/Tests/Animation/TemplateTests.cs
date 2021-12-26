@@ -56,6 +56,12 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.BounceInDownFactory.Get(100f), Is.EqualTo(Template.Get("BounceINdowN", 100f)));
             Assert.That(Template.BounceInLeftFactory.Get(100f), Is.EqualTo(Template.Get("BounceINLeft", 100f)));
             Assert.That(Template.BounceInRightFactory.Get(100f), Is.EqualTo(Template.Get("BounceINRight", 100f)));
+
+            Assert.That(Template.BounceOutFactory.Get(), Is.EqualTo(Template.Get("BounceOUT")));
+            Assert.That(Template.BounceOutUpFactory.Get(100f), Is.EqualTo(Template.Get("BounceOUTup", 100f)));
+            Assert.That(Template.BounceOutDownFactory.Get(100f), Is.EqualTo(Template.Get("BounceOUTdowN", 100f)));
+            Assert.That(Template.BounceOutLeftFactory.Get(100f), Is.EqualTo(Template.Get("BounceOUTLeft", 100f)));
+            Assert.That(Template.BounceOutRightFactory.Get(100f), Is.EqualTo(Template.Get("BounceOUTRight", 100f)));
         }
 
         public TweenSequenceTemplate CreateTemplate() {

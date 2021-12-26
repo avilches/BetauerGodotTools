@@ -139,5 +139,133 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
+
+
+
+        internal static TweenSequenceTemplate BounceOut() {
+            // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
+            return TweenSequenceBuilder.Create()
+                .SetDuration(BounceInNoDirectionDuration)
+                .AnimateKeys(property: Property.Scale2D)
+                .KeyframeTo(0.00f, Vector2.One, node => node.SetPivotCenter())
+                .KeyframeTo(0.20f, new Vector2(0.9f, 0.9f))
+                .KeyframeTo(0.50f, new Vector2(1.1f, 1.1f))
+                .KeyframeTo(0.55f, new Vector2(1.1f, 1.1f))
+                .KeyframeTo(1.00f, new Vector2(0f, 0f))
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.00f, 1f)
+                .KeyframeTo(0.55f, 1f)
+                .KeyframeTo(1.00f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static TweenSequenceTemplate BounceOutUp(float distance = 2000f) {
+            // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
+            return TweenSequenceBuilder.Create()
+                .SetDuration(BounceEntranceDuration)
+                .AnimateKeys(property: Property.ScaleY)
+                .KeyframeTo(0.00f, 1f, node => node.SetPivotCenter())
+                .KeyframeTo(0.20f, 0.985f)
+                .KeyframeTo(0.40f, 0.9f)
+                .KeyframeTo(0.45f, 0.9f)
+                .KeyframeTo(1.00f, 3f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.00f, 1.0f)
+                .KeyframeTo(0.45f, 1.0f)
+                .KeyframeTo(1.00f, 0.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateRelativeKeys(property: Property.PositionY)
+                .KeyframeOffset(0.00f, 0f)
+                .KeyframeOffset(0.20f, -10f)
+                .KeyframeOffset(0.40f, 20f)
+                .KeyframeOffset(0.45f, 20f)
+                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static TweenSequenceTemplate BounceOutDown(float distance = 2000f) {
+            // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
+            return TweenSequenceBuilder.Create()
+                .SetDuration(BounceEntranceDuration)
+                .AnimateKeys(property: Property.ScaleY)
+                .KeyframeTo(0.00f, 1f, node => node.SetPivotCenter())
+                .KeyframeTo(0.20f, 0.985f)
+                .KeyframeTo(0.40f, 0.9f)
+                .KeyframeTo(0.45f, 0.9f)
+                .KeyframeTo(1.00f, 3f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.00f, 1.0f)
+                .KeyframeTo(0.45f, 1.0f)
+                .KeyframeTo(1.00f, 0.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateRelativeKeys(property: Property.PositionY)
+                .KeyframeOffset(0.00f, 0f)
+                .KeyframeOffset(0.20f, 10f)
+                .KeyframeOffset(0.40f, -20f)
+                .KeyframeOffset(0.45f, -20f)
+                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static TweenSequenceTemplate BounceOutLeft(float distance = 2000f) {
+            // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
+            return TweenSequenceBuilder.Create()
+                .SetDuration(BounceEntranceDuration)
+                .AnimateKeys(property: Property.ScaleX)
+                .KeyframeTo(0.00f, 1f, node => node.SetPivotCenter())
+                .KeyframeTo(0.20f, 0.90f)
+                .KeyframeTo(1.00f, 2f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.00f, 1.0f)
+                .KeyframeTo(0.20f, 1.0f)
+                .KeyframeTo(1.00f, 0.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateRelativeKeys(property: Property.PositionX)
+                .KeyframeOffset(0.00f, 0f)
+                .KeyframeOffset(0.20f, 20f)
+                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static TweenSequenceTemplate BounceOutRight(float distance = 2000f) {
+            // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
+            return TweenSequenceBuilder.Create()
+                .SetDuration(BounceEntranceDuration)
+                .AnimateKeys(property: Property.ScaleX)
+                .KeyframeTo(0.00f, 1f, node => node.SetPivotCenter())
+                .KeyframeTo(0.20f, 0.90f)
+                .KeyframeTo(1.00f, 2f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.00f, 1.0f)
+                .KeyframeTo(0.20f, 1.0f)
+                .KeyframeTo(1.00f, 0.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateRelativeKeys(property: Property.PositionX)
+                .KeyframeOffset(0.00f, 0f)
+                .KeyframeOffset(0.20f, -20f)
+                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+
     }
 }

@@ -42,6 +42,12 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate BounceInLeft => BounceInLeftFactory.Get();
         public static TweenSequenceTemplate BounceInRight => BounceInRightFactory.Get();
 
+        public static TweenSequenceTemplate BounceOut => BounceOutFactory.Get();
+        public static TweenSequenceTemplate BounceOutUp => BounceOutUpFactory.Get();
+        public static TweenSequenceTemplate BounceOutDown => BounceOutDownFactory.Get();
+        public static TweenSequenceTemplate BounceOutLeft => BounceOutLeftFactory.Get();
+        public static TweenSequenceTemplate BounceOutRight => BounceOutRightFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -74,6 +80,12 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory<float> BounceInDownFactory = new TemplateFactory<float>(nameof(BounceInDown), () => Templates.BounceInDown(), Templates.BounceInDown);
         public static readonly TemplateFactory<float> BounceInLeftFactory = new TemplateFactory<float>(nameof(BounceInLeft), () => Templates.BounceInLeft(), Templates.BounceInLeft);
         public static readonly TemplateFactory<float> BounceInRightFactory = new TemplateFactory<float>(nameof(BounceInRight), () => Templates.BounceInRight(), Templates.BounceInRight);
+
+        public static readonly TemplateFactory BounceOutFactory = new TemplateFactory(nameof(BounceOut), Templates.BounceOut);
+        public static readonly TemplateFactory<float> BounceOutUpFactory = new TemplateFactory<float>(nameof(BounceOutUp), () => Templates.BounceOutUp(), Templates.BounceOutUp);
+        public static readonly TemplateFactory<float> BounceOutDownFactory = new TemplateFactory<float>(nameof(BounceOutDown), () => Templates.BounceOutDown(), Templates.BounceOutDown);
+        public static readonly TemplateFactory<float> BounceOutLeftFactory = new TemplateFactory<float>(nameof(BounceOutLeft), () => Templates.BounceOutLeft(), Templates.BounceOutLeft);
+        public static readonly TemplateFactory<float> BounceOutRightFactory = new TemplateFactory<float>(nameof(BounceOutRight), () => Templates.BounceOutRight(), Templates.BounceOutRight);
     }
 
     public class TemplateFactory {
