@@ -170,7 +170,6 @@ namespace Betauer.Animation {
     }
 
     public class TemplateFactory<T> : TemplateFactory {
-        private readonly Func<TweenSequenceTemplate> _factory;
         private readonly Func<T, TweenSequenceTemplate> _factory1P;
         private Dictionary<object, TweenSequenceTemplate> _cached;
 
