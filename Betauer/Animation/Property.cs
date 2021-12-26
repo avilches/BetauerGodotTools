@@ -18,14 +18,18 @@ namespace Betauer.Animation {
         public static readonly IProperty<float>
             Opacity = new ControlOrNode2DIndexedProperty<float>("modulate:a", "modulate:a");
 
+        /*
+         * "transform.origin" matrix is used to change the position instead of "position:x" because it's safe to use
+         * along with the SkewX/SkewY properties, which they use the transform.origin too.
+         */
         public static readonly IProperty<Vector2> Position2D =
-            new ControlOrNode2DIndexedProperty<Vector2>("position", "rect_position");
+            new ControlOrNode2DIndexedProperty<Vector2>("transform:origin", "rect_position");
 
         public static readonly IProperty<float> PositionX =
-            new ControlOrNode2DIndexedProperty<float>("position:x", "rect_position:x");
+            new ControlOrNode2DIndexedProperty<float>("transform:origin:x", "rect_position:x");
 
         public static readonly IProperty<float> PositionY =
-            new ControlOrNode2DIndexedProperty<float>("position:y", "rect_position:y");
+            new ControlOrNode2DIndexedProperty<float>("transform:origin:y", "rect_position:y");
 
         // These PercentPositionX and PercentPositionY constructors need to be located after the PositionX and PositionY
         public static readonly IProperty<float> PercentPositionX = new PercentPositionX();
