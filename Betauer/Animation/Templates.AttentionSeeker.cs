@@ -249,7 +249,7 @@ namespace Betauer.Animation {
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control (not really needed because PositionXCenter already validate it...)
             return TweenSequenceBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(property: Property.PositionXPercent)
+                .AnimateRelativeKeys(property: Property.PercentPositionX)
                 .KeyframeOffset(0.00f, +0.00f, node => node.SetPivotTopCenter())
                 .KeyframeOffset(0.15f, -0.25f)
                 .KeyframeOffset(0.30f, +0.20f)

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Betauer.Animation {
@@ -23,10 +24,15 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> PositionX =
             new ControlOrNode2DIndexedProperty<float>("position:x", "rect_position:x");
 
-        public static readonly IProperty<float> PositionXPercent = new PositionXPercent();
-
         public static readonly IProperty<float> PositionY =
             new ControlOrNode2DIndexedProperty<float>("position:y", "rect_position:y");
+
+        // These PercentPositionX and PercentPositionY constructors need to be located after the PositionX and PositionY
+        public static readonly IProperty<float> PercentPositionX = new PercentPositionX();
+
+        public static readonly IProperty<float> PercentPositionY = new PercentPositionY();
+
+        public static readonly IProperty<Vector2> PercentPosition2D = new PercentPosition2D();
 
         public static readonly IProperty<float> PositionZ =
             new ControlOrNode2DIndexedProperty<float>("position:z", "rect_position:z");
@@ -131,22 +137,78 @@ namespace Betauer.Animation {
         }
     }
 
-    public class PositionXPercent : IProperty<float> {
-        public float GetValue(Node node) {
-            return Property.PositionX.GetValue(node);
+    public abstract class ComputedProperty<TProperty> : IProperty<TProperty> {
+        private readonly IProperty<TProperty> _property;
+
+        public ComputedProperty(IProperty<TProperty> property) {
+            _property = property;
         }
 
-        public void SetValue(Node node, float initialValue, float percent) {
+        public TProperty GetValue(Node node) {
+            return _property.GetValue(node);
+        }
+
+        public void SetValue(Node node, TProperty initialValue, TProperty percent) {
             if (!IsCompatibleWith(node)) return;
+            _property.SetValue(node, initialValue, ComputeValue(node, initialValue, percent));
+        }
+
+        protected abstract TProperty ComputeValue(Node node, TProperty initialValue, TProperty percent);
+
+        public abstract bool IsCompatibleWith(Node node);
+    }
+
+    public class PercentPositionX : ComputedProperty<float> {
+        public PercentPositionX() : base(Property.PositionX) {
+        }
+
+        protected override float ComputeValue(Node node, float initialValue, float percent) {
             var size = node switch {
                 Sprite sprite => sprite.GetSpriteSize(),
                 Control control => control.RectSize,
             };
-            Property.PositionX.SetValue(node, initialValue, initialValue + (size.x * percent));
+            return initialValue + (size.x * percent);
         }
 
-        public bool IsCompatibleWith(Node node) {
-            return node is Control || node is Sprite;
+        public override bool IsCompatibleWith(Node node) {
+            return node is Sprite || node is Control;
         }
     }
+
+    public class PercentPositionY : ComputedProperty<float> {
+        public PercentPositionY() : base(Property.PositionY) {
+        }
+
+        protected override float ComputeValue(Node node, float initialValue, float percent) {
+            var size = node switch {
+                Sprite sprite => sprite.GetSpriteSize(),
+                Control control => control.RectSize,
+            };
+            return initialValue + (size.y * percent);
+        }
+
+        public override bool IsCompatibleWith(Node node) {
+            return node is Sprite || node is Control;
+        }
+    }
+
+    public class PercentPosition2D : ComputedProperty<Vector2> {
+        public PercentPosition2D() : base(Property.Position2D) {
+        }
+
+        protected override Vector2 ComputeValue(Node node, Vector2 initialValue, Vector2 percent) {
+            var size = node switch {
+                Sprite sprite => sprite.GetSpriteSize(),
+                Control control => control.RectSize,
+            };
+            return initialValue + size * percent;
+        }
+
+        public override bool IsCompatibleWith(Node node) {
+            return node is Sprite || node is Control;
+        }
+    }
+
+
+
 }

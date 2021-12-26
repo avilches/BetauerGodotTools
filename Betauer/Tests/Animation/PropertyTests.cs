@@ -22,13 +22,10 @@ namespace Betauer.Tests.Animation {
         public async Task<Sprite> CreateSprite(int width = 100) {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
-            var gradientTexture = new GradientTexture();
-            sprite.Texture = gradientTexture;
-            gradientTexture.Width = width;
-            var gradient = new Gradient();
-            gradient.AddPoint(0, Colors.Aqua);
-            gradient.AddPoint(20, Colors.Red);
-            gradientTexture.Gradient = gradient;
+            // var gradientTexture = new GradientTexture();
+            var imageTexture = new ImageTexture();
+            imageTexture.SetSizeOverride(new Vector2(width, width));
+            sprite.Texture = imageTexture;
             AddChild(sprite);
             await this.AwaitIdleFrame();
             return sprite;
@@ -120,39 +117,90 @@ namespace Betauer.Tests.Animation {
             const float endPosition = 120f;
             const int width = 300;
 
-            var sprite = await CreateSprite(width);
-            sprite.Position = new Vector2(initialPosition, 0);
+            var spriteX = await CreateSprite(width);
+            spriteX.Position = new Vector2(initialPosition, 0);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(sprite, Property.PositionXPercent)
+                .AnimateSteps(spriteX, Property.PercentPositionX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(sprite)
+                .Play(spriteX)
                 .Await();
+            Assert.That(spriteX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
-            Assert.That(sprite.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
-
-            var control = await CreateLabel(width);
-            control.RectPosition = new Vector2(initialPosition, 0);
+            var spriteY = await CreateSprite(width);
+            spriteY.Position = new Vector2(0, initialPosition);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(control, Property.PositionXPercent)
+                .AnimateSteps(spriteY, Property.PercentPositionY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(control)
+                .Play(spriteY)
                 .Await();
+            Assert.That(spriteY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
-            Assert.That(control.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+            var sprite2D = await CreateSprite(width);
+            sprite2D.Position = new Vector2(initialPosition, initialPosition);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(sprite2D, Property.PercentPosition2D)
+                .From(new Vector2(percentFrom, percentFrom))
+                .To(new Vector2(percentTo, percentTo), 0.1f)
+                .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
+                .EndAnimate()
+                .Play(sprite2D)
+                .Await();
+            Assert.That(sprite2D.Position,
+                Is.EqualTo(
+                    new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
+
+            var controlX = await CreateLabel(width);
+            controlX.RectPosition = new Vector2(initialPosition, 0);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(controlX, Property.PercentPositionX)
+                .From(percentFrom)
+                .To(percentTo, 0.1f)
+                .To(percentTo * 2, 0.1f)
+                .EndAnimate()
+                .Play(controlX)
+                .Await();
+            Assert.That(controlX.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+
+            var controlY = await CreateLabel(width);
+            controlY.RectPosition = new Vector2(0, initialPosition);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(controlY, Property.PercentPositionY)
+                .From(percentFrom)
+                .To(percentTo, 0.1f)
+                .To(percentTo * 2, 0.1f)
+                .EndAnimate()
+                .Play(controlY)
+                .Await();
+            Assert.That(controlY.RectPosition.y, Is.EqualTo(initialPosition + width * percentTo * 2));
+
+            var control2D = await CreateLabel(width);
+            control2D.RectPosition = new Vector2(initialPosition, initialPosition);
+            await TweenSequenceBuilder.Create()
+                .AnimateSteps(control2D, Property.PercentPosition2D)
+                .From(new Vector2(percentFrom, percentFrom))
+                .To(new Vector2(percentTo, percentTo), 0.1f)
+                .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
+                .EndAnimate()
+                .Play(control2D)
+                .Await();
+            Assert.That(control2D.RectPosition, Is.EqualTo(
+                new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.PositionXPercent, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node, Property.PositionXPercent, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PercentPositionX, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PercentPositionY, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PercentPosition2D, Vector2.One, Vector2.Zero);
 
             var node2D = await CreateNode2D();
-            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionXPercent, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPositionX, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPositionY, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPosition2D, Vector2.One, Vector2.Zero);
         }
 
         [Test(Description = "Property ScaleX, ScaleY")]
