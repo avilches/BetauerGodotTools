@@ -5,6 +5,14 @@ onready var durationEdit = $HBoxContainer/ScrollContainer/PanelContainer/ListCon
 func _ready():
 	_setup_list()
 
+
+func _process(delta):
+#	if animating:
+#		print(myNodeAnimating.rotation_degrees)
+	pass
+	
+var animating = false
+
 func _setup_list() -> void:
 	var animations = Anima.get_available_animations()
 	var base = Anima.BASE_PATH
@@ -86,8 +94,11 @@ func _play_animation(animaNode: Node, node: Node, button: Button):
 	anima.play()
 	
 	Global.Animate(clone, script_name, duration)
+	animating = true
+	myNodeAnimating = clone
 
 	yield(anima, "animation_completed")
+	animating = false
 
 	if node is Control:
 		print("Cnima y after:",animaClone.rect_position.x)
@@ -101,6 +112,8 @@ func _play_animation(animaNode: Node, node: Node, button: Button):
 
 	animaNode.show()
 	node.show()
+
+var myNodeAnimating
 
 func _remove_duplicate(parent: Node, node_to_ignore: Node) -> void:
 	for child in parent.get_children():
