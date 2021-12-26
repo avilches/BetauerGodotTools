@@ -48,6 +48,20 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate BounceOutLeft => BounceOutLeftFactory.Get();
         public static TweenSequenceTemplate BounceOutRight => BounceOutRightFactory.Get();
 
+        public static TweenSequenceTemplate FadeIn => FadeInFactory.Get();
+        public static TweenSequenceTemplate FadeInUp => FadeInUpFactory.Get();
+        public static TweenSequenceTemplate FadeInDown => FadeInDownFactory.Get();
+        public static TweenSequenceTemplate FadeInLeft => FadeInLeftFactory.Get();
+        public static TweenSequenceTemplate FadeInRight => FadeInRightFactory.Get();
+        public static TweenSequenceTemplate FadeInTopLeft => FadeInTopLeftFactory.Get();
+        public static TweenSequenceTemplate FadeInTopRight => FadeInTopRightFactory.Get();
+        public static TweenSequenceTemplate FadeInBottomLeft => FadeInBottomLeftFactory.Get();
+        public static TweenSequenceTemplate FadeInBottomRight => FadeInBottomRightFactory.Get();
+        public static TweenSequenceTemplate FadeInUpBig => FadeInUpBigFactory.Get();
+        public static TweenSequenceTemplate FadeInDownBig => FadeInDownBigFactory.Get();
+        public static TweenSequenceTemplate FadeInLeftBig => FadeInLeftBigFactory.Get();
+        public static TweenSequenceTemplate FadeInRightBig => FadeInRightBigFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -86,6 +100,21 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory<float> BounceOutDownFactory = new TemplateFactory<float>(nameof(BounceOutDown), () => Templates.BounceOutDown(), Templates.BounceOutDown);
         public static readonly TemplateFactory<float> BounceOutLeftFactory = new TemplateFactory<float>(nameof(BounceOutLeft), () => Templates.BounceOutLeft(), Templates.BounceOutLeft);
         public static readonly TemplateFactory<float> BounceOutRightFactory = new TemplateFactory<float>(nameof(BounceOutRight), () => Templates.BounceOutRight(), Templates.BounceOutRight);
+
+        public static readonly TemplateFactory FadeInFactory = new TemplateFactory(nameof(FadeIn), Templates.FadeIn);
+        public static readonly TemplateFactory FadeInUpFactory = new TemplateFactory(nameof(FadeInUp), Templates.FadeInUp);
+        public static readonly TemplateFactory FadeInDownFactory = new TemplateFactory(nameof(FadeInDown), Templates.FadeInDown);
+        public static readonly TemplateFactory FadeInLeftFactory = new TemplateFactory(nameof(FadeInLeft), Templates.FadeInLeft);
+        public static readonly TemplateFactory FadeInRightFactory = new TemplateFactory(nameof(FadeInRight), Templates.FadeInRight);
+        public static readonly TemplateFactory FadeInTopLeftFactory = new TemplateFactory(nameof(FadeInTopLeft), Templates.FadeInTopLeft);
+        public static readonly TemplateFactory FadeInTopRightFactory = new TemplateFactory(nameof(FadeInTopRight), Templates.FadeInTopRight);
+        public static readonly TemplateFactory FadeInBottomLeftFactory = new TemplateFactory(nameof(FadeInBottomLeft), Templates.FadeInBottomLeft);
+        public static readonly TemplateFactory FadeInBottomRightFactory = new TemplateFactory(nameof(FadeInBottomRight), Templates.FadeInBottomRight);
+        public static readonly TemplateFactory<float> FadeInUpBigFactory = new TemplateFactory<float>(nameof(FadeInUpBig), () => Templates.FadeInUpBig(), Templates.FadeInUpBig);
+        public static readonly TemplateFactory<float> FadeInDownBigFactory = new TemplateFactory<float>(nameof(FadeInDownBig), () => Templates.FadeInDownBig(), Templates.FadeInDownBig);
+        public static readonly TemplateFactory<float> FadeInLeftBigFactory = new TemplateFactory<float>(nameof(FadeInLeftBig), () => Templates.FadeInLeftBig(), Templates.FadeInLeftBig);
+        public static readonly TemplateFactory<float> FadeInRightBigFactory = new TemplateFactory<float>(nameof(FadeInRightBig), () => Templates.FadeInRightBig(), Templates.FadeInRightBig);
+
     }
 
     public class TemplateFactory {
