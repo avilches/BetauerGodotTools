@@ -10,7 +10,7 @@ func _process(delta):
 #	if animating:
 #		print(myNodeAnimating.rotation_degrees)
 	pass
-	
+
 var animating = false
 
 func _setup_list() -> void:
@@ -100,13 +100,7 @@ func _play_animation(animaNode: Node, node: Node, button: Button):
 	yield(anima, "animation_completed")
 	animating = false
 
-	if node is Control:
-		print("Cnima y after:",animaClone.rect_position.x)
-		print("C     y after:",clone.rect_position.x)
-	else:
-		print("Snima y after:",animaClone.position.x)
-		print("S     y after:",clone.position.x)
-
+	print("End animation")
 	_remove_duplicate(animaParent, animaNode)
 	_remove_duplicate(parent, node)
 
