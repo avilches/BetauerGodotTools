@@ -18,6 +18,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test]
+        [Only]
         public void TemplateNamesCheck() {
             Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bOunce")));
             Assert.That(Template.Flash, Is.EqualTo(Template.Get("fLash")));
@@ -90,6 +91,11 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.FadeOutDownBig, Is.EqualTo(Template.Get("fadeOutdowNBIG")));
             Assert.That(Template.FadeOutLeftBig, Is.EqualTo(Template.Get("fadeOutLeftBIG")));
             Assert.That(Template.FadeOutRightBig, Is.EqualTo(Template.Get("fadeOutRightBIG")));
+
+            Assert.That(Template.LightSpeedInLeft, Is.EqualTo(Template.Get("lightSPEEDinLeft")));
+            Assert.That(Template.LightSpeedInRight, Is.EqualTo(Template.Get("lightSPEEDinRight")));
+            Assert.That(Template.LightSpeedOutLeft, Is.EqualTo(Template.Get("lightSPEEDoutLeft")));
+            Assert.That(Template.LightSpeedOutRight, Is.EqualTo(Template.Get("lightSPEEDoutRight")));
 
         }
 
