@@ -62,6 +62,20 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate FadeInLeftBig => FadeInLeftBigFactory.Get();
         public static TweenSequenceTemplate FadeInRightBig => FadeInRightBigFactory.Get();
 
+        public static TweenSequenceTemplate FadeOut => FadeOutFactory.Get();
+        public static TweenSequenceTemplate FadeOutUp => FadeOutUpFactory.Get();
+        public static TweenSequenceTemplate FadeOutDown => FadeOutDownFactory.Get();
+        public static TweenSequenceTemplate FadeOutLeft => FadeOutLeftFactory.Get();
+        public static TweenSequenceTemplate FadeOutRight => FadeOutRightFactory.Get();
+        public static TweenSequenceTemplate FadeOutTopLeft => FadeOutTopLeftFactory.Get();
+        public static TweenSequenceTemplate FadeOutTopRight => FadeOutTopRightFactory.Get();
+        public static TweenSequenceTemplate FadeOutBottomLeft => FadeOutBottomLeftFactory.Get();
+        public static TweenSequenceTemplate FadeOutBottomRight => FadeOutBottomRightFactory.Get();
+        public static TweenSequenceTemplate FadeOutUpBig => FadeOutUpBigFactory.Get();
+        public static TweenSequenceTemplate FadeOutDownBig => FadeOutDownBigFactory.Get();
+        public static TweenSequenceTemplate FadeOutLeftBig => FadeOutLeftBigFactory.Get();
+        public static TweenSequenceTemplate FadeOutRightBig => FadeOutRightBigFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -114,6 +128,20 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory<float> FadeInDownBigFactory = new TemplateFactory<float>(nameof(FadeInDownBig), () => Templates.FadeInDownBig(), Templates.FadeInDownBig);
         public static readonly TemplateFactory<float> FadeInLeftBigFactory = new TemplateFactory<float>(nameof(FadeInLeftBig), () => Templates.FadeInLeftBig(), Templates.FadeInLeftBig);
         public static readonly TemplateFactory<float> FadeInRightBigFactory = new TemplateFactory<float>(nameof(FadeInRightBig), () => Templates.FadeInRightBig(), Templates.FadeInRightBig);
+
+        public static readonly TemplateFactory FadeOutFactory = new TemplateFactory(nameof(FadeOut), Templates.FadeOut);
+        public static readonly TemplateFactory FadeOutUpFactory = new TemplateFactory(nameof(FadeOutUp), Templates.FadeOutUp);
+        public static readonly TemplateFactory FadeOutDownFactory = new TemplateFactory(nameof(FadeOutDown), Templates.FadeOutDown);
+        public static readonly TemplateFactory FadeOutLeftFactory = new TemplateFactory(nameof(FadeOutLeft), Templates.FadeOutLeft);
+        public static readonly TemplateFactory FadeOutRightFactory = new TemplateFactory(nameof(FadeOutRight), Templates.FadeOutRight);
+        public static readonly TemplateFactory FadeOutTopLeftFactory = new TemplateFactory(nameof(FadeOutTopLeft), Templates.FadeOutTopLeft);
+        public static readonly TemplateFactory FadeOutTopRightFactory = new TemplateFactory(nameof(FadeOutTopRight), Templates.FadeOutTopRight);
+        public static readonly TemplateFactory FadeOutBottomLeftFactory = new TemplateFactory(nameof(FadeOutBottomLeft), Templates.FadeOutBottomLeft);
+        public static readonly TemplateFactory FadeOutBottomRightFactory = new TemplateFactory(nameof(FadeOutBottomRight), Templates.FadeOutBottomRight);
+        public static readonly TemplateFactory<float> FadeOutUpBigFactory = new TemplateFactory<float>(nameof(FadeOutUpBig), () => Templates.FadeOutUpBig(), Templates.FadeOutUpBig);
+        public static readonly TemplateFactory<float> FadeOutDownBigFactory = new TemplateFactory<float>(nameof(FadeOutDownBig), () => Templates.FadeOutDownBig(), Templates.FadeOutDownBig);
+        public static readonly TemplateFactory<float> FadeOutLeftBigFactory = new TemplateFactory<float>(nameof(FadeOutLeftBig), () => Templates.FadeOutLeftBig(), Templates.FadeOutLeftBig);
+        public static readonly TemplateFactory<float> FadeOutRightBigFactory = new TemplateFactory<float>(nameof(FadeOutRightBig), () => Templates.FadeOutRightBig(), Templates.FadeOutRightBig);
 
     }
 

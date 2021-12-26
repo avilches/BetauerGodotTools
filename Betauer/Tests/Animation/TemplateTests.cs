@@ -77,6 +77,20 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.FadeInLeftBig, Is.EqualTo(Template.Get("fadeinLeftBIG")));
             Assert.That(Template.FadeInRightBig, Is.EqualTo(Template.Get("fadeinRightBIG")));
 
+            Assert.That(Template.FadeOut, Is.EqualTo(Template.Get("fadeOut")));
+            Assert.That(Template.FadeOutUp, Is.EqualTo(Template.Get("fadeOutUp")));
+            Assert.That(Template.FadeOutDown, Is.EqualTo(Template.Get("fadeOutdowN")));
+            Assert.That(Template.FadeOutLeft, Is.EqualTo(Template.Get("fadeOutLeft")));
+            Assert.That(Template.FadeOutRight, Is.EqualTo(Template.Get("fadeOutRight")));
+            Assert.That(Template.FadeOutTopLeft, Is.EqualTo(Template.Get("fadeOutTOPLeft")));
+            Assert.That(Template.FadeOutTopRight, Is.EqualTo(Template.Get("fadeOutTOPRight")));
+            Assert.That(Template.FadeOutBottomLeft, Is.EqualTo(Template.Get("fadeOutBOTTOMLeft")));
+            Assert.That(Template.FadeOutBottomRight, Is.EqualTo(Template.Get("fadeOutBOTTOMRight")));
+            Assert.That(Template.FadeOutUpBig, Is.EqualTo(Template.Get("fadeOutUpBIG")));
+            Assert.That(Template.FadeOutDownBig, Is.EqualTo(Template.Get("fadeOutdowNBIG")));
+            Assert.That(Template.FadeOutLeftBig, Is.EqualTo(Template.Get("fadeOutLeftBIG")));
+            Assert.That(Template.FadeOutRightBig, Is.EqualTo(Template.Get("fadeOutRightBIG")));
+
         }
 
         public TweenSequenceTemplate CreateTemplate() {
