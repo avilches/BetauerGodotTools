@@ -76,6 +76,11 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate FadeOutLeftBig => FadeOutLeftBigFactory.Get();
         public static TweenSequenceTemplate FadeOutRightBig => FadeOutRightBigFactory.Get();
 
+        public static TweenSequenceTemplate LightSpeedInLeft => LightSpeedInLeftFactory.Get();
+        public static TweenSequenceTemplate LightSpeedInRight => LightSpeedInRightFactory.Get();
+        public static TweenSequenceTemplate LightSpeedOutLeft => LightSpeedOutLeftFactory.Get();
+        public static TweenSequenceTemplate LightSpeedOutRight => LightSpeedOutRightFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -142,6 +147,11 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory<float> FadeOutDownBigFactory = new TemplateFactory<float>(nameof(FadeOutDownBig), () => Templates.FadeOutDownBig(), Templates.FadeOutDownBig);
         public static readonly TemplateFactory<float> FadeOutLeftBigFactory = new TemplateFactory<float>(nameof(FadeOutLeftBig), () => Templates.FadeOutLeftBig(), Templates.FadeOutLeftBig);
         public static readonly TemplateFactory<float> FadeOutRightBigFactory = new TemplateFactory<float>(nameof(FadeOutRightBig), () => Templates.FadeOutRightBig(), Templates.FadeOutRightBig);
+
+        public static readonly TemplateFactory LightSpeedInLeftFactory = new TemplateFactory(nameof(LightSpeedInLeft), Templates.LightSpeedInLeft);
+        public static readonly TemplateFactory LightSpeedInRightFactory = new TemplateFactory(nameof(LightSpeedInRight), Templates.LightSpeedInRight);
+        public static readonly TemplateFactory LightSpeedOutLeftFactory = new TemplateFactory(nameof(LightSpeedOutLeft), Templates.LightSpeedOutLeft);
+        public static readonly TemplateFactory LightSpeedOutRightFactory = new TemplateFactory(nameof(LightSpeedOutRight), Templates.LightSpeedOutRight);
 
     }
 
