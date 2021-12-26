@@ -8,11 +8,11 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 	]
 
 	var scale_frames = [
-		{ percentage = 0, from = 1 },
-		{ percentage = 20, to =0.985 },
-		{ percentage = 40, to = 0.9 },
-		{ percentage = 45, to = 0.9 },
-		{ percentage = 100, to = 3 },
+		{ percentage = 0, from = 1     },
+		{ percentage = 20, to  = 0.985 },
+		{ percentage = 40, to =  0.9   },
+		{ percentage = 45, to =  0.9   },
+		{ percentage = 100, to = 3     },
 	]
 
 	var opacity_frames = [

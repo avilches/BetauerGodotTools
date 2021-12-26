@@ -4,7 +4,7 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 		{ percentage = 20, to = Vector2(0.9, 0.9) },
 		{ percentage = 50, to = Vector2(1.1, 1.1) },
 		{ percentage = 55, to = Vector2(1.1, 1.1) },
-		{ percentage = 100, to = Vector2(0.3, 0.3) },
+		{ percentage = 100, to = Vector2(0, 0) },
 	]
 
 	var opacity_frames = [
