@@ -165,11 +165,6 @@ namespace Betauer.Animation {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
                 return false;
             }
-            if (!property.IsCompatibleWith(target)) {
-                Logger.Warning(
-                    $"Can't create InterpolateProperty in a not compatible node {target.GetType()} with the property {property}");
-                return false;
-            }
             return true;
         }
 
@@ -242,7 +237,7 @@ namespace Betauer.Animation {
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
             // TODO: defaultDuration could be % or absolute or nothing
-            var initialValue = property.GetValue(target);
+            var initialValue = property.IsCompatibleWith(target) ? property.GetValue(target) : default;
             var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
@@ -254,7 +249,7 @@ namespace Betauer.Animation {
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var easing = step.Easing ?? _defaultEasing;
                 var start = initialDelay + startTime;
-                if (duration > 0 && !from.Equals(to)) {
+                if (duration > 0 && !from.Equals(to) && property.IsCompatibleWith(target)) {
                     RunStep(tween, target, property, initialValue, from, to, start, duration, easing);
                 }
                 if (step.CallbackNode != null) {
@@ -290,7 +285,7 @@ namespace Betauer.Animation {
             var target = _target ?? defaultTarget;
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
-            var initialValue = property.GetValue(target);
+            var initialValue = property.IsCompatibleWith(target) ? property.GetValue(target): default;
             var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
@@ -303,7 +298,7 @@ namespace Betauer.Animation {
                 var easing = step.Easing ?? _defaultEasing;
                 // var percentEnd = step.Percent;
                 var start = initialDelay + startTime;
-                if (i == 0 || (duration > 0 && !from.Equals(to))) {
+                if ((i == 0 || (duration > 0 && !from.Equals(to))) && property.IsCompatibleWith(target)) {
                     // always run the first keyframe, no matter if it's the 0% or any other
                     if (step.Percent == 0f) {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
