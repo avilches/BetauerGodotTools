@@ -77,5 +77,76 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
+
+        internal static TweenSequenceTemplate RotateOut() {
+            return TweenSequenceBuilder.Create()
+                .SetDuration(RotateDuration)
+                .AnimateKeys(property: Property.RotateCenter)
+                .KeyframeTo(0.00f, 0.0f, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(1.00f, 200f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.0f, 1f)
+                .KeyframeTo(1.0f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+        internal static TweenSequenceTemplate RotateOutDownLeft() {
+            return TweenSequenceBuilder.Create()
+                .SetDuration(RotateDuration)
+                .AnimateKeys(property: Property.RotateCenter)
+                .KeyframeTo(0.00f, 0.0f, node => node.SetRotateOriginToBottomLeft())
+                .KeyframeTo(1.00f, -45)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.0f, 1f)
+                .KeyframeTo(1.0f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+        internal static TweenSequenceTemplate RotateOutDownRight() {
+            return TweenSequenceBuilder.Create()
+                .SetDuration(RotateDuration)
+                .AnimateKeys(property: Property.RotateCenter)
+                .KeyframeTo(0.00f, 0.0f, node => node.SetRotateOriginToBottomRight())
+                .KeyframeTo(1.00f, 45)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.0f, 1f)
+                .KeyframeTo(1.0f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+        internal static TweenSequenceTemplate RotateOutUpLeft() {
+            return TweenSequenceBuilder.Create()
+                .SetDuration(RotateDuration)
+                .AnimateKeys(property: Property.RotateCenter)
+                .KeyframeTo(0.00f, 0.0f, node => node.SetRotateOriginToBottomLeft())
+                .KeyframeTo(1.00f, 45)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.0f, 1f)
+                .KeyframeTo(1.0f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+        internal static TweenSequenceTemplate RotateOutUpRight() {
+            return TweenSequenceBuilder.Create()
+                .SetDuration(RotateDuration)
+                .AnimateKeys(property: Property.RotateCenter)
+                .KeyframeTo(0.00f, 0.0f, node => node.SetRotateOriginToBottomRight())
+                .KeyframeTo(1.00f, -45)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(property: Property.Opacity)
+                .KeyframeTo(0.0f, 1f)
+                .KeyframeTo(1.0f, 0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
     }
 }

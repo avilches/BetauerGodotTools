@@ -131,6 +131,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder SetDuration(float duration) {
+            // TODO: id duration is defined, every single duration should be fit on it
             Duration = duration;
             return this as TBuilder;
         }

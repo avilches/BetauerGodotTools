@@ -87,6 +87,12 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate RotateInUpLeft => RotateInUpLeftFactory.Get();
         public static TweenSequenceTemplate RotateInUpRight => RotateInUpRightFactory.Get();
 
+        public static TweenSequenceTemplate RotateOut => RotateOutFactory.Get();
+        public static TweenSequenceTemplate RotateOutDownLeft => RotateOutDownLeftFactory.Get();
+        public static TweenSequenceTemplate RotateOutDownRight => RotateOutDownRightFactory.Get();
+        public static TweenSequenceTemplate RotateOutUpLeft => RotateOutUpLeftFactory.Get();
+        public static TweenSequenceTemplate RotateOutUpRight => RotateOutUpRightFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -164,6 +170,12 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory RotateInDownRightFactory = new TemplateFactory(nameof(RotateInDownRight), Templates.RotateInDownRight);
         public static readonly TemplateFactory RotateInUpLeftFactory = new TemplateFactory(nameof(RotateInUpLeft), Templates.RotateInUpLeft);
         public static readonly TemplateFactory RotateInUpRightFactory = new TemplateFactory(nameof(RotateInUpRight), Templates.RotateInUpRight);
+
+        public static readonly TemplateFactory RotateOutFactory = new TemplateFactory(nameof(RotateOut), Templates.RotateOut);
+        public static readonly TemplateFactory RotateOutDownLeftFactory = new TemplateFactory(nameof(RotateOutDownLeft), Templates.RotateOutDownLeft);
+        public static readonly TemplateFactory RotateOutDownRightFactory = new TemplateFactory(nameof(RotateOutDownRight), Templates.RotateOutDownRight);
+        public static readonly TemplateFactory RotateOutUpLeftFactory = new TemplateFactory(nameof(RotateOutUpLeft), Templates.RotateOutUpLeft);
+        public static readonly TemplateFactory RotateOutUpRightFactory = new TemplateFactory(nameof(RotateOutUpRight), Templates.RotateOutUpRight);
 
     }
 
