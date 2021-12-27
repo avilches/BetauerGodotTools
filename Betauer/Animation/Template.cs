@@ -94,6 +94,9 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate RotateOutUpRight => RotateOutUpRightFactory.Get();
 
         public static TweenSequenceTemplate Hinge => HingeFactory.Get();
+        public static TweenSequenceTemplate JackInTheBox => JackInTheBoxFactory.Get();
+        public static TweenSequenceTemplate RollOut => RollOutFactory.Get();
+        public static TweenSequenceTemplate RollIn => RollInFactory.Get();
 
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -180,6 +183,9 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory RotateOutUpRightFactory = new TemplateFactory(nameof(RotateOutUpRight), Templates.RotateOutUpRight);
 
         public static readonly TemplateFactory HingeFactory = new TemplateFactory(nameof(Hinge), Templates.Hinge);
+        public static readonly TemplateFactory JackInTheBoxFactory = new TemplateFactory(nameof(JackInTheBox), Templates.JackInTheBox);
+        public static readonly TemplateFactory RollOutFactory = new TemplateFactory(nameof(RollOut), Templates.RollOut);
+        public static readonly TemplateFactory RollInFactory = new TemplateFactory(nameof(RollIn), Templates.RollIn);
 
     }
 

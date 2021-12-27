@@ -81,14 +81,6 @@ func _play_animation(animaNode: Node, node: Node, button: Button):
 	clone.show()
 	node.hide()
 
-
-	if node is Control:
-		print("Cnima y before:",animaClone.rect_position.x)
-		print("C     y before:",clone.rect_position.x)
-	else:
-		print("Snima y before:",animaClone.position.x)
-		print("S     y before:",clone.position.x)
-
 	var anima = Anima.begin(animaClone, 'control_test')
 	anima.then({ node = animaClone, animation = script_name, duration = duration })
 	anima.play()
@@ -97,15 +89,15 @@ func _play_animation(animaNode: Node, node: Node, button: Button):
 	animating = true
 	myNodeAnimating = clone
 
-	yield(anima, "animation_completed")
-	animating = false
-
-	print("End animation")
-	_remove_duplicate(animaParent, animaNode)
-	_remove_duplicate(parent, node)
-
-	animaNode.show()
-	node.show()
+#	yield(anima, "animation_completed")
+#	animating = false
+#
+#	print("End animation")
+#	_remove_duplicate(animaParent, animaNode)
+#	_remove_duplicate(parent, node)
+#
+#	animaNode.show()
+#	node.show()
 
 var myNodeAnimating
 
