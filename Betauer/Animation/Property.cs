@@ -53,8 +53,32 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> ScaleZ =
             new ControlOrNode2DIndexedProperty<float>("scale:z", "rect_scale:z");
 
-        public static readonly IProperty<float> RotateCenter =
-            new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
+        /**
+         * Why use a class to update the RotationDegrees property instead of this?
+
+            public static readonly IProperty<float> RotateCenter =
+                    new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
+
+         * The problem is:
+         *
+         * LightSpeed animation needs move position and skew:
+         * - position:x + skew:x/skew.y -> IT DOESN'T WORK (it scale the sprite too, which is not expected)
+         * - transform:origin:x + skew:x/skew:y  -> WORKS OK
+         *
+         * RollIn animation needs move position and rotation:
+         * - "position:x" + "rotation_degrees" -> WORKS OK
+         * - "transform:origin:x" + "rotation_degrees" -> IT DOESN'T WORK (it scale the sprite too, which is not expected)
+         *
+         * JackInTheBox animation needs scale and rotate:
+         * - "scale" + "rotation_degrees" -> IT DOESN'T WORK (it scale with bigger values)
+         *
+         * So, in order to allow the 3 animations work using just one type of every property is:
+         * 1. Use "transform:origin:x" which works well with skew
+         * 2. Change the rotation_degrees with a this function, which allow to work with scale (JackInTheBox and move (RollIn)
+         * 
+         */
+        public static readonly IProperty<float> RotateCenter = new RotateProperty();
+
 
         public static readonly IProperty<float> SkewX =
             new ControlOrNode2DIndexedProperty<float>("transform:y:x", null);
@@ -70,6 +94,27 @@ namespace Betauer.Animation {
         public TProperty GetValue(Node node);
         public void SetValue(Node node, TProperty initialValue, TProperty value);
         public bool IsCompatibleWith(Node node);
+    }
+
+    public class RotateProperty : IProperty<float> {
+        public float GetValue(Node node) {
+            return node switch {
+                Node2D node2D => node2D.RotationDegrees,
+                Control control => control.RectRotation,
+                _ => throw new Exception($"Not rotation property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, float initialValue, float value) {
+            if (node is Node2D node2D) node2D.RotationDegrees = value;
+            else if (node is Control control) control.RectRotation = value;
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            if (node is Control) return true;
+            if (node is Node2D) return true;
+            return false;
+        }
     }
 
     public interface IIndexedProperty<TProperty> : IProperty<TProperty> {
@@ -212,7 +257,4 @@ namespace Betauer.Animation {
             return node is Sprite || node is Control;
         }
     }
-
-
-
 }
