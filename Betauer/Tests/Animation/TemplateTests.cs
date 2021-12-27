@@ -103,6 +103,8 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.RotateInUpLeftFactory, Is.EqualTo(Template.Get("OTATEeInUpLeftFactory")));
             Assert.That(Template.RotateInUpRightFactory, Is.EqualTo(Template.Get("ROTATEInUpRightFactory")));
 
+            Assert.That(Template.HingeFactory, Is.EqualTo(Template.Get("hinge")));
+
         }
 
         public TweenSequenceTemplate CreateTemplate() {
