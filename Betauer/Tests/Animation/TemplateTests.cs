@@ -97,6 +97,12 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.LightSpeedOutLeft, Is.EqualTo(Template.Get("lightSPEEDoutLeft")));
             Assert.That(Template.LightSpeedOutRight, Is.EqualTo(Template.Get("lightSPEEDoutRight")));
 
+            Assert.That(Template.RotateInFactory, Is.EqualTo(Template.Get("ROTATEIN")));
+            Assert.That(Template.RotateInDownLeftFactory, Is.EqualTo(Template.Get("ROTATEInDownLeftFactory")));
+            Assert.That(Template.RotateInDownRightFactory, Is.EqualTo(Template.Get("ROTATEInDownRightFactory")));
+            Assert.That(Template.RotateInUpLeftFactory, Is.EqualTo(Template.Get("OTATEeInUpLeftFactory")));
+            Assert.That(Template.RotateInUpRightFactory, Is.EqualTo(Template.Get("ROTATEInUpRightFactory")));
+
         }
 
         public TweenSequenceTemplate CreateTemplate() {

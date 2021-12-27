@@ -81,6 +81,12 @@ namespace Betauer.Animation {
         public static TweenSequenceTemplate LightSpeedOutLeft => LightSpeedOutLeftFactory.Get();
         public static TweenSequenceTemplate LightSpeedOutRight => LightSpeedOutRightFactory.Get();
 
+        public static TweenSequenceTemplate RotateIn => RotateInFactory.Get();
+        public static TweenSequenceTemplate RotateInDownLeft => RotateInDownLeftFactory.Get();
+        public static TweenSequenceTemplate RotateInDownRight => RotateInDownRightFactory.Get();
+        public static TweenSequenceTemplate RotateInUpLeft => RotateInUpLeftFactory.Get();
+        public static TweenSequenceTemplate RotateInUpRight => RotateInUpRightFactory.Get();
+
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
 
@@ -152,6 +158,12 @@ namespace Betauer.Animation {
         public static readonly TemplateFactory LightSpeedInRightFactory = new TemplateFactory(nameof(LightSpeedInRight), Templates.LightSpeedInRight);
         public static readonly TemplateFactory LightSpeedOutLeftFactory = new TemplateFactory(nameof(LightSpeedOutLeft), Templates.LightSpeedOutLeft);
         public static readonly TemplateFactory LightSpeedOutRightFactory = new TemplateFactory(nameof(LightSpeedOutRight), Templates.LightSpeedOutRight);
+
+        public static readonly TemplateFactory RotateInFactory = new TemplateFactory(nameof(RotateIn), Templates.RotateIn);
+        public static readonly TemplateFactory RotateInDownLeftFactory = new TemplateFactory(nameof(RotateInDownLeft), Templates.RotateInDownLeft);
+        public static readonly TemplateFactory RotateInDownRightFactory = new TemplateFactory(nameof(RotateInDownRight), Templates.RotateInDownRight);
+        public static readonly TemplateFactory RotateInUpLeftFactory = new TemplateFactory(nameof(RotateInUpLeft), Templates.RotateInUpLeft);
+        public static readonly TemplateFactory RotateInUpRightFactory = new TemplateFactory(nameof(RotateInUpRight), Templates.RotateInUpRight);
 
     }
 
