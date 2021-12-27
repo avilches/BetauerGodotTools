@@ -409,7 +409,7 @@ namespace Betauer.Tests.Animation {
             control.RectPivotOffset = original;
             GD.Print(control.RectPivotOffset);
 
-            var pivotCenterBottom = control.SetPivotCenterBottom();
+            var pivotCenterBottom = control.SetRotateOriginToBottomCenter();
             GD.Print(control.RectPivotOffset);
             Assert.That(control.RectPivotOffset, Is.Not.EqualTo(original));
 
@@ -429,7 +429,7 @@ namespace Betauer.Tests.Animation {
             GD.Print(sprite.GlobalPosition);
             await this.AwaitIdleFrame();
 
-            var pivotCenterBottom = sprite.SetPivotCenterBottom();
+            var pivotCenterBottom = sprite.SetRotateOriginToBottomCenter();
             GD.Print(sprite.Offset);
             GD.Print(sprite.GlobalPosition);
             Assert.That(sprite.Offset, Is.Not.EqualTo(original));

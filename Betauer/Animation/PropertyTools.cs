@@ -69,7 +69,9 @@ namespace Betauer.Animation {
             return restorer;
         }
 
-        public static IRestorer SetPivotTopCenter(this Node node) {
+        // TODO: TopRight, CenterRight, CenterLeft.
+        // TODO: Create a Visual UI to check the behavior (rotate with different origin)
+        public static IRestorer SetRotateOriginToTopCenter(this Node node) {
             return node switch {
                 // node.set_pivot_offset(Vector2(size.x / 2, 0))
                 Control control => control.SetControlPivot(new Vector2(control.RectSize.x / 2, 0)),
@@ -79,7 +81,7 @@ namespace Betauer.Animation {
             };
         }
 
-        public static IRestorer SetPivotTopLeft(this Node node) {
+        public static IRestorer SetRotateOriginToTopLeft(this Node node) {
             return node switch {
                 // node.set_pivot_offset(Vector2(0, 0))
                 Control control => SetControlPivot(control, Vector2.Zero),
@@ -89,7 +91,7 @@ namespace Betauer.Animation {
             };
         }
 
-        public static IRestorer SetPivotCenter(this Node node) {
+        public static IRestorer SetRotateOriginToCenter(this Node node) {
             return node switch {
                 // node.set_pivot_offset(size / 2)
                 Control control => SetControlPivot(control, control.RectSize / 2),
@@ -97,7 +99,7 @@ namespace Betauer.Animation {
             };
         }
 
-        public static IRestorer SetPivotCenterBottom(this Node node) {
+        public static IRestorer SetRotateOriginToBottomCenter(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
                 case Control control: {
@@ -112,7 +114,7 @@ namespace Betauer.Animation {
             }
         }
 
-        public static IRestorer SetPivotLeftBottom(this Node node) {
+        public static IRestorer SetRotateOriginToBottomLeft(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(0, size.y))
                 case Control control:
@@ -127,7 +129,7 @@ namespace Betauer.Animation {
             }
         }
 
-        public static IRestorer SetPivotRightBottom(this Node node) {
+        public static IRestorer SetRotateOriginToBottomRight(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(size.x, size.y / 2))
                 case Control control: {
@@ -137,7 +139,7 @@ namespace Betauer.Animation {
                 // node.offset = Vector2(-size.x / 2, size.y / 2)
                 case Sprite sprite: {
                     var size = GetSpriteSize(sprite);
-                    return sprite.SetSpritePivot(new Vector2(-size.x / 2, -size.y / 2));
+                    return sprite.SetSpritePivot(new Vector2(-size.x / 2, size.y / 2));
                 }
                 default:
                     return DummyRestorer.Instance;
