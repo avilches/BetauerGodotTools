@@ -2,7 +2,7 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 	var position_frames = [
 		{ percentage = 0, from = 0, ease = Anima.EASING.EASE_IN_OUT },
 		{ percentage = 80, to = 0, ease = Anima.EASING.EASE_IN_OUT },
-		{ percentage = 100, to = 700, ease = Anima.EASING.EASE_IN_OUT },
+		{ percentage = 100, to = 1000, ease = Anima.EASING.EASE_IN_OUT },
 	]
 
 	var rotate_frames = [

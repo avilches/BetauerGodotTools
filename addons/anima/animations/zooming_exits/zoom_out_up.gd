@@ -12,7 +12,7 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 
 	var position_frames = [
 		{ percentage = 0, from = 60, easing_points = [0.55, 0.055, 0.675, 0.19] },
-		{ percentage = 100, to = -2000, easing_points = [0.175, 0.885, 0.32, 1] },
+		{ percentage = 100, to = -1000, easing_points = [0.175, 0.885, 0.32, 1] },
 	]
 
 	AnimaNodesProperties.set_2D_pivot(data.node, Anima.PIVOT.CENTER)

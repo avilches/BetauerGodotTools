@@ -5,7 +5,7 @@ func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
 
 	var position_frames = [
 		{ percentage = 0, from = 0 },
-		{ percentage = 100, to = 2000 },
+		{ percentage = 100, to = 1000 },
 	]
 
 	anima_tween.add_relative_frames(data, "y", position_frames)
