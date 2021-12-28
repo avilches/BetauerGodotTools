@@ -53,6 +53,15 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> ScaleZ =
             new ControlOrNode2DIndexedProperty<float>("scale:z", "rect_scale:z");
 
+        // public static readonly IProperty<Vector2> Scale2D =
+        // new Scale2DProperty();
+
+        // public static readonly IProperty<float> ScaleX = new ScaleXProperty();
+
+        // public static readonly IProperty<float> ScaleY = new ScaleYProperty();
+
+        // public static readonly IProperty<float> ScaleZ = new ScaleZProperty();
+
         /**
          * Why use a class to update the RotationDegrees property instead of this?
 
@@ -108,6 +117,69 @@ namespace Betauer.Animation {
         public void SetValue(Node node, float initialValue, float value) {
             if (node is Node2D node2D) node2D.RotationDegrees = value;
             else if (node is Control control) control.RectRotation = value;
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            if (node is Control) return true;
+            if (node is Node2D) return true;
+            return false;
+        }
+    }
+
+    public class Scale2DProperty : IProperty<Vector2> {
+        public Vector2 GetValue(Node node) {
+            return node switch {
+                Node2D node2D => node2D.Scale,
+                Control control => control.RectScale,
+                _ => throw new Exception($"Not Scale2D property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, Vector2 initialValue, Vector2 value) {
+            if (node is Node2D node2D) node2D.Scale = value;
+            else if (node is Control control) control.RectScale = value;
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            if (node is Control) return true;
+            if (node is Node2D) return true;
+            return false;
+        }
+    }
+
+    public class ScaleXProperty : IProperty<float> {
+        public float GetValue(Node node) {
+            return node switch {
+                Node2D node2D => node2D.Scale.x,
+                Control control => control.RectScale.x,
+                _ => throw new Exception($"Not ScaleX property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, float initialValue, float value) {
+            if (node is Node2D node2D) node2D.SetIndexed("scale:x", value);
+            else if (node is Control control) control.SetIndexed("rect_scale:x", value);
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            if (node is Control) return true;
+            if (node is Node2D) return true;
+            return false;
+        }
+    }
+
+    public class ScaleYProperty : IProperty<float> {
+        public float GetValue(Node node) {
+            return node switch {
+                Node2D node2D => node2D.Scale.y,
+                Control control => control.RectScale.y,
+                _ => throw new Exception($"No ScaleY property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, float initialValue, float value) {
+            if (node is Node2D node2D) node2D.SetIndexed("scale:y", value);
+            else if (node is Control control) control.SetIndexed("rect_scale:y", value);
         }
 
         public bool IsCompatibleWith(Node node) {
