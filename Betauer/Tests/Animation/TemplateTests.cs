@@ -18,7 +18,6 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test]
-        [Only]
         public void TemplateNamesCheck() {
             Assert.That(Template.Bounce, Is.EqualTo(Template.Get("bOunce")));
             Assert.That(Template.Flash, Is.EqualTo(Template.Get("fLash")));
@@ -97,16 +96,16 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.LightSpeedOutLeft, Is.EqualTo(Template.Get("lightSPEEDoutLeft")));
             Assert.That(Template.LightSpeedOutRight, Is.EqualTo(Template.Get("lightSPEEDoutRight")));
 
-            Assert.That(Template.RotateInFactory, Is.EqualTo(Template.Get("ROTATEIN")));
-            Assert.That(Template.RotateInDownLeftFactory, Is.EqualTo(Template.Get("ROTATEInDownLeftFactory")));
-            Assert.That(Template.RotateInDownRightFactory, Is.EqualTo(Template.Get("ROTATEInDownRightFactory")));
-            Assert.That(Template.RotateInUpLeftFactory, Is.EqualTo(Template.Get("OTATEeInUpLeftFactory")));
-            Assert.That(Template.RotateInUpRightFactory, Is.EqualTo(Template.Get("ROTATEInUpRightFactory")));
+            Assert.That(Template.RotateIn, Is.EqualTo(Template.Get("ROTATEIN")));
+            Assert.That(Template.RotateInDownLeft, Is.EqualTo(Template.Get("ROTATEInDownLeft")));
+            Assert.That(Template.RotateInDownRight, Is.EqualTo(Template.Get("ROTATEInDownRight")));
+            Assert.That(Template.RotateInUpLeft, Is.EqualTo(Template.Get("rOTATEInUpLeft")));
+            Assert.That(Template.RotateInUpRight, Is.EqualTo(Template.Get("ROTATEInUpRight")));
 
-            Assert.That(Template.HingeFactory, Is.EqualTo(Template.Get("hInge")));
-            Assert.That(Template.JackInTheBoxFactory, Is.EqualTo(Template.Get("jAckInTheBox")));
-            Assert.That(Template.RollOutFactory, Is.EqualTo(Template.Get("rOllOut")));
-            Assert.That(Template.RollInFactory, Is.EqualTo(Template.Get("rOllIn")));
+            Assert.That(Template.Hinge, Is.EqualTo(Template.Get("hInge")));
+            Assert.That(Template.JackInTheBox, Is.EqualTo(Template.Get("jAckInTheBox")));
+            Assert.That(Template.RollOut, Is.EqualTo(Template.Get("rOllOut")));
+            Assert.That(Template.RollIn, Is.EqualTo(Template.Get("rOllIn")));
         }
 
         public TweenSequenceTemplate CreateTemplate() {
