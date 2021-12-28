@@ -11,8 +11,34 @@ namespace Betauer.Animation {
      * Code from: https://github.com/ceceppa/anima/blob/master/addons/anima/utils/node_properties.gd
      */
     public static class PropertyTools {
-
         public static Vector2 GetSpriteSize(this Sprite sprite) => sprite.Texture.GetSize() * sprite.Scale;
+
+        public static float GetOutOfScreenRight(this Node node) {
+            return node is CanvasItem canvas ? canvas.GetViewport().Size.x : node.GetTree().Root.Size.x;
+        }
+
+        public static float GetOutOfScreenBottom(this Node node) {
+            return node is CanvasItem canvas ? canvas.GetViewport().Size.y : node.GetTree().Root.Size.y;
+        }
+
+        public static float GetOutOfScreenLeft(this Node node) {
+            var offset = node switch {
+                Control control => control.RectSize.x,
+                Sprite sprite => sprite.GetSpriteSize().x,
+                _ => 0
+            };
+            return -(node.GetOutOfScreenRight() + offset);
+        }
+
+        public static float GetOutOfScreenTop(this Node node) {
+            var offset = node switch {
+                Control control => control.RectSize.y,
+                Sprite sprite => sprite.GetSpriteSize().y,
+                _ => 0
+            };
+            return -(node.GetOutOfScreenBottom() + offset);
+        }
+
 
         public interface IRestorer {
             public void Rollback();
@@ -51,6 +77,7 @@ namespace Betauer.Animation {
 
         private class DummyRestorer : IRestorer {
             public static readonly IRestorer Instance = new DummyRestorer();
+
             public void Rollback() {
             }
         }

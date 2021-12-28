@@ -11,7 +11,7 @@ namespace Betauer.Animation {
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 .AnimateKeys(property: Property.Scale2D)
-                .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.40f, new Vector2(0.90f, 0.90f), Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.60f, new Vector2(1.03f, 1.03f), Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -27,7 +27,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInUp(float distance = 3000f) {
+        internal static TweenSequenceTemplate BounceInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -46,7 +46,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateRelativeKeys(property: Property.PositionY)
-                .KeyframeOffset(0.00f, Math.Abs(distance))
+                .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -55,7 +55,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInDown(float distance = 3000f) {
+        internal static TweenSequenceTemplate BounceInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -74,7 +74,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateRelativeKeys(property: Property.PositionY)
-                .KeyframeOffset(0.00f, -Math.Abs(distance))
+                .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -83,7 +83,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInLeft(float distance = 3000f) {
+        internal static TweenSequenceTemplate BounceInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -102,7 +102,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateRelativeKeys(property: Property.PositionX)
-                .KeyframeOffset(0.00f, -Math.Abs(distance))
+                .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -111,7 +111,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInRight(float distance = 3000f) {
+        internal static TweenSequenceTemplate BounceInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -130,7 +130,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateRelativeKeys(property: Property.PositionX)
-                .KeyframeOffset(0.00f, Math.Abs(distance))
+                .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -147,7 +147,7 @@ namespace Betauer.Animation {
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 .AnimateKeys(property: Property.Scale2D)
-                .KeyframeTo(0.00f, Vector2.One, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(0.9f, 0.9f))
                 .KeyframeTo(0.50f, new Vector2(1.1f, 1.1f))
                 .KeyframeTo(0.55f, new Vector2(1.1f, 1.1f))
@@ -162,12 +162,12 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutUp(float distance = 2000f) {
+        internal static TweenSequenceTemplate BounceOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.ScaleY)
-                .KeyframeTo(0.00f, 1f, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.985f)
                 .KeyframeTo(0.40f, 0.9f)
                 .KeyframeTo(0.45f, 0.9f)
@@ -185,17 +185,17 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.20f, -10f)
                 .KeyframeOffset(0.40f, 20f)
                 .KeyframeOffset(0.45f, 20f)
-                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .EndAnimate()
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutDown(float distance = 2000f) {
+        internal static TweenSequenceTemplate BounceOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.ScaleY)
-                .KeyframeTo(0.00f, 1f, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.985f)
                 .KeyframeTo(0.40f, 0.9f)
                 .KeyframeTo(0.45f, 0.9f)
@@ -213,17 +213,17 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.20f, 10f)
                 .KeyframeOffset(0.40f, -20f)
                 .KeyframeOffset(0.45f, -20f)
-                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .EndAnimate()
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutLeft(float distance = 2000f) {
+        internal static TweenSequenceTemplate BounceOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.ScaleX)
-                .KeyframeTo(0.00f, 1f, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.90f)
                 .KeyframeTo(1.00f, 2f)
                 .EndAnimate()
@@ -237,17 +237,17 @@ namespace Betauer.Animation {
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 20f)
-                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .EndAnimate()
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutRight(float distance = 2000f) {
+        internal static TweenSequenceTemplate BounceOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.ScaleX)
-                .KeyframeTo(0.00f, 1f, node => node.SetRotateOriginToCenter())
+                .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.90f)
                 .KeyframeTo(1.00f, 2f)
                 .EndAnimate()
@@ -261,7 +261,7 @@ namespace Betauer.Animation {
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, -20f)
-                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .EndAnimate()
                 .BuildTemplate();
         }

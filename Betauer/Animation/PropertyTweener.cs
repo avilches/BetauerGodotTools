@@ -243,7 +243,7 @@ namespace Betauer.Animation {
             var startTime = 0f;
             // var totalDuration = _steps.Sum(step => step.Duration);
             foreach (var step in _steps) {
-                var to = step.GetTo(_relativeToFrom ? initialFrom : from);
+                var to = step.GetTo(target, _relativeToFrom ? initialFrom : from);
                 var duration = step.Duration;
                 // var percentStart = startTime / totalDuration;
                 // var percentEnd = (startTime + duration) / totalDuration;
@@ -285,14 +285,14 @@ namespace Betauer.Animation {
             var target = _target ?? defaultTarget;
             var property = _defaultProperty ?? defaultProperty;
             if (!Validate(_steps.Count, target, property)) return 0;
-            var initialValue = property.IsCompatibleWith(target) ? property.GetValue(target): default;
+            var initialValue = property.IsCompatibleWith(target) ? property.GetValue(target) : default;
             var from = _fromFunction != null ? _fromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
             var percentStart = 0f;
             var i = 0;
             foreach (var step in _steps) {
-                var to = step.GetTo(_relativeToFrom ? initialFrom : from);
+                var to = step.GetTo(target, _relativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * allStepsDuration;
                 var duration = endTime - startTime;
                 var easing = step.Easing ?? _defaultEasing;
@@ -340,13 +340,13 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public PropertyKeyStepToBuilder<TProperty, TBuilder>
-            To(TProperty to, float duration, CallbackNode callbackNode) {
-            return To(to, duration, null, callbackNode);
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> To(TProperty to, float duration,
+            Easing easing = null, CallbackNode callbackNode = null) {
+            return To(_ => to, duration, easing, callbackNode);
         }
 
-        public PropertyKeyStepToBuilder<TProperty, TBuilder> To(TProperty to, float duration, Easing easing = null,
-            CallbackNode callbackNode = null) {
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> To(Func<Node, TProperty> to, float duration,
+            Easing easing = null, CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepTo<TProperty>(to, duration, easing ?? _defaultEasing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
@@ -385,11 +385,11 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
-            CallbackNode callbackNode) {
-            return Offset(offset, duration, null, callbackNode);
+            Easing easing = null, CallbackNode callbackNode = null) {
+            return Offset(_ => offset, duration, easing, callbackNode);
         }
 
-        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(Func<Node, TProperty> offset, float duration,
             Easing easing = null, CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepOffset<TProperty>(offset, duration, easing ?? _defaultEasing, callbackNode);
@@ -433,11 +433,11 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
-            CallbackNode callbackNode) {
-            return KeyframeTo(percentage, to, null, callbackNode);
+            Easing easing = null, CallbackNode callbackNode = null) {
+            return KeyframeTo(percentage, _ => to, easing, callbackNode);
         }
 
-        public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, Func<Node, TProperty> to,
             Easing easing = null, CallbackNode callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
@@ -486,11 +486,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
-            CallbackNode callbackNode) {
-            return KeyframeOffset(percentage, offset, null, callbackNode);
+            Easing easing = null, CallbackNode callbackNode = null) {
+            return KeyframeOffset(percentage, _ => offset, easing, callbackNode);
         }
 
-        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage,
+            Func<Node, TProperty> offset,
             Easing easing = null, CallbackNode callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyPercentOffset<TProperty>(percentage, offset, easing, callbackNode);

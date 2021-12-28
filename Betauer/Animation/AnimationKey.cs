@@ -1,5 +1,8 @@
+using System;
+using Godot;
+
 namespace Betauer.Animation {
-    public abstract class AnimationKey<T> {
+    public abstract class AnimationKey<TProperty> {
         public readonly Easing Easing;
         public readonly CallbackNode CallbackNode;
 
@@ -8,13 +11,13 @@ namespace Betauer.Animation {
             CallbackNode = callbackNode;
         }
 
-        public abstract T GetTo(T from);
+        public abstract TProperty GetTo(Node target, TProperty from);
     }
 
     /**
      * Step: to + duration
      */
-    public abstract class AnimationKeyStep<T> : AnimationKey<T> {
+    public abstract class AnimationKeyStep<TProperty> : AnimationKey<TProperty> {
         public readonly float Duration;
 
         internal AnimationKeyStep(float duration, Easing easing, CallbackNode callbackNode) : base(easing, callbackNode) {
@@ -22,36 +25,36 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationKeyStepTo<T> : AnimationKeyStep<T> {
-        public readonly T To;
+    public class AnimationKeyStepTo<TProperty> : AnimationKeyStep<TProperty> {
+        public readonly Func<Node, TProperty> To;
 
-        internal AnimationKeyStepTo(T to, float duration, Easing easing, CallbackNode callbackNode) :
+        internal AnimationKeyStepTo(Func<Node, TProperty> to, float duration, Easing easing, CallbackNode callbackNode) :
             base(duration, easing, callbackNode) {
             To = to;
         }
 
-        public override T GetTo(T from) {
-            return To;
+        public override TProperty GetTo(Node target, TProperty from) {
+            return To(target);
         }
     }
 
-    public class AnimationKeyStepOffset<T> : AnimationKeyStep<T> {
-        public readonly T Offset;
+    public class AnimationKeyStepOffset<TProperty> : AnimationKeyStep<TProperty> {
+        public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationKeyStepOffset(T offset, float duration, Easing easing, CallbackNode callbackNode) :
+        internal AnimationKeyStepOffset(Func<Node, TProperty> offset, float duration, Easing easing, CallbackNode callbackNode) :
             base(duration, easing, callbackNode) {
             Offset = offset;
         }
 
-        public override T GetTo(T from) {
-            return GodotTools.SumVariant(from, Offset);
+        public override TProperty GetTo(Node target, TProperty from) {
+            return GodotTools.SumVariant(from, Offset(target));
         }
     }
 
     /**
      * Percent: to + percent keyframe
      */
-    public abstract class AnimationKeyPercent<T> : AnimationKey<T> {
+    public abstract class AnimationKeyPercent<TProperty> : AnimationKey<TProperty> {
         public readonly float Percent;
 
         internal AnimationKeyPercent(float percent, Easing easing, CallbackNode callbackNode) : base(easing, callbackNode) {
@@ -59,29 +62,29 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationKeyPercentTo<T> : AnimationKeyPercent<T> {
-        public readonly T To;
+    public class AnimationKeyPercentTo<TProperty> : AnimationKeyPercent<TProperty> {
+        public readonly Func<Node, TProperty> To;
 
-        internal AnimationKeyPercentTo(float percent, T to, Easing easing, CallbackNode callbackNode) :
+        internal AnimationKeyPercentTo(float percent, Func<Node, TProperty> to, Easing easing, CallbackNode callbackNode) :
             base(percent, easing, callbackNode) {
             To = to;
         }
 
-        public override T GetTo(T from) {
-            return To;
+        public override TProperty GetTo(Node target, TProperty from) {
+            return To(target);
         }
     }
 
-    public class AnimationKeyPercentOffset<T> : AnimationKeyPercent<T> {
-        public readonly T Offset;
+    public class AnimationKeyPercentOffset<TProperty> : AnimationKeyPercent<TProperty> {
+        public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationKeyPercentOffset(float percent, T offset, Easing easing, CallbackNode callbackNode) :
+        internal AnimationKeyPercentOffset(float percent, Func<Node, TProperty> offset, Easing easing, CallbackNode callbackNode) :
             base(percent, easing, callbackNode) {
             Offset = offset;
         }
 
-        public override T GetTo(T from) {
-            return GodotTools.SumVariant(from, Offset);
+        public override TProperty GetTo(Node target, TProperty from) {
+            return GodotTools.SumVariant(from, Offset(target));
         }
     }
 }

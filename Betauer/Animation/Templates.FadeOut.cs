@@ -32,12 +32,12 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate FadeOutUpBig(float distance = 2000) {
+        internal static TweenSequenceTemplate FadeOutUpBig(float distance = 0) {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(property: Property.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
-                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(property: Property.Opacity)
@@ -62,12 +62,12 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate FadeOutDownBig(float distance = 2000) {
+        internal static TweenSequenceTemplate FadeOutDownBig(float distance = 0) {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(property: Property.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
-                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(property: Property.Opacity)
@@ -92,12 +92,12 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate FadeOutLeftBig(float distance = 2000) {
+        internal static TweenSequenceTemplate FadeOutLeftBig(float distance = 0) {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
-                .KeyframeOffset(1.00f, -Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(property: Property.Opacity)
@@ -122,12 +122,12 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate FadeOutRightBig(float distance = 2000) {
+        internal static TweenSequenceTemplate FadeOutRightBig(float distance = 0) {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
-                .KeyframeOffset(1.00f, Math.Abs(distance))
+                .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(property: Property.Opacity)

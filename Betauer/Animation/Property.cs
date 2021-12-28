@@ -31,15 +31,15 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> PositionY =
             new ControlOrNode2DIndexedProperty<float>("transform:origin:y", "rect_position:y");
 
+        public static readonly IProperty<float> PositionZ =
+            new ControlOrNode2DIndexedProperty<float>("transform:origin:z", "rect_position:z");
+
         // These PercentPositionX and PercentPositionY constructors need to be located after the PositionX and PositionY
         public static readonly IProperty<float> PercentPositionX = new PercentPositionX();
 
         public static readonly IProperty<float> PercentPositionY = new PercentPositionY();
 
         public static readonly IProperty<Vector2> PercentPosition2D = new PercentPosition2D();
-
-        public static readonly IProperty<float> PositionZ =
-            new ControlOrNode2DIndexedProperty<float>("position:z", "rect_position:z");
 
         public static readonly IProperty<Vector2> Scale2D =
             new ControlOrNode2DIndexedProperty<Vector2>("scale", "rect_scale");
