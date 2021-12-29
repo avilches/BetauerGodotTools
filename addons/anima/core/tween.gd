@@ -424,7 +424,7 @@ func _on_animation_with_key(index: int, elapsed: float) -> void:
 	var property_data = _animation_data[index]._property_data
 	var node = animation_data.node
 	var value = property_data.from + (property_data.diff * elapsed)
-
+#	print(node," ", property_data.property_name,".",property_data.key,"=",value)
 	node[property_data.property_name][property_data.key] = value
 
 func _on_animation_with_subkey(index: int, elapsed: float) -> void:
@@ -433,6 +433,7 @@ func _on_animation_with_subkey(index: int, elapsed: float) -> void:
 	var node = animation_data.node
 	var value = property_data.from + (property_data.diff * elapsed)
 
+#	print(node," ", property_data.property_name,".",property_data.key,".",property_data.subkey,"=",value)
 	node[property_data.property_name][property_data.key][property_data.subkey] = value
 
 func _on_animation_without_key(index: int, elapsed: float) -> void:
@@ -446,6 +447,7 @@ func _on_animation_without_key(index: int, elapsed: float) -> void:
 
 		return
 
+#	print(node," ", property_data.property_name,"=",value)
 	node[property_data.property_name] = value
 
 #

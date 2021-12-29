@@ -20,7 +20,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutUp() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPositionY)
+                .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, -1.0f)
                 .EndAnimate()
@@ -50,7 +50,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutDown() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPositionY)
+                .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate()
@@ -80,7 +80,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPositionX)
+                .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, -1.0f)
                 .EndAnimate()
@@ -110,7 +110,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPositionX)
+                .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate()
@@ -141,7 +141,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutTopLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(-1f, -1))
                 .EndAnimate()
@@ -156,7 +156,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutTopRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(1f, -1))
                 .EndAnimate()
@@ -171,7 +171,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutBottomLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(-1f, 1))
                 .EndAnimate()
@@ -186,7 +186,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeOutBottomRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(1f, 1f))
                 .EndAnimate()

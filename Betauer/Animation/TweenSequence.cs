@@ -67,7 +67,7 @@ namespace Betauer.Animation {
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
         private protected bool _importedFromTemplate = false;
-        public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Physics;
+        public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
 
         public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1) {
             TweenList = tweenSequence.TweenList;

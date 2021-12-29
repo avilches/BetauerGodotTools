@@ -69,16 +69,16 @@ namespace Betauer.Tests.Animation {
 
             var node2D = await CreateNode2D();
             node2D.RotationDegrees = 0f;
-            await CreateTweenPropertyVariants(node2D, Property.RotateCenter, from, to);
+            await CreateTweenPropertyVariants(node2D, Property.Rotate2D, from, to);
             Assert.That(node2D.RotationDegrees, Is.EqualTo(to));
 
             var control = await CreateLabel();
             control.RectRotation = 0f;
-            await CreateTweenPropertyVariants(control, Property.RotateCenter, from, to);
+            await CreateTweenPropertyVariants(control, Property.Rotate2D, from, to);
             Assert.That(control.RectRotation, Is.EqualTo(to));
 
             var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.RotateCenter, from, to);
+            await CreateEmptyTweenPropertyVariants(node, Property.Rotate2D, from, to);
         }
 
         [Test(Description = "Property PositionX, PositionY")]
@@ -120,7 +120,7 @@ namespace Betauer.Tests.Animation {
             var spriteX = await CreateSprite(width);
             spriteX.Position = new Vector2(initialPosition, 0);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(spriteX, Property.PercentPositionX)
+                .AnimateSteps(spriteX, Property.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -132,7 +132,7 @@ namespace Betauer.Tests.Animation {
             var spriteY = await CreateSprite(width);
             spriteY.Position = new Vector2(0, initialPosition);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(spriteY, Property.PercentPositionY)
+                .AnimateSteps(spriteY, Property.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -144,7 +144,7 @@ namespace Betauer.Tests.Animation {
             var sprite2D = await CreateSprite(width);
             sprite2D.Position = new Vector2(initialPosition, initialPosition);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(sprite2D, Property.PercentPosition2D)
+                .AnimateSteps(sprite2D, Property.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
@@ -158,7 +158,7 @@ namespace Betauer.Tests.Animation {
             var controlX = await CreateLabel(width);
             controlX.RectPosition = new Vector2(initialPosition, 0);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(controlX, Property.PercentPositionX)
+                .AnimateSteps(controlX, Property.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -170,7 +170,7 @@ namespace Betauer.Tests.Animation {
             var controlY = await CreateLabel(width);
             controlY.RectPosition = new Vector2(0, initialPosition);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(controlY, Property.PercentPositionY)
+                .AnimateSteps(controlY, Property.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -182,7 +182,7 @@ namespace Betauer.Tests.Animation {
             var control2D = await CreateLabel(width);
             control2D.RectPosition = new Vector2(initialPosition, initialPosition);
             await TweenSequenceBuilder.Create()
-                .AnimateSteps(control2D, Property.PercentPosition2D)
+                .AnimateSteps(control2D, Property.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
@@ -193,14 +193,14 @@ namespace Betauer.Tests.Animation {
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.PercentPositionX, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node, Property.PercentPositionY, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node, Property.PercentPosition2D, Vector2.One, Vector2.Zero);
+            await CreateEmptyTweenPropertyVariants(node, Property.PositionBySizeX, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PositionBySizeY, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node, Property.PositionBySize2D, Vector2.One, Vector2.Zero);
 
             var node2D = await CreateNode2D();
-            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPositionX, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPositionY, percentFrom, percentTo);
-            await CreateEmptyTweenPropertyVariants(node2D, Property.PercentPosition2D, Vector2.One, Vector2.Zero);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionBySizeX, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionBySizeY, percentFrom, percentTo);
+            await CreateEmptyTweenPropertyVariants(node2D, Property.PositionBySize2D, Vector2.One, Vector2.Zero);
         }
 
         [Test(Description = "Property ScaleX, ScaleY")]
@@ -238,20 +238,20 @@ namespace Betauer.Tests.Animation {
 
             var node2D = await CreateNode2D();
             node2D.SetIndexed("transform:y:x", 0);
-            await CreateTweenPropertyVariants(node2D, Property.SkewX, from, to);
+            await CreateTweenPropertyVariants(node2D, Property.Skew2DX, from, to);
             Assert.That(node2D.GetIndexed("transform:y:x"), Is.EqualTo(to));
 
             node2D.SetIndexed("transform:x:y", 0);
-            await CreateTweenPropertyVariants(node2D, Property.SkewY, from, to);
+            await CreateTweenPropertyVariants(node2D, Property.Skew2DY, from, to);
             Assert.That(node2D.GetIndexed("transform:x:y"), Is.EqualTo(to));
 
             var label = await CreateLabel();
-            await CreateEmptyTweenPropertyVariants(label, Property.SkewX, from, to);
-            await CreateEmptyTweenPropertyVariants(label, Property.SkewY, from, to);
+            await CreateEmptyTweenPropertyVariants(label, Property.Skew2DX, from, to);
+            await CreateEmptyTweenPropertyVariants(label, Property.Skew2DY, from, to);
 
             var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.SkewX, from, to);
-            await CreateEmptyTweenPropertyVariants(node, Property.SkewY, from, to);
+            await CreateEmptyTweenPropertyVariants(node, Property.Skew2DX, from, to);
+            await CreateEmptyTweenPropertyVariants(node, Property.Skew2DY, from, to);
         }
 
         [Test(Description = "Property Position2D")]

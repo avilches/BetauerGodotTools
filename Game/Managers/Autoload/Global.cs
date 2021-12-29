@@ -27,7 +27,7 @@ namespace Veronenger.Game.Managers.Autoload {
                 animation = animation.ReplaceN("bouncing", "bounce");
 
                 // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
-                TweenPlayer.With(node, Template.Get(animation), duration).Start();
+                TweenPlayer.With(node, Template.Get(animation, 1000f), duration).Start();
             } catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);

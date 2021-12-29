@@ -15,8 +15,8 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> ModulateB =
             new ControlOrNode2DIndexedProperty<float>("modulate:b", "modulate:b");
 
-        public static readonly IProperty<float>
-            Opacity = new ControlOrNode2DIndexedProperty<float>("modulate:a", "modulate:a");
+        public static readonly IProperty<float> Opacity =
+            new ControlOrNode2DIndexedProperty<float>("modulate:a", "modulate:a");
 
         /*
          * "transform.origin" matrix is used to change the position instead of "position:x" because it's safe to use
@@ -31,15 +31,12 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> PositionY =
             new ControlOrNode2DIndexedProperty<float>("transform:origin:y", "rect_position:y");
 
-        public static readonly IProperty<float> PositionZ =
-            new ControlOrNode2DIndexedProperty<float>("transform:origin:z", "rect_position:z");
-
         // These PercentPositionX and PercentPositionY constructors need to be located after the PositionX and PositionY
-        public static readonly IProperty<float> PercentPositionX = new PercentPositionX();
+        public static readonly IProperty<float> PositionBySizeX = new PositionBySizeX();
 
-        public static readonly IProperty<float> PercentPositionY = new PercentPositionY();
+        public static readonly IProperty<float> PositionBySizeY = new PositionBySizeY();
 
-        public static readonly IProperty<Vector2> PercentPosition2D = new PercentPosition2D();
+        public static readonly IProperty<Vector2> PositionBySize2D = new PositionBySize2D();
 
         public static readonly IProperty<Vector2> Scale2D =
             new ControlOrNode2DIndexedProperty<Vector2>("scale", "rect_scale");
@@ -50,49 +47,23 @@ namespace Betauer.Animation {
         public static readonly IProperty<float> ScaleY =
             new ControlOrNode2DIndexedProperty<float>("scale:y", "rect_scale:y");
 
-        public static readonly IProperty<float> ScaleZ =
-            new ControlOrNode2DIndexedProperty<float>("scale:z", "rect_scale:z");
-
-        // public static readonly IProperty<Vector2> Scale2D =
-        // new Scale2DProperty();
-
-        // public static readonly IProperty<float> ScaleX = new ScaleXProperty();
-
-        // public static readonly IProperty<float> ScaleY = new ScaleYProperty();
-
-        // public static readonly IProperty<float> ScaleZ = new ScaleZProperty();
+        public static readonly IProperty<Vector2> Scale2DByCallback = new Scale2DProperty();
+        public static readonly IProperty<float> Scale2DXByCallback = new ScaleXProperty();
+        public static readonly IProperty<float> Scale2DYByCallback = new ScaleYProperty();
+        public static readonly IProperty<float> Scale2DZByCallback = new ScaleZProperty();
 
         /**
-         * Why use a class to update the RotationDegrees property instead of this?
-
-            public static readonly IProperty<float> RotateCenter =
-                    new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
-
-         * The problem is:
-         *
-         * LightSpeed animation needs move position and skew:
-         * - position:x + skew:x/skew.y -> IT DOESN'T WORK (it scale the sprite too, which is not expected)
-         * - transform:origin:x + skew:x/skew:y  -> WORKS OK
-         *
-         * RollIn animation needs move position and rotation:
-         * - "position:x" + "rotation_degrees" -> WORKS OK
-         * - "transform:origin:x" + "rotation_degrees" -> IT DOESN'T WORK (it scale the sprite too, which is not expected)
-         *
-         * JackInTheBox animation needs scale and rotate:
-         * - "scale" + "rotation_degrees" -> IT DOESN'T WORK (it scale with bigger values)
-         *
-         * So, in order to allow the 3 animations work using just one type of every property is:
-         * 1. Use "transform:origin:x" which works well with skew
-         * 2. Change the rotation_degrees with a this function, which allow to work with scale (JackInTheBox and move (RollIn)
-         * 
+         * It doesn't work combined with Scale or Position (with transform)
          */
-        public static readonly IProperty<float> RotateCenter = new RotateProperty();
+        public static readonly IProperty<float> Rotate2D =
+            new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
 
+        public static readonly IProperty<float> Rotate2DByCallback = new Rotate2DProperty();
 
-        public static readonly IProperty<float> SkewX =
+        public static readonly IProperty<float> Skew2DX =
             new ControlOrNode2DIndexedProperty<float>("transform:y:x", null);
 
-        public static readonly IProperty<float> SkewY =
+        public static readonly IProperty<float> Skew2DY =
             new ControlOrNode2DIndexedProperty<float>("transform:x:y", null);
     }
 
@@ -105,7 +76,7 @@ namespace Betauer.Animation {
         public bool IsCompatibleWith(Node node);
     }
 
-    public class RotateProperty : IProperty<float> {
+    public class Rotate2DProperty : IProperty<float> {
         public float GetValue(Node node) {
             return node switch {
                 Node2D node2D => node2D.RotationDegrees,
@@ -123,6 +94,23 @@ namespace Betauer.Animation {
             if (node is Control) return true;
             if (node is Node2D) return true;
             return false;
+        }
+    }
+
+    public class Scale3DProperty : IProperty<Vector3> {
+        public Vector3 GetValue(Node node) {
+            return node switch {
+                Spatial spatial => spatial.Scale,
+                _ => throw new Exception($"Not Scale3D property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, Vector3 initialValue, Vector3 value) {
+            if (node is Spatial spatial) spatial.Scale = value;
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            return node is Spatial;
         }
     }
 
@@ -150,6 +138,7 @@ namespace Betauer.Animation {
     public class ScaleXProperty : IProperty<float> {
         public float GetValue(Node node) {
             return node switch {
+                Spatial spatial => spatial.Scale.x,
                 Node2D node2D => node2D.Scale.x,
                 Control control => control.RectScale.x,
                 _ => throw new Exception($"Not ScaleX property for node type {node.GetType()}")
@@ -157,7 +146,7 @@ namespace Betauer.Animation {
         }
 
         public void SetValue(Node node, float initialValue, float value) {
-            if (node is Node2D node2D) node2D.SetIndexed("scale:x", value);
+            if (node is Node2D || node is Spatial) node.SetIndexed("scale:x", value);
             else if (node is Control control) control.SetIndexed("rect_scale:x", value);
         }
 
@@ -171,6 +160,7 @@ namespace Betauer.Animation {
     public class ScaleYProperty : IProperty<float> {
         public float GetValue(Node node) {
             return node switch {
+                Spatial spatial => spatial.Scale.y,
                 Node2D node2D => node2D.Scale.y,
                 Control control => control.RectScale.y,
                 _ => throw new Exception($"No ScaleY property for node type {node.GetType()}")
@@ -178,14 +168,29 @@ namespace Betauer.Animation {
         }
 
         public void SetValue(Node node, float initialValue, float value) {
-            if (node is Node2D node2D) node2D.SetIndexed("scale:y", value);
+            if (node is Node2D || node is Spatial) node.SetIndexed("scale:y", value);
             else if (node is Control control) control.SetIndexed("rect_scale:y", value);
         }
 
         public bool IsCompatibleWith(Node node) {
-            if (node is Control) return true;
-            if (node is Node2D) return true;
-            return false;
+            return node is Spatial || node is Control || node is Node2D;
+        }
+    }
+
+    public class ScaleZProperty : IProperty<float> {
+        public float GetValue(Node node) {
+            return node switch {
+                Spatial spatial => spatial.Scale.z,
+                _ => throw new Exception($"No ScaleY property for node type {node.GetType()}")
+            };
+        }
+
+        public void SetValue(Node node, float initialValue, float value) {
+            if (node is Spatial) node.SetIndexed("scale:z", value);
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            return node is Spatial;
         }
     }
 
@@ -204,17 +209,17 @@ namespace Betauer.Animation {
             _propertyName = propertyName;
         }
 
-        public bool IsCompatibleWith(Node node) => true;
+        public virtual bool IsCompatibleWith(Node node) => true;
 
-        public TProperty GetValue(Node node) {
+        public virtual TProperty GetValue(Node node) {
             return (TProperty)node.GetIndexed(GetIndexedProperty(node));
         }
 
-        public void SetValue(Node node, TProperty initialValue, TProperty value) {
+        public virtual void SetValue(Node node, TProperty initialValue, TProperty value) {
             node.SetIndexed(GetIndexedProperty(node), value);
         }
 
-        public string GetIndexedProperty(Node node) {
+        public virtual string GetIndexedProperty(Node node) {
             return _propertyName;
         }
 
@@ -279,8 +284,8 @@ namespace Betauer.Animation {
         public abstract bool IsCompatibleWith(Node node);
     }
 
-    public class PercentPositionX : ComputedProperty<float> {
-        public PercentPositionX() : base(Property.PositionX) {
+    public class PositionBySizeX : ComputedProperty<float> {
+        public PositionBySizeX() : base(Property.PositionX) {
         }
 
         protected override float ComputeValue(Node node, float initialValue, float percent) {
@@ -296,8 +301,8 @@ namespace Betauer.Animation {
         }
     }
 
-    public class PercentPositionY : ComputedProperty<float> {
-        public PercentPositionY() : base(Property.PositionY) {
+    public class PositionBySizeY : ComputedProperty<float> {
+        public PositionBySizeY() : base(Property.PositionY) {
         }
 
         protected override float ComputeValue(Node node, float initialValue, float percent) {
@@ -313,8 +318,8 @@ namespace Betauer.Animation {
         }
     }
 
-    public class PercentPosition2D : ComputedProperty<Vector2> {
-        public PercentPosition2D() : base(Property.Position2D) {
+    public class PositionBySize2D : ComputedProperty<Vector2> {
+        public PositionBySize2D() : base(Property.Position2D) {
         }
 
         protected override Vector2 ComputeValue(Node node, Vector2 initialValue, Vector2 percent) {

@@ -10,7 +10,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateIn() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 200, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -24,7 +24,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateInDownLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -38,7 +38,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateInDownRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -52,7 +52,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateInUpLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -66,7 +66,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateInUpRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -81,7 +81,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateOut() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(1.00f, 200f)
                 .EndAnimate()
@@ -95,7 +95,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateOutDownLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, -45)
                 .EndAnimate()
@@ -109,7 +109,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateOutDownRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 45)
                 .EndAnimate()
@@ -123,7 +123,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateOutUpLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 45)
                 .EndAnimate()
@@ -137,7 +137,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate RotateOutUpRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(RotateDuration)
-                .AnimateKeys(property: Property.RotateCenter)
+                .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, -45)
                 .EndAnimate()

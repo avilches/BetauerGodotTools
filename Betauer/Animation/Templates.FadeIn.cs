@@ -20,7 +20,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInUp() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPositionY)
+                .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -50,7 +50,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInDown() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPositionY)
+                .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -80,7 +80,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPositionX)
+                .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -110,7 +110,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPositionX)
+                .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
@@ -122,7 +122,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate FadeInRightBig(float distance = 2000) {
+        internal static TweenSequenceTemplate FadeInRightBig(float distance = 0) {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateRelativeKeys(property: Property.PositionX)
@@ -141,7 +141,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInTopLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, -1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
@@ -156,7 +156,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInTopRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, -1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
@@ -171,7 +171,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInBottomLeft() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, 1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
@@ -186,7 +186,7 @@ namespace Betauer.Animation {
         internal static TweenSequenceTemplate FadeInBottomRight() {
             return TweenSequenceBuilder.Create()
                 .SetDuration(FadeInDuration)
-                .AnimateKeys(property: Property.PercentPosition2D)
+                .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, 1f))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
