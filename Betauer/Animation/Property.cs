@@ -41,16 +41,17 @@ namespace Betauer.Animation {
         public static readonly IProperty<Vector2> Scale2D =
             new ControlOrNode2DIndexedProperty<Vector2>("scale", "rect_scale");
 
-        public static readonly IProperty<float> ScaleX =
+        public static readonly IProperty<float> Scale2DX =
             new ControlOrNode2DIndexedProperty<float>("scale:x", "rect_scale:x");
 
-        public static readonly IProperty<float> ScaleY =
+        public static readonly IProperty<float> Scale2DY =
             new ControlOrNode2DIndexedProperty<float>("scale:y", "rect_scale:y");
 
         public static readonly IProperty<Vector2> Scale2DByCallback = new Scale2DProperty();
         public static readonly IProperty<float> Scale2DXByCallback = new ScaleXProperty();
         public static readonly IProperty<float> Scale2DYByCallback = new ScaleYProperty();
-        public static readonly IProperty<float> Scale2DZByCallback = new ScaleZProperty();
+
+        public static readonly IProperty<float> Scale3DZByCallback = new ScaleZProperty();
 
         /**
          * It doesn't work combined with Scale or Position (with transform)

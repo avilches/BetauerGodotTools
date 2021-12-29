@@ -61,24 +61,24 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.GetSpriteSize().x, Is.EqualTo(300));
         }
 
-
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
-            const float from = 1f;
-            const float to = 3f;
+            foreach (var property in new [] {  Property.Rotate2D, Property.Rotate2DByCallback }) {
+                const float from = 1f;
+                const float to = 3f;
+                var node2D = await CreateNode2D();
+                node2D.RotationDegrees = 0f;
+                await CreateTweenPropertyVariants(node2D, property, from, to);
+                Assert.That(node2D.RotationDegrees, Is.EqualTo(to));
 
-            var node2D = await CreateNode2D();
-            node2D.RotationDegrees = 0f;
-            await CreateTweenPropertyVariants(node2D, Property.Rotate2D, from, to);
-            Assert.That(node2D.RotationDegrees, Is.EqualTo(to));
+                var control = await CreateLabel();
+                control.RectRotation = 0f;
+                await CreateTweenPropertyVariants(control, property, from, to);
+                Assert.That(control.RectRotation, Is.EqualTo(to));
 
-            var control = await CreateLabel();
-            control.RectRotation = 0f;
-            await CreateTweenPropertyVariants(control, Property.Rotate2D, from, to);
-            Assert.That(control.RectRotation, Is.EqualTo(to));
-
-            var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.Rotate2D, from, to);
+                var node = await CreateNode();
+                await CreateEmptyTweenPropertyVariants(node, property, from, to);
+            }
         }
 
         [Test(Description = "Property PositionX, PositionY")]
@@ -109,7 +109,7 @@ namespace Betauer.Tests.Animation {
             await CreateEmptyTweenPropertyVariants(node, Property.PositionY, from, to);
         }
 
-        [Test(Description = "Property PositionXPercent, PositionYPercent")]
+        [Test(Description = "Property PositionBySizeX, PositionBySizeY")]
         public async Task TweenPropertyPositionPercentX_Y() {
             const float percentFrom = 0f;
             const float percentTo = 0.1f;
@@ -203,32 +203,40 @@ namespace Betauer.Tests.Animation {
             await CreateEmptyTweenPropertyVariants(node2D, Property.PositionBySize2D, Vector2.One, Vector2.Zero);
         }
 
-        [Test(Description = "Property ScaleX, ScaleY")]
+        [Test(Description = "Property Scale2DX, Scale2DXByCallback, Scale2DY, Scale2DYByCallback")]
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
             const float to = 1.2f;
+            foreach (var property in new[] { Property.Scale2DX, Property.Scale2DXByCallback }) {
 
-            var node2D = await CreateNode2D();
-            node2D.Scale = Vector2.Zero;
-            await CreateTweenPropertyVariants(node2D, Property.ScaleX, from, to);
-            Assert.That(node2D.Scale.x, Is.EqualTo(to));
+                var node2D = await CreateNode2D();
+                node2D.Scale = Vector2.Zero;
+                await CreateTweenPropertyVariants(node2D, property, from, to);
+                Assert.That(node2D.Scale.x, Is.EqualTo(to));
 
-            node2D.Scale = Vector2.Zero;
-            await CreateTweenPropertyVariants(node2D, Property.ScaleY, from, to);
-            Assert.That(node2D.Scale.y, Is.EqualTo(to));
+                var control = await CreateLabel();
+                control.RectScale = Vector2.Zero;
+                await CreateTweenPropertyVariants(control, property, from, to);
+                Assert.That(control.RectScale.x, Is.EqualTo(to));
 
-            var control = await CreateLabel();
-            control.RectScale = Vector2.Zero;
-            await CreateTweenPropertyVariants(control, Property.ScaleX, from, to);
-            Assert.That(control.RectScale.x, Is.EqualTo(to));
+                var node = await CreateNode();
+                await CreateEmptyTweenPropertyVariants(node, property, from, to);
+            }
 
-            control.RectScale = Vector2.Zero;
-            await CreateTweenPropertyVariants(control, Property.ScaleY, from, to);
-            Assert.That(control.RectScale.y, Is.EqualTo(to));
+            foreach (var property in new[] { Property.Scale2DY, Property.Scale2DYByCallback }) {
+                var node2D = await CreateNode2D();
+                node2D.Scale = Vector2.Zero;
+                await CreateTweenPropertyVariants(node2D, property, from, to);
+                Assert.That(node2D.Scale.y, Is.EqualTo(to));
 
-            var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.ScaleX, from, to);
-            await CreateEmptyTweenPropertyVariants(node, Property.ScaleY, from, to);
+                var control = await CreateLabel();
+                control.RectScale = Vector2.Zero;
+                await CreateTweenPropertyVariants(control, property, from, to);
+                Assert.That(control.RectScale.y, Is.EqualTo(to));
+
+                var node = await CreateNode();
+                await CreateEmptyTweenPropertyVariants(node, property, from, to);
+            }
         }
 
         [Test(Description = "Property SkewX, SkewY")]
@@ -276,21 +284,23 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Property Scale2D")]
         public async Task TweenPropertyScale2d() {
-            var from = Vector2.Zero;
-            var to = new Vector2(23f, -12f);
+            foreach (var property in new [] {  Property.Scale2D, Property.Scale2DByCallback }) {
+                var from = Vector2.Zero;
+                var to = new Vector2(23f, -12f);
 
-            var node2D = await CreateNode2D();
-            node2D.Scale = Vector2.Zero;
-            await CreateTweenPropertyVariants(node2D, Property.Scale2D, from, to);
-            Assert.That(node2D.Scale, Is.EqualTo(to));
+                var node2D = await CreateNode2D();
+                node2D.Scale = Vector2.Zero;
+                await CreateTweenPropertyVariants(node2D, property, from, to);
+                Assert.That(node2D.Scale, Is.EqualTo(to));
 
-            var control = await CreateLabel();
-            control.RectScale = Vector2.Zero;
-            await CreateTweenPropertyVariants(control, Property.Scale2D, from, to);
-            Assert.That(control.RectScale, Is.EqualTo(to));
+                var control = await CreateLabel();
+                control.RectScale = Vector2.Zero;
+                await CreateTweenPropertyVariants(control, property, from, to);
+                Assert.That(control.RectScale, Is.EqualTo(to));
 
-            var node = await CreateNode();
-            await CreateEmptyTweenPropertyVariants(node, Property.Scale2D, from, to);
+                var node = await CreateNode();
+                await CreateEmptyTweenPropertyVariants(node, property, from, to);
+            }
         }
 
         [Test(Description = "Property modulate")]

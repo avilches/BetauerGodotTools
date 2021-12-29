@@ -31,7 +31,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -59,7 +59,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -87,7 +87,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleX)
+                .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -115,7 +115,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleX)
+                .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null,node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -166,7 +166,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.985f)
                 .KeyframeTo(0.40f, 0.9f)
@@ -194,7 +194,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.985f)
                 .KeyframeTo(0.40f, 0.9f)
@@ -222,7 +222,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleX)
+                .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.90f)
                 .KeyframeTo(1.00f, 2f)
@@ -246,7 +246,7 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TweenSequenceBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
-                .AnimateKeys(property: Property.ScaleX)
+                .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, 0.90f)
                 .KeyframeTo(1.00f, 2f)

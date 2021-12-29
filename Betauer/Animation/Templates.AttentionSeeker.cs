@@ -19,7 +19,7 @@ namespace Betauer.Animation {
                 .KeyframeOffset(1, 0, Bezier(0.215f, 0.61f, 0.355f, 1))
                 .EndAnimate()
                 .Parallel()
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.20f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.4f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
                 .KeyframeTo(0.43f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))

@@ -117,7 +117,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(1f, +4f)
                 .EndAnimate()
                 .Parallel()
-                .AnimateKeys(property: Property.ScaleY)
+                .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.50f, 1)
                 .EndAnimate()
