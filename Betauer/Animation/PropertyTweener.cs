@@ -64,7 +64,7 @@ namespace Betauer.Animation {
         }
 
 
-        public float Start(Tween tween, float initialDelay) {
+        public float Start(Tween tween, float initialDelay = 0) {
             if (!IsInstanceValid(tween)) {
                 Logger.Warning("Can't create a CallbackTweener from a freed tween instance");
                 return 0;

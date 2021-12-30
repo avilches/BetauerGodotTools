@@ -109,7 +109,7 @@ namespace Betauer.Tests.Animation {
         }
 
         public TweenSequenceTemplate CreateTemplate() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .SetDuration(0.5f)
                 .AnimateKeysBy(property: Property.PositionY)

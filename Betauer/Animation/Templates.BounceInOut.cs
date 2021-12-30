@@ -8,7 +8,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceIn() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), null, node => node.SetRotateOriginToCenter())
@@ -29,7 +29,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
@@ -57,7 +57,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
@@ -85,7 +85,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
@@ -113,7 +113,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null,node => node.SetRotateOriginToCenter())
@@ -144,7 +144,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceOut() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -164,7 +164,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -192,7 +192,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -220,7 +220,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -244,7 +244,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BounceOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(property: Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())

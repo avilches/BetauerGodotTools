@@ -7,7 +7,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
@@ -31,7 +31,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
@@ -55,7 +55,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
@@ -79,7 +79,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
@@ -103,7 +103,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -127,7 +127,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -151,7 +151,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -175,7 +175,7 @@ namespace Betauer.Animation {
 
         internal static TweenSequenceTemplate BackOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(property: Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())

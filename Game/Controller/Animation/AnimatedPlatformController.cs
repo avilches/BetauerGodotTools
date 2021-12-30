@@ -13,7 +13,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private Vector2 _original;
         public Vector2 follow;
-        private TweenPlayer _player;
+        private MultipleSequencePlayer _player;
 
         public override void Ready() {
             Configure();
@@ -33,7 +33,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            _player = new TweenPlayer("Platform").NewTween(this);
+            _player = new MultipleSequencePlayer().CreateNewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
             TweenSequenceBuilder seq = TweenSequenceBuilder.Create();

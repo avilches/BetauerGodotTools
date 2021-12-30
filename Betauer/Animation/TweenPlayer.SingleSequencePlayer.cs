@@ -100,23 +100,12 @@ namespace Betauer.Animation {
         private void RunSequence() {
             _sequenceStopwatch = Stopwatch.StartNew();
             Logger.Debug($"RunSequence: Sequence loop: {(IsInfiniteLoop ? "infinite loop" : (_sequenceLoop + 1) + "/" + Loops)}");
-            float accumulatedDelay = 0;
-            var tweens = 0;
-            foreach (var parallelGroup in TweenSequence.TweenList) {
-                float longestTime = 0;
-                foreach (var tweener in parallelGroup) {
-                    var tweenTime = tweener.Start(Tween, accumulatedDelay, TweenSequence.DefaultTarget, TweenSequence.Duration);
-                    tweens++;
-                    longestTime = Math.Max(longestTime, tweenTime);
-                }
-                accumulatedDelay += longestTime;
-            }
-            _sequenceFinishedCallback = new CallbackTweener(0, OnSequenceFinished, nameof(OnSequenceFinished));
-            _sequenceFinishedCallback.Start(Tween, accumulatedDelay);
             Tween.PlaybackSpeed = TweenSequence.Speed;
             Tween.PlaybackProcessMode = TweenSequence.ProcessMode;
-            Logger.Debug("RunSequence: Start " + tweens + " tweens. Estimated time: " +
-                         accumulatedDelay.ToString("F"));
+            var accumulatedDelay = TweenSequence.Start(Tween);
+            _sequenceFinishedCallback = new CallbackTweener(accumulatedDelay, OnSequenceFinished, nameof(OnSequenceFinished));
+            _sequenceFinishedCallback.Start(Tween);
+            Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
             Tween.Start();
         }
 

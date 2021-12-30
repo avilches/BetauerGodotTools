@@ -10,7 +10,7 @@ namespace Betauer.Animation {
         // https://github.com/animate-css/animate.css/tree/main/source/specials
 
         internal static TweenSequenceTemplate Hinge() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(HingeDuration)
                 .AnimateRelativeKeys(property: Property.PositionY) // TODO: try this one instead,Easing.QuadInOut)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToTopLeft())
@@ -36,7 +36,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate JackInTheBox() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(JackInTheBoxDuration)
                 .AnimateKeys(property: Property.Rotate2D)
                 .KeyframeTo(0.00f, 30, null, node => node.SetRotateOriginToBottomCenter())
@@ -58,7 +58,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate RollIn() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(property: Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, -1.0f, null, node => node.SetRotateOriginToCenter())
@@ -78,7 +78,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate RollOut() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(property: Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())

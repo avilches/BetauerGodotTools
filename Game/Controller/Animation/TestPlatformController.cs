@@ -1,7 +1,6 @@
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using TweenPlayer = Betauer.Animation.TweenPlayer;
 
 namespace Veronenger.Game.Controller.Animation {
     public class TestPlatformController : DiNode2D {
@@ -10,13 +9,13 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
 
-        private TweenPlayer tweenPlayer1;
-        private TweenPlayer tweenPlayer2;
-        private TweenPlayer tweenPlayer3;
+        private MultipleSequencePlayer _multipleSequencePlayer1;
+        private MultipleSequencePlayer _multipleSequencePlayer2;
+        private MultipleSequencePlayer _multipleSequencePlayer3;
         public override void Ready() {
 
-            tweenPlayer1 = new TweenPlayer("").NewTween(this);
-            tweenPlayer1
+            _multipleSequencePlayer1 = new MultipleSequencePlayer().CreateNewTween(this);
+            _multipleSequencePlayer1
                 .CreateSequence()
                 .AnimateKeys<float>(body2, Property.Scale2DY, Easing.SineInOut)
                 .From(1f)
@@ -32,8 +31,8 @@ namespace Veronenger.Game.Controller.Animation {
             // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            tweenPlayer2 = new TweenPlayer("").NewTween(this);
-            tweenPlayer2
+            _multipleSequencePlayer2 = new MultipleSequencePlayer().CreateNewTween(this);
+            _multipleSequencePlayer2
                 .CreateSequence()
                 .AnimateStepsBy(body3, Property.PositionX, curve)
                 .Offset(50f, 0.5f)
@@ -44,7 +43,7 @@ namespace Veronenger.Game.Controller.Animation {
                 // .Start();
 
 
-            tweenPlayer3 = new TweenPlayer("").NewTween(this)
+            _multipleSequencePlayer3 = new MultipleSequencePlayer().CreateNewTween(this)
                 .CreateSequence()
                 .AnimateKeys<float>(body3, Property.Scale2DY)
                 .From(1)

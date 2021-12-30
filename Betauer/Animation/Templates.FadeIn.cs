@@ -8,7 +8,7 @@ namespace Betauer.Animation {
         // https://github.com/animate-css/animate.css/tree/main/source/fading_entrances
 
         internal static TweenSequenceTemplate FadeIn() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.Opacity)
                 .KeyframeTo(0f, 0f)
@@ -18,7 +18,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInUp() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 1.0f)
@@ -33,7 +33,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInUpBig(float distance = 0) {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateRelativeKeys(property: Property.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
@@ -48,7 +48,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInDown() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySizeY)
                 .KeyframeTo(0.00f, -1.0f)
@@ -63,7 +63,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInDownBig(float distance = 0) {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateRelativeKeys(property: Property.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
@@ -78,7 +78,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInLeft() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, -1.0f)
@@ -93,7 +93,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInLeftBig(float distance = 0) {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
@@ -108,7 +108,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInRight() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 1.0f)
@@ -123,7 +123,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInRightBig(float distance = 0) {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateRelativeKeys(property: Property.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
@@ -139,7 +139,7 @@ namespace Betauer.Animation {
 
 
         internal static TweenSequenceTemplate FadeInTopLeft() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, -1))
@@ -154,7 +154,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInTopRight() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, -1))
@@ -169,7 +169,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInBottomLeft() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, 1))
@@ -184,7 +184,7 @@ namespace Betauer.Animation {
         }
 
         internal static TweenSequenceTemplate FadeInBottomRight() {
-            return TweenSequenceBuilder.Create()
+            return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
                 .AnimateKeys(property: Property.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, 1f))
