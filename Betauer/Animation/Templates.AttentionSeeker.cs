@@ -4,7 +4,7 @@ namespace Betauer.Animation {
     internal static partial class Templates {
         private const float AttentionSeekerDuration = 0.75f; // Animate.css: 1f
 
-        internal static TweenSequenceTemplate Bounce() {
+        internal static SequenceTemplate Bounce() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -32,7 +32,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Flash() {
+        internal static SequenceTemplate Flash() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -46,7 +46,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate HeadShake() {
+        internal static SequenceTemplate HeadShake() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -71,7 +71,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate HeartBeat() {
+        internal static SequenceTemplate HeartBeat() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -86,7 +86,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Jello() {
+        internal static SequenceTemplate Jello() {
             // Ported from the Ceceppa/Anima animation:
             // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
             return TemplateBuilder.Create()
@@ -117,7 +117,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Pulse() {
+        internal static SequenceTemplate Pulse() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -129,7 +129,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate RubberBand() {
+        internal static SequenceTemplate RubberBand() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -145,7 +145,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Shake() {
+        internal static SequenceTemplate Shake() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -164,7 +164,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate ShakeX() {
+        internal static SequenceTemplate ShakeX() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeX.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -183,7 +183,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate ShakeY() {
+        internal static SequenceTemplate ShakeY() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeY.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -202,7 +202,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Swing() {
+        internal static SequenceTemplate Swing() {
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control, not Node2D as RotateCenter is validatin
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
             return TemplateBuilder.Create()
@@ -218,7 +218,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Tada() {
+        internal static SequenceTemplate Tada() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/tada.css
             return TemplateBuilder.Create()
                 .SetDuration(AttentionSeekerDuration)
@@ -244,7 +244,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate Wobble() {
+        internal static SequenceTemplate Wobble() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/wobble.css
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control (not really needed because PositionXCenter already validate it...)
             return TemplateBuilder.Create()

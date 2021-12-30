@@ -300,13 +300,13 @@ namespace Betauer.Animation {
 
     public class PropertyKeyStepToBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty>
         where TBuilder : class {
-        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+        private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
-        internal PropertyKeyStepToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+        internal PropertyKeyStepToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
             Node target,
             IProperty<TProperty> property,
             Easing defaultEasing) : base(target, property, defaultEasing) {
-            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> From(Func<Node, TProperty> fromFunction) {
@@ -338,18 +338,18 @@ namespace Betauer.Animation {
         }
 
         public TBuilder EndAnimate() {
-            return _abstractTweenSequenceBuilder as TBuilder;
+            return _abstractSequenceBuilder as TBuilder;
         }
     }
 
     public class PropertyKeyStepOffsetBuilder<TProperty, TBuilder> : PropertyKeyStepTweener<TProperty>
         where TBuilder : class {
-        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+        private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
-        internal PropertyKeyStepOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+        internal PropertyKeyStepOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
             Node target, IProperty<TProperty> property, Easing defaultEasing, bool relativeToFrom) :
             base(target, property, defaultEasing) {
-            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
         }
 
@@ -382,18 +382,18 @@ namespace Betauer.Animation {
         }
 
         public TBuilder EndAnimate() {
-            return _abstractTweenSequenceBuilder as TBuilder;
+            return _abstractSequenceBuilder as TBuilder;
         }
     }
 
     public class PropertyKeyPercentToBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty>
         where TBuilder : class {
-        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+        private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
-        internal PropertyKeyPercentToBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+        internal PropertyKeyPercentToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
             Node target, IProperty<TProperty> property, Easing defaultEasing) :
             base(target, property, defaultEasing) {
-            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> Duration(float duration) {
@@ -434,18 +434,18 @@ namespace Betauer.Animation {
         }
 
         public TBuilder EndAnimate() {
-            return _abstractTweenSequenceBuilder as TBuilder;
+            return _abstractSequenceBuilder as TBuilder;
         }
     }
 
     public class PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> : PropertyKeyPercentTweener<TProperty>
         where TBuilder : class {
-        private readonly AbstractTweenSequenceBuilder<TBuilder> _abstractTweenSequenceBuilder;
+        private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
-        internal PropertyKeyPercentOffsetBuilder(AbstractTweenSequenceBuilder<TBuilder> abstractTweenSequenceBuilder,
+        internal PropertyKeyPercentOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
             Node target, IProperty<TProperty> property, Easing defaultEasing, bool relativeToFrom) :
             base(target, property, defaultEasing) {
-            _abstractTweenSequenceBuilder = abstractTweenSequenceBuilder;
+            _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
         }
 
@@ -485,7 +485,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder EndAnimate() {
-            return _abstractTweenSequenceBuilder as TBuilder;
+            return _abstractSequenceBuilder as TBuilder;
         }
     }
 }

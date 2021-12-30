@@ -119,7 +119,7 @@ namespace Betauer.Tests.Animation {
 
             var spriteX = await CreateSprite(width);
             spriteX.Position = new Vector2(initialPosition, 0);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(spriteX, Property.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
@@ -131,7 +131,7 @@ namespace Betauer.Tests.Animation {
 
             var spriteY = await CreateSprite(width);
             spriteY.Position = new Vector2(0, initialPosition);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(spriteY, Property.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
@@ -143,7 +143,7 @@ namespace Betauer.Tests.Animation {
 
             var sprite2D = await CreateSprite(width);
             sprite2D.Position = new Vector2(initialPosition, initialPosition);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(sprite2D, Property.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
@@ -157,7 +157,7 @@ namespace Betauer.Tests.Animation {
 
             var controlX = await CreateLabel(width);
             controlX.RectPosition = new Vector2(initialPosition, 0);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(controlX, Property.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
@@ -169,7 +169,7 @@ namespace Betauer.Tests.Animation {
 
             var controlY = await CreateLabel(width);
             controlY.RectPosition = new Vector2(0, initialPosition);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(controlY, Property.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
@@ -181,7 +181,7 @@ namespace Betauer.Tests.Animation {
 
             var control2D = await CreateLabel(width);
             control2D.RectPosition = new Vector2(initialPosition, initialPosition);
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(control2D, Property.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
@@ -355,7 +355,7 @@ namespace Betauer.Tests.Animation {
          * Callbacks
          */
         [Test(Description = "non IndexedProperty using the SetVale as a callback tween")]
-        public async Task TweenSequenceStepsToWithCallbackProperty() {
+        public async Task SequenceStepsToWithCallbackProperty() {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
             var callbackProperty = new CallbackProperty();
@@ -385,7 +385,7 @@ namespace Betauer.Tests.Animation {
 
         private static async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
                 .From(from)
@@ -401,7 +401,7 @@ namespace Betauer.Tests.Animation {
 
         private static async Task CreateEmptyTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
                 .To(to, 0.1f, Easing.BackIn)

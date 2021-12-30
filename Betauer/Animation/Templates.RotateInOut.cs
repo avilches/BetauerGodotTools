@@ -7,7 +7,7 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/rotating_entrances
 
-        internal static TweenSequenceTemplate RotateIn() {
+        internal static SequenceTemplate RotateIn() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -21,7 +21,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateInDownLeft() {
+        internal static SequenceTemplate RotateInDownLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -35,7 +35,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateInDownRight() {
+        internal static SequenceTemplate RotateInDownRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -49,7 +49,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateInUpLeft() {
+        internal static SequenceTemplate RotateInUpLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -63,7 +63,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateInUpRight() {
+        internal static SequenceTemplate RotateInUpRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -78,7 +78,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate RotateOut() {
+        internal static SequenceTemplate RotateOut() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -92,7 +92,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateOutDownLeft() {
+        internal static SequenceTemplate RotateOutDownLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -106,7 +106,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateOutDownRight() {
+        internal static SequenceTemplate RotateOutDownRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -120,7 +120,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateOutUpLeft() {
+        internal static SequenceTemplate RotateOutUpLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -134,7 +134,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .BuildTemplate();
         }
-        internal static TweenSequenceTemplate RotateOutUpRight() {
+        internal static SequenceTemplate RotateOutUpRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(property: Property.Rotate2D)

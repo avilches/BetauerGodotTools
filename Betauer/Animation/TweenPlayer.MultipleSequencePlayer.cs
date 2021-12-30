@@ -5,10 +5,10 @@ using Godot;
 
 namespace Betauer.Animation {
     public class MultipleSequencePlayer : TweenPlayer<MultipleSequencePlayer> {
-        public class TweenSequenceBuilderWithMultipleSequencePlayer : AbstractTweenSequenceBuilder<TweenSequenceBuilderWithMultipleSequencePlayer> {
+        public class SequenceBuilderWithMultipleSequencePlayer : AbstractSequenceBuilder<SequenceBuilderWithMultipleSequencePlayer> {
             private readonly MultipleSequencePlayer _multipleSequencePlayer;
 
-            internal TweenSequenceBuilderWithMultipleSequencePlayer(MultipleSequencePlayer multipleSequencePlayer,
+            internal SequenceBuilderWithMultipleSequencePlayer(MultipleSequencePlayer multipleSequencePlayer,
                 ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
                 _multipleSequencePlayer = multipleSequencePlayer;
             }
@@ -24,7 +24,7 @@ namespace Betauer.Animation {
         private int _currentPlayerLoop = 0;
         private Stopwatch _sequenceStopwatch;
 
-        public readonly IList<ITweenSequence> TweenSequences = new List<ITweenSequence>(4);
+        public readonly IList<ISequence> Sequences = new List<ISequence>(4);
         public int Loops { get; private set; }
         public bool IsInfiniteLoop => Loops == -1;
 
@@ -44,29 +44,29 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public MultipleSequencePlayer AddSequence(ITweenSequence tweenSequence) {
-            TweenSequences.Add(tweenSequence);
+        public MultipleSequencePlayer AddSequence(ISequence sequence) {
+            Sequences.Add(sequence);
             return this;
         }
 
-        public TweenSequenceBuilderWithMultipleSequencePlayer ImportTemplate(TweenSequenceTemplate tweenSequence,
+        public SequenceBuilderWithMultipleSequencePlayer ImportTemplate(SequenceTemplate sequence,
             Node defaultTarget = null, float duration = -1) {
-            var tweenSequenceWithPlayerBuilder = new TweenSequenceBuilderWithMultipleSequencePlayer(this, null);
-            tweenSequenceWithPlayerBuilder.ImportTemplate(tweenSequence, defaultTarget, duration);
-            TweenSequences.Add(tweenSequenceWithPlayerBuilder);
-            return tweenSequenceWithPlayerBuilder;
+            var sequenceWithPlayerBuilder = new SequenceBuilderWithMultipleSequencePlayer(this, null);
+            sequenceWithPlayerBuilder.ImportTemplate(sequence, defaultTarget, duration);
+            Sequences.Add(sequenceWithPlayerBuilder);
+            return sequenceWithPlayerBuilder;
         }
 
-        public TweenSequenceBuilderWithMultipleSequencePlayer CreateSequence() {
-            var tweenSequence = new TweenSequenceBuilderWithMultipleSequencePlayer(this, new SimpleLinkedList<ICollection<ITweener>>());
-            TweenSequences.Add(tweenSequence);
-            return tweenSequence;
+        public SequenceBuilderWithMultipleSequencePlayer CreateSequence() {
+            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, new SimpleLinkedList<ICollection<ITweener>>());
+            Sequences.Add(sequence);
+            return sequence;
         }
 
         public MultipleSequencePlayer Clear() {
             Running = false;
             Reset();
-            TweenSequences.Clear();
+            Sequences.Clear();
             return this;
         }
 
@@ -84,9 +84,9 @@ namespace Betauer.Animation {
         private CallbackTweener _sequenceFinishedCallback;
         private void RunSequence() {
             _sequenceStopwatch = Stopwatch.StartNew();
-            var sequence = TweenSequences[_currentSequence];
+            var sequence = Sequences[_currentSequence];
             Logger.Debug(
-                $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{TweenSequences.Count}. Sequence loop: {_sequenceLoop + 1}/{sequence.Loops}");
+                $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{sequence.Loops}");
             Tween.PlaybackSpeed = sequence.Speed;
             Tween.PlaybackProcessMode = sequence.ProcessMode;
             var accumulatedDelay = sequence.Start(Tween);
@@ -111,7 +111,7 @@ namespace Betauer.Animation {
         private bool More() {
             // EmitSignal(nameof(step_finished), _current_step);
             _sequenceLoop++;
-            var currentSequence = TweenSequences[_currentSequence];
+            var currentSequence = Sequences[_currentSequence];
             if (_sequenceLoop < currentSequence.Loops) {
                 return true;
             }
@@ -120,7 +120,7 @@ namespace Betauer.Animation {
 
             _sequenceLoop = 0;
             _currentSequence++;
-            if (_currentSequence < TweenSequences.Count) {
+            if (_currentSequence < Sequences.Count) {
                 return true;
             }
             // End of a ONE LOOP of all the sequences of the player

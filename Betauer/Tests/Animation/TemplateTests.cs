@@ -108,7 +108,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.RollIn, Is.EqualTo(Template.Get("rOllIn")));
         }
 
-        public TweenSequenceTemplate CreateTemplate() {
+        public SequenceTemplate CreateTemplate() {
             return TemplateBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .SetDuration(0.5f)
@@ -127,12 +127,12 @@ namespace Betauer.Tests.Animation {
         [Test]
         public void TweenPlayerApplyPattern() {
             Node2D node = new Sprite();
-            TweenSequenceTemplate tem = CreateTemplate();
+            SequenceTemplate tem = CreateTemplate();
             var player = new MultipleSequencePlayer().CreateNewTween(node).ImportTemplate(tem, node).EndSequence();
 
-            Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
+            Assert.That(player.Sequences.Count, Is.EqualTo(1));
 
-            ITweenSequence imported = player.TweenSequences[0];
+            ISequence imported = player.Sequences[0];
 
             Assert.That(imported.DefaultTarget, Is.EqualTo(node));
 
@@ -154,16 +154,16 @@ namespace Betauer.Tests.Animation {
         [Test]
         public void TweenPlayerApplyPatternWithDuration() {
             Node2D node = new Sprite();
-            TweenSequenceTemplate tem = CreateTemplate();
+            SequenceTemplate tem = CreateTemplate();
             var player = SingleSequencePlayer.With(node, tem, 100);
 
-            Assert.That(player.TweenSequence.DefaultTarget, Is.EqualTo(node));
-            Assert.That(player.TweenSequence.Duration, Is.EqualTo(100));
+            Assert.That(player.Sequence.DefaultTarget, Is.EqualTo(node));
+            Assert.That(player.Sequence.Duration, Is.EqualTo(100));
         }
 
         [Test]
         public void WhenImportATemplateAndDataIsChanged_theTemplateDataIsNotChanged() {
-            TweenSequenceTemplate tem = CreateTemplate();
+            SequenceTemplate tem = CreateTemplate();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 .SetDuration(tem.Duration + 2)
@@ -175,14 +175,14 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetFreeTweenOnFinish(true);
 
-            ITweenSequence imported = player.TweenSequences[0];
+            ISequence imported = player.Sequences[0];
 
             Assert.That(imported.Loops, Is.Not.EqualTo(tem.Loops));
             Assert.That(imported.Duration, Is.Not.EqualTo(tem.Duration));
             Assert.That(imported.Speed, Is.Not.EqualTo(tem.Speed));
             Assert.That(imported.ProcessMode, Is.Not.EqualTo(tem.ProcessMode));
 
-            TweenSequenceTemplate tem2 = CreateTemplate();
+            SequenceTemplate tem2 = CreateTemplate();
 
             Assert.That(tem.Loops, Is.EqualTo(tem2.Loops));
             Assert.That(tem.Duration, Is.EqualTo(tem2.Duration));
@@ -192,7 +192,7 @@ namespace Betauer.Tests.Animation {
 
         [Test]
         public void WhenImportATemplateAndAddANewTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
-            TweenSequenceTemplate tem = CreateTemplate();
+            SequenceTemplate tem = CreateTemplate();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 .AnimateKeys(null, Property.Modulate)
@@ -201,8 +201,8 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetFreeTweenOnFinish(true);
 
-            Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
-            ITweenSequence imported = player.TweenSequences[0];
+            Assert.That(player.Sequences.Count, Is.EqualTo(1));
+            ISequence imported = player.Sequences[0];
 
             // when an imported template TweenList is updated, a new cloned TweenList is created
             Assert.That(imported.TweenList, Is.Not.EqualTo(tem.TweenList));
@@ -214,7 +214,7 @@ namespace Betauer.Tests.Animation {
 
         [Test]
         public void WhenImportATemplateAndAddAParallelTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
-            TweenSequenceTemplate tem = CreateTemplate();
+            SequenceTemplate tem = CreateTemplate();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 // The parallel makes the difference because it adds the tween to the last group instead
@@ -225,8 +225,8 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetFreeTweenOnFinish(true);
 
-            Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
-            ITweenSequence imported = player.TweenSequences[0];
+            Assert.That(player.Sequences.Count, Is.EqualTo(1));
+            ISequence imported = player.Sequences[0];
 
             // when an imported template TweenList is updated, a new cloned TweenList is created
             Assert.That(imported.TweenList, Is.Not.EqualTo(tem.TweenList));

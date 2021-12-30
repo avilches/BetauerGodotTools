@@ -32,12 +32,12 @@ namespace Betauer.Tests.Animation {
          * Step to tests
          */
         [Test(Description = "step to")]
-        public async Task TweenSequenceStepsTo() {
+        public async Task SequenceStepsTo() {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
             var executed1 = false;
             var executed2 = false;
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easing.BackIn)
@@ -61,10 +61,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step to with from")]
-        public async Task TweenSequenceStepsToWithFrom() {
+        public async Task SequenceStepsToWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
@@ -82,10 +82,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step to with first 0 second value works like from")]
-        public async Task TweenSequenceStepsToWithFirstStepTo0() {
+        public async Task SequenceStepsToWithFirstStepTo0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(1180)
@@ -107,12 +107,12 @@ namespace Betauer.Tests.Animation {
          * Step offset tests
          */
         [Test(Description = "step offset")]
-        public async Task TweenSequenceStepsOffset() {
+        public async Task SequenceStepsOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var executed1 = false;
             var executed2 = false;
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateStepsBy(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .Offset(120, 0.1f, Easing.BackIn)
@@ -135,10 +135,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step offset with from")]
-        public async Task TweenSequenceStepsOffsetWithFrom() {
+        public async Task SequenceStepsOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateStepsBy(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
@@ -156,10 +156,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step offset with from and a 0s initial offset works like a from")]
-        public async Task TweenSequenceStepsOffsetWithFromAnd0sOffset() {
+        public async Task SequenceStepsOffsetWithFromAnd0sOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateStepsBy(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
@@ -181,10 +181,10 @@ namespace Betauer.Tests.Animation {
          * Step relative offset tests
          */
         [Test(Description = "step relative offset")]
-        public async Task TweenSequenceStepsZeroOffset() {
+        public async Task SequenceStepsZeroOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .Offset(120, 0.1f, Easing.BackIn)
@@ -201,10 +201,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step relative offset with from")]
-        public async Task TweenSequenceStepsZeroOffsetWithFrom() {
+        public async Task SequenceStepsZeroOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
@@ -222,13 +222,13 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "step relative offset with from and duplicated offset")]
-        public async Task TweenSequenceStepsZeroOffsetWithFromAndDuplicateOffset() {
+        public async Task SequenceStepsZeroOffsetWithFromAndDuplicateOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var executed1 = false;
             var executed2 = false;
 
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
@@ -254,10 +254,10 @@ namespace Betauer.Tests.Animation {
          * Keyframe to tests
          */
         [Test(Description = "keyframe to")]
-        public async Task TweenSequenceKeysTo() {
+        public async Task SequenceKeysTo() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -274,10 +274,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe to with from")]
-        public async Task TweenSequenceKeysToWithFrom() {
+        public async Task SequenceKeysToWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -299,10 +299,10 @@ namespace Betauer.Tests.Animation {
          * In this case, a frame with 0 duration must be created to ensure the frame 0 has the initial value set
          * at the beginning of the animation
          */
-        public async Task TweenSequenceKeysToWithFrom2() {
+        public async Task SequenceKeysToWithFrom2() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeys(sprite, Property.PositionX)
                 .Duration(1)
                 .SetDebugSteps(steps)
@@ -321,10 +321,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe to with key 0 (same as from)")]
-        public async Task TweenSequenceKeysToWithKey0() {
+        public async Task SequenceKeysToWithKey0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -347,10 +347,10 @@ namespace Betauer.Tests.Animation {
          * Keyframe offset tests
          */
         [Test(Description = "keyframe offset")]
-        public async Task TweenSequenceKeysOffset() {
+        public async Task SequenceKeysOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeysBy(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -367,10 +367,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe offset with from")]
-        public async Task TweenSequenceKeysOffsetWithFrom() {
+        public async Task SequenceKeysOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeysBy(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -388,10 +388,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe offset with key 0 (similar as from but adding the offset)")]
-        public async Task TweenSequenceKeysOffsetWithKey0() {
+        public async Task SequenceKeysOffsetWithKey0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateKeysBy(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -416,10 +416,10 @@ namespace Betauer.Tests.Animation {
          * Keyframe relative offset tests
          */
         [Test(Description = "keyframe relative offset")]
-        public async Task TweenSequenceKeysRelativeOffset() {
+        public async Task SequenceKeysRelativeOffset() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -438,10 +438,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe relative offset with from")]
-        public async Task TweenSequenceKeysRelativeOffsetWithFrom() {
+        public async Task SequenceKeysRelativeOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -461,10 +461,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "keyframe relative offset with key 0 (same as from)")]
-        public async Task TweenSequenceKeysRelativeOffsetWithKey0() {
+        public async Task SequenceKeysRelativeOffsetWithKey0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateRelativeKeys(sprite, Property.PositionX)
                 .Duration(2)
                 .SetDebugSteps(steps)
@@ -488,10 +488,10 @@ namespace Betauer.Tests.Animation {
          * Callbacks
          */
         [Test(Description = "with bezier curve using the SetVale as a callback tween")]
-        public async Task TweenSequenceStepsToWithBezier() {
+        public async Task SequenceStepsToWithBezier() {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
-            await TweenSequenceBuilder.Create()
+            await SequenceBuilder.Create()
                 .AnimateSteps(sprite, Property.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, BezierCurve.Create(Vector2.One, Vector2.One))

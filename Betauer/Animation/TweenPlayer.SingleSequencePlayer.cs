@@ -1,14 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Godot;
 
 namespace Betauer.Animation {
     public class SingleSequencePlayer : TweenPlayer<SingleSequencePlayer> {
-        public class TweenSequencePlayerWithSingleSequence : AbstractTweenSequenceBuilder<TweenSequencePlayerWithSingleSequence> {
+        public class SequencePlayerWithSingleSequence : AbstractSequenceBuilder<SequencePlayerWithSingleSequence> {
             private readonly SingleSequencePlayer _singleSequencePlayer;
 
-            internal TweenSequencePlayerWithSingleSequence(SingleSequencePlayer singleSequencePlayer,
+            internal SequencePlayerWithSingleSequence(SingleSequencePlayer singleSequencePlayer,
                 ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
                 _singleSequencePlayer = singleSequencePlayer;
             }
@@ -23,9 +22,9 @@ namespace Betauer.Animation {
         private bool _loopsDefined = false;
         private Stopwatch _sequenceStopwatch;
 
-        public ITweenSequence TweenSequence { get; private set; }
+        public ISequence Sequence { get; private set; }
         private int _loops;
-        public int Loops => _loopsDefined ? _loops : TweenSequence?.Loops ?? 1;
+        public int Loops => _loopsDefined ? _loops : Sequence?.Loops ?? 1;
         public bool IsInfiniteLoop => Loops == -1;
 
         public SingleSequencePlayer() {
@@ -34,17 +33,17 @@ namespace Betauer.Animation {
         public SingleSequencePlayer(Tween tween, bool freeOnFinish = false) : base(tween, freeOnFinish) {
         }
 
-        public static SingleSequencePlayer With(Node node, TweenSequenceTemplate template, float duration = -1) {
+        public static SingleSequencePlayer With(Node node, SequenceTemplate template, float duration = -1) {
             return new SingleSequencePlayer()
                 .CreateNewTween(node)
                 .ImportTemplate(template, node, duration)
                 .EndSequence();
         }
 
-        public static SingleSequencePlayer With(Node node, ITweenSequence tweenSequence) {
+        public static SingleSequencePlayer With(Node node, ISequence sequence) {
             return new SingleSequencePlayer()
                 .CreateNewTween(node)
-                .WithSequence(tweenSequence);
+                .WithSequence(sequence);
         }
 
         public SingleSequencePlayer SetInfiniteLoops() {
@@ -59,32 +58,32 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public SingleSequencePlayer WithSequence(ITweenSequence tweenSequence) {
-            TweenSequence = tweenSequence;
+        public SingleSequencePlayer WithSequence(ISequence sequence) {
+            Sequence = sequence;
             _loopsDefined = false;
             return this;
         }
 
-        public TweenSequencePlayerWithSingleSequence ImportTemplate(TweenSequenceTemplate tweenSequence,
+        public SequencePlayerWithSingleSequence ImportTemplate(SequenceTemplate sequence,
             Node defaultTarget = null, float duration = -1) {
-            var tweenSequenceWithPlayerBuilder = new TweenSequencePlayerWithSingleSequence(this, null);
-            tweenSequenceWithPlayerBuilder.ImportTemplate(tweenSequence, defaultTarget, duration);
-            TweenSequence = tweenSequenceWithPlayerBuilder;
+            var sequenceWithPlayerBuilder = new SequencePlayerWithSingleSequence(this, null);
+            sequenceWithPlayerBuilder.ImportTemplate(sequence, defaultTarget, duration);
+            Sequence = sequenceWithPlayerBuilder;
             _loopsDefined = false;
-            return tweenSequenceWithPlayerBuilder;
+            return sequenceWithPlayerBuilder;
         }
 
-        public TweenSequencePlayerWithSingleSequence CreateSequence() {
-            var tweenSequence = new TweenSequencePlayerWithSingleSequence(this, new SimpleLinkedList<ICollection<ITweener>>());
-            TweenSequence = tweenSequence;
+        public SequencePlayerWithSingleSequence CreateSequence() {
+            var sequencePlayerWithSingleSequence = new SequencePlayerWithSingleSequence(this, new SimpleLinkedList<ICollection<ITweener>>());
+            Sequence = sequencePlayerWithSingleSequence;
             _loopsDefined = false;
-            return tweenSequence;
+            return sequencePlayerWithSingleSequence;
         }
 
         public SingleSequencePlayer Clear() {
             Running = false;
             Reset();
-            TweenSequence = null;
+            Sequence = null;
             return this;
         }
 
@@ -100,9 +99,9 @@ namespace Betauer.Animation {
         private void RunSequence() {
             _sequenceStopwatch = Stopwatch.StartNew();
             Logger.Debug($"RunSequence: Sequence loop: {(IsInfiniteLoop ? "infinite loop" : (_sequenceLoop + 1) + "/" + Loops)}");
-            Tween.PlaybackSpeed = TweenSequence.Speed;
-            Tween.PlaybackProcessMode = TweenSequence.ProcessMode;
-            var accumulatedDelay = TweenSequence.Start(Tween);
+            Tween.PlaybackSpeed = Sequence.Speed;
+            Tween.PlaybackProcessMode = Sequence.ProcessMode;
+            var accumulatedDelay = Sequence.Start(Tween);
             _sequenceFinishedCallback = new CallbackTweener(accumulatedDelay, OnSequenceFinished, nameof(OnSequenceFinished));
             _sequenceFinishedCallback.Start(Tween);
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");

@@ -3,100 +3,100 @@ using System.Collections.Generic;
 
 namespace Betauer.Animation {
     public static class Template {
-        public static TweenSequenceTemplate Get(string name) => Factories[name.ToLower()].Get();
+        public static SequenceTemplate Get(string name) => Factories[name.ToLower()].Get();
 
-        public static TweenSequenceTemplate Get<T>(string name, T data) {
+        public static SequenceTemplate Get<T>(string name, T data) {
             var templateFactory = Factories[name.ToLower()];
             return templateFactory is TemplateFactory<T> templateFactoryTyped
                 ? templateFactoryTyped.Get(data)
                 : templateFactory.Get();
         }
 
-        public static TweenSequenceTemplate Bounce => BounceFactory.Get();
-        public static TweenSequenceTemplate Flash => FlashFactory.Get();
-        public static TweenSequenceTemplate HeadShake => HeadShakeFactory.Get();
-        public static TweenSequenceTemplate HeartBeat => HeartBeatFactory.Get();
-        public static TweenSequenceTemplate Jello => JelloFactory.Get();
-        public static TweenSequenceTemplate Pulse => PulseFactory.Get();
-        public static TweenSequenceTemplate RubberBand => RubberBandFactory.Get();
-        public static TweenSequenceTemplate Shake => ShakeFactory.Get();
-        public static TweenSequenceTemplate ShakeX => ShakeXFactory.Get();
-        public static TweenSequenceTemplate ShakeY => ShakeYFactory.Get();
-        public static TweenSequenceTemplate Swing => SwingFactory.Get();
-        public static TweenSequenceTemplate Tada => TadaFactory.Get();
-        public static TweenSequenceTemplate Wobble => WobbleFactory.Get();
+        public static SequenceTemplate Bounce => BounceFactory.Get();
+        public static SequenceTemplate Flash => FlashFactory.Get();
+        public static SequenceTemplate HeadShake => HeadShakeFactory.Get();
+        public static SequenceTemplate HeartBeat => HeartBeatFactory.Get();
+        public static SequenceTemplate Jello => JelloFactory.Get();
+        public static SequenceTemplate Pulse => PulseFactory.Get();
+        public static SequenceTemplate RubberBand => RubberBandFactory.Get();
+        public static SequenceTemplate Shake => ShakeFactory.Get();
+        public static SequenceTemplate ShakeX => ShakeXFactory.Get();
+        public static SequenceTemplate ShakeY => ShakeYFactory.Get();
+        public static SequenceTemplate Swing => SwingFactory.Get();
+        public static SequenceTemplate Tada => TadaFactory.Get();
+        public static SequenceTemplate Wobble => WobbleFactory.Get();
 
-        public static TweenSequenceTemplate BackInUp => BackInUpFactory.Get();
-        public static TweenSequenceTemplate BackInDown => BackInDownFactory.Get();
-        public static TweenSequenceTemplate BackInLeft => BackInLeftFactory.Get();
-        public static TweenSequenceTemplate BackInRight => BackInRightFactory.Get();
+        public static SequenceTemplate BackInUp => BackInUpFactory.Get();
+        public static SequenceTemplate BackInDown => BackInDownFactory.Get();
+        public static SequenceTemplate BackInLeft => BackInLeftFactory.Get();
+        public static SequenceTemplate BackInRight => BackInRightFactory.Get();
 
-        public static TweenSequenceTemplate BackOutUp => BackOutUpFactory.Get();
-        public static TweenSequenceTemplate BackOutDown => BackOutDownFactory.Get();
-        public static TweenSequenceTemplate BackOutLeft => BackOutLeftFactory.Get();
-        public static TweenSequenceTemplate BackOutRight => BackOutRightFactory.Get();
+        public static SequenceTemplate BackOutUp => BackOutUpFactory.Get();
+        public static SequenceTemplate BackOutDown => BackOutDownFactory.Get();
+        public static SequenceTemplate BackOutLeft => BackOutLeftFactory.Get();
+        public static SequenceTemplate BackOutRight => BackOutRightFactory.Get();
 
-        public static TweenSequenceTemplate BounceIn => BounceInFactory.Get();
-        public static TweenSequenceTemplate BounceInUp => BounceInUpFactory.Get();
-        public static TweenSequenceTemplate BounceInDown => BounceInDownFactory.Get();
-        public static TweenSequenceTemplate BounceInLeft => BounceInLeftFactory.Get();
-        public static TweenSequenceTemplate BounceInRight => BounceInRightFactory.Get();
+        public static SequenceTemplate BounceIn => BounceInFactory.Get();
+        public static SequenceTemplate BounceInUp => BounceInUpFactory.Get();
+        public static SequenceTemplate BounceInDown => BounceInDownFactory.Get();
+        public static SequenceTemplate BounceInLeft => BounceInLeftFactory.Get();
+        public static SequenceTemplate BounceInRight => BounceInRightFactory.Get();
 
-        public static TweenSequenceTemplate BounceOut => BounceOutFactory.Get();
-        public static TweenSequenceTemplate BounceOutUp => BounceOutUpFactory.Get();
-        public static TweenSequenceTemplate BounceOutDown => BounceOutDownFactory.Get();
-        public static TweenSequenceTemplate BounceOutLeft => BounceOutLeftFactory.Get();
-        public static TweenSequenceTemplate BounceOutRight => BounceOutRightFactory.Get();
+        public static SequenceTemplate BounceOut => BounceOutFactory.Get();
+        public static SequenceTemplate BounceOutUp => BounceOutUpFactory.Get();
+        public static SequenceTemplate BounceOutDown => BounceOutDownFactory.Get();
+        public static SequenceTemplate BounceOutLeft => BounceOutLeftFactory.Get();
+        public static SequenceTemplate BounceOutRight => BounceOutRightFactory.Get();
 
-        public static TweenSequenceTemplate FadeIn => FadeInFactory.Get();
-        public static TweenSequenceTemplate FadeInUp => FadeInUpFactory.Get();
-        public static TweenSequenceTemplate FadeInDown => FadeInDownFactory.Get();
-        public static TweenSequenceTemplate FadeInLeft => FadeInLeftFactory.Get();
-        public static TweenSequenceTemplate FadeInRight => FadeInRightFactory.Get();
-        public static TweenSequenceTemplate FadeInTopLeft => FadeInTopLeftFactory.Get();
-        public static TweenSequenceTemplate FadeInTopRight => FadeInTopRightFactory.Get();
-        public static TweenSequenceTemplate FadeInBottomLeft => FadeInBottomLeftFactory.Get();
-        public static TweenSequenceTemplate FadeInBottomRight => FadeInBottomRightFactory.Get();
-        public static TweenSequenceTemplate FadeInUpBig => FadeInUpBigFactory.Get();
-        public static TweenSequenceTemplate FadeInDownBig => FadeInDownBigFactory.Get();
-        public static TweenSequenceTemplate FadeInLeftBig => FadeInLeftBigFactory.Get();
-        public static TweenSequenceTemplate FadeInRightBig => FadeInRightBigFactory.Get();
+        public static SequenceTemplate FadeIn => FadeInFactory.Get();
+        public static SequenceTemplate FadeInUp => FadeInUpFactory.Get();
+        public static SequenceTemplate FadeInDown => FadeInDownFactory.Get();
+        public static SequenceTemplate FadeInLeft => FadeInLeftFactory.Get();
+        public static SequenceTemplate FadeInRight => FadeInRightFactory.Get();
+        public static SequenceTemplate FadeInTopLeft => FadeInTopLeftFactory.Get();
+        public static SequenceTemplate FadeInTopRight => FadeInTopRightFactory.Get();
+        public static SequenceTemplate FadeInBottomLeft => FadeInBottomLeftFactory.Get();
+        public static SequenceTemplate FadeInBottomRight => FadeInBottomRightFactory.Get();
+        public static SequenceTemplate FadeInUpBig => FadeInUpBigFactory.Get();
+        public static SequenceTemplate FadeInDownBig => FadeInDownBigFactory.Get();
+        public static SequenceTemplate FadeInLeftBig => FadeInLeftBigFactory.Get();
+        public static SequenceTemplate FadeInRightBig => FadeInRightBigFactory.Get();
 
-        public static TweenSequenceTemplate FadeOut => FadeOutFactory.Get();
-        public static TweenSequenceTemplate FadeOutUp => FadeOutUpFactory.Get();
-        public static TweenSequenceTemplate FadeOutDown => FadeOutDownFactory.Get();
-        public static TweenSequenceTemplate FadeOutLeft => FadeOutLeftFactory.Get();
-        public static TweenSequenceTemplate FadeOutRight => FadeOutRightFactory.Get();
-        public static TweenSequenceTemplate FadeOutTopLeft => FadeOutTopLeftFactory.Get();
-        public static TweenSequenceTemplate FadeOutTopRight => FadeOutTopRightFactory.Get();
-        public static TweenSequenceTemplate FadeOutBottomLeft => FadeOutBottomLeftFactory.Get();
-        public static TweenSequenceTemplate FadeOutBottomRight => FadeOutBottomRightFactory.Get();
-        public static TweenSequenceTemplate FadeOutUpBig => FadeOutUpBigFactory.Get();
-        public static TweenSequenceTemplate FadeOutDownBig => FadeOutDownBigFactory.Get();
-        public static TweenSequenceTemplate FadeOutLeftBig => FadeOutLeftBigFactory.Get();
-        public static TweenSequenceTemplate FadeOutRightBig => FadeOutRightBigFactory.Get();
+        public static SequenceTemplate FadeOut => FadeOutFactory.Get();
+        public static SequenceTemplate FadeOutUp => FadeOutUpFactory.Get();
+        public static SequenceTemplate FadeOutDown => FadeOutDownFactory.Get();
+        public static SequenceTemplate FadeOutLeft => FadeOutLeftFactory.Get();
+        public static SequenceTemplate FadeOutRight => FadeOutRightFactory.Get();
+        public static SequenceTemplate FadeOutTopLeft => FadeOutTopLeftFactory.Get();
+        public static SequenceTemplate FadeOutTopRight => FadeOutTopRightFactory.Get();
+        public static SequenceTemplate FadeOutBottomLeft => FadeOutBottomLeftFactory.Get();
+        public static SequenceTemplate FadeOutBottomRight => FadeOutBottomRightFactory.Get();
+        public static SequenceTemplate FadeOutUpBig => FadeOutUpBigFactory.Get();
+        public static SequenceTemplate FadeOutDownBig => FadeOutDownBigFactory.Get();
+        public static SequenceTemplate FadeOutLeftBig => FadeOutLeftBigFactory.Get();
+        public static SequenceTemplate FadeOutRightBig => FadeOutRightBigFactory.Get();
 
-        public static TweenSequenceTemplate LightSpeedInLeft => LightSpeedInLeftFactory.Get();
-        public static TweenSequenceTemplate LightSpeedInRight => LightSpeedInRightFactory.Get();
-        public static TweenSequenceTemplate LightSpeedOutLeft => LightSpeedOutLeftFactory.Get();
-        public static TweenSequenceTemplate LightSpeedOutRight => LightSpeedOutRightFactory.Get();
+        public static SequenceTemplate LightSpeedInLeft => LightSpeedInLeftFactory.Get();
+        public static SequenceTemplate LightSpeedInRight => LightSpeedInRightFactory.Get();
+        public static SequenceTemplate LightSpeedOutLeft => LightSpeedOutLeftFactory.Get();
+        public static SequenceTemplate LightSpeedOutRight => LightSpeedOutRightFactory.Get();
 
-        public static TweenSequenceTemplate RotateIn => RotateInFactory.Get();
-        public static TweenSequenceTemplate RotateInDownLeft => RotateInDownLeftFactory.Get();
-        public static TweenSequenceTemplate RotateInDownRight => RotateInDownRightFactory.Get();
-        public static TweenSequenceTemplate RotateInUpLeft => RotateInUpLeftFactory.Get();
-        public static TweenSequenceTemplate RotateInUpRight => RotateInUpRightFactory.Get();
+        public static SequenceTemplate RotateIn => RotateInFactory.Get();
+        public static SequenceTemplate RotateInDownLeft => RotateInDownLeftFactory.Get();
+        public static SequenceTemplate RotateInDownRight => RotateInDownRightFactory.Get();
+        public static SequenceTemplate RotateInUpLeft => RotateInUpLeftFactory.Get();
+        public static SequenceTemplate RotateInUpRight => RotateInUpRightFactory.Get();
 
-        public static TweenSequenceTemplate RotateOut => RotateOutFactory.Get();
-        public static TweenSequenceTemplate RotateOutDownLeft => RotateOutDownLeftFactory.Get();
-        public static TweenSequenceTemplate RotateOutDownRight => RotateOutDownRightFactory.Get();
-        public static TweenSequenceTemplate RotateOutUpLeft => RotateOutUpLeftFactory.Get();
-        public static TweenSequenceTemplate RotateOutUpRight => RotateOutUpRightFactory.Get();
+        public static SequenceTemplate RotateOut => RotateOutFactory.Get();
+        public static SequenceTemplate RotateOutDownLeft => RotateOutDownLeftFactory.Get();
+        public static SequenceTemplate RotateOutDownRight => RotateOutDownRightFactory.Get();
+        public static SequenceTemplate RotateOutUpLeft => RotateOutUpLeftFactory.Get();
+        public static SequenceTemplate RotateOutUpRight => RotateOutUpRightFactory.Get();
 
-        public static TweenSequenceTemplate Hinge => HingeFactory.Get();
-        public static TweenSequenceTemplate JackInTheBox => JackInTheBoxFactory.Get();
-        public static TweenSequenceTemplate RollOut => RollOutFactory.Get();
-        public static TweenSequenceTemplate RollIn => RollInFactory.Get();
+        public static SequenceTemplate Hinge => HingeFactory.Get();
+        public static SequenceTemplate JackInTheBox => JackInTheBoxFactory.Get();
+        public static SequenceTemplate RollOut => RollOutFactory.Get();
+        public static SequenceTemplate RollIn => RollInFactory.Get();
 
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -190,31 +190,31 @@ namespace Betauer.Animation {
     }
 
     public class TemplateFactory {
-        private readonly Func<TweenSequenceTemplate> _factory;
+        private readonly Func<SequenceTemplate> _factory;
         public readonly string Name;
-        private TweenSequenceTemplate _cached;
+        private SequenceTemplate _cached;
 
-        public TemplateFactory(string name, Func<TweenSequenceTemplate> factory) {
+        public TemplateFactory(string name, Func<SequenceTemplate> factory) {
             Name = name;
             _factory = factory;
             Template.Factories[name.ToLower()] = this;
         }
 
-        public TweenSequenceTemplate Get() => _cached ??= _factory();
+        public SequenceTemplate Get() => _cached ??= _factory();
     }
 
     public class TemplateFactory<T> : TemplateFactory {
-        private readonly Func<T, TweenSequenceTemplate> _factory1P;
-        private Dictionary<object, TweenSequenceTemplate> _cached;
+        private readonly Func<T, SequenceTemplate> _factory1P;
+        private Dictionary<object, SequenceTemplate> _cached;
 
-        public TemplateFactory(string name, Func<TweenSequenceTemplate> factory,
-            Func<T, TweenSequenceTemplate> factory1P) : base(name, factory) {
+        public TemplateFactory(string name, Func<SequenceTemplate> factory,
+            Func<T, SequenceTemplate> factory1P) : base(name, factory) {
             _factory1P = factory1P;
         }
 
-        public TweenSequenceTemplate Get(T data) {
-            _cached ??= new Dictionary<object, TweenSequenceTemplate>();
-            _cached.TryGetValue(data, out TweenSequenceTemplate template);
+        public SequenceTemplate Get(T data) {
+            _cached ??= new Dictionary<object, SequenceTemplate>();
+            _cached.TryGetValue(data, out SequenceTemplate template);
             if (template != null) return template;
             return _cached[data] = _factory1P(data);
         }

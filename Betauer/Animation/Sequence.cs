@@ -5,7 +5,7 @@ using System.Linq;
 using Godot;
 
 namespace Betauer.Animation {
-    public interface ITweenSequence {
+    public interface ISequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
         public int Loops { get; }
@@ -15,7 +15,7 @@ namespace Betauer.Animation {
         public float Start(Tween tween, float initialDelay = 0, Node? target = null, float duration = -1);
     }
 
-    public abstract class TweenSequence {
+    public abstract class Sequence {
         public abstract ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public abstract Node DefaultTarget { get; protected set; }
         public abstract float Duration { get; protected set; }
@@ -36,12 +36,12 @@ namespace Betauer.Animation {
     }
 
     /**
-     * A immutable TweenSequence
+     * A immutable Sequence
      * Pay attention the internal _tweenList could be mutated. To protect this, when you use a template with
      * ImportTemplate, all data (except the _tweenList) is copied and the flag _importedFromTemplate is set to true,
      * so any future call to the AddTweener() will make a new copy of the internal collection.
      */
-    public class TweenSequenceTemplate : TweenSequence, ITweenSequence {
+    public class SequenceTemplate : Sequence, ISequence {
         private readonly ICollection<ICollection<ITweener>> _tweenList;
         public override ICollection<ICollection<ITweener>> TweenList {
             get => _tweenList;
@@ -63,7 +63,7 @@ namespace Betauer.Animation {
         }
         public Tween.TweenProcessMode ProcessMode { get; }
 
-        public TweenSequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
+        public SequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
             float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _defaultTarget = defaultTarget;
@@ -73,13 +73,13 @@ namespace Betauer.Animation {
             ProcessMode = processMode;
         }
 
-        public static TweenSequenceTemplate Create(ITweenSequence from) {
-            return new TweenSequenceTemplate(from.TweenList, from.DefaultTarget,
+        public static SequenceTemplate Create(ISequence from) {
+            return new SequenceTemplate(from.TweenList, from.DefaultTarget,
                 from.Duration, from.Loops, from.Speed, from.ProcessMode);
         }
     }
 
-    public class MutableTweenSequence : TweenSequence, ITweenSequence {
+    public class MutableSequence : Sequence, ISequence {
         public override ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public override Node DefaultTarget { get; protected set; }
         public override float Duration { get; protected set; } = -1.0f;
@@ -88,21 +88,21 @@ namespace Betauer.Animation {
         private protected bool _importedFromTemplate = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
 
-        public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1) {
-            TweenList = tweenSequence.TweenList;
-            DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
-            Loops = tweenSequence.Loops;
-            Speed = tweenSequence.Speed;
-            Duration = duration > 0 ? duration : tweenSequence.Duration;
-            ProcessMode = tweenSequence.ProcessMode;
+        public void ImportTemplate(SequenceTemplate sequence, Node defaultTarget, float duration = -1) {
+            TweenList = sequence.TweenList;
+            DefaultTarget = defaultTarget ?? sequence.DefaultTarget;
+            Loops = sequence.Loops;
+            Speed = sequence.Speed;
+            Duration = duration > 0 ? duration : sequence.Duration;
+            ProcessMode = sequence.ProcessMode;
             _importedFromTemplate = true;
         }
     }
 
-    public abstract class AbstractTweenSequenceBuilder<TBuilder> : MutableTweenSequence where TBuilder : class {
+    public abstract class AbstractSequenceBuilder<TBuilder> : MutableSequence where TBuilder : class {
         private bool _parallel = false;
 
-        internal AbstractTweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) {
+        internal AbstractSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) {
             TweenList = tweenList;
         }
 
@@ -214,26 +214,26 @@ namespace Betauer.Animation {
         }
     }
 
-    public class TemplateBuilder : AbstractTweenSequenceBuilder<TemplateBuilder> {
+    public class TemplateBuilder : AbstractSequenceBuilder<TemplateBuilder> {
         private TemplateBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
         }
         public static TemplateBuilder Create() {
-            var tweenSequenceBuilder = new TemplateBuilder(new SimpleLinkedList<ICollection<ITweener>>());
-            return tweenSequenceBuilder;
+            var templateBuilder = new TemplateBuilder(new SimpleLinkedList<ICollection<ITweener>>());
+            return templateBuilder;
         }
 
-        public TweenSequenceTemplate BuildTemplate() {
-            return TweenSequenceTemplate.Create(this);
+        public SequenceTemplate BuildTemplate() {
+            return SequenceTemplate.Create(this);
         }
     }
 
-    public class TweenSequenceBuilder : AbstractTweenSequenceBuilder<TweenSequenceBuilder> {
-        private TweenSequenceBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
+    public class SequenceBuilder : AbstractSequenceBuilder<SequenceBuilder> {
+        private SequenceBuilder(ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
         }
 
-        public static TweenSequenceBuilder Create() {
-            var tweenSequenceBuilder = new TweenSequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
-            return tweenSequenceBuilder;
+        public static SequenceBuilder Create() {
+            var sequenceBuilder = new SequenceBuilder(new SimpleLinkedList<ICollection<ITweener>>());
+            return sequenceBuilder;
         }
 
         public SingleSequencePlayer CreatePlayer(Node node) {

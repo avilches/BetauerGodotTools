@@ -121,10 +121,10 @@ namespace Betauer.Animation {
 
         private class LoopTween : LoopStatus {
             private readonly SingleSequencePlayer _singleSequencePlayer;
-            private readonly ITweenSequence _sequence;
+            private readonly ISequence _sequence;
 
             public LoopTween(AnimationStack animationStack, Logger logger, string name, SingleSequencePlayer multipleSequencePlayer,
-                ITweenSequence sequence) : base(
+                ISequence sequence) : base(
                 animationStack, logger, name) {
                 _singleSequencePlayer = multipleSequencePlayer;
                 _sequence = sequence;
@@ -143,10 +143,10 @@ namespace Betauer.Animation {
 
         private class OnceTween : OnceStatus {
             private readonly SingleSequencePlayer _singleSequencePlayer;
-            private readonly ITweenSequence _sequence;
+            private readonly ISequence _sequence;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, SingleSequencePlayer singleSequencePlayer, ITweenSequence sequence) : base(animationStack, logger,
+                bool killPrevious, SingleSequencePlayer singleSequencePlayer, ISequence sequence) : base(animationStack, logger,
                 name, canBeInterrupted, killPrevious) {
                 _singleSequencePlayer = singleSequencePlayer;
                 _sequence = sequence;
@@ -258,18 +258,18 @@ namespace Betauer.Animation {
             return onceAnimationStatus;
         }
 
-        public ILoopStatus AddLoopTween(string name, ITweenSequence tweenSequence) {
+        public ILoopStatus AddLoopTween(string name, ISequence sequence) {
             Debug.Assert(_singleSequencePlayer != null, "_tweenPlayer != null");
-            var loopTweenStatus = new LoopTween(this, _logger, name, _singleSequencePlayer, tweenSequence);
+            var loopTweenStatus = new LoopTween(this, _logger, name, _singleSequencePlayer, sequence);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
-        public IOnceStatus AddOnceTween(string name, ITweenSequence tweenSequence, bool canBeInterrupted = false,
+        public IOnceStatus AddOnceTween(string name, ISequence sequence, bool canBeInterrupted = false,
             bool killPrevious = false) {
             Debug.Assert(_singleSequencePlayer != null, "_tweenPlayer != null");
             var onceTweenStatus =
-                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _singleSequencePlayer, tweenSequence);
+                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _singleSequencePlayer, sequence);
             _onceAnimations.Add(name, onceTweenStatus);
             return onceTweenStatus;
         }

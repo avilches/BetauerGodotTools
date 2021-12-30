@@ -5,7 +5,7 @@ namespace Betauer.Animation {
     internal static partial class Templates {
         private const float BackInOutDuration = 0.75f; // Animate.css: 1f
 
-        internal static TweenSequenceTemplate BackInUp(float distance = 0) {
+        internal static SequenceTemplate BackInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -29,7 +29,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackInDown(float distance = 0) {
+        internal static SequenceTemplate BackInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -53,7 +53,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackInLeft(float distance = 0) {
+        internal static SequenceTemplate BackInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -77,7 +77,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackInRight(float distance = 0) {
+        internal static SequenceTemplate BackInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -101,7 +101,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackOutUp(float distance = 0) {
+        internal static SequenceTemplate BackOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -125,7 +125,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackOutDown(float distance = 0) {
+        internal static SequenceTemplate BackOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -149,7 +149,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackOutLeft(float distance = 0) {
+        internal static SequenceTemplate BackOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
@@ -173,7 +173,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BackOutRight(float distance = 0) {
+        internal static SequenceTemplate BackOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)

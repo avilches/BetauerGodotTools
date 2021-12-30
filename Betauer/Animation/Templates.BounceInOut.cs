@@ -6,7 +6,7 @@ namespace Betauer.Animation {
         private const float BounceInNoDirectionDuration = 0.75f; // Animate.css: 0.75f
         private const float BounceEntranceDuration = 1f; // Animate.css: 1f
 
-        internal static TweenSequenceTemplate BounceIn() {
+        internal static SequenceTemplate BounceIn() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
@@ -27,7 +27,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInUp(float distance = 0) {
+        internal static SequenceTemplate BounceInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -55,7 +55,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInDown(float distance = 0) {
+        internal static SequenceTemplate BounceInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -83,7 +83,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInLeft(float distance = 0) {
+        internal static SequenceTemplate BounceInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -111,7 +111,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceInRight(float distance = 0) {
+        internal static SequenceTemplate BounceInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -142,7 +142,7 @@ namespace Betauer.Animation {
 
 
 
-        internal static TweenSequenceTemplate BounceOut() {
+        internal static SequenceTemplate BounceOut() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
@@ -162,7 +162,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutUp(float distance = 0) {
+        internal static SequenceTemplate BounceOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -190,7 +190,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutDown(float distance = 0) {
+        internal static SequenceTemplate BounceOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -218,7 +218,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutLeft(float distance = 0) {
+        internal static SequenceTemplate BounceOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
@@ -242,7 +242,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate BounceOutRight(float distance = 0) {
+        internal static SequenceTemplate BounceOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)

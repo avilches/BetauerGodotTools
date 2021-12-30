@@ -7,7 +7,7 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/lightspeed
 
-        internal static TweenSequenceTemplate LightSpeedInLeft() {
+        internal static SequenceTemplate LightSpeedInLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)
@@ -29,7 +29,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate LightSpeedInRight() {
+        internal static SequenceTemplate LightSpeedInRight() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)
@@ -51,7 +51,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate LightSpeedOutLeft() {
+        internal static SequenceTemplate LightSpeedOutLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)
@@ -71,7 +71,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate LightSpeedOutRight() {
+        internal static SequenceTemplate LightSpeedOutRight() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
                 .AnimateKeys(property: Property.PositionBySizeX)

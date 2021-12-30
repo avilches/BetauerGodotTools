@@ -9,7 +9,7 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/specials
 
-        internal static TweenSequenceTemplate Hinge() {
+        internal static SequenceTemplate Hinge() {
             return TemplateBuilder.Create()
                 .SetDuration(HingeDuration)
                 .AnimateRelativeKeys(property: Property.PositionY) // TODO: try this one instead,Easing.QuadInOut)
@@ -35,7 +35,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate JackInTheBox() {
+        internal static SequenceTemplate JackInTheBox() {
             return TemplateBuilder.Create()
                 .SetDuration(JackInTheBoxDuration)
                 .AnimateKeys(property: Property.Rotate2D)
@@ -57,7 +57,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate RollIn() {
+        internal static SequenceTemplate RollIn() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(property: Property.PositionBySizeX)
@@ -77,7 +77,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static TweenSequenceTemplate RollOut() {
+        internal static SequenceTemplate RollOut() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(property: Property.PositionBySizeX)

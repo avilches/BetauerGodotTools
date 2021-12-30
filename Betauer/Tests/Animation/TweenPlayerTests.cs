@@ -139,7 +139,7 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Test values in steps")]
         public void TweenSequenceSteps() {
-            var sequence = TweenSequenceBuilder.Create()
+            var sequence = SequenceBuilder.Create()
                 .AnimateSteps(new Sprite(), Property.PositionX)
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
@@ -155,7 +155,7 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Test values in keyframes")]
         public void TweenSequenceKey() {
-            var sequence = TweenSequenceBuilder.Create()
+            var sequence = SequenceBuilder.Create()
                 .AnimateKeys(new Sprite(), Property.PositionX)
                 .Duration(0.5f)
                 .KeyframeTo(0.1f, 120f, Easing.BackIn)
@@ -173,11 +173,11 @@ namespace Betauer.Tests.Animation {
             Assert.That(steps[1].Easing, Is.Null);
         }
 
-        private List<ITweener> GetParallelGroup(ITweenSequence sequence, int group) {
+        private List<ITweener> GetParallelGroup(ISequence sequence, int group) {
             return sequence.TweenList.ToList()[group].ToList();
         }
 
-        private T GetTweener<T>(ITweenSequence sequence, int group, int pos = 0) where T : class {
+        private T GetTweener<T>(ISequence sequence, int group, int pos = 0) where T : class {
             return sequence.TweenList.ToList()[group].ToList()[pos] as T;
         }
     }
