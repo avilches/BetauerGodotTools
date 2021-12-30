@@ -7,7 +7,6 @@ namespace Betauer.Animation {
     public interface ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
-        public IProperty DefaultProperty { get; }
         public int Loops { get; }
         public float Speed { get; }
         public float Duration { get; }
@@ -25,7 +24,6 @@ namespace Betauer.Animation {
     public class TweenSequenceTemplate : ITweenSequence {
         private readonly ICollection<ICollection<ITweener>> _tweenList;
         private readonly Node _defaultTarget;
-        private readonly IProperty _defaultProperty;
         private readonly float _duration;
         private readonly int _loops;
         private readonly float _speed;
@@ -33,7 +31,6 @@ namespace Betauer.Animation {
 
         public ICollection<ICollection<ITweener>> TweenList => _tweenList;
         public Node DefaultTarget => _defaultTarget;
-        public IProperty DefaultProperty => _defaultProperty;
         public float Duration => _duration;
         public int Loops => _loops;
 
@@ -43,10 +40,9 @@ namespace Betauer.Animation {
         public Tween.TweenProcessMode ProcessMode => _processMode;
 
         public TweenSequenceTemplate(ICollection<ICollection<ITweener>> tweenList, Node defaultTarget,
-            IProperty defaultProperty, float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
+            float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _defaultTarget = defaultTarget;
-            _defaultProperty = defaultProperty;
             _duration = duration;
             _loops = loops;
             _speed = speed;
@@ -54,7 +50,7 @@ namespace Betauer.Animation {
         }
 
         public static TweenSequenceTemplate Create(ITweenSequence from) {
-            return new TweenSequenceTemplate(from.TweenList, from.DefaultTarget, from.DefaultProperty,
+            return new TweenSequenceTemplate(from.TweenList, from.DefaultTarget,
                 from.Duration, from.Loops, from.Speed, from.ProcessMode);
         }
     }
@@ -62,7 +58,6 @@ namespace Betauer.Animation {
     public class TweenSequence : ITweenSequence {
         public ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public Node DefaultTarget { get; private set; }
-        public IProperty DefaultProperty { get; private set; }
         public float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public float Speed { get; protected set; } = 1.0f;
@@ -72,7 +67,6 @@ namespace Betauer.Animation {
         public void ImportTemplate(TweenSequenceTemplate tweenSequence, Node defaultTarget, float duration = -1) {
             TweenList = tweenSequence.TweenList;
             DefaultTarget = defaultTarget ?? tweenSequence.DefaultTarget;
-            DefaultProperty = tweenSequence.DefaultProperty;
             Loops = tweenSequence.Loops;
             Speed = tweenSequence.Speed;
             Duration = duration > 0 ? duration : tweenSequence.Duration;
@@ -94,12 +88,12 @@ namespace Betauer.Animation {
             return TweenSequenceTemplate.Create(this);
         }
 
-        public TweenPlayer CreatePlayer(Node node) {
-            return TweenPlayer.With(node, this);
+        public SingleSequencePlayer CreatePlayer(Node node) {
+            return SingleSequencePlayer.With(node, this);
         }
 
-        public TweenPlayer Play(Node node, bool autoKill = false) {
-            return CreatePlayer(node).SetAutoKill(autoKill).Start();
+        public SingleSequencePlayer Play(Node node) {
+            return CreatePlayer(node).Start();
         }
     }
 
@@ -144,6 +138,14 @@ namespace Betauer.Animation {
         public TBuilder SetLoops(int maxLoops) {
             Loops = maxLoops;
             return this as TBuilder;
+        }
+
+        public TBuilder SetInfiniteLoops() {
+            return SetLoops(-1);
+        }
+
+        public bool IsInfiniteLoops() {
+            return Loops == -1;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,

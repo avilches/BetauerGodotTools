@@ -128,7 +128,7 @@ namespace Betauer.Tests.Animation {
         public void TweenPlayerApplyPattern() {
             Node2D node = new Sprite();
             TweenSequenceTemplate tem = CreateTemplate();
-            var player = TweenPlayer.With(node, tem);
+            var player = new MultipleSequencePlayer().CreateNewTween(node).ImportTemplate(tem, node).EndSequence();
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
 
@@ -147,7 +147,6 @@ namespace Betauer.Tests.Animation {
             Assert.That(imported.Duration, Is.EqualTo(tem.Duration));
             Assert.That(imported.Loops, Is.EqualTo(tem.Loops));
             Assert.That(imported.Speed, Is.EqualTo(tem.Speed));
-            Assert.That(imported.DefaultProperty, Is.EqualTo(tem.DefaultProperty));
             Assert.That(imported.ProcessMode, Is.EqualTo(tem.ProcessMode));
             Assert.That(imported.TweenList, Is.EqualTo(tem.TweenList));
         }
@@ -156,20 +155,16 @@ namespace Betauer.Tests.Animation {
         public void TweenPlayerApplyPatternWithDuration() {
             Node2D node = new Sprite();
             TweenSequenceTemplate tem = CreateTemplate();
-            var player = TweenPlayer.With(node, tem, 100);
+            var player = SingleSequencePlayer.With(node, tem, 100);
 
-            Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
-
-            ITweenSequence imported = player.TweenSequences[0];
-
-            Assert.That(imported.DefaultTarget, Is.EqualTo(node));
-            Assert.That(imported.Duration, Is.EqualTo(100));
+            Assert.That(player.TweenSequence.DefaultTarget, Is.EqualTo(node));
+            Assert.That(player.TweenSequence.Duration, Is.EqualTo(100));
         }
 
         [Test]
         public void WhenImportATemplateAndDataIsChanged_theTemplateDataIsNotChanged() {
             TweenSequenceTemplate tem = CreateTemplate();
-            TweenPlayer player = new TweenPlayer()
+            MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 .SetDuration(tem.Duration + 2)
                 .SetLoops(tem.Loops + 2)
@@ -178,7 +173,7 @@ namespace Betauer.Tests.Animation {
                     ? Tween.TweenProcessMode.Idle
                     : Tween.TweenProcessMode.Physics)
                 .EndSequence()
-                .SetAutoKill(true);
+                .SetFreeTweenOnFinish(true);
 
             ITweenSequence imported = player.TweenSequences[0];
 
@@ -198,13 +193,13 @@ namespace Betauer.Tests.Animation {
         [Test]
         public void WhenImportATemplateAndAddANewTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
             TweenSequenceTemplate tem = CreateTemplate();
-            TweenPlayer player = new TweenPlayer()
+            MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 .AnimateKeys(null, Property.Modulate)
                 .KeyframeTo(1, Colors.Aqua)
                 .EndAnimate()
                 .EndSequence()
-                .SetAutoKill(true);
+                .SetFreeTweenOnFinish(true);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
             ITweenSequence imported = player.TweenSequences[0];
@@ -220,7 +215,7 @@ namespace Betauer.Tests.Animation {
         [Test]
         public void WhenImportATemplateAndAddAParallelTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
             TweenSequenceTemplate tem = CreateTemplate();
-            TweenPlayer player = new TweenPlayer()
+            MultipleSequencePlayer player = new MultipleSequencePlayer()
                 .ImportTemplate(tem)
                 // The parallel makes the difference because it adds the tween to the last group instead
                 .Parallel()
@@ -228,7 +223,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(1, Colors.Aqua)
                 .EndAnimate()
                 .EndSequence()
-                .SetAutoKill(true);
+                .SetFreeTweenOnFinish(true);
 
             Assert.That(player.TweenSequences.Count, Is.EqualTo(1));
             ITweenSequence imported = player.TweenSequences[0];

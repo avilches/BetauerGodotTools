@@ -35,8 +35,8 @@ namespace Betauer.Tests.Animation {
             const float estimatedDuration = (seq1Loops * pause + seq2Loops * pause) * playerLoops;
 
             Stopwatch x = Stopwatch.StartNew();
-            await new TweenPlayer()
-                .NewTween(this)
+            await new MultipleSequencePlayer()
+                .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
@@ -50,8 +50,8 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq2Loops)
                 .EndSequence()
                 .SetLoops(playerLoops)
-                .SetAutoKill(true)
-                .AddOnTweenPlayerFinishAll(delegate() { finished++; })
+                .SetFreeTweenOnFinish(true)
+                .AddOnFinishAll(delegate() { finished++; })
                 .Start()
                 .Await();
 
@@ -70,14 +70,14 @@ namespace Betauer.Tests.Animation {
             var callback = 0;
             var finished = 0;
 
-            var tweenPlayer = new TweenPlayer()
-                .NewTween(this)
+            var tweenPlayer = new MultipleSequencePlayer()
+                .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(1f)
                 .Callback(() => callback++)
                 .EndSequence()
-                .AddOnTweenPlayerFinishAll(delegate() { finished++; })
+                .AddOnFinishAll(delegate() { finished++; })
                 .Start();
 
             await Task.Delay(200);
@@ -110,8 +110,8 @@ namespace Betauer.Tests.Animation {
             AddChild(sprite);
             await this.AwaitIdleFrame();
 
-            TweenPlayer tweenPlayer = await new TweenPlayer()
-                .NewTween(this)
+            MultipleSequencePlayer sequentialPlayer = await new MultipleSequencePlayer()
+                .CreateNewTween(this)
                 .CreateSequence()
                 .AnimateSteps(sprite, Property.Opacity)
                 .To(12, 0.1f, Easing.BackIn, (node) => callbackStep1++)
@@ -126,7 +126,7 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .SetLoops(loops)
                 .EndSequence()
-                .SetAutoKill(true)
+                .SetFreeTweenOnFinish(true)
                 .SetLoops(loops)
                 .Start()
                 .Await();
