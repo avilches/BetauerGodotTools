@@ -78,8 +78,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(steps.Count, Is.EqualTo(0));
         }
 
-        [Test(Description =
-            "Template doesn't have target, so it takes the target from the player with a single player")]
+        [Test(Description = "Template doesn't have target, so it takes the target from the single player")]
         public async Task TargetNotDefinedBySequenceUsingTemplate() {
             var spritePlayer = await CreateSprite();
 
@@ -94,7 +93,7 @@ namespace Betauer.Tests.Animation {
 
             await template.Play(spritePlayer).Await();
             Assert.That(template.Target, Is.Null); // the sequence is cloned inside with the spritePlayer
-            Assert.That(steps.Count, Is.EqualTo(2));
+            Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
         }
 
         [Test(Description = "Templates can't be added, they need to be imported")]
