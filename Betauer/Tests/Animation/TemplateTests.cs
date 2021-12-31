@@ -1,4 +1,7 @@
+using System;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
@@ -108,6 +111,17 @@ namespace Betauer.Tests.Animation {
             Assert.That(Template.RollIn, Is.EqualTo(Template.Get("rOllIn")));
         }
 
+        [Test(Description = "sequence empty should fail")]
+        public async Task SequenceEmptyShouldFail() {
+            try {
+                TemplateBuilder.Create().BuildTemplate();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("Template TweenList can not be empty"));
+            }
+        }
+
         public SequenceTemplate CreateTemplate() {
             return TemplateBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -134,7 +148,7 @@ namespace Betauer.Tests.Animation {
 
             ISequence imported = player.Sequences[0];
 
-            Assert.That(imported.DefaultTarget, Is.EqualTo(node));
+            Assert.That(imported.Target, Is.EqualTo(node));
 
             // the node contains a Tween child
             var tween = node.GetChild<Tween>(0);
@@ -157,15 +171,16 @@ namespace Betauer.Tests.Animation {
             SequenceTemplate tem = CreateTemplate();
             var player = SingleSequencePlayer.With(node, tem, 100);
 
-            Assert.That(player.Sequence.DefaultTarget, Is.EqualTo(node));
+            Assert.That(player.Sequence.Target, Is.EqualTo(node));
             Assert.That(player.Sequence.Duration, Is.EqualTo(100));
         }
 
         [Test]
         public void WhenImportATemplateAndDataIsChanged_theTemplateDataIsNotChanged() {
             SequenceTemplate tem = CreateTemplate();
+            Node2D node = new Sprite();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
-                .ImportTemplate(tem)
+                .ImportTemplate(tem, node)
                 .SetDuration(tem.Duration + 2)
                 .SetLoops(tem.Loops + 2)
                 .SetSpeed(tem.Speed + 2)
@@ -177,6 +192,8 @@ namespace Betauer.Tests.Animation {
 
             ISequence imported = player.Sequences[0];
 
+            Assert.That(tem.Target, Is.Null);
+            Assert.That(imported.Target, Is.EqualTo(node));
             Assert.That(imported.Loops, Is.Not.EqualTo(tem.Loops));
             Assert.That(imported.Duration, Is.Not.EqualTo(tem.Duration));
             Assert.That(imported.Speed, Is.Not.EqualTo(tem.Speed));
@@ -194,7 +211,7 @@ namespace Betauer.Tests.Animation {
         public void WhenImportATemplateAndAddANewTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
             SequenceTemplate tem = CreateTemplate();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
-                .ImportTemplate(tem)
+                .ImportTemplate(tem, null)
                 .AnimateKeys(null, Property.Modulate)
                 .KeyframeTo(1, Colors.Aqua)
                 .EndAnimate()
@@ -216,7 +233,7 @@ namespace Betauer.Tests.Animation {
         public void WhenImportATemplateAndAddAParallelTween_theTweenListIsClonedToAvoidCorruptTheOriginalTemplate() {
             SequenceTemplate tem = CreateTemplate();
             MultipleSequencePlayer player = new MultipleSequencePlayer()
-                .ImportTemplate(tem)
+                .ImportTemplate(tem, null)
                 // The parallel makes the difference because it adds the tween to the last group instead
                 .Parallel()
                 .AnimateKeys(null, Property.Modulate)

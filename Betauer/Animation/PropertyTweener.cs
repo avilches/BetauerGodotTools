@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Godot;
 using Object = Godot.Object;
 
@@ -59,7 +60,7 @@ namespace Betauer.Animation {
             Name = name;
         }
 
-        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget, float ignoredDefaultDuration) {
+        public float Start(Tween tween, float initialDelay, Node ignoredTarget, float ignoredDefaultDuration) {
             return Start(tween, initialDelay);
         }
 
@@ -89,7 +90,7 @@ namespace Betauer.Animation {
             _delay = delay;
         }
 
-        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget, float ignoredDefaultDuration) {
+        public float Start(Tween tween, float initialDelay, Node ignoredTarget, float ignoredDefaultDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
                         delayEndTime.ToString("F"));
@@ -98,15 +99,15 @@ namespace Betauer.Animation {
     }
 
     public class DebugStep<TProperty> {
-        public readonly Node Node;
+        public readonly Node Target;
         public readonly TProperty From;
         public readonly TProperty To;
         public readonly float Start;
         public readonly float Duration;
         public readonly Easing Easing;
 
-        public DebugStep(Node node, TProperty from, TProperty to, float start, float duration, Easing easing) {
-            Node = node;
+        public DebugStep(Node target, TProperty from, TProperty to, float start, float duration, Easing easing) {
+            Target = target;
             From = from;
             To = to;
             Start = start;
@@ -137,13 +138,13 @@ namespace Betauer.Animation {
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
-                throw new Exception("Cant' start an animation with 0 steps or keys");
+                throw new InvalidDataException("Cant' start an animation with 0 steps or keys");
             }
             if (target == null) {
-                throw new Exception("No target defined for the tween");
+                throw new InvalidDataException("No target defined for the animation");
             }
             if (property == null) {
-                throw new Exception("No property defined for the tween");
+                throw new InvalidDataException("No property defined for the animation");
             }
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't create InterpolateProperty in a freed target instance");
@@ -338,6 +339,9 @@ namespace Betauer.Animation {
         }
 
         public TBuilder EndAnimate() {
+            if (_steps == null || _steps.Count == 0) {
+                throw new InvalidDataException("Animation without steps");
+            }
             return _abstractSequenceBuilder as TBuilder;
         }
     }

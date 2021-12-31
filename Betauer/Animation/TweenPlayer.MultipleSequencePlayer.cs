@@ -5,11 +5,11 @@ using Godot;
 
 namespace Betauer.Animation {
     public class MultipleSequencePlayer : TweenPlayer<MultipleSequencePlayer> {
-        public class SequenceBuilderWithMultipleSequencePlayer : AbstractSequenceBuilder<SequenceBuilderWithMultipleSequencePlayer> {
+        public class SequenceBuilderWithMultipleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithMultipleSequencePlayer> {
             private readonly MultipleSequencePlayer _multipleSequencePlayer;
 
             internal SequenceBuilderWithMultipleSequencePlayer(MultipleSequencePlayer multipleSequencePlayer,
-                ICollection<ICollection<ITweener>> tweenList) : base(tweenList) {
+                bool createEmptyTweenList) : base(createEmptyTweenList) {
                 _multipleSequencePlayer = multipleSequencePlayer;
             }
 
@@ -45,20 +45,25 @@ namespace Betauer.Animation {
         }
 
         public MultipleSequencePlayer AddSequence(ISequence sequence) {
-            Sequences.Add(sequence);
+            if (sequence is SequenceTemplate template) {
+                throw new InvalidOperationException("Use ImportTemplate instead");
+            } else {
+                Sequences.Add(sequence);
+            }
             return this;
         }
 
-        public SequenceBuilderWithMultipleSequencePlayer ImportTemplate(SequenceTemplate sequence,
-            Node defaultTarget = null, float duration = -1) {
-            var sequenceWithPlayerBuilder = new SequenceBuilderWithMultipleSequencePlayer(this, null);
-            sequenceWithPlayerBuilder.ImportTemplate(sequence, defaultTarget, duration);
-            Sequences.Add(sequenceWithPlayerBuilder);
-            return sequenceWithPlayerBuilder;
+        public SequenceBuilderWithMultipleSequencePlayer ImportTemplate(SequenceTemplate template,
+            Node target, float duration = -1) {
+            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this,
+                false /* false because the template already have the tween list */);
+            sequence.ImportTemplate(template, target, duration);
+            Sequences.Add(sequence);
+            return sequence;
         }
 
-        public SequenceBuilderWithMultipleSequencePlayer CreateSequence() {
-            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, new SimpleLinkedList<ICollection<ITweener>>());
+        public SequenceBuilderWithMultipleSequencePlayer CreateSequence(Node target = null) {
+            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, true).SetTarget(target);
             Sequences.Add(sequence);
             return sequence;
         }

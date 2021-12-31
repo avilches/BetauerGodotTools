@@ -21,8 +21,69 @@ namespace Betauer.Tests.Animation {
             Engine.TimeScale = 1;
         }
 
-        [Test(Description = "Loops and callbacks")]
-        public async Task TweenPlayerLoops() {
+        [Test(Description = "SingleSequence Loops and callbacks")]
+        public async Task SingleSequencePlayerWithLoopsAndCallback() {
+            var firstLoop = 0;
+            var finished = 0;
+
+            const float pause = 0.1f;
+            const int seq1Loops = 9;
+
+            const float estimatedDuration = (seq1Loops * pause);
+
+            Stopwatch x = Stopwatch.StartNew();
+            await new SingleSequencePlayer()
+                .CreateNewTween(this)
+                .CreateSequence()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => firstLoop++)
+                .SetLoops(seq1Loops)
+                .EndSequence()
+                .AddOnFinishAll(delegate() { finished++; })
+                .Start()
+                .Await();
+
+            Console.WriteLine("It should take: " + estimatedDuration +
+                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
+
+            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
+            Assert.That(finished, Is.EqualTo(1));
+        }
+
+        [Test(Description = "SingleSequence Loops can be overriden by the player")]
+        public async Task SingleSequencePlayerWithLoopsOverriden() {
+            var firstLoop = 0;
+            var finished = 0;
+
+            const float pause = 0.1f;
+            const int seq1Loops = 9;
+
+            const float estimatedDuration = (seq1Loops * pause);
+
+            Stopwatch x = Stopwatch.StartNew();
+            await new SingleSequencePlayer()
+                .CreateNewTween(this)
+                .CreateSequence()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => firstLoop++)
+                .SetLoops(seq1Loops * 2)
+                .EndSequence()
+                .SetLoops(seq1Loops)
+                .AddOnFinishAll(delegate() { finished++; })
+                .Start()
+                .Await();
+
+            Console.WriteLine("It should take: " + estimatedDuration +
+                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
+
+            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
+            Assert.That(finished, Is.EqualTo(1));
+        }
+
+        [Test(Description = "MultipleSequence with loops and callbacks")]
+        public async Task MultipleSequencePlayerWithLoopsAndCallback() {
             var firstLoop = 0;
             var secondLoop = 0;
             var finished = 0;
@@ -64,7 +125,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "Stop and resume callbacks")]
-        public async Task TweenPlayerCancelCallbacks() {
+        public async Task MultipleSequencePlayerCancelCallbacks() {
             Engine.TimeScale = 1;
 
             var callback = 0;
@@ -98,7 +159,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "Test callbacks in steps")]
-        public async Task TweenPlayerStepLoops() {
+        public async Task CallbacksInSteps() {
             var callbackStep1 = 0;
             var callbackStep2 = 0;
             var callbackStep3 = 0;
@@ -110,7 +171,7 @@ namespace Betauer.Tests.Animation {
             AddChild(sprite);
             await this.AwaitIdleFrame();
 
-            MultipleSequencePlayer sequentialPlayer = await new MultipleSequencePlayer()
+            await new MultipleSequencePlayer()
                 .CreateNewTween(this)
                 .CreateSequence()
                 .AnimateSteps(sprite, Property.Opacity)
@@ -154,7 +215,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "Test values in keyframes")]
-        public void TweenSequenceKey() {
+        public void TweenSequenceKeyframe() {
             var sequence = SequenceBuilder.Create()
                 .AnimateKeys(new Sprite(), Property.PositionX)
                 .Duration(0.5f)
@@ -171,10 +232,6 @@ namespace Betauer.Tests.Animation {
 
             Assert.That(steps[1].Percent, Is.EqualTo(0.6f));
             Assert.That(steps[1].Easing, Is.Null);
-        }
-
-        private List<ITweener> GetParallelGroup(ISequence sequence, int group) {
-            return sequence.TweenList.ToList()[group].ToList();
         }
 
         private T GetTweener<T>(ISequence sequence, int group, int pos = 0) where T : class {

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
@@ -8,7 +10,6 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-
     public class PropertyTweenerTests : Node {
         [SetUp]
         public void SetUp() {
@@ -29,7 +30,160 @@ namespace Betauer.Tests.Animation {
         }
 
         /**
-         * Step to tests
+         * Target overriding
+         */
+        [Test(Description = "Target is not defined by the animation or the sequence. It should fail with single")]
+        public async Task TargetNotDefinedByAnimationOrSequence() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .AnimateSteps(null, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            try {
+                await sequence.Play(spritePlayer).Await();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
+            }
+            Assert.That(sequence.Target, Is.Null);
+            Assert.That(steps.Count, Is.EqualTo(0));
+        }
+
+        [Test(Description = "Target is not defined by the animation or the sequence. It should fail with multiple")]
+        public async Task TargetNotDefinedByAnimationOrSequenceMultiple() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .AnimateSteps(null, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            try {
+                await new MultipleSequencePlayer().CreateNewTween(spritePlayer).AddSequence(sequence).Start().Await();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
+            }
+            Assert.That(sequence.Target, Is.Null);
+            Assert.That(steps.Count, Is.EqualTo(0));
+        }
+
+        [Test(Description =
+            "Template doesn't have target, so it takes the target from the player with a single player")]
+        public async Task TargetNotDefinedBySequenceUsingTemplate() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var template = TemplateBuilder.Create()
+                .AnimateSteps(Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate()
+                .BuildTemplate();
+
+            await template.Play(spritePlayer).Await();
+            Assert.That(template.Target, Is.Null); // the sequence is cloned inside with the spritePlayer
+            Assert.That(steps.Count, Is.EqualTo(2));
+        }
+
+        [Test(Description = "Templates can't be added, they need to be imported")]
+        public async Task AddATemplateIsNotAllowed() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var template = TemplateBuilder.Create()
+                .AnimateSteps(Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(-90, 0.2f)
+                .EndAnimate()
+                .BuildTemplate();
+
+            try {
+                new MultipleSequencePlayer().CreateNewTween(spritePlayer).AddSequence(template);
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
+                Assert.That(e.Message, Is.EqualTo("Use ImportTemplate instead"));
+            }
+        }
+
+        [Test(Description =
+            "Template doesn't have target, so it takes the target from the player with a multiple player")]
+        public async Task TargetNotDefinedBySequenceUsingTemplateWithMultiple() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var template = TemplateBuilder.Create()
+                .AnimateSteps(Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate()
+                .BuildTemplate();
+
+            await new MultipleSequencePlayer()
+                .CreateNewTween(spritePlayer)
+                .ImportTemplate(template, spritePlayer).EndSequence().Start().Await();
+
+            Assert.That(template.Target, Is.Null); // the sequence is cloned inside with the spritePlayer
+            Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
+        }
+
+        [Test(Description = "Target is defined by animation")]
+        public async Task TargetDefinedByAnimation() {
+            var spriteAnimation = await CreateSprite();
+            var spriteSequence = await CreateSprite();
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .AnimateSteps(spriteAnimation, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            await sequence.Play(spritePlayer).Await();
+
+            Assert.That(sequence.Target, Is.Null);
+            Assert.That(steps[0].Target, Is.EqualTo(spriteAnimation));
+        }
+
+        [Test(Description = "Target is defined by animation but overriden by sequence")]
+        public async Task TargetDefinedByAnimationOverridenBySequence() {
+            var spriteAnimation = await CreateSprite();
+            var spriteSequence = await CreateSprite();
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .SetTarget(spriteSequence)
+                .AnimateSteps(spriteAnimation, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            await sequence.Play(spritePlayer).Await();
+
+            Assert.That(sequence.Target, Is.EqualTo(spriteSequence));
+            Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
+        }
+
+
+        /**
+         * Step animation tests
          */
         [Test(Description = "step to")]
         public async Task SequenceStepsTo() {
@@ -60,6 +214,23 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
+        /**
+         * Step animation tests
+         */
+        [Test(Description = "sequence empty should fail")]
+        public async Task SequenceEmptyShouldFail() {
+            var sprite = await CreateSprite();
+            try {
+                SequenceBuilder.Create()
+                    .AnimateSteps(sprite, Property.PositionX)
+                    .EndAnimate();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("Animation without steps"));
+            }
+        }
+
         [Test(Description = "step to with from")]
         public async Task SequenceStepsToWithFrom() {
             var sprite = await CreateSprite();
@@ -81,7 +252,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
-        [Test(Description = "step to with first 0 second value works like from")]
+        [Test(Description = "step to with 0 seconds in the first step, it works like the first value was the from")]
         public async Task SequenceStepsToWithFirstStepTo0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
