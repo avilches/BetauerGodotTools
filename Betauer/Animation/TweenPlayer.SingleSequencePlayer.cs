@@ -70,18 +70,18 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public SequencePlayerWithSingleSequence ImportTemplate(SequenceTemplate template, Node target = null,
+        public SequencePlayerWithSingleSequence ImportTemplate(SequenceTemplate template, Node defaultTarget = null,
             float duration = -1) {
             var sequence = new SequencePlayerWithSingleSequence(this, false /* no data, it will use the template tweens */);
-            sequence.ImportTemplate(template, target, duration);
+            sequence.ImportTemplate(template, defaultTarget, duration);
             WithSequence(sequence);
             return sequence;
         }
 
-        public SequencePlayerWithSingleSequence CreateSequence(Node target = null) {
+        public SequencePlayerWithSingleSequence CreateSequence(Node defaultTarget = null) {
             var sequence = new SequencePlayerWithSingleSequence(this,
                     true /* true to allow to add tweens during the sequence creation */)
-                .SetTarget(target);
+                .SetDefaultTarget(defaultTarget);
             WithSequence(sequence);
             return sequence;
         }

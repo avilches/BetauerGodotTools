@@ -7,6 +7,7 @@ using Object = Godot.Object;
 namespace Betauer.Animation {
     public interface ITweener {
         float Start(Tween tween, float initialDelay, Node target, float defaultDuration);
+        public abstract Node Target { get; }
     }
 
     public delegate void CallbackNode(Node node);
@@ -52,6 +53,7 @@ namespace Betauer.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
         private readonly float _delay;
+        public Node Target { get; } // Not needed, not used!
         public readonly string Name;
 
         internal CallbackTweener(float delay, Action callback, string name = null) {
@@ -85,6 +87,7 @@ namespace Betauer.Animation {
     internal class PauseTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly float _delay;
+        public Node Target { get; } // Not needed, not used!
 
         internal PauseTweener(float delay) {
             _delay = delay;
@@ -119,9 +122,10 @@ namespace Betauer.Animation {
     public abstract class PropertyTweener<TProperty> : ITweener {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
-        protected readonly Node Target;
+        public Node Target { get; private set; }
         protected readonly IProperty<TProperty> Property;
         protected readonly Easing DefaultEasing;
+
 
         protected Func<Node, TProperty> FromFunction;
         protected bool RelativeToFrom = false;

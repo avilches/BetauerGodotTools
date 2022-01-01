@@ -30,9 +30,9 @@ namespace Betauer.Tests.Animation {
         }
 
         /**
-         * Target overriding
+         * DefaultTarget behaviour
          */
-        [Test(Description = "Target is not defined by the animation or the sequence. It should fail with single")]
+        [Test(Description = "Target is not defined by the animation or the sequence. It uses the player")]
         public async Task TargetNotDefinedByAnimationOrSequence() {
             var spritePlayer = await CreateSprite();
 
@@ -42,17 +42,17 @@ namespace Betauer.Tests.Animation {
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
+                .EndAnimate()
+                .AnimateSteps(null, Property.PositionY)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
                 .EndAnimate();
 
-            try {
-                await sequence.Play(spritePlayer).Await();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
-            }
-            Assert.That(sequence.Target, Is.Null);
-            Assert.That(steps.Count, Is.EqualTo(0));
+            await sequence.Play(spritePlayer);
+            Assert.That(sequence.DefaultTarget, Is.EqualTo(spritePlayer));
+            Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
+            Assert.That(steps[1].Target, Is.EqualTo(spritePlayer));
         }
 
         [Test(Description = "Target is not defined by the animation or the sequence. It should fail with multiple")]
@@ -74,9 +74,74 @@ namespace Betauer.Tests.Animation {
                 Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
                 Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
             }
-            Assert.That(sequence.Target, Is.Null);
+            Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps.Count, Is.EqualTo(0));
         }
+
+        [Test(Description = "Target is not defined by the animation or the sequence. It should fail with single")]
+        public async Task TargetNotDefinedByAnimationOrSequenceSingle() {
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .AnimateSteps(null, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            try {
+                await new SingleSequencePlayer().CreateNewTween(spritePlayer).WithSequence(sequence).Start().Await();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
+            }
+            Assert.That(sequence.DefaultTarget, Is.Null);
+            Assert.That(steps.Count, Is.EqualTo(0));
+        }
+
+        [Test(Description = "Target is defined by animation")]
+        public async Task TargetDefinedByAnimation() {
+            var spriteAnimation = await CreateSprite();
+            var spriteSequence = await CreateSprite();
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .AnimateSteps(spriteAnimation, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            await sequence.Play(spritePlayer);
+
+            Assert.That(sequence.DefaultTarget, Is.EqualTo(spritePlayer));
+            Assert.That(steps[0].Target, Is.EqualTo(spriteAnimation));
+        }
+
+        [Test(Description = "Target not defined by animation, it's defined by sequence")]
+        public async Task TargetDefinedBySequence() {
+            var spriteAnimation = await CreateSprite();
+            var spriteSequence = await CreateSprite();
+            var spritePlayer = await CreateSprite();
+
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            var sequence = SequenceBuilder.Create()
+                .SetDefaultTarget(spriteSequence)
+                .AnimateSteps(null, Property.PositionX)
+                .SetDebugSteps(steps)
+                .To(120, 0.1f, Easing.BackIn)
+                .To(-90, 0.2f)
+                .EndAnimate();
+
+            await sequence.Play(spritePlayer);
+
+            Assert.That(sequence.DefaultTarget, Is.EqualTo(spriteSequence));
+            Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
+        }
+
 
         [Test(Description = "Template doesn't have target, so it takes the target from the single player")]
         public async Task TargetNotDefinedBySequenceUsingTemplate() {
@@ -91,30 +156,9 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .BuildTemplate();
 
-            await template.Play(spritePlayer).Await();
-            Assert.That(template.Target, Is.Null); // the sequence is cloned inside with the spritePlayer
+            await template.Play(spritePlayer);
+            Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
-        }
-
-        [Test(Description = "Templates can't be added, they need to be imported")]
-        public async Task AddATemplateIsNotAllowed() {
-            var spritePlayer = await CreateSprite();
-
-            List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            var template = TemplateBuilder.Create()
-                .AnimateSteps(Property.PositionX)
-                .SetDebugSteps(steps)
-                .To(-90, 0.2f)
-                .EndAnimate()
-                .BuildTemplate();
-
-            try {
-                new MultipleSequencePlayer().CreateNewTween(spritePlayer).AddSequence(template);
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
-                Assert.That(e.Message, Is.EqualTo("Use ImportTemplate instead"));
-            }
         }
 
         [Test(Description =
@@ -135,51 +179,9 @@ namespace Betauer.Tests.Animation {
                 .CreateNewTween(spritePlayer)
                 .ImportTemplate(template, spritePlayer).EndSequence().Start().Await();
 
-            Assert.That(template.Target, Is.Null); // the sequence is cloned inside with the spritePlayer
+            Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
         }
-
-        [Test(Description = "Target is defined by animation")]
-        public async Task TargetDefinedByAnimation() {
-            var spriteAnimation = await CreateSprite();
-            var spriteSequence = await CreateSprite();
-            var spritePlayer = await CreateSprite();
-
-            List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            var sequence = SequenceBuilder.Create()
-                .AnimateSteps(spriteAnimation, Property.PositionX)
-                .SetDebugSteps(steps)
-                .To(120, 0.1f, Easing.BackIn)
-                .To(-90, 0.2f)
-                .EndAnimate();
-
-            await sequence.Play(spritePlayer).Await();
-
-            Assert.That(sequence.Target, Is.Null);
-            Assert.That(steps[0].Target, Is.EqualTo(spriteAnimation));
-        }
-
-        [Test(Description = "Target is defined by animation but overriden by sequence")]
-        public async Task TargetDefinedByAnimationOverridenBySequence() {
-            var spriteAnimation = await CreateSprite();
-            var spriteSequence = await CreateSprite();
-            var spritePlayer = await CreateSprite();
-
-            List<DebugStep<float>> steps = new List<DebugStep<float>>();
-            var sequence = SequenceBuilder.Create()
-                .SetTarget(spriteSequence)
-                .AnimateSteps(spriteAnimation, Property.PositionX)
-                .SetDebugSteps(steps)
-                .To(120, 0.1f, Easing.BackIn)
-                .To(-90, 0.2f)
-                .EndAnimate();
-
-            await sequence.Play(spritePlayer).Await();
-
-            Assert.That(sequence.Target, Is.EqualTo(spriteSequence));
-            Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
-        }
-
 
         /**
          * Step animation tests
@@ -200,8 +202,7 @@ namespace Betauer.Tests.Animation {
                 .To(200, 0f, Easing.BackIn, (node) => executed2 = true)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -241,8 +242,7 @@ namespace Betauer.Tests.Animation {
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -263,8 +263,7 @@ namespace Betauer.Tests.Animation {
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -292,8 +291,7 @@ namespace Betauer.Tests.Animation {
                 // Offset 0 and duration 0 is ignored, but the callback is executed
                 .Offset(0, 0f, Easing.BackIn, node => executed2 = true)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -315,8 +313,7 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 200f, 110f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -337,8 +334,7 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 50f, 170, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 170f, 80f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -360,8 +356,7 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 10, 0.1f, 0.2f, Easing.LinearInOut);
@@ -381,8 +376,7 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10, 0.1f, 0.2f, Easing.LinearInOut);
@@ -408,8 +402,7 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0f, Easing.BackIn, (node => executed2 = true))
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -434,8 +427,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 100f, 120f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
@@ -455,8 +447,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 20f, 120f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
@@ -481,8 +472,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.80f, 0.7f)
                 .KeyframeTo(1.00f, 1f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 0.7f, 0.7f, 0f, 0f, Easing.LinearInOut);
             AssertStep(steps[1], 0.7f, 1, 0.8f, 0.2f, Easing.LinearInOut);
@@ -503,8 +493,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 30f, 30f, 0f, 0f, Easing.CubicOut);
             AssertStep(steps[1], 30f, 120f, 0f, 1f, Easing.BackIn);
@@ -527,8 +516,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.5f, 120, Easing.BackIn)
                 .KeyframeOffset(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 130f, 1f, 0.6f, Easing.LinearInOut);
@@ -548,8 +536,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.5f, 120, Easing.BackIn)
                 .KeyframeOffset(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, 110f, 1f, 0.6f, Easing.LinearInOut);
@@ -571,8 +558,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 110, 110f, 0f, 0f, Easing.CubicOut);
             AssertStep(steps[1], 110, 230, 0f, 1f, Easing.BackIn);
@@ -597,8 +583,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 10f, 1f, 0.6f, Easing.LinearInOut);
@@ -620,8 +605,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easing.LinearInOut);
@@ -644,8 +628,7 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easing.LinearInOut);
@@ -668,8 +651,7 @@ namespace Betauer.Tests.Animation {
                 // Add the same absolute step is allowed, it can be used as pause and as a callback
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite)
-                .Await();
+                .Play(sprite);
 
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }

@@ -9,7 +9,7 @@ using Godot;
 namespace Betauer.Animation {
     public interface ISequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
-        public Node Target { get; }
+        public Node DefaultTarget { get; }
         public int Loops { get; }
         public bool IsInfiniteLoop { get; }
         public float Speed { get; }
@@ -20,7 +20,7 @@ namespace Betauer.Animation {
 
     public abstract class Sequence {
         public abstract ICollection<ICollection<ITweener>> TweenList { get; protected set; }
-        public abstract Node Target { get; protected set; }
+        public abstract Node DefaultTarget { get; protected set; }
         public abstract float Duration { get; protected set; }
 
         public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1) {
@@ -28,7 +28,7 @@ namespace Betauer.Animation {
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
-                    var tweenTime = tweener.Start(tween, initialDelay + accumulatedDelay, target ?? Target,
+                    var tweenTime = tweener.Start(tween, initialDelay + accumulatedDelay, tweener.Target ?? DefaultTarget ?? target,
                         duration > 0 ? duration : Duration);
                     longestTime = Math.Max(longestTime, tweenTime);
                 }
@@ -52,7 +52,7 @@ namespace Betauer.Animation {
             protected set => throw new ReadOnlyException();
         }
 
-        public override Node Target { get; protected set; } // NO Target for templates
+        public override Node DefaultTarget { get; protected set; } // NO Target for templates
         public int Loops { get; }
         public bool IsInfiniteLoop => Loops == -1;
         public float Speed { get; }
@@ -79,7 +79,7 @@ namespace Betauer.Animation {
             if (from.TweenList == null || from.TweenList.Count == 0) {
                 throw new InvalidDataException("Template TweenList can not be empty");
             }
-            if (from.Target != null) {
+            if (from.DefaultTarget != null) {
                 // This is impossible to happen without mutating the template with reflection because the
                 // Target has private set and the mutator SetTarget() is defined in the RegularBuilder only
                 throw new InvalidDataException("Templates shouldn't have a target defined");
@@ -107,7 +107,7 @@ namespace Betauer.Animation {
 
     public class MutableSequence : Sequence, ISequence {
         public override ICollection<ICollection<ITweener>> TweenList { get; protected set; }
-        public override Node Target { get; protected set; }
+        public override Node DefaultTarget { get; protected set; }
         public override float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
         public bool IsInfiniteLoop => Loops == -1;
@@ -259,7 +259,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder ImportTemplate(SequenceTemplate sequence, Node target, float duration = -1) {
-            Target = target;
+            DefaultTarget = target;
 
             if (TweenList == null || TweenList.Count == 0) {
                 TweenList = sequence.TweenList;
@@ -278,55 +278,53 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder SetTarget(Node target) {
-            Target = target;
+        public TBuilder SetDefaultTarget(Node defaultTarget) {
+            DefaultTarget = defaultTarget;
             return this as TBuilder;
         }
 
-        public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
-            var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, target, property, easing);
+        public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
+        public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
             var tweener =
-                new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
+                new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, false);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(
-            Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
             var tweener =
-                new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
+                new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, true);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
-            var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, target, property, easing);
+        public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing);
             AddTweener(tweener);
             return tweener;
         }
 
-        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
+        public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
             var tweener =
-                new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, false);
+                new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, false);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(
-            Node target = null,
-            IProperty<TProperty> property = null, Easing easing = null) {
+            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
             var tweener =
-                new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, target, property, easing, true);
+                new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, true);
             AddTweener(tweener);
             return tweener;
         }
@@ -340,13 +338,16 @@ namespace Betauer.Animation {
         }
 
         public static SequenceBuilder Create(Node target = null) {
-            var sequenceBuilder = new SequenceBuilder(true /* true to allow add tweens */).SetTarget(target);
+            var sequenceBuilder = new SequenceBuilder(true /* true to allow add tweens */).SetDefaultTarget(target);
             return sequenceBuilder;
         }
 
         public Task<SingleSequencePlayer> Play(Node node) {
+            if (DefaultTarget == null) {
+                SetDefaultTarget(node);
+            }
             return new SingleSequencePlayer()
-                .CreateNewTween(node)
+                .CreateNewTween(DefaultTarget)
                 .WithSequence(this)
                 .Start()
                 .Await();

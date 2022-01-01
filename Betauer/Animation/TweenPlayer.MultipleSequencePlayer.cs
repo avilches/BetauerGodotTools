@@ -54,16 +54,16 @@ namespace Betauer.Animation {
         }
 
         public SequenceBuilderWithMultipleSequencePlayer ImportTemplate(SequenceTemplate template,
-            Node target, float duration = -1) {
+            Node defaultTarget, float duration = -1) {
             var sequence = new SequenceBuilderWithMultipleSequencePlayer(this,
                 false /* false because the template already have the tween list */);
-            sequence.ImportTemplate(template, target, duration);
+            sequence.ImportTemplate(template, defaultTarget, duration);
             Sequences.Add(sequence);
             return sequence;
         }
 
-        public SequenceBuilderWithMultipleSequencePlayer CreateSequence(Node target = null) {
-            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, true).SetTarget(target);
+        public SequenceBuilderWithMultipleSequencePlayer CreateSequence(Node defaultTarget = null) {
+            var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, true).SetDefaultTarget(defaultTarget);
             Sequences.Add(sequence);
             return sequence;
         }

@@ -145,7 +145,7 @@ namespace Betauer.Tests.Animation {
             SingleSequencePlayer player = tem.CreatePlayer(node);
 
             ISequence imported = player.Sequence;
-            Assert.That(imported.Target, Is.EqualTo(node));
+            Assert.That(imported.DefaultTarget, Is.EqualTo(node));
 
             // the node contains a Tween child
             var tween = node.GetChild<Tween>(0);
@@ -163,6 +163,26 @@ namespace Betauer.Tests.Animation {
             Assert.That(imported.TweenList, Is.EqualTo(tem.TweenList));
         }
 
+        [Test(Description = "Templates can't be added, they need to be imported")]
+        public async Task AddATemplateIsNotAllowed() {
+            Node2D node = new Sprite();
+
+            var template = TemplateBuilder.Create()
+                .AnimateSteps(Property.PositionX)
+                .To(-90, 0.2f)
+                .EndAnimate()
+                .BuildTemplate();
+
+            try {
+                new MultipleSequencePlayer().CreateNewTween(node).AddSequence(template);
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
+                Assert.That(e.Message, Is.EqualTo("Use ImportTemplate instead"));
+            }
+        }
+
+
         [Test]
         public void CreateSequenceFromTemplateOverridingLoops() {
             Node2D node = new Sprite();
@@ -170,7 +190,7 @@ namespace Betauer.Tests.Animation {
             var player = SingleSequencePlayer.Create(node, tem, 100)
                 .SetLoops(2);
 
-            Assert.That(player.Sequence.Target, Is.EqualTo(node));
+            Assert.That(player.Sequence.DefaultTarget, Is.EqualTo(node));
             Assert.That(player.Sequence.Duration, Is.EqualTo(100));
 
             Assert.That(tem.Loops, Is.EqualTo(1));
@@ -189,8 +209,8 @@ namespace Betauer.Tests.Animation {
                 .SetSpeed(tem.Speed + 2)
                 .SetProcessMode(Tween.TweenProcessMode.Physics);
 
-            Assert.That(tem.Target, Is.Null);
-            Assert.That(imported.Target, Is.EqualTo(node));
+            Assert.That(tem.DefaultTarget, Is.Null);
+            Assert.That(imported.DefaultTarget, Is.EqualTo(node));
             Assert.That(imported.Loops, Is.EqualTo(tem2.Loops+2));
             Assert.That(imported.Duration, Is.EqualTo(tem2.Duration+2));
             Assert.That(imported.Speed, Is.EqualTo(tem2.Speed+2));

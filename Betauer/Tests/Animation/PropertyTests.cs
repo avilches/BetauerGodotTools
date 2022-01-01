@@ -125,8 +125,7 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(spriteX)
-                .Await();
+                .Play(spriteX);
             Assert.That(spriteX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var spriteY = await CreateSprite(width);
@@ -137,8 +136,7 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(spriteY)
-                .Await();
+                .Play(spriteY);
             Assert.That(spriteY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var sprite2D = await CreateSprite(width);
@@ -149,8 +147,7 @@ namespace Betauer.Tests.Animation {
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
                 .EndAnimate()
-                .Play(sprite2D)
-                .Await();
+                .Play(sprite2D);
             Assert.That(sprite2D.Position,
                 Is.EqualTo(
                     new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
@@ -163,8 +160,7 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(controlX)
-                .Await();
+                .Play(controlX);
             Assert.That(controlX.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var controlY = await CreateLabel(width);
@@ -175,8 +171,7 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(controlY)
-                .Await();
+                .Play(controlY);
             Assert.That(controlY.RectPosition.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var control2D = await CreateLabel(width);
@@ -187,8 +182,7 @@ namespace Betauer.Tests.Animation {
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
                 .EndAnimate()
-                .Play(control2D)
-                .Await();
+                .Play(control2D);
             Assert.That(control2D.RectPosition, Is.EqualTo(
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
@@ -391,8 +385,7 @@ namespace Betauer.Tests.Animation {
                 .From(from)
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate()
-                .Play(node)
-                .Await();
+                .Play(node);
 
             AssertStep(steps[0], from, to, 0f, 0.1f, Easing.BackIn);
             Assert.That(steps.Count, Is.EqualTo(1));
@@ -406,8 +399,7 @@ namespace Betauer.Tests.Animation {
                 .SetDebugSteps(steps)
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate()
-                .Play(node)
-                .Await();
+                .Play(node);
 
             Assert.That(steps.Count, Is.EqualTo(0));
         }
