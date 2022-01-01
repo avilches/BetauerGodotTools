@@ -51,6 +51,31 @@ namespace Betauer.Tests.Animation {
             Assert.That(finished, Is.EqualTo(1));
         }
 
+        [Test(Description = "SingleSequence Loops and callbacks")]
+        public async Task PlayWithLoopsAndCallback() {
+            var firstLoop = 0;
+
+            const float pause = 0.1f;
+            const int seq1Loops = 9;
+
+            const float estimatedDuration = (seq1Loops * pause);
+
+            Stopwatch x = Stopwatch.StartNew();
+            var sequence = await SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => {
+                    firstLoop++;
+                })
+                .SetLoops(seq1Loops)
+                .Play(this);
+
+            Console.WriteLine("It should take: " + estimatedDuration +
+                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
+
+            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
+        }
+
         [Test(Description = "SingleSequence Loops can be overriden by the player")]
         public async Task SingleSequencePlayerWithLoopsOverriden() {
             var firstLoop = 0;
@@ -71,7 +96,7 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq1Loops * 2)
                 .EndSequence()
                 .SetLoops(seq1Loops)
-                .AddOnFinishAll(delegate() { finished++; })
+                .AddOnFinishAll(() => finished++ )
                 .Start()
                 .Await();
 

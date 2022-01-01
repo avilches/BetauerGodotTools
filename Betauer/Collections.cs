@@ -10,8 +10,8 @@ namespace Betauer {
         public SimpleLinkedList() {
         }
 
-        public SimpleLinkedList(IEnumerable<T> tweenList) {
-            foreach (var o in tweenList) {
+        public SimpleLinkedList(IEnumerable<T> collection) {
+            foreach (var o in collection) {
                 Add(o);
             }
         }

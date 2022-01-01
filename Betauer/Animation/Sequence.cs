@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.Animation {
@@ -10,10 +11,11 @@ namespace Betauer.Animation {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node Target { get; }
         public int Loops { get; }
+        public bool IsInfiniteLoop { get; }
         public float Speed { get; }
         public float Duration { get; }
         public Tween.TweenProcessMode ProcessMode { get; }
-        public float Start(Tween tween, float initialDelay = 0, Node? target = null, float duration = -1);
+        public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1);
     }
 
     public abstract class Sequence {
@@ -21,7 +23,7 @@ namespace Betauer.Animation {
         public abstract Node Target { get; protected set; }
         public abstract float Duration { get; protected set; }
 
-        public float Start(Tween tween, float initialDelay, Node? target, float duration) {
+        public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1) {
             float accumulatedDelay = 0;
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
@@ -52,6 +54,7 @@ namespace Betauer.Animation {
 
         public override Node Target { get; protected set; } // NO Target for templates
         public int Loops { get; }
+        public bool IsInfiniteLoop => Loops == -1;
         public float Speed { get; }
 
         private readonly float _duration;
@@ -85,12 +88,21 @@ namespace Betauer.Animation {
         }
 
         public SingleSequencePlayer CreatePlayer(Node node) {
-            return SingleSequencePlayer.With(node, this);
+            return SingleSequencePlayer.Create(node, this);
         }
 
-        public SingleSequencePlayer Play(Node node) {
-            return CreatePlayer(node).Start();
+        public Task<SingleSequencePlayer> Play(Node node, float initialDelay = 0, float duration = -1) {
+            return new SingleSequencePlayer()
+                .CreateNewTween(node)
+                .CreateSequence()
+                .Pause(initialDelay)
+                .ImportTemplate(this, node, duration)
+                .EndSequence()
+                .Start()
+                .Await();
         }
+
+
     }
 
     public class MutableSequence : Sequence, ISequence {
@@ -98,22 +110,15 @@ namespace Betauer.Animation {
         public override Node Target { get; protected set; }
         public override float Duration { get; protected set; } = -1.0f;
         public int Loops { get; protected set; } = 1;
+        public bool IsInfiniteLoop => Loops == -1;
         public float Speed { get; protected set; } = 1.0f;
-        private protected bool _importedFromTemplate = false;
+        protected bool _importedFromTemplate = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
-
-        public void ImportTemplate(SequenceTemplate sequence, Node target, float duration = -1) {
-            Target = target;
-
-            TweenList = sequence.TweenList;
-            Loops = sequence.Loops;
-            Speed = sequence.Speed;
-            ProcessMode = sequence.ProcessMode;
-            Duration = duration > 0 ? duration : sequence.Duration;
-            _importedFromTemplate = true;
-        }
     }
 
+    /**
+     * Shared between Regular (sequence builders w/o player) and template builder
+     */
     public abstract class AbstractSequenceBuilder<TBuilder> : MutableSequence where TBuilder : class {
         private bool _parallel = false;
 
@@ -163,11 +168,17 @@ namespace Betauer.Animation {
             return SetLoops(-1);
         }
 
-        public bool IsInfiniteLoops() {
-            return Loops == -1;
+        protected void AddTweener(ITweener tweener) {
+            CloneTweenListIfNeeded();
+            if (_parallel) {
+                TweenList.Last().Add(tweener);
+                _parallel = false;
+            } else {
+                TweenList.Add(new SimpleLinkedList<ITweener> { tweener });
+            }
         }
 
-        protected void AddTweener(ITweener tweener) {
+        protected void CloneTweenListIfNeeded() {
             if (_importedFromTemplate) {
                 var tweenListCloned = new SimpleLinkedList<ICollection<ITweener>>(TweenList);
                 if (_parallel) {
@@ -177,12 +188,6 @@ namespace Betauer.Animation {
                 }
                 TweenList = tweenListCloned;
                 _importedFromTemplate = false;
-            }
-            if (_parallel) {
-                TweenList.Last().Add(tweener);
-                _parallel = false;
-            } else {
-                TweenList.Add(new SimpleLinkedList<ITweener> { tweener });
             }
         }
     }
@@ -253,6 +258,26 @@ namespace Betauer.Animation {
         protected RegularSequenceBuilder(bool createEmptyTweenList) : base(createEmptyTweenList) {
         }
 
+        public TBuilder ImportTemplate(SequenceTemplate sequence, Node target, float duration = -1) {
+            Target = target;
+
+            if (TweenList == null || TweenList.Count == 0) {
+                TweenList = sequence.TweenList;
+                _importedFromTemplate = true;
+            } else {
+                CloneTweenListIfNeeded();
+                foreach (var parallelGroup in sequence.TweenList) {
+                    TweenList.Add(parallelGroup);
+                }
+            }
+            Loops = sequence.Loops;
+            Speed = sequence.Speed;
+            ProcessMode = sequence.ProcessMode;
+            Duration = duration > 0 ? duration : sequence.Duration;
+
+            return this as TBuilder;
+        }
+
         public TBuilder SetTarget(Node target) {
             Target = target;
             return this as TBuilder;
@@ -311,7 +336,7 @@ namespace Betauer.Animation {
      * This the public builder to create sequences from games
      */
     public class SequenceBuilder : RegularSequenceBuilder<SequenceBuilder> {
-        public SequenceBuilder(bool createEmptyTweenList) : base(createEmptyTweenList) {
+        private SequenceBuilder(bool createEmptyTweenList) : base(createEmptyTweenList) {
         }
 
         public static SequenceBuilder Create(Node target = null) {
@@ -319,12 +344,12 @@ namespace Betauer.Animation {
             return sequenceBuilder;
         }
 
-        public SingleSequencePlayer CreatePlayer(Node node) {
-            return SingleSequencePlayer.With(node, this);
-        }
-
-        public SingleSequencePlayer Play(Node node) {
-            return CreatePlayer(node).Start();
+        public Task<SingleSequencePlayer> Play(Node node) {
+            return new SingleSequencePlayer()
+                .CreateNewTween(node)
+                .WithSequence(this)
+                .Start()
+                .Await();
         }
     }
 }

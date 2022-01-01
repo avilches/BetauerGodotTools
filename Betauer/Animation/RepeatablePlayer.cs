@@ -4,8 +4,21 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-    public abstract class TweenPlayer<TBuilder> where TBuilder : class {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(TweenPlayer<>));
+
+    public interface ITweenPlayer<out TBuilder> {
+        public Tween Tween { get; }
+        public TBuilder CreateNewTween(Node node);
+        public TBuilder WithTween(Tween tween);
+        public TBuilder RemoveTween();
+        public bool IsRunning();
+        public TBuilder Start();
+        public TBuilder Stop();
+        public TBuilder Reset();
+        public TBuilder Kill();
+
+    }
+    public abstract class RepeatablePlayer<TBuilder> : ITweenPlayer<TBuilder> where TBuilder : class {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(RepeatablePlayer<>));
 
         protected bool Started = false;
         protected bool Running = false;
@@ -14,10 +27,10 @@ namespace Betauer.Animation {
 
         public Tween Tween { get; private set; }
 
-        public TweenPlayer() {
+        public RepeatablePlayer() {
         }
 
-        public TweenPlayer(Tween tween, bool freeOnFinish = false) {
+        public RepeatablePlayer(Tween tween, bool freeOnFinish = false) {
             WithTween(tween, freeOnFinish);
         }
 
@@ -29,7 +42,11 @@ namespace Betauer.Animation {
             return WithTween(tween);
         }
 
-        public TBuilder WithTween(Tween tween, bool freeOnFinish = false) {
+        public TBuilder WithTween(Tween tween) {
+            return WithTween(tween, false);
+        }
+
+        public TBuilder WithTween(Tween tween, bool freeOnFinish) {
             RemoveTween();
             Tween = tween;
             FreeTweenOnFinish = freeOnFinish;
@@ -49,29 +66,12 @@ namespace Betauer.Animation {
         }
 
         public TBuilder AddOnFinishAll(Action onFinishAll) {
-            // An array it's needed because the TweenAnimation uses this callback to return from a finished Once tween
-            // to the previous loop tween stored in the stack. So, if a user creates a sequence with something in
-            // the OnFinishTween, and it adds this sequence to the TweenAnimation, the callback will be lost. So, with
-            // an array, the AnimationTweenPlayer can store the both OnFinishTween: the user one, and the AnimationTweenPlayer one.
-
-            // Pay attention that with TweenAnimation, all this callback can be used
-            // - AnimationTweenPlayer.OnFinishTween
-            // - OnceTween (from TweenAnimation) OnEnd
-            // The main difference is the OnEnd callback will be invoked in the TweenAnimation when a OnceTween is
-            // finished or interrupted. But the AnimationTweenPlayer.OnFinishTween callback will be invoked only when finished.
             if (OnFinishAll == null) {
                 OnFinishAll = new SimpleLinkedList<Action>
                     { onFinishAll };
             } else {
                 OnFinishAll.Add(onFinishAll);
             }
-            return this as TBuilder;
-        }
-
-
-        // Sets the speed scale of tweening.
-        public TBuilder SetSpeed(float speed) {
-            Tween.PlaybackSpeed = speed;
             return this as TBuilder;
         }
 
@@ -90,13 +90,15 @@ namespace Betauer.Animation {
 
         public TBuilder Start() {
             if (!Object.IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Start AnimationTweenPlayer in a freed Tween instance");
+                Logger.Warning("Can't Start with a freed Tween instance");
                 return this as TBuilder;
             }
             if (!Started) {
                 Started = true;
                 Running = true;
                 OnStart();
+                Logger.Info("Tween.Start()");
+                Tween.Start();
             } else {
                 if (!Running) {
                     Logger.Info("Tween.ResumeAll()");
@@ -109,7 +111,7 @@ namespace Betauer.Animation {
 
         public TBuilder Stop() {
             if (!Object.IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Stop AnimationTweenPlayer in a freed Tween instance");
+                Logger.Warning("Can't Stop with a freed Tween instance");
                 return this as TBuilder;
             }
             if (Running) {
@@ -122,7 +124,7 @@ namespace Betauer.Animation {
 
         public TBuilder Reset() {
             if (!Object.IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
+                Logger.Warning("Can't Reset with a freed Tween instance");
                 return this as TBuilder;
             }
             Logger.Info("Tween.StopAll()");
@@ -132,6 +134,8 @@ namespace Betauer.Animation {
             OnReset();
             if (Running) {
                 OnStart();
+                Logger.Info("Tween.Start()");
+                Tween.Start();
             } else {
                 Started = false;
             }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using Godot;
 
 namespace Betauer.Animation {
-    public class MultipleSequencePlayer : TweenPlayer<MultipleSequencePlayer> {
+    public class MultipleSequencePlayer : RepeatablePlayer<MultipleSequencePlayer> {
         public class SequenceBuilderWithMultipleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithMultipleSequencePlayer> {
             private readonly MultipleSequencePlayer _multipleSequencePlayer;
 
@@ -22,7 +22,8 @@ namespace Betauer.Animation {
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
         private int _currentPlayerLoop = 0;
-        private Stopwatch _sequenceStopwatch;
+        private Stopwatch _sequenceStopwatch = Stopwatch.StartNew();
+        private CallbackTweener _sequenceFinishedCallback;
 
         public readonly IList<ISequence> Sequences = new List<ISequence>(4);
         public int Loops { get; private set; }
@@ -45,11 +46,10 @@ namespace Betauer.Animation {
         }
 
         public MultipleSequencePlayer AddSequence(ISequence sequence) {
-            if (sequence is SequenceTemplate template) {
+            if (sequence is SequenceTemplate) {
                 throw new InvalidOperationException("Use ImportTemplate instead");
-            } else {
-                Sequences.Add(sequence);
             }
+            Sequences.Add(sequence);
             return this;
         }
 
@@ -86,26 +86,23 @@ namespace Betauer.Animation {
             RunSequence();
         }
 
-        private CallbackTweener _sequenceFinishedCallback;
         private void RunSequence() {
-            _sequenceStopwatch = Stopwatch.StartNew();
+            _sequenceStopwatch.Restart();
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
                 $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{sequence.Loops}");
             Tween.PlaybackSpeed = sequence.Speed;
             Tween.PlaybackProcessMode = sequence.ProcessMode;
-            var accumulatedDelay = sequence.Start(Tween);
+            var accumulatedDelay = sequence.Execute(Tween);
             _sequenceFinishedCallback = new CallbackTweener(accumulatedDelay, OnSequenceFinished, nameof(OnSequenceFinished));
             _sequenceFinishedCallback.Start(Tween);
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
-            Tween.Start();
         }
 
         private void OnSequenceFinished() {
-            _sequenceStopwatch?.Stop();
+            _sequenceStopwatch.Stop();
             Logger.Debug("RunSequence: OnSequenceFinished: " +
-                         ((_sequenceStopwatch?.ElapsedMilliseconds ?? 0) / 1000f).ToString("F") + "s");
-            _sequenceStopwatch = null;
+                         (_sequenceStopwatch.ElapsedMilliseconds / 1000f).ToString("F") + "s");
             if (More()) {
                 RunSequence();
             } else {
