@@ -30,29 +30,33 @@ namespace Betauer.Animation {
         public RepeatablePlayer() {
         }
 
-        public RepeatablePlayer(Tween tween, bool freeOnFinish = false) {
-            WithTween(tween, freeOnFinish);
+        public RepeatablePlayer(Tween tween, bool freeTweenOnFinish = false) {
+            WithTween(tween, freeTweenOnFinish);
+        }
+
+        public TBuilder CreateNewTween(Node node, bool freeTweenOnFinish) {
+            FreeTweenOnFinish = freeTweenOnFinish;
+            return CreateNewTween(node);
         }
 
         public TBuilder CreateNewTween(Node node) {
-            RemoveTween();
             var tween = new Tween();
             node.AddChild(tween);
-            FreeTweenOnFinish = true;
             return WithTween(tween);
         }
 
         public TBuilder WithTween(Tween tween) {
-            return WithTween(tween, false);
-        }
-
-        public TBuilder WithTween(Tween tween, bool freeOnFinish) {
             RemoveTween();
             Tween = tween;
-            FreeTweenOnFinish = freeOnFinish;
             // _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
             // _tween.Connect("tween_started", this, nameof(TweenStarted));
             // _tween.Connect("tween_completed", this, nameof(TweenCompleted));
+            return this as TBuilder;
+        }
+
+        public TBuilder WithTween(Tween tween, bool freeTweenOnFinish) {
+            FreeTweenOnFinish = freeTweenOnFinish;
+            WithTween(tween);
             return this as TBuilder;
         }
 
@@ -94,11 +98,7 @@ namespace Betauer.Animation {
                 return this as TBuilder;
             }
             if (!Started) {
-                Started = true;
-                Running = true;
-                OnStart();
-                Logger.Info("Tween.Start()");
-                Tween.Start();
+                DoStart();
             } else {
                 if (!Running) {
                     Logger.Info("Tween.ResumeAll()");
@@ -133,9 +133,7 @@ namespace Betauer.Animation {
             Tween.RemoveAll();
             OnReset();
             if (Running) {
-                OnStart();
-                Logger.Info("Tween.Start()");
-                Tween.Start();
+                DoStart();
             } else {
                 Started = false;
             }
@@ -156,21 +154,36 @@ namespace Betauer.Animation {
         protected abstract void OnStart();
         protected abstract void OnReset();
 
+        private TaskCompletionSource<TBuilder> _promise;
+        private void DoStart() {
+            if (_promise != null && !_promise.Task.IsCompleted) {
+                // This can't happen, but just in case...
+                _promise.SetCanceled();
+            }
+            _promise = new TaskCompletionSource<TBuilder>();
+            Started = true;
+            Running = true;
+            OnStart();
+            Logger.Info("Tween.Start()");
+            Tween.Start();
+        }
+
         protected void Finished() {
             Logger.Debug($"Finished. End: stop & reset. Kill {FreeTweenOnFinish}");
-            // Reset keeps the state, so Reset() will play again the sequence, meaning it will never finish
-            Stop();
+            Running = false; // this will avoid to start again in the next Reset() call
+            Reset();
+            // Started = false;
             // End of ALL THE LOOPS of all the sequences of the player
-            OnFinishAll?.ForEach(callback => callback.Invoke());
+            OnFinishAll?.ForEach(callback => {
+                callback.Invoke();
+            });
+            _promise.TrySetResult(this as TBuilder);
             // EmitSignal(nameof(finished));
             if (FreeTweenOnFinish) Kill();
         }
 
         public Task<TBuilder> Await() {
-            var promise = new TaskCompletionSource<TBuilder>();
-            // TODO: remove the event from the finishAll list!!!!!!!!!!!!!!
-            AddOnFinishAll(() => promise.TrySetResult(this as TBuilder));
-            return promise.Task;
+            return _promise.Task;
         }
     }
 }

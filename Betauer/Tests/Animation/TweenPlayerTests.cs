@@ -10,7 +10,7 @@ using Betauer.TestRunner;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    public class TweenPlayerTests : Node {
+    public class TweenPlayerTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -19,6 +19,138 @@ namespace Betauer.Tests.Animation {
         [TearDown]
         public void TearDown() {
             Engine.TimeScale = 1;
+        }
+
+        [Test(Description = "SingleSequencePlayer await works, multiple executions")]
+        public async Task SingleSequencePlayerAwait() {
+            var l1 = 0;
+            var l2 = 0;
+
+            // when created, it's not running
+            var t = new SingleSequencePlayer()
+                .CreateNewTween(this)
+                .CreateSequence()
+                .Callback(() => l1++)
+                .EndSequence()
+                .AddOnFinishAll(() => l2++);
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+
+            // When started, it's running
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+
+            // Await, then it's not running and results are ok
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // Await again, it produces the same state: not running and same results
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again, it will work properly
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(2));
+            Assert.That(l2, Is.EqualTo(2));
+
+            // If start + await again multiple times, it will work properly
+            t.Start();
+            t.Start();
+            t.Start();
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(3));
+            Assert.That(l2, Is.EqualTo(3));
+        }
+
+        [Test(Description = "MultipleSequencePlayer await works, multiple executions")]
+        public async Task MultipleSequencePlayerAwait() {
+            var l1 = 0;
+            var l2 = 0;
+
+            // when created, it's not running
+            var t = new MultipleSequencePlayer()
+                .CreateNewTween(this)
+                .CreateSequence()
+                .Callback(() => l1++)
+                .EndSequence()
+                .AddOnFinishAll(() => l2++);
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+
+            // When started, it's running
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+
+            // Await, then it's not running and results are ok
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // Await again, it produces the same state: not running and same results
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again, it will work properly
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(2));
+            Assert.That(l2, Is.EqualTo(2));
+
+            // If start + await again multiple times, it will work properly
+            t.Start();
+            t.Start();
+            t.Start();
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(3));
+            Assert.That(l2, Is.EqualTo(3));
+        }
+
+        [Test(Description = "Launcher await works")]
+        public async Task LauncherTests() {
+            var launcher = new Launcher().CreateNewTween(this);
+            var l1 = 0;
+            var l2 = 0;
+            var s1 = SequenceBuilder.Create().Callback(() => l1++);
+            var s2 = SequenceBuilder.Create().Callback(() => l2++).SetLoops(2);
+            var t1 = launcher.Play(s1, this);
+            var t2 = launcher.Play(s2, this);
+
+            Assert.That(t1.LoopCounter, Is.EqualTo(0));
+            Assert.That(t2.LoopCounter, Is.EqualTo(0));
+
+            await Task.WhenAll(t1.Await(), t2.Await());
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(2));
+
+            Assert.That(t1.LoopCounter, Is.EqualTo(1));
+            Assert.That(t2.LoopCounter, Is.EqualTo(2));
+
         }
 
         [Test(Description = "SingleSequence Loops and callbacks, using CreateSequence() builder")]
@@ -84,7 +216,8 @@ namespace Betauer.Tests.Animation {
                 .Pause(pause)
                 .Callback(() => { firstLoop++; })
                 .SetLoops(seq1Loops)
-                .Play(this);
+                .Play(await CreateTween(), this)
+                .Await();
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
         }
@@ -180,6 +313,8 @@ namespace Betauer.Tests.Animation {
 
             await Task.Delay(200);
             tweenPlayer.Stop();
+            tweenPlayer.Stop();
+            tweenPlayer.Stop();
             Assert.That(callback, Is.EqualTo(0));
             Assert.That(finished, Is.EqualTo(0));
 
@@ -189,6 +324,9 @@ namespace Betauer.Tests.Animation {
             Assert.That(finished, Is.EqualTo(0));
 
             // Player resume, callbacks were executed
+            tweenPlayer.Start();
+            tweenPlayer.Start();
+            tweenPlayer.Start();
             tweenPlayer.Start();
             await Task.Delay(900);
             Assert.That(callback, Is.EqualTo(1));

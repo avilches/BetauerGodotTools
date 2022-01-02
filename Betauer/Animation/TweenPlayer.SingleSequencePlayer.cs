@@ -34,15 +34,14 @@ namespace Betauer.Animation {
         public SingleSequencePlayer() {
         }
 
-        public SingleSequencePlayer(Tween tween, bool freeOnFinish = false) : base(tween, freeOnFinish) {
+        public SingleSequencePlayer(Tween tween, bool freeTweenOnFinish = false) : base(tween, freeTweenOnFinish) {
         }
 
         public static SingleSequencePlayer Create(Node node, SequenceTemplate template, float duration = -1) {
-            var singleSequencePlayer = new SingleSequencePlayer();
-            singleSequencePlayer
+            return new SingleSequencePlayer()
                 .CreateNewTween(node)
-                .ImportTemplate(template, node, duration);
-            return singleSequencePlayer;
+                .ImportTemplate(template, node, duration)
+                .EndSequence();
         }
 
         public static SingleSequencePlayer Create(Node node, ISequence sequence) {

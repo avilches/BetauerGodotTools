@@ -5,24 +5,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public class Launcher : ITweenPlayer<Launcher> {
-        public class SequenceWithLauncher : RegularSequenceBuilder<SequenceWithLauncher> {
-            private readonly Launcher _launcher;
-
-            internal SequenceWithLauncher(Launcher launcher,
-                bool createEmptyTweenList) : base(createEmptyTweenList) {
-                _launcher = launcher;
-            }
-
-            public Launcher EndSequence() {
-                return _launcher;
-            }
-
-            public Task<LoopStatus> Play(float initialDelay = 0, float duration = -1) {
-                return _launcher.Play(this, DefaultTarget, initialDelay, duration);
-            }
-        }
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Launcher));
-
         public Tween Tween { get; private set; }
 
         public Launcher() {
@@ -99,27 +82,16 @@ namespace Betauer.Animation {
             return this;
         }
 
-
-        public SequenceWithLauncher CreateSequence(Node defaultTarget = null) {
-            var sequence = new SequenceWithLauncher(this, true).SetDefaultTarget(defaultTarget);
-            return sequence;
-        }
-
-        public Task<LoopStatus> Play(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public LoopStatus Play(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
-            var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops: 1;
+            var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
             return Play(loops, sequence, defaultTarget, initialDelay, duration);
         }
 
-        public Task<LoopStatus> Play(int loops, ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
-            float duration = -1) {
-            return _Execute(loops, sequence, defaultTarget, initialDelay, duration);
-        }
-
-        private Task<LoopStatus> _Execute(int loops, ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public LoopStatus Play(int loops, ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
             LoopStatus loopStatus = new LoopStatus(Tween, loops, sequence, defaultTarget, duration);
-            return loopStatus.Start(initialDelay).Await();
+            return loopStatus.Start(initialDelay);
         }
     }
 }

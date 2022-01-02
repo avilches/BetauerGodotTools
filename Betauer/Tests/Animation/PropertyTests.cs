@@ -8,7 +8,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    public class PropertyTests : Node {
+    public class PropertyTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -17,42 +17,6 @@ namespace Betauer.Tests.Animation {
         [TearDown]
         public void TearDown() {
             Engine.TimeScale = 1;
-        }
-
-        public async Task<Sprite> CreateSprite(int width = 100) {
-            Sprite sprite = new Sprite();
-            sprite.Position = new Vector2(100, 100);
-            // var gradientTexture = new GradientTexture();
-            var imageTexture = new ImageTexture();
-            imageTexture.SetSizeOverride(new Vector2(width, width));
-            sprite.Texture = imageTexture;
-            AddChild(sprite);
-            await this.AwaitIdleFrame();
-            return sprite;
-        }
-
-        public async Task<Node2D> CreateNode2D() {
-            Node2D node2D = new Node2D();
-            node2D.Position = new Vector2(100, 100);
-            AddChild(node2D);
-            await this.AwaitIdleFrame();
-            return node2D;
-        }
-
-        public async Task<Node> CreateNode() {
-            Node node = new Node();
-            AddChild(node);
-            await this.AwaitIdleFrame();
-            return node;
-        }
-
-        public async Task<Label> CreateLabel(int width = 100) {
-            Label control = new Label();
-            control.RectPosition = new Vector2(100, 100);
-            control.RectSize = new Vector2(width, width);
-            AddChild(control);
-            await this.AwaitIdleFrame();
-            return control;
         }
 
         [Test]
@@ -113,7 +77,8 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(spriteX);
+                .Play(await CreateTween(), spriteX)
+                .Await();
             Assert.That(spriteX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var spriteY = await CreateSprite(width);
@@ -124,7 +89,8 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(spriteY);
+                .Play(await CreateTween(), spriteY)
+                .Await();
             Assert.That(spriteY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var sprite2D = await CreateSprite(width);
@@ -135,7 +101,8 @@ namespace Betauer.Tests.Animation {
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
                 .EndAnimate()
-                .Play(sprite2D);
+                .Play(await CreateTween(), sprite2D)
+                .Await();
             Assert.That(sprite2D.Position,
                 Is.EqualTo(
                     new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
@@ -148,7 +115,8 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(controlX);
+                .Play(await CreateTween(), controlX)
+                .Await();
             Assert.That(controlX.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var controlY = await CreateLabel(width);
@@ -159,7 +127,8 @@ namespace Betauer.Tests.Animation {
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
                 .EndAnimate()
-                .Play(controlY);
+                .Play(await CreateTween(), controlY)
+                .Await();
             Assert.That(controlY.RectPosition.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var control2D = await CreateLabel(width);
@@ -170,7 +139,8 @@ namespace Betauer.Tests.Animation {
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
                 .EndAnimate()
-                .Play(control2D);
+                .Play(await CreateTween(), control2D)
+                .Await();
             Assert.That(control2D.RectPosition, Is.EqualTo(
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
@@ -343,7 +313,7 @@ namespace Betauer.Tests.Animation {
             }
         }
 
-        private static async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
+        private async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             property.SetValue(node, from, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
@@ -355,8 +325,7 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate();
 
             // With Play()
-            steps.Clear();
-            await sequence.Play(node);
+            await sequence.Play(await CreateTween(), node).Await();
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
             // With MultipleSequence
@@ -391,18 +360,13 @@ namespace Betauer.Tests.Animation {
                 .Await();
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
-            // With SequencePlayer
+            // With Launcher
             property.SetValue(node, from, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             var status = await new Launcher()
                 .CreateNewTween(node)
-                .CreateSequence()
-                .AnimateSteps(node, property)
-                .SetDebugSteps(steps)
-                .From(from)
-                .To(to, 0.1f, Easing.BackIn)
-                .EndAnimate()
-                .Play();
+                .Play(sequence)
+                .Await();
 
             Assert.That(steps.Count, Is.EqualTo(4));
             AssertStep(steps[0], from, to, 0f, 0.1f, Easing.BackIn);
@@ -413,14 +377,15 @@ namespace Betauer.Tests.Animation {
 
         }
 
-        private static async Task CreateEmptyTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
+        private async Task CreateEmptyTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
             await SequenceBuilder.Create()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate()
-                .Play(node);
+                .Play(await CreateTween(), node)
+                .Await();
 
             Assert.That(steps.Count, Is.EqualTo(0));
         }

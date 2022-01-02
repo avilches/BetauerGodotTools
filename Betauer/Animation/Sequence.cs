@@ -47,9 +47,9 @@ namespace Betauer.Animation {
         public readonly ISequence Sequence;
         public bool IsInfiniteLoop => Loops == -1;
 
-        private Tween _tween;
-        private Node _defaultTarget = null;
-        private float _duration = -1;
+        private readonly Tween _tween;
+        private readonly Node _defaultTarget = null;
+        private readonly float _duration = -1;
         private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
 
         public int LoopCounter { get; private set; }
@@ -141,15 +141,13 @@ namespace Betauer.Animation {
             return SingleSequencePlayer.Create(node, this);
         }
 
-        public Task<SingleSequencePlayer> Play(Node node, float initialDelay = 0, float duration = -1) {
-            return new SingleSequencePlayer()
-                .CreateNewTween(node)
-                .CreateSequence()
-                .Pause(initialDelay)
-                .ImportTemplate(this, node, duration)
-                .EndSequence()
-                .Start()
-                .Await();
+        public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+            return Play(tween, 1, node, initialDelay, duration);
+        }
+
+        public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
+            LoopStatus loopStatus = new LoopStatus(tween, loops, this, node, duration);
+            return loopStatus.Start(initialDelay);
         }
     }
 
@@ -293,7 +291,6 @@ namespace Betauer.Animation {
      */
     public abstract class RegularSequenceBuilder<TBuilder> : AbstractSequenceBuilder<TBuilder>, ILoopedSequence
         where TBuilder : class {
-
         protected RegularSequenceBuilder(bool createEmptyTweenList) : base(createEmptyTweenList) {
         }
 
@@ -392,15 +389,13 @@ namespace Betauer.Animation {
             return sequenceBuilder;
         }
 
-        public Task<SingleSequencePlayer> Play(Node node) {
-            if (DefaultTarget == null) {
-                SetDefaultTarget(node);
-            }
-            return new SingleSequencePlayer()
-                .CreateNewTween(DefaultTarget)
-                .WithSequence(this)
-                .Start()
-                .Await();
+        public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+            return Play(tween, Loops, node, initialDelay, duration);
+        }
+
+        public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
+            LoopStatus loopStatus = new LoopStatus(tween, loops, this, node, duration);
+            return loopStatus.Start(initialDelay);
         }
     }
 }

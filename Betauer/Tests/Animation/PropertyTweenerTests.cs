@@ -10,7 +10,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    public class PropertyTweenerTests : Node {
+    public class PropertyTweenerTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -21,18 +21,24 @@ namespace Betauer.Tests.Animation {
             Engine.TimeScale = 1;
         }
 
-        public async Task<Sprite> CreateSprite() {
-            Sprite sprite = new Sprite();
-            sprite.Position = new Vector2(100, 100);
-            AddChild(sprite);
-            await this.AwaitIdleFrame();
-            return sprite;
+        [Test]
+        public async Task SequenceLoops() {
+            var x = 0;
+            SequenceBuilder sequence = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Callback(() => x++);
+
+            await sequence.Play(await CreateTween(), this).Await();
+            Assert.That(x, Is.EqualTo(1));
+
+            await sequence.Play(await CreateTween(), 5, this).Await();
+            Assert.That(x, Is.EqualTo(6));
         }
 
         /**
          * DefaultTarget behaviour
          */
-        [Test(Description = "Target is not defined by the animation or the sequence. It uses the player")]
+        [Test(Description = "Target is not defined by the animation or the sequence. It uses the player but the sequence is not changed")]
         public async Task TargetNotDefinedByAnimationOrSequence() {
             var spritePlayer = await CreateSprite();
 
@@ -49,8 +55,8 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await sequence.Play(spritePlayer);
-            Assert.That(sequence.DefaultTarget, Is.EqualTo(spritePlayer));
+            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
+            Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
             Assert.That(steps[1].Target, Is.EqualTo(spritePlayer));
         }
@@ -115,9 +121,9 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await sequence.Play(spritePlayer);
+            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
 
-            Assert.That(sequence.DefaultTarget, Is.EqualTo(spritePlayer));
+            Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps[0].Target, Is.EqualTo(spriteAnimation));
         }
 
@@ -136,7 +142,7 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await sequence.Play(spritePlayer);
+            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
 
             Assert.That(sequence.DefaultTarget, Is.EqualTo(spriteSequence));
             Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
@@ -156,7 +162,7 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .BuildTemplate();
 
-            await template.Play(spritePlayer);
+            await new Launcher().CreateNewTween(this).Play(template, spritePlayer).Await();
             Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
         }
@@ -202,7 +208,8 @@ namespace Betauer.Tests.Animation {
                 .To(200, 0f, Easing.BackIn, (node) => executed2 = true)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -242,7 +249,8 @@ namespace Betauer.Tests.Animation {
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -263,7 +271,8 @@ namespace Betauer.Tests.Animation {
                 .To(120, 0.1f, Easing.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -291,7 +300,9 @@ namespace Betauer.Tests.Animation {
                 // Offset 0 and duration 0 is ignored, but the callback is executed
                 .Offset(0, 0f, Easing.BackIn, node => executed2 = true)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
+
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -313,7 +324,8 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 200f, 110f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -334,7 +346,8 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 50f, 170, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 170f, 80f, 0.1f, 0.2f, Easing.LinearInOut);
@@ -356,7 +369,8 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 10, 0.1f, 0.2f, Easing.LinearInOut);
@@ -376,7 +390,8 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0.1f, Easing.BackIn)
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10, 0.1f, 0.2f, Easing.LinearInOut);
@@ -402,7 +417,8 @@ namespace Betauer.Tests.Animation {
                 .Offset(120, 0f, Easing.BackIn, (node => executed2 = true))
                 .Offset(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             Assert.That(executed1);
             Assert.That(executed2);
@@ -427,7 +443,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 100f, 120f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
@@ -447,7 +464,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 20f, 120f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easing.LinearInOut);
@@ -472,7 +490,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.80f, 0.7f)
                 .KeyframeTo(1.00f, 1f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 0.7f, 0.7f, 0f, 0f, Easing.LinearInOut);
             AssertStep(steps[1], 0.7f, 1, 0.8f, 0.2f, Easing.LinearInOut);
@@ -493,7 +512,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeTo(0.5f, 120, Easing.BackIn)
                 .KeyframeTo(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 30f, 30f, 0f, 0f, Easing.CubicOut);
             AssertStep(steps[1], 30f, 120f, 0f, 1f, Easing.BackIn);
@@ -516,7 +536,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.5f, 120, Easing.BackIn)
                 .KeyframeOffset(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 130f, 1f, 0.6f, Easing.LinearInOut);
@@ -536,7 +557,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.5f, 120, Easing.BackIn)
                 .KeyframeOffset(0.8f, -90)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, 110f, 1f, 0.6f, Easing.LinearInOut);
@@ -558,7 +580,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 110, 110f, 0f, 0f, Easing.CubicOut);
             AssertStep(steps[1], 110, 230, 0f, 1f, Easing.BackIn);
@@ -583,7 +606,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 220f, 10f, 1f, 0.6f, Easing.LinearInOut);
@@ -605,7 +629,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easing.LinearInOut);
@@ -628,7 +653,8 @@ namespace Betauer.Tests.Animation {
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             AssertStep(steps[0], 80, 200, 0f, 1f, Easing.BackIn);
             AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easing.LinearInOut);
@@ -651,7 +677,8 @@ namespace Betauer.Tests.Animation {
                 // Add the same absolute step is allowed, it can be used as pause and as a callback
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .Play(sprite);
+                .Play(await CreateTween(), sprite)
+                .Await();
 
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }

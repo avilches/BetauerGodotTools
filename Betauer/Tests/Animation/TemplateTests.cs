@@ -9,7 +9,7 @@ using Betauer.TestRunner;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    public class TemplateTests {
+    public class TemplateTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -139,6 +139,21 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test]
+        public async Task TemplateLoops() {
+            var x = 0;
+            SequenceTemplate template = TemplateBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Callback(() => x++)
+                .BuildTemplate();
+
+            await template.Play(await CreateTween(), this).Await();
+            Assert.That(x, Is.EqualTo(1));
+
+            await template.Play(await CreateTween(), 5, this).Await();
+            Assert.That(x, Is.EqualTo(6));
+        }
+
+        [Test]
         public void CreatePlayerFromTemplate() {
             Node2D node = new Sprite();
             SequenceTemplate tem = CreateTemplate();
@@ -208,8 +223,8 @@ namespace Betauer.Tests.Animation {
 
             Assert.That(tem.DefaultTarget, Is.Null);
             Assert.That(imported.DefaultTarget, Is.EqualTo(node));
-            Assert.That(imported.Duration, Is.EqualTo(tem2.Duration+2));
-            Assert.That(imported.Speed, Is.EqualTo(tem2.Speed+2));
+            Assert.That(imported.Duration, Is.EqualTo(tem2.Duration + 2));
+            Assert.That(imported.Speed, Is.EqualTo(tem2.Speed + 2));
             Assert.That(imported.ProcessMode, Is.EqualTo(Tween.TweenProcessMode.Physics));
 
             Assert.That(tem.Duration, Is.EqualTo(tem2.Duration));
