@@ -32,7 +32,7 @@ namespace Betauer.Animation {
         public MultipleSequencePlayer() {
         }
 
-        public MultipleSequencePlayer(Tween tween, bool freeOnFinish = false) : base(tween, freeOnFinish) {
+        public MultipleSequencePlayer(Tween tween, bool freeTweenOnFinish = false) : base(tween, freeTweenOnFinish) {
         }
 
         public MultipleSequencePlayer SetInfiniteLoops() {
