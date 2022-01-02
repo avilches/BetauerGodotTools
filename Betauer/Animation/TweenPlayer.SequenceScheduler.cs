@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Godot;
 using Object = Godot.Object;
 
@@ -16,7 +17,7 @@ namespace Betauer.Animation {
                 return _sequencePlayer;
             }
 
-            public SequencePlayer Play(float initialDelay = 0, float duration = -1) {
+            public Task<SequencePlayer> Play(float initialDelay = 0, float duration = -1) {
                 return _sequencePlayer.Execute(this, DefaultTarget, initialDelay, duration);
             }
         }
@@ -46,7 +47,7 @@ namespace Betauer.Animation {
             Tween = null;
             return this;
         }
-        
+
         public bool IsRunning() => Tween.IsActive();
 
         /*
@@ -97,40 +98,30 @@ namespace Betauer.Animation {
             Tween.QueueFree();
             return this;
         }
-        
 
-        public SequencePlayer PlaySequence(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
-            float duration = -1) {
-            Execute(sequence, defaultTarget, initialDelay, duration);
-            return this;
-        }
-
-        public SequencePlayer PlayTemplate(SequenceTemplate template, Node defaultTarget, float initialDelay = 0,
-            float duration = -1) {
-            Execute(template, defaultTarget, initialDelay, duration);
-            return this;
-        }
 
         public SequencePlayerWithSequenceScheduler CreateSequence(Node defaultTarget = null) {
             var sequence = new SequencePlayerWithSequenceScheduler(this, true).SetDefaultTarget(defaultTarget);
             return sequence;
         }
 
-        private SequencePlayer Execute(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public Task<SequencePlayer> PlaySequence(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
-            if (sequence.Loops == 1) {
-                sequence.Execute(Tween, initialDelay, defaultTarget, duration);
-            } else {
-                ExecuteWithLoops(sequence, defaultTarget, initialDelay, duration);
-            }
-            return this;
+            return Execute(sequence, defaultTarget, initialDelay, duration);
         }
 
-        private void ExecuteWithLoops(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public Task<SequencePlayer> PlayTemplate(SequenceTemplate template, Node defaultTarget, float initialDelay = 0,
+            float duration = -1) {
+            return Execute(template, defaultTarget, initialDelay, duration);
+        }
+
+        private Task<SequencePlayer> Execute(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
             var loops = 0;
+            Start();
             CallbackTweener sequenceFinishedCallback;
             Action declaredExecutor = null;
+            var promise = new TaskCompletionSource<SequencePlayer>();
 
             void Executor(float delay) {
                 if (sequence.IsInfiniteLoop || loops < sequence.Loops) {
@@ -140,11 +131,13 @@ namespace Betauer.Animation {
                     sequenceFinishedCallback.Start(Tween);
                 } else {
                     sequenceFinishedCallback = null;
+                    promise.TrySetResult(this);
                 }
             }
 
             declaredExecutor = () => Executor(0f);
             Executor(initialDelay);
+            return promise.Task;
         }
     }
 }

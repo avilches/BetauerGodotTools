@@ -19,10 +19,10 @@ namespace Betauer.Animation {
         }
 
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(MultipleSequencePlayer));
+        private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
         private int _currentPlayerLoop = 0;
-        private Stopwatch _sequenceStopwatch = Stopwatch.StartNew();
         private CallbackTweener _sequenceFinishedCallback;
 
         public readonly IList<ISequence> Sequences = new List<ISequence>(4);
@@ -87,7 +87,7 @@ namespace Betauer.Animation {
         }
 
         private void RunSequence() {
-            _sequenceStopwatch.Restart();
+            _stopwatch.Restart();
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
                 $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{sequence.Loops}");
@@ -100,9 +100,9 @@ namespace Betauer.Animation {
         }
 
         private void OnSequenceFinished() {
-            _sequenceStopwatch.Stop();
+            _stopwatch.Stop();
             Logger.Debug("RunSequence: OnSequenceFinished: " +
-                         (_sequenceStopwatch.ElapsedMilliseconds / 1000f).ToString("F") + "s");
+                         (_stopwatch.ElapsedMilliseconds / 1000f).ToString("F") + "s");
             if (More()) {
                 RunSequence();
             } else {

@@ -168,6 +168,7 @@ namespace Betauer.Animation {
 
         public Task<TBuilder> Await() {
             var promise = new TaskCompletionSource<TBuilder>();
+            // TODO: remove the event from the finishAll list!!!!!!!!!!!!!!
             AddOnFinishAll(() => promise.TrySetResult(this as TBuilder));
             return promise.Task;
         }
