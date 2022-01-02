@@ -178,7 +178,9 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Pause(float delay) {
-            AddTweener(new PauseTweener(delay));
+            if (delay > 0f) {
+                AddTweener(new PauseTweener(delay));
+            }
             return this as TBuilder;
         }
 
