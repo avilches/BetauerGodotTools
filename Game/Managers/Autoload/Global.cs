@@ -24,7 +24,7 @@ namespace Veronenger.Game.Managers.Autoload {
             AddChild(tween);
             var offsetAccumulated = 0;
             var offset = 0.5;
-            SequencePlayer player = new SequencePlayer().CreateNewTween(this);
+            // SequencePlayer player = new SequencePlayer().CreateNewTween(this);
 
             int n = 0;
             foreach (var child in node.GetChildren()) {
@@ -45,7 +45,7 @@ namespace Veronenger.Game.Managers.Autoload {
                     .Start();
                 n++;
             }
-            player.Start();
+            // player.Start();
             return null;
         }
 
