@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Management.Instrumentation;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
@@ -347,7 +346,6 @@ namespace Betauer.Tests.Animation {
         private static async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             property.SetValue(node, from, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
-
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
             var sequence = SequenceBuilder.Create()
                 .AnimateSteps(node, property)
@@ -356,10 +354,12 @@ namespace Betauer.Tests.Animation {
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate();
 
+            // With Play()
+            steps.Clear();
             await sequence.Play(node);
-
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
+            // With MultipleSequence
             property.SetValue(node, from, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new MultipleSequencePlayer()
@@ -373,12 +373,28 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .Start()
                 .Await();
-
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
+            // With SingleSequence
             property.SetValue(node, from, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
-            await new SequencePlayer()
+            await new SingleSequencePlayer()
+                .CreateNewTween(node)
+                .CreateSequence()
+                .AnimateSteps(node, property)
+                .SetDebugSteps(steps)
+                .From(from)
+                .To(to, 0.1f, Easing.BackIn)
+                .EndAnimate()
+                .EndSequence()
+                .Start()
+                .Await();
+            Assert.That(property.GetValue(node), Is.EqualTo(to));
+
+            // With SequencePlayer
+            property.SetValue(node, from, from);
+            Assert.That(property.GetValue(node), Is.EqualTo(from));
+            var status = await new Launcher()
                 .CreateNewTween(node)
                 .CreateSequence()
                 .AnimateSteps(node, property)
@@ -388,10 +404,11 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .Play();
 
-            Assert.That(steps.Count, Is.EqualTo(3));
+            Assert.That(steps.Count, Is.EqualTo(4));
             AssertStep(steps[0], from, to, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[1], from, to, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[2], from, to, 0f, 0.1f, Easing.BackIn);
+            AssertStep(steps[3], from, to, 0f, 0.1f, Easing.BackIn);
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
         }

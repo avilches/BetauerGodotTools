@@ -10,12 +10,14 @@ namespace Betauer.Animation {
     public interface ISequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node DefaultTarget { get; }
-        public int Loops { get; }
-        public bool IsInfiniteLoop { get; }
         public float Speed { get; }
         public float Duration { get; }
         public Tween.TweenProcessMode ProcessMode { get; }
         public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1);
+    }
+
+    public interface ILoopedSequence : ISequence {
+        public int Loops { get; }
     }
 
     public abstract class Sequence {
@@ -28,7 +30,8 @@ namespace Betauer.Animation {
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
-                    var tweenTime = tweener.Start(tween, initialDelay + accumulatedDelay, tweener.Target ?? DefaultTarget ?? target,
+                    var tweenTime = tweener.Start(tween, initialDelay + accumulatedDelay,
+                        tweener.Target ?? DefaultTarget ?? target,
                         duration > 0 ? duration : Duration);
                     longestTime = Math.Max(longestTime, tweenTime);
                 }
@@ -37,6 +40,56 @@ namespace Betauer.Animation {
             return accumulatedDelay;
         }
     }
+
+
+    public class LoopStatus : Reference {
+        public readonly int Loops;
+        public readonly ISequence Sequence;
+        public bool IsInfiniteLoop => Loops == -1;
+
+        private Tween _tween;
+        private Node _defaultTarget = null;
+        private float _duration = -1;
+        private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
+
+        public int LoopCounter { get; private set; }
+        private bool _done = false;
+
+        public LoopStatus(Tween tween, int loops, ISequence sequence, Node defaultTarget, float duration) {
+            _tween = tween;
+            Loops = loops;
+            Sequence = sequence;
+            _defaultTarget = defaultTarget;
+            _duration = duration;
+        }
+
+        public LoopStatus Start(float initialDelay = 0) {
+            if (_done) return this;
+            _done = true;
+            _tween.Start();
+            ExecuteLoop(initialDelay);
+            return this;
+        }
+
+        private void ExecuteLoop(float delay) {
+            var elapsed = Sequence.Execute(_tween, delay, _defaultTarget, _duration);
+            _tween.InterpolateCallback(this, delay + elapsed, nameof(_FinishedLoop));
+        }
+
+        private void _FinishedLoop() {
+            LoopCounter++;
+            if (IsInfiniteLoop || LoopCounter < Loops) {
+                ExecuteLoop(0f);
+            } else {
+                _promise.TrySetResult(this);
+            }
+        }
+
+        public Task<LoopStatus> Await() {
+            return _promise.Task;
+        }
+    }
+
 
     /**
      * A immutable Sequence to allow templates. It doesn't have Target
@@ -53,8 +106,6 @@ namespace Betauer.Animation {
         }
 
         public override Node DefaultTarget { get; protected set; } // NO Target for templates
-        public int Loops { get; }
-        public bool IsInfiniteLoop => Loops == -1;
         public float Speed { get; }
 
         private readonly float _duration;
@@ -67,10 +118,9 @@ namespace Betauer.Animation {
         public Tween.TweenProcessMode ProcessMode { get; }
 
         public SequenceTemplate(ICollection<ICollection<ITweener>> tweenList,
-            float duration, int loops, float speed, Tween.TweenProcessMode processMode) {
+            float duration, float speed, Tween.TweenProcessMode processMode) {
             _tweenList = tweenList;
             _duration = duration;
-            Loops = loops;
             Speed = speed;
             ProcessMode = processMode;
         }
@@ -84,7 +134,7 @@ namespace Betauer.Animation {
                 // Target has private set and the mutator SetTarget() is defined in the RegularBuilder only
                 throw new InvalidDataException("Templates shouldn't have a target defined");
             }
-            return new SequenceTemplate(from.TweenList, from.Duration, from.Loops, from.Speed, from.ProcessMode);
+            return new SequenceTemplate(from.TweenList, from.Duration, from.Speed, from.ProcessMode);
         }
 
         public SingleSequencePlayer CreatePlayer(Node node) {
@@ -101,18 +151,14 @@ namespace Betauer.Animation {
                 .Start()
                 .Await();
         }
-
-
     }
 
     public class MutableSequence : Sequence, ISequence {
         public override ICollection<ICollection<ITweener>> TweenList { get; protected set; }
         public override Node DefaultTarget { get; protected set; }
         public override float Duration { get; protected set; } = -1.0f;
-        public int Loops { get; protected set; } = 1;
-        public bool IsInfiniteLoop => Loops == -1;
         public float Speed { get; protected set; } = 1.0f;
-        protected bool _importedFromTemplate = false;
+        protected bool ImportedFromTemplate = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
     }
 
@@ -159,15 +205,6 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder SetLoops(int maxLoops) {
-            Loops = maxLoops;
-            return this as TBuilder;
-        }
-
-        public TBuilder SetInfiniteLoops() {
-            return SetLoops(-1);
-        }
-
         protected void AddTweener(ITweener tweener) {
             CloneTweenListIfNeeded();
             if (_parallel) {
@@ -179,7 +216,7 @@ namespace Betauer.Animation {
         }
 
         protected void CloneTweenListIfNeeded() {
-            if (_importedFromTemplate) {
+            if (ImportedFromTemplate) {
                 var tweenListCloned = new SimpleLinkedList<ICollection<ITweener>>(TweenList);
                 if (_parallel) {
                     var lastParallelCloned = new SimpleLinkedList<ITweener>(tweenListCloned.Last());
@@ -187,7 +224,7 @@ namespace Betauer.Animation {
                     tweenListCloned.Add(lastParallelCloned);
                 }
                 TweenList = tweenListCloned;
-                _importedFromTemplate = false;
+                ImportedFromTemplate = false;
             }
         }
     }
@@ -254,8 +291,22 @@ namespace Betauer.Animation {
     /**
      * This builder is shared between SequenceBuilder and the TweenPlayer.CreateSequence() builders
      */
-    public abstract class RegularSequenceBuilder<TBuilder> : AbstractSequenceBuilder<TBuilder> where TBuilder : class {
+    public abstract class RegularSequenceBuilder<TBuilder> : AbstractSequenceBuilder<TBuilder>, ILoopedSequence
+        where TBuilder : class {
+
         protected RegularSequenceBuilder(bool createEmptyTweenList) : base(createEmptyTweenList) {
+        }
+
+        public int Loops { get; protected set; }
+
+        public TBuilder SetInfiniteLoops() {
+            Loops = -1;
+            return this as TBuilder;
+        }
+
+        public TBuilder SetLoops(int maxLoops) {
+            Loops = maxLoops;
+            return this as TBuilder;
         }
 
         public TBuilder ImportTemplate(SequenceTemplate sequence, Node target, float duration = -1) {
@@ -263,14 +314,13 @@ namespace Betauer.Animation {
 
             if (TweenList == null || TweenList.Count == 0) {
                 TweenList = sequence.TweenList;
-                _importedFromTemplate = true;
+                ImportedFromTemplate = true;
             } else {
                 CloneTweenListIfNeeded();
                 foreach (var parallelGroup in sequence.TweenList) {
                     TweenList.Add(parallelGroup);
                 }
             }
-            Loops = sequence.Loops;
             Speed = sequence.Speed;
             ProcessMode = sequence.ProcessMode;
             Duration = duration > 0 ? duration : sequence.Duration;

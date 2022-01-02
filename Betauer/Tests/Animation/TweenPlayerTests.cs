@@ -21,17 +21,14 @@ namespace Betauer.Tests.Animation {
             Engine.TimeScale = 1;
         }
 
-        [Test(Description = "SingleSequence Loops and callbacks")]
-        public async Task SingleSequencePlayerWithLoopsAndCallback() {
+        [Test(Description = "SingleSequence Loops and callbacks, using CreateSequence() builder")]
+        public async Task SingleSequencePlayerWithLoopsAndCallbackWithBuilder() {
             var firstLoop = 0;
             var finished = 0;
 
             const float pause = 0.1f;
             const int seq1Loops = 9;
 
-            const float estimatedDuration = (seq1Loops * pause);
-
-            Stopwatch x = Stopwatch.StartNew();
             await new SingleSequencePlayer()
                 .CreateNewTween(this)
                 .CreateSequence()
@@ -44,34 +41,50 @@ namespace Betauer.Tests.Animation {
                 .Start()
                 .Await();
 
-            Console.WriteLine("It should take: " + estimatedDuration +
-                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
+            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
+            Assert.That(finished, Is.EqualTo(1));
+        }
+
+
+        [Test(Description = "SingleSequence Loops and callbacks, using SequenceBuilder.Create() builder")]
+        public async Task SingleSequencePlayerWithLoopsAndCallback() {
+            var firstLoop = 0;
+            var finished = 0;
+
+            const float pause = 0.1f;
+            const int seq1Loops = 9;
+
+            var sequence = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => firstLoop++)
+                .SetLoops(seq1Loops);
+
+            await new SingleSequencePlayer()
+                .CreateNewTween(this)
+                .WithSequence(sequence)
+                .AddOnFinishAll(() => finished++)
+                .Start()
+                .Await();
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
             Assert.That(finished, Is.EqualTo(1));
         }
 
-        [Test(Description = "SingleSequence Loops and callbacks")]
+        [Test(Description = "SingleSequence Loops and callbacks, with Play")]
         public async Task PlayWithLoopsAndCallback() {
             var firstLoop = 0;
 
             const float pause = 0.1f;
             const int seq1Loops = 9;
 
-            const float estimatedDuration = (seq1Loops * pause);
-
             Stopwatch x = Stopwatch.StartNew();
             var sequence = await SequenceBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
-                .Callback(() => {
-                    firstLoop++;
-                })
+                .Callback(() => { firstLoop++; })
                 .SetLoops(seq1Loops)
                 .Play(this);
-
-            Console.WriteLine("It should take: " + estimatedDuration +
-                              "s Elapsed time: " + (x.ElapsedMilliseconds / 1000f) + "s");
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
         }
@@ -93,10 +106,9 @@ namespace Betauer.Tests.Animation {
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
                 .Callback(() => firstLoop++)
-                .SetLoops(seq1Loops * 2)
                 .EndSequence()
                 .SetLoops(seq1Loops)
-                .AddOnFinishAll(() => finished++ )
+                .AddOnFinishAll(() => finished++)
                 .Start()
                 .Await();
 

@@ -25,7 +25,10 @@ namespace Betauer.Animation {
         private CallbackTweener _sequenceFinishedCallback;
 
         public ISequence Sequence { get; private set; }
-        public int Loops => _loopsOverriden ? _loops : Sequence?.Loops ?? 1;
+
+        public int Loops => _loopsOverriden ? _loops :
+            Sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
+
         public bool IsInfiniteLoop => Loops == -1;
 
         public SingleSequencePlayer() {

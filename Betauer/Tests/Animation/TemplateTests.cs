@@ -157,7 +157,6 @@ namespace Betauer.Tests.Animation {
             // the imported sequence has all the data from template
             Assert.That(imported.TweenList, Is.EqualTo(tem.TweenList));
             Assert.That(imported.Duration, Is.EqualTo(tem.Duration));
-            Assert.That(imported.Loops, Is.EqualTo(tem.Loops));
             Assert.That(imported.Speed, Is.EqualTo(tem.Speed));
             Assert.That(imported.ProcessMode, Is.EqualTo(tem.ProcessMode));
             Assert.That(imported.TweenList, Is.EqualTo(tem.TweenList));
@@ -193,7 +192,6 @@ namespace Betauer.Tests.Animation {
             Assert.That(player.Sequence.DefaultTarget, Is.EqualTo(node));
             Assert.That(player.Sequence.Duration, Is.EqualTo(100));
 
-            Assert.That(tem.Loops, Is.EqualTo(1));
             Assert.That(player.Loops, Is.EqualTo(2));
         }
 
@@ -205,18 +203,15 @@ namespace Betauer.Tests.Animation {
             SequenceBuilder imported = SequenceBuilder.Create()
                 .ImportTemplate(tem, node)
                 .SetDuration(tem.Duration + 2)
-                .SetLoops(tem.Loops + 2)
                 .SetSpeed(tem.Speed + 2)
                 .SetProcessMode(Tween.TweenProcessMode.Physics);
 
             Assert.That(tem.DefaultTarget, Is.Null);
             Assert.That(imported.DefaultTarget, Is.EqualTo(node));
-            Assert.That(imported.Loops, Is.EqualTo(tem2.Loops+2));
             Assert.That(imported.Duration, Is.EqualTo(tem2.Duration+2));
             Assert.That(imported.Speed, Is.EqualTo(tem2.Speed+2));
             Assert.That(imported.ProcessMode, Is.EqualTo(Tween.TweenProcessMode.Physics));
 
-            Assert.That(tem.Loops, Is.EqualTo(tem2.Loops));
             Assert.That(tem.Duration, Is.EqualTo(tem2.Duration));
             Assert.That(tem.Speed, Is.EqualTo(tem2.Speed));
             Assert.That(tem.ProcessMode, Is.EqualTo(tem2.ProcessMode));

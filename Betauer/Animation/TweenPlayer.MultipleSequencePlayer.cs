@@ -90,7 +90,7 @@ namespace Betauer.Animation {
             _stopwatch.Restart();
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
-                $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{sequence.Loops}");
+                $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{GetLoopsFromSequence(sequence)}");
             Tween.PlaybackSpeed = sequence.Speed;
             Tween.PlaybackProcessMode = sequence.ProcessMode;
             var accumulatedDelay = sequence.Execute(Tween);
@@ -114,7 +114,7 @@ namespace Betauer.Animation {
             // EmitSignal(nameof(step_finished), _current_step);
             _sequenceLoop++;
             var currentSequence = Sequences[_currentSequence];
-            if (_sequenceLoop < currentSequence.Loops) {
+            if (_sequenceLoop < GetLoopsFromSequence(currentSequence)) {
                 return true;
             }
             // End of a single sequence including all of the loops of the sequence
@@ -135,6 +135,10 @@ namespace Betauer.Animation {
                 return true;
             }
             return false;
+        }
+
+        private static int GetLoopsFromSequence(ISequence sequence) {
+            return sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
         }
     }
 }
