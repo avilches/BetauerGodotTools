@@ -4,7 +4,6 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-
     public interface ITweenPlayer<out TBuilder> {
         public Tween Tween { get; }
         public TBuilder CreateNewTween(Node node);
@@ -15,9 +14,10 @@ namespace Betauer.Animation {
         public TBuilder Stop();
         public TBuilder Reset();
         public TBuilder Kill();
-
     }
-    public abstract class RepeatablePlayer<TBuilder> : ITweenPlayer<TBuilder> where TBuilder : class {
+
+    public abstract class RepeatablePlayer<TBuilder> : Object /* needed to be callable by interpolate_callback */,
+        ITweenPlayer<TBuilder> where TBuilder : class {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(RepeatablePlayer<>));
 
         protected bool Started = false;
@@ -155,6 +155,7 @@ namespace Betauer.Animation {
         protected abstract void OnReset();
 
         private TaskCompletionSource<TBuilder> _promise;
+
         private void DoStart() {
             if (_promise != null && !_promise.Task.IsCompleted) {
                 // This can't happen, but just in case...
@@ -174,9 +175,9 @@ namespace Betauer.Animation {
             Reset();
             // Started = false;
             // End of ALL THE LOOPS of all the sequences of the player
-            OnFinishAll?.ForEach(callback => {
-                callback.Invoke();
-            });
+            if (OnFinishAll != null)
+                foreach (var callback in OnFinishAll)
+                    callback.Invoke();
             _promise.TrySetResult(this as TBuilder);
             // EmitSignal(nameof(finished));
             if (FreeTweenOnFinish) Kill();
