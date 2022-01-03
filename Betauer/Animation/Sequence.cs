@@ -31,8 +31,7 @@ namespace Betauer.Animation {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
                     var tweenTime = tweener.Start(tween, initialDelay + accumulatedDelay,
-                        tweener.Target ?? DefaultTarget ?? target,
-                        duration > 0 ? duration : Duration);
+                        DefaultTarget ?? target, duration > 0 ? duration : Duration);
                     longestTime = Math.Max(longestTime, tweenTime);
                 }
                 accumulatedDelay += longestTime;
@@ -186,6 +185,12 @@ namespace Betauer.Animation {
 
         public TBuilder Callback(Action callback, float delay = 0) {
             AddTweener(new CallbackTweener(delay, callback));
+            return this as TBuilder;
+        }
+
+        public TBuilder Callback(Node target, string method, float delay = 0,
+            object p1 = null, object p2 = null, object p3 = null, object p4 = null, object p5 = null) {
+            AddTweener(new MethodCallbackTweener(delay, target, method, p1, p2, p3, p4, p5));
             return this as TBuilder;
         }
 

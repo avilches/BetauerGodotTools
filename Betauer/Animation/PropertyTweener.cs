@@ -84,6 +84,44 @@ namespace Betauer.Animation {
         }
     }
 
+    internal class MethodCallbackTweener : Object, ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
+        private readonly string _methodName;
+        private readonly float _delay;
+        private readonly object _p1;
+        private readonly object _p2;
+        private readonly object _p3;
+        private readonly object _p4;
+        private readonly object _p5;
+
+        public Node Target { get; }
+
+        public MethodCallbackTweener(float delay, Node target, string methodName, object p1 = null, object p2 = null,
+            object p3 = null,
+            object p4 = null, object p5 = null) {
+            Target = target;
+            _methodName = methodName;
+            _delay = delay;
+            _p1 = p1;
+            _p2 = p2;
+            _p3 = p3;
+            _p4 = p4;
+            _p5 = p5;
+        }
+
+        public float Start(Tween tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
+            if (!IsInstanceValid(tween)) {
+                Logger.Warning("Can't create a MethodCallbackTweener from a freed tween instance");
+                return 0;
+            }
+            var start = _delay + initialDelay;
+            Logger.Info("Adding method callback " + _methodName + "with " + _delay + "s delay. Scheduled: " +
+                        start.ToString("F"));
+            tween.InterpolateCallback(Target ?? defaultTarget, start, _methodName, _p1, _p2, _p3, _p4, _p5);
+            return _delay;
+        }
+    }
+
     internal class PauseTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly float _delay;

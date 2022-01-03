@@ -35,6 +35,43 @@ namespace Betauer.Tests.Animation {
             Assert.That(x, Is.EqualTo(6));
         }
 
+        private int _calls1 = 0;
+        public void Method() {
+            _calls1++;
+        }
+
+        private const int X = 1283;
+        private const bool V = false;
+        private const string S1 = "asdasd";
+        private const string S2 = "alkjdlaskjd";
+        private const string S3 = "123781";
+
+        private int _calls2 = 0;
+        public void Method(int x, bool v, string s1, string s2, string s3) {
+            Assert.That(x, Is.EqualTo(X));
+            Assert.That(v, Is.EqualTo(V));
+            Assert.That(s1, Is.EqualTo(S1));
+            Assert.That(s2, Is.EqualTo(S2));
+            Assert.That(s3, Is.EqualTo(S3));
+            _calls2++;
+        }
+
+        [Test]
+        public async Task MethodCallbackWithOverloadAndParameters() {
+            SequenceBuilder sequence = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Callback(this, nameof(Method))
+                .Callback(this, nameof(Method), 0, X,V,S1,S2,S3);
+
+            await sequence.Play(await CreateTween(), this).Await();
+            Assert.That(_calls1, Is.EqualTo(1));
+            Assert.That(_calls2, Is.EqualTo(1));
+
+            await sequence.Play(await CreateTween(), 5, this).Await();
+            Assert.That(_calls1, Is.EqualTo(6));
+            Assert.That(_calls2, Is.EqualTo(6));
+        }
+
         /**
          * DefaultTarget behaviour
          */
