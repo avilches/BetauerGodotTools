@@ -64,8 +64,6 @@ namespace Betauer.Animation {
                 Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
-            Logger.Info("Tween.StopAll()");
-            Tween.StopAll();
             Logger.Info("Tween.RemoveAll()");
             Tween.RemoveAll();
             Logger.Info("Tween.Start()");
@@ -86,6 +84,11 @@ namespace Betauer.Animation {
             float duration = -1) {
             var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
             return Play(loops, sequence, defaultTarget, initialDelay, duration);
+        }
+
+        public LoopStatus PlayForever(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+            float duration = -1) {
+            return Play(-1, sequence, defaultTarget, initialDelay, duration);
         }
 
         public LoopStatus Play(int loops, ISequence sequence, Node defaultTarget = null, float initialDelay = 0,

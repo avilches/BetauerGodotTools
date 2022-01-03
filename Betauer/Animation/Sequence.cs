@@ -42,7 +42,7 @@ namespace Betauer.Animation {
 
 
     public class LoopStatus : Reference {
-        public readonly int Loops;
+        public int Loops;
         public readonly ISequence Sequence;
         public bool IsInfiniteLoop => Loops == -1;
 
@@ -50,6 +50,7 @@ namespace Betauer.Animation {
         private readonly Node _defaultTarget = null;
         private readonly float _duration = -1;
         private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
+        private Action _onFinish;
 
         public int LoopCounter { get; private set; }
         private bool _done = false;
@@ -62,11 +63,21 @@ namespace Betauer.Animation {
             _duration = duration;
         }
 
+        public LoopStatus OnFinish(Action onFinish) {
+            _onFinish = onFinish;
+            return this;
+        }
+
         public LoopStatus Start(float initialDelay = 0) {
             if (_done) return this;
             _done = true;
             _tween.Start();
             ExecuteLoop(initialDelay);
+            return this;
+        }
+
+        public LoopStatus Finish() {
+            Loops = 0;
             return this;
         }
 
@@ -80,6 +91,7 @@ namespace Betauer.Animation {
             if (IsInfiniteLoop || LoopCounter < Loops) {
                 ExecuteLoop(0f);
             } else {
+                _onFinish?.Invoke();
                 _promise.TrySetResult(this);
             }
         }
@@ -142,6 +154,10 @@ namespace Betauer.Animation {
 
         public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
             return Play(tween, 1, node, initialDelay, duration);
+        }
+
+        public LoopStatus PlayForever(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+            return Play(tween, -1, node, initialDelay, duration);
         }
 
         public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
@@ -398,6 +414,10 @@ namespace Betauer.Animation {
 
         public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
             return Play(tween, Loops, node, initialDelay, duration);
+        }
+
+        public LoopStatus PlayForever(Tween tween, Node node = null, float initialDelay = 0, float duration = -1) {
+            return Play(tween, -1, node, initialDelay, duration);
         }
 
         public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {

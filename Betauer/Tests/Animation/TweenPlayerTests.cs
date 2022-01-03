@@ -131,7 +131,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(3));
         }
 
-        [Test(Description = "Launcher await works")]
+        [Test(Description = "LoopStatus await, callbacks and an OnFinish")]
         public async Task LauncherTests() {
             var launcher = new Launcher().CreateNewTween(this);
             var l1 = 0;
@@ -140,6 +140,14 @@ namespace Betauer.Tests.Animation {
             var s2 = SequenceBuilder.Create().Callback(() => l2++).SetLoops(2);
             var t1 = launcher.Play(s1, this);
             var t2 = launcher.Play(s2, this);
+            var finished1 = 0;
+            var finished2 = 0;
+
+            t1.OnFinish(() => finished1++);
+            t2.OnFinish(() => finished2++);
+
+            Assert.That(finished1, Is.EqualTo(0));
+            Assert.That(finished2, Is.EqualTo(0));
 
             Assert.That(t1.LoopCounter, Is.EqualTo(0));
             Assert.That(t2.LoopCounter, Is.EqualTo(0));
@@ -147,10 +155,96 @@ namespace Betauer.Tests.Animation {
             await Task.WhenAll(t1.Await(), t2.Await());
             Assert.That(l1, Is.EqualTo(1));
             Assert.That(l2, Is.EqualTo(2));
-
+            Assert.That(finished1, Is.EqualTo(1));
+            Assert.That(finished2, Is.EqualTo(1));
             Assert.That(t1.LoopCounter, Is.EqualTo(1));
             Assert.That(t2.LoopCounter, Is.EqualTo(2));
 
+            // Everything remains the same
+            t1.Start();
+            t1.Start();
+            t1.Start();
+            await Task.WhenAll(t1.Await(), t2.Await());
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(2));
+            Assert.That(finished1, Is.EqualTo(1));
+            Assert.That(finished2, Is.EqualTo(1));
+            Assert.That(t1.LoopCounter, Is.EqualTo(1));
+            Assert.That(t2.LoopCounter, Is.EqualTo(2));
+        }
+
+        [Test(Description = "LoopStatus loops and callbacks")]
+        public async Task PlayWithLoopsAndCallback() {
+            var firstLoop = 0;
+
+            const float pause = 0.1f;
+            const int seq1Loops = 9;
+
+            Stopwatch x = Stopwatch.StartNew();
+            var loopStatus = await SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => { firstLoop++; })
+                .SetLoops(seq1Loops)
+                .Play(await CreateTween(), this)
+                .Await();
+
+            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
+        }
+
+        [Test(Description = "LoopStatus can be finish infinite loops with the Finish() method")]
+        public async Task LoopStatusFinishAction() {
+            var firstLoop = 0;
+            var finished = 0;
+
+            const float pause = 0.1f;
+
+            LoopStatus loopStatus = null;
+            Stopwatch x = Stopwatch.StartNew();
+            var looped = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => {
+                    firstLoop++;
+                    if (firstLoop == 200) {
+                        loopStatus.Finish();
+                    }
+                })
+                .SetInfiniteLoops()
+                .Play(await CreateTween(), this);
+            loopStatus = looped;
+            loopStatus.OnFinish(() => finished++);
+            await loopStatus.Await();
+            Assert.That(firstLoop, Is.EqualTo(200));
+        }
+
+        [Test(Description = "LoopStatus can be finish infinite loops with the Finish() method")]
+        public async Task LoopStatusFinishActionVersion2() {
+            var firstLoop = 0;
+            var finished = 0;
+
+            const float pause = 0.1f;
+
+            LoopStatus loopStatus = null;
+            Stopwatch x = Stopwatch.StartNew();
+            var sequence = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Pause(pause)
+                .Callback(() => {
+                    firstLoop++;
+                    if (firstLoop == 200) {
+                        loopStatus.Finish();
+                    }
+                })
+                .SetLoops(1);
+            var looped = new Launcher()
+                .CreateNewTween(this)
+                .PlayForever(sequence);
+            
+            loopStatus = looped;
+            loopStatus.OnFinish(() => finished++);
+            await loopStatus.Await();
+            Assert.That(firstLoop, Is.EqualTo(200));
         }
 
         [Test(Description = "SingleSequence Loops and callbacks, using CreateSequence() builder")]
@@ -201,25 +295,6 @@ namespace Betauer.Tests.Animation {
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
             Assert.That(finished, Is.EqualTo(1));
-        }
-
-        [Test(Description = "SingleSequence Loops and callbacks, with Play")]
-        public async Task PlayWithLoopsAndCallback() {
-            var firstLoop = 0;
-
-            const float pause = 0.1f;
-            const int seq1Loops = 9;
-
-            Stopwatch x = Stopwatch.StartNew();
-            var sequence = await SequenceBuilder.Create()
-                .SetProcessMode(Tween.TweenProcessMode.Idle)
-                .Pause(pause)
-                .Callback(() => { firstLoop++; })
-                .SetLoops(seq1Loops)
-                .Play(await CreateTween(), this)
-                .Await();
-
-            Assert.That(firstLoop, Is.EqualTo(seq1Loops));
         }
 
         [Test(Description = "SingleSequence Loops can be overriden by the player")]
