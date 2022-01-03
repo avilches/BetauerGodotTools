@@ -3,15 +3,18 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager;
+        private Launcher _launcher = new Launcher();
 
         public override void _Ready() {
             DiBootstrap.DefaultRepository.AutoWire(this);
             this.DisableAllNotifications();
+            _launcher = new Launcher().CreateNewTween(this);
         }
 
         public bool IsPlayer(KinematicBody2D player) {
@@ -20,32 +23,14 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public Task<MultipleSequencePlayer> AnimateGrid(Node node) {
             GD.Print(node.GetType());
-            var tween = new Tween();
-            AddChild(tween);
             var offsetAccumulated = 0;
             var offset = 0.5;
-            // SequencePlayer player = new SequencePlayer().CreateNewTween(this);
 
             int n = 0;
             foreach (var child in node.GetChildren()) {
-                new SingleSequencePlayer()
-                    .CreateNewTween(this)
-                    .CreateSequence()
-                    .Pause(0.2f * n)
-                    .EndSequence()
-                    .ImportTemplate(Template.FadeInUp, child as Node, 1f)
-                    .SetLoops(3)
-                    .EndSequence()
-                    .CreateSequence()
-                    .Pause(1f)
-                    .ImportTemplate(Template.LightSpeedInLeft, child as Node, 1f)
-                    .SetLoops(3)
-                    .SetDuration(1f)
-                    .EndSequence()
-                    .Start();
+                _launcher.Play(1, Template.FadeIn, child as Node, 0.1f * n);
                 n++;
             }
-            // player.Start();
             return null;
         }
 
@@ -57,7 +42,7 @@ namespace Veronenger.Game.Managers.Autoload {
                 animation = animation.ReplaceN("bouncing", "bounce");
 
                 // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
-                SingleSequencePlayer.Create(node, Template.Get(animation, 1000f), duration).Start();
+                _launcher.Play(Template.Get(animation, 1000f), node, 0, duration);
             } catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);

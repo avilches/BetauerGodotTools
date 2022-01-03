@@ -28,14 +28,15 @@ func _ready():
 
 	$tile.free()
 
-	Anima.register_animation(self, 'gridAnimation')
+	Global.AnimateGrid($Grid)
+	#Anima.register_animation(self, 'gridAnimation')
 
-	var anima = Anima.begin($Grid)
-	anima.then({ group = $Grid, items_delay = 0.05, duration = 1, animation = 'gridAnimation' })
+	#var anima = Anima.begin($Grid)
+	#anima.then({ animation_type = Anima.GRID.COLUMNS_EVEN, group = $Grid, items_delay = 0.05, duration = 1, animation = 'gridAnimation' })
 
-	anima.play_with_delay(0.5)
+	#anima.play_with_delay(0.5)
 
-	yield(anima, \"animation_completed\")
+	#yield(anima, \"animation_completed\")
 	print('yay, all done :)')
 
 func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
