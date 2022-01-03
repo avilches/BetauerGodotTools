@@ -23,7 +23,6 @@ namespace Betauer.Animation {
         private int _currentSequence = 0;
         private int _sequenceLoop = 0;
         private int _currentPlayerLoop = 0;
-        private CallbackTweener _sequenceFinishedCallback;
 
         public readonly IList<ISequence> Sequences = new List<ISequence>(4);
         public int Loops { get; private set; }
@@ -94,8 +93,7 @@ namespace Betauer.Animation {
             Tween.PlaybackSpeed = sequence.Speed;
             Tween.PlaybackProcessMode = sequence.ProcessMode;
             var accumulatedDelay = sequence.Execute(Tween);
-            _sequenceFinishedCallback = new CallbackTweener(accumulatedDelay, OnSequenceFinished, nameof(OnSequenceFinished));
-            _sequenceFinishedCallback.Start(Tween);
+            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 
