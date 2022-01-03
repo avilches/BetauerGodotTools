@@ -4,10 +4,10 @@ using Godot;
 
 namespace Betauer.Animation {
     public class SingleSequencePlayer : RepeatablePlayer<SingleSequencePlayer> {
-        public class SequencePlayerWithSingleSequence : RegularSequenceBuilder<SequencePlayerWithSingleSequence> {
+        public class SequenceBuilderWithSingleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithSingleSequencePlayer> {
             private readonly SingleSequencePlayer _singleSequencePlayer;
 
-            internal SequencePlayerWithSingleSequence(SingleSequencePlayer singleSequencePlayer,
+            internal SequenceBuilderWithSingleSequencePlayer(SingleSequencePlayer singleSequencePlayer,
                 bool createEmptyTweenList) : base(createEmptyTweenList) {
                 _singleSequencePlayer = singleSequencePlayer;
             }
@@ -71,16 +71,16 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public SequencePlayerWithSingleSequence ImportTemplate(SequenceTemplate template, Node defaultTarget = null,
+        public SequenceBuilderWithSingleSequencePlayer ImportTemplate(SequenceTemplate template, Node defaultTarget = null,
             float duration = -1) {
-            var sequence = new SequencePlayerWithSingleSequence(this, false /* no data, it will use the template tweens */);
+            var sequence = new SequenceBuilderWithSingleSequencePlayer(this, false /* no data, it will use the template tweens */);
             sequence.ImportTemplate(template, defaultTarget, duration);
             WithSequence(sequence);
             return sequence;
         }
 
-        public SequencePlayerWithSingleSequence CreateSequence(Node defaultTarget = null) {
-            var sequence = new SequencePlayerWithSingleSequence(this,
+        public SequenceBuilderWithSingleSequencePlayer CreateSequence(Node defaultTarget = null) {
+            var sequence = new SequenceBuilderWithSingleSequencePlayer(this,
                     true /* true to allow to add tweens during the sequence creation */)
                 .SetDefaultTarget(defaultTarget);
             WithSequence(sequence);

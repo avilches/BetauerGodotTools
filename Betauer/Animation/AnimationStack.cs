@@ -120,46 +120,46 @@ namespace Betauer.Animation {
         }
 
         private class LoopTween : LoopStatus {
-            private readonly SingleSequencePlayer _singleSequencePlayer;
+            private readonly SingleSequencePlayer _sequencePlayer;
             private readonly ISequence _sequence;
 
-            public LoopTween(AnimationStack animationStack, Logger logger, string name, SingleSequencePlayer multipleSequencePlayer,
+            public LoopTween(AnimationStack animationStack, Logger logger, string name, SingleSequencePlayer sequencePlayer,
                 ISequence sequence) : base(
                 animationStack, logger, name) {
-                _singleSequencePlayer = multipleSequencePlayer;
+                _sequencePlayer = sequencePlayer;
                 _sequence = sequence;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _singleSequencePlayer.Clear().WithSequence(_sequence).SetInfiniteLoops().Start();
+                _sequencePlayer.Clear().WithSequence(_sequence).SetInfiniteLoops().Start();
             }
 
             internal override void ExecuteOnEnd() {
                 base.ExecuteOnEnd();
-                _singleSequencePlayer.Stop();
+                _sequencePlayer.Stop();
             }
         }
 
         private class OnceTween : OnceStatus {
-            private readonly SingleSequencePlayer _singleSequencePlayer;
+            private readonly SingleSequencePlayer _sequencePlayer;
             private readonly ISequence _sequence;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, SingleSequencePlayer singleSequencePlayer, ISequence sequence) : base(animationStack, logger,
+                bool killPrevious, SingleSequencePlayer sequencePlayer, ISequence sequence) : base(animationStack, logger,
                 name, canBeInterrupted, killPrevious) {
-                _singleSequencePlayer = singleSequencePlayer;
+                _sequencePlayer = sequencePlayer;
                 _sequence = sequence;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _singleSequencePlayer.Clear().WithSequence(_sequence).Start();
+                _sequencePlayer.Clear().WithSequence(_sequence).Start();
             }
 
             internal override void ExecuteOnEnd() {
                 base.ExecuteOnEnd();
-                _singleSequencePlayer.Stop();
+                _sequencePlayer.Stop();
             }
         }
 
@@ -210,24 +210,24 @@ namespace Betauer.Animation {
             new System.Collections.Generic.Dictionary<string, OnceStatus>();
 
         private readonly AnimationPlayer _animationPlayer;
-        private readonly SingleSequencePlayer _singleSequencePlayer;
+        private readonly SingleSequencePlayer _sequencePlayer;
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
         private readonly Logger _logger;
 
-        public AnimationStack(string name, SingleSequencePlayer multipleSequencePlayer, AnimationPlayer animationPlayer = null) :
-            this(name, animationPlayer, multipleSequencePlayer) {
+        public AnimationStack(string name, SingleSequencePlayer sequencePlayer, AnimationPlayer animationPlayer = null) :
+            this(name, animationPlayer, sequencePlayer) {
         }
 
-        public AnimationStack(string name, AnimationPlayer animationPlayer, SingleSequencePlayer multipleSequencePlayer = null) {
+        public AnimationStack(string name, AnimationPlayer animationPlayer, SingleSequencePlayer sequencePlayer = null) {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
 
             _animationPlayer = animationPlayer;
             _animationPlayer?.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
                 nameof(OnceAnimationFinished));
 
-            _singleSequencePlayer = multipleSequencePlayer;
-            _singleSequencePlayer?.AddOnFinishAll(OnTweenPlayerFinishAll);
+            _sequencePlayer = sequencePlayer;
+            _sequencePlayer?.AddOnFinishAll(OnTweenPlayerFinishAll);
         }
 
         public ILoopStatus AddLoopAnimation(string name) {
@@ -259,17 +259,17 @@ namespace Betauer.Animation {
         }
 
         public ILoopStatus AddLoopTween(string name, ISequence sequence) {
-            Debug.Assert(_singleSequencePlayer != null, "_tweenPlayer != null");
-            var loopTweenStatus = new LoopTween(this, _logger, name, _singleSequencePlayer, sequence);
+            Debug.Assert(_sequencePlayer != null, "_tweenPlayer != null");
+            var loopTweenStatus = new LoopTween(this, _logger, name, _sequencePlayer, sequence);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
         public IOnceStatus AddOnceTween(string name, ISequence sequence, bool canBeInterrupted = false,
             bool killPrevious = false) {
-            Debug.Assert(_singleSequencePlayer != null, "_tweenPlayer != null");
+            Debug.Assert(_sequencePlayer != null, "_tweenPlayer != null");
             var onceTweenStatus =
-                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _singleSequencePlayer, sequence);
+                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _sequencePlayer, sequence);
             _onceAnimations.Add(name, onceTweenStatus);
             return onceTweenStatus;
         }

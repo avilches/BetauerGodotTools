@@ -127,8 +127,6 @@ namespace Betauer.Animation {
                 Logger.Warning("Can't Reset with a freed Tween instance");
                 return this as TBuilder;
             }
-            Logger.Info("Tween.StopAll()");
-            Tween.StopAll();
             Logger.Info("Tween.RemoveAll()");
             Tween.RemoveAll();
             OnReset();
