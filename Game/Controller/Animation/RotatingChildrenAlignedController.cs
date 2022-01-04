@@ -3,7 +3,6 @@ using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Effects.Deprecated;
 using Veronenger.Game.Managers;
 using static Betauer.GodotConstants;
 
@@ -14,23 +13,27 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public float RotationDuration = 4.0f;
         [Inject] public PlatformManager PlatformManager;
 
-
         private List<PhysicsBody2D> _platforms;
-        private TinyTweenSequence _sequence;
+        private readonly SingleSequencePlayer _sequence = new SingleSequencePlayer();
 
         public override void Ready() {
             Configure();
         }
 
+        private void RotateAligned(float angle) => AnimationTools.RotateAligned(_platforms, angle, Radius);
+
         private void Configure() {
-            _sequence = new TinyTweenSequence(true);
-            _sequence.Add(CLOCK_NINE, CLOCK_THREE, 1, ScaleFuncs.QuadraticEaseInOut);
-            _sequence.AddReverseAll();
-            _sequence.AutoUpdate(this, delegate(float angle) {
-                // var _speed = Tau / RotationDuration;
-                // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
-                AnimationTools.RotateAligned(_platforms, angle, Radius);
-            });
+            _sequence.CreateNewTween(this)
+                .CreateSequence(this)
+                .AnimateSteps<float>(RotateAligned)
+                .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easing.QuadInOut)
+                .EndAnimate()
+                .AnimateSteps<float>(RotateAligned)
+                .From(CLOCK_THREE).To(CLOCK_NINE, 1, Easing.QuadInOut)
+                .EndAnimate()
+                .SetInfiniteLoops()
+                .EndSequence()
+                .Start();
 
             _platforms = this.GetChildrenFilter<PhysicsBody2D>();
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
@@ -41,7 +44,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Pause() {
-            _sequence.Pause();
+            _sequence.Stop();
         }
     }
 }

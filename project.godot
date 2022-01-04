@@ -33,16 +33,6 @@ _global_script_classes=[ {
 "class": "AnimaTween",
 "language": "GDScript",
 "path": "res://addons/anima/core/tween.gd"
-}, {
-"base": "Reference",
-"class": "TweenSequence",
-"language": "GDScript",
-"path": "res://Betauer/Effects/Deprecated/TweenSequence.gd"
-}, {
-"base": "Reference",
-"class": "Tweener",
-"language": "GDScript",
-"path": "res://Betauer/Effects/Deprecated/Tweener.gd"
 } ]
 _global_script_class_icons={
 "AnimaEasing": "",

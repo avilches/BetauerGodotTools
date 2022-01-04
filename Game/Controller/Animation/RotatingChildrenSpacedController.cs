@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Effects.Deprecated;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
@@ -14,25 +13,27 @@ namespace Veronenger.Game.Controller.Animation {
 
 
         private List<PhysicsBody2D> _platforms;
-        private TinyTweenSequence _sequence;
+        private readonly SingleSequencePlayer _sequence = new SingleSequencePlayer();
 
         public override void Ready() {
             Configure();
         }
 
         // var _speed = Tau / RotationDuration;
-        // _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
+        // _angle = Wrap(_angle + _speed * delta, 0, Tau); // Infinite rotation(in radians
+        private void RotateSpaced(float angle) => AnimationTools.RotateSpaced(_platforms, angle, Radius);
 
         private void Configure() {
-            _sequence = new TinyTweenSequence(true);
-            _sequence.Add(0, Mathf.Tau, 4, ScaleFuncs.Linear,
-                delegate(float angle) {
-                    AnimationTools.RotateSpaced(_platforms, angle, Radius);
-                }
-            );
-            _sequence.AutoUpdate(this);
-
             _platforms = PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
+            _sequence.CreateNewTween(this)
+                .CreateSequence(this)
+                .AnimateSteps<float>(RotateSpaced)
+                .From(0).To(Mathf.Tau, 4, Easing.LinearInOut)
+                .EndAnimate()
+                .SetInfiniteLoops()
+                .EndSequence()
+                .Start();
         }
+
     }
 }
