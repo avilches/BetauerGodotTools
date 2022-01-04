@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
@@ -25,9 +26,326 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.GetSpriteSize().x, Is.EqualTo(300));
         }
 
+        /*
+         * Test builder methods with lambdas (Sequence and template)
+         */
+
+        [Test(Description = "Lambda with value only property")]
+        public async Task LambdaValueProperty() {
+            var spritePlayer = await CreateSprite();
+            var spriteAnimation = await CreateSprite();
+            List<float> values1s = new List<float>();
+            List<float> values1sb = new List<float>();
+            List<float> values1rs = new List<float>();
+            List<float> values1k = new List<float>();
+            List<float> values1kb = new List<float>();
+            List<float> values1rk = new List<float>();
+
+            await SequenceBuilder.Create()
+                // values1 animation
+                .AnimateSteps((float x) => values1s.Add(x))
+                .From(8).To(400, 0.01f).EndAnimate()
+                .AnimateStepsBy((float x) => values1sb.Add(x))
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .AnimateRelativeSteps((float x) => values1rs.Add(x))
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .AnimateKeys((float x) => values1k.Add(x)).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .AnimateKeysBy((float x) => values1kb.Add(x)).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .AnimateRelativeKeys((float x) => values1rk.Add(x)).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+
+            Assert.That(values1s[0], Is.EqualTo(8));
+            Assert.That(values1sb[0], Is.EqualTo(9));
+            Assert.That(values1rs[0], Is.EqualTo(10));
+            Assert.That(values1k[0], Is.EqualTo(11));
+            Assert.That(values1kb[0], Is.EqualTo(12));
+            Assert.That(values1rk[0], Is.EqualTo(13));
+
+            Assert.That(values1s.Last(), Is.EqualTo(400));
+            Assert.That(values1sb.Last(), Is.EqualTo(409));
+            Assert.That(values1rs.Last(), Is.EqualTo(410));
+            Assert.That(values1k.Last(), Is.EqualTo(400));
+            Assert.That(values1kb.Last(), Is.EqualTo(412));
+            Assert.That(values1rk.Last(), Is.EqualTo(413));
+        }
+
+        [Test(Description = "Lambda with value only property (Template)")]
+        public async Task TemplateLambdaValueProperty() {
+            var spritePlayer = await CreateSprite();
+            var spriteAnimation = await CreateSprite();
+            List<float> values1s = new List<float>();
+            List<float> values1sb = new List<float>();
+            List<float> values1rs = new List<float>();
+            List<float> values1k = new List<float>();
+            List<float> values1kb = new List<float>();
+            List<float> values1rk = new List<float>();
+
+            await TemplateBuilder.Create()
+                // values1 animation
+                .AnimateSteps((float x) => values1s.Add(x))
+                .From(8).To(400, 0.01f).EndAnimate()
+                .AnimateStepsBy((float x) => values1sb.Add(x))
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .AnimateRelativeSteps((float x) => values1rs.Add(x))
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .AnimateKeys((float x) => values1k.Add(x)).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .AnimateKeysBy((float x) => values1kb.Add(x)).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .AnimateRelativeKeys((float x) => values1rk.Add(x)).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+
+            Assert.That(values1s[0], Is.EqualTo(8));
+            Assert.That(values1sb[0], Is.EqualTo(9));
+            Assert.That(values1rs[0], Is.EqualTo(10));
+            Assert.That(values1k[0], Is.EqualTo(11));
+            Assert.That(values1kb[0], Is.EqualTo(12));
+            Assert.That(values1rk[0], Is.EqualTo(13));
+
+            Assert.That(values1s.Last(), Is.EqualTo(400));
+            Assert.That(values1sb.Last(), Is.EqualTo(409));
+            Assert.That(values1rs.Last(), Is.EqualTo(410));
+            Assert.That(values1k.Last(), Is.EqualTo(400));
+            Assert.That(values1kb.Last(), Is.EqualTo(412));
+            Assert.That(values1rk.Last(), Is.EqualTo(413));
+        }
+
+        [Test(Description = "Lambda with node and value property")]
+        public async Task LambdaNodeValueProperty() {
+            var spritePlayer = await CreateSprite();
+            var spriteAnimation = await CreateSprite();
+            List<float> values1s = new List<float>();
+            List<float> values1sb = new List<float>();
+            List<float> values1rs = new List<float>();
+            List<float> values1k = new List<float>();
+            List<float> values1kb = new List<float>();
+            List<float> values1rk = new List<float>();
+
+            await SequenceBuilder.Create()
+                // values1 animation
+                .AnimateSteps(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1s.Add(x);
+                })
+                .From(8).To(400, 0.01f).EndAnimate()
+                .AnimateStepsBy(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1sb.Add(x);
+                })
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .AnimateRelativeSteps(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1rs.Add(x);
+                })
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .AnimateKeys(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1k.Add(x);
+                }).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .AnimateKeysBy(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1kb.Add(x);
+                }).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .AnimateRelativeKeys(spriteAnimation, (Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spriteAnimation));
+                    values1rk.Add(x);
+                }).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+
+            Assert.That(values1s[0], Is.EqualTo(8));
+            Assert.That(values1sb[0], Is.EqualTo(9));
+            Assert.That(values1rs[0], Is.EqualTo(10));
+            Assert.That(values1k[0], Is.EqualTo(11));
+            Assert.That(values1kb[0], Is.EqualTo(12));
+            Assert.That(values1rk[0], Is.EqualTo(13));
+
+            Assert.That(values1s.Last(), Is.EqualTo(400));
+            Assert.That(values1sb.Last(), Is.EqualTo(409));
+            Assert.That(values1rs.Last(), Is.EqualTo(410));
+            Assert.That(values1k.Last(), Is.EqualTo(400));
+            Assert.That(values1kb.Last(), Is.EqualTo(412));
+            Assert.That(values1rk.Last(), Is.EqualTo(413));
+        }
+
+        [Test(Description = "Lambda with node and value property (Template)")]
+        public async Task TemplateLambdaNodeValueProperty() {
+            var spritePlayer = await CreateSprite();
+            List<float> values1s = new List<float>();
+            List<float> values1sb = new List<float>();
+            List<float> values1rs = new List<float>();
+            List<float> values1k = new List<float>();
+            List<float> values1kb = new List<float>();
+            List<float> values1rk = new List<float>();
+
+            await TemplateBuilder.Create()
+                // values1 animation
+                .AnimateSteps((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1s.Add(x);
+                })
+                .From(8).To(400, 0.01f).EndAnimate()
+                .AnimateStepsBy((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1sb.Add(x);
+                })
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .AnimateRelativeSteps((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1rs.Add(x);
+                })
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .AnimateKeys((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1k.Add(x);
+                }).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .AnimateKeysBy((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1kb.Add(x);
+                }).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .AnimateRelativeKeys((Node node, float x) => {
+                    Assert.That(node, Is.EqualTo(spritePlayer));
+                    values1rk.Add(x);
+                }).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+
+            Assert.That(values1s[0], Is.EqualTo(8));
+            Assert.That(values1sb[0], Is.EqualTo(9));
+            Assert.That(values1rs[0], Is.EqualTo(10));
+            Assert.That(values1k[0], Is.EqualTo(11));
+            Assert.That(values1kb[0], Is.EqualTo(12));
+            Assert.That(values1rk[0], Is.EqualTo(13));
+
+            Assert.That(values1s.Last(), Is.EqualTo(400));
+            Assert.That(values1sb.Last(), Is.EqualTo(409));
+            Assert.That(values1rs.Last(), Is.EqualTo(410));
+            Assert.That(values1k.Last(), Is.EqualTo(400));
+            Assert.That(values1kb.Last(), Is.EqualTo(412));
+            Assert.That(values1rk.Last(), Is.EqualTo(413));
+        }
+
+        private float _stringProperty = 0;
+
+        [Test(Description = "classic string property tween")]
+        public async Task StringProperty() {
+            var spritePlayer = await CreateSprite();
+            await SequenceBuilder.Create()
+                .AnimateSteps<float>(this, nameof(_stringProperty))
+                .From(8).To(400, 0.01f).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(400));
+
+            await SequenceBuilder.Create()
+                .AnimateStepsBy<float>(this, nameof(_stringProperty))
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(409));
+
+            await SequenceBuilder.Create()
+                .AnimateRelativeSteps<float>(this, nameof(_stringProperty))
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(410));
+
+            await SequenceBuilder.Create()
+                .AnimateKeys<float>(this, nameof(_stringProperty)).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(400));
+
+            await SequenceBuilder.Create()
+                .AnimateKeysBy<float>(this, nameof(_stringProperty)).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(412));
+
+            await SequenceBuilder.Create()
+                .AnimateRelativeKeys<float>(this, nameof(_stringProperty)).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .Play(await CreateTween(), spritePlayer)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(413));
+        }
+
+        [Test(Description = "classic string property tween (Template)")]
+        public async Task TemplateStringProperty() {
+            var spritePlayer = await CreateSprite();
+            await TemplateBuilder.Create()
+                .AnimateSteps<float>( nameof(_stringProperty))
+                .From(8).To(400, 0.01f).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(400));
+
+            await TemplateBuilder.Create()
+                .AnimateStepsBy<float>( nameof(_stringProperty))
+                .From(9).Offset(400, 0.01f).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(409));
+
+            await TemplateBuilder.Create()
+                .AnimateRelativeSteps<float>( nameof(_stringProperty))
+                .From(10).Offset(400, 0.01f).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(410));
+
+            await TemplateBuilder.Create()
+                .AnimateKeys<float>( nameof(_stringProperty)).Duration(0.01f)
+                .From(11).KeyframeTo(1, 400).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(400));
+
+            await TemplateBuilder.Create()
+                .AnimateKeysBy<float>( nameof(_stringProperty)).Duration(0.01f)
+                .From(12).KeyframeOffset(1, 400).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(412));
+
+            await TemplateBuilder.Create()
+                .AnimateRelativeKeys<float>( nameof(_stringProperty)).Duration(0.01f)
+                .From(13).KeyframeOffset(1, 400).EndAnimate()
+                .BuildTemplate()
+                .Play(await CreateTween(), this)
+                .Await();
+            Assert.That(_stringProperty, Is.EqualTo(413));
+        }
+
+        /*
+         * Property
+         */
+
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
-            foreach (var property in new [] {  Property.Rotate2D, Property.Rotate2DByCallback }) {
+            foreach (var property in new[] { Property.Rotate2D, Property.Rotate2DByCallback }) {
                 const float from = 1f;
                 const float to = 3f;
                 var node2D = await CreateNode2D();
@@ -160,7 +478,6 @@ namespace Betauer.Tests.Animation {
             const float from = 0.9f;
             const float to = 1.2f;
             foreach (var property in new[] { Property.Scale2DX, Property.Scale2DXByCallback }) {
-
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -219,7 +536,7 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Property Scale2D")]
         public async Task TweenPropertyScale2d() {
-            foreach (var property in new [] {  Property.Scale2D, Property.Scale2DByCallback }) {
+            foreach (var property in new[] { Property.Scale2D, Property.Scale2DByCallback }) {
                 var from = Vector2.One;
                 var to = new Vector2(23f, -12f);
 
@@ -276,8 +593,13 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "Custom IndexedProperty")]
         public async Task TweenPropertyBasicPropertyString() {
-            var prop = (IndexedProperty<Vector2>)"follow";
-            await CreateTweenPropertyVariants(this, prop, Vector2.Zero, Vector2.Up);
+            follow = Vector2.Zero;
+            await CreateTweenPropertyVariants(this, (IndexedProperty<Vector2>)"follow", Vector2.Zero, Vector2.Up);
+            Assert.That(follow, Is.EqualTo(Vector2.Up));
+
+            follow = Vector2.Zero;
+            await CreateTweenPropertyVariants(this, new IndexedProperty<Vector2>(nameof(follow)), Vector2.Zero,
+                Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
         }
 
@@ -299,6 +621,7 @@ namespace Betauer.Tests.Animation {
 
         private class CallbackProperty : IProperty<float> {
             public int Calls = 0;
+
             public float GetValue(Node node) {
                 return (float)node.GetIndexed("position:x");
             }
@@ -374,7 +697,6 @@ namespace Betauer.Tests.Animation {
             AssertStep(steps[2], from, to, 0f, 0.1f, Easing.BackIn);
             AssertStep(steps[3], from, to, 0f, 0.1f, Easing.BackIn);
             Assert.That(property.GetValue(node), Is.EqualTo(to));
-
         }
 
         private async Task CreateEmptyTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {

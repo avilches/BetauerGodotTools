@@ -56,7 +56,21 @@ namespace Betauer.Tests.Animation {
             _calls2++;
         }
 
-        [Test]
+        [Test(Description = "sequence empty should fail")]
+        public async Task SequenceEmptyShouldFail() {
+            var sprite = await CreateSprite();
+            try {
+                SequenceBuilder.Create()
+                    .AnimateSteps(sprite, Property.PositionX)
+                    .EndAnimate();
+                Assert.That(false, "It should fail!");
+            } catch (Exception e) {
+                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
+                Assert.That(e.Message, Is.EqualTo("Animation without steps"));
+            }
+        }
+
+        [Test(Description = "Callback with method name")]
         public async Task MethodCallbackWithOverloadAndParameters() {
             SequenceBuilder sequence = SequenceBuilder.Create()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -70,6 +84,20 @@ namespace Betauer.Tests.Animation {
             await sequence.Play(await CreateTween(), 5, this).Await();
             Assert.That(_calls1, Is.EqualTo(6));
             Assert.That(_calls2, Is.EqualTo(6));
+        }
+
+        [Test(Description = "Callback with lambda")]
+        public async Task MethodCallback() {
+            int called = 0;
+            SequenceBuilder sequence = SequenceBuilder.Create()
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .Callback(() => called++);
+
+            await sequence.Play(await CreateTween(), this).Await();
+            Assert.That(called, Is.EqualTo(1));
+
+            await sequence.Play(await CreateTween(), 5, this).Await();
+            Assert.That(called, Is.EqualTo(6));
         }
 
         /**
@@ -256,23 +284,6 @@ namespace Betauer.Tests.Animation {
             Assert.That(steps.Count, Is.EqualTo(2));
 
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
-        }
-
-        /**
-         * Step animation tests
-         */
-        [Test(Description = "sequence empty should fail")]
-        public async Task SequenceEmptyShouldFail() {
-            var sprite = await CreateSprite();
-            try {
-                SequenceBuilder.Create()
-                    .AnimateSteps(sprite, Property.PositionX)
-                    .EndAnimate();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("Animation without steps"));
-            }
         }
 
         [Test(Description = "step to with from")]

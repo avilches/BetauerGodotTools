@@ -77,6 +77,47 @@ namespace Betauer.Animation {
         public bool IsCompatibleWith(Node node);
     }
 
+    public class CallbackProperty<TProperty> : IProperty<TProperty> {
+        private readonly Action<TProperty> _action;
+
+        public CallbackProperty(Action<TProperty> action) {
+            _action = action;
+        }
+
+        public TProperty GetValue(Node node) {
+            return default;
+        }
+
+        public void SetValue(Node node, TProperty initialValue, TProperty value) {
+            _action.Invoke(value);
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            return true;
+        }
+    }
+
+    public class NodeCallbackProperty<TProperty> : IProperty<TProperty> {
+        private readonly Action<Node, TProperty> _action;
+
+        public NodeCallbackProperty(Action<Node, TProperty> action) {
+            _action = action;
+        }
+
+        public TProperty GetValue(Node node) {
+            return default;
+        }
+
+        public void SetValue(Node node, TProperty initialValue, TProperty value) {
+            _action.Invoke(node, value);
+        }
+
+        public bool IsCompatibleWith(Node node) {
+            return true;
+        }
+    }
+
+
     public class Rotate2DProperty : IProperty<float> {
         public float GetValue(Node node) {
             return node switch {

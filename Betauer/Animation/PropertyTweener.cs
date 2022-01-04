@@ -10,14 +10,10 @@ namespace Betauer.Animation {
         public abstract Node Target { get; }
     }
 
-    public delegate void CallbackNode(Node node);
-
     internal class TweenPropertyMethodHolder<TProperty> : Object {
-        public delegate void PropertyMethodCallback(TProperty value);
+        private readonly Action<TProperty> _callback;
 
-        private readonly PropertyMethodCallback _callback;
-
-        public TweenPropertyMethodHolder(PropertyMethodCallback callback) {
+        public TweenPropertyMethodHolder(Action<TProperty> callback) {
             _callback = callback;
         }
 
@@ -28,10 +24,10 @@ namespace Betauer.Animation {
 
     internal class DelayedCallbackNodeHolder : Object {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-        private readonly CallbackNode _stepCallbackNode;
+        private readonly Action<Node> _stepCallbackNode;
         private readonly Node _node;
 
-        internal DelayedCallbackNodeHolder(CallbackNode callbackNode, Node node) {
+        internal DelayedCallbackNodeHolder(Action<Node> callbackNode, Node node) {
             _stepCallbackNode = callbackNode;
             _node = node;
         }
@@ -156,15 +152,18 @@ namespace Betauer.Animation {
             if (count == 0) {
                 throw new InvalidDataException("Cant' start an animation with 0 steps or keys");
             }
-            if (target == null) {
-                throw new InvalidDataException("No target defined for the animation");
+            if (!(property is CallbackProperty<TProperty>)) {
+                // Callbacks properties don't need target
+                if (target == null) {
+                    throw new InvalidDataException("No target defined for the animation");
+                }
+                if (!Object.IsInstanceValid(target)) {
+                    Logger.Warning("Can't create InterpolateProperty in a freed target instance");
+                    return false;
+                }
             }
             if (property == null) {
                 throw new InvalidDataException("No property defined for the animation");
-            }
-            if (!Object.IsInstanceValid(target)) {
-                Logger.Warning("Can't create InterpolateProperty in a freed target instance");
-                return false;
             }
             return true;
         }
@@ -173,7 +172,7 @@ namespace Betauer.Animation {
             TProperty from, TProperty to, float start, float duration, Easing easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
             var end = start + duration;
-            Logger.Info("\"" + target.Name + "\" " + target.GetType().Name + "." + property + ": " +
+            Logger.Info("\"" + target?.Name + "\" " + target?.GetType().Name + "." + property + ": " +
                         from + " to " + to +
                         " Scheduled from " + start.ToString("F") +
                         " to " + end.ToString("F") +
@@ -193,7 +192,7 @@ namespace Betauer.Animation {
             TProperty initial,
             TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
             TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
-                delegate(float linearY) {
+                (float linearY) => {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
@@ -211,7 +210,7 @@ namespace Betauer.Animation {
             } else {
                 TweenPropertyMethodHolder<TProperty> tweenPropertyMethodHolder =
                     new TweenPropertyMethodHolder<TProperty>(
-                        delegate(TProperty value) {
+                        (TProperty value) => {
                             // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
                             property.SetValue(target, initial, value);
                         });
@@ -333,12 +332,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> To(TProperty to, float duration,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             return To(_ => to, duration, easing, callbackNode);
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> To(Func<Node, TProperty> to, float duration,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepTo<TProperty>(to, duration, easing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
@@ -380,12 +379,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(TProperty offset, float duration,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             return Offset(_ => offset, duration, easing, callbackNode);
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> Offset(Func<Node, TProperty> offset, float duration,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyStepOffset<TProperty>(offset, duration, easing, callbackNode);
             _steps.Add(animationStepPropertyTweener);
@@ -428,12 +427,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, TProperty to,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             return KeyframeTo(percentage, _ => to, easing, callbackNode);
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> KeyframeTo(float percentage, Func<Node, TProperty> to,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
             }
@@ -481,13 +480,13 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage, TProperty offset,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             return KeyframeOffset(percentage, _ => offset, easing, callbackNode);
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> KeyframeOffset(float percentage,
             Func<Node, TProperty> offset,
-            Easing easing = null, CallbackNode callbackNode = null) {
+            Easing easing = null, Action<Node> callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyPercentOffset<TProperty>(percentage, offset, easing, callbackNode);
             Steps.Add(animationStepPropertyTweener);
