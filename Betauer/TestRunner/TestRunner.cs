@@ -25,8 +25,9 @@ namespace Betauer.TestRunner {
         public int TestsPassed;
 
         public TestRunner() {
-            ScanFixturesFromAssemblies().ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
-            GD.Print("Loaded "+_testMethods.Count+" tests");
+            ScanFixturesFromAssemblies()
+                .ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
+            GD.Print("Loaded " + _testMethods.Count + " tests");
         }
 
         public enum Result {
@@ -109,7 +110,6 @@ namespace Betauer.TestRunner {
                     await sceneTree.AwaitIdleFrame();
                 }
             }
-
         }
 
 
@@ -178,29 +178,27 @@ namespace Betauer.TestRunner {
                         }
 
                         ConstructorInfo[] constructors = type.GetConstructors();
-                        object curTestObject = null;
                         if (constructors.Length > 0) {
-                            curTestObject = constructors[0].Invoke(null);
-                        }
-
-                        if (curTestObject != null) {
-                            var onlyThisMethod = false;
-                            if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
-                                false) is OnlyAttribute) {
-                                onlyThisMethod = true;
-                                isAnyMethodWithOnly = true;
+                            var testInstance = constructors[0].Invoke(null);
+                            if (testInstance != null) {
+                                var onlyThisMethod = false;
+                                if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
+                                        false) is OnlyAttribute) {
+                                    onlyThisMethod = true;
+                                    isAnyMethodWithOnly = true;
+                                }
+                                testMethods.Add(new TestMethod(method, testInstance, testAttribute.Description,
+                                    onlyThisMethod));
                             }
-                            testMethods.Add(new TestMethod(method, curTestObject,
-                                testAttribute.Description, onlyThisMethod));
                         }
                     } catch {
                         // Fail the test here?
                     }
                 } else if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),
-                    false) is SetUpAttribute) {
+                               false) is SetUpAttribute) {
                     setup = method;
                 } else if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is
-                    TearDownAttribute) {
+                           TearDownAttribute) {
                     tearDown = method;
                 }
             }
