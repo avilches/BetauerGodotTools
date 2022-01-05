@@ -73,9 +73,14 @@ namespace Betauer.Animation {
 
     public interface IProperty<TProperty> : IProperty {
         public TProperty GetValue(Node node);
-        public void SetValue(Node node, TProperty initialValue, TProperty value);
+        public void SetValue(AnimationContext<TProperty> context);
         public bool IsCompatibleWith(Node node);
     }
+
+    public interface IIndexedProperty<TProperty> : IProperty<TProperty> {
+        public string GetIndexedProperty(Node node);
+    }
+
 
     public class CallbackProperty<TProperty> : IProperty<TProperty> {
         private readonly Action<TProperty> _action;
@@ -88,8 +93,8 @@ namespace Betauer.Animation {
             return default;
         }
 
-        public void SetValue(Node node, TProperty initialValue, TProperty value) {
-            _action.Invoke(value);
+        public void SetValue(AnimationContext<TProperty> context) {
+            _action.Invoke(context.Value);
         }
 
         public bool IsCompatibleWith(Node node) {
@@ -108,8 +113,8 @@ namespace Betauer.Animation {
             return default;
         }
 
-        public void SetValue(Node node, TProperty initialValue, TProperty value) {
-            _action.Invoke(node, value);
+        public void SetValue(AnimationContext<TProperty> context) {
+            _action.Invoke(context.Target, context.Value);
         }
 
         public bool IsCompatibleWith(Node node) {
@@ -117,9 +122,20 @@ namespace Betauer.Animation {
         }
     }
 
+    public abstract class Property<TProperty> : IProperty<TProperty> {
+        public void SetValue(AnimationContext<TProperty> context) {
+            if (IsCompatibleWith(context.Target)) {
+                SetValue(context.Target, context.Value);
+            }
+        }
+        public abstract void SetValue(Node node, TProperty value);
+        public abstract TProperty GetValue(Node node);
+        public abstract bool IsCompatibleWith(Node node);
+    }
 
-    public class Rotate2DProperty : IProperty<float> {
-        public float GetValue(Node node) {
+
+    public class Rotate2DProperty : Property<float> {
+        public override float GetValue(Node node) {
             return node switch {
                 Node2D node2D => node2D.RotationDegrees,
                 Control control => control.RectRotation,
@@ -127,37 +143,37 @@ namespace Betauer.Animation {
             };
         }
 
-        public void SetValue(Node node, float initialValue, float value) {
+        public override void SetValue(Node node, float value) {
             if (node is Node2D node2D) node2D.RotationDegrees = value;
             else if (node is Control control) control.RectRotation = value;
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             if (node is Control) return true;
             if (node is Node2D) return true;
             return false;
         }
     }
 
-    public class Scale3DProperty : IProperty<Vector3> {
-        public Vector3 GetValue(Node node) {
+    public class Scale3DProperty : Property<Vector3> {
+        public override Vector3 GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale,
                 _ => throw new Exception($"Not Scale3D property for node type {node.GetType()}")
             };
         }
 
-        public void SetValue(Node node, Vector3 initialValue, Vector3 value) {
+        public override void SetValue(Node node, Vector3 value) {
             if (node is Spatial spatial) spatial.Scale = value;
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             return node is Spatial;
         }
     }
 
-    public class Scale2DProperty : IProperty<Vector2> {
-        public Vector2 GetValue(Node node) {
+    public class Scale2DProperty : Property<Vector2> {
+        public override Vector2 GetValue(Node node) {
             return node switch {
                 Node2D node2D => node2D.Scale,
                 Control control => control.RectScale,
@@ -165,20 +181,20 @@ namespace Betauer.Animation {
             };
         }
 
-        public void SetValue(Node node, Vector2 initialValue, Vector2 value) {
+        public override void SetValue(Node node, Vector2 value) {
             if (node is Node2D node2D) node2D.Scale = value;
             else if (node is Control control) control.RectScale = value;
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             if (node is Control) return true;
             if (node is Node2D) return true;
             return false;
         }
     }
 
-    public class ScaleXProperty : IProperty<float> {
-        public float GetValue(Node node) {
+    public class ScaleXProperty : Property<float> {
+        public override float GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale.x,
                 Node2D node2D => node2D.Scale.x,
@@ -187,20 +203,20 @@ namespace Betauer.Animation {
             };
         }
 
-        public void SetValue(Node node, float initialValue, float value) {
+        public override void SetValue(Node node, float value) {
             if (node is Node2D || node is Spatial) node.SetIndexed("scale:x", value);
             else if (node is Control control) control.SetIndexed("rect_scale:x", value);
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             if (node is Control) return true;
             if (node is Node2D) return true;
             return false;
         }
     }
 
-    public class ScaleYProperty : IProperty<float> {
-        public float GetValue(Node node) {
+    public class ScaleYProperty : Property<float> {
+        public override float GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale.y,
                 Node2D node2D => node2D.Scale.y,
@@ -209,35 +225,31 @@ namespace Betauer.Animation {
             };
         }
 
-        public void SetValue(Node node, float initialValue, float value) {
+        public override void SetValue(Node node, float value) {
             if (node is Node2D || node is Spatial) node.SetIndexed("scale:y", value);
             else if (node is Control control) control.SetIndexed("rect_scale:y", value);
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             return node is Spatial || node is Control || node is Node2D;
         }
     }
 
-    public class ScaleZProperty : IProperty<float> {
-        public float GetValue(Node node) {
+    public class ScaleZProperty : Property<float> {
+        public override float GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale.z,
                 _ => throw new Exception($"No ScaleY property for node type {node.GetType()}")
             };
         }
 
-        public void SetValue(Node node, float initialValue, float value) {
+        public override void SetValue(Node node, float value) {
             if (node is Spatial) node.SetIndexed("scale:z", value);
         }
 
-        public bool IsCompatibleWith(Node node) {
+        public override bool IsCompatibleWith(Node node) {
             return node is Spatial;
         }
-    }
-
-    public interface IIndexedProperty<TProperty> : IProperty<TProperty> {
-        public string GetIndexedProperty(Node node);
     }
 
     public class IndexedProperty<TProperty> : IIndexedProperty<TProperty> {
@@ -257,8 +269,8 @@ namespace Betauer.Animation {
             return (TProperty)node.GetIndexed(GetIndexedProperty(node));
         }
 
-        public virtual void SetValue(Node node, TProperty initialValue, TProperty value) {
-            node.SetIndexed(GetIndexedProperty(node), value);
+        public virtual void SetValue(AnimationContext<TProperty> context) {
+            context.Target.SetIndexed(GetIndexedProperty(context.Target), context.Value);
         }
 
         public virtual string GetIndexedProperty(Node node) {
@@ -283,8 +295,8 @@ namespace Betauer.Animation {
             return (TProperty)node.GetIndexed(GetIndexedProperty(node));
         }
 
-        public virtual void SetValue(Node node, TProperty initialValue, TProperty value) {
-            node.SetIndexed(GetIndexedProperty(node), value);
+        public virtual void SetValue(AnimationContext<TProperty> context) {
+            context.Target.SetIndexed(GetIndexedProperty(context.Target), context.Value);
         }
 
         public virtual bool IsCompatibleWith(Node node) {
@@ -316,9 +328,10 @@ namespace Betauer.Animation {
             return _property.GetValue(node);
         }
 
-        public void SetValue(Node node, TProperty initialValue, TProperty percent) {
-            if (!IsCompatibleWith(node)) return;
-            _property.SetValue(node, initialValue, ComputeValue(node, initialValue, percent));
+        public void SetValue(AnimationContext<TProperty> context) {
+            if (!IsCompatibleWith(context.Target)) return;
+            context.Value = ComputeValue(context.Target, context.InitialValue, context.Value);
+            _property.SetValue(context);
         }
 
         protected abstract TProperty ComputeValue(Node node, TProperty initialValue, TProperty percent);

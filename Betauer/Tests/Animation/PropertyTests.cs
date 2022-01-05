@@ -630,14 +630,14 @@ namespace Betauer.Tests.Animation {
                 return true;
             }
 
-            public void SetValue(Node node, float initialValue, float value) {
+            public void SetValue(AnimationContext<float> context) {
                 Calls++;
-                node.SetIndexed("position:x", value);
+                context.Target.SetIndexed("position:x", context.Value);
             }
         }
 
         private async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
-            property.SetValue(node, from, from);
+            property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
             var sequence = SequenceBuilder.Create()
@@ -652,7 +652,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
             // With MultipleSequence
-            property.SetValue(node, from, from);
+            property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new MultipleSequencePlayer()
                 .CreateNewTween(node)
@@ -668,7 +668,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
             // With SingleSequence
-            property.SetValue(node, from, from);
+            property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new SingleSequencePlayer()
                 .CreateNewTween(node)
@@ -684,7 +684,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
             // With Launcher
-            property.SetValue(node, from, from);
+            property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             var status = await new Launcher()
                 .CreateNewTween(node)

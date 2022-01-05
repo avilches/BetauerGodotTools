@@ -127,6 +127,24 @@ namespace Betauer.Animation {
         }
     }
 
+    public class AnimationContext<TProperty> {
+        public readonly Node Target;
+        public readonly TProperty InitialValue;
+        public readonly float Duration;
+        public TProperty Value;
+
+        public AnimationContext(Node target, TProperty initialValue, float duration) {
+            Target = target;
+            InitialValue = initialValue;
+            Duration = duration;
+        }
+
+        public AnimationContext(Node target, TProperty initialValue, float duration, TProperty value) :
+            this(target, initialValue, duration) {
+            Value = value;
+        }
+    }
+
     public abstract class PropertyTweener<TProperty> : ITweener {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
@@ -168,10 +186,11 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(Tween tween, Node target, IProperty<TProperty> property, TProperty initial,
+        protected void RunStep(AnimationContext<TProperty> context, Tween tween, IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
             var end = start + duration;
+            var target = context.Target;
             Logger.Info("\"" + target?.Name + "\" " + target?.GetType().Name + "." + property + ": " +
                         from + " to " + to +
                         " Scheduled from " + start.ToString("F") +
@@ -179,31 +198,33 @@ namespace Betauer.Animation {
                         " (+" + duration.ToString("F") + ") " + easing.Name);
 
             if (easing is GodotEasing godotEasing) {
-                RunEasingStep(tween, target, property, initial, from, to, start, duration, godotEasing);
+                RunEasingStep(context, tween, property, from, to, start, duration, godotEasing);
             } else if (easing is BezierCurve bezierCurve) {
-                RunCurveBezierStep(tween, target, property, initial, from, to, start, duration, bezierCurve);
+                RunCurveBezierStep(context, tween, property, from, to, start, duration, bezierCurve);
             }
             if (DebugSteps != null) {
                 DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
             }
         }
 
-        private static void RunCurveBezierStep(Tween tween, Node target, IProperty<TProperty> property,
-            TProperty initial,
+        private static void RunCurveBezierStep(AnimationContext<TProperty> context, Tween tween,
+            IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
             TweenPropertyMethodHolder<float> tweenPropertyMethodHolder = new TweenPropertyMethodHolder<float>(
                 (float linearY) => {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                    property.SetValue(target, initial, value);
+                    property.SetValue(context);
                 });
             tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
                 0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start);
         }
 
-        private static void RunEasingStep(Tween tween, Node target, IProperty<TProperty> property, TProperty initial,
+        private static void RunEasingStep(AnimationContext<TProperty> context, Tween tween,
+            IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
+            var target = context.Target;
             if (property is IIndexedProperty<TProperty> basicProperty) {
                 tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
@@ -212,7 +233,8 @@ namespace Betauer.Animation {
                     new TweenPropertyMethodHolder<TProperty>(
                         (TProperty value) => {
                             // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                            property.SetValue(target, initial, value);
+                            context.Value = value;
+                            property.SetValue(context);
                         });
                 tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
                     @from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
@@ -238,6 +260,7 @@ namespace Betauer.Animation {
             var from = FromFunction != null ? FromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
+            AnimationContext<TProperty> context = new AnimationContext<TProperty>(target, initialValue, duration);
             // var totalDuration = _steps.Sum(step => step.Duration);
             foreach (var step in _steps) {
                 var to = step.GetTo(target, RelativeToFrom ? initialFrom : from);
@@ -246,7 +269,7 @@ namespace Betauer.Animation {
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var start = initialDelay + startTime;
                 if (durationStep > 0 && !from.Equals(to) && Property.IsCompatibleWith(target)) {
-                    RunStep(tween, target, Property, initialValue, from, to, start, durationStep, step.Easing);
+                    RunStep(context, tween, Property, from, to, start, durationStep, step.Easing);
                 }
                 if (step.CallbackNode != null) {
                     // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
@@ -285,6 +308,7 @@ namespace Betauer.Animation {
             var startTime = 0f;
             var percentStart = 0f;
             var i = 0;
+            AnimationContext<TProperty> context = new AnimationContext<TProperty>(target, initialValue, duration);
             foreach (var step in Steps) {
                 var to = step.GetTo(target, RelativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * allStepsDuration;
@@ -297,7 +321,7 @@ namespace Betauer.Animation {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
                         from = to;
                     }
-                    RunStep(tween, target, Property, initialValue, from, to, start, keyDuration, step.Easing);
+                    RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing);
                 }
                 if (step.CallbackNode != null) {
                     // TODO: no reference at all to this holder... could be disposed by GC before it's executed?
