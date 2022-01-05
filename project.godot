@@ -65,9 +65,6 @@ window/stretch/aspect="keep"
 
 [global]
 
-sho=false
-scene=false
-
 [importer_defaults]
 
 texture={

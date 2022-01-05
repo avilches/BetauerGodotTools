@@ -211,8 +211,8 @@ script = ExtResource( 19 )
 
 [node name="FallingPlatformExit" type="Area2D" parent="Platforms/FallMovAnim/Body"]
 position = Vector2( 0, 1 )
-input_pickable = false
 collision_mask = 0
+input_pickable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovAnim/Body/FallingPlatformExit"]
 position = Vector2( 0, -6 )
