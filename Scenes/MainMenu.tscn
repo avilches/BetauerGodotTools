@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://icon.png" type="Texture" id=1]
+
+[node name="MarginContainer" type="MarginContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_right = 480.0
+margin_bottom = 270.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
+margin_right = 105.0
+margin_bottom = 270.0
+
+[node name="Title" type="Label" parent="HBoxContainer/VBoxContainer"]
+margin_right = 105.0
+margin_bottom = 14.0
+text = "Veronenger"
+
+[node name="Menu" type="VBoxContainer" parent="HBoxContainer/VBoxContainer"]
+margin_top = 18.0
+margin_right = 105.0
+margin_bottom = 234.0
+size_flags_vertical = 3
+alignment = 1
+
+[node name="New game" type="Label" parent="HBoxContainer/VBoxContainer/Menu"]
+margin_top = 74.0
+margin_right = 105.0
+margin_bottom = 88.0
+text = "New Game"
+
+[node name="Continue" type="Label" parent="HBoxContainer/VBoxContainer/Menu"]
+margin_top = 92.0
+margin_right = 105.0
+margin_bottom = 106.0
+text = "Continue"
+
+[node name="Options" type="Label" parent="HBoxContainer/VBoxContainer/Menu"]
+margin_top = 110.0
+margin_right = 105.0
+margin_bottom = 124.0
+text = "Options"
+
+[node name="Quit" type="Label" parent="HBoxContainer/VBoxContainer/Menu"]
+margin_top = 128.0
+margin_right = 105.0
+margin_bottom = 142.0
+text = "Quit"
+
+[node name="ver" type="Label" parent="HBoxContainer/VBoxContainer"]
+margin_top = 238.0
+margin_right = 105.0
+margin_bottom = 252.0
+text = "ver 1.0 5-Ene-22"
+
+[node name="author" type="Label" parent="HBoxContainer/VBoxContainer"]
+margin_top = 256.0
+margin_right = 105.0
+margin_bottom = 270.0
+text = "Betauer Studios"
+
+[node name="CenterContainer" type="CenterContainer" parent="HBoxContainer"]
+margin_left = 109.0
+margin_right = 480.0
+margin_bottom = 270.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TextureRect" type="TextureRect" parent="HBoxContainer/CenterContainer"]
+margin_left = 121.0
+margin_top = 71.0
+margin_right = 249.0
+margin_bottom = 199.0
+texture = ExtResource( 1 )
