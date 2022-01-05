@@ -215,6 +215,8 @@ namespace Betauer.Animation {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
+                    // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
+                    context.Value = value;
                     property.SetValue(context);
                 });
             tween.InterpolateMethod(tweenPropertyMethodHolder, nameof(TweenPropertyMethodHolder<TProperty>.Call),
