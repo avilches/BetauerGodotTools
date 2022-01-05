@@ -8,7 +8,7 @@ namespace Veronenger.Tests.NodeTests {
     public class RigidbodyTests : RigidBody {
         [Test]
         public IEnumerator RigidbodyShouldFallOverOneSecond() {
-            uint finishTime = OS.GetTicksMsec() + 1000;
+            var finishTime = OS.GetTicksMsec() + 1000;
 
             while (OS.GetTicksMsec() < finishTime) {
                 yield return null;
@@ -20,7 +20,7 @@ namespace Veronenger.Tests.NodeTests {
 
         [Test]
         public IEnumerator KinematicRigidbodyShouldNotFall() {
-            uint finishTime = OS.GetTicksMsec() + 1000;
+            var finishTime = OS.GetTicksMsec() + 1000;
 
             Mode = ModeEnum.Kinematic;
 

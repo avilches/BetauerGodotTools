@@ -8,7 +8,7 @@ namespace Veronenger.Tests.NodeTests {
         [Test]
         public void SpawnAndFreeManyObjectsInLessThanFiveSeconds() {
             const int seconds = 5;
-            uint startTime = OS.GetTicksMsec();
+            var startTime = OS.GetTicksMsec();
 
             for (var i = 0; i < 100000; i++) {
                 new Node().Free();
