@@ -42,17 +42,28 @@ namespace Betauer.Animation {
 
 
     public class LoopStatus : Reference {
+        /// <summary>
+        /// Returns the number of total Loops for the sequence. -1 means infinite loops.
+        /// </summary>
         public int Loops;
+        /// <summary>
+        /// The current sequence to be executed the Loops  
+        /// </summary>
         public readonly ISequence Sequence;
+        /// <summary>
+        /// Returns true if the sequence will be executed an infinite number of times.
+        /// </summary>
         public bool IsInfiniteLoop => Loops == -1;
+        /// <summary>
+        /// This counter will be incremented in every loop until it reaches the Loops (or forever, if Loops is -1)
+        /// </summary>
+        public int LoopCounter { get; private set; }
 
         private readonly Tween _tween;
         private readonly Node _defaultTarget = null;
         private readonly float _duration = -1;
         private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
         private Action _onFinish;
-
-        public int LoopCounter { get; private set; }
         private bool _done = false;
 
         public LoopStatus(Tween tween, int loops, ISequence sequence, Node defaultTarget, float duration) {
