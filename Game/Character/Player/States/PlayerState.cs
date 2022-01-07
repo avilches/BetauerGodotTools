@@ -21,6 +21,7 @@ namespace Veronenger.Game.Character.Player.States {
         }
 
         [Inject] public PlatformManager PlatformManager;
+        [Inject] public InputManager InputManager;
 
         protected readonly PlayerController Player;
         protected MotionBody Body => Player.MotionBody;
@@ -36,10 +37,10 @@ namespace Veronenger.Game.Character.Player.States {
 
 
         // Input from the player
-        protected float XInput => Player.PlayerActions.LateralMotion.Strength;
-        protected float YInput => Player.PlayerActions.VerticalMotion.Strength;
-        protected ActionState Jump => Player.PlayerActions.Jump;
-        protected ActionState Attack => Player.PlayerActions.Attack;
+        protected float XInput => InputManager.LateralMotion.Strength;
+        protected float YInput => InputManager.VerticalMotion.Strength;
+        protected ActionState Jump => InputManager.Jump;
+        protected ActionState Attack => InputManager.Attack;
         protected bool IsRight => XInput > 0;
         protected bool IsLeft => XInput < 0;
         protected bool IsUp => YInput < 0;

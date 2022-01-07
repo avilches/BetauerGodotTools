@@ -14,7 +14,6 @@ namespace Veronenger.Game.Controller.Character {
     public sealed class PlayerController : DiKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
-        private readonly Logger _loggerInput;
         private readonly StateMachine _stateMachine;
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
@@ -24,13 +23,14 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
         public readonly PlayerConfig PlayerConfig = new PlayerConfig();
-        public readonly MyPlayerActions PlayerActions;
         public readonly Timer FallingJumpTimer;
         public readonly Timer FallingTimer;
+        private SceneTree _sceneTree;
 
         [Inject] public PlatformManager PlatformManager;
         [Inject] public CharacterManager CharacterManager;
         [Inject] public SlopeStairsManager SlopeStairsManager;
+        [Inject] public InputManager InputManager;
 
         public MotionBody MotionBody;
         public IFlipper _flippers;
@@ -40,9 +40,6 @@ namespace Veronenger.Game.Controller.Character {
             FallingTimer = new AutoTimer(this).Stop();
             _name = "Player:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
-            _loggerInput = LoggerFactory.GetLogger("Player:" + GetHashCode().ToString("x8"), "Input");
-            PlayerActions = new MyPlayerActions(-1); // TODO: deviceId -1... manage add/remove controllers
-            PlayerActions.ConfigureMapping();
             _stateMachine = new StateMachine(this, _name)
                 .AddState(new GroundStateIdle(PlayerState.StateIdle, this))
                 .AddState(new GroundStateRun(PlayerState.StateRun, this))
@@ -77,6 +74,8 @@ namespace Veronenger.Game.Controller.Character {
         private AnimationStack _tweenStack;
 
         public override void Ready() {
+            _sceneTree = GetTree();
+
             _animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
@@ -221,7 +220,7 @@ namespace Veronenger.Game.Controller.Character {
                                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name;
             MotionBody.StartFrame(Delta);
             _stateMachine.Execute(Delta);
-            PlayerActions.ClearJustStates();
+            InputManager.ClearJustStates();
             /*
                 Label.Text = "Floor: " + IsOnFloor() + "\n" +
                               "Slope: " + IsOnSlope() + "\n" +
@@ -232,42 +231,13 @@ namespace Veronenger.Game.Controller.Character {
             MotionBody.EndFrame();
         }
 
-        private EventWrapper w = new EventWrapper(null);
 
-        public override void _UnhandledInput(InputEvent @event) {
-            w.Event = @event;
-            if (!PlayerActions.Update(w)) {
-                _stateMachine._UnhandledInput(@event);
+        public override void _Input(InputEvent @event) {
+            var action = InputManager.OnEvent(@event);
+            if (action != null) {
+                _sceneTree.SetInputAsHandled();
             }
-
-            TestJumpActions();
-        }
-
-        private void TestJumpActions() {
-            if (_loggerInput.IsEnabled(TraceLevel.Debug)) {
-                if (w.IsMotion()) {
-                    _loggerInput.Debug($"Axis {w.Device}[{w.Axis}]:{w.GetStrength()} ({w.AxisValue})");
-                } else if (w.IsAnyButton()) {
-                    _loggerInput.Debug($"Button {w.Device}[{w.Button}]:{w.Pressed} ({w.Pressure})");
-                } else if (w.IsAnyKey()) {
-                    _loggerInput.Debug($"Key \"{w.KeyString}\" #{w.Key} Pressed:{w.Pressed}/Echo:{w.Echo}");
-                }
-                /*
-                 * Aqui se comprueba que el JustPressed, Pressed y JustReleased del SALTO SOLO de PlayerActions coinciden
-                 * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
-                 */
-                /*
-                 var mine = PlayerActions.Jump.JustPressed + " " + PlayerActions.Jump.JustReleased + " " +
-                            PlayerActions.Jump.Pressed;
-                 var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") +
-                             " " +
-                             Input.IsActionPressed("ui_select");
-                 if (!mine.Equals(godot)) {
-                     _logger.Debug("INPUT MISMATCH: Mine : " + mine);
-                     _logger.Debug("INPUT MISTMATCH Godot: " + godot);
-                 }
-                 */
-            }
+            InputManager.Debug(action);
         }
 
         public override void _Draw() {
