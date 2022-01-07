@@ -39,49 +39,6 @@ namespace Betauer.Animation {
             return -(node.GetOutOfScreenBottom() + offset);
         }
 
-
-        public interface IRestorer {
-            public void Rollback();
-        }
-
-        private class RectPivotOffsetRestorer : IRestorer {
-            private readonly Control _node;
-            private readonly Vector2 _originalRectPivotOffset;
-
-            public RectPivotOffsetRestorer(Control node) {
-                _node = node;
-                _originalRectPivotOffset = node.RectPivotOffset;
-            }
-
-            public void Rollback() {
-                _node.RectPivotOffset = _originalRectPivotOffset;
-            }
-        }
-
-        private class SpritePivotOffsetRestorer : IRestorer {
-            private readonly Sprite _node;
-            private readonly Vector2 _offset;
-            private readonly Vector2 _globalPosition;
-
-            public SpritePivotOffsetRestorer(Sprite node) {
-                _node = node;
-                _offset = node.Offset;
-                _globalPosition = node.GlobalPosition;
-            }
-
-            public void Rollback() {
-                _node.Offset = _offset;
-                _node.GlobalPosition = _globalPosition;
-            }
-        }
-
-        private class DummyRestorer : IRestorer {
-            public static readonly IRestorer Instance = new DummyRestorer();
-
-            public void Rollback() {
-            }
-        }
-
         public static IRestorer SetControlPivot(this Control control, Vector2 offset) {
             var restorer = new RectPivotOffsetRestorer(control);
             control.RectPivotOffset = offset;
@@ -173,4 +130,5 @@ namespace Betauer.Animation {
             }
         }
     }
+
 }
