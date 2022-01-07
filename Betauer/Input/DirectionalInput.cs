@@ -3,25 +3,30 @@ using Godot;
 
 namespace Betauer.Input {
     public class DirectionInput : IActionUpdate {
-        public static readonly ISet<int> Empty = new HashSet<int>();
+        public static readonly ISet<KeyList> CursorLateralPositive = new HashSet<KeyList> { KeyList.Right };
+        public static readonly ISet<KeyList> CursorLateralNegative = new HashSet<KeyList> { KeyList.Left };
+        public static readonly ISet<KeyList> CursorVerticalPositive = new HashSet<KeyList> { KeyList.Down };
+        public static readonly ISet<KeyList> CursorVerticalNegative = new HashSet<KeyList> { KeyList.Up };
 
-        public static readonly ISet<int> CursorLateralPositive = new HashSet<int>{ (int)KeyList.Right };
-        public static readonly ISet<int> CursorLateralNegative = new HashSet<int>{ (int)KeyList.Left };
-        public static readonly ISet<int> DpadLateralPositive = new HashSet<int>{ (int)JoystickList.DpadRight };
-        public static readonly ISet<int> DpadLateralNegative = new HashSet<int>{ (int)JoystickList.DpadLeft };
+        public static readonly ISet<JoystickList> DPadLateralPositive = new HashSet<JoystickList>
+            { JoystickList.DpadRight };
 
-        public static readonly ISet<int> CursorVerticalPositive = new HashSet<int>{ (int)KeyList.Down };
-        public static readonly ISet<int> CursorVerticalNegative = new HashSet<int>{ (int)KeyList.Up };
-        public static readonly ISet<int> DpadVerticalPositive = new HashSet<int>{ (int)JoystickList.DpadDown };
-        public static readonly ISet<int> DpadVerticalNegative = new HashSet<int>{ (int)JoystickList.DpadUp };
+        public static readonly ISet<JoystickList> DPadLateralNegative = new HashSet<JoystickList>
+            { JoystickList.DpadLeft };
+
+        public static readonly ISet<JoystickList> DPadVerticalPositive = new HashSet<JoystickList>
+            { JoystickList.DpadDown };
+
+        public static readonly ISet<JoystickList> DPadVerticalNegative = new HashSet<JoystickList>
+            { JoystickList.DpadUp };
 
         private ISet<int> _positiveKeys;
         private ISet<int> _negativeKeys;
         private ISet<int> _positiveButtons;
         private ISet<int> _negativeButtons;
         private JoystickList _axis;
-        
-        private readonly PlayerActions _playerActions;
+
+        private readonly IKeyboardOrController _isKeyboardOrController;
 
         private float _inputPositiveKey = 0f;
         private float _inputNegativeKey = 0f;
@@ -33,35 +38,34 @@ namespace Betauer.Input {
         public int DeviceId = -1;
         private bool _buttons = false;
 
-        public string Name;
         public float AxisDeadZone = 0.5f;
-        public float Strength => _playerActions.IsUsingKeyboard ? _inputTotalKey : _buttons?_inputTotalButton:_axisValue;
 
-        public DirectionInput(string name, PlayerActions playerActions, int deviceId) {
-            Name = name;
-            _playerActions = playerActions;
+        public float Strength =>
+            _isKeyboardOrController.IsUsingKeyboard ? _inputTotalKey : _buttons ? _inputTotalButton : _axisValue;
+
+        public DirectionInput(string name, IKeyboardOrController isKeyboardOrController, int deviceId) : base(name) {
+            _isKeyboardOrController = isKeyboardOrController;
             DeviceId = deviceId;
-
             ClearConfig();
         }
 
         public override bool Update(EventWrapper w) {
             if (!Enabled) return false;
             if (CheckAxis(w)) {
-                _playerActions.IsUsingKeyboard = false;
+                _isKeyboardOrController.IsUsingKeyboard = false;
                 _buttons = false;
                 return true;
             }
 
             if (CheckButtons(w)) {
-                _playerActions.IsUsingKeyboard = false;
+                _isKeyboardOrController.IsUsingKeyboard = false;
                 _buttons = true;
                 _inputTotalButton = _inputPositiveButton - _inputNegativeButton;
                 return true;
             }
 
             if (CheckKeys(w)) {
-                _playerActions.IsUsingKeyboard = true;
+                _isKeyboardOrController.IsUsingKeyboard = true;
                 _inputTotalKey = _inputPositiveKey - _inputNegativeKey;
                 return true;
             }
@@ -97,7 +101,7 @@ namespace Betauer.Input {
         }
 
         private bool CheckAxis(EventWrapper w) {
-            if (w.IsAxis((int) _axis, DeviceId)) {
+            if (w.IsAxis((int)_axis, DeviceId)) {
                 _axisValue = w.GetStrength(AxisDeadZone);
                 return true;
             }
@@ -106,35 +110,72 @@ namespace Betauer.Input {
         }
 
         public DirectionInput ClearConfig() {
-            _positiveKeys = Empty;
-            _negativeKeys = Empty;
-            _positiveButtons = Empty;
-            _negativeButtons = Empty;
+            _positiveKeys = new HashSet<int>();
+            _negativeKeys = new HashSet<int>();
+            _positiveButtons = new HashSet<int>();
+            _negativeButtons = new HashSet<int>();
             _axis = JoystickList.InvalidOption;
             return this;
         }
 
-        public DirectionInput ChangeDevice(int deviceId) {
-            this.DeviceId = deviceId;
+        public DirectionInput SetDevice(int deviceId) {
+            DeviceId = deviceId;
             return this;
         }
 
-        public DirectionInput ConfigureKeys(ISet<int> positives, ISet<int> negatives) {
-            _positiveKeys = positives;
-            _negativeKeys = negatives;
+        public DirectionInput SetAllDevices() {
+            DeviceId = -1;
             return this;
         }
 
-        public DirectionInput ConfigureButtons(ISet<int> positives, ISet<int> negatives) {
-            _positiveButtons = positives;
-            _negativeButtons = negatives;
+        public DirectionInput AddKeyPositive(KeyList positive) {
+            _positiveKeys.Add((int)positive);
             return this;
         }
+
+        public DirectionInput AddKeyNegative(KeyList negative) {
+            _negativeKeys.Add((int)negative);
+            return this;
+        }
+
+        public DirectionInput AddButtonPositive(JoystickList positive) {
+            _positiveButtons.Add((int)positive);
+            return this;
+        }
+
+        public DirectionInput AddButtonNegative(JoystickList negative) {
+            _negativeButtons.Add((int)negative);
+            return this;
+        }
+
+        public DirectionInput AddLateralCursorKeys() {
+            foreach (var i in CursorLateralPositive) AddKeyPositive(i);
+            foreach (var i in CursorLateralNegative) AddKeyNegative(i);
+            return this;
+        }
+
+        public DirectionInput AddVerticalCursorKeys() {
+            foreach (var i in CursorVerticalPositive) AddKeyPositive(i);
+            foreach (var i in CursorVerticalNegative) AddKeyNegative(i);
+            return this;
+        }
+
+        public DirectionInput AddLateralDPadButtons() {
+            foreach (var i in DPadLateralPositive) AddButtonPositive(i);
+            foreach (var i in DPadLateralNegative) AddButtonNegative(i);
+            return this;
+        }
+
+        public DirectionInput AddVerticalDPadButtons() {
+            foreach (var i in DPadVerticalPositive) AddButtonPositive(i);
+            foreach (var i in DPadVerticalNegative) AddButtonNegative(i);
+            return this;
+        }
+
 
         public DirectionInput ConfigureAxis(JoystickList axis) {
             _axis = axis;
             return this;
         }
-
     }
 }
