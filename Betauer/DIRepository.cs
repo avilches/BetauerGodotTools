@@ -142,6 +142,30 @@ namespace Betauer {
         }
     }
 
+    public abstract class DiControl : Control {
+        protected DiControl() => DiBootstrap.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
+
+    public abstract class DiButton : Button {
+        protected DiButton() => DiBootstrap.DefaultRepository.AutoWire(this);
+
+        public sealed override void _Ready() {
+            DiBootstrap.DefaultRepository.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
+
     public abstract class DiNode2D : Node2D {
         protected DiNode2D() => DiBootstrap.DefaultRepository.AutoWire(this);
 
