@@ -171,11 +171,6 @@ namespace Betauer.Statemachine {
             }
         }
 
-        public void _UnhandledInput(InputEvent @event) {
-            if (_disposed) return;
-            _currentContext?.CurrentState?._UnhandledInput(@event);
-        }
-
         public void Dispose() {
             _disposed = true;
         }

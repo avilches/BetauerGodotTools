@@ -15,9 +15,6 @@ namespace Betauer.Statemachine {
             return context.Current();
         }
 
-        public virtual void _UnhandledInput(InputEvent @event) {
-        }
-
         public virtual void Start(Context context) {
         }
 
