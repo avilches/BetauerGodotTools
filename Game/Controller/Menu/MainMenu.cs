@@ -1,135 +1,125 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Betauer;
+using Betauer.Animation;
+using Betauer.Tests.Animation;
+using Betauer.UI;
 using Godot;
 using NUnit.Framework;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenu : DiControl {
+    public partial class MainMenu : DiControl {
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
-        private VBoxContainer _menuOptions;
+        private VBoxContainer _menuHolder;
 
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(MainMenu));
         [Inject] public InputManager InputManager;
         [Inject] public GameManager GameManager;
 
         private SceneTree _sceneTree;
-        private ActionMenu _actionMenu;
+
+        private ActionMenu _mainMenu;
+        private ActionMenu _optionsMenu;
+
         private ActionButton _newGame;
         private ActionButton _continue;
         private ActionButton _options;
         private ActionButton _quit;
+        private Launcher _launcher;
+        private IRestorer _saver;
+
+        private readonly LinkedList<ActionState> _nestedPathMenus = new LinkedList<ActionState>();
+
+        private struct ActionState {
+            public ActionMenu Menu;
+            public ActionButton Button;
+
+            public ActionState(ActionMenu menu, ActionButton button) {
+                Menu = menu;
+                Button = button;
+            }
+        }
 
         public override void Ready() {
             _sceneTree = GetTree();
+            _launcher = new Launcher().CreateNewTween(this);
             BuildMenu();
+            // Go(_mainMenu, _options, _optionsMenu);
         }
+
+
 
         public void BuildMenu() {
-            _actionMenu = new ActionMenu(_menuOptions);
-            _newGame = _actionMenu.CreateButton("New game", () => {
-                _options.Disabled = true;
-                _actionMenu.Build();
+            BuildMainMenu();
+            BuildOptionsMenu();
+            _nestedPathMenus.Clear();
+            _saver = _menuHolder.Save();
+            _mainMenu.Refresh();
+        }
+
+        private void BuildMainMenu() {
+            _mainMenu = new ActionMenu(_menuHolder);
+
+            // Main menu
+            _newGame = _mainMenu.CreateButton("New game", async () => {
                 GD.Print("New Game");
             });
-            _continue = _actionMenu.CreateButton("Continue", () => GD.Print("Continue"));
-            _options = _actionMenu.CreateButton("Options", () => GD.Print("Options"));
-            _quit = _actionMenu.CreateButton("Quit", () => GameManager.Quit());
-            _actionMenu.Build();
+            _continue = _mainMenu.CreateButton("Continue", () => {
+                GD.Print("Continue");
+            });
+            _options = _mainMenu.CreateButton("Options", async () => {
+                await Go(_mainMenu, _options, _optionsMenu);
+            });
+            _quit = _mainMenu.CreateButton("Quit", () => {
+                GameManager.Quit();
+            });
         }
 
-        public class ActionMenu {
-            private readonly Node _holder;
 
-            public ActionMenu(Node holder) {
-                _holder = holder;
-            }
+        private void BuildOptionsMenu() {
+            _optionsMenu = new ActionMenu(_menuHolder);
+            // Options menu
+            // _optionsMenu.CreateButton("Video", async () => { GD.Print("New Game"); });
+            // _optionsMenu.CreateButton("Controls", () => GD.Print("Controls"));
+            // _optionsMenu.CreateButton("Sound", () => GD.Print("Options"));
+            _optionsMenu.CreateButton("Back", async () => {
+                Back();
+            });
+        }
 
-            public readonly List<ActionButton> Buttons = new List<ActionButton>();
+        private async Task Go(ActionMenu fromMenu, ActionButton fromButton, ActionMenu toMenu) {
+            _nestedPathMenus.AddLast(new ActionState(fromMenu, fromButton));
+            await _launcher.Play(Template.FadeOutLeft, _menuHolder, 0f, 0.01f).Await();
+            _saver.Rollback();
+            toMenu.Refresh();
+            await _launcher.Play(Template.FadeInRight, _menuHolder, 0f, 0.01f).Await();
+            // Back();
+        }
 
-            public ActionMenu Clear() {
-                Buttons.Clear();
-                return this;
-            }
-
-            public ActionButton CreateButton(string title, Action action) {
-                ActionButton button = new ActionButton(action).SetAction(action);
-                button.Name = $"B{Buttons.Count}";
-                button.Text = title;
-                Buttons.Add(button);
-                return button;
-            }
-
-            public ActionMenu Build() {
-                ActionButton first = null;
-                ActionButton last = null;
-                foreach (var child in _holder.GetChildren()) {
-                    _holder.RemoveChild(child as Node);
-                }
-                foreach (var actionButton in Buttons) {
-                    if (actionButton.Disabled) {
-                        actionButton.FocusMode = FocusModeEnum.None;
-                        _holder.AddChild(actionButton);
-                        last = actionButton;
-                    } else {
-                        if (first == null) {
-                            Focus(actionButton);
-                            first = actionButton;
-                        }
-                        _holder.AddChild(actionButton);
-                        last = actionButton;
-                        actionButton.FocusMode = FocusModeEnum.All;
-
-                    }
-                }
-                if (first != last) {
-                    first.FocusNeighbourTop = "../" + last.Name;
-                    last.FocusNeighbourBottom = "../" + first.Name;
-                }
-                return this;
-            }
-
-            public async void Focus(ActionButton button) {
-                await _holder.GetTree().AwaitIdleFrame();
-                button.GrabFocus();
+        private async Task Back() {
+            if (_nestedPathMenus.Count > 0) {
+                ActionState lastState =_nestedPathMenus.Last();
+                _nestedPathMenus.RemoveLast();
+                await _launcher.Play(Template.FadeOutRight, _menuHolder, 0f, 0.01f).Await();
+                _saver.Rollback();
+                lastState.Menu.Refresh();
+                await lastState.Menu.Focus(lastState.Button);
+                await _launcher.Play(Template.FadeInLeft, _menuHolder, 0f, 0.01f).Await();
+                // Go(_mainMenu, _options, _optionsMenu);
             }
         }
 
-        public override void _Process(float delta) {
-            base._Process(delta);
-        }
+        // private float delay = 0f;
+        // public override void _Process(float delta) {
+            // delay += delta;
+            // if (delay > 5f) {
+                // GameManager.Quit();
+            // }
 
-        public class ActionButton : DiButton {
-            private Action _action;
+        // }
 
-            public ActionButton(Action action) {
-                _action = action;
-            }
-
-            public override void Ready() {
-                Connect("pressed", this, nameof(_Pressed));
-            }
-
-            public void _Pressed() {
-                _action?.Invoke();
-            }
-
-            public ActionButton SetAction(Action action) {
-                _action = action;
-                return this;
-            }
-
-            public void Execute() {
-                _Pressed();
-            }
-
-            public Node CreateDisabledButton() {
-                var label = new Label();
-                label.Text = Text;
-                return label;
-            }
-        }
     }
 }
