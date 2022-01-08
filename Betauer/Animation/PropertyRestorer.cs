@@ -31,10 +31,10 @@ namespace Betauer.Animation {
         }
 
         public void Rollback() {
+            _pivotOffsetRestorer?.Rollback();
             _node2D.Modulate = _modulate;
             _node2D.SelfModulate = _selfModulate;
             _node2D.Transform = _transform;
-            _pivotOffsetRestorer?.Rollback();
         }
     }
 
