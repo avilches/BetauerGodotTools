@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Betauer;
 using Veronenger.Game.Tools.Resolution;
@@ -16,6 +17,7 @@ namespace Veronenger.Game.Managers {
      */
     [Singleton]
     public class GameManager : Node /* needed to receive _Ready and OnScreenResized signals */ {
+        private static Logger _logger = LoggerFactory.GetLogger(typeof(GameManager));
         private ScreenManager ScreenManager;
         [Inject] public StageManager StageManager;
         [Inject] public InputManager InputManager;
@@ -70,6 +72,17 @@ namespace Veronenger.Game.Managers {
             ConfigureScreen();
             InputManager.ConfigureMapping();
             this.DisableAllNotifications();
+
+            var domain = AppDomain.CurrentDomain;
+            // domain.UnhandledException += (sender, args) => {
+                // GD.Print();
+            // };
+            domain.ProcessExit += (sender, args) => {
+                Console.WriteLine("PROCESS EXIT");
+                Shutdown();
+            };
+            // domain.DomainUnload += new EventHandler(domain_DomainUnload);
+
         }
 
         private void ConfigureScreen() {
@@ -104,10 +117,23 @@ namespace Veronenger.Game.Managers {
 
         private bool _quited = false;
         public void Quit() {
+            _logger.Info("User requested exit the application");
             if (_quited) return;
             _quited = true;
-            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
+            Shutdown();
             _sceneTree.Quit();
+        }
+
+        public override void _Notification(int what) {
+            if (what == MainLoop.NotificationWmQuitRequest) {
+                _logger.Info("Application is closed by notification");
+                Shutdown();
+            }
+        }
+
+        private void Shutdown() {
+            _logger.Info("Shutting down resources");
+            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
         }
     }
 }

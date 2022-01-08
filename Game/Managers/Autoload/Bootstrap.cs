@@ -13,6 +13,11 @@ using Path = System.IO.Path;
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
 
+        /*
+         * Boostrap is the only Autoload node
+         * It inherits from DiBootstrap, so all the singletons are scanned and loaded.
+         * As soon as the GameManager is injected into the Bootstrap, the GameManager will initialize the screen
+         */
         [Inject]
         public GameManager GameManager;
 
