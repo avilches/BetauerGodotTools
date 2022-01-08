@@ -188,7 +188,10 @@ namespace Betauer.Tests.Animation {
                 .BuildTemplate();
 
             try {
-                new MultipleSequencePlayer().CreateNewTween(node).AddSequence(template);
+                new MultipleSequencePlayer()
+                    .SetDisposeOnFinish(true)
+                    .CreateNewTween(node)
+                    .AddSequence(template);
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
                 Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidOperationException)));

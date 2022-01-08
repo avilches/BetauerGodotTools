@@ -139,7 +139,12 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate();
 
             try {
-                await new MultipleSequencePlayer().CreateNewTween(spritePlayer).AddSequence(sequence).Start().Await();
+                await new MultipleSequencePlayer()
+                    .SetDisposeOnFinish(true)
+                    .CreateNewTween(spritePlayer)
+                    .AddSequence(sequence)
+                    .Start()
+                    .Await();
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
                 Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
@@ -162,7 +167,12 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate();
 
             try {
-                await new SingleSequencePlayer().CreateNewTween(spritePlayer).WithSequence(sequence).Start().Await();
+                await new SingleSequencePlayer()
+                    .SetDisposeOnFinish(true)
+                    .CreateNewTween(spritePlayer)
+                    .WithSequence(sequence)
+                    .Start()
+                    .Await();
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
                 Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
@@ -208,7 +218,6 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate();
 
             await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
-
             Assert.That(sequence.DefaultTarget, Is.EqualTo(spriteSequence));
             Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
         }
@@ -247,8 +256,11 @@ namespace Betauer.Tests.Animation {
                 .BuildTemplate();
 
             await new MultipleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(spritePlayer)
-                .ImportTemplate(template, spritePlayer).EndSequence().Start().Await();
+                .ImportTemplate(template, spritePlayer).EndSequence()
+                .Start()
+                .Await();
 
             Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));

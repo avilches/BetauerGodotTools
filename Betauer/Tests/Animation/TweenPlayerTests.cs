@@ -21,13 +21,14 @@ namespace Betauer.Tests.Animation {
             Engine.TimeScale = 1;
         }
 
-        [Test(Description = "SingleSequencePlayer await works, multiple executions")]
+        [Test(Description = "SingleSequencePlayer await works, multiple executions, no disposed")]
         public async Task SingleSequencePlayerAwait() {
             var l1 = 0;
             var l2 = 0;
 
             // when created, it's not running
             var t = new SingleSequencePlayer()
+                .SetDisposeOnFinish(false)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .Callback(() => l1++)
@@ -76,13 +77,72 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(3));
         }
 
-        [Test(Description = "MultipleSequencePlayer await works, multiple executions")]
+        [Test(Description = "SingleSequencePlayer await works, multiple executions, disposed")]
+        public async Task SingleSequencePlayerAwaitDisposed() {
+            var l1 = 0;
+            var l2 = 0;
+
+            // when created, it's not running
+            var t = new SingleSequencePlayer()
+                .SetDisposeOnFinish(true)
+                .CreateNewTween(this)
+                .CreateSequence()
+                .Callback(() => l1++)
+                .EndSequence()
+                .AddOnFinishAll(() => l2++);
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+
+            // When started, it's running
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+
+            // Await, then it's not running and results are ok
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // Await again, it produces the same state: not running and same results
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again, it will not run again, but at least it doesn't fail
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            // Data is not modified because the sequence is not executed
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again multiple times, it will not run again, but at least it doesn't fail
+            t.Start();
+            t.Start();
+            t.Start();
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            // Data is not modified because the sequence is not executed
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+        }
+
+        [Test(Description = "MultipleSequencePlayer await works, multiple executions. No disposed")]
         public async Task MultipleSequencePlayerAwait() {
             var l1 = 0;
             var l2 = 0;
 
             // when created, it's not running
             var t = new MultipleSequencePlayer()
+                .SetDisposeOnFinish(false)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .Callback(() => l1++)
@@ -129,6 +189,64 @@ namespace Betauer.Tests.Animation {
             Assert.That(t.IsRunning, Is.EqualTo(false));
             Assert.That(l1, Is.EqualTo(3));
             Assert.That(l2, Is.EqualTo(3));
+        }
+
+        [Test(Description = "MultipleSequencePlayer await works, multiple executions. Auto disposed")]
+        public async Task MultipleSequencePlayerAwaitDisposed() {
+            var l1 = 0;
+            var l2 = 0;
+
+            // when created, it's not running
+            var t = new MultipleSequencePlayer()
+                .SetDisposeOnFinish(true)
+                .CreateNewTween(this)
+                .CreateSequence()
+                .Callback(() => l1++)
+                .EndSequence()
+                .AddOnFinishAll(() => l2++);
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+
+            // When started, it's running
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(true));
+
+            // Await, then it's not running and results are ok
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // Await again, it produces the same state: not running and same results
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again, it will not be executed but at least it will not fail
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            // Data is not modified because the sequence is not executed
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
+
+            // If start + await again multiple times, it will not be executed but at least it will not fail
+            t.Start();
+            t.Start();
+            t.Start();
+            t.Start();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            await t.Await();
+            Assert.That(t.IsRunning, Is.EqualTo(false));
+            // Data is not modified because the sequence is not executed
+            Assert.That(l1, Is.EqualTo(1));
+            Assert.That(l2, Is.EqualTo(1));
         }
 
         [Test(Description = "LoopStatus await, callbacks and an OnFinish")]
@@ -256,6 +374,7 @@ namespace Betauer.Tests.Animation {
             const int seq1Loops = 9;
 
             await new SingleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -287,6 +406,7 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq1Loops);
 
             await new SingleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .WithSequence(sequence)
                 .AddOnFinishAll(() => finished++)
@@ -309,6 +429,7 @@ namespace Betauer.Tests.Animation {
 
             Stopwatch x = Stopwatch.StartNew();
             await new SingleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -342,6 +463,7 @@ namespace Betauer.Tests.Animation {
 
             Stopwatch x = Stopwatch.StartNew();
             await new MultipleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -356,7 +478,7 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq2Loops)
                 .EndSequence()
                 .SetLoops(playerLoops)
-                .SetFreeTweenOnFinish(true)
+                .SetDisposeOnFinish(true)
                 .AddOnFinishAll(delegate() { finished++; })
                 .Start()
                 .Await();
@@ -377,6 +499,7 @@ namespace Betauer.Tests.Animation {
             var finished = 0;
 
             var tweenPlayer = new MultipleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
@@ -422,6 +545,7 @@ namespace Betauer.Tests.Animation {
             await this.AwaitIdleFrame();
 
             await new MultipleSequencePlayer()
+                .SetDisposeOnFinish(true)
                 .CreateNewTween(this)
                 .CreateSequence()
                 .AnimateSteps(sprite, Property.Opacity)
@@ -437,7 +561,7 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .SetLoops(loops)
                 .EndSequence()
-                .SetFreeTweenOnFinish(true)
+                .SetDisposeOnFinish(true)
                 .SetLoops(loops)
                 .Start()
                 .Await();

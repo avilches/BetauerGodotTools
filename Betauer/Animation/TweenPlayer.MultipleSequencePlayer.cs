@@ -31,7 +31,7 @@ namespace Betauer.Animation {
         public MultipleSequencePlayer() {
         }
 
-        public MultipleSequencePlayer(Tween tween, bool freeTweenOnFinish = false) : base(tween, freeTweenOnFinish) {
+        public MultipleSequencePlayer(Tween tween, bool disposeOnFinish = false) : base(tween, disposeOnFinish) {
         }
 
         public MultipleSequencePlayer SetInfiniteLoops() {

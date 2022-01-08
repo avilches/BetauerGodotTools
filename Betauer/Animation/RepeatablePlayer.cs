@@ -13,7 +13,6 @@ namespace Betauer.Animation {
         public TBuilder Start();
         public TBuilder Stop();
         public TBuilder Reset();
-        public TBuilder Kill();
     }
 
     public abstract class RepeatablePlayer<TBuilder> : Object /* needed to be callable by interpolate_callback */,
@@ -22,7 +21,7 @@ namespace Betauer.Animation {
 
         protected bool Started = false;
         protected bool Running = false;
-        protected bool FreeTweenOnFinish = false;
+        protected bool DisposeOnFinish = false;
         protected SimpleLinkedList<Action> OnFinishAll;
 
         public Tween Tween { get; private set; }
@@ -30,12 +29,12 @@ namespace Betauer.Animation {
         public RepeatablePlayer() {
         }
 
-        public RepeatablePlayer(Tween tween, bool freeTweenOnFinish = false) {
-            WithTween(tween, freeTweenOnFinish);
+        public RepeatablePlayer(Tween tween, bool disposeOnFinish = false) {
+            WithTween(tween, disposeOnFinish);
         }
 
-        public TBuilder CreateNewTween(Node node, bool freeTweenOnFinish) {
-            FreeTweenOnFinish = freeTweenOnFinish;
+        public TBuilder CreateNewTween(Node node, bool disposeOnFinish) {
+            DisposeOnFinish = disposeOnFinish;
             return CreateNewTween(node);
         }
 
@@ -54,8 +53,8 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder WithTween(Tween tween, bool freeTweenOnFinish) {
-            FreeTweenOnFinish = freeTweenOnFinish;
+        public TBuilder WithTween(Tween tween, bool disposeOnFinish) {
+            DisposeOnFinish = disposeOnFinish;
             WithTween(tween);
             return this as TBuilder;
         }
@@ -79,8 +78,8 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder SetFreeTweenOnFinish(bool freeTweenOnFinish) {
-            FreeTweenOnFinish = freeTweenOnFinish;
+        public TBuilder SetDisposeOnFinish(bool disposeOnFinish) {
+            DisposeOnFinish = disposeOnFinish;
             return this as TBuilder;
         }
 
@@ -93,7 +92,8 @@ namespace Betauer.Animation {
          */
 
         public TBuilder Start() {
-            if (!Object.IsInstanceValid(Tween)) {
+            if (_disposed) return this as TBuilder;
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Start with a freed Tween instance");
                 return this as TBuilder;
             }
@@ -110,7 +110,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Stop() {
-            if (!Object.IsInstanceValid(Tween)) {
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Stop with a freed Tween instance");
                 return this as TBuilder;
             }
@@ -123,7 +123,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Reset() {
-            if (!Object.IsInstanceValid(Tween)) {
+            if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Reset with a freed Tween instance");
                 return this as TBuilder;
             }
@@ -138,16 +138,20 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder Kill() {
-            if (!Object.IsInstanceValid(Tween)) return this as TBuilder;
-            if (Running) {
-                Stop();
+        private bool _disposed = false;
+
+        protected override void Dispose(bool disposing) {
+            try {
+                if (!disposing) GD.Print("Shutdown disposing "+GetType());
+                if (!_disposed) {
+                    _disposed = true;
+                    if (IsInstanceValid(Tween)) {
+                        Tween.QueueFree();
+                    }
+                }
+            } finally {
+                base.Dispose(disposing);
             }
-            Reset();
-            Logger.Info("Tween.QueueFree()");
-            Tween.QueueFree();
-            Dispose();
-            return this as TBuilder;
         }
 
         protected abstract void OnStart();
@@ -169,7 +173,7 @@ namespace Betauer.Animation {
         }
 
         protected void Finished() {
-            Logger.Debug($"Finished. End: stop & reset. Kill {FreeTweenOnFinish}");
+            Logger.Debug($"Finished. End: stop & reset. Kill {DisposeOnFinish}");
             Running = false; // this will avoid to start again in the next Reset() call
             Reset();
             // Started = false;
@@ -177,20 +181,15 @@ namespace Betauer.Animation {
             if (OnFinishAll != null)
                 foreach (var callback in OnFinishAll)
                     callback.Invoke();
+            if (DisposeOnFinish) {
+                Dispose();
+            }
             _promise.TrySetResult(this as TBuilder);
             // EmitSignal(nameof(finished));
-            if (FreeTweenOnFinish) {
-                Kill();
-            }
         }
 
         public Task<TBuilder> Await() {
             return _promise.Task;
-        }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
         }
 
     }
