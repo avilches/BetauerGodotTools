@@ -82,5 +82,11 @@ namespace Betauer.Bus.Topics {
         public void _AreaExited(RID area2dRid, Area2D detected, int areaShape, int localShape, Area2D origin) {
             _exitTopic?.Publish(new Area2DShapeOnArea2D(area2dRid, detected, areaShape, localShape, origin));
         }
+
+        protected override void Dispose(bool disposing) {
+            if (!disposing) GD.Print("Shutdown disposing "+GetType());
+            base.Dispose(disposing);
+        }
+
     }
 }

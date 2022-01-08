@@ -57,67 +57,6 @@ namespace Betauer {
         }
     }
 
-    public class GodotObjectDisposer {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GodotObjectDisposer));
-        private static readonly GodotObjectDisposer Instance = new GodotObjectDisposer();
-        private readonly BlockingCollection<Object> _cq = new BlockingCollection<Object>();
-        private readonly System.Threading.Timer _timer;
-        private bool _disposed = false;
-        private int _disposedObjectCount = 0;
-        private const int ShowDisposedElementEveryMillis = 100;
-
-        private GodotObjectDisposer() {
-            var span = TimeSpan.FromMilliseconds(ShowDisposedElementEveryMillis);
-            _timer = new System.Threading.Timer(Log, null, span, span);
-            Task.Factory.StartNew(Execute);
-        }
-
-        private void Log(object state) {
-            // if (_disposedObjectCount > 0) {
-            Logger.Info($"Disposed elements in the last {ShowDisposedElementEveryMillis}ms: {_disposedObjectCount}");
-                _disposedObjectCount = 0;
-            // }
-        }
-
-        private void Execute() {
-            GD.Print("Start");
-            try {
-                while (!_cq.IsCompleted) {
-                    var obj = _cq.Take();
-                    // GD.Print("Freeing " + obj.GetType());
-                    obj.Free();
-                    _disposedObjectCount++;
-                }
-            } catch (InvalidOperationException) {
-                // Take throws this exception when the collections is empty and marked as completed by CompleteAdding()
-            } catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
-            }
-            Logger.Info("Shutdown");
-        }
-
-        private void Add(Object o) {
-            if (!_disposed) _cq.Add(o);
-        }
-
-        private void _Dispose() {
-            if (_disposed) return;
-            Logger.Info("Disposing...");
-            _disposed = true;
-            _timer.Dispose();
-            _cq.CompleteAdding();
-        }
-
-        public static void Free(Object o) {
-            Instance.Add(o);
-        }
-
-        public static void Dispose() {
-            Instance._Dispose();
-        }
-    }
-
     public static class GodotTools {
         public static T SumVariant<T>(T op1, T op2) {
             if (op1 is float fromFloat && op2 is float toFloat)

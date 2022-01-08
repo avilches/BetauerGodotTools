@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Godot;
+using Object = Godot.Object;
 
 namespace Betauer {
     [AttributeUsage(AttributeTargets.Field)]
@@ -122,6 +123,17 @@ namespace Betauer {
                                         target.GetType().Name);
                 }
                 property.SetValue(target, instance);
+            }
+        }
+
+        public void Dispose() {
+            foreach (var instance in _singletons.Values) {
+                if (instance is Object obj) {
+                    try {
+                        obj.Dispose();
+                    } catch (Exception) {
+                    }
+                }
             }
         }
     }

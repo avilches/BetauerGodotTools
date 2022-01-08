@@ -146,6 +146,7 @@ namespace Betauer.Animation {
             Reset();
             Logger.Info("Tween.QueueFree()");
             Tween.QueueFree();
+            Dispose();
             return this as TBuilder;
         }
 
@@ -178,11 +179,19 @@ namespace Betauer.Animation {
                     callback.Invoke();
             _promise.TrySetResult(this as TBuilder);
             // EmitSignal(nameof(finished));
-            if (FreeTweenOnFinish) Kill();
+            if (FreeTweenOnFinish) {
+                Kill();
+            }
         }
 
         public Task<TBuilder> Await() {
             return _promise.Task;
         }
+
+        protected override void Dispose(bool disposing) {
+            if (!disposing) GD.Print("Shutdown disposing "+GetType());
+            base.Dispose(disposing);
+        }
+
     }
 }

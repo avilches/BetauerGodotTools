@@ -103,5 +103,10 @@ namespace Veronenger.Game.Managers {
             GameManager.ChangeScene(scene);
         }
 
+        protected override void Dispose(bool disposing) {
+            if (!disposing) GD.Print("Shutdown disposing "+GetType());
+            base.Dispose(disposing);
+        }
+
     }
 }

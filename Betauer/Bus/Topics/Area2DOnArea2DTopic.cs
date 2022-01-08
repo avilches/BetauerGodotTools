@@ -120,5 +120,10 @@ namespace Betauer.Bus.Topics {
             EnterTopic.EventListeners.Clear();
             ExitTopic.EventListeners.Clear();
         }
+
+        protected override void Dispose(bool disposing) {
+            if (!disposing) GD.Print("Shutdown disposing "+GetType());
+            base.Dispose(disposing);
+        }
     }
 }

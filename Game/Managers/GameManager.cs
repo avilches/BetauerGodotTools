@@ -66,7 +66,9 @@ namespace Veronenger.Game.Managers {
 
         public bool IsRunningTests = false;
 
+        private SceneTree _sceneTree;
         public override void _Ready() {
+            _sceneTree = GetTree();
             ConfigureScreen();
             InputManager.ConfigureMapping();
             this.DisableAllNotifications();
@@ -100,10 +102,13 @@ namespace Veronenger.Game.Managers {
             Error error = GetTree().ChangeScene(scene);
         }
 
+        private bool _quited = false;
         public void Quit() {
-            GodotObjectDisposer.Dispose();
+            if (_quited) return;
+            _quited = true;
+            DiBootstrap.DefaultRepository.Dispose();
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
-            GetTree().Quit();
+            _sceneTree.Quit();
         }
     }
 }

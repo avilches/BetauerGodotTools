@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
+using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ISequence {
@@ -41,7 +42,7 @@ namespace Betauer.Animation {
     }
 
 
-    public class LoopStatus : Reference {
+    public class LoopStatus : Object {
         /// <summary>
         /// Returns the number of total Loops for the sequence. -1 means infinite loops.
         /// </summary>
@@ -92,6 +93,11 @@ namespace Betauer.Animation {
             return this;
         }
 
+        protected override void Dispose(bool disposing) {
+            if (!disposing) GD.Print("Shutdown disposing "+GetType());
+            base.Dispose(disposing);
+        }
+
         private void ExecuteLoop(float delay) {
             var elapsed = Sequence.Execute(_tween, delay, _defaultTarget, _duration);
             _tween.InterpolateCallback(this, delay + elapsed, nameof(_FinishedLoop));
@@ -102,8 +108,12 @@ namespace Betauer.Animation {
             if (IsInfiniteLoop || LoopCounter < Loops) {
                 ExecuteLoop(0f);
             } else {
-                _onFinish?.Invoke();
-                _promise.TrySetResult(this);
+                try {
+                    _onFinish?.Invoke();
+                } finally {
+                    _promise.TrySetResult(this);
+                    Dispose();
+                }
             }
         }
 
