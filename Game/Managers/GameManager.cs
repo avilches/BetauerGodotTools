@@ -101,7 +101,8 @@ namespace Veronenger.Game.Managers {
         }
 
         public void Quit() {
-            LoggerFactory.Dispose();
+            GodotObjectDisposer.Dispose();
+            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
             GetTree().Quit();
         }
     }
