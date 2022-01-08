@@ -17,6 +17,11 @@ namespace Veronenger.Game.Managers {
 
         private readonly Area2DShapeOnArea2DTopic _stageTopic = new Area2DShapeOnArea2DTopic("StageTopic");
 
+        public StageManager() {
+            // This is a singleton, so all the topics are always loaded and never need to be disposed
+            _stageTopic.DisableNoDisposedOnShutdownWarning();
+        }
+
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
             stageDetector.CollisionLayer = 0;

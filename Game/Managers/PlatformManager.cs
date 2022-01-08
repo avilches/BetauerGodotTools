@@ -83,5 +83,9 @@ namespace Veronenger.Game.Managers {
         private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.ListenSignalsOf(area2D);
         public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) => _platformBodyOutTopic.Subscribe(enterListener);
 
+        public PlatformManager() {
+            // This is a singleton, so all the topics are always loaded and never need to be disposed
+            _platformBodyOutTopic.DisableNoDisposedOnShutdownWarning();
+        }
     }
 }

@@ -17,6 +17,14 @@ namespace Veronenger.Game.Managers {
         private readonly BodyOnArea2DTopic _enablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
         private readonly BodyOnArea2DTopic _disablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
 
+        public SlopeStairsManager() {
+            // This is a singleton, so all the topics are always loaded and never need to be disposed
+            _downTopic.DisableNoDisposedOnShutdownWarning();
+            _upTopic.DisableNoDisposedOnShutdownWarning();
+            _enablerTopic.DisableNoDisposedOnShutdownWarning();
+            _disablerTopic.DisableNoDisposedOnShutdownWarning();
+        }
+
         public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
             kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, true);

@@ -20,6 +20,11 @@ namespace Veronenger.Game.Managers {
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 
+        public CharacterManager() {
+            // This is a singleton, so all the topics are always loaded and never need to be disposed
+            _playerAttackTopic.DisableNoDisposedOnShutdownWarning();
+        }
+
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
         }

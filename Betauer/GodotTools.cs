@@ -18,7 +18,9 @@ namespace Betauer {
         }
 
         protected override void Dispose(bool disposing) {
-            if (!disposing && ShowShutdownWarning) GD.PushWarning($"Shutdown disposing {GetType()}");
+            if (!disposing && ShowShutdownWarning && _warning) {
+                GD.PushWarning($"Shutdown disposing {GetType()}");
+            }
             base.Dispose(disposing);
         }
     }
