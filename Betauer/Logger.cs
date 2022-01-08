@@ -42,7 +42,7 @@ namespace Betauer {
 
     public class LoggerFactory : Node {
         public static LoggerFactory Instance { get; } = new LoggerFactory();
-        internal static ITextWriter[] Writers => Instance._writers;
+        internal static IEnumerable<ITextWriter> Writers => Instance._writers;
 
         public Dictionary<string, Logger> Loggers { get; } = new Dictionary<string, Logger>();
         private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
@@ -82,7 +82,7 @@ namespace Betauer {
         }
 
         public static LoggerFactory AddTextWriter(TextWriter textWriter) {
-            return Instance.AddTextWriter(new TextWriterDelegate(textWriter));
+            return Instance.AddTextWriter(new TextWriterWrapper(textWriter));
         }
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
@@ -345,22 +345,28 @@ namespace Betauer {
         void Dispose();
     }
 
-    public class TextWriterDelegate : ITextWriter {
-        private TextWriter _delegate;
+    public class TextWriterWrapper : ITextWriter {
+        private readonly TextWriter _delegate;
+        private bool _disposed = false;
 
-        public TextWriterDelegate(TextWriter @delegate) {
+        public TextWriterWrapper(TextWriter @delegate) {
             _delegate = @delegate;
         }
 
         public void WriteLine(string line) {
-            _delegate.WriteLine(line);
+            if (!_disposed) _delegate.WriteLine(line);
+
         }
 
         public void Flush() {
-            _delegate.Flush();
+            if (!_disposed) _delegate.Flush();
         }
 
         public void Dispose() {
+            if (_disposed) return;
+            _disposed = true;
+            _delegate.WriteLine("Log disposed");
+            _delegate.Flush();
             _delegate.Dispose();
         }
     }
