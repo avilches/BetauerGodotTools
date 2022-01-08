@@ -716,20 +716,68 @@ namespace Betauer.Tests.Animation {
         public void PivotControlRestoreTests() {
             var control = new Control();
             var original = new Vector2(2f, 3f);
+
             control.RectPivotOffset = original;
-            GD.Print(control.RectPivotOffset);
 
-            var pivotCenterBottom = control.SetRotateOriginToBottomCenter();
-            GD.Print(control.RectPivotOffset);
-            Assert.That(control.RectPivotOffset, Is.Not.EqualTo(original));
+            control.Modulate = new Color(0f,1f,0f);
+            control.SelfModulate = new Color(0f,1f,0f);
+            control.RectScale = original;
+            control.RectPosition = original;
+            control.RectRotation = 3f;
 
-            pivotCenterBottom.Rollback();
-            GD.Print(control.RectPivotOffset);
+            var status = control.Save();
+            control.SetRotateOriginToBottomCenter();
+            control.Modulate = new Color(0.1f,0.2f,0.3f);
+            control.SelfModulate = new Color(0.1f,0.2f,0.3f);
+            control.RectScale *= 0.2f;
+            control.RectPosition += Vector2.One;
+            control.RectRotation *= 3f;
+
+            status.Rollback();
+
             Assert.That(control.RectPivotOffset, Is.EqualTo(original));
+            Assert.That(control.Modulate, Is.EqualTo(new Color(0f,1f,0f)));
+            Assert.That(control.SelfModulate, Is.EqualTo(new Color(0f,1f,0f)));
+            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(control.RectPosition, Is.EqualTo(original));
+            Assert.That(control.RectRotation, Is.EqualTo(3f));
         }
 
         [Test]
-        public async Task PivotSpriteRestoreTests() {
+        public async Task  PivotSpriteRestoreTests() {
+            var sprite = await CreateSprite();
+            var original = new Vector2(2f, 3f);
+
+            sprite.Offset = original;
+            sprite.GlobalPosition = original;
+
+            sprite.Modulate = new Color(0f,1f,0f);
+            sprite.SelfModulate = new Color(0f,1f,0f);
+            sprite.Scale = Vector2.One;
+            sprite.Position = original;
+            sprite.Rotation = 3f;
+
+            var status = sprite.Save();
+            sprite.SetRotateOriginToBottomCenter();
+            sprite.Modulate = new Color(0.1f,0.2f,0.3f);
+            sprite.SelfModulate = new Color(0.1f,0.2f,0.3f);
+            sprite.Scale *= 0.2f;
+            sprite.Position += Vector2.One;
+            sprite.Rotation *= 3f;
+
+            status.Rollback();
+
+            Assert.That(sprite.Offset, Is.EqualTo(original));
+            Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
+            Assert.That(sprite.Modulate, Is.EqualTo(new Color(0f,1f,0f)));
+            Assert.That(sprite.SelfModulate, Is.EqualTo(new Color(0f,1f,0f)));
+            Assert.That(sprite.Scale, Is.EqualTo(Vector2.One));
+            Assert.That(sprite.Position, Is.EqualTo(original));
+            Assert.That(sprite.Rotation, Is.EqualTo(3f));
+        }
+
+        [Test]
+        public async Task PivotSpriteRestoreTests2() {
             var sprite = await CreateSprite();
             var original = new Vector2(2f, 3f);
             sprite.GlobalPosition = original;
