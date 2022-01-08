@@ -10,7 +10,7 @@ namespace Betauer.Animation {
         public abstract Node Target { get; }
     }
 
-    internal class InterpolateAction<TProperty> : Object {
+    internal class InterpolateAction<TProperty> : DisposeSnitchObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action<TProperty> _callback;
 
@@ -32,17 +32,12 @@ namespace Betauer.Animation {
             Dispose();
         }
 
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
-
         internal void CallFromGodot(TProperty value) {
             _callback.Invoke(value);
         }
     }
 
-    internal class DelayedAction : Object {
+    internal class DelayedAction : DisposeSnitchObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
 
@@ -65,14 +60,9 @@ namespace Betauer.Animation {
                 Dispose();
             }
         }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
     }
 
-    internal class DelayedActionWithNode : Object {
+    internal class DelayedActionWithNode : DisposeSnitchObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action<Node> _callback;
         private readonly Node _node;
@@ -97,12 +87,6 @@ namespace Betauer.Animation {
                 Dispose();
             }
         }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
-
     }
 
     internal class CallbackTweener : ITweener {

@@ -15,9 +15,10 @@ namespace Betauer.Animation {
         public TBuilder Reset();
     }
 
-    public abstract class RepeatablePlayer<TBuilder> : Object /* needed to be callable by interpolate_callback */,
+    public abstract class RepeatablePlayer<TBuilder> : DisposeSnitchObject /* needed to be callable by interpolate_callback */,
         ITweenPlayer<TBuilder> where TBuilder : class {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(RepeatablePlayer<>));
+        private bool _disposed = false;
 
         protected bool Started = false;
         protected bool Running = false;
@@ -110,6 +111,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Stop() {
+            if (_disposed) return this as TBuilder;
             if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Stop with a freed Tween instance");
                 return this as TBuilder;
@@ -123,6 +125,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Reset() {
+            if (_disposed) return this as TBuilder;
             if (!IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Reset with a freed Tween instance");
                 return this as TBuilder;
@@ -138,20 +141,12 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        private bool _disposed = false;
 
         protected override void Dispose(bool disposing) {
-            try {
-                if (!disposing) GD.Print("Shutdown disposing "+GetType());
-                if (!_disposed) {
-                    _disposed = true;
-                    if (IsInstanceValid(Tween)) {
-                        Tween.QueueFree();
-                    }
-                }
-            } finally {
-                base.Dispose(disposing);
-            }
+            if (_disposed) return;
+            _disposed = true;
+            base.Dispose(disposing);
+            if (disposing && IsInstanceValid(Tween)) Tween.QueueFree();
         }
 
         protected abstract void OnStart();

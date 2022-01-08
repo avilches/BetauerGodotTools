@@ -42,7 +42,7 @@ namespace Betauer.Animation {
     }
 
 
-    public class LoopStatus : Object {
+    public class LoopStatus : DisposeSnitchObject /* needed to listen the signal from tween callback */ {
         /// <summary>
         /// Returns the number of total Loops for the sequence. -1 means infinite loops.
         /// </summary>
@@ -91,11 +91,6 @@ namespace Betauer.Animation {
         public LoopStatus Finish() {
             Loops = 0;
             return this;
-        }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
         }
 
         private void ExecuteLoop(float delay) {

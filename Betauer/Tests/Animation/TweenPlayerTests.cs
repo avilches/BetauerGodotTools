@@ -10,6 +10,7 @@ using Betauer.TestRunner;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
+    [Only]
     public class TweenPlayerTests : NodeTest {
         [SetUp]
         public void SetUp() {

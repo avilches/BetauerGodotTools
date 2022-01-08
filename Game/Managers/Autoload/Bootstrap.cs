@@ -19,7 +19,6 @@ namespace Veronenger.Game.Managers.Autoload {
         public override void _Ready() {
             Name = nameof(Bootstrap);
             // MicroBenchmarks();
-            GameManager.IsRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
             this.DisableAllNotifications();
         }
 
@@ -38,10 +37,13 @@ namespace Veronenger.Game.Managers.Autoload {
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
                 LoggerFactory.AddFileWriter(logPath);
             }
+
+            DisposeSnitchObject.ShowShutdownWarning = true;
+
             LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
             LoggerFactory.IncludeTimestamp(true);
-
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
+
             // Tools
             LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Off);

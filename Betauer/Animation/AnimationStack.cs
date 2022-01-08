@@ -31,12 +31,7 @@ namespace Betauer.Animation {
         public IOnceStatus OnEnd(Callback callback);
     }
 
-    public class AnimationStack : Object /* needed to listen signals */ {
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
-
+    public class AnimationStack : DisposeSnitchObject /* needed to listen signals */ {
         private class Status {
             public string Name { get; }
             public bool Playing { get; private set; }

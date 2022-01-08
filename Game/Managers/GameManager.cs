@@ -64,8 +64,6 @@ namespace Veronenger.Game.Managers {
         // public static Vector2 UWDIE24_5 = new Vector2(7680, 3200);
         // public static Vector2 UWDIE24_6 = new Vector2(8640, 3600);
 
-        public bool IsRunningTests = false;
-
         private SceneTree _sceneTree;
         public override void _Ready() {
             _sceneTree = GetTree();
@@ -77,7 +75,9 @@ namespace Veronenger.Game.Managers {
         private void ConfigureScreen() {
             SceneTree tree = GetTree();
             Viewport rootViewport = GetNode<Viewport>("/root");
-            if (IsRunningTests) {
+            var isRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
+            if (isRunningTests) {
+                DisposeSnitchObject.ShowShutdownWarning = false;
                 ScreenManager = new ScreenManager(tree, rootViewport,FULLHD_DIV1_2, SceneTree.StretchMode.Disabled,
                     SceneTree.StretchAspect.Expand);
                 ScreenManager.Configure(false, 1, false);
@@ -106,7 +106,6 @@ namespace Veronenger.Game.Managers {
         public void Quit() {
             if (_quited) return;
             _quited = true;
-            DiBootstrap.DefaultRepository.Dispose();
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
             _sceneTree.Quit();
         }

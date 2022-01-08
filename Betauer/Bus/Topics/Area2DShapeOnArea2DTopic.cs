@@ -35,7 +35,7 @@ namespace Betauer.Bus.Topics {
      * The topic listen for all signals of area_entered and area_exited in all the Area2D added by the method AddArea2D
      * To receive this event, subscribe to them.
      */
-    public class Area2DShapeOnArea2DTopic  : Object /* needed to connect to signals */ {
+    public class Area2DShapeOnArea2DTopic  : DisposeSnitchObject /* needed to connect to signals */ {
         private GodotTopic<Area2DShapeOnArea2D> _enterTopic;
         private GodotTopic<Area2DShapeOnArea2D> _exitTopic;
 
@@ -82,11 +82,5 @@ namespace Betauer.Bus.Topics {
         public void _AreaExited(RID area2dRid, Area2D detected, int areaShape, int localShape, Area2D origin) {
             _exitTopic?.Publish(new Area2DShapeOnArea2D(area2dRid, detected, areaShape, localShape, origin));
         }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
-
     }
 }

@@ -9,7 +9,7 @@ using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class CharacterManager : Object /* needed to receive signals */ {
+    public class CharacterManager : Object /* needed to receive signals TODO: it shouldn't be! */{
         private const string GROUP_ENEMY = "enemy";
 
         public PlayerController PlayerController { get; private set; }
@@ -102,11 +102,5 @@ namespace Veronenger.Game.Managers {
             // TODO: Send an event instead?
             GameManager.ChangeScene(scene);
         }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
-        }
-
     }
 }

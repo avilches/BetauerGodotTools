@@ -8,6 +8,21 @@ using static Godot.Mathf;
 using Object = Godot.Object;
 
 namespace Betauer {
+
+    public class DisposeSnitchObject : Object {
+        public static bool ShowShutdownWarning = true;
+
+        private bool _warning = true;
+        public void DisableNoDisposedOnShutdownWarning() {
+            _warning = false;
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (!disposing && ShowShutdownWarning) GD.PushWarning($"Shutdown disposing {GetType()}");
+            base.Dispose(disposing);
+        }
+    }
+
     public static class GodotExtension {
         public static T FindFirstChild<T>(this Node parent) where T : class {
             var count = parent.GetChildCount();

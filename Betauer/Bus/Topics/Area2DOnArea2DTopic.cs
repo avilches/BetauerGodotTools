@@ -56,7 +56,7 @@ namespace Betauer.Bus.Topics {
      * StatusSubscriber. It will return a Area2DOnArea2DStatus where the internal variable IsOverlapping will be
      * updated by the events in real time.
      */
-    public class Area2DOnArea2DTopic  : Object /* needed to connect to signals */ {
+    public class Area2DOnArea2DTopic  : DisposeSnitchObject /* needed to connect to signals */ {
         private GodotTopic<Area2DOnArea2D> _enterTopic;
         private GodotTopic<Area2DOnArea2D> _exitTopic;
 
@@ -119,11 +119,6 @@ namespace Betauer.Bus.Topics {
         public void ClearListeners() {
             EnterTopic.EventListeners.Clear();
             ExitTopic.EventListeners.Clear();
-        }
-
-        protected override void Dispose(bool disposing) {
-            if (!disposing) GD.Print("Shutdown disposing "+GetType());
-            base.Dispose(disposing);
         }
     }
 }
