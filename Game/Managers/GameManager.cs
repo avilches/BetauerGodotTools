@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using Betauer;
+using Veronenger.Game.Managers.Autoload;
 using Veronenger.Game.Tools.Resolution;
 
 namespace Veronenger.Game.Managers {
@@ -73,16 +74,7 @@ namespace Veronenger.Game.Managers {
             InputManager.ConfigureMapping();
             this.DisableAllNotifications();
 
-            var domain = AppDomain.CurrentDomain;
-            // domain.UnhandledException += (sender, args) => {
-                // GD.Print();
-            // };
-            domain.ProcessExit += (sender, args) => {
-                Console.WriteLine("PROCESS EXIT");
-                Shutdown();
-            };
-            // domain.DomainUnload += new EventHandler(domain_DomainUnload);
-
+            _logger.Info(OS.GetName() + " application started in "+Bootstrap.Uptime.TotalMilliseconds+" ms");
         }
 
         private void ConfigureScreen() {
@@ -91,12 +83,12 @@ namespace Veronenger.Game.Managers {
             var isRunningTests = GetTree().CurrentScene.Filename == "res://Tests/Runner/RunTests.tscn";
             if (isRunningTests) {
                 DisposeSnitchObject.ShowShutdownWarning = false;
-                ScreenManager = new ScreenManager(tree, rootViewport,FULLHD_DIV1_2, SceneTree.StretchMode.Disabled,
+                ScreenManager = new ScreenManager(tree, rootViewport, FULLHD_DIV1_2, SceneTree.StretchMode.Disabled,
                     SceneTree.StretchAspect.Expand);
                 ScreenManager.Configure(false, 1, false);
             } else {
                 ScreenManager = new ScreenManager(tree, rootViewport, FULLHD_DIV4, SceneTree.StretchMode.Viewport,
-                SceneTree.StretchAspect.Keep);
+                    SceneTree.StretchAspect.Keep);
                 ScreenManager.Configure(false, 3, false);
             }
             tree.Connect(GodotConstants.GODOT_SIGNAL_screen_resized, this, nameof(OnScreenResized));
@@ -116,23 +108,29 @@ namespace Veronenger.Game.Managers {
         }
 
         private bool _quited = false;
+
         public void Quit() {
-            _logger.Info("User requested exit the application");
             if (_quited) return;
             _quited = true;
-            Shutdown();
+            Shutdown(true);
             _sceneTree.Quit();
         }
 
         public override void _Notification(int what) {
             if (what == MainLoop.NotificationWmQuitRequest) {
-                _logger.Info("Application is closed by notification");
-                Shutdown();
+                Shutdown(false);
             }
         }
 
-        private void Shutdown() {
-            _logger.Info("Shutting down resources");
+        private void Shutdown(bool userRequested) {
+            var timespan = Bootstrap.Uptime;
+            var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
+            if (userRequested) {
+                _logger.Info("Application is closed by " + OS.GetName() + " notification. Uptime: " +
+                             elapsed);
+            } else {
+                _logger.Info("User requested exit the application. Uptime: " + elapsed);
+            }
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
         }
     }
