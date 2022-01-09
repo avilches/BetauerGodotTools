@@ -13,6 +13,9 @@ using Path = System.IO.Path;
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
 
+        public static readonly DateTime StartTime = DateTime.Now;
+        public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
+
         /*
          * Boostrap is the only Autoload node
          * It inherits from DiBootstrap, so all the singletons are scanned and loaded.
@@ -22,7 +25,7 @@ namespace Veronenger.Game.Managers.Autoload {
         public GameManager GameManager;
 
         public override void _Ready() {
-            Name = nameof(Bootstrap);
+            Name = nameof(Bootstrap); // This name is shown in the remote editor
             // MicroBenchmarks();
             this.DisableAllNotifications();
         }
