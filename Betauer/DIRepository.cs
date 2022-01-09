@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Godot;
@@ -36,14 +37,16 @@ namespace Betauer {
             return (T)_singletons[type];
         }
 
-        public void Scan(Node node) {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        public void Scan(Node bootstrap) {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            // var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = new[] { bootstrap.GetType().Assembly };
             int types = 0, added = 0;
             foreach (var assembly in assemblies) {
                 foreach (Type type in assembly.GetTypes()) {
                     types++;
                     if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
-                        false) is SingletonAttribute sa) {
+                            false) is SingletonAttribute sa) {
                         var instance = CreateSingletonInstance(type);
                         AddSingleton(instance);
                         added++;
@@ -52,17 +55,22 @@ namespace Betauer {
                     }
                 }
             }
-            _logger.Info("Scanned "+types+" types. Added "+added);
 
             bool error = false;
+            int nodes = 0;
             foreach (var instance in _singletons.Values) {
                 error |= InjectFields(instance);
                 if (instance is Node nodeInstance) {
                     nodeInstance.Name = nodeInstance.GetType().Name;
-                    _logger.Info("Adding singleton node "+nodeInstance.GetType().Name+" as Bootstrap child");
-                    node.AddChild(nodeInstance);
+                    _logger.Info("Adding singleton node " + nodeInstance.GetType().Name + " as Bootstrap Node child");
+                    nodes++;
+                    bootstrap.AddChild(nodeInstance);
                 }
             }
+            _logger.Info("Scanned " + types + " types. Singletons: " + added + ". Nodes: " + nodes + ". Elapsed time: " +
+                         stopwatch.ElapsedMilliseconds+" ms");
+            stopwatch.Stop();
+
             if (error) {
                 throw new Exception("Scan error. Check the console output");
             }
@@ -96,7 +104,7 @@ namespace Betauer {
                 var found = _singletons.TryGetValue(property.FieldType, out object instance);
                 if (!found) {
                     _logger.Error("Injectable property [" + property.FieldType.Name + " " + property.Name +
-                                  "] not found while injecting fields in "+target.GetType().Name);
+                                  "] not found while injecting fields in " + target.GetType().Name);
                     error = true;
                 }
                 property.SetValue(target, instance);
@@ -109,7 +117,7 @@ namespace Betauer {
             var privateFields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var property in privateFields.Concat(publicFields)) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
-                    onReady))
+                        onReady))
                     continue;
                 var instance = target.GetNode(onReady.Path);
                 var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.FieldType.Name + " " +
@@ -230,7 +238,8 @@ namespace Betauer {
     /**
      * DiBootstrap. Singleton + Node + Special Di (scan all + autowire ifself)
      */
-    public abstract class DiBootstrap : Node /* needed because 1) it's an autoload 2) all Node singletons scanned will be added as child */ {
+    public abstract class
+        DiBootstrap : Node /* needed because 1) it's an autoload 2) all Node singletons scanned will be added as child */ {
         public static DiRepository DefaultRepository;
         public static DiBootstrap Instance;
 
@@ -248,5 +257,4 @@ namespace Betauer {
             return new DiRepository();
         }
     }
-
 }
