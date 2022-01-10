@@ -20,5 +20,7 @@ namespace Betauer {
 
         public const string GODOT_SIGNAL_physics_frame = "physics_frame";
         public const string GODOT_SIGNAL_idle_frame = "idle_frame";
+
+        public const string GODOT_SIGNAL_pressed = "pressed";
     }
 }
