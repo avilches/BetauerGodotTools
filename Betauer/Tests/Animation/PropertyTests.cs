@@ -735,7 +735,7 @@ namespace Betauer.Tests.Animation {
             control.RectPosition += Vector2.One;
             control.RectRotation *= 3f;
 
-            status.Rollback();
+            status.Restore();
 
             Assert.That(control.RectPivotOffset, Is.EqualTo(original));
             Assert.That(control.Modulate, Is.EqualTo(new Color(0f,1f,0f)));
@@ -767,7 +767,7 @@ namespace Betauer.Tests.Animation {
             sprite.Position += Vector2.One;
             sprite.Rotation *= 3f;
 
-            status.Rollback();
+            status.Restore();
 
             Assert.That(sprite.Offset, Is.EqualTo(original));
             Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
@@ -795,7 +795,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(sprite.Offset, Is.Not.EqualTo(original));
             Assert.That(sprite.GlobalPosition, Is.Not.EqualTo(original));
 
-            pivotCenterBottom.Rollback();
+            pivotCenterBottom.Restore();
             GD.Print(sprite.Offset);
             GD.Print(sprite.GlobalPosition);
             Assert.That(sprite.Offset, Is.EqualTo(original));
