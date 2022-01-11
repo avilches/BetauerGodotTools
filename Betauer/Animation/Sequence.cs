@@ -195,7 +195,7 @@ namespace Betauer.Animation {
      * Shared between Regular (sequence builders w/o player) and template builder
      */
     public abstract class AbstractSequenceBuilder<TBuilder> : MutableSequence where TBuilder : class {
-        private bool _parallel = false;
+        protected bool _parallel = false;
 
         internal AbstractSequenceBuilder(bool createEmptyTweenList) {
             if (createEmptyTweenList) {
@@ -510,7 +510,7 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder ImportTemplate(SequenceTemplate sequence, Node target, float duration = -1) {
+        public TBuilder ImportTemplate(SequenceTemplate sequence, Node target = null, float duration = -1) {
             DefaultTarget = target;
 
             if (TweenList == null || TweenList.Count == 0) {
@@ -518,8 +518,18 @@ namespace Betauer.Animation {
                 ImportedFromTemplate = true;
             } else {
                 CloneTweenListIfNeeded();
+                var first = true;
                 foreach (var parallelGroup in sequence.TweenList) {
-                    TweenList.Add(parallelGroup);
+                    if (first && _parallel) {
+                        // TODO: this not tested
+                        foreach (var tweener in parallelGroup) {
+                            TweenList.Last().Add(tweener);
+                        }
+                        _parallel = false;
+                    } else {
+                        TweenList.Add(parallelGroup);
+                    }
+                    first = false;
                 }
             }
             Speed = sequence.Speed;
