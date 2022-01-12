@@ -260,6 +260,12 @@ namespace Betauer {
         }
 
 
+        public void Fatal(Exception e) => Log(TraceLevel.Fatal, e);
+        public void Error(Exception e) => Log(TraceLevel.Error, e);
+        public void Warning(Exception e) => Log(TraceLevel.Warning, e);
+        public void Info(Exception e) => Log(TraceLevel.Info, e);
+        public void Debug(Exception e) => Log(TraceLevel.Debug, e);
+
         public void Fatal(string message) => Log(TraceLevel.Fatal, message);
         public void Error(string message) => Log(TraceLevel.Error, message);
         public void Warning(string message) => Log(TraceLevel.Warning, message);
@@ -283,6 +289,10 @@ namespace Betauer {
             return Enabled && level <= MaxTraceLevel;
         }
 
+        private void Log(TraceLevel level, Exception e) {
+            Log(level, e.GetType() + ": " + e.Message + "\n" + e.StackTrace);
+        }
+
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
             if (LoggerFactory.Instance.RemoveDuplicates && LoggerFactory.Instance._lastLog.Equals(message)) {
@@ -294,7 +304,8 @@ namespace Betauer {
             if (LoggerFactory.Instance._lastLogTimes > 1) {
                 // Print old lines + times
                 var timestamp = LoggerFactory.Instance._includeTimestamp ? "                      " : "";
-                WriteLog(_lastLogTraceLevel, timestamp,LoggerFactory.Instance._lastLogTimes.ToString(), LoggerFactory.Instance._lastLog);
+                WriteLog(_lastLogTraceLevel, timestamp, LoggerFactory.Instance._lastLogTimes.ToString(),
+                    LoggerFactory.Instance._lastLog);
             }
             LoggerFactory.Instance._lastLog = message;
             LoggerFactory.Instance._lastLogTimes = 1;
@@ -355,7 +366,6 @@ namespace Betauer {
 
         public void WriteLine(string line) {
             if (!_disposed) _delegate.WriteLine(line);
-
         }
 
         public void Flush() {
@@ -370,6 +380,4 @@ namespace Betauer {
             _delegate.Dispose();
         }
     }
-
-
 }
