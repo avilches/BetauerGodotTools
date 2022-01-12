@@ -1,43 +1,54 @@
 using Godot;
 
 namespace Betauer.Animation {
-    public interface IRestorer {
-        public void Restore();
-    }
+    public abstract class Restorer {
+        public bool HasSavedState { get; private set; } = false;
 
-    public static class RestoreExtensions {
-        public static IRestorer Save(this Node2D node) {
-            return new Node2DRestorer(node).Save();
-        }
-
-        public static IRestorer Save(this Control node) {
-            return new ControlRestorer(node).Save();
-        }
-    }
-
-    public class Node2DRestorer : IRestorer {
-        private IRestorer? _pivotOffsetRestorer;
-        private Color _modulate;
-        private Color _selfModulate;
-        private Transform2D _transform;
-        private readonly Node2D _node2D;
-        private bool _saved = false;
-
-        public Node2DRestorer(Node2D node2D) {
-            _node2D = node2D;
-        }
-
-        public Node2DRestorer Save() {
-            _pivotOffsetRestorer = _node2D is Sprite sprite ? new SpritePivotOffsetRestorer(sprite) : null;
-            _modulate = _node2D.Modulate;
-            _selfModulate = _node2D.SelfModulate;
-            _transform = _node2D.Transform;
-            _saved = true;
+        public Restorer Save() {
+            DoSave();
+            HasSavedState = true;
             return this;
         }
 
-        public void Restore() {
-            if (!_saved) return;
+        public Restorer Restore() {
+            if (!HasSavedState) return this;
+            DoRestore();
+            return this;
+        }
+
+        protected abstract void DoSave();
+        protected abstract void DoRestore();
+    }
+
+    public static class RestoreExtensions {
+        public static Restorer CreateRestorer(this Node node) {
+            return node switch {
+                Node2D node2D => new Node2DRestorer(node2D),
+                Control control => new ControlRestorer(control),
+                _ => DummyRestorer.Instance
+            };
+        }
+    }
+
+    public class Node2DRestorer : Restorer {
+        private readonly Node2D _node2D;
+        private readonly Restorer? _pivotOffsetRestorer;
+        private Color _modulate;
+        private Color _selfModulate;
+        private Transform2D _transform;
+
+        public Node2DRestorer(Node2D node2D) {
+            _node2D = node2D;
+            _pivotOffsetRestorer = _node2D is Sprite sprite ? new SpritePivotOffsetRestorer(sprite) : null;
+        }
+
+        protected override void DoSave() {
+            _modulate = _node2D.Modulate;
+            _selfModulate = _node2D.SelfModulate;
+            _transform = _node2D.Transform;
+        }
+
+        protected override void DoRestore() {
             _pivotOffsetRestorer?.Restore();
             _node2D.Modulate = _modulate;
             _node2D.SelfModulate = _selfModulate;
@@ -45,33 +56,29 @@ namespace Betauer.Animation {
         }
     }
 
-    public class ControlRestorer : IRestorer {
-        private IRestorer _pivotOffsetRestorer;
+    public class ControlRestorer : Restorer {
+        private readonly Control _control;
+        private readonly Restorer _pivotOffsetRestorer;
         private Color _modulate;
         private Color _selfModulate;
         private Vector2 _position;
         private Vector2 _scale;
         private float _rotation;
-        private readonly Control _control;
-        public bool HasSavedState { get; private set; } = false;
 
         public ControlRestorer(Control control) {
             _control = control;
+            _pivotOffsetRestorer = new RectPivotOffsetRestorer(_control);
         }
 
-        public ControlRestorer Save() {
-            _pivotOffsetRestorer = new RectPivotOffsetRestorer(_control);
+        protected override void DoSave() {
             _modulate = _control.Modulate;
             _selfModulate = _control.SelfModulate;
             _position = _control.RectPosition;
             _scale = _control.RectScale;
             _rotation = _control.RectRotation;
-            HasSavedState = true;
-            return this;
         }
 
-        public void Restore() {
-            if (!HasSavedState) return;
+        protected override void DoRestore() {
             _control.Modulate = _modulate;
             _control.SelfModulate = _selfModulate;
             _control.RectPosition = _position;
@@ -81,44 +88,53 @@ namespace Betauer.Animation {
         }
     }
 
-    public class RectPivotOffsetRestorer : IRestorer {
+    public class RectPivotOffsetRestorer : Restorer {
         private readonly Control _node;
-        private readonly Vector2 _originalRectPivotOffset;
+        private Vector2 _originalRectPivotOffset;
 
         public RectPivotOffsetRestorer(Control node) {
             _node = node;
-            _originalRectPivotOffset = node.RectPivotOffset;
         }
 
-        public void Restore() {
+        protected override void DoSave() {
+            _originalRectPivotOffset = _node.RectPivotOffset;
+        }
+
+        protected override void DoRestore() {
             _node.RectPivotOffset = _originalRectPivotOffset;
         }
     }
 
-    public class SpritePivotOffsetRestorer : IRestorer {
+    public class SpritePivotOffsetRestorer : Restorer {
         private readonly Sprite _node;
-        private readonly Vector2 _offset;
-        private readonly Vector2 _globalPosition;
+        private Vector2 _offset;
+        private Vector2 _globalPosition;
 
         public SpritePivotOffsetRestorer(Sprite node) {
             _node = node;
-            _offset = node.Offset;
-            _globalPosition = node.GlobalPosition;
         }
 
-        public void Restore() {
+        protected override void DoSave() {
+            _offset = _node.Offset;
+            _globalPosition = _node.GlobalPosition;
+        }
+
+        protected override void DoRestore() {
             _node.Offset = _offset;
             _node.GlobalPosition = _globalPosition;
         }
     }
 
-    public class DummyRestorer : IRestorer {
-        public static readonly IRestorer Instance = new DummyRestorer();
+    public class DummyRestorer : Restorer {
+        public static readonly Restorer Instance = new DummyRestorer();
 
         private DummyRestorer() {
         }
 
-        public void Restore() {
+        protected override void DoSave() {
+        }
+
+        protected override void DoRestore() {
         }
     }
 }

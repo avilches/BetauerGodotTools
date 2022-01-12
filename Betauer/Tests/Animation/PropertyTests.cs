@@ -727,7 +727,7 @@ namespace Betauer.Tests.Animation {
             control.RectPosition = original;
             control.RectRotation = 3f;
 
-            var status = control.Save();
+            var status = control.CreateRestorer().Save();
             control.SetRotateOriginToBottomCenter();
             control.Modulate = new Color(0.1f,0.2f,0.3f);
             control.SelfModulate = new Color(0.1f,0.2f,0.3f);
@@ -759,7 +759,7 @@ namespace Betauer.Tests.Animation {
             sprite.Position = original;
             sprite.Rotation = 3f;
 
-            var status = sprite.Save();
+            var status = sprite.CreateRestorer().Save();
             sprite.SetRotateOriginToBottomCenter();
             sprite.Modulate = new Color(0.1f,0.2f,0.3f);
             sprite.SelfModulate = new Color(0.1f,0.2f,0.3f);
