@@ -91,14 +91,23 @@ namespace Betauer.UI {
             try {
                 viewport.GuiDisableInput = true;
                 if (goodbyeAnimation != null) {
-                    await goodbyeAnimation(transition);
+                    try {
+                        await goodbyeAnimation(transition);
+                    } catch (Exception e) {
+                        Logger.Error(e);
+                    }
                 }
                 transition.FromMenu.Hide();
+                transition.FromMenu.Restore();
 
                 transition.ToMenu.Restore();
-                await transition.ToMenu.Show(transition.ToButton);
+                transition.ToMenu.Show(transition.ToButton);
                 if (newMenuAnimation != null) {
-                    await newMenuAnimation(transition);
+                    try {
+                        await newMenuAnimation(transition);
+                    } catch (Exception e) {
+                        Logger.Error(e);
+                    }
                 }
                 _activeMenu = transition.ToMenu;
             } finally {
