@@ -20,8 +20,8 @@ namespace Betauer.UI {
             baseHolder.Hide();
         }
 
-        public ActionMenu AddMenu(string name) {
-            var menu = new ActionMenu(this, name, _baseHolder);
+        public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {
+            var menu = new ActionMenu(this, name, _baseHolder, onShow);
             _menus.Add(menu);
             return menu;
         }
@@ -79,7 +79,7 @@ namespace Betauer.UI {
         internal async Task PlayTransition(
             MenuTransition transition, Func<MenuTransition, Task>? goodbyeAnimation,
             Func<MenuTransition, Task>? newMenuAnimation) {
-            var viewport = transition.FromMenu.Parent.GetTree().Root;
+            var viewport = transition.FromMenu.CanvasItem.GetTree().Root;
             try {
                 viewport.GuiDisableInput = true;
                 if (goodbyeAnimation != null) {
@@ -101,20 +101,22 @@ namespace Betauer.UI {
 
 
     public class ActionMenu {
+        private readonly Action<ActionMenu> _onShow;
         private readonly Restorer _saver;
         internal readonly MenuController MenuController;
         public readonly List<Node> Children = new List<Node>();
 
         public readonly string Name;
-        public CanvasItem Parent { get; }
+        public CanvasItem CanvasItem { get; }
         public bool WrapButtons { get; set; } = true;
 
-        internal ActionMenu(MenuController menuController, string name, CanvasItem baseHolder) {
+        internal ActionMenu(MenuController menuController, string name, CanvasItem baseHolder, Action<ActionMenu> onShow) {
             MenuController = menuController;
             Name = name;
-            Parent = baseHolder.Duplicate() as Control;
+            CanvasItem = baseHolder.Duplicate() as Control;
             _saver = baseHolder.CreateRestorer();
-            baseHolder.GetParent().AddChildBelowNode(baseHolder, Parent);
+            _onShow = onShow;
+            baseHolder.GetParent().AddChildBelowNode(baseHolder, CanvasItem);
         }
 
         public ActionMenu Save() {
@@ -188,7 +190,7 @@ namespace Betauer.UI {
             Control? first = null;
             Control? last = null;
             var takeNextFocus = false;
-            foreach (var child in Parent.GetChildren()) {
+            foreach (var child in CanvasItem.GetChildren()) {
                 if (focused == null
                     && child is ActionButton control
                     && Children.Contains(control) // if the focused button doesn't belongs to the menu, ignore
@@ -200,38 +202,38 @@ namespace Betauer.UI {
                         focused = control;
                     }
                 }
-                Parent.RemoveChild(child as Node);
+                CanvasItem.RemoveChild(child as Node);
             }
             foreach (var actionButton in Children) {
                 if (actionButton is Control control) {
                     if (control is BaseButton { Disabled: true } button) {
-                        button.FocusMode = Control.FocusModeEnum.None;
-                        Parent.AddChild(actionButton as Control);
+                        button.FocusMode = Godot.Control.FocusModeEnum.None;
+                        CanvasItem.AddChild(actionButton as Control);
                         last = control;
                     } else {
                         if (first == null) {
                             first = control;
                         }
-                        Parent.AddChild(actionButton as Control);
+                        CanvasItem.AddChild(actionButton as Control);
                         last = control;
-                        control.FocusMode = Control.FocusModeEnum.All;
+                        control.FocusMode = Godot.Control.FocusModeEnum.All;
                     }
                 } else {
-                    Parent.AddChild(actionButton);
+                    CanvasItem.AddChild(actionButton);
                 }
             }
             if (WrapButtons && first != null && last != null && first != last) {
-                if (Parent is VBoxContainer) {
+                if (CanvasItem is VBoxContainer) {
                     first.FocusNeighbourTop = "../" + last.Name;
                     last.FocusNeighbourBottom = "../" + first.Name;
-                } else if (Parent is HBoxContainer) {
+                } else if (CanvasItem is HBoxContainer) {
                     first.FocusNeighbourLeft = "../" + last.Name;
                     last.FocusNeighbourRight = "../" + first.Name;
                 }
             }
             focused ??= first;
             if (focused != null) {
-                await Parent.GetTree().AwaitIdleFrame();
+                await CanvasItem.GetTree().AwaitIdleFrame();
                 focused.GrabFocus();
             }
             return this;
@@ -255,16 +257,17 @@ namespace Betauer.UI {
         */
 
         public IEnumerable GetButtons() {
-            return Parent.GetChildren();
+            return CanvasItem.GetChildren();
         }
 
         public void Hide() {
-            Parent.Hide();
+            CanvasItem.Hide();
         }
 
         public async Task Show(ActionButton? focused = null) {
+            _onShow?.Invoke(this);
             await Refresh(focused);
-            Parent.Show();
+            CanvasItem.Show();
         }
 
         public ActionButton? GetButton(string name) {
@@ -278,6 +281,7 @@ namespace Betauer.UI {
         public T? GetControl<T>(string name) where T : Control {
             return (T?)Children.Find(button => button.Name == name && button is T);
         }
+
     }
 
 
