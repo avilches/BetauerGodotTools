@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
@@ -19,50 +20,63 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override async void Ready() {
             _launcher = new Launcher().CreateNewTween(this);
-            _menuController = await BuildMenu();
+            _menuController = BuildMenu();
+            _menuController.Start("Root");
             // Go(_mainMenu, _options, _optionsMenu);
         }
 
-        public async Task<MenuController> BuildMenu() {
+        public MenuController BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("NewGame", "New game", (ctx) => {
+                .AddButton("NewGame", "New game", async (ctx) => {
                     GD.Print("New Game");
                     var continueButton = ctx.Menu.GetButton("Continue");
                     continueButton!.Disabled = !continueButton.Disabled;
-                    continueButton.Restore();
+                    await _launcher.Play(Template.FadeIn, continueButton, 0f,
+                            MenuEffectTime)
+                        .Await();
+                    continueButton.Save();
+
                     ctx.Refresh();
                 })
                 .AddButton("Continue", "Continue", async (ctx) => {
                     GD.Print("Continue");
                     ctx.ActionButton.Disabled = true;
-                    await ctx.Refresh();
+                    ctx.Refresh();
                     await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
                             MenuEffectTime)
                         .Await();
+                    ctx.ActionButton.Save();
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
-                .AddButton("Quit", "Quit", (ctx) => GameManager.Quit())
-                .Save();
+                .AddButton("Quit", "Quit", (ctx) => GameManager.Quit());
 
+            var hSeparator = new HSeparator();
+            hSeparator.Name = "Sep";
+            mainMenu.AddMenu("Options", (menu) => {
+                    GD.Print(menu.Name);
+                })
+                .AddButton("Video", "Video", () => {
+                    Exception e = null;
+                    var eMessage = e.Message;
+                    GD.Print("New Game");
 
-            mainMenu.AddMenu("Options")
-                .AddButton("Video", "Video", () => { GD.Print("New Game"); })
+                })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
-                .AddNode(new HSeparator())
-                .AddCheckButton("Sound", "Sound", (ctx) => GD.Print("Options "+ctx.ActionCheckButton.Pressed))
+                .AddNode(hSeparator)
+                .AddCheckButton("Sound", "Sound", (ctx) => {
+                    GD.Print("Options " + ctx.ActionCheckButton.Pressed);
+                    // hSeparator.GrabFocus();
+                })
                 .AddButton("Back", "Back", (ctx) =>
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
-                )
-                .Save();
+                );
 
             mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
             mainMenu.GetMenu("Options").GetCheckButton("Sound")!.Pressed = true;
-
-            await mainMenu.Show("Root");
             return mainMenu;
         }
 
@@ -71,7 +85,7 @@ namespace Veronenger.Game.Controller.Menu {
             GD.Print("Go1");
             await _launcher.Play(Template.RollOut, transition.FromButton, 0f, 0.25f).Await();
             GD.Print("Go2");
-            await _launcher.Play(Template.FadeOutDown, transition.FromMenu.Parent, 0f, 0.25f).Await();
+            await _launcher.Play(Template.FadeOutDown, transition.FromMenu.CanvasItem, 0f, 0.25f).Await();
         }
 
         private async Task GoNewMenuAnimation(MenuTransition transition) {
@@ -99,13 +113,13 @@ namespace Veronenger.Game.Controller.Menu {
 
 
         private async Task BackGoodbyeAnimation(MenuTransition transition) {
-            await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.Parent, 0f,
+            await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.CanvasItem, 0f,
                     MenuEffectTime)
                 .Await();
         }
 
         private async Task BackNewMenuAnimation(MenuTransition transition) {
-            await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.Parent, 0f,
+            await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.CanvasItem, 0f,
                     MenuEffectTime)
                 .Await();
         }
@@ -114,7 +128,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override void _Input(InputEvent @event) {
             if (@event.IsAction("ui_cancel")) {
-                _menuController.Back();
+                _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
             var action = InputManager.OnEvent(@event);
             if (action != null) {
