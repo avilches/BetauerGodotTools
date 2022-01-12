@@ -53,7 +53,7 @@ namespace Betauer.Animation {
         private Vector2 _scale;
         private float _rotation;
         private readonly Control _control;
-        private bool _saved = false;
+        public bool HasSavedState { get; private set; } = false;
 
         public ControlRestorer(Control control) {
             _control = control;
@@ -66,12 +66,12 @@ namespace Betauer.Animation {
             _position = _control.RectPosition;
             _scale = _control.RectScale;
             _rotation = _control.RectRotation;
-            _saved = true;
+            HasSavedState = true;
             return this;
         }
 
         public void Restore() {
-            if (!_saved) return;
+            if (!HasSavedState) return;
             _control.Modulate = _modulate;
             _control.SelfModulate = _selfModulate;
             _control.RectPosition = _position;
@@ -80,7 +80,6 @@ namespace Betauer.Animation {
             _pivotOffsetRestorer.Restore();
         }
     }
-
 
     public class RectPivotOffsetRestorer : IRestorer {
         private readonly Control _node;
