@@ -11,7 +11,10 @@ namespace Betauer.Animation {
         }
 
         public Restorer Restore() {
-            if (!HasSavedState) return this;
+            if (!HasSavedState) {
+                // GD.PushWarning("Restoring without saving before");
+                return this;
+            }
             DoRestore();
             return this;
         }
@@ -43,6 +46,7 @@ namespace Betauer.Animation {
         }
 
         protected override void DoSave() {
+            _pivotOffsetRestorer?.Save();
             _modulate = _node2D.Modulate;
             _selfModulate = _node2D.SelfModulate;
             _transform = _node2D.Transform;
@@ -58,16 +62,15 @@ namespace Betauer.Animation {
 
     public class ControlRestorer : Restorer {
         private readonly Control _control;
-        private readonly Restorer _pivotOffsetRestorer;
         private Color _modulate;
         private Color _selfModulate;
         private Vector2 _position;
         private Vector2 _scale;
         private float _rotation;
+        private Vector2 _rectPivotOffset;
 
         public ControlRestorer(Control control) {
             _control = control;
-            _pivotOffsetRestorer = new RectPivotOffsetRestorer(_control);
         }
 
         protected override void DoSave() {
@@ -76,15 +79,28 @@ namespace Betauer.Animation {
             _position = _control.RectPosition;
             _scale = _control.RectScale;
             _rotation = _control.RectRotation;
+            _rectPivotOffset = _control.RectPivotOffset;
+            // GD.Print("Save _modulate:" + _modulate);
+            // GD.Print("Save _selfModulate:" + _selfModulate);
+            // GD.Print("Save _position:" + _position);
+            // GD.Print("Save _scale:" + _scale);
+            // GD.Print("Save _rotation:" + _rotation);
+            // GD.Print("Save _rectPivotOffset:" + _rectPivotOffset);
         }
 
         protected override void DoRestore() {
+            // GD.Print("Restore _modulate from " + _control.Modulate +" to: "+ _modulate);
+            // GD.Print("Restore _selfModulate from " + _control.SelfModulate +" to: "+ _selfModulate);
+            // GD.Print("Restore _position from " + _control.RectPosition +" to: "+ _position);
+            // GD.Print("Restore _scale from " + _control.RectScale +" to: "+ _scale);
+            // GD.Print("Restore _rotation from " + _control.RectRotation +" to: "+ _rotation);
+            // GD.Print("Restore _rectPivotOffset from " + _control.RectPivotOffset +" to: "+ _rectPivotOffset);
             _control.Modulate = _modulate;
             _control.SelfModulate = _selfModulate;
             _control.RectPosition = _position;
             _control.RectScale = _scale;
             _control.RectRotation = _rotation;
-            _pivotOffsetRestorer.Restore();
+            _control.RectPivotOffset = _rectPivotOffset;
         }
     }
 
