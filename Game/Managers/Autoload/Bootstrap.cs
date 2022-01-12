@@ -11,8 +11,8 @@ using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
 
+    public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
@@ -21,11 +21,14 @@ namespace Veronenger.Game.Managers.Autoload {
          * It inherits from DiBootstrap, so all the singletons are scanned and loaded.
          * As soon as the GameManager is injected into the Bootstrap, the GameManager will initialize the screen
          */
-        [Inject]
-        public GameManager GameManager;
+        [Inject] public GameManager GameManager;
+
+        private const UnhandledExceptionPolicy UnhandledExceptionPolicyConfig = UnhandledExceptionPolicy.TerminateApplication;
+        private const bool LogToFileEnabled = false; // TODO: enabled by a parameter
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
+            CheckErrorPolicy(UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
             this.DisableAllNotifications();
         }
@@ -35,7 +38,6 @@ namespace Veronenger.Game.Managers.Autoload {
             return new DiRepository();
         }
 
-        private const bool LogToFileEnabled = false;
 
         private void ConfigureLoggerFactory() {
             LoggerFactory.Start(this);

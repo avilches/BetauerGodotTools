@@ -67,8 +67,8 @@ namespace Betauer {
                     bootstrap.AddChild(nodeInstance);
                 }
             }
-            _logger.Info("Scanned " + types + " types. Singletons: " + added + ". Nodes: " + nodes + ". Elapsed time: " +
-                         stopwatch.ElapsedMilliseconds+" ms");
+            _logger.Info(
+                $"Scanned {types} types. Singletons: {added}. Nodes: {nodes}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
             stopwatch.Stop();
 
             if (error) {
@@ -242,6 +242,7 @@ namespace Betauer {
         DiBootstrap : Node /* needed because 1) it's an autoload 2) all Node singletons scanned will be added as child */ {
         public static DiRepository DefaultRepository;
         public static DiBootstrap Instance;
+        public static readonly bool IsDevelopment = OS.HasFeature("editor");
 
         public DiBootstrap() {
             if (Instance != null) {
@@ -256,5 +257,48 @@ namespace Betauer {
         public virtual DiRepository CreateDiRepository() {
             return new DiRepository();
         }
+
+        public void CheckErrorPolicy(UnhandledExceptionPolicy unhandledExceptionPolicyConfig) {
+            var unhandledExceptionPolicySetting = GetUnhandledExceptionPolicySetting();
+            if (!IsDevelopment) {
+                // This is a release
+                if (unhandledExceptionPolicySetting == UnhandledExceptionPolicy.TerminateApplication) {
+                    // If the app can crash with just an exception, then better to crash as soon as possible
+                    throw new Exception(
+                        "Please, don't use export a release with the mono/unhandled_exception_policy as Terminate Application");
+                }
+            }
+            if (unhandledExceptionPolicySetting == UnhandledExceptionPolicy.LogError) {
+                GD.Print("Current unhandled exception policy: Log Error");
+                if (unhandledExceptionPolicyConfig == UnhandledExceptionPolicy.TerminateApplication) {
+                    WriteUnhandledExceptionPolicy(UnhandledExceptionPolicy.TerminateApplication);
+                }
+            } else if (unhandledExceptionPolicySetting == UnhandledExceptionPolicy.TerminateApplication) {
+                GD.Print("Current unhandled exception policy: Terminate Application");
+                if (unhandledExceptionPolicyConfig == UnhandledExceptionPolicy.LogError) {
+                    WriteUnhandledExceptionPolicy(UnhandledExceptionPolicy.LogError);
+                }
+            }
+        }
+
+        private void WriteUnhandledExceptionPolicy(UnhandledExceptionPolicy policy) {
+            GD.PushWarning("Writing mono/unhandled_exception_policy=" + policy +
+                           " in project.godot configuration. Restart to reload changes. Aborting...");
+            ProjectSettings.SetSetting("mono/unhandled_exception_policy", (int)policy);
+            ProjectSettings.Save();
+            GetTree().Quit();
+        }
+
+        private static UnhandledExceptionPolicy GetUnhandledExceptionPolicySetting() {
+            var x = ProjectSettings.GetSetting("mono/unhandled_exception_policy");
+            return x is int policy && policy == (int)UnhandledExceptionPolicy.LogError
+                ? UnhandledExceptionPolicy.LogError
+                : UnhandledExceptionPolicy.TerminateApplication;
+        }
+    }
+
+    public enum UnhandledExceptionPolicy {
+        TerminateApplication = 0,
+        LogError = 1
     }
 }
