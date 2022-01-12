@@ -79,7 +79,7 @@ namespace Betauer.UI {
         internal async Task PlayTransition(
             MenuTransition transition, Func<MenuTransition, Task>? goodbyeAnimation,
             Func<MenuTransition, Task>? newMenuAnimation) {
-            var viewport = transition.FromMenu.Control.GetTree().Root;
+            var viewport = transition.FromMenu.Parent.GetTree().Root;
             try {
                 viewport.GuiDisableInput = true;
                 if (goodbyeAnimation != null) {
@@ -101,31 +101,42 @@ namespace Betauer.UI {
 
 
     public class ActionMenu {
-        private readonly ControlRestorer _saver;
+        private readonly Restorer _saver;
         internal readonly MenuController MenuController;
-        public readonly List<ActionButton> Buttons = new List<ActionButton>();
+        public readonly List<Node> Children = new List<Node>();
 
         public readonly string Name;
-        public Control Control { get; }
-        public bool WrapButtons { get; set; }
+        public CanvasItem Parent { get; }
+        public bool WrapButtons { get; set; } = true;
 
-        internal ActionMenu(MenuController menuController, string name, Control baseHolder) {
+        internal ActionMenu(MenuController menuController, string name, CanvasItem baseHolder) {
             MenuController = menuController;
             Name = name;
-            Control = baseHolder.Duplicate() as Control;
-            _saver = new ControlRestorer(Control);
-            baseHolder.GetParent().AddChildBelowNode(baseHolder, Control);
+            Parent = baseHolder.Duplicate() as Control;
+            _saver = baseHolder.CreateRestorer();
+            baseHolder.GetParent().AddChildBelowNode(baseHolder, Parent);
         }
 
         public ActionMenu Save() {
             _saver.Save();
-            Buttons.ForEach(button => button.Save());
+            Children.ForEach(button => {
+                if (button is IActionControl control)
+                    control.Save();
+            });
             return this;
         }
 
         public ActionMenu Restore() {
             _saver.Restore();
-            Buttons.ForEach(button => button.Restore());
+            Children.ForEach(button => {
+                if (button is IActionControl control)
+                    control.Restore();
+            });
+            return this;
+        }
+
+        public ActionMenu AddNode(Node button) {
+            Children.Add(button);
             return this;
         }
 
@@ -133,8 +144,28 @@ namespace Betauer.UI {
             ActionButton button = new ActionButton(this);
             button.Name = name;
             button.Text = title;
-            Buttons.Add(button);
+            AddNode(button);
             return button;
+        }
+
+        public ActionCheckButton CreateCheckButton(string name, string title) {
+            ActionCheckButton button = new ActionCheckButton(this);
+            button.Name = name;
+            button.Text = title;
+            AddNode(button);
+            return button;
+        }
+
+        public ActionMenu AddCheckButton(string name, string title, Action<bool> action) {
+            var button = CreateCheckButton(name, title);
+            button.Action = action;
+            return this;
+        }
+
+        public ActionMenu AddCheckButton(string name, string title, Action<ActionCheckButton.Context> action) {
+            var button = CreateCheckButton(name, title);
+            button.ActionWithContext = action;
+            return this;
         }
 
         public ActionMenu AddButton(string name, string title, Action action) {
@@ -143,9 +174,9 @@ namespace Betauer.UI {
             return this;
         }
 
-        public ActionMenu AddButton(string name, string title, Action<ActionButton> action) {
+        public ActionMenu AddButton(string name, string title, Action<ActionButton.Context> action) {
             var button = CreateButton(name, title);
-            button.ActionWithButton = action;
+            button.ActionWithContext = action;
             return this;
         }
 
@@ -153,49 +184,54 @@ namespace Betauer.UI {
          * Rebuild the menu ensures disabled buttons are not selectable when using previous-next
          * wrap true = link the first and last buttons
          */
-        public async Task<ActionMenu> Refresh(ActionButton? focused = null) {
-            ActionButton? first = null;
-            ActionButton? last = null;
+        public async Task<ActionMenu> Refresh(Control? focused = null) {
+            Control? first = null;
+            Control? last = null;
             var takeNextFocus = false;
-            foreach (var child in Control.GetChildren()) {
-                if (focused == null && child is ActionButton control
-                                    && Buttons.Contains(
-                                        control) // if the focused button doesn't belongs to the menu, ignore
-                                    && (control.HasFocus() || takeNextFocus)) {
+            foreach (var child in Parent.GetChildren()) {
+                if (focused == null
+                    && child is ActionButton control
+                    && Children.Contains(control) // if the focused button doesn't belongs to the menu, ignore
+                    && (control.HasFocus() || takeNextFocus)) {
+
                     if (control.Disabled) {
                         takeNextFocus = true;
                     } else {
                         focused = control;
                     }
                 }
-                Control.RemoveChild(child as Node);
+                Parent.RemoveChild(child as Node);
             }
-            foreach (var actionButton in Buttons) {
-                if (actionButton.Disabled) {
-                    actionButton.FocusMode = Control.FocusModeEnum.None;
-                    Control.AddChild(actionButton);
-                    last = actionButton;
-                } else {
-                    if (first == null) {
-                        first = actionButton;
+            foreach (var actionButton in Children) {
+                if (actionButton is Control control) {
+                    if (control is BaseButton { Disabled: true } button) {
+                        button.FocusMode = Control.FocusModeEnum.None;
+                        Parent.AddChild(actionButton as Control);
+                        last = control;
+                    } else {
+                        if (first == null) {
+                            first = control;
+                        }
+                        Parent.AddChild(actionButton as Control);
+                        last = control;
+                        control.FocusMode = Control.FocusModeEnum.All;
                     }
-                    Control.AddChild(actionButton);
-                    last = actionButton;
-                    actionButton.FocusMode = Control.FocusModeEnum.All;
+                } else {
+                    Parent.AddChild(actionButton);
                 }
             }
             if (WrapButtons && first != null && last != null && first != last) {
-                if (Control is VBoxContainer) {
+                if (Parent is VBoxContainer) {
                     first.FocusNeighbourTop = "../" + last.Name;
                     last.FocusNeighbourBottom = "../" + first.Name;
-                } else if (Control is HBoxContainer) {
+                } else if (Parent is HBoxContainer) {
                     first.FocusNeighbourLeft = "../" + last.Name;
                     last.FocusNeighbourRight = "../" + first.Name;
                 }
             }
             focused ??= first;
             if (focused != null) {
-                await Control.GetTree().AwaitIdleFrame();
+                await Parent.GetTree().AwaitIdleFrame();
                 focused.GrabFocus();
             }
             return this;
@@ -219,29 +255,85 @@ namespace Betauer.UI {
         */
 
         public IEnumerable GetButtons() {
-            return Control.GetChildren();
+            return Parent.GetChildren();
         }
 
         public void Hide() {
-            Control.Hide();
+            Parent.Hide();
         }
 
         public async Task Show(ActionButton? focused = null) {
             await Refresh(focused);
-            Control.Show();
+            Parent.Show();
         }
 
         public ActionButton? GetButton(string name) {
-            return Buttons.Find(button => button.Name == name);
+            return GetControl<ActionButton>(name);
+        }
+
+        public ActionCheckButton? GetCheckButton(string name) {
+            return GetControl<ActionCheckButton>(name);
+        }
+
+        public T? GetControl<T>(string name) where T : Control {
+            return (T?)Children.Find(button => button.Name == name && button is T);
         }
     }
 
 
-    public class ActionButton : DiButton {
+    public interface IActionControl {
+        public void Save();
+        void Restore();
+    }
+
+    public class BaseContext {
+        public ActionMenu Menu { get; }
+
+        public BaseContext(ActionMenu menu) {
+            Menu = menu;
+        }
+
+        public async Task Refresh() {
+            await Menu.Refresh();
+        }
+    }
+
+    public class ActionButton : Button, IActionControl {
+        public class Context : BaseContext {
+            public ActionButton ActionButton { get; }
+
+            public Context(ActionMenu menu, ActionButton actionButton) : base(menu) {
+                ActionButton = actionButton;
+            }
+
+            public async Task Go(string toMenuName,
+                Func<MenuTransition, Task>? goodbyeAnimation = null,
+                Func<MenuTransition, Task>? newMenuAnimation = null) {
+                await Go(toMenuName, null, goodbyeAnimation, newMenuAnimation);
+            }
+
+            public async Task Go(string toMenuName, string? toButtonName,
+                Func<MenuTransition, Task>? goodbyeAnimation = null,
+                Func<MenuTransition, Task>? newMenuAnimation = null) {
+                await Menu.MenuController.Go(ActionButton, toMenuName, toButtonName, goodbyeAnimation,
+                    newMenuAnimation);
+            }
+
+            public async Task Back(
+                Func<MenuTransition, Task>? goodbyeAnimation,
+                Func<MenuTransition, Task>? newMenuAnimation) {
+                await Menu.MenuController.Back(ActionButton, goodbyeAnimation, newMenuAnimation);
+            }
+
+            public async Task Refresh() {
+                await Menu.Refresh();
+            }
+        }
+
         private readonly ControlRestorer _saver;
-        public readonly ActionMenu Menu;
+        public ActionMenu Menu { get; }
         public Action? Action;
-        public Action<ActionButton>? ActionWithButton;
+        public Action<Context>? ActionWithContext;
 
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
@@ -249,13 +341,9 @@ namespace Betauer.UI {
             _saver = new ControlRestorer(this);
         }
 
-        public override void Ready() {
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(_Pressed));
-        }
-
-        public void _Pressed() {
-            if (ActionWithButton != null) {
-                ActionWithButton(this);
+        public override void _Pressed() {
+            if (ActionWithContext != null) {
+                ActionWithContext(new Context(Menu, this));
             } else {
                 Action?.Invoke();
             }
@@ -265,11 +353,6 @@ namespace Betauer.UI {
             _Pressed();
         }
 
-        public async Task Refresh() {
-            await Menu.Refresh();
-        }
-
-
         public void Save() {
             _saver.Save();
         }
@@ -277,24 +360,50 @@ namespace Betauer.UI {
         public void Restore() {
             _saver.Restore();
         }
+    }
 
+    public class ActionCheckButton : CheckButton, IActionControl {
+        public class Context : BaseContext {
+            public ActionCheckButton ActionCheckButton { get; }
 
-        public async Task Go(string toMenuName,
-            Func<MenuTransition, Task>? goodbyeAnimation = null,
-            Func<MenuTransition, Task>? newMenuAnimation = null) {
-            await Go(toMenuName, null, goodbyeAnimation, newMenuAnimation);
+            public Context(ActionMenu menu, ActionCheckButton actionCheckButton) : base(menu) {
+                ActionCheckButton = actionCheckButton;
+            }
+
+            public async Task Refresh() {
+                await Menu.Refresh();
+            }
         }
 
-        public async Task Go(string toMenuName, string? toButtonName,
-            Func<MenuTransition, Task>? goodbyeAnimation = null,
-            Func<MenuTransition, Task>? newMenuAnimation = null) {
-            await Menu.MenuController.Go(this, toMenuName, toButtonName, goodbyeAnimation, newMenuAnimation);
+        private readonly ControlRestorer _saver;
+        public ActionMenu Menu { get; }
+        public Action<bool>? Action;
+        public Action<Context>? ActionWithContext;
+
+        // TODO: i18n
+        internal ActionCheckButton(ActionMenu menu) {
+            Menu = menu;
+            _saver = new ControlRestorer(this);
         }
 
-        public async Task Back(
-            Func<MenuTransition, Task>? goodbyeAnimation,
-            Func<MenuTransition, Task>? newMenuAnimation) {
-            await Menu.MenuController.Back(this, goodbyeAnimation, newMenuAnimation);
+        public override void _Toggled(bool buttonPressed) {
+            if (ActionWithContext != null) {
+                ActionWithContext(new Context(Menu, this));
+            } else {
+                Action?.Invoke(buttonPressed);
+            }
+        }
+
+        public void Execute() {
+            _Pressed();
+        }
+
+        public void Save() {
+            _saver.Save();
+        }
+
+        public void Restore() {
+            _saver.Restore();
         }
     }
 
@@ -304,7 +413,8 @@ namespace Betauer.UI {
         public readonly ActionMenu ToMenu;
         public readonly ActionButton? ToButton;
 
-        public MenuTransition(ActionMenu fromMenu, ActionButton? fromButton, ActionMenu toMenu, ActionButton? toButton) {
+        public MenuTransition(ActionMenu fromMenu, ActionButton? fromButton, ActionMenu toMenu,
+            ActionButton? toButton) {
             FromMenu = fromMenu;
             FromButton = fromButton;
             ToMenu = toMenu;
@@ -312,9 +422,9 @@ namespace Betauer.UI {
         }
     }
 
-    internal struct ActionState {
-        internal ActionMenu Menu;
-        internal ActionButton Button;
+    internal class ActionState {
+        internal readonly ActionMenu Menu;
+        internal readonly ActionButton Button;
 
         internal ActionState(ActionMenu menu, ActionButton button) {
             Menu = menu;
