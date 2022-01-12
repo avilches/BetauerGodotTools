@@ -14,7 +14,8 @@ namespace Betauer.UI {
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
 
         private readonly LinkedList<ActionState> _navigationState = new LinkedList<ActionState>();
-        private ActionMenu _activeMenu = null;
+
+        public ActionMenu? ActiveMenu { get; private set; } = null;
 
         public MenuController(Control baseHolder) {
             _baseHolder = baseHolder;
@@ -31,7 +32,7 @@ namespace Betauer.UI {
         public async Task Start(string name) {
             foreach (var menu in _menus) {
                 if (menu.Name == name) {
-                    _activeMenu = menu;
+                    ActiveMenu = menu;
                     menu.Show();
                 } else {
                     menu.Hide();
@@ -53,7 +54,7 @@ namespace Betauer.UI {
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             ActionMenu toMenu = GetMenu(toMenuName);
-            _navigationState.AddLast(new ActionState(_activeMenu, fromButton));
+            _navigationState.AddLast(new ActionState(ActiveMenu, fromButton));
 
             ActionButton? toButton = toButtonName != null ? toMenu.GetButton(toButtonName) : null;
             MenuTransition transition = new MenuTransition(fromButton.Menu, fromButton, toMenu, toButton);
@@ -76,7 +77,7 @@ namespace Betauer.UI {
             }
             ActionState lastState = _navigationState.Last();
             _navigationState.RemoveLast();
-            ActionMenu fromMenu = fromButton != null ? fromButton.Menu : _activeMenu;
+            ActionMenu fromMenu = fromButton != null ? fromButton.Menu : ActiveMenu;
             ActionMenu toMenu = lastState.Menu;
             MenuTransition transition = new MenuTransition(fromMenu, fromButton, toMenu, lastState.Button);
 
@@ -109,7 +110,7 @@ namespace Betauer.UI {
                         Logger.Error(e);
                     }
                 }
-                _activeMenu = transition.ToMenu;
+                ActiveMenu = transition.ToMenu;
             } finally {
                 viewport.GuiDisableInput = false;
             }
@@ -197,62 +198,19 @@ namespace Betauer.UI {
             return this;
         }
 
-        /*
-         * Rebuild the menu ensures disabled buttons are not selectable when using previous-next
-         * wrap true = link the first and last buttons
-         */
-        /*
-        public async Task<ActionMenu> Rebuild(Control? focused = null) {
-            Control? first = null;
-            Control? last = null;
-            var takeNextFocus = false;
+        public Control? GetFocused() {
             foreach (var child in CanvasItem.GetChildren()) {
-                if (focused == null
-                    && child is ActionButton control
-                    && (control.HasFocus() || takeNextFocus)) {
-                    if (control.Disabled) {
-                        takeNextFocus = true;
-                    } else {
-                        focused = control;
-                    }
-                }
-                CanvasItem.RemoveChild(child as Node);
+                if (child is Control control && control.HasFocus()) return control;
             }
-            foreach (var actionButton in CanvasItem.GetC) {
-                if (actionButton is Control control) {
-                    if (control is BaseButton { Disabled: true } button) {
-                        button.FocusMode = Godot.Control.FocusModeEnum.None;
-                        CanvasItem.AddChild(actionButton as Control);
-                        last = control;
-                    } else {
-                        if (first == null) {
-                            first = control;
-                        }
-                        CanvasItem.AddChild(actionButton as Control);
-                        last = control;
-                        control.FocusMode = Godot.Control.FocusModeEnum.All;
-                    }
-                } else {
-                    CanvasItem.AddChild(actionButton);
-                }
-            }
-            if (WrapButtons && first != null && last != null && first != last) {
-                if (CanvasItem is VBoxContainer) {
-                    first.FocusNeighbourTop = "../" + last.Name;
-                    last.FocusNeighbourBottom = "../" + first.Name;
-                } else if (CanvasItem is HBoxContainer) {
-                    first.FocusNeighbourLeft = "../" + last.Name;
-                    last.FocusNeighbourRight = "../" + first.Name;
-                }
-            }
-            focused ??= first;
-            if (focused != null) {
-                await CanvasItem.GetTree().AwaitIdleFrame();
-                focused.GrabFocus();
-            }
-            return this;
+            return null;
         }
-        */
+
+        public bool IsFocusedAndDisabled() {
+            foreach (var child in CanvasItem.GetChildren()) {
+                if (child is BaseButton { Disabled: true } disabledButton && disabledButton.HasFocus()) return true;
+            }
+            return false;
+        }
 
         public ActionMenu Refresh(Control? focused = null) {
             Control? first = null;
@@ -261,6 +219,7 @@ namespace Betauer.UI {
             var takeNextFocus = false;
             foreach (var child in CanvasItem.GetChildren()) {
                 if (child is Control control) {
+                    if (control is VSeparator || control is HSeparator) continue;
                     var isDisabled = control is BaseButton { Disabled: true };
 
                     if (focused == null && (control.HasFocus() || takeNextFocus)) {
@@ -300,24 +259,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        /*
-        public async Task Focus(ActionButton button) {
-            await Control.GetTree().AwaitIdleFrame();
-            button.GrabFocus();
-        }
-
-        public void FocusFirst() {
-            foreach (var child in Control.GetChildren()) {
-                if (child is ActionButton { Disabled: false } action) {
-                    GD.Print("Setting focus on first button " + action.Text);
-                    action.GrabFocus();
-                    return;
-                }
-            }
-        }
-        */
-
-        public IEnumerable GetButtons() {
+        public IEnumerable GetChildren() {
             return CanvasItem.GetChildren();
         }
 

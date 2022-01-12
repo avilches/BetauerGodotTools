@@ -720,7 +720,6 @@ namespace Betauer.Tests.Animation {
             var original = new Vector2(2f, 3f);
 
             control.RectPivotOffset = original;
-
             control.Modulate = new Color(0f,1f,0f);
             control.SelfModulate = new Color(0f,1f,0f);
             control.RectScale = original;
@@ -746,7 +745,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test]
-        public async Task  PivotSpriteRestoreTests() {
+        public async Task PivotSpriteRestoreTests() {
             var sprite = await CreateSprite();
             var original = new Vector2(2f, 3f);
 
