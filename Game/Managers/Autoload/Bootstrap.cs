@@ -58,9 +58,12 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
 
-            LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(Launcher), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Off);
 
             // Managers
             LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);
