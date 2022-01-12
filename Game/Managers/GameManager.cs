@@ -109,20 +109,26 @@ namespace Veronenger.Game.Managers {
 
         private bool _quited = false;
 
+        /**
+         * Method called from Main Menu -> Quit Game option
+         */
         public void Quit() {
             if (_quited) return;
             _quited = true;
-            Shutdown(true);
+            CleanResources(true);
             _sceneTree.Quit();
         }
 
+        /**
+         * Detect ALT+F4 or Command+Q
+         */
         public override void _Notification(int what) {
             if (what == MainLoop.NotificationWmQuitRequest) {
-                Shutdown(false);
+                CleanResources(false);
             }
         }
 
-        private void Shutdown(bool userRequested) {
+        private static void CleanResources(bool userRequested) {
             var timespan = Bootstrap.Uptime;
             var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
             if (userRequested) {
