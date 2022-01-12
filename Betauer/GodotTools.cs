@@ -26,14 +26,17 @@ namespace Betauer {
     }
 
     public static class GodotExtension {
-        public static T FindFirstChild<T>(this Node parent) where T : class {
-            var count = parent.GetChildCount();
-            for (var i = 0; i < count; i++) {
-                if (parent.GetChild(i) is T result) {
-                    return result;
-                }
+        public static T? FindFirstChild<T>(this Node parent) where T : class {
+            foreach (var child in parent.GetChildren()) {
+                if (child is T result) return result;
             }
+            return null;
+        }
 
+        public static T? FindChild<T>(this Node parent, string name) where T : class {
+            foreach (var child in parent.GetChildren()) {
+                if (child is T result && child is Node node && node.Name == name) return result;
+            }
             return null;
         }
 
