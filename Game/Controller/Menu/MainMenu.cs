@@ -100,12 +100,13 @@ namespace Veronenger.Game.Controller.Menu {
 
             GD.Print("Go3");
             LoopStatus lastToWaitFor = null;
-            foreach (var button in transition.ToMenu.GetButtons()) {
-                var actionButton = button as ActionButton;
-                // actionButton.Modulate =
-                // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                lastToWaitFor = _launcher.Play(s, actionButton, x * 0.05f, MenuEffectTime);
-                x++;
+            foreach (var child in transition.ToMenu.GetChildren()) {
+                if (child is Control control) {
+                    // actionButton.Modulate =
+                    // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
+                    lastToWaitFor = _launcher.Play(s, control, x * 0.05f, MenuEffectTime);
+                    x++;
+                }
             }
             await lastToWaitFor.Await();
             // await _launcher.Play(Template.BackInRightFactory.Get(200), _menuHolder, 0f, MenuEffectTime).Await();
@@ -127,9 +128,23 @@ namespace Veronenger.Game.Controller.Menu {
         private const float MenuEffectTime = 0.25f;
 
         public override void _Input(InputEvent @event) {
+            // if (@event.IsAction("ui_up") ||
+            //     @event.IsAction("ui_down") ||
+            //     @event.IsAction("ui_left") ||
+            //     @event.IsAction("ui_right") ||
+            //     @event.IsAction("ui_page_up") ||
+            //     @event.IsAction("ui_page_down") ||
+            //     @event.IsAction("ui_home") ||
+            //     @event.IsAction("ui_focus_next") ||
+            //     @event.IsAction("ui_focus_prev") ||
+            //     @event.IsAction("ui_accept") ||
+            //     @event.IsAction("ui_cancel")) {
+            // }
+
             if (@event.IsAction("ui_cancel")) {
                 _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
+
             var action = InputManager.OnEvent(@event);
             if (action != null) {
                 // _sceneTree.SetInputAsHandled();
