@@ -12,7 +12,6 @@ namespace Betauer.UI {
 
         private readonly Control _baseHolder;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
-
         private readonly LinkedList<ActionState> _navigationState = new LinkedList<ActionState>();
 
         public ActionMenu? ActiveMenu { get; private set; } = null;
@@ -140,21 +139,14 @@ namespace Betauer.UI {
         public ActionMenu Save() {
             _saver.Save();
             foreach (var button in CanvasItem.GetChildren())
-                if (button is IActionControl control)
-                    control.Save();
+                if (button is IActionControl control) control.Save();
             return this;
         }
 
         public ActionMenu Restore() {
             _saver.Restore();
             foreach (var button in CanvasItem.GetChildren())
-                if (button is IActionControl control)
-                    control.Restore();
-            return this;
-        }
-
-        public ActionMenu AddNode(Node button) {
-            CanvasItem.AddChild(button);
+                if (button is IActionControl control) control.Restore();
             return this;
         }
 
@@ -172,6 +164,23 @@ namespace Betauer.UI {
             button.Text = title;
             AddNode(button);
             return button;
+        }
+
+        public ActionHSeparator CreateHSeparator() {
+            ActionHSeparator separator = new ActionHSeparator();
+            AddNode(separator);
+            return separator;
+        }
+
+        public ActionVSeparator CreateVSeparator() {
+            ActionVSeparator separator = new ActionVSeparator();
+            AddNode(separator);
+            return separator;
+        }
+
+        public ActionMenu AddNode(Node button) {
+            CanvasItem.AddChild(button);
+            return this;
         }
 
         public ActionMenu AddCheckButton(string name, string title, Action<bool> action) {
@@ -195,6 +204,16 @@ namespace Betauer.UI {
         public ActionMenu AddButton(string name, string title, Action<ActionButton.Context> action) {
             var button = CreateButton(name, title);
             button.ActionWithContext = action;
+            return this;
+        }
+
+        public ActionMenu AddHSeparator() {
+            CreateHSeparator();
+            return this;
+        }
+
+        public ActionMenu AddVSeparator() {
+            CreateVSeparator();
             return this;
         }
 
@@ -294,14 +313,22 @@ namespace Betauer.UI {
 
     public class BaseContext {
         public ActionMenu Menu { get; }
+        public BaseContext(ActionMenu menu) => Menu = menu;
+        public void Refresh() => Menu.Refresh();
+    }
 
-        public BaseContext(ActionMenu menu) {
-            Menu = menu;
-        }
+    public class ActionHSeparator : HSeparator, IActionControl {
+        private readonly ControlRestorer _saver;
+        public ActionHSeparator() => _saver = new ControlRestorer(this);
+        public void Save() => _saver.Save();
+        public void Restore() => _saver.Restore();
+    }
 
-        public void Refresh() {
-            Menu.Refresh();
-        }
+    public class ActionVSeparator : VSeparator, IActionControl {
+        private readonly ControlRestorer _saver;
+        public ActionVSeparator() => _saver = new ControlRestorer(this);
+        public void Save() => _saver.Save();
+        public void Restore() => _saver.Restore();
     }
 
     public class ActionButton : Button, IActionControl {
@@ -341,28 +368,15 @@ namespace Betauer.UI {
         internal ActionButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(OnPressed));
-        }
-
-        public void OnPressed() {
-            if (ActionWithContext != null) {
-                ActionWithContext(new Context(Menu, this));
-            } else {
-                Action?.Invoke();
-            }
+            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
         }
 
         public void Execute() {
-            _Pressed();
+            if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
+            else Action?.Invoke();
         }
-
-        public void Save() {
-            _saver.Save();
-        }
-
-        public void Restore() {
-            _saver.Restore();
-        }
+        public void Save() =>_saver.Save();
+        public void Restore() => _saver.Restore();
     }
 
     public class ActionCheckButton : CheckButton, IActionControl {
@@ -383,28 +397,16 @@ namespace Betauer.UI {
         internal ActionCheckButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(OnPressed));
-        }
-
-        public void OnPressed() {
-            if (ActionWithContext != null) {
-                ActionWithContext(new Context(Menu, this));
-            } else {
-                Action?.Invoke(Pressed);
-            }
+            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
         }
 
         public void Execute() {
-            _Pressed();
+            if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
+            else Action?.Invoke(Pressed);
         }
 
-        public void Save() {
-            _saver.Save();
-        }
-
-        public void Restore() {
-            _saver.Restore();
-        }
+        public void Save() =>_saver.Save();
+        public void Restore() => _saver.Restore();
     }
 
     public class MenuTransition {

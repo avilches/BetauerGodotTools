@@ -56,17 +56,14 @@ namespace Veronenger.Game.Controller.Menu {
 
             var hSeparator = new HSeparator();
             hSeparator.Name = "Sep";
-            mainMenu.AddMenu("Options", (menu) => {
-                    GD.Print(menu.Name);
-                })
+            mainMenu.AddMenu("Options", (menu) => { GD.Print(menu.Name); })
                 .AddButton("Video", "Video", () => {
                     Exception e = null;
                     var eMessage = e.Message;
                     GD.Print("New Game");
-
                 })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
-                .AddNode(hSeparator)
+                .AddHSeparator()
                 .AddCheckButton("Sound", "Sound", (ctx) => {
                     GD.Print("Options " + ctx.ActionCheckButton.Pressed);
                     // hSeparator.GrabFocus();
@@ -82,29 +79,31 @@ namespace Veronenger.Game.Controller.Menu {
 
         private async Task GoGoodbyeAnimation(MenuTransition transition) {
             // await _launcher.Play(Template.BackOutLeftFactory.Get(150), transition.FromMenu.Control, 0f, MenuEffectTime).Await();
+            // await _launcher.Play(Template.FadeOut, transition.FromButton, 0f, MenuEffectTime*2).Await();
             GD.Print("Go1");
-            await _launcher.Play(Template.RollOut, transition.FromButton, 0f, 0.25f).Await();
-            GD.Print("Go2");
-            await _launcher.Play(Template.FadeOutDown, transition.FromMenu.CanvasItem, 0f, 0.25f).Await();
+            LoopStatus lastToWaitFor = null;
+            int x = 0;
+            foreach (var child in transition.FromMenu.GetChildren()) {
+                if (child is Control control) {
+                    // actionButton.Modulate =
+                    // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
+                    lastToWaitFor = _launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
+                    x++;
+                }
+            }
+            await lastToWaitFor.Await();
+            // GD.Print("Go2");
+            // await _launcher.Play(Template.FadeOutDown, transition.FromMenu.CanvasItem, 0f, 0.25f).Await();
         }
 
         private async Task GoNewMenuAnimation(MenuTransition transition) {
             int x = 0;
-
-            var s = SequenceBuilder.Create()
-                .AnimateSteps(null, Property.Modulate)
-                .From(new Color(1f, 0f, 0f)).To(new Color(1f, 1f, 1f, 1f), 0.25f)
-                .EndAnimate()
-                .Parallel()
-                .ImportTemplate(Template.RotateInDownRight);
-
             GD.Print("Go3");
             LoopStatus lastToWaitFor = null;
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
-                    // actionButton.Modulate =
-                    // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                    lastToWaitFor = _launcher.Play(s, control, x * 0.05f, MenuEffectTime);
+                    control.Modulate = new Color(1f,1f,1f, 0f);
+                    lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -114,18 +113,38 @@ namespace Veronenger.Game.Controller.Menu {
 
 
         private async Task BackGoodbyeAnimation(MenuTransition transition) {
-            await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.CanvasItem, 0f,
-                    MenuEffectTime)
-                .Await();
+            LoopStatus lastToWaitFor = null;
+            int x = 0;
+            foreach (var child in transition.FromMenu.GetChildren()) {
+                if (child is Control control) {
+                    // control.Modulate = new Color(1f,1f,1f, 0f);
+                    lastToWaitFor = _launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
+                    x++;
+                }
+            }
+            await lastToWaitFor.Await();
+            // await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.CanvasItem, 0f,
+            // MenuEffectTime)
+            // .Await();
         }
 
         private async Task BackNewMenuAnimation(MenuTransition transition) {
-            await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.CanvasItem, 0f,
-                    MenuEffectTime)
-                .Await();
+            // await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.CanvasItem, 0f,
+            // MenuEffectTime)
+            // .Await();
+            LoopStatus lastToWaitFor = null;
+            int x = 0;
+            foreach (var child in transition.ToMenu.GetChildren()) {
+                if (child is Control control) {
+                    control.Modulate = new Color(1f,1f,1f, 0f);
+                    lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
+                    x++;
+                }
+            }
+            await lastToWaitFor.Await();
         }
 
-        private const float MenuEffectTime = 0.25f;
+        private const float MenuEffectTime = 0.17f;
 
         public override void _Input(InputEvent @event) {
             // if (@event.IsAction("ui_up") ||
