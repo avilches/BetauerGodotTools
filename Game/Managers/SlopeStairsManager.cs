@@ -3,7 +3,7 @@ using Betauer;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
 using Veronenger.Game.Controller.Character;
-using static Veronenger.Game.Tools.LayerConstants;
+using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
 

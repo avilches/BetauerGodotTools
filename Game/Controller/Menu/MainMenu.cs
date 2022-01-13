@@ -31,13 +31,14 @@ namespace Veronenger.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
                 .AddButton("NewGame", "New game", async (ctx) => {
-                    GD.Print("New Game");
-                    var continueButton = ctx.Menu.GetButton("Continue");
-                    continueButton!.Disabled = !continueButton.Disabled;
-                    await _launcher.Play(Template.FadeIn, continueButton, 0f,
-                            MenuEffectTime)
-                        .Await();
-                    continueButton.Save();
+                    // GD.Print("New Game");
+                    GameManager.StartGame();
+                    // var continueButton = ctx.Menu.GetButton("Continue");
+                    // continueButton!.Disabled = !continueButton.Disabled;
+                    // await _launcher.Play(Template.FadeIn, continueButton, 0f,
+                    //         MenuEffectTime)
+                    //     .Await();
+                    // continueButton.Save();
 
                     ctx.Refresh();
                 })
@@ -58,14 +59,12 @@ namespace Veronenger.Game.Controller.Menu {
             hSeparator.Name = "Sep";
             mainMenu.AddMenu("Options", (menu) => { GD.Print(menu.Name); })
                 .AddButton("Video", "Video", () => {
-                    Exception e = null;
-                    var eMessage = e.Message;
-                    GD.Print("New Game");
+                    GD.Print("Video");
                 })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
                 .AddHSeparator()
                 .AddCheckButton("Sound", "Sound", (ctx) => {
-                    GD.Print("Options " + ctx.ActionCheckButton.Pressed);
+                    GD.Print("Sound " + ctx.ActionCheckButton.Pressed);
                     // hSeparator.GrabFocus();
                 })
                 .AddButton("Back", "Back", (ctx) =>

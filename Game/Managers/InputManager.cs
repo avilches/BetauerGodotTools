@@ -12,7 +12,7 @@ namespace Veronenger.Game.Managers {
 
         private readonly ActionList _actionList;
 
-        private static Logger _logger = LoggerFactory.GetLogger(typeof(InputManager));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(InputManager));
 
         public InputManager() {
             _actionList = new ActionList(-1);
@@ -62,13 +62,13 @@ namespace Veronenger.Game.Managers {
         }
 
         public void Debug(IActionUpdate action) {
-            if (_logger.IsEnabled(TraceLevel.Debug)) {
+            if (Logger.IsEnabled(TraceLevel.Debug)) {
                 if (_wrapper.IsMotion()) {
-                    _logger.Debug($"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) ({action?.Name})");
+                    Logger.Debug($"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) ({action?.Name})");
                 } else if (_wrapper.IsAnyButton()) {
-                    _logger.Debug($"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) ({action?.Name})");
+                    Logger.Debug($"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) ({action?.Name})");
                 } else if (_wrapper.IsAnyKey()) {
-                    _logger.Debug($"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} ({action?.Name})");
+                    Logger.Debug($"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} ({action?.Name})");
                 }
                 /*
                  * Aqui se comprueba que el JustPressed, Pressed y JustReleased del SALTO SOLO de InputManager coinciden

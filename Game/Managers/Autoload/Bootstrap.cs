@@ -4,8 +4,8 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Bus;
+using Betauer.Screen;
 using Veronenger.Game.Controller.Stage;
-using Veronenger.Game.Tools.Resolution;
 using TraceLevel = Betauer.TraceLevel;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
@@ -68,7 +68,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Off);
 
             // Managers
-            LoggerFactory.SetTraceLevel(typeof(ScreenManager), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(ScreenIntegerResolutionService), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Off);
 
             // Player and enemies

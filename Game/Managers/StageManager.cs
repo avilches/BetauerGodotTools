@@ -3,17 +3,17 @@ using Betauer;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
 using Veronenger.Game.Controller.Stage;
-using static Veronenger.Game.Tools.LayerConstants;
+using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
 
     [Singleton]
     public class StageManager {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(StageManager));
         private Stage _enteredStage;
         private bool _exitedStage;
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(StageManager));
 
         private readonly Area2DShapeOnArea2DTopic _stageTopic = new Area2DShapeOnArea2DTopic("StageTopic");
 
@@ -48,15 +48,15 @@ namespace Veronenger.Game.Managers {
             var stageToEnter = new Stage(stageEnteredArea2D);
             var stageDetectorName = stageDetector.Name;
             if (_currentStage == null) {
-                _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" and no current stage: changing now");
+                Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" and no current stage: changing now");
                 ChangeStage(stageToEnter);
                 return;
             }
             if (stageEnteredArea2D.Equals(_currentStage.Area2D)) {
-                _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" but it's the same as current stage: ignoring!");
+                Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" but it's the same as current stage: ignoring!");
                 return;
             }
-            _logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\". Transition enter is ok.");
+            Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\". Transition enter is ok.");
             _enteredStage = stageToEnter;
             CheckChangeStage(stageDetectorName, false);
         }
@@ -69,9 +69,9 @@ namespace Veronenger.Game.Managers {
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
                 _enteredStage = null;
                 _exitedStage = false;
-                _logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\" == entered stage. Rollback whole transition.");
+                Logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\" == entered stage. Rollback whole transition.");
             }
-            _logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\". Transition exit is ok.");
+            Logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\". Transition exit is ok.");
             _exitedStage = true;
             CheckChangeStage(stageDetectorName, true);
         }
@@ -79,7 +79,7 @@ namespace Veronenger.Game.Managers {
         private void CheckChangeStage(string stageDetectorName, bool enterFirstThenExit) {
             if (_exitedStage && _enteredStage != null) {
                 var reversedFirstExitThenEnter = enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)";
-                _logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
+                Logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
                 ChangeStage(_enteredStage);
             }
         }
