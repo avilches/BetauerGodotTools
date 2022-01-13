@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
@@ -50,6 +51,8 @@ namespace Betauer.TestRunner {
         public class TestMethod {
             private static readonly object[] EmptyParameters = { };
 
+            public readonly Stopwatch Stopwatch;
+
             private readonly object _instance;
             private readonly MethodInfo _method;
 
@@ -65,6 +68,7 @@ namespace Betauer.TestRunner {
             public string Id { get; set; }
 
             public TestMethod(MethodInfo method, object instance, string description, bool only) {
+                Stopwatch = new Stopwatch();
                 _instance = instance;
                 _method = method;
                 Type = method.DeclaringType;
@@ -76,6 +80,7 @@ namespace Betauer.TestRunner {
 
             public async Task Execute(SceneTree sceneTree) {
                 try {
+                    Stopwatch.Start();
                     if (_instance is Node node) {
                         await sceneTree.AwaitIdleFrame();
                         sceneTree.Root.AddChild(node);
@@ -109,6 +114,7 @@ namespace Betauer.TestRunner {
                     node2.QueueFree();
                     await sceneTree.AwaitIdleFrame();
                 }
+                Stopwatch.Stop();
             }
         }
 

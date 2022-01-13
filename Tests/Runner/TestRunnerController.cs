@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -41,6 +42,8 @@ namespace Veronenger.Tests.Runner {
         }
 
         private async void RunTests() {
+            var stopwatch = Stopwatch.StartNew();
+
             treeItems.Clear();
             _itemSelections.Clear();
             _buttonFailedOnly.Disabled = _buttonRepeat.Disabled = true;
@@ -75,11 +78,11 @@ namespace Veronenger.Tests.Runner {
 
             if (testRunner.TestsFailed == 0) {
                 await Task.Delay(50);
-                Green("exit(0)");
+                Green($"exit(0) - {stopwatch.Elapsed.Seconds}s");
                 GetTree().Quit(0);
             } else {
                 if (OS.GetCmdlineArgs().Contains("─no-window")) {
-                    Red("exit(1)");
+                    Red($"exit(1) - {stopwatch.Elapsed.Seconds}s");
                     GetTree().Quit(1);
                 }
             }
@@ -105,10 +108,10 @@ namespace Veronenger.Tests.Runner {
             var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
             if (testPasses) {
-                Banner($"{GetTestMethodLine(testRunner, testMethod)}: Passed", ConsoleColor.Green);
+                Banner($"{GetTestMethodLine(testRunner, testMethod)}: Passed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)", ConsoleColor.Green);
             } else {
                 Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-                Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
+                Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
                 Red(testMethod.Exception.Message);
                 Normal(testMethod.Exception.StackTrace);
                 Red($"└──────────────────────────────────────────────────────────────────────────────────");
