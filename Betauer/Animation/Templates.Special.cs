@@ -57,7 +57,7 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static SequenceTemplate RollIn() {
+        internal static SequenceTemplate RollInLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(Property.PositionBySizeX)
@@ -77,7 +77,47 @@ namespace Betauer.Animation {
                 .BuildTemplate();
         }
 
-        internal static SequenceTemplate RollOut() {
+        internal static SequenceTemplate RollInRight() {
+            return TemplateBuilder.Create()
+                .SetDuration(RollDuration)
+                .AnimateRelativeKeys(Property.PositionBySizeX)
+                .KeyframeOffset(0.00f, 1.0f, null, node => node.SetRotateOriginToCenter())
+                .KeyframeOffset(1.00f, 0.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(Property.Rotate2D)
+                .KeyframeTo(0.00f, -120)
+                .KeyframeTo(1.00f, 0)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(Property.Opacity)
+                .KeyframeTo(0.00f, 0.0f)
+                .KeyframeTo(1.00f, 1.0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static SequenceTemplate RollOutLeft() {
+            return TemplateBuilder.Create()
+                .SetDuration(RollDuration)
+                .AnimateRelativeKeys(Property.PositionBySizeX)
+                .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
+                .KeyframeOffset(1.00f, -1.0f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(Property.Rotate2D)
+                .KeyframeTo(0.00f, 0)
+                .KeyframeTo(1.00f, 120)
+                .EndAnimate()
+                .Parallel()
+                .AnimateKeys(Property.Opacity)
+                .KeyframeTo(0.00f, 1.0f)
+                .KeyframeTo(1.00f, 0.0f)
+                .EndAnimate()
+                .BuildTemplate();
+        }
+
+        internal static SequenceTemplate RollOutRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(Property.PositionBySizeX)

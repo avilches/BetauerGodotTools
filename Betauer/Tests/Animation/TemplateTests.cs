@@ -107,8 +107,10 @@ namespace Betauer.Tests.Animation {
 
             Assert.That(Template.Hinge, Is.EqualTo(Template.Get("hInge")));
             Assert.That(Template.JackInTheBox, Is.EqualTo(Template.Get("jAckInTheBox")));
-            Assert.That(Template.RollOut, Is.EqualTo(Template.Get("rOllOut")));
-            Assert.That(Template.RollIn, Is.EqualTo(Template.Get("rOllIn")));
+            Assert.That(Template.RollOutLeft, Is.EqualTo(Template.Get("rOllOutLeft")));
+            Assert.That(Template.RollOutRight, Is.EqualTo(Template.Get("rOllOutRight")));
+            Assert.That(Template.RollInLeft, Is.EqualTo(Template.Get("rOllInLEFT")));
+            Assert.That(Template.RollInRight, Is.EqualTo(Template.Get("rOllInright")));
         }
 
         [Test(Description = "sequence empty should fail")]

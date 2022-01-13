@@ -95,8 +95,10 @@ namespace Betauer.Animation {
 
         public static SequenceTemplate Hinge => HingeFactory.Get();
         public static SequenceTemplate JackInTheBox => JackInTheBoxFactory.Get();
-        public static SequenceTemplate RollOut => RollOutFactory.Get();
-        public static SequenceTemplate RollIn => RollInFactory.Get();
+        public static SequenceTemplate RollOutLeft => RollOutLeftFactory.Get();
+        public static SequenceTemplate RollOutRight => RollOutRightFactory.Get();
+        public static SequenceTemplate RollInLeft => RollInLeftFactory.Get();
+        public static SequenceTemplate RollInRight => RollInRightFactory.Get();
 
         internal static readonly Dictionary<string, TemplateFactory> Factories =
             new Dictionary<string, TemplateFactory>();
@@ -184,8 +186,10 @@ namespace Betauer.Animation {
 
         public static readonly TemplateFactory HingeFactory = new TemplateFactory(nameof(Hinge), Templates.Hinge);
         public static readonly TemplateFactory JackInTheBoxFactory = new TemplateFactory(nameof(JackInTheBox), Templates.JackInTheBox);
-        public static readonly TemplateFactory RollOutFactory = new TemplateFactory(nameof(RollOut), Templates.RollOut);
-        public static readonly TemplateFactory RollInFactory = new TemplateFactory(nameof(RollIn), Templates.RollIn);
+        public static readonly TemplateFactory RollOutLeftFactory = new TemplateFactory(nameof(RollOutLeft), Templates.RollOutLeft);
+        public static readonly TemplateFactory RollOutRightFactory = new TemplateFactory(nameof(RollOutRight), Templates.RollOutRight);
+        public static readonly TemplateFactory RollInLeftFactory = new TemplateFactory(nameof(RollInLeft), Templates.RollInLeft);
+        public static readonly TemplateFactory RollInRightFactory = new TemplateFactory(nameof(RollInRight), Templates.RollInRight);
 
     }
 
