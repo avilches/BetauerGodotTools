@@ -4,7 +4,7 @@ using Betauer.Animation;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    public class BezierCurveTests : Node {
+    public class BezierCurveTests : NodeTest {
         [Test]
         public void BezierCurveTest() {
             // Two identical curves, but different instances

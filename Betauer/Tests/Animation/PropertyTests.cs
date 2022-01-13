@@ -784,19 +784,19 @@ namespace Betauer.Tests.Animation {
             sprite.GlobalPosition = original;
             sprite.Offset = original;
             sprite.Scale = original;
-            GD.Print(sprite.Offset);
-            GD.Print(sprite.GlobalPosition);
+            // GD.Print(sprite.Offset);
+            // GD.Print(sprite.GlobalPosition);
             await this.AwaitIdleFrame();
 
             var pivotCenterBottom = sprite.SetRotateOriginToBottomCenter();
-            GD.Print(sprite.Offset);
-            GD.Print(sprite.GlobalPosition);
+            // GD.Print(sprite.Offset);
+            // GD.Print(sprite.GlobalPosition);
             Assert.That(sprite.Offset, Is.Not.EqualTo(original));
             Assert.That(sprite.GlobalPosition, Is.Not.EqualTo(original));
 
             pivotCenterBottom.Restore();
-            GD.Print(sprite.Offset);
-            GD.Print(sprite.GlobalPosition);
+            // GD.Print(sprite.Offset);
+            // GD.Print(sprite.GlobalPosition);
             Assert.That(sprite.Offset, Is.EqualTo(original));
             Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
         }

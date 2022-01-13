@@ -26,7 +26,7 @@ namespace Betauer {
 
     public class DiRepository {
         private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
-        private Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
+        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
 
         public T AddSingleton<T>(T instance) {
             _singletons.Add(instance.GetType(), instance);

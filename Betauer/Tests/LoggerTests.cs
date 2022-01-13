@@ -1,3 +1,4 @@
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Tests {

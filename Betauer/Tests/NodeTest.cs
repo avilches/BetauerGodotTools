@@ -1,8 +1,14 @@
 using System.Threading.Tasks;
 using Godot;
+using NUnit.Framework;
 
-namespace Betauer.Tests.Animation {
+namespace Betauer.Tests {
     public class NodeTest : Node {
+        [SetUp]
+        public void RemoveWarning() {
+            DisposeSnitchObject.ShowShutdownWarning = false;
+        }
+
         public async Task<Sprite> CreateSprite(int width = 100) {
             Sprite sprite = new Sprite();
             sprite.Position = new Vector2(100, 100);
