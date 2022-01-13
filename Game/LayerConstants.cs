@@ -1,4 +1,4 @@
-namespace Veronenger.Game.Tools {
+namespace Veronenger.Game {
     public static class LayerConstants {
         public const int LayerRegularPlatform = 0;
         public const int LayerSlopeStairs = 1;
