@@ -1,15 +1,20 @@
+using System;
 using Godot;
+using NUnit.Framework;
 
 namespace Betauer.Screen {
     public interface IScreenService {
-        bool IsFullscreen();
-        void SwapFullscreen();
-        void SetFullscreen(bool fs);
-        void SetScale(float scale);
-        void SetBorderless(bool borderless);
         void Configure(ScreenConfiguration configuration);
-        void Set(bool fs, int scale, bool borderless);
+
+        bool IsFullscreen();
+        void SetFullscreen();
+        int GetScale();
+        int GetMaxScale();
+        void SetBorderless(bool borderless);
+        void SetWindowed(int scale);
+
         void CenterWindow();
+
         void OnScreenResized();
     }
 
@@ -18,13 +23,11 @@ namespace Betauer.Screen {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ScreenIntegerResolutionService));
 
         private readonly SceneTree _tree;
-        private readonly Viewport _rootViewport;
 
         private ScreenConfiguration _screenConfiguration;
 
-        public ScreenIntegerResolutionService(SceneTree sceneTree, Viewport rootViewport) {
+        public ScreenIntegerResolutionService(SceneTree sceneTree) {
             _tree = sceneTree;
-            _rootViewport = rootViewport;
         }
 
         private Vector2 BaseResolution => _screenConfiguration.BaseResolution;
@@ -33,6 +36,7 @@ namespace Betauer.Screen {
         private int StretchShrink => _screenConfiguration.StretchShrink;
 
         private int _maxScale;
+        private int _scale = -1;
 
         public void Configure(ScreenConfiguration screenConfiguration) {
             _screenConfiguration = screenConfiguration;
@@ -42,49 +46,56 @@ namespace Betauer.Screen {
 
             // Remove default stretch behavior.
             _tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep, BaseResolution, 1);
+            CalculateMaxScaleCurrentScreen();
+        }
+
+        private void CalculateMaxScaleCurrentScreen() {
             var screenSize = OS.GetScreenSize();
-            _maxScale = (int)Mathf.Max(Mathf.Floor(Mathf.Min(screenSize.x / BaseResolution.x, screenSize.y / BaseResolution.y)), 1);
+            _maxScale = (int)Mathf.Max(Mathf.Floor(Mathf.Min(screenSize.x / BaseResolution.x, screenSize.y / BaseResolution.y)),
+                1);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;
 
-        public void SwapFullscreen() {
-            SetFullscreen(!IsFullscreen());
-        }
-
-        public void SetFullscreen(bool fs) {
-            OS.WindowFullscreen = fs;
-            CenterWindow();
+        public void SetFullscreen() {
+            CalculateMaxScaleCurrentScreen();
+            OS.WindowBorderless = false;
+            OS.WindowFullscreen = true;
+            if (_scale == -1) _scale = _maxScale;
             ResolutionUpdated();
         }
 
-        public void SetScale(float scale) {
-            OS.WindowSize = BaseResolution * Mathf.Min(_maxScale, scale);
-            CenterWindow();
-            ResolutionUpdated();
+        public int GetScale() {
+            return _scale;
+        }
+
+        public int GetMaxScale() {
+            return _maxScale;
         }
 
         public void SetBorderless(bool borderless) {
+            if (IsFullscreen()) return;
             OS.WindowBorderless = borderless;
             ResolutionUpdated();
         }
 
-        public void Set(bool fs, int scale, bool borderless) {
-            if (fs) {
-                OS.WindowFullscreen = true;
-            } else {
-                OS.WindowFullscreen = false;
-                OS.WindowBorderless = borderless;
-                SetScale(scale);
-            }
+        public void SetWindowed(int newScale) {
+            CalculateMaxScaleCurrentScreen();
+            newScale = newScale > _maxScale || newScale < 1 ? 1 : newScale;
+            OS.WindowFullscreen = false;
+            OS.WindowSize = BaseResolution * newScale;
+            CenterWindow();
+            ResolutionUpdated();
         }
 
         public void CenterWindow() {
             if (!OS.WindowFullscreen) {
-                var screen_size = OS.GetScreenSize(OS.CurrentScreen);
-                var window_size = OS.WindowSize;
-                var centered_pos = (screen_size - window_size) / 2;
-                OS.WindowPosition = centered_pos;
+                var currentScreen = OS.CurrentScreen;
+                var screenSize = OS.GetScreenSize(currentScreen);
+                var windowSize = OS.WindowSize;
+                var centeredPos = (screenSize - windowSize) / 2;
+                OS.WindowPosition = centeredPos;
+                OS.CurrentScreen = currentScreen;
             }
         }
 
@@ -95,25 +106,32 @@ namespace Betauer.Screen {
         private void ResolutionUpdated() {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             var scale = (int)Mathf.Max(Mathf.Floor(Mathf.Min(windowSize.x / BaseResolution.x, windowSize.y / BaseResolution.y)), 1);
+            if (!OS.WindowFullscreen) {
+                _scale = scale;
+            }
 
             var screenSize = BaseResolution;
             var viewportSize = screenSize * scale;
-            var overscan = ((windowSize - viewportSize) / scale).Floor();
+            var overScan = ((windowSize - viewportSize) / scale).Floor();
 
             switch (StretchAspect) {
                 case SceneTree.StretchAspect.KeepWidth: {
-                    screenSize.y += overscan.y;
+                    screenSize.y += overScan.y;
                     break;
                 }
                 case SceneTree.StretchAspect.KeepHeight: {
-                    screenSize.x += overscan.x;
+                    screenSize.x += overScan.x;
                     break;
                 }
                 case SceneTree.StretchAspect.Expand:
                 case SceneTree.StretchAspect.Ignore: {
-                    screenSize += overscan;
+                    screenSize += overScan;
                     break;
                 }
+                case SceneTree.StretchAspect.Keep:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             viewportSize = screenSize * scale;
@@ -126,12 +144,13 @@ namespace Betauer.Screen {
 
         private void ChangeViewport(Vector2 screenSize, Vector2 margin, Vector2 viewportSize, Vector2 windowSize,
             Vector2 margin2) {
+            Viewport rootViewport = _tree.Root;
             switch (StretchMode) {
                 case SceneTree.StretchMode.Viewport: {
-                    _rootViewport.Size = (screenSize / StretchShrink).Floor();
-                    _rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    _rootViewport.SizeOverrideStretch = false;
-                    _rootViewport.SetSizeOverride(false);
+                    rootViewport.Size = (screenSize / StretchShrink).Floor();
+                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
+                    rootViewport.SizeOverrideStretch = false;
+                    rootViewport.SetSizeOverride(false);
                     Logger.Debug("(Viewport Mode) Base resolution:", BaseResolution.x, "x", BaseResolution.y,
                         " Video resolution:", windowSize.x, "x", windowSize.y,
                         " Size:", (screenSize / StretchShrink).Floor(), "(Screen size ", screenSize, "/",
@@ -140,10 +159,10 @@ namespace Betauer.Screen {
                 }
                 case SceneTree.StretchMode.Mode2d:
                 case SceneTree.StretchMode.Disabled: {
-                    _rootViewport.Size = (viewportSize / StretchShrink).Floor();
-                    _rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    _rootViewport.SizeOverrideStretch = true;
-                    _rootViewport.SetSizeOverride(true, (screenSize / StretchShrink).Floor());
+                    rootViewport.Size = (viewportSize / StretchShrink).Floor();
+                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
+                    rootViewport.SizeOverrideStretch = true;
+                    rootViewport.SetSizeOverride(true, (screenSize / StretchShrink).Floor());
                     Logger.Debug("(2D model) Base resolution:", BaseResolution.x, "x", BaseResolution.y,
                         " Video resolution:", windowSize.x, "x", windowSize.y,
                         " Size:", (viewportSize / StretchShrink).Floor(), " (Viewport size ", viewportSize, "/",
@@ -152,6 +171,8 @@ namespace Betauer.Screen {
                     // Size override:", (screen_size / stretch_shrink).floor(), "(Screen size ", screen_size,"/",_stretchShrink," stretch shrink)")
                     break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             VisualServer.BlackBarsSetMargins(
