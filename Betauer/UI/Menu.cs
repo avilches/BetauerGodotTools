@@ -383,6 +383,8 @@ namespace Betauer.UI {
         public class Context : BaseContext {
             public ActionCheckButton ActionCheckButton { get; }
 
+            public bool Pressed => ActionCheckButton.Pressed;
+
             public Context(ActionMenu menu, ActionCheckButton actionCheckButton) : base(menu) {
                 ActionCheckButton = actionCheckButton;
             }

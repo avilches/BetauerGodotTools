@@ -4,6 +4,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.UI;
 using Godot;
+using NUnit.Framework.Internal.Execution;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
@@ -24,6 +25,8 @@ namespace Veronenger.Game.Controller.Menu {
             _menuController.Start("Root");
             // Go(_mainMenu, _options, _optionsMenu);
         }
+
+        [Inject] public ScreenManager ScreenManager;
 
         public MenuController BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
@@ -58,22 +61,66 @@ namespace Veronenger.Game.Controller.Menu {
             var hSeparator = new HSeparator();
             hSeparator.Name = "Sep";
             mainMenu.AddMenu("Options", (menu) => { GD.Print(menu.Name); })
-                .AddButton("Video", "Video", () => {
-                    GD.Print("Video");
-                })
+                .AddButton("Video", "Video", (ctx) => { ctx.Go("Video", GoGoodbyeAnimation, GoNewMenuAnimation); })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
                 .AddHSeparator()
-                .AddCheckButton("Sound", "Sound", (ctx) => {
-                    GD.Print("Sound " + ctx.ActionCheckButton.Pressed);
-                    // hSeparator.GrabFocus();
+                .AddButton("Back", "Back", (ctx) =>
+                    ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
+                );
+
+            mainMenu.AddMenu("Video")
+                .AddCheckButton("Fullscreen", "Fullscreen", (ActionCheckButton.Context ctx) => {
+                    ScreenManager.SetFullscreen(ctx.Pressed);
+                    _borderless.Pressed = OS.WindowBorderless;
+                    _scale.Disabled = _borderless.Disabled = ctx.Pressed;
+                    ctx.Refresh();
+                })
+                .AddButton("Scale", "", (ctx) => {
+                    ScreenManager.SetWindowed(ScreenManager.GetScale() + 1);
+                })
+                .AddCheckButton("Borderless", "Borderless window", (ctx) => {
+                    ScreenManager.SetBorderless(ctx.Pressed);
+                    // UpdateResolutionButton();
+                    // ctx.Menu.GetCheckButton("Fullscreen")!.Pressed = ScreenManager.IsFullscreen();
                 })
                 .AddButton("Back", "Back", (ctx) =>
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
                 );
 
             mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
-            mainMenu.GetMenu("Options").GetCheckButton("Sound")!.Pressed = true;
+
+            _fullscreenButton = mainMenu.GetMenu("Video").GetCheckButton("Fullscreen")!;
+            _scale = mainMenu.GetMenu("Video").GetButton("Scale")!;
+            _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
+
+            _fullscreenButton.Pressed = ScreenManager.IsFullscreen();
+            _borderless.Pressed = OS.WindowBorderless;
+            _scale.Disabled = _borderless.Disabled = ScreenManager.IsFullscreen();
+            _scale.Menu.Refresh();
             return mainMenu;
+        }
+
+        public override void _Process(float delta) {
+            UpdateResolutionButton();
+        }
+
+        private ActionCheckButton _fullscreenButton;
+        private ActionButton _scale;
+        private ActionCheckButton _borderless;
+
+        private void UpdateResolutionButton() {
+            var scale = ScreenManager.GetScale();
+            if (scale <= ScreenManager.WindowedResolutions.Count) {
+                var prefix = "";
+                var suffix = "";
+                if (_menuController?.ActiveMenu?.GetFocused() == _scale) {
+                    prefix = scale == 1 ? "" : "< ";
+                    suffix = scale == ScreenManager.WindowedResolutions.Count ? "" : " >";
+                }
+                var res = ScreenManager.WindowedResolutions[scale - 1];
+                var scaled = scale > 1 ? "(x" + scale + ")" : "";
+                _scale.Text = prefix + res.x + "x" + res.y + " " + scaled + suffix;
+            }
         }
 
         private async Task GoGoodbyeAnimation(MenuTransition transition) {
@@ -101,7 +148,7 @@ namespace Veronenger.Game.Controller.Menu {
             LoopStatus lastToWaitFor = null;
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
-                    control.Modulate = new Color(1f,1f,1f, 0f);
+                    control.Modulate = new Color(1f, 1f, 1f, 0f);
                     lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
@@ -135,7 +182,7 @@ namespace Veronenger.Game.Controller.Menu {
             int x = 0;
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
-                    control.Modulate = new Color(1f,1f,1f, 0f);
+                    control.Modulate = new Color(1f, 1f, 1f, 0f);
                     lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
@@ -143,9 +190,25 @@ namespace Veronenger.Game.Controller.Menu {
             await lastToWaitFor.Await();
         }
 
-        private const float MenuEffectTime = 0.17f;
+        private const float MenuEffectTime = 0.10f;
 
         public override void _Input(InputEvent @event) {
+            if (@event.IsActionReleased("ui_left") ||
+                @event.IsActionReleased("ui_right") && _menuController?.ActiveMenu?.Name == "Video") {
+                if (_menuController?.ActiveMenu?.GetFocused() == _scale) {
+                    var scale = ScreenManager.GetScale();
+                    if (@event.IsActionReleased("ui_left")) {
+                        if (scale > 1) {
+                            ScreenManager.SetWindowed(scale - 1);
+                        }
+                    } else {
+                        if (scale < ScreenManager.GetMaxScale()) {
+                            ScreenManager.SetWindowed(scale + 1);
+                        }
+                    }
+                }
+            }
+
             // if (@event.IsAction("ui_up") ||
             //     @event.IsAction("ui_down") ||
             //     @event.IsAction("ui_left") ||
