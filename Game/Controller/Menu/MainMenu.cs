@@ -1,10 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
 using Betauer.UI;
 using Godot;
-using NUnit.Framework.Internal.Execution;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
@@ -22,8 +20,7 @@ namespace Veronenger.Game.Controller.Menu {
         public override async void Ready() {
             _launcher = new Launcher().CreateNewTween(this);
             _menuController = BuildMenu();
-            _menuController.Start("Root");
-            // Go(_mainMenu, _options, _optionsMenu);
+            await _menuController.Start("Root");
         }
 
         [Inject] public ScreenManager ScreenManager;
@@ -75,8 +72,15 @@ namespace Veronenger.Game.Controller.Menu {
                     _scale.Disabled = _borderless.Disabled = ctx.Pressed;
                     ctx.Refresh();
                 })
-                .AddButton("Scale", "", (ctx) => {
-                    ScreenManager.SetWindowed(ScreenManager.GetScale() + 1);
+                .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
+                    var scale = ScreenManager.GetScale();
+                    if (ctx.InputEvent.IsActionReleased("ui_left")) {
+                        if (scale > 1) ScreenManager.SetWindowed(scale - 1);
+                    } else if (ctx.InputEvent.IsActionReleased("ui_right")) {
+                        if (scale < ScreenManager.GetMaxScale()) ScreenManager.SetWindowed(scale + 1);
+                    } else if (ctx.InputEvent.IsActionReleased("ui_accept")) {
+                        ScreenManager.SetWindowed(ScreenManager.GetScale() + 1);
+                    }
                 })
                 .AddCheckButton("Borderless", "Borderless window", (ctx) => {
                     ScreenManager.SetBorderless(ctx.Pressed);
@@ -110,17 +114,16 @@ namespace Veronenger.Game.Controller.Menu {
 
         private void UpdateResolutionButton() {
             var scale = ScreenManager.GetScale();
-            if (scale <= ScreenManager.WindowedResolutions.Count) {
-                var prefix = "";
-                var suffix = "";
-                if (_menuController?.ActiveMenu?.GetFocused() == _scale) {
-                    prefix = scale == 1 ? "" : "< ";
-                    suffix = scale == ScreenManager.WindowedResolutions.Count ? "" : " >";
-                }
-                var res = ScreenManager.WindowedResolutions[scale - 1];
-                var scaled = scale > 1 ? "(x" + scale + ")" : "";
-                _scale.Text = prefix + res.x + "x" + res.y + " " + scaled + suffix;
+            if (scale > ScreenManager.WindowedResolutions.Count) return;
+            var prefix = "";
+            var suffix = "";
+            if (_menuController!.ActiveMenu!.GetFocusOwner() == _scale) {
+                prefix = scale == 1 ? "" : "< ";
+                suffix = scale == ScreenManager.WindowedResolutions.Count ? "" : " >";
             }
+            var res = ScreenManager.WindowedResolutions[scale - 1];
+            var scaled = scale > 1 ? "(x" + scale + ")" : "";
+            _scale!.Text = prefix + res.x + "x" + res.y + " " + scaled + suffix;
         }
 
         private async Task GoGoodbyeAnimation(MenuTransition transition) {
@@ -193,22 +196,6 @@ namespace Veronenger.Game.Controller.Menu {
         private const float MenuEffectTime = 0.10f;
 
         public override void _Input(InputEvent @event) {
-            if (@event.IsActionReleased("ui_left") ||
-                @event.IsActionReleased("ui_right") && _menuController?.ActiveMenu?.Name == "Video") {
-                if (_menuController?.ActiveMenu?.GetFocused() == _scale) {
-                    var scale = ScreenManager.GetScale();
-                    if (@event.IsActionReleased("ui_left")) {
-                        if (scale > 1) {
-                            ScreenManager.SetWindowed(scale - 1);
-                        }
-                    } else {
-                        if (scale < ScreenManager.GetMaxScale()) {
-                            ScreenManager.SetWindowed(scale + 1);
-                        }
-                    }
-                }
-            }
-
             // if (@event.IsAction("ui_up") ||
             //     @event.IsAction("ui_down") ||
             //     @event.IsAction("ui_left") ||

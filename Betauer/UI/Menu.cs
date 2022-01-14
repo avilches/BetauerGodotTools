@@ -10,13 +10,13 @@ namespace Betauer.UI {
     public class MenuController {
         internal static Logger Logger = LoggerFactory.GetLogger(typeof(MenuController));
 
-        private readonly Control _baseHolder;
+        private readonly Container _baseHolder;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
         private readonly LinkedList<ActionState> _navigationState = new LinkedList<ActionState>();
 
         public ActionMenu? ActiveMenu { get; private set; } = null;
 
-        public MenuController(Control baseHolder) {
+        public MenuController(Container baseHolder) {
             _baseHolder = baseHolder;
             _baseHolder.DisableAllNotifications();
             baseHolder.Hide();
@@ -87,7 +87,7 @@ namespace Betauer.UI {
         internal async Task PlayTransition(
             MenuTransition transition, Func<MenuTransition, Task>? goodbyeAnimation,
             Func<MenuTransition, Task>? newMenuAnimation) {
-            var viewport = transition.FromMenu.CanvasItem.GetTree().Root;
+            var viewport = transition.FromMenu.Container.GetTree().Root;
             try {
                 viewport.GuiDisableInput = true;
                 if (goodbyeAnimation != null) {
@@ -123,29 +123,29 @@ namespace Betauer.UI {
         internal readonly MenuController MenuController;
 
         public readonly string Name;
-        public CanvasItem CanvasItem { get; }
+        public Container Container { get; }
         public bool WrapButtons { get; set; } = true;
 
-        internal ActionMenu(MenuController menuController, string name, CanvasItem baseHolder,
+        internal ActionMenu(MenuController menuController, string name, Container baseHolder,
             Action<ActionMenu> onShow) {
             MenuController = menuController;
             Name = name;
-            CanvasItem = baseHolder.Duplicate() as Control;
-            _saver = CanvasItem.CreateRestorer();
+            Container = baseHolder.Duplicate() as Container;
+            _saver = Container.CreateRestorer();
             _onShow = onShow;
-            baseHolder.GetParent().AddChildBelowNode(baseHolder, CanvasItem);
+            baseHolder.GetParent().AddChildBelowNode(baseHolder, Container);
         }
 
         public ActionMenu Save() {
             _saver.Save();
-            foreach (var button in CanvasItem.GetChildren())
+            foreach (var button in Container.GetChildren())
                 if (button is IActionControl control) control.Save();
             return this;
         }
 
         public ActionMenu Restore() {
             _saver.Restore();
-            foreach (var button in CanvasItem.GetChildren())
+            foreach (var button in Container.GetChildren())
                 if (button is IActionControl control) control.Restore();
             return this;
         }
@@ -179,7 +179,7 @@ namespace Betauer.UI {
         }
 
         public ActionMenu AddNode(Node button) {
-            CanvasItem.AddChild(button);
+            Container.AddChild(button);
             return this;
         }
 
@@ -207,6 +207,12 @@ namespace Betauer.UI {
             return this;
         }
 
+        public ActionMenu AddButton(string name, string title, Action<ActionButton.InputEventContext> action) {
+            var button = CreateButton(name, title);
+            button.ActionWithInputEvent = action;
+            return this;
+        }
+
         public ActionMenu AddHSeparator() {
             CreateHSeparator();
             return this;
@@ -217,15 +223,12 @@ namespace Betauer.UI {
             return this;
         }
 
-        public Control? GetFocused() {
-            foreach (var child in CanvasItem.GetChildren()) {
-                if (child is Control control && control.HasFocus()) return control;
-            }
-            return null;
+        public Control? GetFocusOwner() {
+            return Container.GetFocusOwner();
         }
 
         public bool IsFocusedAndDisabled() {
-            foreach (var child in CanvasItem.GetChildren()) {
+            foreach (var child in Container.GetChildren()) {
                 if (child is BaseButton { Disabled: true } disabledButton && disabledButton.HasFocus()) return true;
             }
             return false;
@@ -236,7 +239,7 @@ namespace Betauer.UI {
             Control? last = null;
             Control? previous = null;
             var takeNextFocus = false;
-            foreach (var child in CanvasItem.GetChildren()) {
+            foreach (var child in Container.GetChildren()) {
                 if (child is Control control) {
                     if (control is VSeparator || control is HSeparator) continue;
                     var isDisabled = control is BaseButton { Disabled: true };
@@ -250,10 +253,10 @@ namespace Betauer.UI {
                     control.FocusMode = isDisabled ? Control.FocusModeEnum.None : Control.FocusModeEnum.All;
 
                     if (previous != null) {
-                        if (CanvasItem is VBoxContainer) {
+                        if (Container is VBoxContainer) {
                             previous.FocusNeighbourBottom = "../" + control.Name;
                             control.FocusNeighbourTop = "../" + previous.Name;
-                        } else if (CanvasItem is HBoxContainer) {
+                        } else if (Container is HBoxContainer) {
                             previous.FocusNeighbourRight = "../" + control.Name;
                             control.FocusNeighbourLeft = "../" + previous.Name;
                         }
@@ -265,10 +268,10 @@ namespace Betauer.UI {
             last = previous;
 
             if (WrapButtons && first != null && last != null && first != last) {
-                if (CanvasItem is VBoxContainer) {
+                if (Container is VBoxContainer) {
                     first.FocusNeighbourTop = "../" + last.Name;
                     last.FocusNeighbourBottom = "../" + first.Name;
-                } else if (CanvasItem is HBoxContainer) {
+                } else if (Container is HBoxContainer) {
                     first.FocusNeighbourLeft = "../" + last.Name;
                     last.FocusNeighbourRight = "../" + first.Name;
                 }
@@ -279,17 +282,17 @@ namespace Betauer.UI {
         }
 
         public IEnumerable GetChildren() {
-            return CanvasItem.GetChildren();
+            return Container.GetChildren();
         }
 
         public void Hide() {
-            CanvasItem.Hide();
+            Container.Hide();
         }
 
         public void Show(ActionButton? focused = null) {
             _onShow?.Invoke(this);
             Refresh(focused);
-            CanvasItem.Show();
+            Container.Show();
         }
 
         public ActionButton? GetButton(string name) {
@@ -301,7 +304,7 @@ namespace Betauer.UI {
         }
 
         public T? GetControl<T>(string name) where T : Control {
-            return CanvasItem.FindChild<T>(name);
+            return Container.FindChild<T>(name);
         }
     }
 
@@ -359,16 +362,31 @@ namespace Betauer.UI {
             }
         }
 
+        public class InputEventContext : Context {
+            public Godot.InputEvent InputEvent { get; }
+
+            public InputEventContext(ActionMenu menu, ActionButton actionButton, Godot.InputEvent @event) : base(menu, actionButton) {
+                InputEvent = @event;
+            }
+        }
+
         private readonly ControlRestorer _saver;
         public ActionMenu Menu { get; }
         public Action? Action;
         public Action<Context>? ActionWithContext;
+        public Action<InputEventContext>? ActionWithInputEvent;
 
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
             Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
+        }
+
+        public override void _Input(InputEvent @event) {
+            if (ActionWithInputEvent != null && GetFocusOwner() == this) {
+                ActionWithInputEvent(new InputEventContext(Menu, this, @event));
+            }
         }
 
         public void Execute() {
