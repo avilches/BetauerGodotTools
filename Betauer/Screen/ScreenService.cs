@@ -18,29 +18,84 @@ namespace Betauer.Screen {
         void OnScreenResized();
     }
 
-    // https://github.com/Yukitty/godot-addon-integer_resolution_handler
-    public class ScreenIntegerResolutionService : IScreenService {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ScreenIntegerResolutionService));
+    public abstract class BaseResolutionService {
+        protected ScreenConfiguration _screenConfiguration;
+        protected readonly SceneTree _tree;
 
-        private readonly SceneTree _tree;
+        protected Vector2 BaseResolution => _screenConfiguration.BaseResolution;
+        protected SceneTree.StretchMode StretchMode => _screenConfiguration.StretchMode;
+        protected SceneTree.StretchAspect StretchAspect => _screenConfiguration.StretchAspect;
+        protected int StretchShrink => _screenConfiguration.StretchShrink;
 
-        private ScreenConfiguration _screenConfiguration;
-
-        public ScreenIntegerResolutionService(SceneTree sceneTree) {
-            _tree = sceneTree;
+        protected BaseResolutionService(SceneTree tree) {
+            _tree = tree;
         }
 
-        private Vector2 BaseResolution => _screenConfiguration.BaseResolution;
-        private SceneTree.StretchMode StretchMode => _screenConfiguration.StretchMode;
-        private SceneTree.StretchAspect StretchAspect => _screenConfiguration.StretchAspect;
-        private int StretchShrink => _screenConfiguration.StretchShrink;
+        public virtual void Configure(ScreenConfiguration configuration) {
+            _screenConfiguration = configuration;
+            OnChangeConfiguration();
+        }
+
+        protected abstract void OnChangeConfiguration();
+
+        protected static int CalculateMaxScale(Vector2 screenSize, Vector2 baseResolution) {
+            return (int)Mathf.Max(
+                Mathf.Floor(Mathf.Min(screenSize.x / baseResolution.x, screenSize.y / baseResolution.y)),
+                1);
+        }
+
+    }
+
+    public class RegularResolutionService : BaseResolutionService, IScreenService {
+        public RegularResolutionService(SceneTree tree) : base(tree) {
+        }
+
+        private int _scale;
+        private int _maxScale;
+        protected override void OnChangeConfiguration() {
+            OS.MinWindowSize = BaseResolution;
+            _tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution,1);
+            _maxScale = CalculateMaxScale(OS.GetScreenSize(), BaseResolution);
+            _scale = 1;
+        }
+
+        public bool IsFullscreen() => OS.WindowFullscreen;
+
+        public void SetFullscreen() => OS.WindowFullscreen = true;
+
+        public int GetScale() => 1;
+
+        public int GetMaxScale() => _maxScale;
+
+        public void SetBorderless(bool borderless) {
+            if (IsFullscreen()) return;
+            OS.WindowBorderless = borderless;
+        }
+
+        public void SetWindowed(int scale) {
+            OS.WindowFullscreen = false;
+            OS.WindowSize = _screenConfiguration.BaseResolution * scale;
+        }
+
+        public void CenterWindow() {
+            OS.CenterWindow();
+        }
+
+        public void OnScreenResized() {
+        }
+    }
+
+    // https://github.com/Yukitty/godot-addon-integer_resolution_handler
+    public class ScreenIntegerResolutionService : BaseResolutionService, IScreenService {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ScreenIntegerResolutionService));
+
+        public ScreenIntegerResolutionService(SceneTree tree) : base(tree) {
+        }
 
         private int _maxScale;
         private int _scale = -1;
 
-        public void Configure(ScreenConfiguration screenConfiguration) {
-            _screenConfiguration = screenConfiguration;
-
+        protected override void OnChangeConfiguration() {
             // Enforce minimum resolution.
             OS.MinWindowSize = BaseResolution;
 
@@ -51,8 +106,7 @@ namespace Betauer.Screen {
 
         private void CalculateMaxScaleCurrentScreen() {
             var screenSize = OS.GetScreenSize();
-            _maxScale = (int)Mathf.Max(Mathf.Floor(Mathf.Min(screenSize.x / BaseResolution.x, screenSize.y / BaseResolution.y)),
-                1);
+            _maxScale = CalculateMaxScale(screenSize, BaseResolution);
         }
 
         public bool IsFullscreen() => OS.WindowFullscreen;
@@ -105,7 +159,7 @@ namespace Betauer.Screen {
 
         private void ResolutionUpdated() {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            var scale = (int)Mathf.Max(Mathf.Floor(Mathf.Min(windowSize.x / BaseResolution.x, windowSize.y / BaseResolution.y)), 1);
+            var scale = CalculateMaxScale(windowSize, BaseResolution);
             if (!OS.WindowFullscreen) {
                 _scale = scale;
             }

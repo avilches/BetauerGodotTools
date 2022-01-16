@@ -58,6 +58,7 @@ namespace Betauer.Screen {
         public SceneTree.StretchAspect StretchAspect { get; }
         public int StretchShrink { get; }
 
+
         public ScreenConfiguration(Vector2 baseResolution, SceneTree.StretchMode stretchMode,
             SceneTree.StretchAspect stretchAspect, int stretchShrink = 1) {
             BaseResolution = baseResolution;
