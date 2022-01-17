@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Screen;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
@@ -21,6 +24,7 @@ namespace Veronenger.Game.Controller.Menu {
             _launcher = new Launcher().CreateNewTween(this);
             _menuController = BuildMenu();
             await _menuController.Start("Root");
+            UpdateResolutionButton();
         }
 
         [Inject] public ScreenManager ScreenManager;
@@ -72,15 +76,25 @@ namespace Veronenger.Game.Controller.Menu {
                     _scale.Disabled = _borderless.Disabled = ctx.Pressed;
                     ctx.Refresh();
                 })
+                .AddCheckButton("PixelPerfect", "Pixel perfect", (ActionCheckButton.Context ctx) => {
+                    ScreenManager.SetPixelPerfect(ctx.Pressed);
+                })
                 .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
-                    var scale = ScreenManager.GetScale();
+                    List<ScaledResolution> resolutions = ScreenManager.GetResolutions();
+                    Resolution resolution = ScreenManager.CurrentWindowedResolution;
+                    var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
+                    pos = pos == -1 ? 0 : pos;
+
                     if (ctx.InputEvent.IsActionReleased("ui_left")) {
-                        if (scale > 1) ScreenManager.SetWindowed(scale - 1);
+                        if (pos > 0) ScreenManager.SetWindowed(resolutions[pos - 1]);
                     } else if (ctx.InputEvent.IsActionReleased("ui_right")) {
-                        if (scale < ScreenManager.GetMaxScale()) ScreenManager.SetWindowed(scale + 1);
+                        if (pos < resolutions.Count - 1) ScreenManager.SetWindowed(resolutions[pos + 1]);
                     } else if (ctx.InputEvent.IsActionReleased("ui_accept")) {
-                        ScreenManager.SetWindowed(ScreenManager.GetScale() + 1);
+                        ScreenManager.SetWindowed(pos == resolutions.Count - 1
+                            ? resolutions[0]
+                            : resolutions[pos + 1]);
                     }
+                    UpdateResolutionButton();
                 })
                 .AddCheckButton("Borderless", "Borderless window", (ctx) => {
                     ScreenManager.SetBorderless(ctx.Pressed);
@@ -93,37 +107,49 @@ namespace Veronenger.Game.Controller.Menu {
 
             mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
 
-            _fullscreenButton = mainMenu.GetMenu("Video").GetCheckButton("Fullscreen")!;
+            _videoMenu = mainMenu.GetMenu("Video");
+            _fullscreenButton = _videoMenu.GetCheckButton("Fullscreen")!;
             _scale = mainMenu.GetMenu("Video").GetButton("Scale")!;
             _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
 
             _fullscreenButton.Pressed = ScreenManager.IsFullscreen();
+            _videoMenu.GetCheckButton("PixelPerfect").Pressed = ScreenManager.CurrentPixelPerfect;
             _borderless.Pressed = OS.WindowBorderless;
             _scale.Disabled = _borderless.Disabled = ScreenManager.IsFullscreen();
+            _scale.OnFocusEntered(UpdateResolutionButton);
+            _scale.OnFocusExited(UpdateResolutionButton);
             _scale.Menu.Refresh();
             return mainMenu;
         }
 
-        public override void _Process(float delta) {
-            UpdateResolutionButton();
-        }
-
+        private ActionMenu _videoMenu;
         private ActionCheckButton _fullscreenButton;
         private ActionButton _scale;
         private ActionCheckButton _borderless;
 
+
         private void UpdateResolutionButton() {
-            var scale = ScreenManager.GetScale();
-            if (scale > ScreenManager.WindowedResolutions.Count) return;
+            List<ScaledResolution> resolutions = ScreenManager.GetResolutions();
+            Resolution resolution = ScreenManager.CurrentWindowedResolution;
+            var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
+            pos = pos == -1 ? 0 : pos;
+
             var prefix = "";
             var suffix = "";
             if (_menuController!.ActiveMenu!.GetFocusOwner() == _scale) {
-                prefix = scale == 1 ? "" : "< ";
-                suffix = scale == ScreenManager.WindowedResolutions.Count ? "" : " >";
+                prefix = pos > 0 ? "< " : "";
+                suffix = pos < resolutions.Count - 1 ? " >" : "";
             }
-            var res = ScreenManager.WindowedResolutions[scale - 1];
-            var scaled = scale > 1 ? "(x" + scale + ")" : "";
-            _scale!.Text = prefix + res.x + "x" + res.y + " " + scaled + suffix;
+            ScaledResolution scaledResolution = resolutions[pos];
+            var res = scaledResolution.ToString();
+            if (scaledResolution.IsPixelPerfectScale()) {
+                if (scaledResolution.GetPixelPerfectScale() == 1) {
+                    res += " (Original)";
+                } else {
+                    res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
+                }
+            }
+            _scale!.Text = prefix + res + suffix;
         }
 
         private async Task GoGoodbyeAnimation(MenuTransition transition) {

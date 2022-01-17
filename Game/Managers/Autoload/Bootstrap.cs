@@ -60,6 +60,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Off);
 
+
             LoggerFactory.SetTraceLevel(typeof(Launcher), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Off);
@@ -67,8 +68,12 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Off);
 
+            // Screen
+            LoggerFactory.SetTraceLevel(typeof(RegularResolutionService), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(IntegerScaleResolutionService), TraceLevel.Debug);
+            
             // Managers
-            LoggerFactory.SetTraceLevel(typeof(ScreenIntegerResolutionService), TraceLevel.Off);
+            LoggerFactory.SetTraceLevel(typeof(InputManager), TraceLevel.Off);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Off);
 
             // Player and enemies
