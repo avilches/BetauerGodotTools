@@ -356,7 +356,7 @@ namespace Betauer {
 
         public void Disconnect() {
             if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, _target, nameof(Call));
+                _target.Disconnect(_signal, this, nameof(Call));
             }
         }
 
@@ -379,7 +379,7 @@ namespace Betauer {
 
         public void Disconnect() {
             if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, _target, nameof(Call));
+                _target.Disconnect(_signal, this, nameof(Call));
             }
         }
 
@@ -402,7 +402,7 @@ namespace Betauer {
 
         public void Disconnect() {
             if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, _target, nameof(Call));
+                _target.Disconnect(_signal, this, nameof(Call));
             }
         }
 
@@ -425,7 +425,7 @@ namespace Betauer {
 
         public void Disconnect() {
             if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, _target, nameof(Call));
+                _target.Disconnect(_signal, this, nameof(Call));
             }
         }
 
@@ -448,7 +448,7 @@ namespace Betauer {
 
         public void Disconnect() {
             if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, _target, nameof(Call));
+                _target.Disconnect(_signal, this, nameof(Call));
             }
         }
 
