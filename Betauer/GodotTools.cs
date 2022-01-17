@@ -336,4 +336,126 @@ namespace Betauer {
             }
         }
     }
+
+    public class OnResizeWindowHandler : SignalHandler {
+        public OnResizeWindowHandler(Object target, Action action) : base(target, GodotConstants.GODOT_SIGNAL_screen_resized, action) {
+        }
+    }
+
+    public class SignalHandler : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action _action;
+
+        public SignalHandler(Object target, string signal, Action action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, _target, nameof(Call));
+            }
+        }
+
+        internal void Call() {
+            _action();
+        }
+    }
+
+    public class SignalHandler<T> : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action<T> _action;
+
+        public SignalHandler(Object target, string signal, Action<T> action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, _target, nameof(Call));
+            }
+        }
+
+        internal void Call(T v1) {
+            _action(v1);
+        }
+    }
+
+    public class SignalHandler<T1, T2> : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action<T1, T2> _action;
+
+        public SignalHandler(Object target, string signal, Action<T1, T2> action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, _target, nameof(Call));
+            }
+        }
+
+        internal void Call(T1 v1, T2 v2) {
+            _action(v1, v2);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3> : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action<T1, T2, T3> _action;
+
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3> action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, _target, nameof(Call));
+            }
+        }
+
+        internal void Call(T1 v1, T2 v2, T3 v3) {
+            _action(v1, v2, v3);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3, T4> : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action<T1, T2, T3, T4> _action;
+
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4> action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, _target, nameof(Call));
+            }
+        }
+
+        internal void Call(T1 v1, T2 v2, T3 v3, T4 v4) {
+            _action(v1, v2, v3, v4);
+        }
+    }
+
+
 }
