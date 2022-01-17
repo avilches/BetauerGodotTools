@@ -11,7 +11,7 @@ namespace Betauer.Screen {
 
         public static AspectRatio Ratio3_2 = AddToAll(new AspectRatio(3, 2));
 
-        public static AspectRatio Ratio12_5 = AddToAll(new AspectRatio(12, 5));
+        public static AspectRatio Ratio12_5 = AddToAll(new AspectRatio(12, 5, "21:9"));
         // 2.4 aprox -> 3440/1440 = 2,38888889 = 0,011 threshold
 
         // 1.5 aprox -> 2560/1700 = 1,50588235 = 0,00588235 threshold
@@ -106,8 +106,8 @@ namespace Betauer.Screen {
         public readonly string Name;
         public readonly float Ratio;
 
-        public AspectRatio(int width, int height) {
-            Name = width + ":" + height;
+        public AspectRatio(int width, int height, string? name = null) {
+            Name = name ?? width + ":" + height;
             Ratio = width / (float)height;
             AspectRatios.All.Add(this);
         }
