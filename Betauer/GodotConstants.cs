@@ -22,5 +22,7 @@ namespace Betauer {
         public const string GODOT_SIGNAL_idle_frame = "idle_frame";
 
         public const string GODOT_SIGNAL_pressed = "pressed";
+        public const string GODOT_SIGNAL_focus_entered = "focus_entered";
+        public const string GODOT_SIGNAL_focus_exited = "focus_exited";
     }
 }
