@@ -133,17 +133,6 @@ namespace Betauer {
                 property.SetValue(target, instance);
             }
         }
-
-        public void Dispose() {
-            foreach (var instance in _singletons.Values) {
-                if (instance is Object obj) {
-                    try {
-                        obj.Dispose();
-                    } catch (Exception) {
-                    }
-                }
-            }
-        }
     }
 
     public abstract class Di {

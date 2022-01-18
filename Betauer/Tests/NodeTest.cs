@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Betauer.Animation;
 using Godot;
 using NUnit.Framework;
 
@@ -21,8 +22,8 @@ namespace Betauer.Tests {
             return sprite;
         }
 
-        public async Task<Tween> CreateTween() {
-            Tween tween = new Tween();
+        public async Task<DisposableTween> CreateTween() {
+            DisposableTween tween = new DisposableTween();
             AddChild(tween);
             await this.AwaitIdleFrame();
             return tween;
