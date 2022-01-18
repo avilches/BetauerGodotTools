@@ -356,7 +356,7 @@ namespace Betauer {
         void Dispose();
     }
 
-    public class TextWriterWrapper : ITextWriter {
+    public class TextWriterWrapper : ITextWriter, IDisposable {
         private readonly TextWriter _delegate;
         private bool _disposed = false;
 
