@@ -13,7 +13,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private Vector2 _original;
         public Vector2 follow;
-        private MultipleSequencePlayer _player;
+        private MultipleSequencePlayer _sequencePlayer;
 
         public override void Ready() {
             Configure();
@@ -33,7 +33,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            _player = new MultipleSequencePlayer().CreateNewTween(this);
+            _sequencePlayer = new MultipleSequencePlayer().CreateNewTween(this);
 
             Stopwatch x = Stopwatch.StartNew();
             SequenceBuilder seq = SequenceBuilder.Create();
@@ -61,8 +61,8 @@ namespace Veronenger.Game.Controller.Animation {
                 // _player.SetTween(new Tween());
             });
 
-            _player.AddSequence(seq);
-            _player.SetInfiniteLoops();
+            _sequencePlayer.AddSequence(seq);
+            _sequencePlayer.SetInfiniteLoops();
         }
 
         public void UpdatePosition() {
@@ -70,13 +70,18 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Start() {
-            _player.Start();
+            _sequencePlayer.Start();
         }
 
         public void Pause() {
             follow = Vector2.Zero;
             Modulate = new Color(1, 1, 1, 1);
-            _player.Reset();
+            _sequencePlayer.Reset();
+        }
+
+        protected override void Dispose(bool disposing) {
+            _sequencePlayer?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

@@ -145,8 +145,12 @@ namespace Betauer.Animation {
         protected override void Dispose(bool disposing) {
             if (_disposed) return;
             _disposed = true;
+            if (disposing && IsInstanceValid(Tween)) {
+                // disposing false means application shutdown, no need to be freed anything on shutdown
+                // on the other hand, QueueFree means "free in the next frame", and there is no next frame on shutdown
+                Tween.QueueFree();
+            }
             base.Dispose(disposing);
-            if (disposing && IsInstanceValid(Tween)) Tween.QueueFree();
         }
 
         protected abstract void OnStart();

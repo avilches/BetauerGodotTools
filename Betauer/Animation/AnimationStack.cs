@@ -203,14 +203,15 @@ namespace Betauer.Animation {
             }
         }
 
+        public SingleSequencePlayer SequencePlayer { get; }
+        public AnimationPlayer AnimationPlayer { get; }
+
         private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations =
             new System.Collections.Generic.Dictionary<string, LoopStatus>();
 
         private readonly System.Collections.Generic.Dictionary<string, OnceStatus> _onceAnimations =
             new System.Collections.Generic.Dictionary<string, OnceStatus>();
 
-        private readonly AnimationPlayer _animationPlayer;
-        private readonly SingleSequencePlayer _sequencePlayer;
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
         private readonly Logger _logger;
@@ -222,54 +223,54 @@ namespace Betauer.Animation {
         public AnimationStack(string name, AnimationPlayer animationPlayer, SingleSequencePlayer sequencePlayer = null) {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
 
-            _animationPlayer = animationPlayer;
-            _animationPlayer?.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
+            AnimationPlayer = animationPlayer;
+            AnimationPlayer?.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
                 nameof(OnceAnimationFinished));
 
-            _sequencePlayer = sequencePlayer;
-            _sequencePlayer?.AddOnFinishAll(OnTweenPlayerFinishAll);
+            SequencePlayer = sequencePlayer;
+            SequencePlayer?.AddOnFinishAll(OnTweenPlayerFinishAll);
         }
 
         public ILoopStatus AddLoopAnimation(string name) {
-            Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
-            Godot.Animation animation = _animationPlayer.GetAnimation(name);
+            Debug.Assert(AnimationPlayer != null, "_animationPlayer != null");
+            Godot.Animation animation = AnimationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
-                    $"Animation {name} not found in AnimationPlayer {_animationPlayer.Name}");
+                    $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
             animation.Loop = true;
-            var loopAnimationStatus = new LoopAnimation(this, _logger, name, _animationPlayer);
+            var loopAnimationStatus = new LoopAnimation(this, _logger, name, AnimationPlayer);
             _loopAnimations.Add(name, loopAnimationStatus);
             return loopAnimationStatus;
         }
 
         public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false,
             bool killPrevious = false) {
-            Debug.Assert(_animationPlayer != null, "_animationPlayer != null");
-            Godot.Animation animation = _animationPlayer.GetAnimation(name);
+            Debug.Assert(AnimationPlayer != null, "_animationPlayer != null");
+            Godot.Animation animation = AnimationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
-                    $"Animation {name} not found in AnimationPlayer {_animationPlayer.Name}");
+                    $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
             animation.Loop = false;
             var onceAnimationStatus =
-                new OnceAnimation(this, _logger, name, canBeInterrupted, killPrevious, _animationPlayer);
+                new OnceAnimation(this, _logger, name, canBeInterrupted, killPrevious, AnimationPlayer);
             _onceAnimations.Add(name, onceAnimationStatus);
             return onceAnimationStatus;
         }
 
         public ILoopStatus AddLoopTween(string name, ISequence sequence) {
-            Debug.Assert(_sequencePlayer != null, "_tweenPlayer != null");
-            var loopTweenStatus = new LoopTween(this, _logger, name, _sequencePlayer, sequence);
+            Debug.Assert(SequencePlayer != null, "_tweenPlayer != null");
+            var loopTweenStatus = new LoopTween(this, _logger, name, SequencePlayer, sequence);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
         public IOnceStatus AddOnceTween(string name, ISequence sequence, bool canBeInterrupted = false,
             bool killPrevious = false) {
-            Debug.Assert(_sequencePlayer != null, "_tweenPlayer != null");
+            Debug.Assert(SequencePlayer != null, "_tweenPlayer != null");
             var onceTweenStatus =
-                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, _sequencePlayer, sequence);
+                new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, SequencePlayer, sequence);
             _onceAnimations.Add(name, onceTweenStatus);
             return onceTweenStatus;
         }
@@ -399,6 +400,12 @@ namespace Betauer.Animation {
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
             _currentLoopAnimation?.ExecuteOnStart();
+        }
+
+        protected override void Dispose(bool disposing) {
+            // No need to dispose AnimationPlayer, it should be part of the scene tso it will be freed with the tree
+            SequencePlayer?.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

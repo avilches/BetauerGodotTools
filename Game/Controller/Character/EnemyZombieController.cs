@@ -43,12 +43,13 @@ namespace Veronenger.Game.Controller.Character {
                 .SetNextState(ZombieState.Idle);
         }
 
+        private AnimationStack _animationStack;
         public override void Ready() {
-            var animationStack = new AnimationStack(_name, _animationPlayer);
-            AnimationIdle = animationStack.AddLoopAnimation("Idle");
-            AnimationStep = animationStack.AddOnceAnimation("Step");
-            AnimationDieRight = animationStack.AddOnceAnimation("DieRight");
-            AnimationDieLeft = animationStack.AddOnceAnimation("DieLeft");
+            _animationStack = new AnimationStack(_name, _animationPlayer);
+            AnimationIdle = _animationStack.AddLoopAnimation("Idle");
+            AnimationStep = _animationStack.AddOnceAnimation("Step");
+            AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
+            AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);
@@ -129,5 +130,11 @@ namespace Veronenger.Game.Controller.Character {
         public void AttackedByPlayer(PlayerController playerController) {
             _stateMachine.SetNextState(ZombieState.Attacked);
         }
+
+        protected override void Dispose(bool disposing) {
+            _animationStack?.Dispose();
+            base.Dispose(disposing);
+        }
+
     }
 }

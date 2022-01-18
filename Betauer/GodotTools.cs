@@ -17,11 +17,17 @@ namespace Betauer {
             _warning = false;
         }
 
+        private bool _disposed = false;
         protected override void Dispose(bool disposing) {
-            if (!disposing && ShowShutdownWarning && _warning) {
-                GD.PushWarning($"Shutdown disposing {GetType()}");
+            if (_disposed) return;
+            try {
+                if (!disposing && ShowShutdownWarning && _warning) {
+                    GD.PushWarning($"Shutdown disposing {GetType()}");
+                }
+            } finally {
+                base.Dispose(disposing);
+                _disposed = true;
             }
-            base.Dispose(disposing);
         }
     }
 

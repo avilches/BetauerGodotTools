@@ -22,10 +22,8 @@ namespace Betauer.Screen {
         }
     }
 
-    public interface IScreenService {
+    public interface IScreenService : IDisposable {
         void Configure(ScreenConfiguration configuration);
-        public void Dispose();
-
         bool IsFullscreen();
         void SetFullscreen();
         void SetBorderless(bool borderless);
@@ -154,7 +152,6 @@ namespace Betauer.Screen {
         }
 
         public void Dispose() {
-            _onResizeWindowHandler.Disconnect();
             _onResizeWindowHandler.Dispose();
         }
 

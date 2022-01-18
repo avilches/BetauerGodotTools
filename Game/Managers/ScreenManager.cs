@@ -5,7 +5,7 @@ using Godot;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class ScreenManager : Node /* needed to get the scene tree on init with GetTree() */ {
+    public class ScreenManager : Node /* needed to get the scene tree  GetTree() */ {
         private IScreenService _service;
 
         private readonly ScreenConfiguration configuration = new ScreenConfiguration(
@@ -42,7 +42,11 @@ namespace Veronenger.Game.Managers {
             _service.Configure(configuration);
         }
 
-        protected override void Dispose(bool disposing) => _service?.Dispose();
+        protected override void Dispose(bool disposing) {
+            _service?.Dispose();
+            base.Dispose(disposing);
+        }
+
         public void SetBorderless(bool borderless) => _service.SetBorderless(borderless);
         public bool IsFullscreen() => _service.IsFullscreen();
 

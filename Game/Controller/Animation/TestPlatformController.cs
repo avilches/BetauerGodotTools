@@ -67,6 +67,13 @@ namespace Veronenger.Game.Controller.Animation {
         // public override void _PhysicsProcess(float delta) {
             // base._PhysicsProcess(delta);
         // }
+
+        protected override void Dispose(bool disposing) {
+            _multipleSequencePlayer1?.Dispose();
+            _multipleSequencePlayer2?.Dispose();
+            _multipleSequencePlayer3?.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
 }
