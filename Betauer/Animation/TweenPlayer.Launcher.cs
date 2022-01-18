@@ -6,22 +6,22 @@ using Object = Godot.Object;
 namespace Betauer.Animation {
     public class Launcher : ITweenPlayer<Launcher> {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Launcher));
-        public Tween Tween { get; private set; }
+        public DisposableTween Tween { get; private set; }
 
         public Launcher() {
         }
 
-        public Launcher(Tween tween) {
+        public Launcher(DisposableTween tween) {
             WithTween(tween);
         }
 
         public Launcher CreateNewTween(Node node) {
-            var tween = new Tween();
+            var tween = new DisposableTween();
             node.AddChild(tween);
             return WithTween(tween);
         }
 
-        public Launcher WithTween(Tween tween) {
+        public Launcher WithTween(DisposableTween tween) {
             Tween = tween;
             return this;
         }

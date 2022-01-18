@@ -14,7 +14,7 @@ namespace Betauer.Animation {
         public float Speed { get; }
         public float Duration { get; }
         public Tween.TweenProcessMode ProcessMode { get; }
-        public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1);
+        public float Execute(DisposableTween tween, float initialDelay = 0, Node target = null, float duration = -1);
     }
 
     public interface ILoopedSequence : ISequence {
@@ -26,7 +26,7 @@ namespace Betauer.Animation {
         public abstract Node DefaultTarget { get; protected set; }
         public abstract float Duration { get; protected set; }
 
-        public float Execute(Tween tween, float initialDelay = 0, Node target = null, float duration = -1) {
+        public float Execute(DisposableTween tween, float initialDelay = 0, Node target = null, float duration = -1) {
             float accumulatedDelay = 0;
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
@@ -60,14 +60,14 @@ namespace Betauer.Animation {
         /// </summary>
         public int LoopCounter { get; private set; }
 
-        private readonly Tween _tween;
+        private readonly DisposableTween _tween;
         private readonly Node _defaultTarget = null;
         private readonly float _duration = -1;
         private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
         private Action _onFinish;
         private bool _done = false;
 
-        public LoopStatus(Tween tween, int loops, ISequence sequence, Node defaultTarget, float duration) {
+        public LoopStatus(DisposableTween tween, int loops, ISequence sequence, Node defaultTarget, float duration) {
             _tween = tween;
             Loops = loops;
             Sequence = sequence;
@@ -84,6 +84,7 @@ namespace Betauer.Animation {
             if (_done) return this;
             _done = true;
             _tween.Start();
+            _tween.AddToDisposeQueue(this);
             ExecuteLoop(initialDelay);
             return this;
         }
@@ -107,6 +108,7 @@ namespace Betauer.Animation {
                     _onFinish?.Invoke();
                 } finally {
                     _promise.TrySetResult(this);
+                    _tween.RemovedFromDisposeQueue(this);
                     Dispose();
                 }
             }
@@ -168,15 +170,15 @@ namespace Betauer.Animation {
             return SingleSequencePlayer.Create(node, this);
         }
 
-        public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+        public LoopStatus Play(DisposableTween tween, Node node, float initialDelay = 0, float duration = -1) {
             return Play(tween, 1, node, initialDelay, duration);
         }
 
-        public LoopStatus PlayForever(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+        public LoopStatus PlayForever(DisposableTween tween, Node node, float initialDelay = 0, float duration = -1) {
             return Play(tween, -1, node, initialDelay, duration);
         }
 
-        public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
+        public LoopStatus Play(DisposableTween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
             LoopStatus loopStatus = new LoopStatus(tween, loops, this, node, duration);
             return loopStatus.Start(initialDelay);
         }
@@ -767,15 +769,15 @@ namespace Betauer.Animation {
             return sequenceBuilder;
         }
 
-        public LoopStatus Play(Tween tween, Node node, float initialDelay = 0, float duration = -1) {
+        public LoopStatus Play(DisposableTween tween, Node node, float initialDelay = 0, float duration = -1) {
             return Play(tween, Loops, node, initialDelay, duration);
         }
 
-        public LoopStatus PlayForever(Tween tween, Node node = null, float initialDelay = 0, float duration = -1) {
+        public LoopStatus PlayForever(DisposableTween tween, Node node = null, float initialDelay = 0, float duration = -1) {
             return Play(tween, -1, node, initialDelay, duration);
         }
 
-        public LoopStatus Play(Tween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
+        public LoopStatus Play(DisposableTween tween, int loops, Node node, float initialDelay = 0, float duration = -1) {
             LoopStatus loopStatus = new LoopStatus(tween, loops, this, node, duration);
             return loopStatus.Start(initialDelay);
         }

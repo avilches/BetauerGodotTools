@@ -5,9 +5,9 @@ using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ITweenPlayer<out TBuilder> {
-        public Tween Tween { get; }
+        public DisposableTween Tween { get; }
         public TBuilder CreateNewTween(Node node);
-        public TBuilder WithTween(Tween tween);
+        public TBuilder WithTween(DisposableTween tween);
         public TBuilder RemoveTween();
         public bool IsRunning();
         public TBuilder Start();
@@ -25,12 +25,12 @@ namespace Betauer.Animation {
         protected bool DisposeOnFinish = false;
         protected SimpleLinkedList<Action> OnFinishAll;
 
-        public Tween Tween { get; private set; }
+        public DisposableTween Tween { get; private set; }
 
         public RepeatablePlayer() {
         }
 
-        public RepeatablePlayer(Tween tween, bool disposeOnFinish = false) {
+        public RepeatablePlayer(DisposableTween tween, bool disposeOnFinish = false) {
             WithTween(tween, disposeOnFinish);
         }
 
@@ -40,12 +40,12 @@ namespace Betauer.Animation {
         }
 
         public TBuilder CreateNewTween(Node node) {
-            var tween = new Tween();
+            var tween = new DisposableTween();
             node.AddChild(tween);
             return WithTween(tween);
         }
 
-        public TBuilder WithTween(Tween tween) {
+        public TBuilder WithTween(DisposableTween tween) {
             RemoveTween();
             Tween = tween;
             // _tween.Connect("tween_all_completed", this, nameof(OnTweenAllCompletedSignaled));
@@ -54,7 +54,7 @@ namespace Betauer.Animation {
             return this as TBuilder;
         }
 
-        public TBuilder WithTween(Tween tween, bool disposeOnFinish) {
+        public TBuilder WithTween(DisposableTween tween, bool disposeOnFinish) {
             DisposeOnFinish = disposeOnFinish;
             WithTween(tween);
             return this as TBuilder;
@@ -95,14 +95,14 @@ namespace Betauer.Animation {
         public TBuilder Start() {
             if (_disposed) return this as TBuilder;
             if (!IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Start with a freed Tween instance");
+                Logger.Warning("Can't Start with a freed DisposableTween instance");
                 return this as TBuilder;
             }
             if (!Started) {
                 DoStart();
             } else {
                 if (!Running) {
-                    Logger.Info("Tween.ResumeAll()");
+                    Logger.Info("DisposableTween.ResumeAll()");
                     Tween.ResumeAll();
                     Running = true;
                 }
@@ -113,11 +113,11 @@ namespace Betauer.Animation {
         public TBuilder Stop() {
             if (_disposed) return this as TBuilder;
             if (!IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Stop with a freed Tween instance");
+                Logger.Warning("Can't Stop with a freed DisposableTween instance");
                 return this as TBuilder;
             }
             if (Running) {
-                Logger.Info("Tween.StopAll()");
+                Logger.Info("DisposableTween.StopAll()");
                 Tween.StopAll();
                 Running = false;
             }
@@ -127,10 +127,10 @@ namespace Betauer.Animation {
         public TBuilder Reset() {
             if (_disposed) return this as TBuilder;
             if (!IsInstanceValid(Tween)) {
-                Logger.Warning("Can't Reset with a freed Tween instance");
+                Logger.Warning("Can't Reset with a freed DisposableTween instance");
                 return this as TBuilder;
             }
-            Logger.Info("Tween.RemoveAll()");
+            Logger.Info("DisposableTween.RemoveAll()");
             Tween.RemoveAll();
             OnReset();
             if (Running) {
@@ -167,7 +167,7 @@ namespace Betauer.Animation {
             Started = true;
             Running = true;
             OnStart();
-            Logger.Info("Tween.Start()");
+            Logger.Info("DisposableTween.Start()");
             Tween.Start();
         }
 

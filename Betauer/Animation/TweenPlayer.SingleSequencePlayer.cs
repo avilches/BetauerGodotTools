@@ -33,7 +33,7 @@ namespace Betauer.Animation {
         public SingleSequencePlayer() {
         }
 
-        public SingleSequencePlayer(Tween tween, bool disposeOnFinish = false) : base(tween, disposeOnFinish) {
+        public SingleSequencePlayer(DisposableTween tween, bool disposeOnFinish = false) : base(tween, disposeOnFinish) {
         }
 
         public static SingleSequencePlayer Create(Node node, SequenceTemplate template, float duration = -1) {
