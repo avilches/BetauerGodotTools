@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Betauer;
 using Betauer.Bus;
@@ -36,8 +37,7 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
-        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D,
-            GodotFilterListenerDelegate<Area2DOnArea2D>.ExecuteMethod enterMethod) {
+        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2DOnArea2D> enterMethod) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
             attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
