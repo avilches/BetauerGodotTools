@@ -5,8 +5,10 @@ using Godot;
 namespace Betauer.Screen {
     public static class AspectRatios {
         public static List<AspectRatio> All = new List<AspectRatio>();
+        public static List<AspectRatio> Commons = new List<AspectRatio>();
+
         public static AspectRatio Ratio5_4 = AddToAll(new AspectRatio(5, 4)); // 1.125
-        public static AspectRatio Ratio4_3 = AddToAll(new AspectRatio(4, 3)); // 1.3333333
+        public static AspectRatio Ratio4_3 = AddToCommons(AddToAll(new AspectRatio(4, 3))); // 1.3333333
         public static AspectRatio Ratio5_3 = AddToAll(new AspectRatio(5, 3)); // 1.6666666
 
         public static AspectRatio Ratio3_2 = AddToAll(new AspectRatio(3, 2));
@@ -15,15 +17,15 @@ namespace Betauer.Screen {
         // 2.4 aprox -> 3440/1440 = 2,38888889 = 0,011 threshold
 
         // 1.5 aprox -> 2560/1700 = 1,50588235 = 0,00588235 threshold
-        public static AspectRatio Ratio16_10 = AddToAll(new AspectRatio(16, 10)); // 1.6
+        public static AspectRatio Ratio16_10 = AddToCommons(AddToAll(new AspectRatio(16, 10))); // 1.6
 
-        public static AspectRatio Ratio16_9 = AddToAll(new AspectRatio(16, 9));
+        public static AspectRatio Ratio16_9 = AddToCommons(AddToAll(new AspectRatio(16, 9)));
         // 1.7777 aprox -> 1366/768 = 1,77864583 = 0,00086813 threshold
 
         public static AspectRatio Ratio17_9 = AddToAll(new AspectRatio(17, 9));
         // 1.8888 aprox -> 4096/2160 = 1,8962963 = 0,0074 threshold
 
-        public static AspectRatio Ratio21_9 = AddToAll(new AspectRatio(21, 9));
+        public static AspectRatio Ratio21_9 = AddToCommons(AddToAll(new AspectRatio(21, 9)));
         // 2.3333 aprox -> 2560/1080 = 2,37037037 = 0,03703704 threshold
 
         public static AspectRatio Ratio32_9 = AddToAll(new AspectRatio(32, 9)); // 3.5555
@@ -35,10 +37,15 @@ namespace Betauer.Screen {
             return ratio;
         }
 
-        public static AspectRatio Get(Resolution resolution) => Get(resolution.Size);
-        public static AspectRatio Get(Vector2 resolution) => Get(resolution.x / resolution.y);
-        public static AspectRatio Get(int x, int y) => Get(x / (float)y);
-        public static AspectRatio Get(float ratio) => All.Find(aspect => aspect.Matches(ratio));
+        private static AspectRatio AddToCommons(AspectRatio ratio) {
+            Commons.Add(ratio);
+            return ratio;
+        }
+
+        public static AspectRatio? Get(Resolution resolution) => Get(resolution.Size);
+        public static AspectRatio? Get(Vector2 resolution) => Get(resolution.x / resolution.y);
+        public static AspectRatio? Get(int x, int y) => Get(x / (float)y);
+        public static AspectRatio? Get(float ratio) => All.Find(aspect => aspect.Matches(ratio));
     }
 
     public static class Resolutions {
@@ -100,7 +107,7 @@ namespace Betauer.Screen {
         public static List<Resolution> All() => new List<Resolution>(_all);
     }
 
-    public class AspectRatio {
+    public struct AspectRatio {
         internal const float Tolerance = 0.05f;
 
         public readonly string Name;
@@ -109,7 +116,9 @@ namespace Betauer.Screen {
         public AspectRatio(int width, int height, string? name = null) {
             Name = name ?? width + ":" + height;
             Ratio = width / (float)height;
-            AspectRatios.All.Add(this);
+        }
+
+        public AspectRatio(Vector2 resolution, string? name = null) : this((int)resolution.x, (int)resolution.y, name) {
         }
 
         public bool Matches(Resolution resolution) => Matches(resolution.Size);
@@ -119,8 +128,9 @@ namespace Betauer.Screen {
     }
 
     public class Resolution {
+        public static readonly Comparison<Resolution> Comparison = (left, right) =>
+            left.x * left.y > right.x * right.y ? 1 : -1;
 
-        public static readonly Comparison<Resolution> Comparison = (left, right) => left.x * left.y > right.x * right.y ? 1 : -1;
         /**
          * Returns how many times can be multiplied the baseResolution without create a resolution bigger than maxSize
          */
@@ -130,11 +140,11 @@ namespace Betauer.Screen {
         }
 
         public readonly Vector2 Size;
-        public readonly AspectRatio? AspectRatio;
+        public readonly AspectRatio AspectRatio;
 
         public Resolution(Vector2 size) {
             Size = size;
-            AspectRatio = AspectRatios.Get(this);
+            AspectRatio = AspectRatios.Get(this) ?? new AspectRatio(size);
         }
 
         public Resolution(int x, int y) : this(new Vector2(x, y)) {
@@ -144,7 +154,7 @@ namespace Betauer.Screen {
         public int y => (int)Size.y;
 
         public override string ToString() {
-            return AspectRatio != null ? $"{AspectRatio.Name} {x}x{y}" : $"{x}x{y}";
+            return $"{AspectRatio.Name} {x}x{y}";
         }
     }
 
@@ -164,10 +174,9 @@ namespace Betauer.Screen {
 
         public bool IsPixelPerfectScale() => HasSameAspectRatio() && IsInteger(Scale.x);
 
-        private static bool IsInteger(float x) =>  Math.Abs(x - Math.Floor(x)) < 0.00001f;
+        private static bool IsInteger(float x) => Math.Abs(x - Math.Floor(x)) < 0.00001f;
 
         // Please check IsPixelPerfectScale before to use this value!!
         public int GetPixelPerfectScale() => (int)Math.Floor(Scale.x);
-
     }
 }
