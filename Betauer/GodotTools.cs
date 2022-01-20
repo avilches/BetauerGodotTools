@@ -366,6 +366,11 @@ namespace Betauer {
             }
         }
 
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
+        }
+
         internal void Call() {
             _action();
         }
@@ -387,6 +392,11 @@ namespace Betauer {
             if (IsInstanceValid(_target)) {
                 _target.Disconnect(_signal, this, nameof(Call));
             }
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
         }
 
         internal void Call(T v1) {
@@ -412,6 +422,11 @@ namespace Betauer {
             }
         }
 
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
+        }
+
         internal void Call(T1 v1, T2 v2) {
             _action(v1, v2);
         }
@@ -433,6 +448,11 @@ namespace Betauer {
             if (IsInstanceValid(_target)) {
                 _target.Disconnect(_signal, this, nameof(Call));
             }
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
         }
 
         internal void Call(T1 v1, T2 v2, T3 v3) {
@@ -458,8 +478,41 @@ namespace Betauer {
             }
         }
 
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
+        }
+
         internal void Call(T1 v1, T2 v2, T3 v3, T4 v4) {
             _action(v1, v2, v3, v4);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3, T4, T5> : DisposeSnitchObject {
+        private readonly Object _target;
+        private readonly string _signal;
+        private readonly Action<T1, T2, T3, T4, T5> _action;
+
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5> action) {
+            _target = target;
+            _signal = signal;
+            _action = action;
+            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+        }
+
+        public void Disconnect() {
+            if (IsInstanceValid(_target)) {
+                _target.Disconnect(_signal, this, nameof(Call));
+            }
+        }
+
+        protected override void Dispose(bool disposing) {
+            if (disposing) Disconnect();
+            base.Dispose(disposing);
+        }
+
+        internal void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {
+            _action(v1, v2, v3, v4, v5);
         }
     }
 
