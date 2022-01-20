@@ -93,11 +93,11 @@ namespace Betauer.Screen {
 
         private static Resolution AddToAll(Resolution resolution) {
             _all.Add(resolution);
-            _all.Sort((left, right) => left.x * left.y > right.x * right.y ? 1 : -1);
+            _all.Sort(Resolution.Comparison);
             return resolution;
         }
 
-        internal static IList<Resolution> All() => new List<Resolution>(_all);
+        public static List<Resolution> All() => new List<Resolution>(_all);
     }
 
     public class AspectRatio {
@@ -119,6 +119,8 @@ namespace Betauer.Screen {
     }
 
     public class Resolution {
+
+        public static readonly Comparison<Resolution> Comparison = (left, right) => left.x * left.y > right.x * right.y ? 1 : -1;
         /**
          * Returns how many times can be multiplied the baseResolution without create a resolution bigger than maxSize
          */
