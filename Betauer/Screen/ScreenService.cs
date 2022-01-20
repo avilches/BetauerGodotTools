@@ -5,6 +5,7 @@ using Godot;
 namespace Betauer.Screen {
     public class ScreenConfiguration {
         public Resolution BaseResolution { get; }
+        public List<Resolution> Resolutions { get; }
 
         // disabled: while the framebuffer will be resized to match the game window, nothing will be upscaled or downscaled (this includes GUIs).
         // 2d: the framebuffer is still resized, but GUIs can be upscaled or downscaled. This can result in blurry or pixelated fonts.
@@ -14,10 +15,11 @@ namespace Betauer.Screen {
         public float Zoom { get; }
 
         public ScreenConfiguration(Resolution baseResolution, SceneTree.StretchMode stretchMode,
-            SceneTree.StretchAspect stretchAspect, float zoom = 1f) {
+            SceneTree.StretchAspect stretchAspect, List<Resolution> resolutions, float zoom = 1f) {
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
             StretchAspect = stretchAspect;
+            Resolutions = resolutions;
             Zoom = zoom;
         }
     }
@@ -36,6 +38,7 @@ namespace Betauer.Screen {
         protected readonly SceneTree Tree;
 
         protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
+        protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
         protected SceneTree.StretchMode StretchMode => ScreenConfiguration.StretchMode;
         protected SceneTree.StretchAspect StretchAspect => ScreenConfiguration.StretchAspect;
         protected float Zoom => ScreenConfiguration.Zoom;
@@ -49,19 +52,17 @@ namespace Betauer.Screen {
             DoConfigure();
         }
 
-        public List<ScaledResolution> GetResolutions() {
-            var screenSize = OS.GetScreenSize();
-            List<ScaledResolution> resolutions = new List<ScaledResolution>();
-            foreach (var resolution in Resolutions.All()) {
-                if (resolution.x <= screenSize.x &&
-                    resolution.y <= screenSize.y &&
-                    resolution.x >= BaseResolution.x &&
-                    resolution.y >= BaseResolution.y) {
-                    resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
-                }
-            }
-            return resolutions;
+        protected abstract void DoConfigure();
+
+        public bool IsFullscreen() => OS.WindowFullscreen;
+        public abstract void SetFullscreen();
+
+        public void SetBorderless(bool borderless) {
+            if (IsFullscreen()) return;
+            DoSetBorderless(borderless);
         }
+
+        protected abstract void DoSetBorderless(bool borderless);
 
         public void SetWindowed(Resolution resolution) {
             var screenSize = OS.GetScreenSize();
@@ -76,9 +77,8 @@ namespace Betauer.Screen {
             }
         }
 
-        protected abstract void DoConfigure();
         protected abstract void DoSetWindowed(Resolution resolution);
-        public abstract void SetFullscreen();
+
 
         public void CenterWindow() {
             if (OS.WindowFullscreen) return;
@@ -108,20 +108,26 @@ namespace Betauer.Screen {
         public void Dispose() {
         }
 
-        public bool IsFullscreen() => OS.WindowFullscreen;
+        public List<ScaledResolution> GetResolutions() {
+            var screenSize = OS.GetScreenSize();
+            List<ScaledResolution> resolutions = new List<ScaledResolution>();
+            foreach (var resolution in Resolutions) {
+                if (resolution.x <= screenSize.x &&
+                    resolution.y <= screenSize.y &&
+                    resolution.x >= BaseResolution.x &&
+                    resolution.y >= BaseResolution.y) {
+                    resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
+                }
+            }
+            return resolutions;
+        }
 
         public override void SetFullscreen() {
             OS.WindowBorderless = false;
             OS.WindowFullscreen = true;
         }
 
-        public void SetBorderless(bool borderless) {
-            if (IsFullscreen()) {
-                Logger.Debug("SetBorderless true: ignoring because IsFullScreen() true");
-                return;
-            }
-            OS.WindowBorderless = borderless;
-        }
+        protected override void DoSetBorderless(bool borderless) => OS.WindowBorderless = borderless;
 
         protected override void DoSetWindowed(Resolution resolution) {
             Logger.Debug("Set Window size to: " + resolution);
@@ -134,11 +140,16 @@ namespace Betauer.Screen {
     /**
      * https://github.com/Yukitty/godot-addon-integer_resolution_handler
      */
-    public class IntegerScaleResolutionService : BaseResolutionService, IScreenService {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(IntegerScaleResolutionService));
+    public class PixelPerfectResolutionService : BaseResolutionService, IScreenService {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectResolutionService));
         private OnResizeWindowHandler _onResizeWindowHandler;
+        private readonly ICollection<AspectRatio> _aspectRatios = AspectRatios.Commons;
 
-        public IntegerScaleResolutionService(SceneTree tree) : base(tree) {
+        public PixelPerfectResolutionService(SceneTree tree, ICollection<AspectRatio>? aspectRatios = null) :
+            base(tree) {
+            if (aspectRatios != null) {
+                _aspectRatios = aspectRatios;
+            }
         }
 
         protected override void DoConfigure() {
@@ -155,7 +166,47 @@ namespace Betauer.Screen {
             _onResizeWindowHandler.Dispose();
         }
 
-        public bool IsFullscreen() => OS.WindowFullscreen;
+        public List<ScaledResolution> GetResolutions() {
+            var screenSize = OS.GetScreenSize();
+            var maxScale = Resolution.CalculateMaxScale(screenSize, BaseResolution.Size);
+            List<ScaledResolution> resolutions = new List<ScaledResolution>();
+            for (int scale = 1; scale <= maxScale; scale++) {
+                var scaledResolution = new ScaledResolution(BaseResolution.Size, BaseResolution.Size * scale);
+                resolutions.Add(scaledResolution);
+                if (_aspectRatios != null) {
+                    foreach (var aspectRatio in _aspectRatios) {
+                        if (aspectRatio.Matches(scaledResolution.Base)) continue;
+                        // TODO: This is only with landscapes
+                        if (aspectRatio.Ratio > scaledResolution.AspectRatio.Ratio) {
+                            // Convert the resolution to a wider aspect ratio, keeping the height and adding more width
+                            // So, if base is 1920x1080 = 1,77777 16:9
+                            // to 21:9 => 2,3333
+                            // x=1080*2,333=2520
+                            // 2520x1080 = 2,3333 21:9
+                            var newWidth = scaledResolution.y * aspectRatio.Ratio;
+                            if (newWidth <= screenSize.x) {
+                                var newResolution = new Vector2(newWidth, scaledResolution.y);
+                                var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
+                                resolutions.Add(scaledResolutionUpdated);
+                            }
+                        } else {
+                            // Convert the resolution to a stretcher aspect ratio, keeping the width and adding more height
+                            // So, if base is 1920x1080 = 1,77777 16:9
+                            // to 4:3 => 1,333
+                            // y=1920/1,333=823
+                            // 1920x1440 = 1,3333 3:4
+                            var newHeight = scaledResolution.x / aspectRatio.Ratio;
+                            if (newHeight <= screenSize.y) {
+                                var newResolution = new Vector2(scaledResolution.x, newHeight);
+                                var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
+                                resolutions.Add(scaledResolutionUpdated);
+                            }
+                        }
+                    }
+                }
+            }
+            return resolutions;
+        }
 
         public override void SetFullscreen() {
             OS.WindowBorderless = false;
@@ -163,11 +214,7 @@ namespace Betauer.Screen {
             UpdateResolution();
         }
 
-        public void SetBorderless(bool borderless) {
-            if (IsFullscreen()) {
-                Logger.Debug("SetBorderless true: ignoring because IsFullScreen() true");
-                return;
-            }
+        protected override void DoSetBorderless(bool borderless) {
             OS.WindowBorderless = borderless;
             UpdateResolution();
         }
@@ -223,7 +270,8 @@ namespace Betauer.Screen {
                     rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     rootViewport.SizeOverrideStretch = false;
                     rootViewport.SetSizeOverride(false);
-                    Logger.Debug("Mode: Viewport. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" + windowSize.y);
+                    Logger.Debug("Mode: Viewport. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" +
+                                 windowSize.y);
                     break;
                 }
                 case SceneTree.StretchMode.Mode2d:
