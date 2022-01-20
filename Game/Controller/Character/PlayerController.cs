@@ -101,12 +101,12 @@ namespace Veronenger.Game.Controller.Character {
             _slopeStairsDown = SlopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
 
             SlopeStairsManager.SubscribeSlopeStairsEnabler(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsEnablerEnter));
+                new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsEnablerEnter));
             SlopeStairsManager.SubscribeSlopeStairsDisabler(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnSlopeStairsDisablerEnter));
+                new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsDisablerEnter));
 
             PlatformManager.SubscribeFallingPlatformOut(
-                new BodyOnArea2DListenerDelegate(Name, this, this, _OnFallingPlatformExit));
+                new BodyOnArea2DListenerAction(Name, this, this, _OnFallingPlatformExit));
         }
 
 

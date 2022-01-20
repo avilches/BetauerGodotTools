@@ -33,12 +33,12 @@ namespace Betauer.Statemachine {
             FrameCount++;
         }
 
-        public NextState NextFrame(string name, StateConfig config = null) {
+        public NextState NextFrame(string name, StateConfig? config = null) {
             State state = StateMachine.GetState(name);
             return new NextState(state, false, config);
         }
 
-        public NextState Immediate(string name, StateConfig config = null) {
+        public NextState Immediate(string name, StateConfig? config = null) {
             State state = StateMachine.GetState(name);
             return new NextState(state, true, config);
         }
@@ -47,19 +47,19 @@ namespace Betauer.Statemachine {
             return new NextState(CurrentState, true);
         }
 
-        public NextState ImmediateIfAlarm(string name, StateConfig config = null) {
+        public NextState ImmediateIfAlarm(string name, StateConfig? config = null) {
             return StateTimer.IsAlarm() ? Immediate(name, config) : Current();
         }
 
-        public NextState ImmediateIfElapsed(float elapsed, string name, StateConfig config = null) {
+        public NextState ImmediateIfElapsed(float elapsed, string name, StateConfig? config = null) {
             return StateTimer.Elapsed > elapsed ? Immediate(name, config) : Current();
         }
 
-        public NextState NextFrameIfAlarm(string name, StateConfig config = null) {
+        public NextState NextFrameIfAlarm(string name, StateConfig? config = null) {
             return StateTimer.IsAlarm() ? NextFrame(name, config) : Current();
         }
 
-        public NextState NextFrameIfElapsed(float elapsed, string name, StateConfig config = null) {
+        public NextState NextFrameIfElapsed(float elapsed, string name, StateConfig? config = null) {
             return StateTimer.Elapsed > elapsed ? NextFrame(name, config) : Current();
         }
     }
@@ -69,7 +69,7 @@ namespace Betauer.Statemachine {
         public readonly bool IsImmediate;
         public readonly StateConfig Config;
 
-        internal NextState(State state, bool isImmediate, StateConfig config = null) {
+        internal NextState(State state, bool isImmediate, StateConfig? config = null) {
             State = state;
             IsImmediate = isImmediate;
             Config = config;
@@ -106,7 +106,7 @@ namespace Betauer.Statemachine {
             return States[stateTypeName];
         }
 
-        public StateMachine SetNextState(string nextState, StateConfig config = null) {
+        public StateMachine SetNextState(string nextState, StateConfig? config = null) {
             NextState = _currentContext.NextFrame(nextState, config);
             return this;
         }

@@ -1,5 +1,6 @@
+using System;
 using Godot;
-using Godot.Collections;
+using Array = Godot.Collections.Array;
 
 namespace Betauer.Bus.Topics {
     public class Area2DShapeOnArea2D : IGodotFilterEvent {
@@ -25,8 +26,8 @@ namespace Betauer.Bus.Topics {
         }
     }
 
-    public class Area2DShapeOnArea2DListenerDelegate : GodotFilterListenerDelegate<Area2DShapeOnArea2D> {
-        public Area2DShapeOnArea2DListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+    public class Area2DShapeOnArea2DListenerAction : GodotFilterListenerAction<Area2DShapeOnArea2D> {
+        public Area2DShapeOnArea2DListenerAction(string name, Node owner, Node filter, Action<Area2DShapeOnArea2D> executeMethod) :
             base(name, owner, filter, executeMethod) {
         }
     }
@@ -36,8 +37,8 @@ namespace Betauer.Bus.Topics {
      * To receive this event, subscribe to them.
      */
     public class Area2DShapeOnArea2DTopic  : DisposeSnitchObject /* needed to connect to signals */ {
-        private GodotTopic<Area2DShapeOnArea2D> _enterTopic;
-        private GodotTopic<Area2DShapeOnArea2D> _exitTopic;
+        private GodotTopic<Area2DShapeOnArea2D>? _enterTopic;
+        private GodotTopic<Area2DShapeOnArea2D>? _exitTopic;
 
         private GodotTopic<Area2DShapeOnArea2D> EnterTopic =>
             _enterTopic ??= new GodotTopic<Area2DShapeOnArea2D>($"{Name}_AreaShapeEntered");
@@ -59,13 +60,13 @@ namespace Betauer.Bus.Topics {
         }
 
         public void Subscribe(string name, Node owner, Area2D filter,
-            GodotFilterListenerDelegate<Area2DShapeOnArea2D>.ExecuteMethod enterMethod,
-            GodotFilterListenerDelegate<Area2DShapeOnArea2D>.ExecuteMethod exitMethod = null) {
+            Action<Area2DShapeOnArea2D>? enterMethod,
+            Action<Area2DShapeOnArea2D>? exitMethod = null) {
             if (enterMethod != null) {
-                EnterTopic.Subscribe(new GodotFilterListenerDelegate<Area2DShapeOnArea2D>(name, owner, filter, enterMethod));
+                EnterTopic.Subscribe(new GodotFilterListenerAction<Area2DShapeOnArea2D>(name, owner, filter, enterMethod));
             }
             if (exitMethod != null) {
-                ExitTopic.Subscribe(new GodotFilterListenerDelegate<Area2DShapeOnArea2D>(name, owner, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotFilterListenerAction<Area2DShapeOnArea2D>(name, owner, filter, exitMethod));
             }
         }
 

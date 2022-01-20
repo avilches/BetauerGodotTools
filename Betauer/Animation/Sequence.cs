@@ -224,7 +224,7 @@ namespace Betauer.Animation {
         }
 
         public TBuilder Callback(Node target, string method, float delay = 0,
-            object p1 = null, object p2 = null, object p3 = null, object p4 = null, object p5 = null) {
+            object? p1 = null, object? p2 = null, object? p3 = null, object? p4 = null, object? p5 = null) {
             AddTweener(new MethodCallbackTweener(delay, target, method, p1, p2, p3, p4, p5));
             return this as TBuilder;
         }
@@ -278,28 +278,28 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepToBuilder<TProperty, TemplateBuilder> AnimateSteps<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TemplateBuilder> AnimateSteps<TProperty>(
-            Action<Node, TProperty> property = null, Easing easing = null) {
+            Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TemplateBuilder> AnimateSteps<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TemplateBuilder> AnimateSteps<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TemplateBuilder>(this, null, property, easing);
             AddTweener(tweener);
             return tweener;
@@ -310,7 +310,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateStepsBy<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -318,7 +318,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateStepsBy<TProperty>(
-             Action<Node, TProperty> property = null, Easing easing = null) {
+             Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -326,7 +326,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateStepsBy<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -334,7 +334,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateStepsBy<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, property, easing, false);
             AddTweener(tweener);
@@ -346,7 +346,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeSteps<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -354,7 +354,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeSteps<TProperty>(
-            Action<Node, TProperty> property = null, Easing easing = null) {
+            Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -362,7 +362,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeSteps<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -370,7 +370,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeSteps<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TemplateBuilder>(this, null, property, easing, true);
             AddTweener(tweener);
@@ -382,7 +382,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentToBuilder<TProperty, TemplateBuilder> AnimateKeys<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
@@ -390,7 +390,7 @@ namespace Betauer.Animation {
 
 
         public PropertyKeyPercentToBuilder<TProperty, TemplateBuilder> AnimateKeys<TProperty>(
-            Action<Node, TProperty> property = null, Easing easing = null) {
+            Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
@@ -398,14 +398,14 @@ namespace Betauer.Animation {
 
 
         public PropertyKeyPercentToBuilder<TProperty, TemplateBuilder> AnimateKeys<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TemplateBuilder> AnimateKeys<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TemplateBuilder>(this, null, property, easing);
             AddTweener(tweener);
             return tweener;
@@ -416,7 +416,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateKeysBy<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -424,7 +424,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateKeysBy<TProperty>(
-            Action<Node, TProperty> property = null, Easing easing = null) {
+            Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -432,7 +432,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateKeysBy<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -440,7 +440,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateKeysBy<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, property, easing, false);
             AddTweener(tweener);
@@ -452,7 +452,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeKeys<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -460,7 +460,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeKeys<TProperty>(
-            Action<Node, TProperty> property = null, Easing easing = null) {
+            Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new NodeCallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -468,7 +468,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeKeys<TProperty>(
-            string property = null, Easing easing = null) {
+            string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, new IndexedProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -476,7 +476,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder> AnimateRelativeKeys<TProperty>(
-            IProperty<TProperty> property = null, Easing easing = null) {
+            IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TemplateBuilder>(this, null, property, easing, true);
             AddTweener(tweener);
@@ -551,28 +551,28 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyStepToBuilder<TProperty, TBuilder> AnimateSteps<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyStepToBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing);
             AddTweener(tweener);
             return tweener;
@@ -583,7 +583,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -591,7 +591,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -599,7 +599,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -607,7 +607,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateStepsBy<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, false);
             AddTweener(tweener);
@@ -619,7 +619,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -627,7 +627,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -635,7 +635,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -643,7 +643,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyStepOffsetBuilder<TProperty, TBuilder> AnimateRelativeSteps<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyStepOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, true);
             AddTweener(tweener);
@@ -655,7 +655,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
@@ -663,7 +663,7 @@ namespace Betauer.Animation {
 
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
@@ -671,14 +671,14 @@ namespace Betauer.Animation {
 
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyPercentToBuilder<TProperty, TBuilder> AnimateKeys<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener = new PropertyKeyPercentToBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing);
             AddTweener(tweener);
             return tweener;
@@ -689,7 +689,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -697,7 +697,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -705,7 +705,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
@@ -713,7 +713,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateKeysBy<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, false);
             AddTweener(tweener);
@@ -725,7 +725,7 @@ namespace Betauer.Animation {
          */
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(
-            Action<TProperty> property = null, Easing easing = null) {
+            Action<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, null, new CallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -733,7 +733,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(
-            Node defaultTarget = null, Action<Node, TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, Action<Node, TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new NodeCallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -741,7 +741,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(
-            Node defaultTarget = null, string property = null, Easing easing = null) {
+            Node? defaultTarget = null, string? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, new IndexedProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
@@ -749,7 +749,7 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyPercentOffsetBuilder<TProperty, TBuilder> AnimateRelativeKeys<TProperty>(
-            Node defaultTarget = null, IProperty<TProperty> property = null, Easing easing = null) {
+            Node? defaultTarget = null, IProperty<TProperty>? property = null, Easing? easing = null) {
             var tweener =
                 new PropertyKeyPercentOffsetBuilder<TProperty, TBuilder>(this, defaultTarget, property, easing, true);
             AddTweener(tweener);

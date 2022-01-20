@@ -1,5 +1,7 @@
+using System;
 using Godot;
-using Godot.Collections;
+using Array = Godot.Collections.Array;
+using Object = Godot.Object;
 
 namespace Betauer.Bus.Topics {
     public class Area2DOnArea2D : IGodotFilterEvent {
@@ -18,8 +20,9 @@ namespace Betauer.Bus.Topics {
         }
     }
 
-    public class Area2DOnArea2DListenerDelegate : GodotFilterListenerDelegate<Area2DOnArea2D> {
-        public Area2DOnArea2DListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+    public class Area2DOnArea2DListenerAction : GodotFilterListenerAction<Area2DOnArea2D> {
+        public Area2DOnArea2DListenerAction(string name, Node owner, Node filter,
+            Action<Area2DOnArea2D> executeMethod) :
             base(name, owner, filter, executeMethod) {
         }
     }
@@ -32,6 +35,7 @@ namespace Betauer.Bus.Topics {
         }
 
         public bool JustHappened; // TODO it could be interesting to know so
+
         /*
          * JustHappened | IsOverlapping |
          * true         | true          | Overlap happens in current frame
@@ -56,7 +60,7 @@ namespace Betauer.Bus.Topics {
      * StatusSubscriber. It will return a Area2DOnArea2DStatus where the internal variable IsOverlapping will be
      * updated by the events in real time.
      */
-    public class Area2DOnArea2DTopic  : DisposeSnitchObject /* needed to connect to signals */ {
+    public class Area2DOnArea2DTopic : DisposeSnitchObject /* needed to connect to signals */ {
         private GodotTopic<Area2DOnArea2D> _enterTopic;
         private GodotTopic<Area2DOnArea2D> _exitTopic;
 
@@ -79,26 +83,27 @@ namespace Betauer.Bus.Topics {
         }
 
         public void Subscribe(string name, Node owner, Area2D filter,
-            GodotFilterListenerDelegate<Area2DOnArea2D>.ExecuteMethod enterMethod,
-            GodotFilterListenerDelegate<Area2DOnArea2D>.ExecuteMethod exitMethod = null) {
+            Action<Area2DOnArea2D>? enterMethod,
+            Action<Area2DOnArea2D>? exitMethod = null) {
             if (enterMethod != null) {
                 EnterTopic.Subscribe(
-                    new GodotFilterListenerDelegate<Area2DOnArea2D>(name, owner, filter, enterMethod));
+                    new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter, enterMethod));
             }
             if (exitMethod != null) {
                 ExitTopic.Subscribe(
-                    new GodotFilterListenerDelegate<Area2DOnArea2D>(name, owner, filter, exitMethod));
+                    new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter, exitMethod));
             }
         }
 
         public Area2DOnArea2DStatus StatusSubscriber(string name, Node owner, Area2D filter) {
             var status = new Area2DOnArea2DStatus(owner);
+            // TODO: replace lambdas with Area2DOnArea2DStatus methods
             EnterTopic.Subscribe(
-                new GodotFilterListenerDelegate<Area2DOnArea2D>(name, owner, filter,
-                    delegate(Area2DOnArea2D @event) { status.IsOverlapping = true; }));
+                new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter,
+                    (Area2DOnArea2D @event) => { status.IsOverlapping = true; }));
             ExitTopic.Subscribe(
-                new GodotFilterListenerDelegate<Area2DOnArea2D>(name, owner, filter,
-                    delegate(Area2DOnArea2D @event) { status.IsOverlapping = false; }));
+                new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter,
+                    (Area2DOnArea2D @event) => { status.IsOverlapping = false; }));
             return status;
         }
 

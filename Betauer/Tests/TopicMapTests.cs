@@ -27,14 +27,16 @@ namespace Betauer.Tests {
             /*
              It should work in the same way as TestGodotMulticast
              */
-            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerDelegate("Body1", body1, body1, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.Detected, Is.EqualTo(body1));
-                body1Calls++;
-            }));
-            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerDelegate("Body2", body2, body2, delegate(BodyOnArea2D @event) {
-                Assert.That(@event.Detected, Is.EqualTo(body2));
-                body2Calls++;
-            }));
+            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerAction("Body1", body1,
+                body1, (BodyOnArea2D @event) => {
+                    Assert.That(@event.Detected, Is.EqualTo(body1));
+                    body1Calls++;
+                }));
+            t.Subscribe<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2DListenerAction("Body2", body2,
+                body2, (BodyOnArea2D @event) => {
+                    Assert.That(@event.Detected, Is.EqualTo(body2));
+                    body2Calls++;
+                }));
             t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area1));
             t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body1, Area2));
             t.Publish<GodotListener<BodyOnArea2D>, BodyOnArea2D>("t", new BodyOnArea2D(body2, Area1));
@@ -42,6 +44,5 @@ namespace Betauer.Tests {
             Assert.That(body1Calls, Is.EqualTo(2));
             Assert.That(body2Calls, Is.EqualTo(2));
         }
-
     }
 }

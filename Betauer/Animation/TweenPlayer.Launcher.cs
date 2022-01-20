@@ -80,18 +80,18 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public LoopStatus Play(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public LoopStatus Play(ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
             var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
             return Play(loops, sequence, defaultTarget, initialDelay, duration);
         }
 
-        public LoopStatus PlayForever(ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public LoopStatus PlayForever(ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
             return Play(-1, sequence, defaultTarget, initialDelay, duration);
         }
 
-        public LoopStatus Play(int loops, ISequence sequence, Node defaultTarget = null, float initialDelay = 0,
+        public LoopStatus Play(int loops, ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
             LoopStatus loopStatus = new LoopStatus(Tween, loops, sequence, defaultTarget, duration);
             return loopStatus.Start(initialDelay);

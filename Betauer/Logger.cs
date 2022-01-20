@@ -357,27 +357,27 @@ namespace Betauer {
     }
 
     public class TextWriterWrapper : ITextWriter, IDisposable {
-        private readonly TextWriter _delegate;
+        private readonly TextWriter _writer;
         private bool _disposed = false;
 
-        public TextWriterWrapper(TextWriter @delegate) {
-            _delegate = @delegate;
+        public TextWriterWrapper(TextWriter writer) {
+            _writer = writer;
         }
 
         public void WriteLine(string line) {
-            if (!_disposed) _delegate.WriteLine(line);
+            if (!_disposed) _writer.WriteLine(line);
         }
 
         public void Flush() {
-            if (!_disposed) _delegate.Flush();
+            if (!_disposed) _writer.Flush();
         }
 
         public void Dispose() {
             if (_disposed) return;
             _disposed = true;
-            _delegate.WriteLine("Log disposed");
-            _delegate.Flush();
-            _delegate.Dispose();
+            _writer.WriteLine("Log disposed");
+            _writer.Flush();
+            _writer.Dispose();
         }
     }
 }

@@ -2,13 +2,13 @@ namespace Betauer.Bus {
     public class GodotTopic<T> : Topic<GodotListener<T>, T>
         where T : IGodotEvent {
 
-        private Logger _logger;
+        private readonly Logger _logger;
 
         public GodotTopic(string name) : base(name) {
             _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotTopic<T>)), name);
         }
 
-        public override void Subscribe(GodotListener<T> eventListener) {
+        public override void Subscribe(GodotListener<T>? eventListener) {
             if (eventListener == null) return;
             eventListener.OnSubscribed(this);
             base.Subscribe(eventListener);

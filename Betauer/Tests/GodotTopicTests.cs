@@ -27,17 +27,16 @@ namespace Betauer.Tests {
             KinematicBody2D body1 = new KinematicBody2D();
             KinematicBody2D body2 = new KinematicBody2D();
             GodotTopic<BodyOnArea2D> topic = new GodotTopic<BodyOnArea2D>("T");
-            topic.Subscribe(new BodyOnArea2DListenerDelegate("Body1", owner1, body1, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DListenerAction("Body1", owner1, body1, (BodyOnArea2D @event) => {
                 Assert.That(@event.Detected, Is.EqualTo(body1));
                 body1Calls++;
             }));
-            topic.Subscribe(new BodyOnArea2DListenerDelegate("Body2", owner1, body2, delegate(BodyOnArea2D @event) {
+            topic.Subscribe(new BodyOnArea2DListenerAction("Body2", owner1, body2, (BodyOnArea2D @event) => {
                 Assert.That(@event.Detected, Is.EqualTo(body2));
                 body2Calls++;
             }));
-            topic.Subscribe(new BodyOnArea2DListenerDelegate("ANY", owner3, null, delegate(BodyOnArea2D @event) {
-                anyCalls++;
-            }));
+            topic.Subscribe(new BodyOnArea2DListenerAction("ANY", owner3, null,
+                (BodyOnArea2D @event) => anyCalls++));
             Assert.That(topic.EventListeners.Count, Is.EqualTo(3));
 
             // When events are published
@@ -65,7 +64,7 @@ namespace Betauer.Tests {
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(4)); // 2 before + 2 now
-            Assert.That(anyCalls, Is.EqualTo(5));   // 3 before + 2 now
+            Assert.That(anyCalls, Is.EqualTo(5)); // 3 before + 2 now
 
             // When owner1 is disposed
             owner1.QueueFree();
@@ -81,7 +80,7 @@ namespace Betauer.Tests {
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(4)); // 4 as before
-            Assert.That(anyCalls, Is.EqualTo(7));   // 5 before + 2 now
+            Assert.That(anyCalls, Is.EqualTo(7)); // 5 before + 2 now
         }
 
         [Test]
@@ -96,13 +95,13 @@ namespace Betauer.Tests {
             BodyOnArea2DTopic topic = new BodyOnArea2DTopic("T");
             topic.ListenSignalsOf(area2D);
             topic.Subscribe(
-                new BodyOnArea2DListenerDelegate("Body", body, body, delegate(BodyOnArea2D @event) {
+                new BodyOnArea2DListenerAction("Body", body, body, (BodyOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(body));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     enterCalls++;
                     overlap = true;
                 }),
-                new BodyOnArea2DListenerDelegate("Body", body, body, delegate(BodyOnArea2D @event) {
+                new BodyOnArea2DListenerAction("Body", body, body, (BodyOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(body));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     exitCalls++;
@@ -158,13 +157,13 @@ namespace Betauer.Tests {
             Area2DOnArea2DTopic topic = new Area2DOnArea2DTopic("T");
             topic.ListenSignalsOf(area2D);
             topic.Subscribe(
-                new Area2DOnArea2DListenerDelegate("From", from, from, delegate(Area2DOnArea2D @event) {
+                new Area2DOnArea2DListenerAction("From", from, from, (Area2DOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(from));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     enterCalls++;
                     overlap = true;
                 }),
-                new Area2DOnArea2DListenerDelegate("From", from, from, delegate(Area2DOnArea2D @event) {
+                new Area2DOnArea2DListenerAction("From", from, from, (Area2DOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(from));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     exitCalls++;
@@ -224,14 +223,14 @@ namespace Betauer.Tests {
             List<int> enteredOriginShapes = new List<int>();
             List<int> exitedOriginShapes = new List<int>();
             topic.Subscribe(
-                new Area2DShapeOnArea2DListenerDelegate("From", from, from, delegate(Area2DShapeOnArea2D @event) {
+                new Area2DShapeOnArea2DListenerAction("From", from, from, (Area2DShapeOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(from));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     enteredOriginShapes.Add(@event.OriginShape);
                     enterCalls++;
                     overlap = true;
                 }),
-                new Area2DShapeOnArea2DListenerDelegate("From", from, from, delegate(Area2DShapeOnArea2D @event) {
+                new Area2DShapeOnArea2DListenerAction("From", from, from, (Area2DShapeOnArea2D @event) => {
                     Assert.That(@event.Detected, Is.EqualTo(from));
                     Assert.That(@event.Origin, Is.EqualTo(area2D));
                     exitedOriginShapes.Add(@event.OriginShape);
@@ -266,7 +265,6 @@ namespace Betauer.Tests {
             Assert.That(exitCalls, Is.EqualTo(2));
             Assert.That(exitedOriginShapes, Contains.Item(0));
             Assert.That(exitedOriginShapes, Contains.Item(1));
-
         }
 
         private Area2D CreateArea2D(string name, int x = 0, int y = 0) {

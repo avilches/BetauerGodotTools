@@ -4,8 +4,6 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-    public delegate void Callback();
-
     public interface ILoopStatus {
         public string Name { get; }
         public bool Playing { get; }
@@ -13,8 +11,8 @@ namespace Betauer.Animation {
         public void PlayLoop();
 
         // Builder chained methods
-        public ILoopStatus OnStart(Callback callback);
-        public ILoopStatus OnEnd(Callback callback);
+        public ILoopStatus OnStart(Action callback);
+        public ILoopStatus OnEnd(Action callback);
     }
 
     public interface IOnceStatus {
@@ -27,8 +25,8 @@ namespace Betauer.Animation {
         public bool CanBeInterrupted { get; set; }
         public bool KillPrevious { get; set; }
 
-        public IOnceStatus OnStart(Callback callback);
-        public IOnceStatus OnEnd(Callback callback);
+        public IOnceStatus OnStart(Action callback);
+        public IOnceStatus OnEnd(Action callback);
     }
 
     public class AnimationStack : DisposeSnitchObject /* needed to listen signals */ {
@@ -37,8 +35,8 @@ namespace Betauer.Animation {
             public bool Playing { get; private set; }
 
             protected Logger _logger;
-            private protected Callback _onStart;
-            private protected Callback _onEnd;
+            private protected Action _onStart;
+            private protected Action _onEnd;
 
             public Status(Logger logger, string name) {
                 _logger = logger;
@@ -70,12 +68,12 @@ namespace Betauer.Animation {
                 KillPrevious = killPrevious;
             }
 
-            public IOnceStatus OnStart(Callback callback) {
+            public IOnceStatus OnStart(Action callback) {
                 _onStart = callback;
                 return this;
             }
 
-            public IOnceStatus OnEnd(Callback callback) {
+            public IOnceStatus OnEnd(Action callback) {
                 _onEnd = callback;
                 return this;
             }
@@ -98,12 +96,12 @@ namespace Betauer.Animation {
                 _animationStack = animationStack;
             }
 
-            public ILoopStatus OnStart(Callback callback) {
+            public ILoopStatus OnStart(Action callback) {
                 _onStart = callback;
                 return this;
             }
 
-            public ILoopStatus OnEnd(Callback callback) {
+            public ILoopStatus OnEnd(Action callback) {
                 _onEnd = callback;
                 return this;
             }

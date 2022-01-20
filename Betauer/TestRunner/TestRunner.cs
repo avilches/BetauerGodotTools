@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 
 namespace Betauer.TestRunner {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,
@@ -15,8 +16,6 @@ namespace Betauer.TestRunner {
 
 
     public class TestRunner {
-        public delegate void TestResultDelegate(TestMethod testResult);
-
         private readonly ICollection<TestMethod> _testMethods = new LinkedList<TestMethod>();
 
         public int TestsTotal;
@@ -119,8 +118,8 @@ namespace Betauer.TestRunner {
         }
 
 
-        public async Task Run(SceneTree sceneTree, TestResultDelegate startCallback = null,
-            TestResultDelegate resultCallback = null) {
+        public async Task Run(SceneTree sceneTree, Action<TestMethod>? startCallback = null,
+            Action<TestMethod>? resultCallback = null) {
             TestsFailedResults = new List<TestMethod>();
             TestsFailed = 0;
             TestsPassed = 0;

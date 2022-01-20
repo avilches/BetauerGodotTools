@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("NewGame", "New game", async (ctx) => {
+                .AddButton("NewGame", "New game", (ctx) => {
                     // GD.Print("New Game");
                     GameManager.StartGame();
                     // var continueButton = ctx.Menu.GetButton("Continue");

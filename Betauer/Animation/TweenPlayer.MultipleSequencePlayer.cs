@@ -61,7 +61,7 @@ namespace Betauer.Animation {
             return sequence;
         }
 
-        public SequenceBuilderWithMultipleSequencePlayer CreateSequence(Node defaultTarget = null) {
+        public SequenceBuilderWithMultipleSequencePlayer CreateSequence(Node? defaultTarget = null) {
             var sequence = new SequenceBuilderWithMultipleSequencePlayer(this, true).SetDefaultTarget(defaultTarget);
             Sequences.Add(sequence);
             return sequence;

@@ -1,5 +1,7 @@
+using System;
 using Godot;
-using Godot.Collections;
+using Array = Godot.Collections.Array;
+using Object = Godot.Object;
 
 namespace Betauer.Bus.Topics {
     public class BodyOnArea2D : IGodotFilterEvent {
@@ -18,8 +20,8 @@ namespace Betauer.Bus.Topics {
         }
     }
 
-    public class BodyOnArea2DListenerDelegate : GodotFilterListenerDelegate<BodyOnArea2D> {
-        public BodyOnArea2DListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+    public class BodyOnArea2DListenerAction : GodotFilterListenerAction<BodyOnArea2D> {
+        public BodyOnArea2DListenerAction(string name, Node owner, Node filter, Action<BodyOnArea2D> executeMethod) :
             base(name, owner, filter, executeMethod) {
         }
     }
@@ -48,7 +50,7 @@ namespace Betauer.Bus.Topics {
      * StatusSubscriber. It will return a BodyOnArea2DStatus where the internal variable IsOverlapping will be
      * updated by the events in real time.
      */
-    public class BodyOnArea2DTopic : DisposeSnitchObject /* needed to connect to signals */  {
+    public class BodyOnArea2DTopic : DisposeSnitchObject /* needed to connect to signals */ {
         private GodotTopic<BodyOnArea2D> _enterTopic;
         private GodotTopic<BodyOnArea2D> _exitTopic;
 
@@ -91,25 +93,24 @@ namespace Betauer.Bus.Topics {
         */
 
         public void Subscribe(string name, Node owner, PhysicsBody2D filter,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
+            Action<BodyOnArea2D> enterMethod,
+            Action<BodyOnArea2D>? exitMethod = null) {
             _Subscribe(name, owner, filter, enterMethod, exitMethod);
         }
 
         public void Subscribe(string name, Node owner, TileMap filter,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod = null) {
+            Action<BodyOnArea2D> enterMethod,
+            Action<BodyOnArea2D>? exitMethod = null) {
             _Subscribe(name, owner, filter, enterMethod, exitMethod);
         }
 
-        private void _Subscribe(string name, Node owner, Node filter,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod enterMethod,
-            GodotFilterListenerDelegate<BodyOnArea2D>.ExecuteMethod exitMethod) {
+        private void _Subscribe(string name, Node owner, Node filter, Action<BodyOnArea2D>? enterMethod,
+            Action<BodyOnArea2D>? exitMethod) {
             if (enterMethod != null)
                 EnterTopic.Subscribe(
-                    new GodotFilterListenerDelegate<BodyOnArea2D>(name, owner, filter, enterMethod));
+                    new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter, enterMethod));
             if (exitMethod != null)
-                ExitTopic.Subscribe(new GodotFilterListenerDelegate<BodyOnArea2D>(name, owner, filter, exitMethod));
+                ExitTopic.Subscribe(new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter, exitMethod));
         }
 
         public BodyOnArea2DStatus StatusSubscriber(string name, Node owner, PhysicsBody2D filter) {
@@ -122,12 +123,13 @@ namespace Betauer.Bus.Topics {
 
         private BodyOnArea2DStatus _StatusSubscriber(string name, Node owner, Node filter) {
             var status = new BodyOnArea2DStatus(owner);
+            // TODO: replace lambdas with BodyOnArea2DStatus methods
             EnterTopic.Subscribe(
-                new GodotFilterListenerDelegate<BodyOnArea2D>(name, owner, filter,
-                    delegate(BodyOnArea2D @event) { status.IsOverlapping = true; }));
+                new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter,
+                    (BodyOnArea2D @event) => { status.IsOverlapping = true; }));
             ExitTopic.Subscribe(
-                new GodotFilterListenerDelegate<BodyOnArea2D>(name, owner, filter,
-                    delegate(BodyOnArea2D @event) { status.IsOverlapping = false; }));
+                new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter,
+                    (BodyOnArea2D @event) => { status.IsOverlapping = false; }));
             return status;
         }
 

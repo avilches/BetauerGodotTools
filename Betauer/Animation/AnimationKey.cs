@@ -3,10 +3,10 @@ using Godot;
 
 namespace Betauer.Animation {
     public abstract class AnimationKey<TProperty> {
-        public readonly Easing Easing;
-        public readonly Action<Node> CallbackNode;
+        public readonly Easing? Easing;
+        public readonly Action<Node>? CallbackNode;
 
-        internal AnimationKey(Easing easing, Action<Node> callbackNode) {
+        internal AnimationKey(Easing? easing, Action<Node>? callbackNode) {
             Easing = easing;
             CallbackNode = callbackNode;
         }
@@ -20,7 +20,7 @@ namespace Betauer.Animation {
     public abstract class AnimationKeyStep<TProperty> : AnimationKey<TProperty> {
         public readonly float Duration;
 
-        internal AnimationKeyStep(float duration, Easing easing, Action<Node> callbackNode) : base(easing, callbackNode) {
+        internal AnimationKeyStep(float duration, Easing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
             Duration = duration;
         }
     }
@@ -28,7 +28,7 @@ namespace Betauer.Animation {
     public class AnimationKeyStepTo<TProperty> : AnimationKeyStep<TProperty> {
         public readonly Func<Node, TProperty> To;
 
-        internal AnimationKeyStepTo(Func<Node, TProperty> to, float duration, Easing easing, Action<Node> callbackNode) :
+        internal AnimationKeyStepTo(Func<Node, TProperty> to, float duration, Easing? easing, Action<Node>? callbackNode) :
             base(duration, easing, callbackNode) {
             To = to;
         }
@@ -41,7 +41,7 @@ namespace Betauer.Animation {
     public class AnimationKeyStepOffset<TProperty> : AnimationKeyStep<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationKeyStepOffset(Func<Node, TProperty> offset, float duration, Easing easing, Action<Node> callbackNode) :
+        internal AnimationKeyStepOffset(Func<Node, TProperty> offset, float duration, Easing? easing, Action<Node>? callbackNode) :
             base(duration, easing, callbackNode) {
             Offset = offset;
         }
@@ -57,7 +57,7 @@ namespace Betauer.Animation {
     public abstract class AnimationKeyPercent<TProperty> : AnimationKey<TProperty> {
         public readonly float Percent;
 
-        internal AnimationKeyPercent(float percent, Easing easing, Action<Node> callbackNode) : base(easing, callbackNode) {
+        internal AnimationKeyPercent(float percent, Easing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
             Percent = percent;
         }
     }
@@ -65,7 +65,7 @@ namespace Betauer.Animation {
     public class AnimationKeyPercentTo<TProperty> : AnimationKeyPercent<TProperty> {
         public readonly Func<Node, TProperty> To;
 
-        internal AnimationKeyPercentTo(float percent, Func<Node, TProperty> to, Easing easing, Action<Node> callbackNode) :
+        internal AnimationKeyPercentTo(float percent, Func<Node, TProperty> to, Easing? easing, Action<Node>? callbackNode) :
             base(percent, easing, callbackNode) {
             To = to;
         }
@@ -78,7 +78,7 @@ namespace Betauer.Animation {
     public class AnimationKeyPercentOffset<TProperty> : AnimationKeyPercent<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationKeyPercentOffset(float percent, Func<Node, TProperty> offset, Easing easing, Action<Node> callbackNode) :
+        internal AnimationKeyPercentOffset(float percent, Func<Node, TProperty> offset, Easing? easing, Action<Node>? callbackNode) :
             base(percent, easing, callbackNode) {
             Offset = offset;
         }

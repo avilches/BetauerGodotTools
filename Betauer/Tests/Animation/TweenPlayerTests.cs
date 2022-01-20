@@ -358,7 +358,7 @@ namespace Betauer.Tests.Animation {
             var looped = new Launcher()
                 .CreateNewTween(this)
                 .PlayForever(sequence);
-            
+
             loopStatus = looped;
             loopStatus.OnFinish(() => finished++);
             await loopStatus.Await();
@@ -382,7 +382,7 @@ namespace Betauer.Tests.Animation {
                 .Callback(() => firstLoop++)
                 .SetLoops(seq1Loops)
                 .EndSequence()
-                .AddOnFinishAll(delegate() { finished++; })
+                .AddOnFinishAll(() => finished++)
                 .Start()
                 .Await();
 
@@ -479,7 +479,7 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetLoops(playerLoops)
                 .SetDisposeOnFinish(true)
-                .AddOnFinishAll(delegate() { finished++; })
+                .AddOnFinishAll(() => finished++)
                 .Start()
                 .Await();
 
@@ -506,7 +506,7 @@ namespace Betauer.Tests.Animation {
                 .Pause(1f)
                 .Callback(() => callback++)
                 .EndSequence()
-                .AddOnFinishAll(delegate() { finished++; })
+                .AddOnFinishAll(() => finished++)
                 .Start();
 
             await Task.Delay(200);

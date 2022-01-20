@@ -34,7 +34,7 @@ namespace Betauer.Bus {
             return true;
         }
 
-        protected static string GetNodeInfo(Node node) {
+        protected static string GetNodeInfo(Node? node) {
             if (node == null) return "null";
             var nodeName = Object.IsInstanceValid(node) ? $"\"{node.Name}\"" : "(disposed)";
             return $"{node.GetType().Name} 0x{node.NativeInstance.ToString("x")} {nodeName}";
@@ -48,7 +48,7 @@ namespace Betauer.Bus {
     }
 
     public abstract class GodotFilterListener<T> : GodotListener<T> where T : IGodotFilterEvent {
-        public Node Filter { get; }
+        public Node? Filter { get; }
 
         protected GodotFilterListener(string name, Node owner, Node filter) : base(name, owner) {
             Filter = filter;
@@ -80,12 +80,10 @@ namespace Betauer.Bus {
         public abstract void Execute(T @event);
     }
 
-    public class GodotFilterListenerDelegate<T> : GodotFilterListener<T> where T : IGodotFilterEvent {
-        public delegate void ExecuteMethod(T @event);
+    public class GodotFilterListenerAction<T> : GodotFilterListener<T> where T : IGodotFilterEvent {
+        private readonly Action<T> _executeMethod;
 
-        private readonly ExecuteMethod _executeMethod;
-
-        public GodotFilterListenerDelegate(string name, Node owner, Node filter, ExecuteMethod executeMethod) :
+        public GodotFilterListenerAction(string name, Node owner, Node filter, Action<T> executeMethod) :
             base(name, owner, filter) {
             _executeMethod = executeMethod;
         }
