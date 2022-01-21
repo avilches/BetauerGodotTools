@@ -6,19 +6,22 @@ using Godot;
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class ScreenManager : Node /* needed to get the scene tree  GetTree() */ {
-        private IScreenService _service;
+        private ScreenService _service;
 
         private readonly ScreenConfiguration configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV2,
             SceneTree.StretchMode.Viewport,
-            SceneTree.StretchAspect.Keep, 1);
+            SceneTree.StretchAspect.Keep,
+            Resolutions.All(AspectRatios.Landscapes),
+            AspectRatios.Landscapes,
+            1);
 
         public Resolution CurrentWindowedResolution;
         public bool CurrentPixelPerfect = false;
         public bool CurrentFullscreen = false;
 
         public override void _Ready() {
-            SetPixelPerfect(true);
+            _service = new ScreenService(GetTree(), configuration, ScreenService.Strategy.PixelPerfectScale);
 
             var configuredWindowSize = configuration.BaseResolution; // TODO: load from settings
             CurrentWindowedResolution = configuredWindowSize;
@@ -32,14 +35,9 @@ namespace Veronenger.Game.Managers {
         }
 
         public void SetPixelPerfect(bool pixelPerfect) {
-            _service?.Dispose();
-            CurrentPixelPerfect = pixelPerfect;
-            if (CurrentPixelPerfect) {
-                _service = new IntegerScaleResolutionService(GetTree());
-            } else {
-                _service = new RegularResolutionService(GetTree());
-            }
-            _service.Configure(configuration);
+            _service.SetStrategy(pixelPerfect
+                ? ScreenService.Strategy.PixelPerfectScale
+                : ScreenService.Strategy.FitToScreen);
         }
 
         protected override void Dispose(bool disposing) {
