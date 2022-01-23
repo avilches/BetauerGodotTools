@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Screen {
@@ -146,12 +147,20 @@ namespace Betauer.Screen {
         public List<ScaledResolution> GetResolutions() {
             var screenSize = OS.GetScreenSize();
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
-            foreach (var resolution in Resolutions) {
+            foreach (var resolution in Resolutions ?? Betauer.Screen.Resolutions.All()) {
                 if (resolution.x <= screenSize.x &&
                     resolution.y <= screenSize.y &&
                     resolution.x >= BaseResolution.x &&
                     resolution.y >= BaseResolution.y) {
-                    resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
+                    if (AspectRatios != null) {
+                        foreach (var aspectRatio in AspectRatios) {
+                            if (aspectRatio.Matches(resolution)) {
+                                resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
+                            }
+                        }
+                    } else {
+                        resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
+                    }
                 }
             }
             return resolutions;
@@ -165,7 +174,6 @@ namespace Betauer.Screen {
         protected override void DoSetBorderless(bool borderless) => OS.WindowBorderless = borderless;
 
         protected override void DoSetWindowed(Resolution resolution) {
-            Logger.Debug("Set Window size to: " + resolution);
             OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
             CenterWindow();
@@ -189,8 +197,8 @@ namespace Betauer.Screen {
             // Remove default stretch behavior.
             Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep, BaseResolution.Size,
                 1);
-            _onResizeWindowHandler = new OnResizeWindowHandler(Tree, UpdateResolution);
-            UpdateResolution();
+            _onResizeWindowHandler = new OnResizeWindowHandler(Tree, ScaleResolutionViewport);
+            ScaleResolutionViewport();
         }
 
         public void Dispose() {
@@ -242,22 +250,22 @@ namespace Betauer.Screen {
         public override void SetFullscreen() {
             OS.WindowBorderless = false;
             OS.WindowFullscreen = true;
-            UpdateResolution();
+            ScaleResolutionViewport();
         }
 
         protected override void DoSetBorderless(bool borderless) {
             OS.WindowBorderless = borderless;
-            UpdateResolution();
+            ScaleResolutionViewport();
         }
 
         protected override void DoSetWindowed(Resolution resolution) {
             OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
             CenterWindow();
-            UpdateResolution();
+            ScaleResolutionViewport();
         }
 
-        private void UpdateResolution() {
+        private void ScaleResolutionViewport() {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             var maxScale = Resolution.CalculateMaxScale(windowSize, BaseResolution.Size);
             var screenSize = BaseResolution.Size;
