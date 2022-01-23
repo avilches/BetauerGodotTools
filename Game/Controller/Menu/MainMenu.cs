@@ -72,28 +72,26 @@ namespace Veronenger.Game.Controller.Menu {
 
             mainMenu.AddMenu("Video")
                 .AddCheckButton("Fullscreen", "Fullscreen", (ActionCheckButton.InputEventContext ctx) => {
-                    if (ctx.InputEvent.IsActionReleased("ui_left") ||
-                        ctx.InputEvent.IsActionReleased("ui_right") ||
-                        ctx.InputEvent.IsActionReleased("ui_accept")) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        _scale.Disabled = _borderless.Disabled = newState;
-                        ctx.Refresh();
-                        GetTree().SetInputAsHandled();
-
-                        ScreenManager.SetFullscreen(newState);
-                        _borderless.Pressed = false;
-                    }
+                    if (!ctx.InputEvent.IsActionReleased("ui_left") &&
+                        !ctx.InputEvent.IsActionReleased("ui_right") &&
+                        !ctx.InputEvent.IsActionReleased("ui_accept")) return false;
+                    var newState = !ctx.Pressed;
+                    ctx.ActionCheckButton.Pressed = newState;
+                    _scale.Disabled = _borderless.Disabled = newState;
+                    _borderless.Pressed = false;
+                    ctx.Refresh();
+                    
+                    ScreenManager.SetFullscreen(newState);
+                    return true;
                 })
                 .AddCheckButton("PixelPerfect", "Pixel perfect", (ActionCheckButton.InputEventContext ctx) => {
-                    if (ctx.InputEvent.IsActionReleased("ui_left") ||
-                        ctx.InputEvent.IsActionReleased("ui_right") ||
-                        ctx.InputEvent.IsActionReleased("ui_accept")) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        ScreenManager.SetPixelPerfect(newState);
-                        GetTree().SetInputAsHandled();
-                    }
+                    if (!ctx.InputEvent.IsActionReleased("ui_left") &&
+                        !ctx.InputEvent.IsActionReleased("ui_right") &&
+                        !ctx.InputEvent.IsActionReleased("ui_accept")) return false;
+                    var newState = !ctx.Pressed;
+                    ctx.ActionCheckButton.Pressed = newState;
+                    ScreenManager.SetPixelPerfect(newState);
+                    return true;
                 })
                 .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
                     List<ScaledResolution> resolutions = ScreenManager.GetResolutions();
@@ -104,42 +102,40 @@ namespace Veronenger.Game.Controller.Menu {
                     if (ctx.InputEvent.IsActionReleased("ui_left")) {
                         if (pos > 0) {
                             ScreenManager.SetWindowed(resolutions[pos - 1]);
-                            GetTree().SetInputAsHandled();
                             UpdateResolutionButton();
+                            return true;
                         }
                     } else if (ctx.InputEvent.IsActionReleased("ui_right")) {
                         if (pos < resolutions.Count - 1) {
                             ScreenManager.SetWindowed(resolutions[pos + 1]);
-                            GetTree().SetInputAsHandled();
-                            UpdateResolutionButton();
                         } else {
                             _scale.Disabled = _borderless.Disabled = true;
+                            _borderless.Pressed = false;
                             _fullscreenButton.Pressed = true;
                             _fullscreenButton.GrabFocus();
                             ctx.Refresh();
 
                             ScreenManager.SetFullscreen(true);
-                            _borderless.Pressed = false;
-                            GetTree().SetInputAsHandled();
-                            UpdateResolutionButton();
                         }
+                        UpdateResolutionButton();
+                        return true;
                     } else if (ctx.InputEvent.IsActionReleased("ui_accept")) {
                         ScreenManager.SetWindowed(pos == resolutions.Count - 1
                             ? resolutions[0]
                             : resolutions[pos + 1]);
-                        GetTree().SetInputAsHandled();
                         UpdateResolutionButton();
+                        return true;
                     }
+                    return false;
                 })
                 .AddCheckButton("Borderless", "Borderless window", (ActionCheckButton.InputEventContext ctx) => {
-                    if (ctx.InputEvent.IsActionReleased("ui_left") ||
-                        ctx.InputEvent.IsActionReleased("ui_right") ||
-                        ctx.InputEvent.IsActionReleased("ui_accept")) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        ScreenManager.SetBorderless(newState);
-                        GetTree().SetInputAsHandled();
-                    }
+                    if (!ctx.InputEvent.IsActionReleased("ui_left") &&
+                        !ctx.InputEvent.IsActionReleased("ui_right") &&
+                        !ctx.InputEvent.IsActionReleased("ui_accept")) return false;
+                    var newState = !ctx.Pressed;
+                    ctx.ActionCheckButton.Pressed = newState;
+                    ScreenManager.SetBorderless(newState);
+                    return true;
                 })
                 .AddButton("Back", "Back", (ctx) =>
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)

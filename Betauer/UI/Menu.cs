@@ -195,7 +195,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        public ActionMenu AddCheckButton(string name, string title, Action<ActionCheckButton.InputEventContext> action) {
+        public ActionMenu AddCheckButton(string name, string title, Func<ActionCheckButton.InputEventContext, bool> action) {
             var button = CreateCheckButton(name, title);
             button.ActionWithInputEventContext = action;
             return this;
@@ -213,7 +213,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        public ActionMenu AddButton(string name, string title, Action<ActionButton.InputEventContext> action) {
+        public ActionMenu AddButton(string name, string title, Func<ActionButton.InputEventContext, bool> action) {
             var button = CreateButton(name, title);
             button.ActionWithInputEventContext = action;
             return this;
@@ -380,7 +380,7 @@ namespace Betauer.UI {
         public ActionMenu Menu { get; }
         public Action? Action;
         public Action<Context>? ActionWithContext;
-        public Action<InputEventContext>? ActionWithInputEventContext;
+        public Func<InputEventContext, bool>? ActionWithInputEventContext;
 
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
@@ -391,7 +391,9 @@ namespace Betauer.UI {
 
         public override void _Input(InputEvent @event) {
             if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
-                ActionWithInputEventContext(new InputEventContext(Menu, this, @event));
+                if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
+                    GetTree().SetInputAsHandled();
+                }
             }
         }
 
@@ -441,7 +443,7 @@ namespace Betauer.UI {
         public ActionMenu Menu { get; }
         public Action<bool>? Action;
         public Action<Context>? ActionWithContext;
-        public Action<InputEventContext>? ActionWithInputEventContext;
+        public Func<InputEventContext, bool>? ActionWithInputEventContext;
 
         // TODO: i18n
         internal ActionCheckButton(ActionMenu menu) {
@@ -452,7 +454,9 @@ namespace Betauer.UI {
 
         public override void _Input(InputEvent @event) {
             if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
-                ActionWithInputEventContext(new InputEventContext(Menu, this, @event));
+                if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
+                    GetTree().SetInputAsHandled();
+                }
             }
         }
 
