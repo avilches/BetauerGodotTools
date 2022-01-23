@@ -48,7 +48,6 @@ namespace Betauer.Screen {
     public static class Resolutions {
         private static readonly List<Resolution> _all = new List<Resolution>();
 
-
         // 16:9 https://en.wikipedia.org/wiki/16:9_aspect_ratio
         public static Resolution FULLHD_DIV6 = AddToAll(new Resolution(320, 180)); // 1920x1080 / 6
         public static Resolution FULLHD_DIV4 = AddToAll(new Resolution(480, 270)); // 1920x1080 / 4
@@ -75,25 +74,23 @@ namespace Betauer.Screen {
         // 21:9 https://en.wikipedia.org/wiki/21:9_aspect_ratio
         // 64:27	2.370
         public static Resolution UWDIE237_0 = AddToAll(new Resolution(2560, 1080));
+        public static Resolution UWDIE237_1 = AddToAll(new Resolution(5120, 2160));
+        public static Resolution UWDIE237_2 = AddToAll(new Resolution(7680, 3240));
+        public static Resolution UWDIE237_3 = AddToAll(new Resolution(10240, 4320));
 
-        // public static Resolution UWDIE237_1 = AddToAll(new Resolution(5120, 2160));
-        // public static Resolution UWDIE237_2 = AddToAll(new Resolution(7680, 3240));
-        // public static Resolution UWDIE237_3 = AddToAll(new Resolution(10240, 4320));
         // 43:18	2.38
         public static Resolution UWDI238_0 = AddToAll(new Resolution(3440, 1440));
+        public static Resolution UWDI238_1 = AddToAll(new Resolution(5160, 2160));
+        public static Resolution UWDI238_2 = AddToAll(new Resolution(6880, 2880));
 
-        // public static Resolution UWDI238_1 = AddToAll(new Resolution(5160, 2160));
-        // public static Resolution UWDI238_2 = AddToAll(new Resolution(6880, 2880));
         //	12:5	2.4
         public static Resolution UWDIE24_0 = AddToAll(new Resolution(1920, 800));
         public static Resolution UWDIE24_1 = AddToAll(new Resolution(2880, 1200));
         public static Resolution UWDIE24_2 = AddToAll(new Resolution(3840, 1600));
-
         public static Resolution UWDIE24_3 = AddToAll(new Resolution(4320, 1800));
-
-        // public static Resolution UWDIE24_4 = AddToAll(new Resolution(5760, 2400));
-        // public static Resolution UWDIE24_5 = AddToAll(new Resolution(7680, 3200));
-        // public static Resolution UWDIE24_6 = AddToAll(new Resolution(8640, 3600));
+        public static Resolution UWDIE24_4 = AddToAll(new Resolution(5760, 2400));
+        public static Resolution UWDIE24_5 = AddToAll(new Resolution(7680, 3200));
+        public static Resolution UWDIE24_6 = AddToAll(new Resolution(8640, 3600));
 
         private static Resolution AddToAll(Resolution resolution) {
             _all.Add(resolution);
