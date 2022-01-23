@@ -7,6 +7,15 @@ using Godot;
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class ScreenSettings {
+        private const string Filename = "video.cfg";
+
+        private const string VideoSection = "Video";
+        private const string PixelPerfectProperty = "PixelPerfect";
+        private const string FullscreenProperty = "Fullscreen";
+        private const string VSyncProperty = "VSync";
+        private const string BorderlessProperty = "Borderless";
+        private const string WindowedResolutionProperty = "WindowedResolution";
+
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV3,
             SceneTree.StretchMode.Viewport,
@@ -17,18 +26,43 @@ namespace Veronenger.Game.Managers {
 
         public bool PixelPerfect = true;
         public bool Fullscreen = true;
+        public bool VSync = true;
         public bool Borderless = false;
         public Resolution WindowedResolution = Configuration.BaseResolution;
 
+        private readonly ConfigFile _cf = new ConfigFile();
+        private readonly string _resourceName;
+
+        public ScreenSettings() {
+            _resourceName = System.IO.Path.Combine(OS.GetUserDataDir(), System.IO.Path.GetFileName(Filename));
+        }
+
         public ScreenSettings Load() {
+            var error = _cf.Load(_resourceName);
+            if (error != Error.Ok) {
+                LoggerFactory.GetLogger(typeof(ScreenSettings)).Error($"Load \"{_resourceName}\" error: {error}");
+                return this;
+            }
+            PixelPerfect = (bool)_cf.GetValue(VideoSection, PixelPerfectProperty, true);
+            Fullscreen = (bool)_cf.GetValue(VideoSection, FullscreenProperty, true);
+            VSync = (bool)_cf.GetValue(VideoSection, VSyncProperty, true);
+            Borderless = (bool)_cf.GetValue(VideoSection, BorderlessProperty, true);
+            var sn = (Vector2)_cf.GetValue(VideoSection, WindowedResolutionProperty, Configuration.BaseResolution.Size);
+            WindowedResolution = new Resolution(sn);
             return this;
         }
 
-        public void Save() {
-            // Console.Write("PixelPerfect = " + PixelPerfect);
-            // Console.Write("Fullscreen = " + Fullscreen);
-            // Console.Write("Borderless = " + Borderless);
-            // Console.Write("WindowedResolution = " + WindowedResolution);
+        public ScreenSettings Save() {
+            _cf.SetValue(VideoSection, PixelPerfectProperty, PixelPerfect);
+            _cf.SetValue(VideoSection, FullscreenProperty, Fullscreen);
+            _cf.SetValue(VideoSection, VSyncProperty, VSync);
+            _cf.SetValue(VideoSection, BorderlessProperty, Borderless);
+            _cf.SetValue(VideoSection, WindowedResolutionProperty, WindowedResolution.Size);
+            var error = _cf.Save(_resourceName);
+            if (error != Error.Ok) {
+                LoggerFactory.GetLogger(typeof(ScreenSettings)).Error($"Save \"{_resourceName}\" error: {error}");
+            }
+            return this;
         }
     }
 
@@ -43,12 +77,14 @@ namespace Veronenger.Game.Managers {
                 ScreenService.Strategy.PixelPerfectScale);
 
             Settings.Load();
+            const bool dontSave = false;
             if (Settings.Fullscreen) {
-                SetFullscreen(true, false);
+                SetFullscreen(true, dontSave);
             } else {
-                SetPixelPerfect(Settings.PixelPerfect, false);
-                SetWindowed(Settings.WindowedResolution, false);
-                SetBorderless(Settings.Borderless, false);
+                SetPixelPerfect(Settings.PixelPerfect, dontSave);
+                SetWindowed(Settings.WindowedResolution, dontSave);
+                SetBorderless(Settings.Borderless, dontSave);
+                SetVSync(Settings.VSync, dontSave);
             }
         }
 
@@ -73,6 +109,13 @@ namespace Veronenger.Game.Managers {
             }
         }
 
+        public void SetVSync(bool vsync, bool save = true) {
+            OS.VsyncEnabled = vsync;
+            if (save) {
+                Settings.VSync = vsync;
+                Settings.Save();
+            }
+        }
 
         public void SetFullscreen(bool fs, bool save = true) {
             if (fs) _service.SetFullscreen();

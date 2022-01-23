@@ -137,6 +137,15 @@ namespace Veronenger.Game.Controller.Menu {
                     ScreenManager.SetBorderless(newState);
                     return true;
                 })
+                .AddCheckButton("VSync", "Vertical Sync", (ActionCheckButton.InputEventContext ctx) => {
+                    if (!ctx.InputEvent.IsActionReleased("ui_left") &&
+                        !ctx.InputEvent.IsActionReleased("ui_right") &&
+                        !ctx.InputEvent.IsActionReleased("ui_accept")) return false;
+                    var newState = !ctx.Pressed;
+                    ctx.ActionCheckButton.Pressed = newState;
+                    ScreenManager.SetVSync(newState);
+                    return true;
+                })
                 .AddButton("Back", "Back", (ctx) =>
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
                 );
@@ -146,14 +155,17 @@ namespace Veronenger.Game.Controller.Menu {
             _videoMenu = mainMenu.GetMenu("Video");
             _fullscreenButton = _videoMenu.GetCheckButton("Fullscreen")!;
             _scale = mainMenu.GetMenu("Video").GetButton("Scale")!;
-            _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
-
-            _fullscreenButton.Pressed = ScreenManager.IsFullscreen();
-            _videoMenu.GetCheckButton("PixelPerfect").Pressed = ScreenSettings.PixelPerfect;
-            _borderless.Pressed = OS.WindowBorderless;
-            _scale.Disabled = _borderless.Disabled = ScreenManager.IsFullscreen();
             _scale.OnFocusEntered(UpdateResolutionButton);
             _scale.OnFocusExited(UpdateResolutionButton);
+            _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
+
+            // Load data from settings
+            _fullscreenButton.Pressed = ScreenSettings.Fullscreen;
+            _videoMenu.GetCheckButton("PixelPerfect")!.Pressed = ScreenSettings.PixelPerfect;
+            _videoMenu.GetCheckButton("VSync")!.Pressed = OS.VsyncEnabled;
+            _borderless.Pressed = ScreenSettings.Borderless;
+            _scale.Disabled = _borderless.Disabled = ScreenSettings.Fullscreen;
+
             _scale.Menu.Refresh();
             return mainMenu;
         }
