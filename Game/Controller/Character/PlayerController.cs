@@ -27,6 +27,7 @@ namespace Veronenger.Game.Controller.Character {
         public readonly Timer FallingTimer;
         private SceneTree _sceneTree;
 
+        [Inject] public GameManager GameManager;
         [Inject] public PlatformManager PlatformManager;
         [Inject] public CharacterManager CharacterManager;
         [Inject] public SlopeStairsManager SlopeStairsManager;
@@ -238,6 +239,11 @@ namespace Veronenger.Game.Controller.Character {
                 _sceneTree.SetInputAsHandled();
             }
             InputManager.Debug(action);
+
+            if (@event.IsAction("ui_cancel")) {
+                GameManager.ExitGameAndBackToMainMenu();
+            }
+
         }
 
         public override void _Draw() {

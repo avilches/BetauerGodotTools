@@ -14,6 +14,7 @@ namespace Veronenger.Game.Managers {
 
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(InputManager));
 
+        // TODO: subscribe to signal with the mapping preferences on load or on change
         public InputManager() {
             _actionList = new ActionList(-1);
             LateralMotion = _actionList.AddDirectionalMotion("Lateral");
@@ -21,11 +22,7 @@ namespace Veronenger.Game.Managers {
 
             Jump = _actionList.AddAction("Jump");
             Attack = _actionList.AddAction("Attack");
-        }
 
-
-        public void ConfigureMapping() {
-            // TODO: subscribe to signal with the mapping preferences on load or on change
             LateralMotion
                 .ClearConfig()
                 .ConfigureAxis(JoystickList.Axis0)
