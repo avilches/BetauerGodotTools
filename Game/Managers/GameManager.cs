@@ -1,5 +1,7 @@
+using System;
 using Godot;
 using Betauer;
+using Veronenger.Game.Controller;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
@@ -15,62 +17,54 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class
-        GameManager : Node /* needed to receive _Ready TODO: is it really needed? its only used for configureMapping!*/ {
+    public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
         [Inject] public InputManager InputManager;
 
-        public override void _Ready() {
-            InputManager.ConfigureMapping();
-            this.DisableAllNotifications();
-            Logger.Info(OS.GetName() + " application started in " + Bootstrap.Uptime.TotalMilliseconds + " ms");
+        private Node _mainMenuScene;
+        private Node _currentPlayingScene;
+        private Node _playerScene;
+
+        [Inject] private Func<SceneTree> GetTree;
+
+        public async void LoadMainMenu(SplashScreenController splashScreenController) {
+            _mainMenuScene = ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn").Instance();
+            splashScreenController.QueueFree();
+            await GetTree().AwaitIdleFrame();
+            GetTree().Root.AddChild(_mainMenuScene);
         }
 
-        public void StartGame() {
-            ChangeScene("res://Worlds/World1.tscn");
+        public async void StartGame() {
+            _mainMenuScene = GetTree().Root.FindChild<Node>("MainMenu");
+            _mainMenuScene.QueueFree();
+            _mainMenuScene = null;
+
+            _playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance();
+            _currentPlayingScene = ResourceLoader.Load<PackedScene>("res://Worlds/World1.tscn").Instance();
+            _currentPlayingScene.AddChild(_playerScene);
+            await GetTree().AwaitIdleFrame();
+            GetTree().Root.AddChild(_currentPlayingScene);
         }
 
-        public void ChangeScene(string scene) {
-            // _logger.Debug($"Change scene to: {scene}");
+        public void ExitGameAndBackToMainMenu() {
+            _currentPlayingScene.QueueFree();
+
+            _mainMenuScene = ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn").Instance();
+            GetTree().Root.AddChild(_mainMenuScene);
+        }
+
+        public async void QueueChangeScene(string scene) {
             StageManager.ClearTransition();
-            // https://godotengine.org/qa/24773/how-to-load-and-change-scenes
-            // https://docs.godotengine.org/en/3.1/getting_started/step_by_step/singletons_autoload.html#custom-scene-switcher
-            // https://github.com/kurtsev0103/godot-app-delegate
-            Error error = GetTree().ChangeScene(scene);
+            _currentPlayingScene.RemoveChild(_playerScene);
+            _currentPlayingScene.QueueFree();
+
+            var nextScene = ResourceLoader.Load<PackedScene>(scene).Instance();
+            nextScene.AddChild(_playerScene);
+            await GetTree().AwaitIdleFrame();
+            GetTree().Root.AddChild(nextScene);
+            _currentPlayingScene = nextScene;
         }
 
-        private bool _quited = false;
-
-        /**
-         * Method called from Main Menu -> Quit Game option
-         */
-        public void Quit() {
-            if (_quited) return;
-            _quited = true;
-            CleanResources(true);
-            GetTree().Quit();
-        }
-
-        /**
-         * Detect ALT+F4 or Command+Q
-         */
-        public override void _Notification(int what) {
-            if (what == MainLoop.NotificationWmQuitRequest) {
-                CleanResources(false);
-            }
-        }
-
-        private static void CleanResources(bool userRequested) {
-            var timespan = Bootstrap.Uptime;
-            var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
-            if (userRequested) {
-                Logger.Info("Application is closed by " + OS.GetName() + " notification. Uptime: " +
-                            elapsed);
-            } else {
-                Logger.Info("User requested exit the application. Uptime: " + elapsed);
-            }
-            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
-        }
     }
 }
