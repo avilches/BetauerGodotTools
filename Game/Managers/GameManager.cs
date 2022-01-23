@@ -20,7 +20,6 @@ namespace Veronenger.Game.Managers {
     public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
-        [Inject] public InputManager InputManager;
 
         private Node _mainMenuScene;
         private Node _currentPlayingScene;
@@ -28,8 +27,11 @@ namespace Veronenger.Game.Managers {
 
         [Inject] private Func<SceneTree> GetTree;
 
-        public async void LoadMainMenu(SplashScreenController splashScreenController) {
+        public void PreloadMainMenu() {
             _mainMenuScene = ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn").Instance();
+        }
+
+        public async void LoadMainMenu(SplashScreenController splashScreenController) {
             splashScreenController.QueueFree();
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(_mainMenuScene);
