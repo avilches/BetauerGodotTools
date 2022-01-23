@@ -13,15 +13,17 @@ using Path = System.IO.Path;
 namespace Veronenger.Game.Managers.Autoload {
 
     public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
+        // TODO: The splash screen should config the screen
         /*
          * Boostrap is the only Autoload node
          * It inherits from DiBootstrap, so all the singletons are scanned and loaded.
-         * As soon as the GameManager is injected into the Bootstrap, the GameManager will initialize the screen
+         * As soon as the ScreenManager is injected into the Bootstrap, the ScreenManager will initialize the screen
          */
-        [Inject] public GameManager GameManager;
+        [Inject] public ScreenManager ScreenManager;
 
         private const UnhandledExceptionPolicy UnhandledExceptionPolicyConfig = UnhandledExceptionPolicy.TerminateApplication;
         private const bool LogToFileEnabled = false; // TODO: enabled by a parameter
@@ -37,7 +39,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override DiRepository CreateDiRepository() {
             ConfigureLoggerFactory();
-            return new DiRepository();
+            return new DiRepository(this);
         }
 
 
@@ -95,6 +97,22 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", "Animation", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Enemy.Zombie:*", TraceLevel.Error);
+        }
+
+        /**
+         * Detect quit app (by ALT+F4, Command+Q or user menu)
+         */
+        public override void _Notification(int what) {
+            if (what == MainLoop.NotificationWmQuitRequest) {
+                Exit();
+            }
+        }
+
+        private static void Exit() {
+            var timespan = Uptime;
+            var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
+            Logger.Info("User requested exit the application. Uptime: " + elapsed);
+            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
         }
 
         private void MicroBenchmarks() {
