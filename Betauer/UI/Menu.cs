@@ -195,6 +195,12 @@ namespace Betauer.UI {
             return this;
         }
 
+        public ActionMenu AddCheckButton(string name, string title, Action<ActionCheckButton.InputEventContext> action) {
+            var button = CreateCheckButton(name, title);
+            button.ActionWithInputEventContext = action;
+            return this;
+        }
+
         public ActionMenu AddButton(string name, string title, Action action) {
             var button = CreateButton(name, title);
             button.Action = action;
@@ -209,7 +215,7 @@ namespace Betauer.UI {
 
         public ActionMenu AddButton(string name, string title, Action<ActionButton.InputEventContext> action) {
             var button = CreateButton(name, title);
-            button.ActionWithInputEvent = action;
+            button.ActionWithInputEventContext = action;
             return this;
         }
 
@@ -363,9 +369,9 @@ namespace Betauer.UI {
         }
 
         public class InputEventContext : Context {
-            public Godot.InputEvent InputEvent { get; }
+            public InputEvent InputEvent { get; }
 
-            public InputEventContext(ActionMenu menu, ActionButton actionButton, Godot.InputEvent @event) : base(menu, actionButton) {
+            public InputEventContext(ActionMenu menu, ActionButton actionButton, InputEvent @event) : base(menu, actionButton) {
                 InputEvent = @event;
             }
         }
@@ -374,7 +380,7 @@ namespace Betauer.UI {
         public ActionMenu Menu { get; }
         public Action? Action;
         public Action<Context>? ActionWithContext;
-        public Action<InputEventContext>? ActionWithInputEvent;
+        public Action<InputEventContext>? ActionWithInputEventContext;
 
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
@@ -384,8 +390,8 @@ namespace Betauer.UI {
         }
 
         public override void _Input(InputEvent @event) {
-            if (ActionWithInputEvent != null && GetFocusOwner() == this) {
-                ActionWithInputEvent(new InputEventContext(Menu, this, @event));
+            if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
+                ActionWithInputEventContext(new InputEventContext(Menu, this, @event));
             }
         }
 
@@ -422,16 +428,32 @@ namespace Betauer.UI {
             }
         }
 
+        public class InputEventContext : Context {
+            public InputEvent InputEvent { get; }
+
+            public InputEventContext(ActionMenu menu, ActionCheckButton actionCheckButton, InputEvent @event) : base(menu, actionCheckButton) {
+                InputEvent = @event;
+            }
+        }
+
+
         private readonly ControlRestorer _saver;
         public ActionMenu Menu { get; }
         public Action<bool>? Action;
         public Action<Context>? ActionWithContext;
+        public Action<InputEventContext>? ActionWithInputEventContext;
 
         // TODO: i18n
         internal ActionCheckButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
             Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
+        }
+
+        public override void _Input(InputEvent @event) {
+            if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
+                ActionWithInputEventContext(new InputEventContext(Menu, this, @event));
+            }
         }
 
         public void Execute() {
