@@ -27,9 +27,19 @@ namespace Betauer {
     public class DiRepository {
         private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
+        private readonly Node _bootstrap;
+
+        public DiRepository(Node bootstrap) {
+            _bootstrap = bootstrap;
+        }
 
         public T AddSingleton<T>(T instance) {
             _singletons.Add(instance.GetType(), instance);
+            if (instance is Node nodeInstance) {
+                nodeInstance.Name = nodeInstance.GetType().Name;
+                _logger.Info("Adding singleton node " + nodeInstance.GetType().Name + " as Bootstrap Node child");
+                _bootstrap.AddChild(nodeInstance);
+            }
             return instance;
         }
 
@@ -37,10 +47,13 @@ namespace Betauer {
             return (T)_singletons[type];
         }
 
-        public void Scan(Node bootstrap) {
+        public void Scan() {
+            var assemblies = new[] { _bootstrap.GetType().Assembly };
+            Scan(assemblies);
+        }
+
+        public void Scan(Assembly[] assemblies) {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            // var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var assemblies = new[] { bootstrap.GetType().Assembly };
             int types = 0, added = 0;
             foreach (var assembly in assemblies) {
                 foreach (Type type in assembly.GetTypes()) {
@@ -56,24 +69,9 @@ namespace Betauer {
                 }
             }
 
-            bool error = false;
-            int nodes = 0;
-            foreach (var instance in _singletons.Values) {
-                error |= InjectFields(instance);
-                if (instance is Node nodeInstance) {
-                    nodeInstance.Name = nodeInstance.GetType().Name;
-                    _logger.Info("Adding singleton node " + nodeInstance.GetType().Name + " as Bootstrap Node child");
-                    nodes++;
-                    bootstrap.AddChild(nodeInstance);
-                }
-            }
             _logger.Info(
-                $"Scanned {types} types. Singletons: {added}. Nodes: {nodes}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
+                $"Scanned {types} types. Singletons: {added}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
             stopwatch.Stop();
-
-            if (error) {
-                throw new Exception("Scan error. Check the console output");
-            }
         }
 
         private object CreateSingletonInstance(Type type) {
@@ -84,6 +82,16 @@ namespace Betauer {
             } catch (Exception e) {
                 Console.WriteLine(e);
                 throw;
+            }
+        }
+
+        public void AutoWire() {
+            var error = false;
+            foreach (var instance in _singletons.Values) {
+                error |= InjectFields(instance);
+            }
+            if (error) {
+                throw new Exception("AutoWire error: Check the console output");
             }
         }
 
@@ -101,7 +109,7 @@ namespace Betauer {
             foreach (var property in privateFields.Concat(publicFields)) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                var found = _singletons.TryGetValue(property.FieldType, out object instance);
+                var found = _singletons.TryGetValue(property.FieldType, out var instance);
                 if (!found) {
                     _logger.Error("Injectable property [" + property.FieldType.Name + " " + property.Name +
                                   "] not found while injecting fields in " + target.GetType().Name);
@@ -239,12 +247,14 @@ namespace Betauer {
             }
             Instance = this;
             DefaultRepository = CreateDiRepository();
-            DefaultRepository.Scan(this);
+            DefaultRepository.Scan();
+            DefaultRepository.AddSingleton<Func<SceneTree>>(GetTree);
+            DefaultRepository.AutoWire();
             DefaultRepository.AutoWire(this);
         }
 
         public virtual DiRepository CreateDiRepository() {
-            return new DiRepository();
+            return new DiRepository(this);
         }
 
         public void CheckErrorPolicy(UnhandledExceptionPolicy unhandledExceptionPolicyConfig) {
