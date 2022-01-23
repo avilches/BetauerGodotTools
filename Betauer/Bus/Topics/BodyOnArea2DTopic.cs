@@ -21,8 +21,12 @@ namespace Betauer.Bus.Topics {
     }
 
     public class BodyOnArea2DListenerAction : GodotFilterListenerAction<BodyOnArea2D> {
-        public BodyOnArea2DListenerAction(string name, Node owner, Node filter, Action<BodyOnArea2D> executeMethod) :
-            base(name, owner, filter, executeMethod) {
+        public BodyOnArea2DListenerAction(string name, Node owner, Node filter, Action<BodyOnArea2D> actionWithEvent) :
+            base(name, owner, filter, actionWithEvent) {
+        }
+
+        public BodyOnArea2DListenerAction(string name, Node owner, Node filter, Action action) :
+            base(name, owner, filter, action) {
         }
     }
 
@@ -34,6 +38,8 @@ namespace Betauer.Bus.Topics {
         }
 
         public bool IsOverlapping { get; protected internal set; }
+        public void EnableOverlapping() => IsOverlapping = true;
+        public void DisableOverlapping() => IsOverlapping = false;
 
         public bool IsDisposed() {
             return !Object.IsInstanceValid(_owner);
@@ -107,10 +113,9 @@ namespace Betauer.Bus.Topics {
         private void _Subscribe(string name, Node owner, Node filter, Action<BodyOnArea2D>? enterMethod,
             Action<BodyOnArea2D>? exitMethod) {
             if (enterMethod != null)
-                EnterTopic.Subscribe(
-                    new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter, enterMethod));
+                EnterTopic.Subscribe(new BodyOnArea2DListenerAction(name, owner, filter, enterMethod));
             if (exitMethod != null)
-                ExitTopic.Subscribe(new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter, exitMethod));
+                ExitTopic.Subscribe(new BodyOnArea2DListenerAction(name, owner, filter, exitMethod));
         }
 
         public BodyOnArea2DStatus StatusSubscriber(string name, Node owner, PhysicsBody2D filter) {
@@ -123,13 +128,8 @@ namespace Betauer.Bus.Topics {
 
         private BodyOnArea2DStatus _StatusSubscriber(string name, Node owner, Node filter) {
             var status = new BodyOnArea2DStatus(owner);
-            // TODO: replace lambdas with BodyOnArea2DStatus methods
-            EnterTopic.Subscribe(
-                new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter,
-                    (BodyOnArea2D @event) => { status.IsOverlapping = true; }));
-            ExitTopic.Subscribe(
-                new GodotFilterListenerAction<BodyOnArea2D>(name, owner, filter,
-                    (BodyOnArea2D @event) => { status.IsOverlapping = false; }));
+            EnterTopic.Subscribe(new BodyOnArea2DListenerAction(name, owner, filter, status.EnableOverlapping));
+            ExitTopic.Subscribe(new BodyOnArea2DListenerAction(name, owner, filter, status.DisableOverlapping));
             return status;
         }
 

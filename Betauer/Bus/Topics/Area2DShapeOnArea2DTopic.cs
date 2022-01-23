@@ -27,8 +27,12 @@ namespace Betauer.Bus.Topics {
     }
 
     public class Area2DShapeOnArea2DListenerAction : GodotFilterListenerAction<Area2DShapeOnArea2D> {
-        public Area2DShapeOnArea2DListenerAction(string name, Node owner, Node filter, Action<Area2DShapeOnArea2D> executeMethod) :
-            base(name, owner, filter, executeMethod) {
+        public Area2DShapeOnArea2DListenerAction(string name, Node owner, Node filter, Action<Area2DShapeOnArea2D> actionWithEvent) :
+            base(name, owner, filter, actionWithEvent) {
+        }
+
+        public Area2DShapeOnArea2DListenerAction(string name, Node owner, Node filter, Action action) :
+            base(name, owner, filter, action) {
         }
     }
 
@@ -63,10 +67,10 @@ namespace Betauer.Bus.Topics {
             Action<Area2DShapeOnArea2D>? enterMethod,
             Action<Area2DShapeOnArea2D>? exitMethod = null) {
             if (enterMethod != null) {
-                EnterTopic.Subscribe(new GodotFilterListenerAction<Area2DShapeOnArea2D>(name, owner, filter, enterMethod));
+                EnterTopic.Subscribe(new Area2DShapeOnArea2DListenerAction(name, owner, filter, enterMethod));
             }
             if (exitMethod != null) {
-                ExitTopic.Subscribe(new GodotFilterListenerAction<Area2DShapeOnArea2D>(name, owner, filter, exitMethod));
+                ExitTopic.Subscribe(new Area2DShapeOnArea2DListenerAction(name, owner, filter, exitMethod));
             }
         }
 

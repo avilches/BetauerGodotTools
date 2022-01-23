@@ -22,8 +22,12 @@ namespace Betauer.Bus.Topics {
 
     public class Area2DOnArea2DListenerAction : GodotFilterListenerAction<Area2DOnArea2D> {
         public Area2DOnArea2DListenerAction(string name, Node owner, Node filter,
-            Action<Area2DOnArea2D> executeMethod) :
-            base(name, owner, filter, executeMethod) {
+            Action<Area2DOnArea2D> actionWithEvent) :
+            base(name, owner, filter, actionWithEvent) {
+        }
+
+        public Area2DOnArea2DListenerAction(string name, Node owner, Node filter, Action action) :
+            base(name, owner, filter, action) {
         }
     }
 
@@ -44,6 +48,8 @@ namespace Betauer.Bus.Topics {
          * false        | false         | Overlapping is not happening now neither in the previous frame
          */
         public bool IsOverlapping { get; protected internal set; }
+        public void EnableOverlapping() => IsOverlapping = true;
+        public void DisableOverlapping() => IsOverlapping = false;
 
         public bool IsDisposed() {
             return !Object.IsInstanceValid(_owner);
@@ -86,24 +92,17 @@ namespace Betauer.Bus.Topics {
             Action<Area2DOnArea2D>? enterMethod,
             Action<Area2DOnArea2D>? exitMethod = null) {
             if (enterMethod != null) {
-                EnterTopic.Subscribe(
-                    new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter, enterMethod));
+                EnterTopic.Subscribe(new Area2DOnArea2DListenerAction(name, owner, filter, enterMethod));
             }
             if (exitMethod != null) {
-                ExitTopic.Subscribe(
-                    new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter, exitMethod));
+                ExitTopic.Subscribe(new Area2DOnArea2DListenerAction(name, owner, filter, exitMethod));
             }
         }
 
         public Area2DOnArea2DStatus StatusSubscriber(string name, Node owner, Area2D filter) {
             var status = new Area2DOnArea2DStatus(owner);
-            // TODO: replace lambdas with Area2DOnArea2DStatus methods
-            EnterTopic.Subscribe(
-                new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter,
-                    (Area2DOnArea2D @event) => { status.IsOverlapping = true; }));
-            ExitTopic.Subscribe(
-                new GodotFilterListenerAction<Area2DOnArea2D>(name, owner, filter,
-                    (Area2DOnArea2D @event) => { status.IsOverlapping = false; }));
+            EnterTopic.Subscribe(new Area2DOnArea2DListenerAction(name, owner, filter, status.EnableOverlapping));
+            ExitTopic.Subscribe(new Area2DOnArea2DListenerAction(name, owner, filter, status.DisableOverlapping));
             return status;
         }
 

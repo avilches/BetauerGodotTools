@@ -81,15 +81,22 @@ namespace Betauer.Bus {
     }
 
     public class GodotFilterListenerAction<T> : GodotFilterListener<T> where T : IGodotFilterEvent {
-        private readonly Action<T> _executeMethod;
+        private readonly Action<T>? _actionWithEvent;
+        private readonly Action? _action;
 
-        public GodotFilterListenerAction(string name, Node owner, Node filter, Action<T> executeMethod) :
+        public GodotFilterListenerAction(string name, Node owner, Node filter, Action<T> actionWithEvent) :
             base(name, owner, filter) {
-            _executeMethod = executeMethod;
+            _actionWithEvent = actionWithEvent;
+        }
+
+        public GodotFilterListenerAction(string name, Node owner, Node filter, Action action) :
+            base(name, owner, filter) {
+            _action = action;
         }
 
         public override void Execute(T @event) {
-            _executeMethod.Invoke(@event);
+            if (_action != null) _action();
+            else _actionWithEvent?.Invoke(@event);
         }
     }
 }
