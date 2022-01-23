@@ -58,7 +58,7 @@ namespace Veronenger.Game.Controller.Menu {
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
-                .AddButton("Quit", "Quit", (ctx) => GameManager.Quit());
+                .AddButton("Quit", "Quit", (ctx) => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
 
             var hSeparator = new HSeparator();
             hSeparator.Name = "Sep";
