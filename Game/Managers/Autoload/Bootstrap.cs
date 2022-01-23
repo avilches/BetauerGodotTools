@@ -28,6 +28,8 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
+
+            // GetTree().SetAutoAcceptQuit();
             CheckErrorPolicy(UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
             this.DisableAllNotifications();
@@ -69,8 +71,8 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Off);
 
             // Screen
-            LoggerFactory.SetTraceLevel(typeof(RegularResolutionService), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(IntegerScaleResolutionService), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Debug);
             
             // Managers
             LoggerFactory.SetTraceLevel(typeof(InputManager), TraceLevel.Off);
