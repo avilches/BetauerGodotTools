@@ -304,7 +304,7 @@ namespace Betauer {
             if (LoggerFactory.Instance._lastLogTimes > 1) {
                 // Print old lines + times
                 var timestamp = LoggerFactory.Instance._includeTimestamp ? "                      " : "";
-                WriteLog(_lastLogTraceLevel, timestamp, LoggerFactory.Instance._lastLogTimes.ToString(),
+                WriteLog(_lastLogTraceLevel, timestamp, "x" + LoggerFactory.Instance._lastLogTimes,
                     LoggerFactory.Instance._lastLog);
             }
             LoggerFactory.Instance._lastLog = message;
