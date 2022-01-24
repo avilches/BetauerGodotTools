@@ -28,5 +28,9 @@ namespace Betauer.Input {
             _actions.ForEach(actionInput => actionInput.ClearJustState());
         }
 
+        public void ClearStates() {
+            _actions.ForEach(actionInput => actionInput.ClearState());
+        }
+
     }
 }

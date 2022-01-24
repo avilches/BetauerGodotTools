@@ -58,6 +58,10 @@ namespace Veronenger.Game.Managers {
             _actionList.ClearJustStates();
         }
 
+        public void ClearStates() {
+            _actionList.ClearStates();
+        }
+
         public void Debug(IActionUpdate action) {
             if (Logger.IsEnabled(TraceLevel.Debug)) {
                 if (_wrapper.IsMotion()) {

@@ -76,6 +76,10 @@ namespace Betauer.Input {
         public override void ClearJustState() {
         }
 
+        public override void ClearState() {
+            _inputTotalKey = _inputPositiveKey = _inputNegativeKey = _inputTotalButton = _inputPositiveButton = _inputNegativeButton = _axisValue = 0;
+        }
+
         private bool CheckKeys(EventWrapper w) {
             if (w.IsKey(_positiveKeys)) {
                 _inputPositiveKey = w.Pressed ? w.GetStrength() : 0;

@@ -62,8 +62,8 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Error);
 
             // Screen
-            LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Debug);
-            LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Debug);
+            LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Error);
             
             // Managers
             LoggerFactory.SetTraceLevel(typeof(InputManager), TraceLevel.Error);

@@ -4,6 +4,7 @@ namespace Betauer.Input {
         public bool Enabled = true;
         public abstract bool Update(EventWrapper w);
         public abstract void ClearJustState();
+        public abstract void ClearState();
 
         protected IActionUpdate(string name) {
             Name = name;

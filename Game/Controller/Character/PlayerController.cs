@@ -246,6 +246,12 @@ namespace Veronenger.Game.Controller.Character {
 
         }
 
+        public override void _Notification(int what) {
+            if (what == MainLoop.NotificationWmFocusOut) {
+                InputManager.ClearStates();
+            }
+        }
+
         public override void _Draw() {
             // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);
             // DrawLine(_playerDetector.Position, GetLocalMousePosition(), Colors.Blue, 3F);
