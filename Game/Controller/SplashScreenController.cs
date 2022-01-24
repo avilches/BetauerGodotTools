@@ -8,9 +8,8 @@ namespace Veronenger.Game.Controller {
         [Inject] public ScreenManager ScreenManager;
 
         public override void Ready() {
-            GameManager.PreloadMainMenu();
             ScreenManager.LoadSettingsAndConfigure();
-            GameManager.LoadMainMenu(this);
+            GameManager.Start(this);
         }
     }
 }

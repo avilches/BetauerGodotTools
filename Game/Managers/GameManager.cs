@@ -1,7 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Veronenger.Game.Controller;
+using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
@@ -21,52 +23,73 @@ namespace Veronenger.Game.Managers {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
 
+        private static PackedScene SceneWorld1() => ResourceLoader.Load<PackedScene>("res://Worlds/World1.tscn");
+        private static PackedScene SceneWorld2() => ResourceLoader.Load<PackedScene>("res://Worlds/World2.tscn");
+        private static PackedScene MainMenu() => ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn");
+        private static PackedScene Player() => ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+
         private Node _mainMenuScene;
-        private Node _currentPlayingScene;
-        private Node _playerScene;
+        private Node _currentGameScene;
+        private Node2D _playerScene;
 
         [Inject] private Func<SceneTree> GetTree;
 
-        public void PreloadMainMenu() {
-            _mainMenuScene = ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn").Instance();
-        }
+        public void Start(SplashScreenController splashScreen) {
+            splashScreen.QueueFree();
+            SceneWorld1();
+            SceneWorld2();
+            MainMenu();
+            Player();
 
-        public async void LoadMainMenu(SplashScreenController splashScreenController) {
-            splashScreenController.QueueFree();
-            await GetTree().AwaitIdleFrame();
-            GetTree().Root.AddChild(_mainMenuScene);
+            CreateMainMenu();
+            AddSceneDeferred(_mainMenuScene);
         }
 
         public async void StartGame() {
-            _mainMenuScene = GetTree().Root.FindChild<Node>("MainMenu");
             _mainMenuScene.QueueFree();
             _mainMenuScene = null;
 
-            _playerScene = ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn").Instance();
-            _currentPlayingScene = ResourceLoader.Load<PackedScene>("res://Worlds/World1.tscn").Instance();
-            _currentPlayingScene.AddChild(_playerScene);
-            await GetTree().AwaitIdleFrame();
-            GetTree().Root.AddChild(_currentPlayingScene);
+            _currentGameScene = SceneWorld1().Instance();
+            await AddSceneDeferred(_currentGameScene);
+            AddPlayerToScene(_currentGameScene);
         }
 
-        public void ExitGameAndBackToMainMenu() {
-            _currentPlayingScene.QueueFree();
 
-            _mainMenuScene = ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn").Instance();
-            GetTree().Root.AddChild(_mainMenuScene);
+        public void ExitGameAndBackToMainMenu() {
+            _currentGameScene.QueueFree();
+            _currentGameScene = null;
+
+            CreateMainMenu();
+            AddSceneDeferred(_mainMenuScene);
         }
 
         public async void QueueChangeScene(string scene) {
             StageManager.ClearTransition();
-            _currentPlayingScene.RemoveChild(_playerScene);
-            _currentPlayingScene.QueueFree();
+            _currentGameScene.QueueFree();
 
             var nextScene = ResourceLoader.Load<PackedScene>(scene).Instance();
-            nextScene.AddChild(_playerScene);
-            await GetTree().AwaitIdleFrame();
-            GetTree().Root.AddChild(nextScene);
-            _currentPlayingScene = nextScene;
+            await AddSceneDeferred(nextScene);
+            AddPlayerToScene(nextScene);
+            _currentGameScene = nextScene;
         }
 
+        private void AddPlayerToScene(Node nextScene) {
+            _playerScene = (Node2D)Player().Instance();
+            nextScene.AddChild(_playerScene);
+            var position2D = nextScene.FindChild<Node2D>("PositionPlayer");
+            if (position2D == null) {
+                throw new Exception("Node PositionPlayer not found when loading scene "+nextScene.Filename);
+            }
+            _playerScene.GlobalPosition = position2D.GlobalPosition;
+        }
+
+        private void CreateMainMenu() {
+            _mainMenuScene = MainMenu().Instance();
+        }
+
+        private async Task AddSceneDeferred(Node scene) {
+            await GetTree().AwaitIdleFrame();
+            GetTree().Root.AddChild(scene);
+        }
     }
 }

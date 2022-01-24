@@ -45,7 +45,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Veronenger"
-run/main_scene="res://Scenes/MainMenu.tscn"
+run/main_scene="res://Scenes/SplashScreen.tscn"
 config/icon="res://icon.png"
 
 [autoload]
