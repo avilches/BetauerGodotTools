@@ -284,6 +284,10 @@ namespace Veronenger.Game.Controller.Menu {
             // }
 
             if (@event.IsAction("ui_cancel")) {
+                // TODO: interesting bug
+                // 1 Go video, move right into the resolution
+                // 2 back and start a game, the lateral strength is set to 1, so the player moves to the right
+                // 3 short workaround -> reset InputMapping on start a scene + stop using InputManager
                 _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
 
