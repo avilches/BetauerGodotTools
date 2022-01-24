@@ -85,10 +85,6 @@ namespace Veronenger.Game.Controller.Character {
             // _attackArea.CollisionMask = 0;
         }
 
-        public new void Dispose() {
-            _stateMachine.Dispose();
-            GetParent().QueueFree();
-        }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
 
@@ -132,7 +128,9 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void Dispose(bool disposing) {
+            // _tweenStack?.Dispose();
             _animationStack?.Dispose();
+            _stateMachine?.Dispose();
             base.Dispose(disposing);
         }
 

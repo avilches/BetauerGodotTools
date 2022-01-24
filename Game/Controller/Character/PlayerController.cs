@@ -260,6 +260,7 @@ namespace Veronenger.Game.Controller.Character {
         protected override void Dispose(bool disposing) {
             _tweenStack?.Dispose();
             _animationStack?.Dispose();
+            _stateMachine?.Dispose();
             base.Dispose(disposing);
         }
     }
