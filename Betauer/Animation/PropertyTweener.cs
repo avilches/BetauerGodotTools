@@ -130,7 +130,7 @@ namespace Betauer.Animation {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
         private readonly float _delay;
-        public Node Target { get; } // Not needed, not used!
+        public Node? Target { get; } // Not needed, not used!
 
         internal CallbackTweener(float delay, Action callback) {
             _delay = delay;
@@ -195,7 +195,7 @@ namespace Betauer.Animation {
     internal class PauseTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly float _delay;
-        public Node Target { get; } // Not needed, not used!
+        public Node? Target { get; } // Not needed, not used!
 
         internal PauseTweener(float delay) {
             _delay = delay;
@@ -229,19 +229,19 @@ namespace Betauer.Animation {
     }
 
     public abstract class PropertyTweener<TProperty> : ITweener {
-        protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
 
-        public Node Target { get; }
+        public Node? Target { get; }
         protected readonly IProperty<TProperty> Property;
-        protected readonly Easing DefaultEasing;
+        protected readonly Easing? DefaultEasing;
 
 
-        protected Func<Node, TProperty> FromFunction;
+        protected Func<Node, TProperty>? FromFunction;
         protected bool RelativeToFrom = false;
 
-        public List<DebugStep<TProperty>> DebugSteps = null;
+        protected List<DebugStep<TProperty>>? DebugSteps = null;
 
-        internal PropertyTweener(Node target, IProperty<TProperty> property, Easing defaultEasing) {
+        internal PropertyTweener(Node? target, IProperty<TProperty> property, Easing? defaultEasing) {
             Target = target;
             Property = property;
             DefaultEasing = defaultEasing;
@@ -271,7 +271,7 @@ namespace Betauer.Animation {
 
         protected void RunStep(AnimationContext<TProperty> context, DisposableTween tween,
             IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, Easing easing) {
+            TProperty from, TProperty to, float start, float duration, Easing? easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
             var end = start + duration;
             var target = context.Target;
@@ -330,7 +330,7 @@ namespace Betauer.Animation {
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
-        internal PropertyKeyStepTweener(Node target, IProperty<TProperty> property, Easing defaultEasing) :
+        internal PropertyKeyStepTweener(Node? target, IProperty<TProperty> property, Easing? defaultEasing) :
             base(target, property, defaultEasing) {
         }
 
@@ -338,7 +338,7 @@ namespace Betauer.Animation {
             var target = Target ?? defaultTarget;
             if (!Validate(_steps.Count, target, Property)) return 0;
             // TODO: duration is ignored. It should be % or absolute or nothing
-            var initialValue = Property.IsCompatibleWith(target) ? Property.GetValue(target) : default;
+            TProperty initialValue = Property.IsCompatibleWith(target) ? Property.GetValue(target) : default;
             var from = FromFunction != null ? FromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
@@ -372,7 +372,7 @@ namespace Betauer.Animation {
 
         public float AllStepsDuration = 0;
 
-        internal PropertyKeyPercentTweener(Node target, IProperty<TProperty> property, Easing defaultEasing) :
+        internal PropertyKeyPercentTweener(Node target, IProperty<TProperty> property, Easing? defaultEasing) :
             base(target, property, defaultEasing) {
         }
 
@@ -421,7 +421,7 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyStepToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node target, IProperty<TProperty> property, Easing defaultEasing) : base(target, property, defaultEasing) {
+            Node? target, IProperty<TProperty> property, Easing? defaultEasing) : base(target, property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 
@@ -466,7 +466,7 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyStepOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node defaultTarget, IProperty<TProperty> property, Easing defaultEasing, bool relativeToFrom) :
+            Node? defaultTarget, IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
             base(defaultTarget, property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
@@ -562,7 +562,7 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyPercentOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node defaultTarget, IProperty<TProperty> property, Easing defaultEasing, bool relativeToFrom) :
+            Node defaultTarget, IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
             base(defaultTarget, property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
