@@ -167,8 +167,10 @@ namespace Betauer.Screen {
         }
 
         public override void SetFullscreen() {
-            OS.WindowBorderless = false;
-            OS.WindowFullscreen = true;
+            if (!OS.WindowFullscreen) {
+                OS.WindowBorderless = false;
+                OS.WindowFullscreen = true;
+            }
         }
 
         protected override void DoSetBorderless(bool borderless) => OS.WindowBorderless = borderless;
@@ -185,7 +187,7 @@ namespace Betauer.Screen {
      */
     public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private OnResizeWindowHandler _onResizeWindowHandler;
+        private OnResizeWindowHandler _onResizeWindowHandler = null!;
 
         public PixelPerfectScreenResolutionService(SceneTree tree, ScreenConfiguration screenConfiguration) : base(
             tree, screenConfiguration) {
@@ -197,7 +199,7 @@ namespace Betauer.Screen {
             // Remove default stretch behavior.
             Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep, BaseResolution.Size,
                 1);
-            _onResizeWindowHandler = new OnResizeWindowHandler(Tree, ScaleResolutionViewport);
+            _onResizeWindowHandler = Tree.OnResizeWindow(ScaleResolutionViewport);
             ScaleResolutionViewport();
         }
 
@@ -209,7 +211,7 @@ namespace Betauer.Screen {
             var screenSize = OS.GetScreenSize();
             var maxScale = Resolution.CalculateMaxScale(screenSize, BaseResolution.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
-            for (int scale = 1; scale <= maxScale; scale++) {
+            for (var scale = 1; scale <= maxScale; scale++) {
                 var scaledResolution = new ScaledResolution(BaseResolution.Size, BaseResolution.Size * scale);
                 resolutions.Add(scaledResolution);
                 if (AspectRatios != null) {
@@ -248,8 +250,10 @@ namespace Betauer.Screen {
         }
 
         public override void SetFullscreen() {
-            OS.WindowBorderless = false;
-            OS.WindowFullscreen = true;
+            if (!OS.WindowFullscreen) {
+                OS.WindowBorderless = false;
+                OS.WindowFullscreen = true;
+            }
             ScaleResolutionViewport();
         }
 
