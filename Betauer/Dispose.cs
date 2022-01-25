@@ -10,12 +10,12 @@ namespace Betauer {
         protected bool Disposed { get; private set; } = false;
 
         ~DisposableObject() {
-            // DoDispose(false);
+            DoDispose(false);
         }
 
         public void Dispose() {
-            // DoDispose(true);
-            // GC.SuppressFinalize(this);
+            DoDispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private void DoDispose(bool disposing) {
@@ -27,7 +27,9 @@ namespace Betauer {
                     Console.ResetColor();
                 }
             } catch (Exception e) {
-                Console.Write(e);
+                if (ShowShutdownWarning) {
+                    Console.Write(e);
+                }
             } finally {
                 Dispose(disposing);
                 Disposed = true;
@@ -47,8 +49,6 @@ namespace Betauer {
         protected bool Disposed { get; private set; } = false;
 
         protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            return;
             if (Disposed) return;
             try {
                 if (ShowShutdownWarning && !disposing) {
@@ -57,7 +57,9 @@ namespace Betauer {
                     Console.ResetColor();
                 }
             } catch (Exception e) {
-                Console.Write(e);
+                if (ShowShutdownWarning) {
+                    Console.Write(e);
+                }
             } finally {
                 base.Dispose(disposing);
                 Disposed = true;
