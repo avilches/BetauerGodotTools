@@ -75,11 +75,6 @@ namespace Veronenger.Game.Managers {
             }
         }
 
-        // protected override void Dispose(bool disposing) {
-        //     _service?.Dispose();
-        //     base.Dispose(disposing);
-        // }
-
         /*
         private int _currentScreen = -1;
         private Vector2 _screenSize = Vector2.Zero;

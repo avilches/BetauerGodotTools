@@ -4,7 +4,6 @@ using Betauer.Animation;
 
 namespace Veronenger.Game.Controller.Animation {
     public class TestPlatformController : DiNode2D {
-
         [OnReady("Body1")] private KinematicBody2D body1;
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
@@ -12,8 +11,8 @@ namespace Veronenger.Game.Controller.Animation {
         private SingleSequencePlayer _multipleSequencePlayer1;
         private SingleSequencePlayer _multipleSequencePlayer2;
         private MultipleSequencePlayer _multipleSequencePlayer3;
-        public override void Ready() {
 
+        public override void Ready() {
             _multipleSequencePlayer1 = new SingleSequencePlayer().CreateNewTween(this);
             _multipleSequencePlayer1
                 .CreateSequence()
@@ -41,7 +40,6 @@ namespace Veronenger.Game.Controller.Animation {
                 .SetInfiniteLoops()
                 .Start();
 
-
             _multipleSequencePlayer3 = new MultipleSequencePlayer().CreateNewTween(this)
                 .CreateSequence()
                 .AnimateKeys<float>(body3, Property.Scale2DY)
@@ -58,22 +56,24 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
-            .Start();
+                .Start();
         }
 
         public override void _Process(float delta) {
             // if (seq.G)
         }
         // public override void _PhysicsProcess(float delta) {
-            // base._PhysicsProcess(delta);
+        // base._PhysicsProcess(delta);
         // }
 
         protected override void Dispose(bool disposing) {
-            _multipleSequencePlayer1?.Dispose();
-            _multipleSequencePlayer2?.Dispose();
-            _multipleSequencePlayer3?.Dispose();
-            base.Dispose(disposing);
+            try {
+                _multipleSequencePlayer1?.Dispose();
+                _multipleSequencePlayer2?.Dispose();
+                _multipleSequencePlayer3?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
     }
-
 }

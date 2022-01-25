@@ -40,7 +40,7 @@ namespace Betauer.Bus.Topics {
      * The topic listen for all signals of area_entered and area_exited in all the Area2D added by the method AddArea2D
      * To receive this event, subscribe to them.
      */
-    public class Area2DShapeOnArea2DTopic  : DisposeSnitchObject /* needed to connect to signals */ {
+    public class Area2DShapeOnArea2DTopic  : DisposableGodotObject /* needed to connect to signals */ {
         private GodotTopic<Area2DShapeOnArea2D>? _enterTopic;
         private GodotTopic<Area2DShapeOnArea2D>? _exitTopic;
 

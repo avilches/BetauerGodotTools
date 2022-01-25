@@ -243,7 +243,6 @@ namespace Veronenger.Game.Controller.Character {
             if (@event.IsAction("ui_cancel")) {
                 GameManager.ExitGameAndBackToMainMenu();
             }
-
         }
 
         public override void _Notification(int what) {
@@ -264,10 +263,13 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void Dispose(bool disposing) {
-            _tweenStack?.Dispose();
-            _animationStack?.Dispose();
-            _stateMachine?.Dispose();
-            base.Dispose(disposing);
+            try {
+                _tweenStack?.Dispose();
+                _animationStack?.Dispose();
+                _stateMachine?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
     }
 }

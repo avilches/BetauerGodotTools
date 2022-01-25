@@ -167,7 +167,7 @@ namespace Betauer.Tests.Animation {
             // the node contains a Tween child
             var tween = node.GetChild<Tween>(0);
             Assert.That(tween, Is.Not.Null);
-            Assert.That(player.Tween, Is.EqualTo(tween));
+            Assert.That(player.DisposableTween, Is.EqualTo(tween));
 
             Assert.That(imported, Is.Not.EqualTo(tem));
 

@@ -42,7 +42,7 @@ namespace Veronenger.Game.Managers.Autoload {
                 LoggerFactory.AddFileWriter(logPath);
             }
 
-            DisposeSnitchObject.ShowShutdownWarning = true;
+            DisposableGodotObject.ShowShutdownWarning = true;
 
             LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
             LoggerFactory.IncludeTimestamp(true);

@@ -7,7 +7,7 @@ namespace Betauer.Tests {
     public class NodeTest : Node {
         [SetUp]
         public void RemoveWarning() {
-            DisposeSnitchObject.ShowShutdownWarning = false;
+            DisposableGodotObject.ShowShutdownWarning = false;
         }
 
         public async Task<Sprite> CreateSprite(int width = 100) {

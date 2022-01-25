@@ -4,6 +4,7 @@ using Godot;
 using NUnit.Framework;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
+using Betauer.TestRunner;
 using Betauer.Tests.Animation;
 
 namespace Betauer.Tests {
@@ -51,7 +52,7 @@ namespace Betauer.Tests {
             Assert.That(anyCalls, Is.EqualTo(3));
 
             // When body is disposed
-            body1.QueueFree();
+            body1.Dispose();
             yield return null;
             // Then listeners are still the same
             Assert.That(topic.EventListeners.Count, Is.EqualTo(3));
@@ -67,7 +68,7 @@ namespace Betauer.Tests {
             Assert.That(anyCalls, Is.EqualTo(5)); // 3 before + 2 now
 
             // When owner1 is disposed
-            owner1.QueueFree();
+            owner1.Dispose();
             yield return null;
             // Then listeners are still the same
             Assert.That(topic.EventListeners.Count, Is.EqualTo(2));
@@ -134,7 +135,7 @@ namespace Betauer.Tests {
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
 
-            body.QueueFree();
+            body.Dispose();
             yield return null;
 
             Assert.That(status.IsDisposed(), Is.EqualTo(true));
@@ -196,7 +197,7 @@ namespace Betauer.Tests {
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
 
-            from.QueueFree();
+            from.Dispose();
             yield return null;
 
             Assert.That(status.IsDisposed(), Is.EqualTo(true));

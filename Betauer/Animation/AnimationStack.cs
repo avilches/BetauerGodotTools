@@ -29,7 +29,7 @@ namespace Betauer.Animation {
         public IOnceStatus OnEnd(Action callback);
     }
 
-    public class AnimationStack : DisposeSnitchObject /* needed to listen signals */ {
+    public class AnimationStack : DisposableGodotObject /* needed to listen signals */ {
         private class Status {
             public string Name { get; }
             public bool Playing { get; private set; }
@@ -121,7 +121,8 @@ namespace Betauer.Animation {
             private readonly SingleSequencePlayer _sequencePlayer;
             private readonly ISequence _sequence;
 
-            public LoopTween(AnimationStack animationStack, Logger logger, string name, SingleSequencePlayer sequencePlayer,
+            public LoopTween(AnimationStack animationStack, Logger logger, string name,
+                SingleSequencePlayer sequencePlayer,
                 ISequence sequence) : base(
                 animationStack, logger, name) {
                 _sequencePlayer = sequencePlayer;
@@ -144,7 +145,8 @@ namespace Betauer.Animation {
             private readonly ISequence _sequence;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, SingleSequencePlayer sequencePlayer, ISequence sequence) : base(animationStack, logger,
+                bool killPrevious, SingleSequencePlayer sequencePlayer, ISequence sequence) : base(animationStack,
+                logger,
                 name, canBeInterrupted, killPrevious) {
                 _sequencePlayer = sequencePlayer;
                 _sequence = sequence;
@@ -214,11 +216,13 @@ namespace Betauer.Animation {
         private OnceStatus _currentOnceAnimation;
         private readonly Logger _logger;
 
-        public AnimationStack(string name, SingleSequencePlayer sequencePlayer, AnimationPlayer animationPlayer = null) :
+        public AnimationStack(string name, SingleSequencePlayer sequencePlayer,
+            AnimationPlayer animationPlayer = null) :
             this(name, animationPlayer, sequencePlayer) {
         }
 
-        public AnimationStack(string name, AnimationPlayer animationPlayer, SingleSequencePlayer sequencePlayer = null) {
+        public AnimationStack(string name, AnimationPlayer animationPlayer,
+            SingleSequencePlayer sequencePlayer = null) {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
 
             AnimationPlayer = animationPlayer;
@@ -402,8 +406,11 @@ namespace Betauer.Animation {
 
         protected override void Dispose(bool disposing) {
             // No need to dispose AnimationPlayer, it should be part of the scene tso it will be freed with the tree
-            SequencePlayer?.Dispose();
-            base.Dispose(disposing);
+            try {
+                SequencePlayer?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
     }
 }

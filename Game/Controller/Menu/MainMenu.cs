@@ -58,11 +58,14 @@ namespace Veronenger.Game.Controller.Menu {
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
-                .AddButton("Quit", "Quit", (ctx) => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
+                .AddButton("Quit", "Quit", async (ctx) => {
+                    // QueueFree();
+                    var tree = GetTree();
+                    // await tree.AwaitIdleFrame();
+                    tree.Notification(MainLoop.NotificationWmQuitRequest);
+                });
 
-            var hSeparator = new HSeparator();
-            hSeparator.Name = "Sep";
-            mainMenu.AddMenu("Options", (menu) => { GD.Print(menu.Name); })
+            mainMenu.AddMenu("Options")
                 .AddButton("Video", "Video", (ctx) => { ctx.Go("Video", GoGoodbyeAnimation, GoNewMenuAnimation); })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
                 .AddHSeparator()

@@ -41,7 +41,8 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Callback(() => x = Stopwatch.StartNew());
 
             seq.AnimateStepsBy(this, new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(100, 0), 1, Easing.LinearInOut, (node) => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
+                .Offset(new Vector2(100, 0), 1, Easing.LinearInOut,
+                    (node) => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
                 .Offset(new Vector2(-50, 0), 1)
                 .EndAnimate();
 
@@ -80,8 +81,11 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         protected override void Dispose(bool disposing) {
-            _sequencePlayer?.Dispose();
-            base.Dispose(disposing);
+            try {
+                _sequencePlayer?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
     }
 }

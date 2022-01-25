@@ -6,34 +6,13 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-    public class DisposableTween : Tween {
-        private readonly ConcurrentDictionary<int, Object> _activeObjects = new ConcurrentDictionary<int, Object>();
-        private bool _disposed = false;
-
-        internal void AddToDisposeQueue(Object o) => _activeObjects[o.GetHashCode()] = o;
-        internal void RemovedFromDisposeQueue(Object o) => _activeObjects.TryRemove(o.GetHashCode(), out var x);
-
-        protected override void Dispose(bool disposing) {
-            if (_disposed) return;
-            try {
-                foreach (var pendingValue in _activeObjects.Values)
-                    pendingValue.Dispose();
-                if (!disposing && DisposeSnitchObject.ShowShutdownWarning) {
-                    GD.PushWarning($"Shutdown disposing {GetType()}");
-                }
-            } finally {
-                base.Dispose(disposing);
-                _disposed = true;
-            }
-        }
-    }
 
     public interface ITweener {
         float Start(DisposableTween tween, float initialDelay, Node defaultTarget, float duration);
         public abstract Node Target { get; }
     }
 
-    internal class InterpolateAction<TProperty> : DisposeSnitchObject {
+    internal class InterpolateAction<TProperty> : DisposableGodotObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action<TProperty> _callback;
         private readonly DisposableTween _tween;
@@ -66,7 +45,7 @@ namespace Betauer.Animation {
         }
     }
 
-    internal class DelayedAction : DisposeSnitchObject {
+    internal class DelayedAction : DisposableGodotObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
         private readonly DisposableTween _tween;
@@ -95,7 +74,7 @@ namespace Betauer.Animation {
         }
     }
 
-    internal class DelayedActionWithNode : DisposeSnitchObject {
+    internal class DelayedActionWithNode : DisposableGodotObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action<Node> _callback;
         private readonly Node _node;
@@ -421,7 +400,8 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyStepToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node? target, IProperty<TProperty> property, Easing? defaultEasing) : base(target, property, defaultEasing) {
+            Node? target, IProperty<TProperty> property, Easing? defaultEasing) :
+            base(target, property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 

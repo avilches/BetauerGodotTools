@@ -44,6 +44,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private AnimationStack _animationStack;
+
         public override void Ready() {
             _animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
@@ -128,11 +129,13 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void Dispose(bool disposing) {
-            // _tweenStack?.Dispose();
-            _animationStack?.Dispose();
-            _stateMachine?.Dispose();
-            base.Dispose(disposing);
+            try {
+                // _tweenStack?.Dispose();
+                _animationStack?.Dispose();
+                _stateMachine?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
-
     }
 }

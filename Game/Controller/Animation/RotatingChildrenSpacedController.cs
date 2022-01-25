@@ -36,8 +36,11 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         protected override void Dispose(bool disposing) {
-            _sequence?.Dispose();
-            base.Dispose(disposing);
+            try {
+                _sequence?.Dispose();
+            } finally {
+                base.Dispose(disposing);
+            }
         }
     }
 }

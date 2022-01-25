@@ -42,7 +42,7 @@ namespace Betauer.Animation {
     }
 
 
-    public class LoopStatus : DisposeSnitchObject /* needed to listen the signal from tween callback */ {
+    public class LoopStatus : DisposableGodotObject /* needed to listen the signal from tween callback */ {
         /// <summary>
         /// Returns the number of total Loops for the sequence. -1 means infinite loops.
         /// </summary>
