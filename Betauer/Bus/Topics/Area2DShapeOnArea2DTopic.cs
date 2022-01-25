@@ -56,6 +56,10 @@ namespace Betauer.Bus.Topics {
             Name = name;
         }
 
+        public override string ToString() {
+            return base.ToString() + " " + Name;
+        }
+
         public void ListenSignalsOf(Area2D areaToListen) {
             areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_shape_entered, this, nameof(_AreaEntered),
                 new Array { areaToListen });

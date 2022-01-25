@@ -67,8 +67,8 @@ namespace Betauer.Bus.Topics {
      * updated by the events in real time.
      */
     public class Area2DOnArea2DTopic : DisposableGodotObject /* needed to connect to signals */ {
-        private GodotTopic<Area2DOnArea2D> _enterTopic;
-        private GodotTopic<Area2DOnArea2D> _exitTopic;
+        private GodotTopic<Area2DOnArea2D>? _enterTopic;
+        private GodotTopic<Area2DOnArea2D>?_exitTopic;
 
         public GodotTopic<Area2DOnArea2D> EnterTopic =>
             _enterTopic ??= new GodotTopic<Area2DOnArea2D>($"{Name}_AreaEntered");
@@ -80,6 +80,10 @@ namespace Betauer.Bus.Topics {
 
         public Area2DOnArea2DTopic(string name) {
             Name = name;
+        }
+
+        public override string ToString() {
+            return base.ToString() + " " + Name;
         }
 
         public void ListenSignalsOf(Area2D areaToListen) {
