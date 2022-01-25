@@ -6,15 +6,16 @@ using Godot;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class ScreenManager /* needed to get the scene tree  GetTree() */ {
+    public class ScreenManager : DisposableObject {
         private const bool DontSave = false;
         private ScreenService _service;
 
         [Inject] private Func<SceneTree> GetTree;
 
-        [Inject] ScreenSettings Settings;
+        [Inject] public ScreenSettings Settings;
 
         public void LoadSettingsAndConfigure() {
+            _service?.Dispose();
             _service = new ScreenService(GetTree(), ScreenSettings.Configuration,
                 ScreenService.Strategy.PixelPerfectScale);
 
@@ -73,6 +74,10 @@ namespace Veronenger.Game.Managers {
                 Settings.WindowedResolution = resolution;
                 Settings.Save();
             }
+        }
+
+        protected override void Dispose(bool disposing) {
+            _service?.Dispose();
         }
 
         /*

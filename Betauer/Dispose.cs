@@ -1,35 +1,63 @@
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Godot;
-using static Godot.Mathf;
 using Object = Godot.Object;
 
 namespace Betauer {
+    public abstract class DisposableObject : IDisposable {
+        public static bool ShowShutdownWarning = false;
+
+        protected bool Disposed { get; private set; } = false;
+
+        ~DisposableObject() {
+            // DoDispose(false);
+        }
+
+        public void Dispose() {
+            // DoDispose(true);
+            // GC.SuppressFinalize(this);
+        }
+
+        private void DoDispose(bool disposing) {
+            if (Disposed) return;
+            try {
+                if (ShowShutdownWarning && !disposing) {
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    GD.Print($"Disposing on shutdown: {GetType()} " + ToString());
+                    Console.ResetColor();
+                }
+            } catch (Exception e) {
+                Console.Write(e);
+            } finally {
+                Dispose(disposing);
+                Disposed = true;
+            }
+        }
+
+        protected abstract void Dispose(bool disposing);
+    }
 
     public class DisposableGodotObject : Object {
         public static bool ShowShutdownWarning = true;
 
         // public DisposableGodotObject() {
-            // GD.Print("Creating: "+GetType().Name+":"+base.ToString());
+        // GD.Print("Creating: "+GetType().Name+":"+base.ToString());
         // }
 
-        private bool _warningDisabled = false;
-        public void DisableNoDisposedOnShutdownWarning() {
-            _warningDisabled = true;
-        }
+        protected bool Disposed { get; private set; } = false;
 
-        protected bool Disposed { get; private set; }= false;
         protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            return;
             if (Disposed) return;
             try {
-                if (!disposing && ShowShutdownWarning && !_warningDisabled) {
+                if (ShowShutdownWarning && !disposing) {
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    GD.Print($"Disposing on shutdown: {GetType()} "+ToString());
+                    GD.Print($"Disposing on shutdown: {GetType()} " + ToString());
                     Console.ResetColor();
                 }
+            } catch (Exception e) {
+                Console.Write(e);
             } finally {
                 base.Dispose(disposing);
                 Disposed = true;
@@ -37,8 +65,9 @@ namespace Betauer {
         }
     }
 
-    public class Disposer : DisposableGodotObject {
-        private readonly ConcurrentDictionary<int, DisposableGodotObject> _activeObjects = new ConcurrentDictionary<int, DisposableGodotObject>();
+    public class Disposer : DisposableObject {
+        private readonly ConcurrentDictionary<int, DisposableGodotObject> _activeObjects =
+            new ConcurrentDictionary<int, DisposableGodotObject>();
 
         public void Add(DisposableGodotObject o) {
             // GD.Print("DisposableTween.AddToDisposeQueue: " + o.GetType().Name + ":" + o);
@@ -51,15 +80,10 @@ namespace Betauer {
         }
 
         protected override void Dispose(bool disposing) {
-            if (Disposed) return;
-            try {
-                foreach (var pendingValue in _activeObjects.Values) {
-                    if (!IsInstanceValid(pendingValue)) continue;
-                    // GD.Print("DisposableTween.Dispose " + disposing + " " + pendingValue.GetType() + " " + pendingValue);
-                    pendingValue.Dispose();
-                }
-            } finally {
-                base.Dispose(disposing);
+            foreach (var pendingValue in _activeObjects.Values) {
+                if (!Object.IsInstanceValid(pendingValue)) continue;
+                // GD.Print("DisposableTween.Dispose " + disposing + " " + pendingValue.GetType() + " " + pendingValue);
+                pendingValue.Dispose();
             }
         }
     }
@@ -68,9 +92,9 @@ namespace Betauer {
         private readonly Disposer _disposer = new Disposer();
         internal void AddToDisposeQueue(DisposableGodotObject o) => _disposer.Add(o);
         internal void RemovedFromDisposeQueue(DisposableGodotObject o) => _disposer.Remove(o);
+
         protected override void Dispose(bool disposing) {
             _disposer.Dispose();
         }
     }
-
 }

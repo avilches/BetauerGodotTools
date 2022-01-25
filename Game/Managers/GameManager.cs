@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Godot;
 using Betauer;
@@ -19,14 +21,14 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class GameManager {
+    public class GameManager : DisposableObject {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
 
-        private static PackedScene SceneWorld1() => ResourceLoader.Load<PackedScene>("res://Worlds/World1.tscn");
-        private static PackedScene SceneWorld2() => ResourceLoader.Load<PackedScene>("res://Worlds/World2.tscn");
-        private static PackedScene MainMenu() => ResourceLoader.Load<PackedScene>("res://Scenes/MainMenu.tscn");
-        private static PackedScene Player() => ResourceLoader.Load<PackedScene>("res://Scenes/Player.tscn");
+        private PackedScene SceneWorld1;
+        private PackedScene SceneWorld2;
+        private PackedScene MainMenu;
+        private PackedScene Player;
 
         private Node _mainMenuScene;
         private Node _currentGameScene;
@@ -35,21 +37,27 @@ namespace Veronenger.Game.Managers {
         [Inject] private Func<SceneTree> GetTree;
 
         public void Start(SplashScreenController splashScreen) {
-            splashScreen.QueueFree();
-            SceneWorld1();
-            SceneWorld2();
-            MainMenu();
-            Player();
 
+            SceneWorld1 = Load("res://Worlds/World1.tscn");
+            SceneWorld2 = Load("res://Worlds/World2.tscn");
+            Player = Load("res://Scenes/Player.tscn");
+            splashScreen.QueueFree();
+            MainMenu = Load("res://Scenes/MainMenu.tscn");
             CreateMainMenu();
-            AddSceneDeferred(_mainMenuScene);
+            // Called from splash screen ready, no need to wait for idle frame
+            GetTree().Root.AddChild(_mainMenuScene);
         }
+
+        private PackedScene Load(string scene) {
+            return ResourceLoader.Load<PackedScene>(scene);
+        }
+
 
         public async void StartGame() {
             _mainMenuScene.QueueFree();
             _mainMenuScene = null;
 
-            _currentGameScene = SceneWorld1().Instance();
+            _currentGameScene = SceneWorld1.Instance();
             await AddSceneDeferred(_currentGameScene);
             AddPlayerToScene(_currentGameScene);
         }
@@ -74,22 +82,28 @@ namespace Veronenger.Game.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene) {
-            _playerScene = (Node2D)Player().Instance();
+            _playerScene = (Node2D)Player.Instance();
             nextScene.AddChild(_playerScene);
             var position2D = nextScene.FindChild<Node2D>("PositionPlayer");
             if (position2D == null) {
-                throw new Exception("Node PositionPlayer not found when loading scene "+nextScene.Filename);
+                throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.Filename);
             }
             _playerScene.GlobalPosition = position2D.GlobalPosition;
         }
 
         private void CreateMainMenu() {
-            _mainMenuScene = MainMenu().Instance();
+            _mainMenuScene = MainMenu.Instance();
         }
 
         private async Task AddSceneDeferred(Node scene) {
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(scene);
+        }
+
+        protected override void Dispose(bool disposing) {
+            _playerScene?.Dispose();
+            _currentGameScene?.Dispose();
+            _mainMenuScene?.Dispose();
         }
     }
 }

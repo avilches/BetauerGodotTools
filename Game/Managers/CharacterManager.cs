@@ -10,7 +10,7 @@ using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class CharacterManager : Object /* needed to receive signals TODO: it shouldn't be! */{
+    public class CharacterManager : DisposableGodotObject /* needed to receive signals TODO: it shouldn't be! */{
         private const string GROUP_ENEMY = "enemy";
 
         public PlayerController PlayerController { get; private set; }
@@ -21,9 +21,8 @@ namespace Veronenger.Game.Managers {
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 
-        public CharacterManager() {
-            // This is a singleton, so all the topics are always loaded and never need to be disposed
-            _playerAttackTopic.DisableNoDisposedOnShutdownWarning();
+        protected override void Dispose(bool disposing) {
+            _playerAttackTopic?.Dispose();
         }
 
         public void RegisterPlayerController(PlayerController playerController) {

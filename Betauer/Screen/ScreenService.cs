@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 namespace Betauer.Screen {
@@ -71,7 +70,7 @@ namespace Betauer.Screen {
         List<ScaledResolution> GetResolutions();
     }
 
-    public abstract class BaseScreenResolutionService {
+    public abstract class BaseScreenResolutionService : DisposableObject {
         private readonly ScreenConfiguration _screenConfiguration;
         protected readonly SceneTree Tree;
         protected Resolution BaseResolution => _screenConfiguration.BaseResolution;
@@ -141,7 +140,7 @@ namespace Betauer.Screen {
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
         }
 
-        public void Dispose() {
+        protected override void Dispose(bool disposing) {
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -203,7 +202,7 @@ namespace Betauer.Screen {
             ScaleResolutionViewport();
         }
 
-        public void Dispose() {
+        protected override void Dispose(bool disposing) {
             _onResizeWindowHandler.Dispose();
         }
 

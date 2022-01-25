@@ -107,10 +107,10 @@ namespace Betauer.Animation {
             var loopState = IsInfiniteLoop ? "infinite loop" : $"{_currentLoop + 1}/{Loops} loops";
             Logger.Debug(
                 $"RunSequence: Single sequence: {loopState}");
-            Tween.PlaybackSpeed = Sequence.Speed;
-            Tween.PlaybackProcessMode = Sequence.ProcessMode;
-            var accumulatedDelay = Sequence.Execute(Tween);
-            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            DisposableTween.PlaybackSpeed = Sequence.Speed;
+            DisposableTween.PlaybackProcessMode = Sequence.ProcessMode;
+            var accumulatedDelay = Sequence.Execute(DisposableTween);
+            DisposableTween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Godot;
@@ -7,9 +8,8 @@ using Betauer.Bus.Topics;
 using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
-
     [Singleton]
-    public class PlatformManager {
+    public class PlatformManager : DisposableObject {
         private const string GROUP_PLATFORMS = "platform";
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";
         private const string GROUP_FALLING_PLATFORMS = "falling_platform";
@@ -31,7 +31,8 @@ namespace Veronenger.Game.Managers {
          * Es lo mismo que si a esa zona se le añade el script FallingPlatformExit
          */
         public void ConfigurePlatform(PhysicsBody2D platform, bool falling = false, bool moving = false) {
-            var message = "PlatformManager.Platform " + (falling ? "falling" : "") + "/" + (moving ? "moving" : "") + ")";
+            var message = "PlatformManager.Platform " + (falling ? "falling" : "") + "/" + (moving ? "moving" : "") +
+                          ")";
             // platform.AddToGroup("platform");
             platform.CollisionMask = 0;
             platform.CollisionLayer = 0;
@@ -75,17 +76,19 @@ namespace Veronenger.Game.Managers {
          */
         // Provoca la caida del jugador desde la plataforma quitando la mascara
         public void BodyFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, false);
+
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(LayerFallPlatform);
         // Para la caida del jugador
 
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
         private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");
         private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.ListenSignalsOf(area2D);
-        public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) => _platformBodyOutTopic.Subscribe(enterListener);
 
-        public PlatformManager() {
-            // This is a singleton, so all the topics are always loaded and never need to be disposed
-            _platformBodyOutTopic.DisableNoDisposedOnShutdownWarning();
+        public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) =>
+            _platformBodyOutTopic.Subscribe(enterListener);
+
+        protected override void Dispose(bool disposing) {
+            _platformBodyOutTopic.Dispose();
         }
     }
 }

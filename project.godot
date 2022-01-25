@@ -46,6 +46,9 @@ _global_script_class_icons={
 
 config/name="Veronenger"
 run/main_scene="res://Scenes/SplashScreen.tscn"
+boot_splash/fullsize=false
+boot_splash/use_filter=false
+boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
 config/icon="res://icon.png"
 
 [autoload]

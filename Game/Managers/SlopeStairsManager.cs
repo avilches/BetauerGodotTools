@@ -8,7 +8,7 @@ using static Veronenger.Game.LayerConstants;
 namespace Veronenger.Game.Managers {
 
     [Singleton]
-    public class SlopeStairsManager {
+    public class SlopeStairsManager : DisposableObject {
         [Inject] public PlatformManager PlatformManager;
 
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
@@ -17,12 +17,11 @@ namespace Veronenger.Game.Managers {
         private readonly BodyOnArea2DTopic _enablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
         private readonly BodyOnArea2DTopic _disablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
 
-        public SlopeStairsManager() {
-            // This is a singleton, so all the topics are always loaded and never need to be disposed
-            _downTopic.DisableNoDisposedOnShutdownWarning();
-            _upTopic.DisableNoDisposedOnShutdownWarning();
-            _enablerTopic.DisableNoDisposedOnShutdownWarning();
-            _disablerTopic.DisableNoDisposedOnShutdownWarning();
+        protected override void Dispose(bool disposing) {
+            _downTopic?.Dispose();
+            _upTopic?.Dispose();
+            _enablerTopic?.Dispose();
+            _disablerTopic?.Dispose();
         }
 
         public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {

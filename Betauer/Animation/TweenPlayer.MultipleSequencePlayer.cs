@@ -90,10 +90,10 @@ namespace Betauer.Animation {
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
                 $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{GetLoopsFromSequence(sequence)}");
-            Tween.PlaybackSpeed = sequence.Speed;
-            Tween.PlaybackProcessMode = sequence.ProcessMode;
-            var accumulatedDelay = sequence.Execute(Tween);
-            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            DisposableTween.PlaybackSpeed = sequence.Speed;
+            DisposableTween.PlaybackProcessMode = sequence.ProcessMode;
+            var accumulatedDelay = sequence.Execute(DisposableTween);
+            DisposableTween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

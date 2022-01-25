@@ -5,24 +5,24 @@
         <LangVersion>8.0</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="**/*.cs" Exclude="Betauer/**"/>
-        <Compile Remove=".mono/**"/>
+        <Compile Include="**/*.cs" Exclude="Betauer/**" />
+        <Compile Remove=".mono/**" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="Betauer/Betauer.csproj"/>
+        <ProjectReference Include="Betauer/Betauer.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Remove=".mono/**"/>
+        <EmbeddedResource Remove=".mono/**" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NUnit" Version="3.13.2"/>
+        <PackageReference Include="NUnit" Version="3.13.2" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="*" Exclude="mono_crash*"/>
-        <Content Include="Scenes\*"/>
-        <Content Include="Worlds\*"/>
-        <Content Include="Tilemaps\*"/>
-        <Content Include="Docs\*"/>
-        <Content Include="Characters\*"/>
+        <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="Scenes\*" />
+        <Content Include="Worlds\*" />
+        <Content Include="Tilemaps\*" />
+        <Content Include="Docs\*" />
+        <Content Include="Characters\*" />
     </ItemGroup>
 </Project>
