@@ -104,9 +104,8 @@ namespace Betauer {
 
         private bool InjectFields(object target) {
             bool error = false;
-            var publicFields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-            var privateFields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var property in privateFields.Concat(publicFields)) {
+            var fields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in fields) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
                 var found = _singletons.TryGetValue(property.FieldType, out var instance);
@@ -121,9 +120,8 @@ namespace Betauer {
         }
 
         public void LoadOnReadyNodes(Node target) {
-            var publicFields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-            var privateFields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var property in privateFields.Concat(publicFields)) {
+            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in fields) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
                         onReady))
                     continue;
@@ -139,6 +137,19 @@ namespace Betauer {
                                         target.GetType().Name);
                 }
                 property.SetValue(target, instance);
+            }
+        }
+
+        public void Dispose() {
+            foreach (var instance in _singletons.Values) {
+                if (instance is IDisposable obj) {
+                    try {
+                        _logger.Info("Disposing singleton: "+obj.GetType());
+                        obj.Dispose();
+                    } catch (Exception e) {
+                        _logger.Error(e);
+                    }
+                }
             }
         }
     }
