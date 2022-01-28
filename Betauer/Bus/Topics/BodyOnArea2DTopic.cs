@@ -57,8 +57,8 @@ namespace Betauer.Bus.Topics {
      * updated by the events in real time.
      */
     public class BodyOnArea2DTopic : DisposableGodotObject /* needed to connect to signals */ {
-        private GodotTopic<BodyOnArea2D> _enterTopic;
-        private GodotTopic<BodyOnArea2D> _exitTopic;
+        private GodotTopic<BodyOnArea2D>? _enterTopic;
+        private GodotTopic<BodyOnArea2D>? _exitTopic;
 
         public GodotTopic<BodyOnArea2D> EnterTopic =>
             _enterTopic ??= new GodotTopic<BodyOnArea2D>($"{Name}_BodyEntered");
