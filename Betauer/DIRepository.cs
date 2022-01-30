@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using Godot;
+using Expression = System.Linq.Expressions.Expression;
 using Object = Godot.Object;
 
 namespace Betauer {
@@ -24,35 +24,154 @@ namespace Betauer {
     public class SingletonAttribute : Attribute {
     }
 
-    public class DiRepository {
-        private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
-        private readonly Node _bootstrap;
+    public interface IService {
+        public Type GetServiceType();
+        public Lifestyle GetLifestyle();
+        public object Resolve(DiRepository repository);
+    }
 
-        public DiRepository(Node bootstrap) {
-            _bootstrap = bootstrap;
+    public class SingletonInstanceHandler : IService {
+        private readonly object _instance;
+
+        public SingletonInstanceHandler(object instance) {
+            _instance = instance;
         }
 
-        public T AddSingleton<T>(T instance) {
-            _singletons.Add(instance.GetType(), instance);
-            if (instance is Node nodeInstance) {
-                nodeInstance.Name = nodeInstance.GetType().Name;
-                _logger.Info("Adding singleton node " + nodeInstance.GetType().Name + " as Bootstrap Node child");
-                _bootstrap.AddChild(nodeInstance);
+        public object Resolve(DiRepository repository) => _instance;
+        public Type GetServiceType() => _instance.GetType();
+        public Lifestyle GetLifestyle() => Lifestyle.Singleton;
+    }
+
+    public class LifestyleHandler<T> : IService {
+        private readonly Func<T> _factory;
+        private readonly Lifestyle _lifestyle;
+        private readonly Type _type;
+
+        private bool _singletonDefined;
+        private T _singleton;
+
+        public LifestyleHandler(Func<T> factory, Lifestyle lifestyle) : this(typeof(T), factory, lifestyle) {
+        }
+
+        public LifestyleHandler(Type type, Func<T> factory, Lifestyle lifestyle) {
+            _factory = factory;
+            _lifestyle = lifestyle;
+            _type = type;
+        }
+
+        public Type GetServiceType() => _type;
+        public Lifestyle GetLifestyle() => _lifestyle;
+        public object Resolve(DiRepository repository) {
+            if (_lifestyle == Lifestyle.Singleton) {
+                if (_singletonDefined) return _singleton;
+                lock (this) {
+                    // Just in case another was waiting for the lock
+                    if (_singletonDefined) return _singleton;
+                    _singletonDefined = true;
+                    _singleton = _factory();
+                    repository.AfterCreate(_singleton);
+                }
+                return _singleton;
             }
-            return instance;
+            // Transient or Scene
+            var o = _factory();
+            repository.AfterCreate(o);
+            return o;
+        }
+    }
+
+    public class SingletonFactoryWithNode<T> {
+        private readonly Func<Node, T> _factory;
+
+        public SingletonFactoryWithNode(Func<Node, T> factory) {
+            _factory = factory;
         }
 
-        public T GetSingleton<T>(Type type) {
-            return (T)_singletons[type];
+        // public T Build() {
+        // return new T;
+        // }
+
+        public T Build(Node node) {
+            return _factory(node);
+        }
+    }
+
+    public enum Lifestyle {
+        Transient,
+        Singleton
+    }
+
+    public class DiRepository : Node {
+        private readonly Dictionary<Type, IService> _singletons = new Dictionary<Type, IService>();
+        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
+        public Action<object>? OnInstanceCreated;
+        public Node _owner;
+
+        public DiRepository(Node owner) {
+            _owner = owner;
+        }
+
+        public void RegisterSingleton<T>(T instance) {
+            RegisterSingleton(typeof(T), instance);
+        }
+
+        public void RegisterSingleton(object instance) {
+            RegisterSingleton(instance.GetType(), instance);
+        }
+
+        public void RegisterSingleton(Type type, object instance) {
+            if (!type.IsInstanceOfType(instance)) {
+                throw new ArgumentException("Instance is not type of " + type);
+            }
+            Register(type, new SingletonInstanceHandler(instance));
+        }
+
+        public void Register(Type type, Func<object> factory, Lifestyle lifestyle) {
+            Register(type, new LifestyleHandler<object>(type, factory, lifestyle));
+        }
+
+        public void Register<T>(Func<T> factory, Lifestyle lifestyle) {
+            Register(typeof(T), new LifestyleHandler<T>(factory, lifestyle));
+        }
+
+        public void Register<T>(Lifestyle lifestyle) {
+            Register(typeof(T), lifestyle);
+        }
+
+        public void Register(Type type, Lifestyle lifestyle) {
+            Register(type, new LifestyleHandler<object>(() => Activator.CreateInstance(type), lifestyle));
+        }
+
+        public void Register(Type type, IService service) {
+            _singletons[type] = service;
+        }
+
+        public T Resolve<T>() {
+            return (T)Resolve(typeof(T));
+        }
+
+        public object Resolve(Type type) {
+            var service = _singletons[type];
+            var o = service.Resolve(this);
+            return o;
+        }
+
+        public void AfterCreate<T>(T instance) {
+            OnInstanceCreated?.Invoke(instance);
+            if (instance is Node node) _owner.AddChild(node);
+            AutoWire(instance);
         }
 
         public void Scan() {
-            var assemblies = new[] { _bootstrap.GetType().Assembly };
+            var assemblies = new[] { _owner.GetType().Assembly };
             Scan(assemblies);
         }
 
-        public void Scan(Assembly[] assemblies) {
+        public void Scan(Assembly assembly) {
+            Scan(new Assembly[] { assembly });
+        }
+
+        public void Scan(IEnumerable<Assembly> assemblies) {
             Stopwatch stopwatch = Stopwatch.StartNew();
             int types = 0, added = 0;
             foreach (var assembly in assemblies) {
@@ -60,67 +179,41 @@ namespace Betauer {
                     types++;
                     if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
                             false) is SingletonAttribute sa) {
-                        var instance = CreateSingletonInstance(type);
-                        AddSingleton(instance);
+                        Register(type, Lifestyle.Singleton);
                         added++;
                         _logger.Info("Added Singleton " + type.Name + " (" + type.FullName + ", Assembly: " +
                                      assembly.FullName + ")");
                     }
                 }
             }
-
             _logger.Info(
                 $"Scanned {types} types. Singletons: {added}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
             stopwatch.Stop();
         }
 
-        private object CreateSingletonInstance(Type type) {
-            try {
-                var emptyConstructor = type.GetConstructors().Single(info => info.GetParameters().Length == 0);
-                var instance = emptyConstructor.Invoke(null);
-                return instance;
-            } catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-
-        public void AutoWire() {
-            var error = false;
-            foreach (var instance in _singletons.Values) {
-                error |= InjectFields(instance);
-            }
-            if (error) {
-                throw new Exception("AutoWire error: Check the console output");
-            }
-        }
-
         public void AutoWire(object instance) {
-            var error = InjectFields(instance);
-            if (error) {
-                throw new Exception("AutoWire error in " + instance.GetType().FullName + ": Check the console output");
-            }
+            InjectFields(instance);
         }
 
-        private bool InjectFields(object target) {
-            bool error = false;
-            var fields = target.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        private void InjectFields(object target) {
+            var fields = target.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in fields) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                var found = _singletons.TryGetValue(property.FieldType, out var instance);
-                if (!found) {
-                    _logger.Error("Injectable property [" + property.FieldType.Name + " " + property.Name +
+                try {
+                    var found = Resolve(property.FieldType);
+                    property.SetValue(target, found);
+                } catch (KeyNotFoundException) {
+                    throw new Exception("Injectable property [" + property.FieldType.Name + " " + property.Name +
                                   "] not found while injecting fields in " + target.GetType().Name);
-                    error = true;
                 }
-                property.SetValue(target, instance);
             }
-            return error;
         }
 
         public void LoadOnReadyNodes(Node target) {
-            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Public |
+                                                    BindingFlags.Instance);
             foreach (var property in fields) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
                         onReady))
@@ -144,7 +237,7 @@ namespace Betauer {
             foreach (var instance in _singletons.Values) {
                 if (instance is IDisposable obj) {
                     try {
-                        _logger.Info("Disposing singleton: "+obj.GetType());
+                        _logger.Info("Disposing singleton: " + obj.GetType());
                         obj.Dispose();
                     } catch (Exception e) {
                         _logger.Error(e);
@@ -152,6 +245,7 @@ namespace Betauer {
                 }
             }
         }
+
     }
 
     public abstract class Di {
@@ -259,8 +353,7 @@ namespace Betauer {
             Instance = this;
             DefaultRepository = CreateDiRepository();
             DefaultRepository.Scan();
-            DefaultRepository.AddSingleton<Func<SceneTree>>(GetTree);
-            DefaultRepository.AutoWire();
+            DefaultRepository.RegisterSingleton<Func<SceneTree>>(GetTree);
             DefaultRepository.AutoWire(this);
         }
 
