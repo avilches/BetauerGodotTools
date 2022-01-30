@@ -115,15 +115,12 @@ namespace Betauer {
             RegisterSingleton(typeof(T), instance);
         }
 
-        public void RegisterSingleton(object instance) {
-            RegisterSingleton(instance.GetType(), instance);
-        }
-
         public void RegisterSingleton(Type type, object instance) {
             if (!type.IsInstanceOfType(instance)) {
                 throw new ArgumentException("Instance is not type of " + type);
             }
             Register(type, new SingletonInstanceHandler(instance));
+            AfterCreate(instance);
         }
 
         public void Register(Type type, Func<object> factory, Lifestyle lifestyle) {
