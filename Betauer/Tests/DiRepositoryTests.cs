@@ -19,7 +19,6 @@ namespace Betauer.Tests {
 
 
     [TestFixture]
-    [Only]
     public class DiRepositoryTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
