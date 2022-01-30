@@ -404,13 +404,5 @@ namespace Betauer.Animation {
             _currentLoopAnimation?.ExecuteOnStart();
         }
 
-        protected override void Dispose(bool disposing) {
-            // No need to dispose AnimationPlayer, it should be part of the scene tso it will be freed with the tree
-            try {
-                SequencePlayer?.Dispose();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
     }
 }
