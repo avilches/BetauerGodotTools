@@ -261,15 +261,5 @@ namespace Veronenger.Game.Controller.Character {
         public void DeathZone(Area2D deathArea2D) {
             _logger.Debug("MUETO!!");
         }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                _tweenStack?.Dispose();
-                _animationStack?.Dispose();
-                _stateMachine?.Dispose();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
     }
 }

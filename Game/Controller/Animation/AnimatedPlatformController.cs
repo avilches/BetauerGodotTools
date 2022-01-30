@@ -79,13 +79,5 @@ namespace Veronenger.Game.Controller.Animation {
             Modulate = new Color(1, 1, 1, 1);
             _sequencePlayer.Reset();
         }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                _sequencePlayer?.Dispose();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
     }
 }

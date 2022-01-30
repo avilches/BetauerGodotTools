@@ -8,7 +8,7 @@ using static Veronenger.Game.LayerConstants;
 namespace Veronenger.Game.Managers {
 
     [Singleton]
-    public class SlopeStairsManager : DisposableObject {
+    public class SlopeStairsManager {
         [Inject] public PlatformManager PlatformManager;
 
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
@@ -16,13 +16,6 @@ namespace Veronenger.Game.Managers {
         private readonly BodyOnArea2DTopic _upTopic = new BodyOnArea2DTopic("SlopeStairsUp");
         private readonly BodyOnArea2DTopic _enablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
         private readonly BodyOnArea2DTopic _disablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
-
-        protected override void Dispose(bool disposing) {
-            _downTopic?.Dispose();
-            _upTopic?.Dispose();
-            _enablerTopic?.Dispose();
-            _disablerTopic?.Dispose();
-        }
 
         public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);

@@ -46,13 +46,5 @@ namespace Veronenger.Game.Controller.Animation {
         public void Pause() {
             _sequence.Stop();
         }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                _sequence?.Dispose();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
     }
 }

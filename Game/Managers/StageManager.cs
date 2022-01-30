@@ -8,7 +8,7 @@ using static Veronenger.Game.LayerConstants;
 namespace Veronenger.Game.Managers {
 
     [Singleton]
-    public class StageManager : DisposableObject {
+    public class StageManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(StageManager));
         private Stage _enteredStage;
         private bool _exitedStage;
@@ -16,10 +16,6 @@ namespace Veronenger.Game.Managers {
         private StageCameraController _stageCameraController;
 
         private readonly Area2DShapeOnArea2DTopic _stageTopic = new Area2DShapeOnArea2DTopic("StageTopic");
-
-        protected override void Dispose(bool disposing) {
-            _stageTopic.Dispose();
-        }
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;

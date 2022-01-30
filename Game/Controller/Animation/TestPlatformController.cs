@@ -58,22 +58,5 @@ namespace Veronenger.Game.Controller.Animation {
                 .SetInfiniteLoops()
                 .Start();
         }
-
-        public override void _Process(float delta) {
-            // if (seq.G)
-        }
-        // public override void _PhysicsProcess(float delta) {
-        // base._PhysicsProcess(delta);
-        // }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                _multipleSequencePlayer1?.Dispose();
-                _multipleSequencePlayer2?.Dispose();
-                _multipleSequencePlayer3?.Dispose();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
     }
 }

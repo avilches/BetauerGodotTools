@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Veronenger.Game.Controller;
-using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
     /**
@@ -21,7 +17,7 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class GameManager : DisposableObject {
+    public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
 
@@ -98,12 +94,6 @@ namespace Veronenger.Game.Managers {
         private async Task AddSceneDeferred(Node scene) {
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(scene);
-        }
-
-        protected override void Dispose(bool disposing) {
-            _playerScene?.Dispose();
-            _currentGameScene?.Dispose();
-            _mainMenuScene?.Dispose();
         }
     }
 }

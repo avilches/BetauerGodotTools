@@ -21,10 +21,6 @@ namespace Veronenger.Game.Managers {
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 
-        protected override void Dispose(bool disposing) {
-            _playerAttackTopic?.Dispose();
-        }
-
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
         }
