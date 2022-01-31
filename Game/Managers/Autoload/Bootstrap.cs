@@ -8,13 +8,14 @@ using Betauer.DI;
 using Betauer.Memory;
 using Betauer.Screen;
 using Veronenger.Game.Controller.Stage;
+using Container = Betauer.DI.Container;
 using TraceLevel = Betauer.TraceLevel;
 using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
 
-    public class Bootstrap : DiBootstrap /* needed to be instantiated as an Autoload from Godot */ {
+    public class Bootstrap : Betauer.DI.Bootstrap /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
@@ -24,15 +25,15 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            CheckErrorPolicy(UnhandledExceptionPolicyConfig);
+            DevTools.CheckErrorPolicy(GetTree(), UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
             // TODO: this it really works?
             this.DisableAllNotifications();
         }
 
-        public override DiRepository CreateDiRepository() {
+        public override Container CreateContainer() {
             ConfigureLoggerFactory();
-            return new DiRepository(this);
+            return new Container(this);
         }
 
 
@@ -52,7 +53,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 
             // Tools
-            LoggerFactory.SetTraceLevel(typeof(DiRepository), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);

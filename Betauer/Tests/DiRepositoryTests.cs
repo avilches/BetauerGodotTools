@@ -4,6 +4,7 @@ using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests {
 
@@ -22,8 +23,8 @@ namespace Betauer.Tests {
     public class DiRepositoryTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
-            var di = new DiRepository(this);
-            di.Scan(typeof(Singleton));
+            var di = new Container(this);
+            di.Scanner.Scan(typeof(Singleton));
 
         }
     }
@@ -44,7 +45,7 @@ namespace Betauer.Tests {
     public class RegisterTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
 
             // Not found types fail
             try {
@@ -65,7 +66,7 @@ namespace Betauer.Tests {
          */
         [Test(Description = "GetServiceType returns the correct Type")]
         public void RegisterService() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             IService s = null;
 
             // by class
@@ -84,6 +85,16 @@ namespace Betauer.Tests {
             s = di.RegisterSingleton(typeof(MyClass1), mySingleton);
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
             Assert.That(s.GetServiceType(), Is.EqualTo(typeof(MyClass1)));
+
+            // auto factory typed
+            s = di.Register<Node>(Lifestyle.Singleton);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Node)));
+
+            // auto factory typed
+            s = di.Register<Node>(Lifestyle.Transient);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Node)));
 
             // by typed factory
             s = di.Register(Lifestyle.Transient, () => new Control());
@@ -106,7 +117,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Singleton instance OnInstanceCreated. No need to resolve to execute the hook")]
         public void RegisterSingletonInstanceOnInstanceCreated() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y");
             var instance = new Node();
             var s = di.RegisterSingleton(instance);
@@ -115,7 +126,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Singleton Factory OnInstanceCreated")]
         public void RegisterSingletonFactoryOnInstanceCreated() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             var x = 0;
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
             var instance = new Node();
@@ -126,7 +137,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Singleton Factory OnInstanceCreated")]
         public void RegisterTransientFactoryOnInstanceCreated() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             var x = 0;
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
             di.Register(Lifestyle.Transient, () => new Node());
@@ -141,7 +152,7 @@ namespace Betauer.Tests {
          */
         [Test(Description = "Register a Singleton Node adds it as child when added. No need to resolve")]
         public void RegisterNodeInstance() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             // Register instance
             var instance = new Node();
             di.RegisterSingleton(instance);
@@ -150,7 +161,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a Singleton Factory Node adds it as child when resolved. No need to resolve")]
         public void RegisterNodeSingletonFactory() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             // Register instance
             var instance = new Node();
             di.Register(Lifestyle.Singleton, () => instance);
@@ -166,7 +177,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a Singleton instance is only accessible by its Type")]
         public void RegisterSingletonInstance() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
 
             // Register instance
             var instance = new Node();
@@ -184,7 +195,7 @@ namespace Betauer.Tests {
         [Test(Description =
             "Register a Singleton instance with an interface as Type is only accessible by interface - Generic")]
         public void RegisterSingletonInterfaceUsingGeneric() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
 
             var mySingleton = new MyClass1();
             di.RegisterSingleton<IInterface>(mySingleton);
@@ -212,7 +223,7 @@ namespace Betauer.Tests {
         [Test(Description =
             "Register a Singleton instance with an interface as Type is only accessible by interface - Type")]
         public void RegisterSingletonInterfaceUsingType() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
 
             var mySingleton = new MyClass1();
             // The instance should implement the interface
@@ -250,7 +261,7 @@ namespace Betauer.Tests {
          */
         [Test(Description = "Register a Singleton factory is executed only the first time")]
         public void RegisterSingletonFactory() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             var n = 0;
             di.Register(Lifestyle.Singleton, () => ++n);
 
@@ -262,7 +273,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a Singleton type creates a factory and is executed only the first time")]
         public void RegisterSingletonType() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             di.Register<Node>(Lifestyle.Singleton);
 
             // Ensures that factory is called only the first time
@@ -274,7 +285,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register Transient factory is executed every time")]
         public void RegisterTransientFactory() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             var n = 0;
             di.Register(Lifestyle.Transient, () => ++n);
 
@@ -285,7 +296,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register Transient type creates a factory and is executed every time")]
         public void RegisterTransientType() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             di.Register<Node>(Lifestyle.Transient);
 
             // Ensures that factory is called only the first time
@@ -298,7 +309,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a factory (Singleton or Transient) with a wrong type fails")]
         public void RegisterTypedFactoryWrongType() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             di.Register(Lifestyle.Transient, typeof(string), () => 1);
             di.Register(Lifestyle.Singleton, typeof(int), () => "");
 
@@ -320,7 +331,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a factory with a compatible type")]
         public void RegisterTypedTypedFactory() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             di.Register(Lifestyle.Transient, typeof(IInterface), () => new MyClass1());
 
             Assert.That(di.Resolve<IInterface>().GetType(), Is.EqualTo(typeof(MyClass1)));
@@ -332,7 +343,7 @@ namespace Betauer.Tests {
 
         [Test(Description = "Register a lambda as instance can be called as method")]
         public void RegisterFactoryAsInstance() {
-            var di = new DiRepository(this);
+            var di = new Container(this);
             var n = 0;
             di.RegisterSingleton<Func<int>>(() => ++n);
 

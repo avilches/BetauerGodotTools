@@ -7,13 +7,12 @@ using Betauer.DI;
 using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Global : Node /* needed because it's an autoload */ {
+    public class Global : DiNode /* needed because it's an autoload */ {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager;
         private Launcher _launcher = new Launcher();
 
-        public override void _Ready() {
-            DiBootstrap.DefaultRepository.AutoWire(this);
+        public override void Ready() {
             this.DisableAllNotifications();
             _launcher = new Launcher().CreateNewTween(this);
         }
