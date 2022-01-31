@@ -21,7 +21,8 @@ namespace Betauer {
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class SingletonAttribute : Attribute {
+    public class ServiceAttribute : Attribute {
+        public Lifestyle Lifestyle { get; set; } = Lifestyle.Singleton;
     }
 
     public interface IService {
@@ -31,18 +32,21 @@ namespace Betauer {
     }
 
     public class SingletonInstanceHandler : IService {
+        private readonly Type _type;
         private readonly object _instance;
 
-        public SingletonInstanceHandler(object instance) {
+        public SingletonInstanceHandler(Type type, object instance) {
+            _type = type;
             _instance = instance;
         }
 
         public object Resolve(DiRepository repository) => _instance;
-        public Type GetServiceType() => _instance.GetType();
+        public Type GetServiceType() => _type;
         public Lifestyle GetLifestyle() => Lifestyle.Singleton;
     }
 
     public class LifestyleHandler<T> : IService {
+        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(DiRepository));
         private readonly Func<T> _factory;
         private readonly Lifestyle _lifestyle;
         private readonly Type _type;
@@ -61,6 +65,7 @@ namespace Betauer {
 
         public Type GetServiceType() => _type;
         public Lifestyle GetLifestyle() => _lifestyle;
+
         public object Resolve(DiRepository repository) {
             if (_lifestyle == Lifestyle.Singleton) {
                 if (_singletonDefined) return _singleton;
@@ -68,13 +73,17 @@ namespace Betauer {
                     // Just in case another was waiting for the lock
                     if (_singletonDefined) return _singleton;
                     _singletonDefined = true;
-                    _singleton = _factory();
-                    repository.AfterCreate(_singleton);
+                    _singleton = CreateInstance(repository);
                 }
                 return _singleton;
             }
             // Transient or Scene
+            return CreateInstance(repository);
+        }
+
+        private T CreateInstance(DiRepository repository) {
             var o = _factory();
+            _logger.Debug("Creating " + _lifestyle + " instance: " + _type.Name + " " + o.GetType().Name);
             repository.AfterCreate(o);
             return o;
         }
@@ -111,36 +120,42 @@ namespace Betauer {
             _owner = owner;
         }
 
-        public void RegisterSingleton<T>(T instance) {
-            RegisterSingleton(typeof(T), instance);
+        public IService RegisterSingleton<T>(T instance) {
+            return RegisterSingleton(typeof(T), instance);
         }
 
-        public void RegisterSingleton(Type type, object instance) {
+        public IService RegisterSingleton(Type type, object instance) {
             if (!type.IsInstanceOfType(instance)) {
                 throw new ArgumentException("Instance is not type of " + type);
             }
-            Register(type, new SingletonInstanceHandler(instance));
+            var singletonInstanceHandler = new SingletonInstanceHandler(type, instance);
+            Register(type, singletonInstanceHandler);
             AfterCreate(instance);
+            return singletonInstanceHandler;
         }
 
-        public void Register(Type type, Func<object> factory, Lifestyle lifestyle) {
-            Register(type, new LifestyleHandler<object>(type, factory, lifestyle));
+        public IService Register(Lifestyle lifestyle, Type type, Func<object> factory) {
+            return Register(type, new LifestyleHandler<object>(type, factory, lifestyle));
         }
 
-        public void Register<T>(Func<T> factory, Lifestyle lifestyle) {
-            Register(typeof(T), new LifestyleHandler<T>(factory, lifestyle));
+        public IService Register<T>(Lifestyle lifestyle, Func<T> factory) {
+            return Register(typeof(T), new LifestyleHandler<T>(factory, lifestyle));
         }
 
-        public void Register<T>(Lifestyle lifestyle) {
-            Register(typeof(T), lifestyle);
+        public IService Register<T>(Lifestyle lifestyle) {
+            return Register(lifestyle, typeof(T));
         }
 
-        public void Register(Type type, Lifestyle lifestyle) {
-            Register(type, new LifestyleHandler<object>(() => Activator.CreateInstance(type), lifestyle));
+        public IService Register(Lifestyle lifestyle, Type type) {
+            return Register(type, new LifestyleHandler<object>(type, () => Activator.CreateInstance(type), lifestyle));
         }
 
-        public void Register(Type type, IService service) {
+        public IService Register(Type type, IService service) {
             _singletons[type] = service;
+            _logger.Info("Registered " + service.GetLifestyle() + " Type " + type.Name + ": " +
+                         service.GetServiceType().Name + " (Assembly: " +
+                         type.Assembly.GetName() + ")");
+            return service;
         }
 
         public T Resolve<T>() {
@@ -153,7 +168,7 @@ namespace Betauer {
             return o;
         }
 
-        public void AfterCreate<T>(T instance) {
+        internal void AfterCreate<T>(T instance) {
             OnInstanceCreated?.Invoke(instance);
             if (instance is Node node) _owner.AddChild(node);
             AutoWire(instance);
@@ -169,23 +184,25 @@ namespace Betauer {
         }
 
         public void Scan(IEnumerable<Assembly> assemblies) {
+            int types = 0, assembliesCount = 0;
             Stopwatch stopwatch = Stopwatch.StartNew();
-            int types = 0, added = 0;
             foreach (var assembly in assemblies) {
+                assembliesCount++;
                 foreach (Type type in assembly.GetTypes()) {
                     types++;
-                    if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
-                            false) is SingletonAttribute sa) {
-                        Register(type, Lifestyle.Singleton);
-                        added++;
-                        _logger.Info("Added Singleton " + type.Name + " (" + type.FullName + ", Assembly: " +
-                                     assembly.FullName + ")");
-                    }
+                    Scan(type);
                 }
             }
-            _logger.Info(
-                $"Scanned {types} types. Singletons: {added}. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
             stopwatch.Stop();
+            _logger.Info(
+                $"Registered {types} types in {assembliesCount} assemblies. Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
+        }
+
+        public void Scan(Type type) {
+            if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
+                    false) is ServiceAttribute sa) {
+                Register(sa.Lifestyle, type);
+            }
         }
 
         public void AutoWire(object instance) {
@@ -203,7 +220,7 @@ namespace Betauer {
                     property.SetValue(target, found);
                 } catch (KeyNotFoundException) {
                     throw new Exception("Injectable property [" + property.FieldType.Name + " " + property.Name +
-                                  "] not found while injecting fields in " + target.GetType().Name);
+                                        "] not found while injecting fields in " + target.GetType().Name);
                 }
             }
         }
@@ -242,7 +259,6 @@ namespace Betauer {
                 }
             }
         }
-
     }
 
     public abstract class Di {

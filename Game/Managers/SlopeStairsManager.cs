@@ -7,7 +7,7 @@ using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
 
-    [Singleton]
+    [Service]
     public class SlopeStairsManager {
         [Inject] public PlatformManager PlatformManager;
 

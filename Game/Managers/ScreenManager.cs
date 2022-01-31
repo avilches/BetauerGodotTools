@@ -5,7 +5,7 @@ using Betauer.Screen;
 using Godot;
 
 namespace Veronenger.Game.Managers {
-    [Singleton]
+    [Service]
     public class ScreenManager : DisposableObject {
         private const bool DontSave = false;
         private ScreenService _service;

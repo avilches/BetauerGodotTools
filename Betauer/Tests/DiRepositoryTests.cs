@@ -19,6 +19,7 @@ namespace Betauer.Tests {
 
 
     [TestFixture]
+    [Only]
     public class DiRepositoryTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
@@ -41,12 +42,54 @@ namespace Betauer.Tests {
         /*
          * OnInstanceCreated
          */
+        [Test(Description = "GetServiceType returns the correct Type")]
+        public void RegisterService() {
+            var di = new DiRepository(this);
+            IService s = null;
+
+            // by class
+            var node = new Node();
+            s = di.RegisterSingleton(node);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Node)));
+
+            // by interface
+            var mySingleton = new MySingleton();
+            s = di.RegisterSingleton(typeof(IMySingleton), mySingleton);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(IMySingleton)));
+
+            // by class (no interface)
+            s = di.RegisterSingleton(typeof(MySingleton), mySingleton);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(MySingleton)));
+
+            // by typed factory
+            s = di.Register(Lifestyle.Transient, () => new Control());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Control)));
+
+            s = di.Register(Lifestyle.Singleton, () => new Control());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Control)));
+
+            // by object typed factory + type
+            s = di.Register(Lifestyle.Transient, typeof(CanvasItem), () => new Control());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(CanvasItem)));
+
+            s = di.Register(Lifestyle.Singleton, typeof(CanvasItem), () => new Control());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(CanvasItem)));
+
+        }
+
         [Test(Description = "Singleton instance OnInstanceCreated. No need to resolve to execute the hook")]
         public void RegisterSingletonInstanceOnInstanceCreated() {
             var di = new DiRepository(this);
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y");
             var instance = new Node();
-            di.RegisterSingleton(instance);
+            var s = di.RegisterSingleton(instance);
             Assert.That(instance.GetMeta("x"), Is.EqualTo("y"));
         }
 
@@ -56,7 +99,7 @@ namespace Betauer.Tests {
             var x = 0;
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
             var instance = new Node();
-            di.Register(() => instance, Lifestyle.Singleton);
+            di.Register(Lifestyle.Singleton, () => instance);
             Assert.That(di.Resolve<Node>().GetMeta("x"), Is.EqualTo("y1"));
             Assert.That(di.Resolve<Node>().GetMeta("x"), Is.EqualTo("y1"));
         }
@@ -66,8 +109,8 @@ namespace Betauer.Tests {
             var di = new DiRepository(this);
             var x = 0;
             di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
-            di.Register(() => new Node(), Lifestyle.Transient);
-            di.Register(() => new Control(), Lifestyle.Transient);
+            di.Register(Lifestyle.Transient, () => new Node());
+            di.Register(Lifestyle.Transient, () => new Control());
             Assert.That(di.Resolve<Node>().GetMeta("x"), Is.EqualTo("y1"));
             Assert.That(di.Resolve<Control>().GetMeta("x"), Is.EqualTo("y2"));
             Assert.That(di.Resolve<Node>().GetMeta("x"), Is.EqualTo("y3"));
@@ -90,7 +133,7 @@ namespace Betauer.Tests {
             var di = new DiRepository(this);
             // Register instance
             var instance = new Node();
-            di.Register(() => instance, Lifestyle.Singleton);
+            di.Register(Lifestyle.Singleton, () => instance);
             Assert.That(!GetChildren().Contains(instance));
 
             di.Resolve<Node>();
@@ -190,7 +233,7 @@ namespace Betauer.Tests {
         public void RegisterSingletonFactory() {
             var di = new DiRepository(this);
             var n = 0;
-            di.Register(() => ++n, Lifestyle.Singleton);
+            di.Register(Lifestyle.Singleton, () => ++n);
 
             // Ensures that factory is called only the first time
             Assert.That(n, Is.EqualTo(0));
@@ -214,7 +257,7 @@ namespace Betauer.Tests {
         public void RegisterTransientFactory() {
             var di = new DiRepository(this);
             var n = 0;
-            di.Register(() => ++n, Lifestyle.Transient);
+            di.Register(Lifestyle.Transient, () => ++n);
 
             Assert.That(di.Resolve<int>(), Is.EqualTo(1));
             Assert.That(di.Resolve<int>(), Is.EqualTo(2));
@@ -237,8 +280,8 @@ namespace Betauer.Tests {
         [Test(Description = "Register a factory (Singleton or Transient) with a wrong type fails")]
         public void RegisterTypedFactoryWrongType() {
             var di = new DiRepository(this);
-            di.Register(typeof(string), () => 1, Lifestyle.Transient);
-            di.Register(typeof(int), () => "", Lifestyle.Singleton);
+            di.Register(Lifestyle.Transient, typeof(string), () => 1);
+            di.Register(Lifestyle.Singleton, typeof(int), () => "");
 
             try {
                 di.Resolve<string>();
@@ -260,7 +303,7 @@ namespace Betauer.Tests {
         [Test(Description = "Register a factory with a compatible type")]
         public void RegisterTypedTypedFactory() {
             var di = new DiRepository(this);
-            di.Register(typeof(IMySingleton), () => new MySingleton(), Lifestyle.Transient);
+            di.Register(Lifestyle.Transient, typeof(IMySingleton), () => new MySingleton());
 
             Assert.That(di.Resolve<IMySingleton>().GetType(), Is.EqualTo(typeof(MySingleton)));
         }

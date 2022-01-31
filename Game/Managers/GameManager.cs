@@ -16,7 +16,7 @@ namespace Veronenger.Game.Managers {
      * donde estan realmente estos objetos (plataformas o areas).
      *
      */
-    [Singleton]
+    [Service]
     public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
