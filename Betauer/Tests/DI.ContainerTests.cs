@@ -26,7 +26,6 @@ namespace Betauer.Tests {
     }
 
     [TestFixture]
-    [Only]
     public class RegisterTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
@@ -189,7 +188,6 @@ namespace Betauer.Tests {
         }
 
         [Test(Description = "Auto factories with interfaces are not allowed")]
-        [Only]
         public void RegisterAutoFactoryWithInterfacesIsNotAllowed() {
             var di = new Container(this);
             try {
@@ -206,7 +204,6 @@ namespace Betauer.Tests {
         }
 
         [Test(Description = "Auto factories with Type include all the interfaces too")]
-        [Only]
         public void RegisterAutoFactory() {
             var di = new Container(this);
             IService s = null;
@@ -242,7 +239,6 @@ namespace Betauer.Tests {
         }
 
         [Test(Description = "Factories")]
-        [Only]
         public void RegisterFactory() {
             var di = new Container(this);
             IService s = null;
