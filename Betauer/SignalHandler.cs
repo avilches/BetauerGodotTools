@@ -31,189 +31,116 @@ namespace Betauer {
         }
     }
 
-    public class SignalHandler : DisposableGodotObject {
+    public abstract class BaseSignalHandler<T> : DisposableGodotObject {
         private readonly Object _target;
         private readonly string _signal;
-        private readonly Action _action;
+        protected readonly T Action;
 
-        public SignalHandler(Object target, string signal, Action action) {
+        public BaseSignalHandler(Object target, string signal, T action) {
             _target = target;
             _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+            Action = action;
+            if (!IsInstanceValid(target)) {
+                throw new Exception($"Can't connect '{signal}' to a freed object");
+            }
+            Error err = target.Connect(signal, this, nameof(SignalHandler.Call));
+            if (err != Error.Ok) {
+                throw new Exception($"Connecting signal '{signal}' to ${target} failed: '{err}'");
+            }
         }
 
         public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
+            if (IsInstanceValid(_target) &&
+                _target.IsConnected(_signal, this, nameof(SignalHandler.Call))) {
+                _target.Disconnect(_signal, this, nameof(SignalHandler.Call));
             }
-        }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
-
-        internal void Call() {
-            _action();
         }
     }
 
-    public class SignalHandler<T> : DisposableGodotObject {
-        private readonly Object _target;
-        private readonly string _signal;
-        private readonly Action<T> _action;
-
-        public SignalHandler(Object target, string signal, Action<T> action) {
-            _target = target;
-            _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+    public class SignalHandler : BaseSignalHandler<Action> {
+        public SignalHandler(Object target, string signal, Action action) : base(target, signal, action) {
         }
 
-        public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
-            }
-        }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
-
-        internal void Call(T v1) {
-            _action(v1);
+        public void Call() {
+            Action();
         }
     }
 
-    public class SignalHandler<T1, T2> : DisposableGodotObject {
-        private readonly Object _target;
-        private readonly string _signal;
-        private readonly Action<T1, T2> _action;
-
-        public SignalHandler(Object target, string signal, Action<T1, T2> action) {
-            _target = target;
-            _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+    public class SignalHandler<T1> : BaseSignalHandler<Action<T1>> {
+        public SignalHandler(Object target, string signal, Action<T1> action) : base(target, signal, action) {
         }
 
-        public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
-            }
-        }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
-
-        internal void Call(T1 v1, T2 v2) {
-            _action(v1, v2);
+        public void Call(T1 v1) {
+            Action(v1);
         }
     }
 
-    public class SignalHandler<T1, T2, T3> : DisposableGodotObject {
-        private readonly Object _target;
-        private readonly string _signal;
-        private readonly Action<T1, T2, T3> _action;
-
-        public SignalHandler(Object target, string signal, Action<T1, T2, T3> action) {
-            _target = target;
-            _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+    public class SignalHandler<T1, T2> : BaseSignalHandler<Action<T1, T2>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2> action) : base(target, signal, action) {
         }
 
-        public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
-            }
-        }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
-
-        internal void Call(T1 v1, T2 v2, T3 v3) {
-            _action(v1, v2, v3);
+        public void Call(T1 v1, T2 v2) {
+            Action(v1, v2);
         }
     }
 
-    public class SignalHandler<T1, T2, T3, T4> : DisposableGodotObject {
-        private readonly Object _target;
-        private readonly string _signal;
-        private readonly Action<T1, T2, T3, T4> _action;
-
-        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4> action) {
-            _target = target;
-            _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+    public class SignalHandler<T1, T2, T3> : BaseSignalHandler<Action<T1, T2, T3>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3> action) : base(target, signal, action) {
         }
 
-        public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
-            }
-        }
-
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
-        }
-
-        internal void Call(T1 v1, T2 v2, T3 v3, T4 v4) {
-            _action(v1, v2, v3, v4);
+        public void Call(T1 v1, T2 v2, T3 v3) {
+            Action(v1, v2, v3);
         }
     }
 
-    public class SignalHandler<T1, T2, T3, T4, T5> : DisposableGodotObject {
-        private readonly Object _target;
-        private readonly string _signal;
-        private readonly Action<T1, T2, T3, T4, T5> _action;
-
-        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5> action) {
-            _target = target;
-            _signal = signal;
-            _action = action;
-            if (IsInstanceValid(target)) target.Connect(signal, this, nameof(Call));
+    public class SignalHandler<T1, T2, T3, T4> : BaseSignalHandler<Action<T1, T2, T3, T4>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4> action) :
+            base(target, signal, action) {
         }
 
-        public void Disconnect() {
-            if (IsInstanceValid(_target)) {
-                _target.Disconnect(_signal, this, nameof(Call));
-            }
+        public void Call(T1 v1, T2 v2, T3 v3, T4 v4) {
+            Action(v1, v2, v3, v4);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3, T4, T5> : BaseSignalHandler<Action<T1, T2, T3, T4, T5>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5> action) : base(target, signal,
+            action) {
         }
 
-        protected override void Dispose(bool disposing) {
-            try {
-                if (disposing) Disconnect();
-            } finally {
-                base.Dispose(disposing);
-            }
+        public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {
+            Action(v1, v2, v3, v4, v5);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3, T4, T5, T6> : BaseSignalHandler<Action<T1, T2, T3, T4, T5, T6>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5, T6> action) : base(target, signal,
+            action) {
         }
 
-        internal void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {
-            _action(v1, v2, v3, v4, v5);
+        public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {
+            Action(v1, v2, v3, v4, v5, v6);
+        }
+    }
+
+    public class SignalHandler<T1, T2, T3, T4, T5, T6, T7> : BaseSignalHandler<Action<T1, T2, T3, T4, T5, T6, T7>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5, T6, T7> action) : base(target,
+            signal, action) {
+        }
+
+        public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {
+            Action(v1, v2, v3, v4, v5, v6, v7);
+        }
+    }
+
+    public class
+        SignalHandler<T1, T2, T3, T4, T5, T6, T7, T8> : BaseSignalHandler<Action<T1, T2, T3, T4, T5, T6, T7, T8>> {
+        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5, T6, T7, T8> action) : base(target,
+            signal, action) {
+        }
+
+        public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {
+            Action(v1, v2, v3, v4, v5, v6, v7, v8);
         }
     }
 }
