@@ -1,102 +1,106 @@
 using System;
-using System.Collections.Concurrent;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer {
+    /*
+     * 1: It shows a warning if the object is disposed in shutdown. It could mean you forget to dispose it
+     * 2: It offers you a safe OnDispose method to implement without worrying to call base.Dispose(disposing) and
+     * try/catch your code. The OnDispose() method is already wrapped and the base.Dispose(disposing) is always called.
+     * 3: Optionally, it can show a message when the instance is created
+     */
     public abstract class DisposableObject : IDisposable {
-        public static bool ShowShutdownWarning = false;
-
         protected bool Disposed { get; private set; } = false;
 
+        public DisposableObject() {
+            if (DisposeTools.ShowMessageOnCreate) {
+                GD.Print("New DisposableObject instance: " + GetType().Name + ":" + this);
+            }
+        }
+
         ~DisposableObject() {
-            DoDispose(false);
+            Dispose(false);
         }
 
         public void Dispose() {
-            DoDispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        private void DoDispose(bool disposing) {
+        private void Dispose(bool disposing) {
             if (Disposed) return;
+            if (!disposing) DisposeTools.ShowDisposeOnShutdownWarning(this);
+            else if (DisposeTools.ShowMessageOnDispose) GD.Print("Dispose(): " + GetType() + " " + this);
             try {
-                if (ShowShutdownWarning && !disposing) {
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    GD.Print($"Disposing on shutdown: {GetType()} " + ToString());
-                    Console.ResetColor();
-                }
+                OnDispose(disposing);
             } catch (Exception e) {
-                if (ShowShutdownWarning) {
-                    Console.Write(e);
-                }
+                DisposeTools.ShowDisposeException(e);
             } finally {
-                Dispose(disposing);
                 Disposed = true;
             }
         }
 
-        protected abstract void Dispose(bool disposing);
+        protected virtual void OnDispose(bool disposing) {
+        }
     }
 
-    public class DisposableGodotObject : Object {
-        public static bool ShowShutdownWarning = true;
+    /*
+     * 1: It shows a warning if the object is disposed in shutdown. It could mean you forget to dispose it
+     * 2: It offers you a safe OnDispose method to implement without worrying to call base.Dispose(disposing) and
+     * try/catch your code. The OnDispose() method is already wrapped and the base.Dispose(disposing) is always called.
+     * 3: Optionally, it can show a message when the instance is created
+     */
+     public class GodotObject : Object {
+        protected bool Disposed { get; private set; } = false;
+        public GodotObject() {
+            if (DisposeTools.ShowMessageOnCreate) {
+                GD.Print("New GodotObject instance: " + GetType().Name + ":" + this);
+            }
+        }
 
-        // public DisposableGodotObject() {
-        // GD.Print("Creating: "+GetType().Name+":"+base.ToString());
+        // private bool _warningDisabled = false;
+        // public void DisableNoDisposedOnShutdownWarning() {
+        // _warningDisabled = true;
         // }
 
-        protected bool Disposed { get; private set; } = false;
-
-        protected override void Dispose(bool disposing) {
+        protected sealed override void Dispose(bool disposing) {
             if (Disposed) return;
+            Disposed = true;
+            if (!disposing) DisposeTools.ShowDisposeOnShutdownWarning(this);
+            else if (DisposeTools.ShowMessageOnDispose) GD.Print("Dispose(): " + GetType() + " " + this);
             try {
-                if (ShowShutdownWarning && !disposing) {
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    GD.Print($"Disposing on shutdown: {GetType()} " + ToString());
-                    Console.ResetColor();
-                }
+                OnDispose(disposing);
             } catch (Exception e) {
-                if (ShowShutdownWarning) {
-                    Console.Write(e);
-                }
+                DisposeTools.ShowDisposeException(e);
             } finally {
                 base.Dispose(disposing);
                 Disposed = true;
+                // GD.Print("Dispose(" + disposing + "): " + GetType() + " " + ToString());
             }
         }
+
+        protected virtual void OnDispose(bool disposing) {
+        }
+
     }
 
-    public class Disposer : DisposableObject {
-        private readonly ConcurrentDictionary<int, DisposableGodotObject> _activeObjects =
-            new ConcurrentDictionary<int, DisposableGodotObject>();
+    public static class DisposeTools {
+        public static bool ShowShutdownWarning = true;
+        public static bool ShowMessageOnCreate = true;
+        public static bool ShowMessageOnDispose = true;
 
-        public void Add(DisposableGodotObject o) {
-            // GD.Print("DisposableTween.AddToDisposeQueue: " + o.GetType().Name + ":" + o);
-            _activeObjects[o.GetHashCode()] = o;
-        }
-
-        public void Remove(DisposableGodotObject o) {
-            // GD.Print("DisposableTween.RemovedFromDisposeQueue: " + o.GetType().Name + ":" + o);
-            _activeObjects.TryRemove(o.GetHashCode(), out var x);
-        }
-
-        protected override void Dispose(bool disposing) {
-            foreach (var pendingValue in _activeObjects.Values) {
-                if (!Object.IsInstanceValid(pendingValue)) continue;
-                // GD.Print("DisposableTween.Dispose " + disposing + " " + pendingValue.GetType() + " " + pendingValue);
-                pendingValue.Dispose();
+        public static void ShowDisposeException(Exception e) {
+            if (ShowShutdownWarning) {
+                GD.Print(e);
             }
         }
-    }
 
-    public class DisposableTween : Tween {
-        private readonly Disposer _disposer = new Disposer();
-        internal void AddToDisposeQueue(DisposableGodotObject o) => _disposer.Add(o);
-        internal void RemovedFromDisposeQueue(DisposableGodotObject o) => _disposer.Remove(o);
-
-        protected override void Dispose(bool disposing) {
-            _disposer.Dispose();
+        public static void ShowDisposeOnShutdownWarning(object o) {
+            if (ShowShutdownWarning) {
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                GD.Print($"Disposing on shutdown: {o.GetType()} " + o.ToString());
+                Console.ResetColor();
+            }
         }
     }
 }

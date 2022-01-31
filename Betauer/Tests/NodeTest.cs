@@ -7,7 +7,7 @@ namespace Betauer.Tests {
     public class NodeTest : Node {
         [SetUp]
         public void RemoveWarning() {
-            DisposableGodotObject.ShowShutdownWarning = false;
+            DisposeTools.ShowShutdownWarning = false;
         }
 
         public async Task<Sprite> CreateSprite(int width = 100) {
@@ -22,8 +22,8 @@ namespace Betauer.Tests {
             return sprite;
         }
 
-        public async Task<DisposableTween> CreateTween() {
-            DisposableTween tween = new DisposableTween();
+        public async Task<Tween> CreateTween() {
+            Tween tween = new Tween();
             AddChild(tween);
             await this.AwaitIdleFrame();
             return tween;

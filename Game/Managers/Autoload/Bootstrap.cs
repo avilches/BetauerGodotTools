@@ -4,6 +4,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Bus;
+using Betauer.Memory;
 using Betauer.Screen;
 using Veronenger.Game.Controller.Stage;
 using TraceLevel = Betauer.TraceLevel;
@@ -42,7 +43,7 @@ namespace Veronenger.Game.Managers.Autoload {
                 LoggerFactory.AddFileWriter(logPath);
             }
 
-            DisposableGodotObject.ShowShutdownWarning = true;
+            DisposeTools.ShowShutdownWarning = true;
 
             LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
             LoggerFactory.IncludeTimestamp(true);
@@ -53,13 +54,13 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
 
             LoggerFactory.SetTraceLevel(typeof(Launcher), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(AnimationKeyStep<>), TraceLevel.Error);
 
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
@@ -98,11 +99,12 @@ namespace Veronenger.Game.Managers.Autoload {
             }
         }
 
-        private static void Exit() {
+        private void Exit() {
             var timespan = Uptime;
             var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
             Logger.Info("User requested exit the application. Uptime: " + elapsed);
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
+            // DefaultRepository.Dispose();
         }
 
         private void MicroBenchmarks() {

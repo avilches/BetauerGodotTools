@@ -76,9 +76,11 @@ namespace Veronenger.Game.Managers {
             }
         }
 
-        protected override void Dispose(bool disposing) {
+        protected override void OnDispose(bool disposing) {
+            // TODO: better handling
             _service?.Dispose();
         }
+
 
         /*
         private int _currentScreen = -1;

@@ -4,32 +4,35 @@ using Object = Godot.Object;
 namespace Betauer.Animation {
     public class Launcher : ITweenPlayer<Launcher> {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Launcher));
-        public DisposableTween DisposableTween { get; private set; }
+        public Tween? Tween { get; private set; }
 
         public Launcher() {
         }
 
-        public Launcher(DisposableTween tween) {
+        public Launcher(Tween tween) {
             WithTween(tween);
         }
 
-        public Launcher CreateNewTween(Node node) {
-            var tween = new DisposableTween();
+        /**
+         * disposeOnFinish is ignored
+         */
+        public Launcher CreateNewTween(Node node, bool disposeOnFinish = true) {
+            var tween = new Tween();
             node.AddChild(tween);
             return WithTween(tween);
         }
 
-        public Launcher WithTween(DisposableTween tween) {
-            DisposableTween = tween;
+        public Launcher WithTween(Tween tween) {
+            Tween = tween;
             return this;
         }
 
         public Launcher RemoveTween() {
-            DisposableTween = null;
+            Tween = null;
             return this;
         }
 
-        public bool IsRunning() => DisposableTween.IsActive();
+        public bool IsRunning() => Tween.IsActive();
 
         /*
          * Flow:
@@ -38,43 +41,43 @@ namespace Betauer.Animation {
          */
 
         public Launcher Start() {
-            if (!Object.IsInstanceValid(DisposableTween)) {
+            if (!Object.IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Start in a freed Tween instance");
                 return this;
             }
-            DisposableTween.Start();
-            DisposableTween.ResumeAll();
+            Tween.Start();
+            Tween.ResumeAll();
             return this;
         }
 
         public Launcher Stop() {
-            if (!Object.IsInstanceValid(DisposableTween)) {
+            if (!Object.IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Stop AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
             Logger.Info("Tween.StopAll()");
-            DisposableTween.StopAll();
+            Tween.StopAll();
             return this;
         }
 
         public Launcher Reset() {
-            if (!Object.IsInstanceValid(DisposableTween)) {
+            if (!Object.IsInstanceValid(Tween)) {
                 Logger.Warning("Can't Reset AnimationTweenPlayer in a freed Tween instance");
                 return this;
             }
             Logger.Info("Tween.RemoveAll()");
-            DisposableTween.RemoveAll();
+            Tween.RemoveAll();
             Logger.Info("Tween.Start()");
-            DisposableTween.Start();
+            Tween.Start();
             return this;
         }
 
         public Launcher Kill() {
-            if (!Object.IsInstanceValid(DisposableTween)) return this;
+            if (!Object.IsInstanceValid(Tween)) return this;
             Logger.Info("Tween.StopAll()");
-            DisposableTween.StopAll();
-            Logger.Info("Tween.Dispose()");
-            DisposableTween.Dispose();
+            Tween.StopAll();
+            Logger.Info("Tween.Free()");
+            Tween.Free();
             return this;
         }
 
@@ -91,7 +94,7 @@ namespace Betauer.Animation {
 
         public LoopStatus Play(int loops, ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
             float duration = -1) {
-            LoopStatus loopStatus = new LoopStatus(DisposableTween, loops, sequence, defaultTarget, duration);
+            LoopStatus loopStatus = new LoopStatus(Tween, loops, sequence, defaultTarget, duration);
             return loopStatus.Start(initialDelay);
         }
     }

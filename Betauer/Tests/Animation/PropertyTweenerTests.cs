@@ -140,8 +140,7 @@ namespace Betauer.Tests.Animation {
 
             try {
                 await new MultipleSequencePlayer()
-                    .SetDisposeOnFinish(true)
-                    .CreateNewTween(spritePlayer)
+                    .CreateNewTween(spritePlayer, true)
                     .AddSequence(sequence)
                     .Start()
                     .Await();
@@ -168,8 +167,7 @@ namespace Betauer.Tests.Animation {
 
             try {
                 await new SingleSequencePlayer()
-                    .SetDisposeOnFinish(true)
-                    .CreateNewTween(spritePlayer)
+                    .CreateNewTween(spritePlayer, true)
                     .WithSequence(sequence)
                     .Start()
                     .Await();
@@ -256,8 +254,7 @@ namespace Betauer.Tests.Animation {
                 .BuildTemplate();
 
             await new MultipleSequencePlayer()
-                .SetDisposeOnFinish(true)
-                .CreateNewTween(spritePlayer)
+                .CreateNewTween(spritePlayer, true)
                 .ImportTemplate(template, spritePlayer).EndSequence()
                 .Start()
                 .Await();

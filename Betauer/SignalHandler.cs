@@ -31,7 +31,7 @@ namespace Betauer {
         }
     }
 
-    public abstract class BaseSignalHandler<T> : DisposableGodotObject {
+    public abstract class BaseSignalHandler<T> : GodotObject {
         private readonly Object _target;
         private readonly string _signal;
         protected readonly T Action;

@@ -140,7 +140,7 @@ namespace Betauer.Screen {
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
         }
 
-        protected override void Dispose(bool disposing) {
+        protected override void OnDispose(bool disposing) {
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -202,8 +202,8 @@ namespace Betauer.Screen {
             ScaleResolutionViewport();
         }
 
-        protected override void Dispose(bool disposing) {
-            _onResizeWindowHandler.Dispose();
+        protected override void OnDispose(bool disposing) {
+            _onResizeWindowHandler.Free();
         }
 
         public List<ScaledResolution> GetResolutions() {

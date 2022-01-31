@@ -129,12 +129,10 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         protected override void Dispose(bool disposing) {
-            try {
-                // _tweenStack?.Dispose();
-                _animationStack?.Dispose();
+            base.Dispose(disposing);
+            if (disposing) {
+                _animationStack?.Free(); // It's a GodotObject, it needs to be freed manually
                 _stateMachine?.Dispose();
-            } finally {
-                base.Dispose(disposing);
             }
         }
     }

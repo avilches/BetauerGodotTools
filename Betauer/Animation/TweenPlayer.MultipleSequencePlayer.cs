@@ -5,7 +5,9 @@ using Godot;
 
 namespace Betauer.Animation {
     public class MultipleSequencePlayer : RepeatablePlayer<MultipleSequencePlayer> {
-        public class SequenceBuilderWithMultipleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithMultipleSequencePlayer> {
+        public class
+            SequenceBuilderWithMultipleSequencePlayer : RegularSequenceBuilder<
+                SequenceBuilderWithMultipleSequencePlayer> {
             private readonly MultipleSequencePlayer _multipleSequencePlayer;
 
             internal SequenceBuilderWithMultipleSequencePlayer(MultipleSequencePlayer multipleSequencePlayer,
@@ -31,7 +33,7 @@ namespace Betauer.Animation {
         public MultipleSequencePlayer() {
         }
 
-        public MultipleSequencePlayer(DisposableTween tween, bool disposeOnFinish = false) : base(tween, disposeOnFinish) {
+        public MultipleSequencePlayer(Tween tween) : base(tween) {
         }
 
         public MultipleSequencePlayer SetInfiniteLoops() {
@@ -90,10 +92,10 @@ namespace Betauer.Animation {
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
                 $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{GetLoopsFromSequence(sequence)}");
-            DisposableTween.PlaybackSpeed = sequence.Speed;
-            DisposableTween.PlaybackProcessMode = sequence.ProcessMode;
-            var accumulatedDelay = sequence.Execute(DisposableTween);
-            DisposableTween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            Tween.PlaybackSpeed = sequence.Speed;
+            Tween.PlaybackProcessMode = sequence.ProcessMode;
+            var accumulatedDelay = sequence.Execute(Tween);
+            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

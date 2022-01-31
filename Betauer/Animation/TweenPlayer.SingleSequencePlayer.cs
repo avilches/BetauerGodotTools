@@ -4,7 +4,8 @@ using Godot;
 
 namespace Betauer.Animation {
     public class SingleSequencePlayer : RepeatablePlayer<SingleSequencePlayer> {
-        public class SequenceBuilderWithSingleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithSingleSequencePlayer> {
+        public class
+            SequenceBuilderWithSingleSequencePlayer : RegularSequenceBuilder<SequenceBuilderWithSingleSequencePlayer> {
             private readonly SingleSequencePlayer _singleSequencePlayer;
 
             internal SequenceBuilderWithSingleSequencePlayer(SingleSequencePlayer singleSequencePlayer,
@@ -23,7 +24,7 @@ namespace Betauer.Animation {
         private int _loops;
         private bool _loopsOverriden = false;
 
-        public ISequence Sequence { get; private set; }
+        public ISequence? Sequence { get; private set; }
 
         public int Loops => _loopsOverriden ? _loops :
             Sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
@@ -33,7 +34,7 @@ namespace Betauer.Animation {
         public SingleSequencePlayer() {
         }
 
-        public SingleSequencePlayer(DisposableTween tween, bool disposeOnFinish = false) : base(tween, disposeOnFinish) {
+        public SingleSequencePlayer(Tween tween) : base(tween) {
         }
 
         public static SingleSequencePlayer Create(Node node, SequenceTemplate template, float duration = -1) {
@@ -71,9 +72,11 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public SequenceBuilderWithSingleSequencePlayer ImportTemplate(SequenceTemplate template, Node defaultTarget = null,
+        public SequenceBuilderWithSingleSequencePlayer ImportTemplate(SequenceTemplate template,
+            Node defaultTarget = null,
             float duration = -1) {
-            var sequence = new SequenceBuilderWithSingleSequencePlayer(this, false /* no data, it will use the template tweens */);
+            var sequence =
+                new SequenceBuilderWithSingleSequencePlayer(this, false /* no data, it will use the template tweens */);
             sequence.ImportTemplate(template, defaultTarget, duration);
             WithSequence(sequence);
             return sequence;
@@ -107,10 +110,10 @@ namespace Betauer.Animation {
             var loopState = IsInfiniteLoop ? "infinite loop" : $"{_currentLoop + 1}/{Loops} loops";
             Logger.Debug(
                 $"RunSequence: Single sequence: {loopState}");
-            DisposableTween.PlaybackSpeed = Sequence.Speed;
-            DisposableTween.PlaybackProcessMode = Sequence.ProcessMode;
-            var accumulatedDelay = Sequence.Execute(DisposableTween);
-            DisposableTween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            Tween.PlaybackSpeed = Sequence.Speed;
+            Tween.PlaybackProcessMode = Sequence.ProcessMode;
+            var accumulatedDelay = Sequence.Execute(Tween);
+            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

@@ -655,8 +655,7 @@ namespace Betauer.Tests.Animation {
             property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new MultipleSequencePlayer()
-                .SetDisposeOnFinish(true)
-                .CreateNewTween(node)
+                .CreateNewTween(node, true)
                 .CreateSequence()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
@@ -672,8 +671,7 @@ namespace Betauer.Tests.Animation {
             property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new SingleSequencePlayer()
-                .SetDisposeOnFinish(true)
-                .CreateNewTween(node)
+                .CreateNewTween(node, true)
                 .CreateSequence()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
