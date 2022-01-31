@@ -22,7 +22,6 @@ namespace Betauer.Tests {
     }
 
     [TestFixture]
-    [Only]
     public class ObjectPoolTests {
         [Test(Description = "Object pool factory")]
         public void Factory() {
