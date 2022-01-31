@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.DI;
 using Godot;
 using Veronenger.Game.Managers;
 
@@ -50,7 +52,6 @@ namespace Veronenger.Game.Controller {
             GameManager.Start(this);
             ScreenManager.LoadSettingsAndConfigure();
         }
-
 
         private async Task LoadMuchasCosas() {
             string[] cosas = {

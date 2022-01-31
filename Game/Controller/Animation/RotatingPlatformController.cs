@@ -1,5 +1,6 @@
 using Godot;
 using Betauer;
+using Betauer.DI;
 using Veronenger.Game.Managers;
 using static Godot.Mathf;
 

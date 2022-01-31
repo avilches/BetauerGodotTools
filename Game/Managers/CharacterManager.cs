@@ -3,6 +3,7 @@ using Godot;
 using Betauer;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
+using Betauer.DI;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
 using Array = Godot.Collections.Array;

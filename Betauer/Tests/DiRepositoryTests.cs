@@ -1,39 +1,60 @@
 using System;
 using System.Collections.Generic;
+using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Tests {
-    public interface INoMySingleton {
+
+    public interface ISingleton1 {
     }
 
-    public interface IMySingleton {
+    public interface ISingleton2 {
     }
 
-    public class MySingleton : IMySingleton {
-    }
+    [Service]
+    public class Singleton : ISingleton1, ISingleton2{
 
-    public class MySingleton2 : IMySingleton {
     }
-
 
     [TestFixture]
-    [Only]
     public class DiRepositoryTests : Node {
+        [Test(Description = "Types not found")]
+        public void NotFound() {
+            var di = new DiRepository(this);
+            di.Scan(typeof(Singleton));
+
+        }
+    }
+
+    public interface IInterfaceAlone {
+    }
+
+    public interface IInterface {
+    }
+
+    public class MyClass1 : IInterface {
+    }
+
+    public class MyClass2 : IInterface {
+    }
+
+    [TestFixture]
+    public class RegisterTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
             var di = new DiRepository(this);
 
             // Not found types fail
             try {
-                di.Resolve<IMySingleton>();
+                di.Resolve<IInterface>();
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
 
             try {
-                di.Resolve(typeof(IMySingleton));
+                di.Resolve(typeof(IInterface));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
@@ -54,15 +75,15 @@ namespace Betauer.Tests {
             Assert.That(s.GetServiceType(), Is.EqualTo(typeof(Node)));
 
             // by interface
-            var mySingleton = new MySingleton();
-            s = di.RegisterSingleton(typeof(IMySingleton), mySingleton);
+            var mySingleton = new MyClass1();
+            s = di.RegisterSingleton(typeof(IInterface), mySingleton);
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(IMySingleton)));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(IInterface)));
 
             // by class (no interface)
-            s = di.RegisterSingleton(typeof(MySingleton), mySingleton);
+            s = di.RegisterSingleton(typeof(MyClass1), mySingleton);
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(MySingleton)));
+            Assert.That(s.GetServiceType(), Is.EqualTo(typeof(MyClass1)));
 
             // by typed factory
             s = di.Register(Lifestyle.Transient, () => new Control());
@@ -81,7 +102,6 @@ namespace Betauer.Tests {
             s = di.Register(Lifestyle.Singleton, typeof(CanvasItem), () => new Control());
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
             Assert.That(s.GetServiceType(), Is.EqualTo(typeof(CanvasItem)));
-
         }
 
         [Test(Description = "Singleton instance OnInstanceCreated. No need to resolve to execute the hook")]
@@ -166,24 +186,24 @@ namespace Betauer.Tests {
         public void RegisterSingletonInterfaceUsingGeneric() {
             var di = new DiRepository(this);
 
-            var mySingleton = new MySingleton();
-            di.RegisterSingleton<IMySingleton>(mySingleton);
-            Assert.That(di.Resolve<IMySingleton>(), Is.EqualTo(mySingleton));
-            Assert.That(di.Resolve(typeof(IMySingleton)), Is.EqualTo(mySingleton));
+            var mySingleton = new MyClass1();
+            di.RegisterSingleton<IInterface>(mySingleton);
+            Assert.That(di.Resolve<IInterface>(), Is.EqualTo(mySingleton));
+            Assert.That(di.Resolve(typeof(IInterface)), Is.EqualTo(mySingleton));
             try {
                 // The instance type can't be resolved, it's only possible if the interface type is used
-                di.Resolve(typeof(MySingleton));
+                di.Resolve(typeof(MyClass1));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
 
             // Interface can be overriden by other instance of other type
-            var mySingleton2 = new MySingleton2();
-            di.RegisterSingleton<IMySingleton>(mySingleton2);
-            Assert.That(di.Resolve<IMySingleton>(), Is.EqualTo(mySingleton2));
-            Assert.That(di.Resolve(typeof(IMySingleton)), Is.EqualTo(mySingleton2));
+            var mySingleton2 = new MyClass2();
+            di.RegisterSingleton<IInterface>(mySingleton2);
+            Assert.That(di.Resolve<IInterface>(), Is.EqualTo(mySingleton2));
+            Assert.That(di.Resolve(typeof(IInterface)), Is.EqualTo(mySingleton2));
             try {
-                di.Resolve(typeof(MySingleton2));
+                di.Resolve(typeof(MyClass2));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
@@ -194,32 +214,32 @@ namespace Betauer.Tests {
         public void RegisterSingletonInterfaceUsingType() {
             var di = new DiRepository(this);
 
-            var mySingleton = new MySingleton();
+            var mySingleton = new MyClass1();
             // The instance should implement the interface
-            di.RegisterSingleton(typeof(IMySingleton), mySingleton);
-            Assert.That(di.Resolve<IMySingleton>(), Is.EqualTo(mySingleton));
-            Assert.That(di.Resolve(typeof(IMySingleton)), Is.EqualTo(mySingleton));
+            di.RegisterSingleton(typeof(IInterface), mySingleton);
+            Assert.That(di.Resolve<IInterface>(), Is.EqualTo(mySingleton));
+            Assert.That(di.Resolve(typeof(IInterface)), Is.EqualTo(mySingleton));
             try {
                 // The instance type can't be resolved, it's only possible if the interface type is used
-                di.Resolve(typeof(MySingleton));
+                di.Resolve(typeof(MyClass1));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
 
             // Interface can be overriden by other instance of other type
-            var mySingleton2 = new MySingleton2();
-            di.RegisterSingleton(typeof(IMySingleton), mySingleton2);
-            Assert.That(di.Resolve<IMySingleton>(), Is.EqualTo(mySingleton2));
-            Assert.That(di.Resolve(typeof(IMySingleton)), Is.EqualTo(mySingleton2));
+            var mySingleton2 = new MyClass2();
+            di.RegisterSingleton(typeof(IInterface), mySingleton2);
+            Assert.That(di.Resolve<IInterface>(), Is.EqualTo(mySingleton2));
+            Assert.That(di.Resolve(typeof(IInterface)), Is.EqualTo(mySingleton2));
             try {
-                di.Resolve(typeof(MySingleton2));
+                di.Resolve(typeof(MyClass2));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
 
             try {
                 // The instance type doesn't match the interface, so it fails
-                di.RegisterSingleton(typeof(INoMySingleton), mySingleton);
+                di.RegisterSingleton(typeof(IInterfaceAlone), mySingleton);
                 Assert.That(false, "It should fail!");
             } catch (ArgumentException e) {
             }
@@ -228,7 +248,6 @@ namespace Betauer.Tests {
         /**
          * Factories
          */
-
         [Test(Description = "Register a Singleton factory is executed only the first time")]
         public void RegisterSingletonFactory() {
             var di = new DiRepository(this);
@@ -287,7 +306,6 @@ namespace Betauer.Tests {
                 di.Resolve<string>();
                 Assert.That(false, "It should fail!");
             } catch (InvalidCastException) {
-
             }
             try {
                 di.Resolve<int>();
@@ -303,9 +321,9 @@ namespace Betauer.Tests {
         [Test(Description = "Register a factory with a compatible type")]
         public void RegisterTypedTypedFactory() {
             var di = new DiRepository(this);
-            di.Register(Lifestyle.Transient, typeof(IMySingleton), () => new MySingleton());
+            di.Register(Lifestyle.Transient, typeof(IInterface), () => new MyClass1());
 
-            Assert.That(di.Resolve<IMySingleton>().GetType(), Is.EqualTo(typeof(MySingleton)));
+            Assert.That(di.Resolve<IInterface>().GetType(), Is.EqualTo(typeof(MyClass1)));
         }
 
         /*

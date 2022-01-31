@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Betauer;
+using Betauer.DI;
 using Betauer.Screen;
 using Godot;
 

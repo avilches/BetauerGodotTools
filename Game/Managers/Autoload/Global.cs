@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.DI;
 using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers.Autoload {

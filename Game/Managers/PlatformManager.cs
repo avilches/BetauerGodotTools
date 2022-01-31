@@ -5,6 +5,7 @@ using Godot;
 using Betauer;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
+using Betauer.DI;
 using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {

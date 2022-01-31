@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using Godot;
 using Betauer;
+using Betauer.DI;
 using Veronenger.Game.Managers;
 using TraceLevel = Betauer.TraceLevel;
 
@@ -299,6 +300,8 @@ namespace Veronenger.Game.Character {
                 if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
                     _isOnSlopeStairs = true;
                 }
+                // TODO: is this really needed? check if the Reference is disposed/GC
+                collision.Unreference();
             }
 
             if (_colliderNormal == null) {

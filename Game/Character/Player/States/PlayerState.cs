@@ -1,5 +1,6 @@
 using Godot;
 using Betauer;
+using Betauer.DI;
 using Betauer.Input;
 using Betauer.Statemachine;
 using Veronenger.Game.Controller.Character;

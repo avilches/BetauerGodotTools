@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.DI;
 using Veronenger.Game.Managers;
 using static Betauer.GodotConstants;
 

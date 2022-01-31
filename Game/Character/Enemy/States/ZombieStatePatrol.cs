@@ -1,4 +1,5 @@
 using Betauer;
+using Betauer.DI;
 using Betauer.Statemachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;

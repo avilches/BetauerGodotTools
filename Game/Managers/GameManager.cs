@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Godot;
 using Betauer;
+using Betauer.DI;
 using Veronenger.Game.Controller;
 
 namespace Veronenger.Game.Managers {

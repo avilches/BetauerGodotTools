@@ -1,4 +1,5 @@
 using Betauer;
+using Betauer.DI;
 using Betauer.Input;
 using Godot;
 

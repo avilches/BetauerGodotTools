@@ -4,6 +4,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Bus;
+using Betauer.DI;
 using Betauer.Memory;
 using Betauer.Screen;
 using Veronenger.Game.Controller.Stage;
@@ -25,6 +26,7 @@ namespace Veronenger.Game.Managers.Autoload {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             CheckErrorPolicy(UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
+            // TODO: this it really works?
             this.DisableAllNotifications();
         }
 

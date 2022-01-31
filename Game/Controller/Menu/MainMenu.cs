@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.DI;
 using Betauer.Screen;
 using Betauer.UI;
 using Godot;

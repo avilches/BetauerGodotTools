@@ -2,6 +2,7 @@ using Godot;
 using Betauer;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
+using Betauer.DI;
 using Veronenger.Game.Controller.Stage;
 using static Veronenger.Game.LayerConstants;
 
