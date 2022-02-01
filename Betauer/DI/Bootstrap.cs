@@ -17,7 +17,7 @@ namespace Betauer.DI {
             _booted = true;
             Container = CreateContainer();
             Container.Scanner.Scan();
-            Container.RegisterSingleton<Func<SceneTree>>(GetTree);
+            Container.Instance<Func<SceneTree>>(GetTree);
 /*            DefaultRepository.Register<RootSceneHolder>((Node node) => {
                 Viewport root = GetTree().Root;
                 Node lastFound = node;
@@ -36,6 +36,7 @@ namespace Betauer.DI {
                 return sceneHolder;
             });
 */
+            Container.Build();
             Container.AutoWire(this);
         }
 

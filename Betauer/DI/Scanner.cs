@@ -20,7 +20,7 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Class)]
     public class ServiceAttribute : Attribute {
-        public Lifestyle Lifestyle { get; } = Lifestyle.Singleton;
+        public Lifestyle Lifestyle { get; set; } = Lifestyle.Singleton;
     }
 
     public class Scanner {

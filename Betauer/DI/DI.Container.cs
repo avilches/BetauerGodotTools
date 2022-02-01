@@ -114,6 +114,60 @@ namespace Betauer.DI {
         Singleton
     }
 
+    public interface ServiceBuilder {
+        IService Build();
+    }
+
+    public class SingletonInstanceServiceBuilder<T> : ServiceBuilder {
+        private T _instance;
+        private Container _container;
+
+        public SingletonInstanceServiceBuilder(Container container, T instance) {
+            _container = container;
+            _instance = instance;
+        }
+
+        private readonly HashSet<Type> _types = new HashSet<Type>();
+
+        public SingletonInstanceServiceBuilder<T> As(Type type) {
+            _types.Add(type);
+            return this;
+        }
+
+        public SingletonInstanceServiceBuilder<T> As<TR>() => As(typeof(TR));
+
+        public SingletonInstanceServiceBuilder<T> AsAll<TR>() => AsAll(typeof(TR));
+        public SingletonInstanceServiceBuilder<T> AsAll(Type type) => AsAll(GetTypesFrom(type));
+
+        public SingletonInstanceServiceBuilder<T> AsAll(IEnumerable<Type> types) {
+            foreach (var type in types) {
+                if (!type.IsInstanceOfType(_instance)) {
+                    throw new ArgumentException("Instance is not type of " + type);
+                }
+                _types.Add(type);
+            }
+            return this;
+        }
+
+        private static List<Type> GetTypesFrom(Type type) {
+            var types = type.GetInterfaces().ToList();
+            types.Remove(typeof(IDisposable));
+            types.Add(type);
+            return types;
+        }
+
+        public IService Build() {
+            _container.Pending.Remove(this);
+            if (_types.Count == 0) {
+                AsAll(_instance.GetType());
+            }
+            var singletonInstanceService = new SingletonInstanceService(_types.ToArray(), _instance);
+            _container.Register(singletonInstanceService);
+            _container.AfterCreate(_instance);
+            return singletonInstanceService;
+        }
+    }
+
     public class Container : Node {
         private readonly Dictionary<Type, IService> _singletons = new Dictionary<Type, IService>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
@@ -126,25 +180,27 @@ namespace Betauer.DI {
             Scanner = new Scanner(this);
         }
 
-        // It uses all the types in T (class + interfaces)
-        public IService RegisterSingleton<T>(T instance) {
-            return RegisterSingleton(typeof(T), instance);
-        }
+        internal readonly LinkedList<ServiceBuilder> Pending = new LinkedList<ServiceBuilder>();
 
-        // It uses all the type in Type (it could be only interfaces)
-        public IService RegisterSingleton(Type type, object instance) {
-            if (!type.IsInstanceOfType(instance)) {
-                throw new ArgumentException("Instance is not type of " + type);
+        public void Build() {
+            foreach (var serviceBuilder in Pending.ToList()) {
+                serviceBuilder.Build();
             }
-            var singletonInstanceService = new SingletonInstanceService(GetTypesFrom(type).ToArray(), instance);
-            Register(singletonInstanceService);
-            AfterCreate(instance);
-            return singletonInstanceService;
+        }
+
+        public SingletonInstanceServiceBuilder<T> Instance<T>(T instance) {
+            var singletonInstanceServiceBuilder = new SingletonInstanceServiceBuilder<T>(this, instance);
+            Pending.AddLast(singletonInstanceServiceBuilder);
+            return singletonInstanceServiceBuilder;
         }
 
         // It uses all the type in Type (it could be only interfaces)
-        public IService Register(Lifestyle lifestyle, Type type, Func<object> factory) {
-            return Register(Create(lifestyle, type, factory));
+        public IService RegisterAllTypes(Lifestyle lifestyle, Type type, Func<object> factory) {
+            return Register(lifestyle, GetTypesFrom(type).ToArray(), factory);
+        }
+
+        public IService Register(Lifestyle lifestyle, Type[] types, Func<object> factory) {
+            return Register(Create(lifestyle, types, factory));
         }
 
         // It uses all the type in T (it could be only interfaces)
@@ -162,7 +218,7 @@ namespace Betauer.DI {
             if (!type.IsClass) {
                 throw new InvalidOperationException("Type " + type + " is not a class");
             }
-            return Register(Create(lifestyle, type, () => Activator.CreateInstance(type)));
+            return Register(Create(lifestyle, GetTypesFrom(type).ToArray(), () => Activator.CreateInstance(type)));
         }
 
         public IService Register(IService service) {
@@ -177,10 +233,10 @@ namespace Betauer.DI {
             return service;
         }
 
-        private static IService Create(Lifestyle lifestyle, Type type, Func<object> func) {
+        private static IService Create(Lifestyle lifestyle, Type[] types, Func<object> func) {
             return lifestyle switch {
-                Lifestyle.Singleton => new SingletonFactoryService<object>(GetTypesFrom(type).ToArray(), func),
-                Lifestyle.Transient => new TransientFactoryService<object>(GetTypesFrom(type).ToArray(), func),
+                Lifestyle.Singleton => new SingletonFactoryService<object>(types, func),
+                Lifestyle.Transient => new TransientFactoryService<object>(types, func),
                 _ => throw new Exception("Unknown lifestyle " + lifestyle)
             };
         }
