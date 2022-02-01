@@ -322,13 +322,7 @@ namespace Betauer.Tests {
                 di.Register(typeof(IInterface2_2)).Build();
                 Assert.That(false, "It should fail!");
             } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Valid class not found in types"));
-            }
-            try {
-                di.Add(new FactoryServiceBuilder(di).As<IEnumerable>().Build());
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Valid class not found in types"));
+                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
             }
 
             // no abstract
@@ -342,17 +336,10 @@ namespace Betauer.Tests {
                 di.Register(typeof(AbstractClass)).Build();
                 Assert.That(false, "It should fail!");
             } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Valid class not found in types"));
+                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
             }
 
-            // no generic object factories without explicit Type
-            try {
-                di.Add(new FactoryServiceBuilder(di).Build());
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Type not defined"));
-            }
-
+            // interface not implemented
             try {
                 di.Register<Node>().As<IInterface2_2>().Build();
                 Assert.That(false, "It should fail!");
@@ -360,7 +347,7 @@ namespace Betauer.Tests {
                 Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(IInterface2_2)));
             }
 
-            // class didn't match
+            // class is in an upper level than expected
             try {
                 di.Register<Node>().As<Sprite>().Build();
                 Assert.That(false, "It should fail!");
@@ -368,7 +355,6 @@ namespace Betauer.Tests {
                 Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(Sprite)));
             }
         }
-
 
         /*
          * OnInstanceCreated

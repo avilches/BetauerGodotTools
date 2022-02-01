@@ -19,7 +19,6 @@ namespace Betauer.DI {
             Container = container ?? throw new ArgumentNullException(nameof(container));
         }
 
-
         public TBuilder As<T>() => As(typeof(T));
         public TBuilder AsAll<T>() => AsAll(typeof(T));
         public TBuilder AsAll(Type type) => AsAll(GetTypesFrom(type));
@@ -75,19 +74,25 @@ namespace Betauer.DI {
     }
 
 
-    public class FactoryServiceBuilder<T> : ServiceBuilder<FactoryServiceBuilder<T>> where T : class {
-        private Lifestyle _lifestyle = DI.Lifestyle.Singleton;
+    public abstract class LifestyleFactoryServiceBuilder<TBuilder> : ServiceBuilder<TBuilder> where TBuilder : class {
+        protected Lifestyle _lifestyle = DI.Lifestyle.Singleton;
+
+        public LifestyleFactoryServiceBuilder(Container container) : base(container) {
+        }
+
+        public TBuilder IsTransient() => Lifestyle(DI.Lifestyle.Transient);
+        public TBuilder IsSingleton() => Lifestyle(DI.Lifestyle.Singleton);
+
+        public TBuilder Lifestyle(Lifestyle? lifestyle) {
+            _lifestyle = lifestyle ?? throw new ArgumentNullException(nameof(lifestyle));
+            return (this as TBuilder)!;
+        }
+    }
+
+    public class FactoryServiceBuilder<T> : LifestyleFactoryServiceBuilder<FactoryServiceBuilder<T>> where T : class {
         private Func<T>? _factory;
 
         public FactoryServiceBuilder(Container container) : base(container) {
-        }
-
-        public FactoryServiceBuilder<T> IsTransient() => Lifestyle(DI.Lifestyle.Transient);
-        public FactoryServiceBuilder<T> IsSingleton() => Lifestyle(DI.Lifestyle.Singleton);
-
-        public FactoryServiceBuilder<T> Lifestyle(Lifestyle? lifestyle) {
-            _lifestyle = lifestyle ?? throw new ArgumentNullException(nameof(lifestyle));
-            return this;
         }
 
         public FactoryServiceBuilder<T> With(Func<T> factory) {
@@ -97,29 +102,16 @@ namespace Betauer.DI {
 
         protected override IService CreateService() {
             Types.Remove(typeof(IDisposable));
-            var target = typeof(T);
-            if (typeof(T) == typeof(object)) {
-                if (Types.Count == 0) {
-                    throw new ArgumentException("Type not defined");
+            if (Types.Count == 0) As<T>();
+            var type = typeof(T);
+            if (_factory == null) {
+                if (type.IsAbstract || type.IsInterface) {
+                    throw new ArgumentException("Can't create a default factory with interface or abstract class");
                 }
-                target = Types.ToList().Find(type => type.IsClass && !type.IsAbstract);
-                if (target == null) {
-                    throw new ArgumentException("Valid class not found in types");
-                }
-                _factory ??= () => (T)Activator.CreateInstance(target);
-            } else {
-                if (Types.Count == 0) As<T>();
-                if (_factory == null) {
-                    if (typeof(T).IsAbstract || typeof(T).IsInterface) {
-                        throw new ArgumentException("Can't create a default factory with interface or abstract class");
-                    }
-                    _factory = Activator.CreateInstance<T>;
-                }
+                _factory = Activator.CreateInstance<T>;
             }
-
-            foreach (var type in Types) {
-                // GD.Print("Si buscas por " + type + ", te devuelvo un " + target);
-                if (!type.IsAssignableFrom(target)) {
+            foreach (var t in Types) {
+                if (!type.IsAssignableFrom(t)) {
                     throw new ArgumentException("Instance is not a valid type for " + type);
                 }
             }
@@ -133,8 +125,33 @@ namespace Betauer.DI {
         }
     }
 
-    public class FactoryServiceBuilder : FactoryServiceBuilder<object> {
-        public FactoryServiceBuilder(Container container) : base(container) {
+    public class RuntimeFactoryServiceBuilder : LifestyleFactoryServiceBuilder<RuntimeFactoryServiceBuilder> {
+        private readonly Type _type;
+
+        public RuntimeFactoryServiceBuilder(Container container, Type? type) : base(container) {
+            _type = type ?? throw new ArgumentNullException(nameof(type));
+        }
+
+        protected override IService CreateService() {
+            Types.Remove(typeof(IDisposable));
+            if (Types.Count == 0) As(_type);
+            if (_type.IsAbstract || _type.IsInterface) {
+                throw new ArgumentException("Can't create a default factory with interface or abstract class");
+            }
+            Func<object> factory = () => Activator.CreateInstance(_type);
+
+            foreach (var type in Types) {
+                if (!type.IsAssignableFrom(_type)) {
+                    throw new ArgumentException("Instance is not a valid type for " + type);
+                }
+            }
+            IService service = _lifestyle switch {
+                DI.Lifestyle.Singleton => new SingletonFactoryService<object>(Types.ToArray(), factory),
+                DI.Lifestyle.Transient => new TransientFactoryService<object>(Types.ToArray(), factory),
+                _ => throw new Exception("Unknown lifestyle " + _lifestyle)
+            };
+            Container.Add(service);
+            return service;
         }
     }
 }

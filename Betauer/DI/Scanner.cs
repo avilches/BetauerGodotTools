@@ -5,7 +5,7 @@ using System.Reflection;
 using Godot;
 
 namespace Betauer.DI {
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property)]
     public class InjectAttribute : Attribute {
     }
 
@@ -66,7 +66,7 @@ namespace Betauer.DI {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
                     false) is ServiceAttribute sa) {
                 // What if type is an interface
-                _container.Register(type).Lifestyle(sa.Lifestyle);
+                _container.Register(type).Lifestyle(sa.Lifestyle).Build();
             }
         }
 

@@ -31,10 +31,13 @@ namespace Betauer.DI {
             return singletonInstanceServiceBuilder;
         }
 
-        public FactoryServiceBuilder<T> Register<T>(Func<T> factory) where T : class => Register<T>().With(factory);
+        public FactoryServiceBuilder<T> Register<T>(Func<T> factory) where T : class {
+            return Register<T>().With(factory);
+        }
 
-        public FactoryServiceBuilder<T> Register<T>(Lifestyle lifestyle) where T : class =>
-            Register<T>().Lifestyle(lifestyle);
+        public FactoryServiceBuilder<T> Register<T>(Lifestyle lifestyle) where T : class {
+            return Register<T>().Lifestyle(lifestyle);
+        }
 
         public FactoryServiceBuilder<T> Register<T>() where T : class {
             var factoryServiceBuilder = new FactoryServiceBuilder<T>(this);
@@ -42,9 +45,8 @@ namespace Betauer.DI {
             return factoryServiceBuilder;
         }
 
-        public FactoryServiceBuilder<object> Register(Type type) {
-            var factoryServiceBuilder = new FactoryServiceBuilder<object>(this);
-            factoryServiceBuilder.As(type);
+        public RuntimeFactoryServiceBuilder Register(Type type) {
+            var factoryServiceBuilder = new RuntimeFactoryServiceBuilder(this, type);
             Pending.AddLast(factoryServiceBuilder);
             return factoryServiceBuilder;
         }
