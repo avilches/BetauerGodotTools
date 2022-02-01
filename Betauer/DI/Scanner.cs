@@ -66,7 +66,7 @@ namespace Betauer.DI {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
                     false) is ServiceAttribute sa) {
                 // What if type is an interface
-                _container.Register(sa.Lifestyle, type);
+                _container.Register(type).Lifestyle(sa.Lifestyle);
             }
         }
 
