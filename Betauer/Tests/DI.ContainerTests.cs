@@ -7,9 +7,6 @@ using NUnit.Framework;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests {
-    public interface IInterfaceAlone {
-    }
-
     public interface IInterface1 {
     }
 
@@ -45,12 +42,15 @@ namespace Betauer.Tests {
             }
         }
 
+        /*
+         * Singleton instances
+         */
         [Test(Description = "When register a non typed singleton instance, its type and all interfaces are used")]
         public void RegisterSingletonInstanceServiceAllTypes() {
             var di = new Container(this);
             IService s = null;
 
-            // by instance (just a class)
+            // Class with no interfaces
             var node = new Node();
             // Ensure IDisposable is ignored. Assert that Node implements IDisposable
             Assert.That(typeof(Node).GetInterfaces(), Contains.Item(typeof(IDisposable)));
@@ -62,21 +62,13 @@ namespace Betauer.Tests {
             Assert.That(di.Resolve(typeof(Node)), Is.EqualTo(node));
             Assert.That(di.Resolve<Node>(), Is.EqualTo(node));
 
-            // by instance (class with all interfaces)
-            di = new Container(this);
-            var classWith1Interface = new ClassWith1Interface();
-            s = di.RegisterSingleton(classWith1Interface);
-            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith1Interface)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.Resolve(di), Is.EqualTo(classWith1Interface));
-            Assert.That(di.Resolve(typeof(ClassWith1Interface)), Is.EqualTo(classWith1Interface));
-            Assert.That(di.Resolve<ClassWith1Interface>(), Is.EqualTo(classWith1Interface));
-            Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(classWith1Interface));
-            Assert.That(di.Resolve<IInterface1>(), Is.EqualTo(classWith1Interface));
+            // Instances of the same Type can be overriden
+            var instance2 = new Node();
+            di.RegisterSingleton(instance2);
+            Assert.That(di.Resolve<Node>(), Is.EqualTo(instance2));
+            Assert.That(di.Resolve(typeof(Node)), Is.EqualTo(instance2));
 
-            // by instance (class with nested interfaces)
+            // Class with nested interfaces
             di = new Container(this);
             var classWith2Interfaces = new ClassWith2Interfaces();
             s = di.RegisterSingleton(classWith2Interfaces);
@@ -97,12 +89,11 @@ namespace Betauer.Tests {
             Assert.That(di.Resolve<IInterface2_2>(), Is.EqualTo(classWith2Interfaces));
         }
 
-        [Test(Description = "When register a Typed singleton instance with an interface as Type, it only uses the interfaces")]
+        [Test(Description =
+            "When register a Typed singleton instance with an interface as Type, it only uses the interfaces")]
         public void RegisterSingletonInstanceServiceOnlySpecifiedType() {
             var di = new Container(this);
             IService s = null;
-
-            di = new Container(this);
 
             // by interfaces only. Try to resolve using the class will not work
             var mySingleton = new ClassWith2Interfaces();
@@ -120,6 +111,88 @@ namespace Betauer.Tests {
             }
             try {
                 Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton));
+                Assert.That(false, "It should fail!");
+            } catch (KeyNotFoundException e) {
+            }
+        }
+
+        [Test(Description =
+            "When register a Typed singleton instance with an interface as Type, it only uses the interfaces")]
+        public void RegisterSingletonInstanceServiceOnlySpecifiedTypeGeneric() {
+            var di = new Container(this);
+            IService s = null;
+
+            // by interfaces only. Try to resolve using the class will not work
+            var mySingleton = new ClassWith2Interfaces();
+            s = di.RegisterSingleton<IInterface2>(mySingleton);
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.Resolve(di), Is.EqualTo(mySingleton));
+            Assert.That(di.Resolve(typeof(IInterface2)), Is.EqualTo(mySingleton));
+            try {
+                Assert.That(di.Resolve(typeof(ClassWith2Interfaces)), Is.EqualTo(mySingleton));
+                Assert.That(false, "It should fail!");
+            } catch (KeyNotFoundException e) {
+            }
+            try {
+                Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton));
+                Assert.That(false, "It should fail!");
+            } catch (KeyNotFoundException e) {
+            }
+        }
+
+
+        /*
+         * Factories
+         */
+        [Test(Description = "Register a typed factory will use Type and all interfaces too")]
+        public void RegisterTypedTypedFactoryWithInterfaces() {
+            var di = new Container(this);
+            var s = di.Register(Lifestyle.Transient, () => new ClassWith1Interface());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith1Interface)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve(typeof(ClassWith1Interface)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+
+            di = new Container(this);
+            s = di.Register(Lifestyle.Transient, () => new ClassWith2Interfaces());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(4));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(di.Resolve(typeof(ClassWith2Interfaces)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve(typeof(IInterface2_2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+        }
+
+        [Test(Description = "Register a interfaced factory the interfaces of the interfaces only")]
+        public void RegisterTypedTypedFactoryWithInterfaces2() {
+            var di = new Container(this);
+            var s = di.Register(Lifestyle.Transient, () => (IInterface1)new ClassWith1Interface());
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+
+            try {
+                di.Resolve(typeof(ClassWith1Interface));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
@@ -154,38 +227,28 @@ namespace Betauer.Tests {
             }
         }
 
-        [Test(Description = "Register a typed factory will use Type and all interfaces too")]
-        public void RegisterTypedTypedFactoryWithInterfaces() {
+        [Test(Description = "Registered a Factory with specific interface type is only registered by its interface")]
+        public void RegisterTypedFactoryWithInterface() {
             var di = new Container(this);
-            var s = di.Register(Lifestyle.Transient, () => new ClassWith1Interface());
+            IService s = null;
+            // factory typed with specific interface
+            di = new Container(this);
+            s = di.Register<IInterface2>(Lifestyle.Transient, () => new ClassWith2Interfaces());
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
             Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith1Interface)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve(typeof(ClassWith1Interface)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-        }
-
-        [Test(Description = "Register a interfaced factory the interfaces of the interfaces only")]
-        public void RegisterTypedTypedFactoryWithInterfaces2() {
-            var di = new Container(this);
-            var s = di.Register(Lifestyle.Transient, () => (IInterface1)new ClassWith1Interface());
-            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
             try {
-                di.Resolve(typeof(ClassWith1Interface));
+                // The instance type can't be resolved, it's only possible if the interface type is used
+                di.Resolve(typeof(IInterface1));
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
         }
+
+        /*
+         * Auto factories
+         */
 
         [Test(Description = "Auto factories with interfaces are not allowed")]
         public void RegisterAutoFactoryWithInterfacesIsNotAllowed() {
@@ -235,10 +298,13 @@ namespace Betauer.Tests {
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-
         }
 
-        [Test(Description = "Factories")]
+        /*
+         * Factories
+         */
+
+        [Test(Description = "Factories lifestyle")]
         public void RegisterFactory() {
             var di = new Container(this);
             IService s = null;
@@ -260,43 +326,11 @@ namespace Betauer.Tests {
             s = di.Register(Lifestyle.Singleton, typeof(CanvasItem), () => new Control());
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
             Assert.That(s.GetServiceTypes(), Contains.Item(typeof(CanvasItem)));
-
-            // factory typed with specific interface
-            di = new Container(this);
-            s = di.Register<IInterface2>(Lifestyle.Transient, () => new ClassWith2Interfaces());
-            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
-            try {
-                // The instance type can't be resolved, it's only possible if the interface type is used
-                di.Resolve(typeof(IInterface1));
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-
-
-            // factory typed include all the interfaces
-            di = new Container(this);
-            s = di.Register(Lifestyle.Transient, () => new ClassWith2Interfaces());
-            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(4));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
-            Assert.That(di.Resolve(typeof(ClassWith2Interfaces)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve(typeof(IInterface2_2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
-
         }
 
+        /*
+         * OnInstanceCreated
+         */
         [Test(Description = "Singleton instance OnInstanceCreated. No need to resolve to execute the hook")]
         public void RegisterSingletonInstanceOnInstanceCreated() {
             var di = new Container(this);
@@ -351,91 +385,6 @@ namespace Betauer.Tests {
 
             di.Resolve<Node>();
             Assert.That(GetChildren().Contains(instance));
-        }
-
-        /*
-         * Access to singleton instance by type
-         */
-
-        [Test(Description = "Register a Singleton instance is only accessible by its Type")]
-        public void RegisterSingletonInstance() {
-            var di = new Container(this);
-
-            // Register instance
-            var instance = new Node();
-            di.RegisterSingleton(instance);
-            Assert.That(di.Resolve<Node>(), Is.EqualTo(instance));
-            Assert.That(di.Resolve(typeof(Node)), Is.EqualTo(instance));
-
-            // Instances of the same Type can be overriden
-            var instance2 = new Node();
-            di.RegisterSingleton(instance2);
-            Assert.That(di.Resolve<Node>(), Is.EqualTo(instance2));
-            Assert.That(di.Resolve(typeof(Node)), Is.EqualTo(instance2));
-        }
-
-        [Test(Description =
-            "Register a Singleton instance with an interface as Type is only accessible by interface - Generic")]
-        public void RegisterSingletonInterfaceUsingGeneric() {
-            var di = new Container(this);
-
-            var mySingleton = new ClassWith1Interface();
-            di.RegisterSingleton<IInterface1>(mySingleton);
-            Assert.That(di.Resolve<IInterface1>(), Is.EqualTo(mySingleton));
-            Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton));
-            try {
-                // The instance type can't be resolved, it's only possible if the interface type is used
-                di.Resolve(typeof(ClassWith1Interface));
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-
-            // Interface can be overriden by other instance of other type
-            var mySingleton2 = new ClassWith2Interfaces();
-            di.RegisterSingleton<IInterface1>(mySingleton2);
-            Assert.That(di.Resolve<IInterface1>(), Is.EqualTo(mySingleton2));
-            Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton2));
-            try {
-                di.Resolve(typeof(ClassWith2Interfaces));
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-        }
-
-        [Test(Description =
-            "Register a Singleton instance with an interface as Type is only accessible by interface - Type")]
-        public void RegisterSingletonInterfaceUsingType() {
-            var di = new Container(this);
-
-            var mySingleton = new ClassWith1Interface();
-            // The instance should implement the interface
-            di.RegisterSingleton(typeof(IInterface1), mySingleton);
-            Assert.That(di.Resolve<IInterface1>(), Is.EqualTo(mySingleton));
-            Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton));
-            try {
-                // The instance type can't be resolved, it's only possible if the interface type is used
-                di.Resolve(typeof(ClassWith1Interface));
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-
-            // Interface can be overriden by other instance of other type
-            var mySingleton2 = new ClassWith2Interfaces();
-            di.RegisterSingleton(typeof(IInterface1), mySingleton2);
-            Assert.That(di.Resolve<IInterface1>(), Is.EqualTo(mySingleton2));
-            Assert.That(di.Resolve(typeof(IInterface1)), Is.EqualTo(mySingleton2));
-            try {
-                di.Resolve(typeof(ClassWith2Interfaces));
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-
-            try {
-                // The instance type doesn't match the interface, so it fails
-                di.RegisterSingleton(typeof(IInterfaceAlone), mySingleton);
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-            }
         }
 
         /**
