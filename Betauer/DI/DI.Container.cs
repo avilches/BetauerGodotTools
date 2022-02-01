@@ -115,37 +115,24 @@ namespace Betauer.DI {
     }
 
     public interface ServiceBuilder {
-        IService Build();
+        public IService Build();
     }
 
-    public class SingletonInstanceServiceBuilder<T> : ServiceBuilder {
-        private T _instance;
-        private Container _container;
+    public abstract class ServiceBuilder<T> : ServiceBuilder {
+        protected readonly HashSet<Type> _types = new HashSet<Type>();
+        protected Container _container;
 
-        public SingletonInstanceServiceBuilder(Container container, T instance) {
-            _container = container;
-            _instance = instance;
-        }
 
-        private readonly HashSet<Type> _types = new HashSet<Type>();
-
-        public SingletonInstanceServiceBuilder<T> As(Type type) {
-            _types.Add(type);
+        public ServiceBuilder<T> As<TR>() => As(typeof(TR));
+        public ServiceBuilder<T> AsAll<TR>() => AsAll(typeof(TR));
+        public ServiceBuilder<T> AsAll(Type type) => AsAll(GetTypesFrom(type));
+        public ServiceBuilder<T> AsAll(IEnumerable<Type> types) {
+            foreach (var type in types) As(type);
             return this;
         }
 
-        public SingletonInstanceServiceBuilder<T> As<TR>() => As(typeof(TR));
-
-        public SingletonInstanceServiceBuilder<T> AsAll<TR>() => AsAll(typeof(TR));
-        public SingletonInstanceServiceBuilder<T> AsAll(Type type) => AsAll(GetTypesFrom(type));
-
-        public SingletonInstanceServiceBuilder<T> AsAll(IEnumerable<Type> types) {
-            foreach (var type in types) {
-                if (!type.IsInstanceOfType(_instance)) {
-                    throw new ArgumentException("Instance is not type of " + type);
-                }
-                _types.Add(type);
-            }
+        public ServiceBuilder<T> As(Type type) {
+            _types.Add(type);
             return this;
         }
 
@@ -158,8 +145,29 @@ namespace Betauer.DI {
 
         public IService Build() {
             _container.Pending.Remove(this);
+            var service = CreateService();
+            _container.Register(service);
+            return service;
+        }
+        protected abstract IService CreateService();
+    }
+
+    public class SingletonInstanceServiceBuilder<T> : ServiceBuilder<T> {
+        private T _instance;
+
+        public SingletonInstanceServiceBuilder(Container container, T instance) {
+            _container = container;
+            _instance = instance;
+        }
+
+        protected override IService CreateService() {
             if (_types.Count == 0) {
                 AsAll(_instance.GetType());
+            }
+            foreach (var type in _types) {
+                if (!type.IsInstanceOfType(_instance)) {
+                    throw new ArgumentException("Instance is not type of " + type);
+                }
             }
             var singletonInstanceService = new SingletonInstanceService(_types.ToArray(), _instance);
             _container.Register(singletonInstanceService);
