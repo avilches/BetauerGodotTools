@@ -27,8 +27,8 @@ namespace Betauer.DI {
         protected T CreateInstance(ResolveContext context) {
             var o = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                Logger.Debug("Creating " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " " +
-                             (o == null ? "null" : o.GetHashCode().ToString("X")));
+                Logger.Debug("Creating " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
             }
             context.AfterCreate(o);
             return o;
@@ -49,6 +49,12 @@ namespace Betauer.DI {
 
         public override object Resolve(ResolveContext context) {
             if (_singletonDefined) return _singleton;
+            if (context.Has<T>()) {
+                T o = context.Get<T>();
+                Logger.Debug("Resolving from context " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
+                return o;
+            }
             lock (this) {
                 // Just in case another thread was waiting for the lock
                 if (_singletonDefined) return _singleton;
@@ -66,6 +72,12 @@ namespace Betauer.DI {
         public override Lifestyle GetLifestyle() => Lifestyle.Transient;
 
         public override object Resolve(ResolveContext context) {
+            if (context.Has<T>()) {
+                T o = context.Get<T>();
+                Logger.Debug("Resolving from context " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
+                return o;
+            }
             return CreateInstance(context);
         }
     }

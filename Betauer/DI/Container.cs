@@ -105,11 +105,7 @@ namespace Betauer.DI {
 
         internal object Resolve(Type type, ResolveContext context) {
             var provider = _registry[type];
-            // GD.Print("Container. Finding for " + type + ". Stack: " + string.Join(",", context.Stack));
-            context.Add(type);
             var o = provider.Resolve(context);
-            context.End();
-            // GD.Print("Container. Resolving " + type + ": " + (o == null ? "null" : o.GetHashCode().ToString("X")));
             return o;
         }
 
