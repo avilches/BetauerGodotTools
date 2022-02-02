@@ -10,21 +10,7 @@ namespace Betauer.DI {
     public interface IProvider {
         public Type[] GetRegisterTypes();
         public Lifestyle GetLifestyle();
-        public object Resolve(Container repository);
-    }
-
-    public class SingletonInstanceProvider<T> : IProvider {
-        private readonly Type[] _types;
-        private readonly T _instance;
-
-        public SingletonInstanceProvider(Type[] types, T instance) {
-            _types = types;
-            _instance = instance;
-        }
-
-        public Lifestyle GetLifestyle() => Lifestyle.Singleton;
-        public Type[] GetRegisterTypes() => _types;
-        public object Resolve(Container repository) => _instance;
+        public object Resolve(ResolveContext context);
     }
 
     public abstract class FactoryProvider<T> : IProvider where T : class {
@@ -38,18 +24,18 @@ namespace Betauer.DI {
             _types = types;
         }
 
-        protected T CreateInstance(Container repository) {
+        protected T CreateInstance(ResolveContext context) {
             var o = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
                 Logger.Debug("Creating " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " " +
                              (o == null ? "null" : o.GetHashCode().ToString("X")));
             }
-            repository.AfterCreate(o);
+            context.AfterCreate(o);
             return o;
         }
 
         public abstract Lifestyle GetLifestyle();
-        public abstract object Resolve(Container repository);
+        public abstract object Resolve(ResolveContext context);
     }
 
     public class SingletonFactoryProvider<T> : FactoryProvider<T> where T : class {
@@ -61,12 +47,12 @@ namespace Betauer.DI {
 
         public override Lifestyle GetLifestyle() => Lifestyle.Singleton;
 
-        public override object Resolve(Container repository) {
+        public override object Resolve(ResolveContext context) {
             if (_singletonDefined) return _singleton;
             lock (this) {
                 // Just in case another thread was waiting for the lock
                 if (_singletonDefined) return _singleton;
-                _singleton = CreateInstance(repository);
+                _singleton = CreateInstance(context);
                 _singletonDefined = true;
             }
             return _singleton;
@@ -79,8 +65,8 @@ namespace Betauer.DI {
 
         public override Lifestyle GetLifestyle() => Lifestyle.Transient;
 
-        public override object Resolve(Container repository) {
-            return CreateInstance(repository);
+        public override object Resolve(ResolveContext context) {
+            return CreateInstance(context);
         }
     }
 

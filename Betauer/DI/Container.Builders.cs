@@ -49,30 +49,6 @@ namespace Betauer.DI {
         protected abstract IProvider CreateProvider();
     }
 
-    public class SingletonInstanceProviderBuilder<T> : BaseProviderBuilder<SingletonInstanceProviderBuilder<T>> {
-        private readonly T _instance;
-
-        public SingletonInstanceProviderBuilder(Container? container, T instance) : base(container) {
-            _instance = instance ?? throw new ArgumentNullException(nameof(instance));
-        }
-
-        protected override IProvider CreateProvider() {
-            Types.Remove(typeof(IDisposable));
-            if (Types.Count == 0) {
-                As(_instance.GetType());
-            }
-            foreach (var type in Types) {
-                if (!type.IsInstanceOfType(_instance)) {
-                    throw new ArgumentException("Instance is not type of " + type);
-                }
-            }
-            var singletonInstanceProvider = new SingletonInstanceProvider<T>(Types.ToArray(), _instance);
-            Container.AfterCreate(_instance);
-            return singletonInstanceProvider;
-        }
-    }
-
-
     public abstract class LifestyleFactoryBaseProviderBuilder<TBuilder> : BaseProviderBuilder<TBuilder>
         where TBuilder : class {
         protected Lifestyle _lifestyle = DI.Lifestyle.Singleton;

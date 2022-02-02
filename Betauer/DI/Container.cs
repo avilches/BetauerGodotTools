@@ -2,9 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.DI {
+    public class ResolveContext {
+        public readonly Stack<Type> Stack = new Stack<Type>();
+        public readonly Container Container;
+
+        public ResolveContext(Container container) {
+            Container = container;
+        }
+
+        internal void Add(Type type) {
+            Stack.Push(type);
+        }
+
+        internal void End() {
+            Stack.Pop();
+        }
+
+        public void AfterCreate<T>(T o) where T : class {
+            Container.AfterCreate(o, this);
+        }
+    }
+
     public class Container : Node {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
@@ -25,10 +45,8 @@ namespace Betauer.DI {
             }
         }
 
-        public SingletonInstanceProviderBuilder<T> Instance<T>(T instance) {
-            var builder = new SingletonInstanceProviderBuilder<T>(this, instance);
-            Pending.AddLast(builder);
-            return builder;
+        public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
+            return Register<T>().With(() => instance).Lifestyle(Lifestyle.Singleton);
         }
 
         public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
@@ -78,21 +96,31 @@ namespace Betauer.DI {
         }
 
         public object Resolve(Type type) {
+            return Resolve(type, new ResolveContext(this));
+        }
+
+        internal object Resolve(Type type, ResolveContext context) {
             var provider = _registry[type];
-            GD.Print("Container. Finding for " + type);
-            var o = provider.Resolve(this);
-            GD.Print("Container. Resolving " + type + ": " + (o == null ? "null" : o.GetHashCode().ToString("X")));
+            // GD.Print("Container. Finding for " + type + ". Stack: " + string.Join(",", context.Stack));
+            context.Add(type);
+            var o = provider.Resolve(context);
+            context.End();
+            // GD.Print("Container. Resolving " + type + ": " + (o == null ? "null" : o.GetHashCode().ToString("X")));
             return o;
         }
 
-        internal void AfterCreate<T>(T instance) {
+        internal void AfterCreate<T>(T instance, ResolveContext context) {
             OnInstanceCreated?.Invoke(instance);
             if (instance is Node node) Owner.AddChild(node);
-            AutoWire(instance);
+            AutoWire(instance, context);
         }
 
         public void AutoWire(object o) {
-            Scanner.AutoWire(o);
+            AutoWire(o, new ResolveContext(this));
+        }
+
+        internal void AutoWire(object o, ResolveContext context) {
+            Scanner.AutoWire(o, context);
         }
 
         public void LoadOnReadyNodes(Node o) {

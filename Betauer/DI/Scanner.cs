@@ -84,23 +84,23 @@ namespace Betauer.DI {
             }
         }
 
-        public void AutoWire(object instance) {
-            InjectFields(instance);
+        internal void AutoWire(object instance, ResolveContext context) {
+            InjectFields(instance, context);
         }
 
-        private void InjectFields(object target) {
+        private void InjectFields(object target, ResolveContext context) {
             _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
             var fields = target.GetType()
                 .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             foreach (var field in fields) {
                 if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                GD.Print("Injecting fields "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
+                // GD.Print("Injecting fields "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
                 if (!_container.Exist(field.FieldType)) {
                     throw new InjectFieldException(field, target, "Injectable property [" + field.FieldType.Name + " " + field.Name +
                                                    "] not found while injecting fields in " + target.GetType().Name);
                 }
-                var service = _container.Resolve(field.FieldType);
+                var service = _container.Resolve(field.FieldType, context);
                 field.SetValue(target, service);
             }
         }
