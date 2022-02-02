@@ -7,7 +7,7 @@ using Container = Betauer.DI.Container;
 namespace Betauer.Tests.DI {
     [TestFixture]
     public class ScannerCircularTests : Node {
-        [Service]
+        [Singleton]
         public class SingletonA {
             public static int Created = 0;
 
@@ -16,7 +16,7 @@ namespace Betauer.Tests.DI {
             }
             [Inject] internal SingletonB sb;
         }
-        [Service]
+        [Singleton]
         public class SingletonB {
             public static int Created = 0;
 
@@ -26,7 +26,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal SingletonC sc;
         }
 
-        [Service]
+        [Singleton]
         public class SingletonC {
             public static int Created = 0;
 
@@ -65,7 +65,7 @@ namespace Betauer.Tests.DI {
 
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class TransientA {
             public static int Created = 0;
 
@@ -75,7 +75,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal TransientB sb;
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class TransientB {
             public static int Created = 0;
 
@@ -85,7 +85,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal TransientC sc;
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class TransientC {
             public static int Created = 0;
 
@@ -122,7 +122,7 @@ namespace Betauer.Tests.DI {
 
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class MultiTransientA {
             public static int Created = 0;
 
@@ -134,7 +134,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class MultiTransientB {
             public static int Created = 0;
 
@@ -146,7 +146,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class MultiTransientC {
             public static int Created = 0;
 

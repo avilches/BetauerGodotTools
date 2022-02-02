@@ -10,7 +10,7 @@ namespace Betauer.Tests.DI {
         public interface INotTagged {
         }
 
-        [Service]
+        [Singleton]
         public class MyServiceWithNotScanned {
             [Inject] internal INotTagged singleton22;
         }
@@ -29,7 +29,7 @@ namespace Betauer.Tests.DI {
             }
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class EmptyTransient {
             public static int Created = 0;
 
@@ -38,7 +38,7 @@ namespace Betauer.Tests.DI {
             }
         }
 
-        [Service]
+        [Singleton]
         public class SingletonWith2Transients {
             public static int Created = 0;
 
@@ -50,7 +50,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal EmptyTransient et2;
         }
 
-        [Service(Scope = Scope.Singleton)]
+        [Singleton]
         public class MySingleton {
             public static int Created = 0;
 
@@ -96,7 +96,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
         }
 
-        [Service(Scope = Scope.Prototype)]
+        [Prototype]
         public class TransientService {
             public static int Created = 0;
 
@@ -139,37 +139,6 @@ namespace Betauer.Tests.DI {
             Assert.That(ts1, Is.Not.EqualTo(ts2));
             Assert.That(ts1.SingletonWith2Transients, Is.EqualTo(s1));
             Assert.That(ts2.SingletonWith2Transients, Is.EqualTo(s1));
-        }
-
-        [Singleton]
-        public class AttributeSingleton {
-        }
-
-        [Prototype]
-        public class AttributePrototype {
-        }
-
-        [Test(Description = "Inject transients in transient")]
-        public void AttributesSingleton() {
-            var di = new Container(this);
-
-            di.Scanner.Scan<AttributeSingleton>();
-            di.Scanner.Scan<AttributePrototype>();
-
-            Assert.That(di.Exist<AttributePrototype>(Scope.Prototype));
-            Assert.That(!di.Exist<AttributePrototype>(Scope.Singleton));
-            Assert.That(!di.Exist<AttributeSingleton>(Scope.Prototype));
-            Assert.That(di.Exist<AttributeSingleton>(Scope.Singleton));
-
-            var p1 = di.Resolve<AttributePrototype>();
-            var p2 = di.Resolve<AttributePrototype>();
-
-            Assert.That(p1, Is.Not.EqualTo(p2));
-
-            var s1 = di.Resolve<AttributeSingleton>();
-            var s2 = di.Resolve<AttributeSingleton>();
-
-            Assert.That(s1, Is.EqualTo(s2));
         }
     }
 }

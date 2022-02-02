@@ -19,17 +19,31 @@ namespace Betauer.DI {
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class ServiceAttribute : Attribute {
-        public Scope Scope { get; set; } = Scope.Singleton;
-    }
-
-    [AttributeUsage(AttributeTargets.Class)]
     public class SingletonAttribute : Attribute {
+        public Scope Name { get; set; } // TODO: use Name so more than one factory can be used per name
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class PrototypeAttribute : Attribute {
     }
+
+    // TODO: add [Component] attribute: it means the class has inside services exposed as methods like:
+    /*
+
+    [Prototype]
+    public Node CreatePepeBean() {
+        return new Node();
+    }
+
+    [Singleton]
+    public SaveGameManager CreateSaveGameManager() {
+        return new SaveGameManager();
+    }
+
+    // _container.Register<Node>(() => CreatePepeBean()).IsPrototype()
+    // _container.Register<SaveGameManager>(() => CreateSaveGameManager()).IsSingleton()
+
+     */
 
     public class InjectFieldException : Exception {
         public FieldInfo FieldInfo { get; }
@@ -85,11 +99,8 @@ namespace Betauer.DI {
         }
 
         public void Scan(Type type) {
-            if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
-                    false) is ServiceAttribute serviceAttribute) {
-                // TODO: include more types in the attribute
-                _container.Register(type, serviceAttribute.Scope, new Type[] { type }).Build();
-            } else if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
+            // TODO: include more types in the attribute
+            if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
                            false) is SingletonAttribute singletonAttribute) {
                 _container.Register(type, Scope.Singleton, new Type[] { type }).Build();
             } else if (Attribute.GetCustomAttribute(type, typeof(PrototypeAttribute),
