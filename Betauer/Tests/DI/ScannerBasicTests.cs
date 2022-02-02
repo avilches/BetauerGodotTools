@@ -29,7 +29,7 @@ namespace Betauer.Tests.DI {
             }
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class EmptyTransient {
             public static int Created = 0;
 
@@ -50,7 +50,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal EmptyTransient et2;
         }
 
-        [Service]
+        [Service(Scope = Scope.Singleton)]
         public class MySingleton {
             public static int Created = 0;
 
@@ -78,7 +78,7 @@ namespace Betauer.Tests.DI {
             var ms1 = di.Resolve<MySingleton>();
             var ms2 = di.Resolve<MySingleton>();
 
-            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
             Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
             Assert.That(MySingleton.Created, Is.EqualTo(1));
 
@@ -90,12 +90,13 @@ namespace Betauer.Tests.DI {
             Assert.That(ms2.singleton1, Is.EqualTo(s1));
             Assert.That(ms2.singleton2, Is.EqualTo(s1));
 
-            // Transient are all different: 1 in MyService singleton and 2 in SingletonWith2Transients
-            Assert.That(ms1.et, Is.Not.EqualTo(ms1.singleton1.et1));
-            Assert.That(ms1.et, Is.Not.EqualTo(ms1.singleton1.et2));
+            // Transient are different between the transient in MyService and the transients in SingletonWith2Transients
+            Assert.That(s1.et1, Is.EqualTo(s1.et2));
+            Assert.That(s1.et1, Is.Not.EqualTo(ms1.et));
+            Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class TransientService {
             public static int Created = 0;
 
@@ -121,19 +122,54 @@ namespace Betauer.Tests.DI {
             di.Scanner.Scan<EmptyTransient>();
             var s1 = di.Resolve<SingletonWith2Transients>();
 
+            Assert.That(EmptyTransient.Created, Is.EqualTo(1));
+            Assert.That(s1.et1, Is.EqualTo(s1.et2));
+
             var ts1 = di.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(1));
-            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+            Assert.That(s1.et1, Is.Not.EqualTo(ts1.et));
 
             var ts2 = di.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(2));
-            Assert.That(EmptyTransient.Created, Is.EqualTo(4));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
+            Assert.That(ts1.et, Is.Not.EqualTo(ts2.et));
 
             Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
-
             Assert.That(ts1, Is.Not.EqualTo(ts2));
             Assert.That(ts1.SingletonWith2Transients, Is.EqualTo(s1));
             Assert.That(ts2.SingletonWith2Transients, Is.EqualTo(s1));
+        }
+
+        [Singleton]
+        public class AttributeSingleton {
+        }
+
+        [Prototype]
+        public class AttributePrototype {
+        }
+
+        [Test(Description = "Inject transients in transient")]
+        public void AttributesSingleton() {
+            var di = new Container(this);
+
+            di.Scanner.Scan<AttributeSingleton>();
+            di.Scanner.Scan<AttributePrototype>();
+
+            Assert.That(di.Exist<AttributePrototype>(Scope.Prototype));
+            Assert.That(!di.Exist<AttributePrototype>(Scope.Singleton));
+            Assert.That(!di.Exist<AttributeSingleton>(Scope.Prototype));
+            Assert.That(di.Exist<AttributeSingleton>(Scope.Singleton));
+
+            var p1 = di.Resolve<AttributePrototype>();
+            var p2 = di.Resolve<AttributePrototype>();
+
+            Assert.That(p1, Is.Not.EqualTo(p2));
+
+            var s1 = di.Resolve<AttributeSingleton>();
+            var s2 = di.Resolve<AttributeSingleton>();
+
+            Assert.That(s1, Is.EqualTo(s2));
         }
     }
 }

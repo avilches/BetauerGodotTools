@@ -65,7 +65,7 @@ namespace Betauer.Tests.DI {
 
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class TransientA {
             public static int Created = 0;
 
@@ -75,7 +75,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal TransientB sb;
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class TransientB {
             public static int Created = 0;
 
@@ -85,7 +85,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal TransientC sc;
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class TransientC {
             public static int Created = 0;
 
@@ -122,7 +122,7 @@ namespace Betauer.Tests.DI {
 
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class MultiTransientA {
             public static int Created = 0;
 
@@ -134,7 +134,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class MultiTransientB {
             public static int Created = 0;
 
@@ -146,7 +146,7 @@ namespace Betauer.Tests.DI {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Service(Lifestyle = Lifestyle.Transient)]
+        [Service(Scope = Scope.Prototype)]
         public class MultiTransientC {
             public static int Created = 0;
 

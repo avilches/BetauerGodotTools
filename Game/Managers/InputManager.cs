@@ -4,7 +4,7 @@ using Betauer.Input;
 using Godot;
 
 namespace Veronenger.Game.Managers {
-    [Service]
+    [Singleton]
     public class InputManager {
         public readonly DirectionInput LateralMotion;
         public readonly DirectionInput VerticalMotion;

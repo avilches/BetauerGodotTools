@@ -5,7 +5,7 @@ using Betauer.Screen;
 using Godot;
 
 namespace Veronenger.Game.Managers {
-    [Service]
+    [Singleton]
     public class ScreenSettings {
         private const string Filename = "video.cfg";
 

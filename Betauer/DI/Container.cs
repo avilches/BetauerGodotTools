@@ -52,15 +52,15 @@ namespace Betauer.DI {
         }
 
         public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
-            return Register<T>().With(() => instance).Lifestyle(Lifestyle.Singleton);
+            return Register<T>().With(() => instance).Scope(Scope.Singleton);
         }
 
         public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
             return Register<T>().With(factory);
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Lifestyle lifestyle) where T : class {
-            return Register<T>().Lifestyle(lifestyle);
+        public FactoryProviderBuilder<T> Register<T>(Scope scope) where T : class {
+            return Register<T>().Scope(scope);
         }
 
         public FactoryProviderBuilder<T> Register<T>() where T : class {
@@ -69,8 +69,8 @@ namespace Betauer.DI {
             return builder;
         }
 
-        public IProviderBuilder Register(Type type, Lifestyle lifestyle = Lifestyle.Singleton, IEnumerable<Type> types = null) {
-            return FactoryProviderBuilder<object>.Create(this, type, lifestyle, types);
+        public IProviderBuilder Register(Type type, Scope scope = Scope.Singleton, params Type[] types) {
+            return FactoryProviderBuilder<object>.Create(this, type, scope, types);
         }
 
         public IProvider Add(IProvider provider) {
@@ -81,7 +81,7 @@ namespace Betauer.DI {
                 _registry[providerType] = provider;
             }
             if (_logger.IsEnabled(TraceLevel.Info)) {
-                _logger.Info("Registered " + provider.GetLifestyle() + " Type: " +
+                _logger.Info("Registered " + provider.GetScope() + " Type: " +
                              string.Join(",", provider.GetRegisterTypes().ToList()));
             }
             return provider;
@@ -91,12 +91,15 @@ namespace Betauer.DI {
             return (T)Resolve(typeof(T));
         }
 
-        public bool Exist<T>() {
-            return Exist(typeof(T));
+        public bool Exist<T>(Scope? scope = null) {
+            return Exist(typeof(T), scope);
         }
 
-        public bool Exist(Type key) {
-            return _registry.ContainsKey(key);
+        public bool Exist(Type key, Scope? scope = null) {
+            if (_registry.TryGetValue(key, out var o)) {
+                return scope == null || o.GetScope() == scope;
+            }
+            return false;
         }
 
         public object Resolve(Type type) {
@@ -109,22 +112,22 @@ namespace Betauer.DI {
             return o;
         }
 
-        internal void AfterCreate<T>(T instance, ResolveContext context) {
-            OnInstanceCreated?.Invoke(instance);
-            if (instance is Node node) Owner.AddChild(node);
-            AutoWire(instance, context);
-        }
-
         public void AutoWire(object o) {
             AutoWire(o, new ResolveContext(this));
+        }
+
+        public void LoadOnReadyNodes(Node o) {
+            Scanner.LoadOnReadyNodes(o);
         }
 
         internal void AutoWire(object o, ResolveContext context) {
             Scanner.AutoWire(o, context);
         }
 
-        public void LoadOnReadyNodes(Node o) {
-            Scanner.LoadOnReadyNodes(o);
+        internal void AfterCreate<T>(T instance, ResolveContext context) {
+            OnInstanceCreated?.Invoke(instance);
+            if (instance is Node node) Owner.AddChild(node);
+            AutoWire(instance, context);
         }
     }
 }

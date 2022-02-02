@@ -20,13 +20,16 @@ namespace Betauer.DI {
         }
 
         public TBuilder As<T>() => As(typeof(T));
+        public TBuilder As<T1, T2>() => As(typeof(T1), typeof(T2));
+        public TBuilder As<T1, T2, T3>() => As(typeof(T1), typeof(T2), typeof(T3));
+        public TBuilder As<T1, T2, T3, T4>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4));
+        public TBuilder As<T1, T2, T3, T4, T5>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
+
         public TBuilder AsAll<T>() => AsAll(typeof(T));
         public TBuilder AsAll(Type type) => As(GetTypesFrom(type));
 
-        public TBuilder As(IEnumerable<Type>? types) {
-            if (types != null) {
-                foreach (var type in types) As(type);
-            }
+        public TBuilder As(params Type[] types) {
+            foreach (var type in types) As(type);
             return (this as TBuilder)!;
         }
 
@@ -35,11 +38,11 @@ namespace Betauer.DI {
             return (this as TBuilder)!;
         }
 
-        private static IEnumerable<Type> GetTypesFrom(Type? type) {
+        private static Type[] GetTypesFrom(Type? type) {
             if (type == null) return new Type[] { };
             var types = type.GetInterfaces().ToList();
             types.Add(type);
-            return types;
+            return types.ToArray();
         }
 
         public IProvider Build() {
@@ -54,35 +57,36 @@ namespace Betauer.DI {
 
     public class FactoryProviderBuilder<T> : BaseProviderBuilder<FactoryProviderBuilder<T>>
         where T : class {
-        private Lifestyle _lifestyle = DI.Lifestyle.Singleton;
+        private Scope _scope = DI.Scope.Singleton;
         private Func<T>? _factory;
 
         public FactoryProviderBuilder(Container container) : base(container) {
         }
 
-        public FactoryProviderBuilder(Container container, Lifestyle lifestyle, IEnumerable<Type> types) :
+        public FactoryProviderBuilder(Container container, Scope scope, IEnumerable<Type> types) :
             base(container) {
-            _lifestyle = lifestyle;
-            As(types);
+            _scope = scope;
+            As(types.ToArray());
         }
 
-        public static IProviderBuilder Create(Container container, Type type,Lifestyle lifestyle = DI.Lifestyle.Singleton, IEnumerable<Type> types = null) {
+        public static IProviderBuilder Create(Container container, Type type,
+            Scope scope = DI.Scope.Singleton, IEnumerable<Type> types = null) {
             var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new Type[] { type });
             var ctor = factoryType.GetConstructors().First(info =>
                 info.GetParameters().Length == 3 &&
                 info.GetParameters()[0].ParameterType == typeof(Container) &&
-                info.GetParameters()[1].ParameterType == typeof(Lifestyle) &&
+                info.GetParameters()[1].ParameterType == typeof(Scope) &&
                 info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifestyle, types });
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, scope, types });
             return @this;
         }
 
-        public FactoryProviderBuilder<T> IsTransient() => Lifestyle(DI.Lifestyle.Transient);
-        public FactoryProviderBuilder<T> IsSingleton() => Lifestyle(DI.Lifestyle.Singleton);
+        public FactoryProviderBuilder<T> IsPrototype() => Scope(DI.Scope.Prototype);
+        public FactoryProviderBuilder<T> IsSingleton() => Scope(DI.Scope.Singleton);
 
-        public FactoryProviderBuilder<T> Lifestyle(Lifestyle? lifestyle) {
-            _lifestyle = lifestyle ?? throw new ArgumentNullException(nameof(lifestyle));
+        public FactoryProviderBuilder<T> Scope(Scope? scope) {
+            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
             return this;
         }
 
@@ -107,13 +111,12 @@ namespace Betauer.DI {
                                                    typeToBuild);
                 }
             }
-            IProvider provider = _lifestyle switch {
-                DI.Lifestyle.Singleton => new SingletonFactoryProvider<T>(Types.ToArray(), _factory),
-                DI.Lifestyle.Transient => new TransientFactoryProvider<T>(Types.ToArray(), _factory),
-                _ => throw new Exception("Unknown lifestyle " + _lifestyle)
+            IProvider provider = _scope switch {
+                DI.Scope.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory),
+                DI.Scope.Prototype => new PrototypeProvider<T>(Types.ToArray(), _factory),
+                _ => throw new Exception("Unknown scope " + _scope)
             };
             return provider;
         }
-
     }
 }

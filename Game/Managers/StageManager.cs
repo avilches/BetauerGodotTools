@@ -8,7 +8,7 @@ using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
 
-    [Service]
+    [Singleton]
     public class StageManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(StageManager));
         private Stage _enteredStage;

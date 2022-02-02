@@ -18,24 +18,23 @@ namespace Betauer.DI {
             Container = CreateContainer();
             Container.Scanner.Scan();
             Container.Instance<Func<SceneTree>>(GetTree);
-/*            DefaultRepository.Register<RootSceneHolder>((Node node) => {
-                Viewport root = GetTree().Root;
-                Node lastFound = node;
-                Node parent = lastFound.GetParent();
-                bool found = parent == root;
-                while (!found) {
-                    lastFound = parent;
-                    parent = lastFound.GetParent();
-                    found = parent == root;
-                }
-                RootSceneHolder sceneHolder = lastFound.GetNode<RootSceneHolder>(nameof(RootSceneHolder));
-                if (sceneHolder == null) {
-                    sceneHolder = new RootSceneHolder();
-                    lastFound.AddChild(sceneHolder);
-                }
-                return sceneHolder;
-            });
-*/
+            // Container.Register<RootSceneHolder>((Node node) => {
+            //     Viewport root = GetTree().Root;
+            //     Node lastFound = node;
+            //     Node parent = lastFound.GetParent();
+            //     bool found = parent == root;
+            //     while (!found) {
+            //         lastFound = parent;
+            //         parent = lastFound.GetParent();
+            //         found = parent == root;
+            //     }
+            //     RootSceneHolder sceneHolder = lastFound.GetNode<RootSceneHolder>(nameof(RootSceneHolder));
+            //     if (sceneHolder == null) {
+            //         sceneHolder = new RootSceneHolder();
+            //         lastFound.AddChild(sceneHolder);
+            //     }
+            //     return sceneHolder;
+            // });
             Container.Build();
             Container.AutoWire(this);
         }

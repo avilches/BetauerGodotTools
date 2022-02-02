@@ -20,14 +20,22 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Class)]
     public class ServiceAttribute : Attribute {
-        public Lifestyle Lifestyle { get; set; } = Lifestyle.Singleton;
+        public Scope Scope { get; set; } = Scope.Singleton;
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class SingletonAttribute : Attribute {
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class PrototypeAttribute : Attribute {
     }
 
     public class InjectFieldException : Exception {
         public FieldInfo FieldInfo { get; }
         public object Instance { get; }
 
-        public InjectFieldException(FieldInfo fieldInfo, object instance, string message) : base(message){
+        public InjectFieldException(FieldInfo fieldInfo, object instance, string message) : base(message) {
             FieldInfo = fieldInfo;
             Instance = instance;
         }
@@ -78,9 +86,15 @@ namespace Betauer.DI {
 
         public void Scan(Type type) {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
-                    false) is ServiceAttribute sa) {
+                    false) is ServiceAttribute serviceAttribute) {
                 // TODO: include more types in the attribute
-                _container.Register(type, sa.Lifestyle, new Type[]{ type }).Build();
+                _container.Register(type, serviceAttribute.Scope, new Type[] { type }).Build();
+            } else if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
+                           false) is SingletonAttribute singletonAttribute) {
+                _container.Register(type, Scope.Singleton, new Type[] { type }).Build();
+            } else if (Attribute.GetCustomAttribute(type, typeof(PrototypeAttribute),
+                           false) is PrototypeAttribute prototypeAttribute) {
+                _container.Register(type, Scope.Prototype, new Type[] { type }).Build();
             }
         }
 
@@ -95,10 +109,12 @@ namespace Betauer.DI {
             foreach (var field in fields) {
                 if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                _logger.Debug("Injecting field "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
+                _logger.Debug("Injecting field " + target.GetType() + "(" + target + ")." + field.Name + " " +
+                              field.FieldType.Name);
                 if (!_container.Exist(field.FieldType)) {
-                    throw new InjectFieldException(field, target, "Injectable property [" + field.FieldType.Name + " " + field.Name +
-                                                   "] not found while injecting fields in " + target.GetType().Name);
+                    throw new InjectFieldException(field, target,
+                        "Injectable property [" + field.FieldType.Name + " " + field.Name +
+                        "] not found while injecting fields in " + target.GetType().Name);
                 }
                 var service = _container.Resolve(field.FieldType, context);
                 field.SetValue(target, service);
@@ -126,7 +142,5 @@ namespace Betauer.DI {
                 property.SetValue(target, instance);
             }
         }
-
     }
-
 }
