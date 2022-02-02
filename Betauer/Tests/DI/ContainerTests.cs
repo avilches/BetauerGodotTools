@@ -7,8 +7,7 @@ using Godot;
 using NUnit.Framework;
 using Container = Betauer.DI.Container;
 
-namespace Betauer.Tests.DI
-{
+namespace Betauer.Tests.DI {
     public interface IInterface1 {
     }
 
@@ -31,7 +30,6 @@ namespace Betauer.Tests.DI
     public class ContainerTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
-            
             var di = new Container(this);
 
             // Not found types fail
@@ -287,10 +285,34 @@ namespace Betauer.Tests.DI
             IProvider s = null;
 
             di = new Container(this);
-            s = di.Register(typeof(ClassWith2Interfaces)).Build();
-            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
+            s = di.Register(typeof(ClassWith2Interfaces), Lifestyle.Transient).Build();
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(!di.Exist<IInterface1>());
+            Assert.That(!di.Exist<IInterface2>());
+            Assert.That(!di.Exist<IInterface2_2>());
+
+            // Runtime Type needs the array of type to be explicit
+            di = new Container(this);
+            s = di.Register(typeof(ClassWith2Interfaces), Lifestyle.Transient,
+                new Type[] { typeof(IInterface2), typeof(IInterface1) }).Build();
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(2));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(!di.Exist<ClassWith2Interfaces>());
+            Assert.That(!di.Exist<IInterface2_2>());
+
+            // Runtime Type will use the class registered type as default
+            di = new Container(this);
+            s = di.Register(typeof(ClassWith2Interfaces), Lifestyle.Transient).Build();
+            Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!di.Exist<IInterface1>());
             Assert.That(!di.Exist<IInterface2>());
@@ -336,9 +358,21 @@ namespace Betauer.Tests.DI
             } catch (InvalidCastException) {
             }
 
+            try {
+                di.Register(typeof(Node), Lifestyle.Singleton, new Type[] { typeof(IEnumerable) }).Build();
+                Assert.That(false, "It should fail!");
+            } catch (InvalidCastException) {
+            }
+
             // class is in an upper level than expected
             try {
                 di.Register<Node>().As<Sprite>().Build();
+                Assert.That(false, "It should fail!");
+            } catch (InvalidCastException) {
+            }
+
+            try {
+                di.Register(typeof(Node), Lifestyle.Singleton, new Type[] { typeof(Sprite) }).Build();
                 Assert.That(false, "It should fail!");
             } catch (InvalidCastException) {
             }
@@ -489,7 +523,7 @@ namespace Betauer.Tests.DI
         public void RegisterSingletonAutoFactory() {
             var di = new Container(this);
             var n = 0;
-            var s = di.Register(typeof(Node)).Build();
+            var s = di.Register(typeof(Node), Lifestyle.Singleton).Build();
 
             // Ensures that factory is called only the first time
             var instance1 = di.Resolve<Node>();
@@ -503,7 +537,7 @@ namespace Betauer.Tests.DI
         public void RegisterTransientAutoFactory() {
             var di = new Container(this);
             var n = 0;
-            var s = di.Register(typeof(Node)).IsTransient().Build();
+            var s = di.Register(typeof(Node), Lifestyle.Transient).Build();
 
             // Ensures that factory is called only the first time
             var instance1 = di.Resolve<Node>();

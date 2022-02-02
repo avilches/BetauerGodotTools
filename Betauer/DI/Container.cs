@@ -4,23 +4,29 @@ using System.Linq;
 using Godot;
 
 namespace Betauer.DI {
-    public class ResolveContext {
-        public readonly Stack<Type> Stack = new Stack<Type>();
-        public readonly Container Container;
+    internal class ResolvedEntry {
+        internal Type type;
+        public object instance;
+    }
 
-        public ResolveContext(Container container) {
+    public class ResolveContext {
+        internal readonly Dictionary<Type, object> _objects = new Dictionary<Type, object>();
+        internal readonly Container Container;
+
+        internal ResolveContext(Container container) {
             Container = container;
         }
 
-        internal void Add(Type type) {
-            Stack.Push(type);
+        internal bool Has<T>() {
+            return _objects.ContainsKey(typeof(T));
         }
 
-        internal void End() {
-            Stack.Pop();
+        internal T Get<T>() {
+            return (T)_objects[typeof(T)];
         }
 
-        public void AfterCreate<T>(T o) where T : class {
+        internal void AfterCreate<T>(T o) where T : class {
+            _objects[typeof(T)] = o;
             Container.AfterCreate(o, this);
         }
     }
@@ -63,10 +69,8 @@ namespace Betauer.DI {
             return builder;
         }
 
-        public RuntimeFactoryProviderBuilder Register(Type type) {
-            var builder = new RuntimeFactoryProviderBuilder(this, type);
-            Pending.AddLast(builder);
-            return builder;
+        public IProviderBuilder Register(Type type, Lifestyle lifestyle = Lifestyle.Singleton, IEnumerable<Type> types = null) {
+            return FactoryProviderBuilder<object>.Create(this, type, lifestyle, types);
         }
 
         public IProvider Add(IProvider provider) {

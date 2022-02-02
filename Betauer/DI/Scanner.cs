@@ -79,8 +79,8 @@ namespace Betauer.DI {
         public void Scan(Type type) {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
                     false) is ServiceAttribute sa) {
-                // What if type is an interface
-                _container.Register(type).Lifestyle(sa.Lifestyle).Build();
+                // TODO: include more types in the attribute
+                _container.Register(type, sa.Lifestyle, new Type[]{ type }).Build();
             }
         }
 
@@ -95,7 +95,7 @@ namespace Betauer.DI {
             foreach (var field in fields) {
                 if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                // GD.Print("Injecting fields "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
+                _logger.Debug("Injecting field "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
                 if (!_container.Exist(field.FieldType)) {
                     throw new InjectFieldException(field, target, "Injectable property [" + field.FieldType.Name + " " + field.Name +
                                                    "] not found while injecting fields in " + target.GetType().Name);
