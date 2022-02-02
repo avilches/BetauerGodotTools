@@ -7,7 +7,8 @@ using Godot;
 using NUnit.Framework;
 using Container = Betauer.DI.Container;
 
-namespace Betauer.Tests {
+namespace Betauer.Tests.DI
+{
     public interface IInterface1 {
     }
 
@@ -27,9 +28,10 @@ namespace Betauer.Tests {
     }
 
     [TestFixture]
-    public class RegisterTests : Node {
+    public class ContainerTests : Node {
         [Test(Description = "Types not found")]
         public void NotFound() {
+            
             var di = new Container(this);
 
             // Not found types fail
@@ -52,7 +54,7 @@ namespace Betauer.Tests {
         [Test(Description = "Register singleton instances ignores IDisposable")]
         public void RegisterSingletonInstanceIgnoreIDisposable() {
             var di = new Container(this);
-            IService s = null;
+            IProvider s = null;
 
             // Implicit ignore IDisposable (Node implements it)
             var node = new Node();
@@ -60,29 +62,29 @@ namespace Betauer.Tests {
             Assert.That(typeof(Node).GetInterfaces(), Contains.Item(typeof(IDisposable)));
 
             s = di.Instance(node).Build();
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(!di.Exist<IDisposable>());
 
             // Explicit ignore IDisposable (Node implements it)
             di = new Container(this);
             var mySingleton = new ClassWith2Interfaces();
             s = di.Instance(mySingleton).AsAll<IDisposable>().As<IDisposable>().Build();
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(!di.Exist<IDisposable>());
         }
 
         [Test(Description = "Register singleton instances")]
         public void RegisterSingletonInstanceServiceAllTypes() {
             var di = new Container(this);
-            IService s = null;
+            IProvider s = null;
 
             // Class with no interfaces
             var node = new Node();
             // Ensure IDisposable is ignored. Assert that Node implements IDisposable
             s = di.Instance(node).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(Node)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Node)));
             Assert.That(s.Resolve(di), Is.EqualTo(node));
             Assert.That(di.Resolve<Node>(), Is.EqualTo(node));
 
@@ -97,8 +99,8 @@ namespace Betauer.Tests {
             var classWith2Interfaces = new ClassWith2Interfaces();
             s = di.Instance(classWith2Interfaces).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(s.Resolve(di), Is.EqualTo(classWith2Interfaces));
             Assert.That(di.Resolve<ClassWith2Interfaces>(), Is.EqualTo(classWith2Interfaces));
             Assert.That(!di.Exist<IInterface1>());
@@ -111,8 +113,8 @@ namespace Betauer.Tests {
             var mySingleton = new ClassWith2Interfaces();
             s = di.Instance(mySingleton).As<IInterface2>().As<IDisposable>().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
             Assert.That(s.Resolve(di), Is.EqualTo(mySingleton));
             Assert.That(di.Resolve<IInterface2>(), Is.EqualTo(mySingleton));
             Assert.That(!di.Exist<ClassWith2Interfaces>());
@@ -129,8 +131,8 @@ namespace Betauer.Tests {
             // Use As<T>() by default
             var s = di.Register<ClassWith1Interface>(Lifestyle.Transient).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith1Interface)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith1Interface)));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(di.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(!di.Exist<IInterface1>());
@@ -144,11 +146,11 @@ namespace Betauer.Tests {
             di = new Container(this);
             var s = di.Register<ClassWith2Interfaces>().IsTransient().AsAll<ClassWith2Interfaces>().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(4));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(4));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
             Assert.That(di.Resolve(typeof(ClassWith2Interfaces)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
@@ -157,7 +159,7 @@ namespace Betauer.Tests {
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
         }
 
         [Test(Description = "Register a factory AsAll<interface>")]
@@ -165,9 +167,9 @@ namespace Betauer.Tests {
             var di = new Container(this);
             var s = di.Register<IInterface2>(() => new ClassWith2Interfaces()).AsAll<IInterface2>().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton)); // singleton by default
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(2));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(2));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve(typeof(IInterface2_2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
@@ -181,8 +183,8 @@ namespace Betauer.Tests {
         public void RegisterTypedTypedFactoryWithInterfaces2() {
             var di = new Container(this);
             var s = di.Register(() => (IInterface1)new ClassWith1Interface()).Build();
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
@@ -193,8 +195,8 @@ namespace Betauer.Tests {
         public void RegisterSubclassFactory() {
             var di = new Container(this);
             var s = di.Register<IInterface2>(() => new ClassWith2Interfaces()).Build();
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
@@ -204,8 +206,8 @@ namespace Betauer.Tests {
 
             di = new Container(this);
             s = di.Register(() => new Sprite()).As<CanvasItem>().Build();
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(CanvasItem)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(CanvasItem)));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(Sprite)));
             Assert.That(di.Resolve<CanvasItem>().GetType(), Is.EqualTo(typeof(Sprite)));
             Assert.That(!di.Exist<Sprite>());
@@ -215,25 +217,25 @@ namespace Betauer.Tests {
         [Test(Description = "Factories lifestyle")]
         public void RegisterFactory() {
             var di = new Container(this);
-            IService s = null;
+            IProvider s = null;
 
             // by typed factory
             s = di.Register(() => new Control()).IsTransient().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(Control)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Control)));
 
             s = di.Register(() => new Control()).IsSingleton().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(Control)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Control)));
 
             // by object typed factory + type
             s = di.Register<CanvasItem>(Lifestyle.Transient).With(() => new Control()).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(CanvasItem)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(CanvasItem)));
 
             s = di.Register<CanvasItem>(Lifestyle.Singleton).With(() => new Control()).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(CanvasItem)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(CanvasItem)));
         }
 
         [Test(Description = "Register factory with wrong type fails")]
@@ -243,16 +245,14 @@ namespace Betauer.Tests {
             try {
                 di.Register(() => new Node2D()).As<Sprite>().Build();
                 Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(Sprite)));
+            } catch (InvalidCastException) {
             }
 
-            // interface IEnumerable is not compatible with
+            // ClassWith2Interfaces doesn't implement IEnumerable
             try {
                 di.Register(() => new ClassWith2Interfaces()).AsAll<IEnumerable>().Build();
                 Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(IEnumerable)));
+            } catch (InvalidCastException) {
             }
         }
 
@@ -262,13 +262,13 @@ namespace Betauer.Tests {
         [Test(Description = "Auto factories with Type")]
         public void RegisterAutoFactory() {
             var di = new Container(this);
-            IService s = null;
+            IProvider s = null;
 
             // auto factory
             s = di.Register<ClassWith2Interfaces>(Lifestyle.Singleton).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!di.Exist<IInterface1>());
@@ -279,11 +279,11 @@ namespace Betauer.Tests {
             di = new Container(this);
             s = di.Register<ClassWith2Interfaces>(Lifestyle.Transient).AsAll<ClassWith2Interfaces>().Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Transient));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(4));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface1)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2)));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(4));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
@@ -293,13 +293,13 @@ namespace Betauer.Tests {
         [Test(Description = "Auto factories with Type in runtime")]
         public void RegisterRuntimeAutoFactory() {
             var di = new Container(this);
-            IService s = null;
+            IProvider s = null;
 
             di = new Container(this);
             s = di.Register(typeof(ClassWith2Interfaces)).Build();
             Assert.That(s.GetLifestyle(), Is.EqualTo(Lifestyle.Singleton));
-            Assert.That(s.GetServiceTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
-            Assert.That(s.GetServiceTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.Resolve(di).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!di.Exist<IInterface1>());
@@ -339,20 +339,18 @@ namespace Betauer.Tests {
                 Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
             }
 
-            // interface not implemented
+            // Node doesn't implement IEnumerable
             try {
-                di.Register<Node>().As<IInterface2_2>().Build();
+                di.Register<Node>().As<IEnumerable>().Build();
                 Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(IInterface2_2)));
+            } catch (InvalidCastException) {
             }
 
             // class is in an upper level than expected
             try {
                 di.Register<Node>().As<Sprite>().Build();
                 Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Instance is not a valid type for " + typeof(Sprite)));
+            } catch (InvalidCastException) {
             }
         }
 

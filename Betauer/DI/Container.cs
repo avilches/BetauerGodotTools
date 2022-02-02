@@ -6,7 +6,7 @@ using Object = Godot.Object;
 
 namespace Betauer.DI {
     public class Container : Node {
-        private readonly Dictionary<Type, IService> _registry = new Dictionary<Type, IService>();
+        private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public Action<object>? OnInstanceCreated;
         public Node Owner;
@@ -17,53 +17,52 @@ namespace Betauer.DI {
             Scanner = new Scanner(this);
         }
 
-        internal readonly LinkedList<IServiceBuilder> Pending = new LinkedList<IServiceBuilder>();
+        internal readonly LinkedList<IProviderBuilder> Pending = new LinkedList<IProviderBuilder>();
 
         public void Build() {
-            foreach (var serviceBuilder in Pending.ToList()) {
-                serviceBuilder.Build();
+            foreach (var providerBuilder in Pending.ToList()) {
+                providerBuilder.Build();
             }
         }
 
-        public SingletonInstanceServiceBuilder<T> Instance<T>(T instance) {
-            var singletonInstanceServiceBuilder = new SingletonInstanceServiceBuilder<T>(this, instance);
-            Pending.AddLast(singletonInstanceServiceBuilder);
-            return singletonInstanceServiceBuilder;
+        public SingletonInstanceProviderBuilder<T> Instance<T>(T instance) {
+            var builder = new SingletonInstanceProviderBuilder<T>(this, instance);
+            Pending.AddLast(builder);
+            return builder;
         }
 
-        public FactoryServiceBuilder<T> Register<T>(Func<T> factory) where T : class {
+        public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
             return Register<T>().With(factory);
         }
 
-        public FactoryServiceBuilder<T> Register<T>(Lifestyle lifestyle) where T : class {
+        public FactoryProviderBuilder<T> Register<T>(Lifestyle lifestyle) where T : class {
             return Register<T>().Lifestyle(lifestyle);
         }
 
-        public FactoryServiceBuilder<T> Register<T>() where T : class {
-            var factoryServiceBuilder = new FactoryServiceBuilder<T>(this);
-            Pending.AddLast(factoryServiceBuilder);
-            return factoryServiceBuilder;
+        public FactoryProviderBuilder<T> Register<T>() where T : class {
+            var builder = new FactoryProviderBuilder<T>(this);
+            Pending.AddLast(builder);
+            return builder;
         }
 
-        public RuntimeFactoryServiceBuilder Register(Type type) {
-            var factoryServiceBuilder = new RuntimeFactoryServiceBuilder(this, type);
-            Pending.AddLast(factoryServiceBuilder);
-            return factoryServiceBuilder;
+        public RuntimeFactoryProviderBuilder Register(Type type) {
+            var builder = new RuntimeFactoryProviderBuilder(this, type);
+            Pending.AddLast(builder);
+            return builder;
         }
 
-        public IService Add(IService service) {
-            if (service.GetServiceTypes().Length == 0) {
-                throw new Exception("Services with 0 types are not allowed");
+        public IProvider Add(IProvider provider) {
+            if (provider.GetRegisterTypes().Length == 0) {
+                throw new Exception("Provider withoout types are not allowed");
             }
-            foreach (var serviceType in service.GetServiceTypes()) {
-                _registry[serviceType] = service;
-                if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + service.GetLifestyle() + " Type " + serviceType.Name + ": " +
-                                 string.Join(",", service.GetServiceTypes().GetEnumerator()) + " (Assembly: " +
-                                 serviceType.Assembly.GetName() + ")");
-                }
+            foreach (var providerType in provider.GetRegisterTypes()) {
+                _registry[providerType] = provider;
             }
-            return service;
+            if (_logger.IsEnabled(TraceLevel.Info)) {
+                _logger.Info("Registered " + provider.GetLifestyle() + " Type: " +
+                             string.Join(",", provider.GetRegisterTypes().ToList()));
+            }
+            return provider;
         }
 
         public T Resolve<T>() {
@@ -79,8 +78,10 @@ namespace Betauer.DI {
         }
 
         public object Resolve(Type type) {
-            var service = _registry[type];
-            var o = service.Resolve(this);
+            var provider = _registry[type];
+            GD.Print("Container. Finding for " + type);
+            var o = provider.Resolve(this);
+            GD.Print("Container. Resolving " + type + ": " + (o == null ? "null" : o.GetHashCode().ToString("X")));
             return o;
         }
 

@@ -7,33 +7,33 @@ namespace Betauer.DI {
         Singleton
     }
 
-    public interface IService {
-        public Type[] GetServiceTypes();
+    public interface IProvider {
+        public Type[] GetRegisterTypes();
         public Lifestyle GetLifestyle();
         public object Resolve(Container repository);
     }
 
-    public class SingletonInstanceService<T> : IService {
+    public class SingletonInstanceProvider<T> : IProvider {
         private readonly Type[] _types;
         private readonly T _instance;
 
-        public SingletonInstanceService(Type[] types, T instance) {
+        public SingletonInstanceProvider(Type[] types, T instance) {
             _types = types;
             _instance = instance;
         }
 
         public Lifestyle GetLifestyle() => Lifestyle.Singleton;
-        public Type[] GetServiceTypes() => _types;
+        public Type[] GetRegisterTypes() => _types;
         public object Resolve(Container repository) => _instance;
     }
 
-    public abstract class FactoryService<T> : IService where T : class {
+    public abstract class FactoryProvider<T> : IProvider where T : class {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
         private readonly Type[] _types;
         private readonly Func<T> _factory;
-        public Type[] GetServiceTypes() => _types;
+        public Type[] GetRegisterTypes() => _types;
 
-        public FactoryService(Type[] types, Func<T> factory) {
+        public FactoryProvider(Type[] types, Func<T> factory) {
             _factory = factory;
             _types = types;
         }
@@ -41,9 +41,8 @@ namespace Betauer.DI {
         protected T CreateInstance(Container repository) {
             var o = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                Logger.Debug("Creating " + nameof(Lifestyle.Singleton) + " instance: " +
-                             string.Join(",", _types.GetEnumerator()) + " " +
-                             o.GetType().Name);
+                Logger.Debug("Creating " + nameof(Lifestyle.Singleton) + " " + o.GetType().Name + " " +
+                             (o == null ? "null" : o.GetHashCode().ToString("X")));
             }
             repository.AfterCreate(o);
             return o;
@@ -53,11 +52,11 @@ namespace Betauer.DI {
         public abstract object Resolve(Container repository);
     }
 
-    public class SingletonFactoryService<T> : FactoryService<T> where T : class {
+    public class SingletonFactoryProvider<T> : FactoryProvider<T> where T : class {
         private bool _singletonDefined;
         private T? _singleton;
 
-        public SingletonFactoryService(Type[] types, Func<T> factory) : base(types, factory) {
+        public SingletonFactoryProvider(Type[] types, Func<T> factory) : base(types, factory) {
         }
 
         public override Lifestyle GetLifestyle() => Lifestyle.Singleton;
@@ -67,15 +66,15 @@ namespace Betauer.DI {
             lock (this) {
                 // Just in case another thread was waiting for the lock
                 if (_singletonDefined) return _singleton;
-                _singletonDefined = true;
                 _singleton = CreateInstance(repository);
+                _singletonDefined = true;
             }
             return _singleton;
         }
     }
 
-    public class TransientFactoryService<T> : FactoryService<T> where T : class {
-        public TransientFactoryService(Type[] types, Func<T> factory) : base(types, factory) {
+    public class TransientFactoryProvider<T> : FactoryProvider<T> where T : class {
+        public TransientFactoryProvider(Type[] types, Func<T> factory) : base(types, factory) {
         }
 
         public override Lifestyle GetLifestyle() => Lifestyle.Transient;

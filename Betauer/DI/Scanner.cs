@@ -23,6 +23,16 @@ namespace Betauer.DI {
         public Lifestyle Lifestyle { get; set; } = Lifestyle.Singleton;
     }
 
+    public class InjectFieldException : Exception {
+        public FieldInfo FieldInfo { get; }
+        public object Instance { get; }
+
+        public InjectFieldException(FieldInfo fieldInfo, object instance, string message) : base(message){
+            FieldInfo = fieldInfo;
+            Instance = instance;
+        }
+    }
+
     public class Scanner {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Scanner));
 
@@ -62,6 +72,10 @@ namespace Betauer.DI {
             }
         }
 
+        public void Scan<T>() {
+            Scan(typeof(T));
+        }
+
         public void Scan(Type type) {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute),
                     false) is ServiceAttribute sa) {
@@ -75,18 +89,19 @@ namespace Betauer.DI {
         }
 
         private void InjectFields(object target) {
+            _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
             var fields = target.GetType()
                 .GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in fields) {
-                if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
+            foreach (var field in fields) {
+                if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                try {
-                    var found = _container.Resolve(property.FieldType);
-                    property.SetValue(target, found);
-                } catch (KeyNotFoundException) {
-                    throw new Exception("Injectable property [" + property.FieldType.Name + " " + property.Name +
-                                        "] not found while injecting fields in " + target.GetType().Name);
+                GD.Print("Injecting fields "+target.GetType()+"("+target+")."+field.Name+" "+field.FieldType.Name);
+                if (!_container.Exist(field.FieldType)) {
+                    throw new InjectFieldException(field, target, "Injectable property [" + field.FieldType.Name + " " + field.Name +
+                                                   "] not found while injecting fields in " + target.GetType().Name);
                 }
+                var service = _container.Resolve(field.FieldType);
+                field.SetValue(target, service);
             }
         }
 
