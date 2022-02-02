@@ -6,7 +6,6 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
-    [Only]
     public class ScannerCircularTests : Node {
         [Service]
         public class SingletonA {
