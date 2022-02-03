@@ -52,15 +52,15 @@ namespace Betauer.DI {
         }
 
         public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
-            return Register<T>().With(() => instance).Scope(Scope.Singleton);
+            return Register<T>().With(() => instance).Lifetime(Lifetime.Singleton);
         }
 
         public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
             return Register<T>().With(factory);
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Scope scope) where T : class {
-            return Register<T>().Scope(scope);
+        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime) where T : class {
+            return Register<T>().Lifetime(lifetime);
         }
 
         public FactoryProviderBuilder<T> Register<T>() where T : class {
@@ -69,8 +69,8 @@ namespace Betauer.DI {
             return builder;
         }
 
-        public IProviderBuilder Register(Type type, Scope scope = Scope.Singleton, params Type[] types) {
-            return FactoryProviderBuilder<object>.Create(this, type, scope, types);
+        public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton, params Type[] types) {
+            return FactoryProviderBuilder<object>.Create(this, type, lifetime, types);
         }
 
         public IProvider Add(IProvider provider) {
@@ -81,7 +81,7 @@ namespace Betauer.DI {
                 _registry[providerType] = provider;
             }
             if (_logger.IsEnabled(TraceLevel.Info)) {
-                _logger.Info("Registered " + provider.GetScope() + " Type: " +
+                _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
                              string.Join(",", provider.GetRegisterTypes().ToList()));
             }
             return provider;
@@ -91,13 +91,13 @@ namespace Betauer.DI {
             return (T)Resolve(typeof(T));
         }
 
-        public bool Exist<T>(Scope? scope = null) {
-            return Exist(typeof(T), scope);
+        public bool Exist<T>(Lifetime? lifetime = null) {
+            return Exist(typeof(T), lifetime);
         }
 
-        public bool Exist(Type key, Scope? scope = null) {
+        public bool Exist(Type key, Lifetime? lifetime = null) {
             if (_registry.TryGetValue(key, out var o)) {
-                return scope == null || o.GetScope() == scope;
+                return lifetime == null || o.GetLifetime() == lifetime;
             }
             return false;
         }

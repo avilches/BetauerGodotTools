@@ -29,7 +29,7 @@ namespace Betauer.Tests.DI {
             }
         }
 
-        [Prototype]
+        [Transient]
         public class EmptyTransient {
             public static int Created = 0;
 
@@ -96,7 +96,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
         }
 
-        [Prototype]
+        [Transient]
         public class TransientService {
             public static int Created = 0;
 

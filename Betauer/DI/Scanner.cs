@@ -20,17 +20,19 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Class)]
     public class SingletonAttribute : Attribute {
-        public Scope Name { get; set; } // TODO: use Name so more than one factory can be used per name
+        // public string Name { get; set; } // TODO: use Name so more than one factory can be used per name
+        // public Type Type { get; set;  }
+        // public Type[] Types { get; set;  }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class PrototypeAttribute : Attribute {
+    public class TransientAttribute : Attribute {
     }
 
     // TODO: add [Component] attribute: it means the class has inside services exposed as methods like:
     /*
 
-    [Prototype]
+    [Transient]
     public Node CreatePepeBean() {
         return new Node();
     }
@@ -40,7 +42,7 @@ namespace Betauer.DI {
         return new SaveGameManager();
     }
 
-    // _container.Register<Node>(() => CreatePepeBean()).IsPrototype()
+    // _container.Register<Node>(() => CreatePepeBean()).IsTransient()
     // _container.Register<SaveGameManager>(() => CreateSaveGameManager()).IsSingleton()
 
      */
@@ -55,6 +57,7 @@ namespace Betauer.DI {
         }
     }
 
+    [Singleton]
     public class Scanner {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Scanner));
 
@@ -102,10 +105,10 @@ namespace Betauer.DI {
             // TODO: include more types in the attribute
             if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
                            false) is SingletonAttribute singletonAttribute) {
-                _container.Register(type, Scope.Singleton, new Type[] { type }).Build();
-            } else if (Attribute.GetCustomAttribute(type, typeof(PrototypeAttribute),
-                           false) is PrototypeAttribute prototypeAttribute) {
-                _container.Register(type, Scope.Prototype, new Type[] { type }).Build();
+                _container.Register(type, Lifetime.Singleton, new Type[] { type }).Build();
+            } else if (Attribute.GetCustomAttribute(type, typeof(TransientAttribute),
+                           false) is TransientAttribute transientAttribute) {
+                _container.Register(type, Lifetime.Transient, new Type[] { type }).Build();
             }
         }
 

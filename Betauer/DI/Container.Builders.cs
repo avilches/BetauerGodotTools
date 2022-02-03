@@ -57,36 +57,36 @@ namespace Betauer.DI {
 
     public class FactoryProviderBuilder<T> : BaseProviderBuilder<FactoryProviderBuilder<T>>
         where T : class {
-        private Scope _scope = DI.Scope.Singleton;
+        private Lifetime _lifetime = DI.Lifetime.Singleton;
         private Func<T>? _factory;
 
         public FactoryProviderBuilder(Container container) : base(container) {
         }
 
-        public FactoryProviderBuilder(Container container, Scope scope, IEnumerable<Type> types) :
+        public FactoryProviderBuilder(Container container, Lifetime lifetime, IEnumerable<Type> types) :
             base(container) {
-            _scope = scope;
+            _lifetime = lifetime;
             As(types.ToArray());
         }
 
         public static IProviderBuilder Create(Container container, Type type,
-            Scope scope = DI.Scope.Singleton, IEnumerable<Type> types = null) {
+            Lifetime lifetime = DI.Lifetime.Singleton, IEnumerable<Type> types = null) {
             var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new Type[] { type });
             var ctor = factoryType.GetConstructors().First(info =>
                 info.GetParameters().Length == 3 &&
                 info.GetParameters()[0].ParameterType == typeof(Container) &&
-                info.GetParameters()[1].ParameterType == typeof(Scope) &&
+                info.GetParameters()[1].ParameterType == typeof(Lifetime) &&
                 info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, scope, types });
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, types });
             return @this;
         }
 
-        public FactoryProviderBuilder<T> IsPrototype() => Scope(DI.Scope.Prototype);
-        public FactoryProviderBuilder<T> IsSingleton() => Scope(DI.Scope.Singleton);
+        public FactoryProviderBuilder<T> IsTransient() => Lifetime(DI.Lifetime.Transient);
+        public FactoryProviderBuilder<T> IsSingleton() => Lifetime(DI.Lifetime.Singleton);
 
-        public FactoryProviderBuilder<T> Scope(Scope? scope) {
-            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
+        public FactoryProviderBuilder<T> Lifetime(Lifetime? lifetime) {
+            _lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
             return this;
         }
 
@@ -111,10 +111,10 @@ namespace Betauer.DI {
                                                    typeToBuild);
                 }
             }
-            IProvider provider = _scope switch {
-                DI.Scope.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory),
-                DI.Scope.Prototype => new PrototypeProvider<T>(Types.ToArray(), _factory),
-                _ => throw new Exception("Unknown scope " + _scope)
+            IProvider provider = _lifetime switch {
+                DI.Lifetime.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory),
+                DI.Lifetime.Transient => new TransientProvider<T>(Types.ToArray(), _factory),
+                _ => throw new Exception("Unknown lifetime " + _lifetime)
             };
             return provider;
         }

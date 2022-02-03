@@ -2,14 +2,14 @@ using System;
 using Godot;
 
 namespace Betauer.DI {
-    public enum Scope {
-        Prototype,
+    public enum Lifetime {
+        Transient,
         Singleton
     }
 
     public interface IProvider {
         public Type[] GetRegisterTypes();
-        public Scope GetScope();
+        public Lifetime GetLifetime();
         public object Resolve(ResolveContext context);
     }
 
@@ -27,14 +27,14 @@ namespace Betauer.DI {
         protected T CreateInstance(ResolveContext context) {
             var o = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                Logger.Debug("Creating " + nameof(Scope.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Creating " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
             }
             context.AfterCreate(o);
             return o;
         }
 
-        public abstract Scope GetScope();
+        public abstract Lifetime GetLifetime();
         public abstract object Resolve(ResolveContext context);
     }
 
@@ -45,13 +45,13 @@ namespace Betauer.DI {
         public SingletonProvider(Type[] types, Func<T> factory) : base(types, factory) {
         }
 
-        public override Scope GetScope() => Scope.Singleton;
+        public override Lifetime GetLifetime() => Lifetime.Singleton;
 
         public override object Resolve(ResolveContext context) {
             if (_singletonDefined) return _singleton;
             if (context.Has<T>()) {
                 T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + nameof(Scope.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Resolving from context " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
                 return o;
             }
@@ -65,16 +65,16 @@ namespace Betauer.DI {
         }
     }
 
-    public class PrototypeProvider<T> : FactoryProvider<T> where T : class {
-        public PrototypeProvider(Type[] types, Func<T> factory) : base(types, factory) {
+    public class TransientProvider<T> : FactoryProvider<T> where T : class {
+        public TransientProvider(Type[] types, Func<T> factory) : base(types, factory) {
         }
 
-        public override Scope GetScope() => Scope.Prototype;
+        public override Lifetime GetLifetime() => Lifetime.Transient;
 
         public override object Resolve(ResolveContext context) {
             if (context.Has<T>()) {
                 T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + nameof(Scope.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Resolving from context " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
                 return o;
             }
