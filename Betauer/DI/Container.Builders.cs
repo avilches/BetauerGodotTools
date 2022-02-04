@@ -42,7 +42,7 @@ namespace Betauer.DI {
         }
 
         public IProvider Build() {
-            Container.Pending.Remove(this);
+            Container.PendingToBuild.Remove(this);
             var provider = CreateProvider();
             Container.Add(provider);
             return provider;

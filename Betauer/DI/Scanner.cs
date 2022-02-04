@@ -61,7 +61,7 @@ namespace Betauer.DI {
     public class Scanner {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Scanner));
 
-        private Container _container;
+        private readonly Container _container;
 
         public Scanner(Container container) {
             _container = container;

@@ -37,18 +37,28 @@ namespace Betauer.DI {
         public Action<object>? OnInstanceCreated;
         public Node Owner;
         public readonly Scanner Scanner;
+        public bool CreateIfNotFound { get; set; }
+        public bool IsReady { get; private set; }
+
+        internal readonly LinkedList<IProviderBuilder> PendingToBuild = new LinkedList<IProviderBuilder>();
 
         public Container(Node owner) {
             Owner = owner;
             Scanner = new Scanner(this);
         }
 
-        internal readonly LinkedList<IProviderBuilder> Pending = new LinkedList<IProviderBuilder>();
-
         public void Build() {
-            foreach (var providerBuilder in Pending.ToList()) {
+            foreach (var providerBuilder in PendingToBuild.ToList()) {
                 providerBuilder.Build();
             }
+        }
+
+        public override void _Ready() {
+            IsReady = true;
+        }
+
+        public override void _ExitTree() {
+            IsReady = false;
         }
 
         public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
@@ -65,19 +75,19 @@ namespace Betauer.DI {
 
         public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
             var builder = new FactoryProviderBuilder<T>(this).Lifetime(lifetime);
-            Pending.AddLast(builder);
+            PendingToBuild.AddLast(builder);
             return builder;
         }
 
         public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton, params Type[] types) {
             var builder = FactoryProviderBuilder.Create(this, type, lifetime, types);
-            Pending.AddLast(builder);
+            PendingToBuild.AddLast(builder);
             return builder;
         }
 
         public IProvider Add(IProvider provider) {
             if (provider.GetRegisterTypes().Length == 0) {
-                throw new Exception("Provider withoout types are not allowed");
+                throw new Exception("Provider without types are not allowed");
             }
             foreach (var providerType in provider.GetRegisterTypes()) {
                 _registry[providerType] = provider;
@@ -104,14 +114,22 @@ namespace Betauer.DI {
             return false;
         }
 
-        // TODO: Allow to resolve any type, returning a Transient entity by default
         public object Resolve(Type type) {
             return Resolve(type, new ResolveContext(this));
         }
 
         internal object Resolve(Type type, ResolveContext context) {
-            var provider = _registry[type];
-            var o = provider.Resolve(context);
+            var found = _registry.TryGetValue(type, out IProvider provider);
+            if (found) return provider!.Resolve(context);
+            if (CreateIfNotFound) return CreateTransientInstance(type, context);
+            throw new KeyNotFoundException("Type not found: " + type.Name);
+        }
+
+        private object CreateTransientInstance(Type type, ResolveContext context) {
+            if (!type.IsClass || type.IsAbstract)
+                throw new ArgumentException("Can't create an instance of a interface or abstract class");
+            var o = Activator.CreateInstance(type);
+            AfterCreate(o, context);
             return o;
         }
 
@@ -129,7 +147,9 @@ namespace Betauer.DI {
 
         internal void AfterCreate<T>(T instance, ResolveContext context) {
             OnInstanceCreated?.Invoke(instance);
-            if (instance is Node node) Owner.AddChild(node);
+            if (instance is Node node) {
+                Owner.AddChild(node);
+            }
             AutoWire(instance, context);
         }
     }

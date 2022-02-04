@@ -46,6 +46,31 @@ namespace Betauer.Tests.DI {
             }
         }
 
+        [Test(Description = "Types not found -> create transient automatically")]
+        public void CreateTransientIfNotFound() {
+            var di = new Container(this);
+            di.CreateIfNotFound = true;
+
+            var n1 = di.Resolve<Node>();
+            var n2 = di.Resolve<Node>();
+            Assert.That(n1, Is.Not.Null);
+            Assert.That(n1, Is.Not.EqualTo(n2));
+
+            // Not allowed interfaces
+            try {
+                di.Resolve<IInterface1>();
+                Assert.That(false, "It should fail!");
+            } catch (ArgumentException e) {
+            }
+
+            // Not allowed abstract classes
+            try {
+                di.Resolve(typeof(AbstractClass));
+                Assert.That(false, "It should fail!");
+            } catch (ArgumentException e) {
+            }
+        }
+
         /*
          * Singleton instances
          */
@@ -149,7 +174,7 @@ namespace Betauer.Tests.DI {
 
             // AsAll with the class uses the Type and all the interfaces
             di = new Container(this);
-            var s = di.Register(() => new ClassWith1Interface()).IsTransient().AsAll<ClassWith2Interfaces>().Build();
+            var s = di.Register(() => new ClassWith2Interfaces()).IsTransient().AsAll<ClassWith2Interfaces>().Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Transient));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(4));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
