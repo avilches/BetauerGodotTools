@@ -25,9 +25,9 @@ namespace Betauer.DI {
             return (T)_objects[typeof(T)];
         }
 
-        internal void AfterCreate<T>(T o) where T : class {
+        internal void AfterCreate<T>(Lifetime lifetime, T o) where T : class {
             _objects[typeof(T)] = o;
-            Container.AfterCreate(o, this);
+            Container.AfterCreate(this, lifetime, o);
         }
     }
 
@@ -38,9 +38,10 @@ namespace Betauer.DI {
         public Node Owner;
         public readonly Scanner Scanner;
         public bool CreateIfNotFound { get; set; }
-        public bool IsReady { get; private set; }
+        public bool IsReady { get; private set; } = false;
 
         internal readonly LinkedList<IProviderBuilder> PendingToBuild = new LinkedList<IProviderBuilder>();
+        internal readonly Queue<Node> PendingToAdd = new Queue<Node>();
 
         public Container(Node owner) {
             Owner = owner;
@@ -49,12 +50,26 @@ namespace Betauer.DI {
 
         public void Build() {
             foreach (var providerBuilder in PendingToBuild.ToList()) {
-                providerBuilder.Build();
+                providerBuilder.Build(); // the 
             }
         }
 
         public override void _Ready() {
             IsReady = true;
+            AddPendingToRootViewport();
+        }
+
+        private void AddPendingToRootViewport() {
+            if (!IsReady) return;
+            while (PendingToAdd.Count > 0) {
+                var autoload = PendingToAdd.Dequeue();
+                AddSingletonToRootViewport(autoload);
+            }
+        }
+
+        private void AddSingletonToRootViewport(Node autoload) {
+            Node viewport = GetTree().Root;
+            viewport.AddChild(autoload);
         }
 
         public override void _ExitTree() {
@@ -121,15 +136,15 @@ namespace Betauer.DI {
         internal object Resolve(Type type, ResolveContext context) {
             var found = _registry.TryGetValue(type, out IProvider provider);
             if (found) return provider!.Resolve(context);
-            if (CreateIfNotFound) return CreateTransientInstance(type, context);
+            if (CreateIfNotFound) return CreateNonRegisteredTransientInstance(type, context);
             throw new KeyNotFoundException("Type not found: " + type.Name);
         }
 
-        private object CreateTransientInstance(Type type, ResolveContext context) {
+        private object CreateNonRegisteredTransientInstance(Type type, ResolveContext context) {
             if (!type.IsClass || type.IsAbstract)
                 throw new ArgumentException("Can't create an instance of a interface or abstract class");
             var o = Activator.CreateInstance(type);
-            AfterCreate(o, context);
+            AfterCreate(context, Lifetime.Transient, o);
             return o;
         }
 
@@ -145,10 +160,16 @@ namespace Betauer.DI {
             Scanner.AutoWire(o, context);
         }
 
-        internal void AfterCreate<T>(T instance, ResolveContext context) {
+        internal void AfterCreate<T>(ResolveContext context, Lifetime lifetime, T instance) {
             OnInstanceCreated?.Invoke(instance);
-            if (instance is Node node) {
-                Owner.AddChild(node);
+            if (lifetime == Lifetime.Singleton) {
+                if (instance is Node node) {
+                    if (IsReady) {
+                        AddSingletonToRootViewport(node);
+                    } else {
+                        PendingToAdd.Enqueue(node);
+                    }
+                }
             }
             AutoWire(instance, context);
         }

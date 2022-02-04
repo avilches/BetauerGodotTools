@@ -24,13 +24,13 @@ namespace Betauer.DI {
             _types = types;
         }
 
-        protected T CreateInstance(ResolveContext context) {
+        protected T CreateNewInstance(Lifetime lifetime, ResolveContext context) {
             var o = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                Logger.Debug("Creating " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Creating " + lifetime + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
             }
-            context.AfterCreate(o);
+            context.AfterCreate(lifetime, o);
             return o;
         }
 
@@ -51,14 +51,14 @@ namespace Betauer.DI {
             if (_singletonDefined) return _singleton;
             if (context.Has<T>()) {
                 T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
                 return o;
             }
             lock (this) {
                 // Just in case another thread was waiting for the lock
                 if (_singletonDefined) return _singleton;
-                _singleton = CreateInstance(context);
+                _singleton = CreateNewInstance(GetLifetime(), context);
                 _singletonDefined = true;
             }
             return _singleton;
@@ -74,11 +74,11 @@ namespace Betauer.DI {
         public override object Resolve(ResolveContext context) {
             if (context.Has<T>()) {
                 T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + nameof(Lifetime.Singleton) + " " + o.GetType().Name + " exposed as " +
+                Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
                              typeof(T) + ": " + o.GetHashCode().ToString("X"));
                 return o;
             }
-            return CreateInstance(context);
+            return CreateNewInstance(GetLifetime(), context);
         }
     }
 
