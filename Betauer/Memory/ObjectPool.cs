@@ -46,7 +46,7 @@ namespace Betauer.Memory {
             if (Pools.TryGetValue(key, out IObjectPool pool)) return pool;
             lock (Pools) {
                 if (Pools.TryGetValue(key, out pool)) return pool;
-                var typeObjectPool = typeof(ObjectPool<>).MakeGenericType(new Type[] { key });
+                var typeObjectPool = typeof(ObjectPool<>).MakeGenericType(new [] { key });
                 pool = (IObjectPool)Activator.CreateInstance(typeObjectPool);
                 Pools[key] = pool;
                 return pool;

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.DI {
     public interface IProviderBuilder {
@@ -55,6 +51,21 @@ namespace Betauer.DI {
         protected abstract IProvider CreateProvider();
     }
 
+    public static class FactoryProviderBuilder {
+        public static IProviderBuilder Create(Container container, Type type,
+            Lifetime lifetime = Lifetime.Singleton, IEnumerable<Type> types = null) {
+            var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new [] { type });
+            var ctor = factoryType.GetConstructors().First(info =>
+                info.GetParameters().Length == 3 &&
+                info.GetParameters()[0].ParameterType == typeof(Container) &&
+                info.GetParameters()[1].ParameterType == typeof(Lifetime) &&
+                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
+            );
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, types });
+            return @this;
+        }
+    }
+
     public class FactoryProviderBuilder<T> : BaseProviderBuilder<FactoryProviderBuilder<T>>
         where T : class {
         private Lifetime _lifetime = DI.Lifetime.Singleton;
@@ -67,19 +78,6 @@ namespace Betauer.DI {
             base(container) {
             _lifetime = lifetime;
             As(types.ToArray());
-        }
-
-        public static IProviderBuilder Create(Container container, Type type,
-            Lifetime lifetime = DI.Lifetime.Singleton, IEnumerable<Type> types = null) {
-            var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new Type[] { type });
-            var ctor = factoryType.GetConstructors().First(info =>
-                info.GetParameters().Length == 3 &&
-                info.GetParameters()[0].ParameterType == typeof(Container) &&
-                info.GetParameters()[1].ParameterType == typeof(Lifetime) &&
-                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
-            );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, types });
-            return @this;
         }
 
         public FactoryProviderBuilder<T> IsTransient() => Lifetime(DI.Lifetime.Transient);

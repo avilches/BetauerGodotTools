@@ -59,18 +59,20 @@ namespace Betauer.DI {
             return Register<T>().With(factory);
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime) where T : class {
-            return Register<T>().Lifetime(lifetime);
+        public FactoryProviderBuilder<T> Register<TI, T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
+            return Register<T>(lifetime).As<TI>();
         }
 
-        public FactoryProviderBuilder<T> Register<T>() where T : class {
-            var builder = new FactoryProviderBuilder<T>(this);
+        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
+            var builder = new FactoryProviderBuilder<T>(this).Lifetime(lifetime);
             Pending.AddLast(builder);
             return builder;
         }
 
         public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton, params Type[] types) {
-            return FactoryProviderBuilder<object>.Create(this, type, lifetime, types);
+            var builder = FactoryProviderBuilder.Create(this, type, lifetime, types);
+            Pending.AddLast(builder);
+            return builder;
         }
 
         public IProvider Add(IProvider provider) {
@@ -102,6 +104,7 @@ namespace Betauer.DI {
             return false;
         }
 
+        // TODO: Allow to resolve any type, returning a Transient entity by default
         public object Resolve(Type type) {
             return Resolve(type, new ResolveContext(this));
         }

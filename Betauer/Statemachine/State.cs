@@ -35,7 +35,7 @@ namespace Betauer.Statemachine {
     public static class StateHelper {
         public static bool HasStartImplemented(State state) {
             var startMethod = ReflectionTools.FindMethod(state, "Start", typeof(void),
-                new Type[] { typeof(Context) });
+                new [] { typeof(Context) });
             return startMethod != null;
         }
 

@@ -105,10 +105,10 @@ namespace Betauer.DI {
             // TODO: include more types in the attribute
             if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute),
                            false) is SingletonAttribute singletonAttribute) {
-                _container.Register(type, Lifetime.Singleton, new Type[] { type }).Build();
+                _container.Register(type, Lifetime.Singleton, new [] { type }).Build();
             } else if (Attribute.GetCustomAttribute(type, typeof(TransientAttribute),
                            false) is TransientAttribute transientAttribute) {
-                _container.Register(type, Lifetime.Transient, new Type[] { type }).Build();
+                _container.Register(type, Lifetime.Transient, new [] { type }).Build();
             }
         }
 
