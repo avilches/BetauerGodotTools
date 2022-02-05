@@ -14,18 +14,29 @@ namespace Betauer.DI {
         public object Resolve(ResolveContext context);
     }
 
-    public abstract class FactoryProvider<T> : IProvider where T : class {
+    public abstract class BaseProvider<T> : IProvider where T : class {
+
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
         private readonly Type[] _types;
         private readonly Type _type;
-        private readonly Func<T> _factory;
+
         public Type[] GetRegisterTypes() => _types;
         public Type GetProviderType() => _type;
 
-        public FactoryProvider(Type[] types, Func<T> factory) {
-            _factory = factory;
+        public BaseProvider(Type[] types) {
             _types = types;
             _type = typeof(T);
+        }
+
+        public abstract Lifetime GetLifetime();
+        public abstract object Resolve(ResolveContext context);
+    }
+
+    public abstract class FactoryProvider<T> : BaseProvider<T> where T : class {
+        private readonly Func<T> _factory;
+
+        protected FactoryProvider(Type[] types, Func<T> factory) : base(types) {
+            _factory = factory;
         }
 
         protected T CreateNewInstance(Lifetime lifetime, ResolveContext context) {
@@ -38,8 +49,8 @@ namespace Betauer.DI {
             return o;
         }
 
-        public abstract Lifetime GetLifetime();
-        public abstract object Resolve(ResolveContext context);
+        public abstract override Lifetime GetLifetime();
+        public abstract override object Resolve(ResolveContext context);
     }
 
     public class SingletonProvider<T> : FactoryProvider<T> where T : class {
