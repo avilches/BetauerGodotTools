@@ -16,27 +16,35 @@ namespace Betauer.DI {
             }
             _booted = true;
             Container = CreateContainer();
+            Container.Instance(Container); // this allow to have [Inject] private Container container
             Container.Scanner.Scan();
             Container.Instance<Func<SceneTree>>(GetTree);
-            // Container.Register<RootSceneHolder>((Node node) => {
-            //     Viewport root = GetTree().Root;
-            //     Node lastFound = node;
-            //     Node parent = lastFound.GetParent();
-            //     bool found = parent == root;
-            //     while (!found) {
-            //         lastFound = parent;
-            //         parent = lastFound.GetParent();
-            //         found = parent == root;
-            //     }
-            //     RootSceneHolder sceneHolder = lastFound.GetNode<RootSceneHolder>(nameof(RootSceneHolder));
-            //     if (sceneHolder == null) {
-            //         sceneHolder = new RootSceneHolder();
-            //         lastFound.AddChild(sceneHolder);
-            //     }
-            //     return sceneHolder;
-            // });
+            /*
+            Container.Function<Node, RootSceneHolder?>((node) => {
+                Viewport? root = node.GetTree()?.Root;
+                if (root == null) {
+                    // TODO: not tested. Test with a node outside of the tree
+                    return null;
+                }
+                Node lastFound = node;
+                Node parent = lastFound.GetParent();
+                bool found = parent == root;
+                while (!found && parent != null) {
+                    lastFound = parent;
+                    parent = lastFound.GetParent();
+                    found = parent == root;
+                }
+                RootSceneHolder? sceneHolder = lastFound.FindFirstChild<RootSceneHolder>();
+                if (sceneHolder == null) {
+                    sceneHolder = new RootSceneHolder();
+                    sceneHolder.Name = nameof(RootSceneHolder);
+                    lastFound.AddChild(sceneHolder);
+                }
+                return sceneHolder;
+            });
+            */
             Container.Build();
-            Container.AutoWire(this);
+            Container.InjectAllFields(this); // TODO: change this and use a [Bootstrap] attribute
         }
 
         public virtual Container CreateContainer() {

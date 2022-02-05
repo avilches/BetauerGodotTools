@@ -3,11 +3,11 @@ using Godot;
 namespace Betauer.DI {
 
     public abstract class Di {
-        protected Di() => Bootstrap.Container.AutoWire(this);
+        protected Di() => Bootstrap.Container.InjectAllFields(this);
     }
 
     public abstract class DiNode : Node {
-        protected DiNode() => Bootstrap.Container.AutoWire(this);
+        protected DiNode() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -19,7 +19,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiControl : Control {
-        protected DiControl() => Bootstrap.Container.AutoWire(this);
+        protected DiControl() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -31,7 +31,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiButton : Button {
-        protected DiButton() => Bootstrap.Container.AutoWire(this);
+        protected DiButton() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -43,7 +43,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiNode2D : Node2D {
-        protected DiNode2D() => Bootstrap.Container.AutoWire(this);
+        protected DiNode2D() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -55,7 +55,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiKinematicBody2D : KinematicBody2D {
-        protected DiKinematicBody2D() => Bootstrap.Container.AutoWire(this);
+        protected DiKinematicBody2D() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -67,7 +67,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiCamera2D : Camera2D {
-        protected DiCamera2D() => Bootstrap.Container.AutoWire(this);
+        protected DiCamera2D() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);
@@ -79,7 +79,7 @@ namespace Betauer.DI {
     }
 
     public abstract class DiArea2D : Area2D {
-        protected DiArea2D() => Bootstrap.Container.AutoWire(this);
+        protected DiArea2D() => Bootstrap.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
             Bootstrap.Container.LoadOnReadyNodes(this);

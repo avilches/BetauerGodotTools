@@ -9,6 +9,7 @@ namespace Betauer.DI {
 
     public interface IProvider {
         public Type[] GetRegisterTypes();
+        public Type GetProviderType();
         public Lifetime GetLifetime();
         public object Resolve(ResolveContext context);
     }
@@ -16,12 +17,15 @@ namespace Betauer.DI {
     public abstract class FactoryProvider<T> : IProvider where T : class {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
         private readonly Type[] _types;
+        private readonly Type _type;
         private readonly Func<T> _factory;
         public Type[] GetRegisterTypes() => _types;
+        public Type GetProviderType() => _type;
 
         public FactoryProvider(Type[] types, Func<T> factory) {
             _factory = factory;
             _types = types;
+            _type = typeof(T);
         }
 
         protected T CreateNewInstance(Lifetime lifetime, ResolveContext context) {

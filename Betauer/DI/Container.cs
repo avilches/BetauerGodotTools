@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using NUnit.Framework;
 
 namespace Betauer.DI {
     internal class ResolvedEntry {
@@ -31,49 +32,36 @@ namespace Betauer.DI {
         }
     }
 
-    public class Container : Node {
+    public class Container {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
-        public Action<object>? OnInstanceCreated;
-        public Node Owner;
+        private readonly Queue<Type> _autoloadTypes = new Queue<Type>();
+        public readonly Node Owner;
         public readonly Scanner Scanner;
+        public readonly Injector Injector;
+        public Action<object>? OnInstanceCreated { get; set; }
         public bool CreateIfNotFound { get; set; }
-        public bool IsReady { get; private set; } = false;
+
+        public void EnqueueSingletonNode(Type type) {
+            _autoloadTypes.Enqueue(type);
+        }
 
         internal readonly LinkedList<IProviderBuilder> PendingToBuild = new LinkedList<IProviderBuilder>();
-        internal readonly Queue<Node> PendingToAdd = new Queue<Node>();
 
         public Container(Node owner) {
             Owner = owner;
             Scanner = new Scanner(this);
+            Injector = new Injector(this);
         }
 
         public void Build() {
             foreach (var providerBuilder in PendingToBuild.ToList()) {
-                providerBuilder.Build(); // the 
+                providerBuilder.Build(); // the Build() already deletes itself from the PendingToBuild list
             }
-        }
-
-        public override void _Ready() {
-            IsReady = true;
-            AddPendingToRootViewport();
-        }
-
-        private void AddPendingToRootViewport() {
-            if (!IsReady) return;
-            while (PendingToAdd.Count > 0) {
-                var autoload = PendingToAdd.Dequeue();
-                AddSingletonToRootViewport(autoload);
+            while (_autoloadTypes.Count > 0) {
+                var autoload = _autoloadTypes.Dequeue();
+                Resolve(autoload); // Resolve() will add the instance to the Owner if the service is a Node singleton
             }
-        }
-
-        private void AddSingletonToRootViewport(Node autoload) {
-            Node viewport = GetTree().Root;
-            viewport.AddChild(autoload);
-        }
-
-        public override void _ExitTree() {
-            IsReady = false;
         }
 
         public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
@@ -110,6 +98,10 @@ namespace Betauer.DI {
             if (_logger.IsEnabled(TraceLevel.Info)) {
                 _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
                              string.Join(",", provider.GetRegisterTypes().ToList()));
+            }
+            if (typeof(Node).IsAssignableFrom(provider.GetProviderType())) {
+                // It's a node type, so let's schedule a Resolve() in the Build() stage so they can be built and added to the Owner
+                EnqueueSingletonNode(provider.GetProviderType());
             }
             return provider;
         }
@@ -148,30 +140,24 @@ namespace Betauer.DI {
             return o;
         }
 
-        public void AutoWire(object o) {
-            AutoWire(o, new ResolveContext(this));
+        public void InjectAllFields(object o) {
+            InjectAllFields(o, new ResolveContext(this));
         }
 
         public void LoadOnReadyNodes(Node o) {
-            Scanner.LoadOnReadyNodes(o);
+            Injector.LoadOnReadyNodes(o);
         }
 
-        internal void AutoWire(object o, ResolveContext context) {
-            Scanner.AutoWire(o, context);
+        internal void InjectAllFields(object o, ResolveContext context) {
+            Injector.InjectAllFields(o, context);
         }
 
         internal void AfterCreate<T>(ResolveContext context, Lifetime lifetime, T instance) {
             OnInstanceCreated?.Invoke(instance);
-            if (lifetime == Lifetime.Singleton) {
-                if (instance is Node node) {
-                    if (IsReady) {
-                        AddSingletonToRootViewport(node);
-                    } else {
-                        PendingToAdd.Enqueue(node);
-                    }
-                }
+            InjectAllFields(instance, context);
+            if (lifetime == Lifetime.Singleton && instance is Node node) {
+                Owner.AddChild(node);
             }
-            AutoWire(instance, context);
         }
     }
 }

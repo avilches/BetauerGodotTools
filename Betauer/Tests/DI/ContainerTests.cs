@@ -506,133 +506,61 @@ namespace Betauer.Tests.DI {
         }
 
         /*
-         * Singleton nodes are added to the Root viewport
-         */
-        [Test(Description = "Singleton instance nodes are added to the Root viewport when they are resolved (ready container)")]
-        public async Task ResolveNodeInstance() {
-            var di = new Container(this);
-            // Register instance
-            var instance = new Node();
-            di.Instance(instance).Build();
-            Assert.That(instance.GetParent(), Is.Null);
-            Assert.That(!di.IsReady);
-
-            AddChild(di); // The container pass from non ready to ready
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-            Assert.That(instance.GetParent(), Is.Null);
-
-            di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
-        }
-
-        [Test(Description = "Singleton auto-factory nodes are added to the Root viewport when they are resolved (ready container)")]
-        public async Task ResolveNodeSingleton() {
-            var di = new Container(this);
-            // Register instance
-            di.Register<Node>().Build();
-            Assert.That(!di.IsReady);
-
-            AddChild(di); // The container pass from non ready to ready
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
-        }
-
-        [Test(Description = "Singleton factory nodes are added to the Root viewport when they are resolved (ready container)")]
-        public async Task ResolveNodeSingletonFactory() {
-            var di = new Container(this);
-            // Register instance
-            di.Register(()=> new Node()).Build();
-            Assert.That(!di.IsReady);
-
-            AddChild(di); // The container pass from non ready to ready
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
-        }
-
-        /*
          * Node Singleton are added to the owner when resolved
          */
-        [Test(Description = "Singleton instance nodes are added to the Root viewport only when container is ready")]
-        public async Task ResolveNodeInstanceNonReadyContainer() {
+        [Test(Description = "Register a instance Node adds it as child when it's resolved")]
+        public void RegisterNodeInstanceAddedToOwner() {
             var di = new Container(this);
-            // Register instance
             var instance = new Node();
             di.Instance(instance).Build();
-            Assert.That(instance.GetParent(), Is.Null);
+            Assert.That(!GetChildren().Contains(instance));
+
             di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.Null);
-
-            Assert.That(!di.IsReady);
-            AddChild(di); // The container pass from non ready to ready, so the pending nodes are added to the viewport
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
+            Assert.That(GetChildren().Contains(instance));
         }
 
-        [Test(Description = "Singleton auto-factory nodes are added to the Root viewport only when container is ready")]
-        public async Task ResolveNodeSingletonNonReadyContainer() {
+        [Test(Description = "Register a instance Node adds it as child on Build")]
+        public void RegisterNodeInstanceAddedToOwnerOnBuild() {
+            var di = new Container(this);
+            var instance = new Node();
+            di.Instance(instance).Build();
+            Assert.That(!GetChildren().Contains(instance));
+
+            di.Build();
+            Assert.That(GetChildren().Contains(instance));
+        }
+
+        [Test(Description = "Register a Singleton Factory Node adds it as child when resolved")]
+        public void RegisterNodeSingletonFactoryAddedToOwner() {
+            var di = new Container(this);
+            di.Register(() => new Node()).Build();
+
+            var instance = di.Resolve<Node>();
+            Assert.That(GetChildren().Contains(instance));
+        }
+
+        [Test(Description = "Register a Singleton Factory Node adds it as child on build")]
+        public void RegisterNodeSingletonFactoryAddedToOwnerOnBuild() {
+            var di = new Container(this);
+            Node instance = null;
+            di.Register(() => {
+                instance = new Node();
+                return instance;
+            }).Build();
+
+            di.Build();
+            Assert.That(GetChildren().Contains(instance));
+        }
+
+        [Test(Description = "Register a transient Factory Node is not added as child when resolved or on build")]
+        public void RegisterNodeTransientFactoryAddedToOwner() {
             var di = new Container(this);
             // Register instance
-            di.Register<Node>().Build();
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.Null);
 
-            Assert.That(!di.IsReady);
-            AddChild(di); // The container pass from non ready to ready, so the pending nodes are added to the viewport
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
-        }
-
-        [Test(Description = "Singleton factory nodes are added to the Root viewport only when container is ready")]
-        public async Task ResolveNodeSingletonFactoryNonReadyContainer() {
-            var di = new Container(this);
-            // Register instance
-            di.Register(()=> new Node()).Build();
-            Assert.That(!di.IsReady);
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.Null);
-
-            Assert.That(!di.IsReady);
-            AddChild(di); // The container pass from non ready to ready, so the pending nodes are added to the viewport
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-            Assert.That(instance.GetParent(), Is.EqualTo(GetTree().Root));
-        }
-
-        [Test(Description = "Register a transient Node shouldn't be added as child when is ready")]
-        public async Task ResolveNodeTransientIsNotAddedToViewport() {
-            var di = new Container(this);
-            // Register instance
-            di.Register(()=> new Node()).IsTransient().Build();
-            Assert.That(!di.IsReady);
-
-            AddChild(di); // The container pass from non ready to ready
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.Null);
-        }
-
-        [Test(Description = "Register a non registered transient Node shouldn't be added as child when is ready")]
-        public async Task ResolveUnregisteredNodeTransientIsNotAddedToViewport() {
-            var di = new Container(this);
-
-            AddChild(di); // The container pass from non ready to ready
-            await this.AwaitIdleFrame();
-            Assert.That(di.IsReady);
-
-            di.CreateIfNotFound = true;
-            var instance = di.Resolve<Node>();
-            Assert.That(instance.GetParent(), Is.Null);
+            di.Register(() => new Node()).IsTransient().Build();
+            di.Build();
+            var instance1 = di.Resolve<Node>();
+            Assert.That(!GetChildren().Contains(instance1));
         }
 
         /**
