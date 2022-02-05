@@ -82,8 +82,13 @@ namespace Betauer.DI {
             return builder;
         }
 
-        public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton, params Type[] types) {
-            var builder = FactoryProviderBuilder.Create(this, type, lifetime, types);
+        public IProviderBuilder Register(Type type, Lifetime lifetime, params Type[] types) {
+            return Register(type, null, lifetime, types);
+        }
+
+        public IProviderBuilder Register(Type type, Func<object> factory = null, Lifetime lifetime = Lifetime.Singleton,
+            params Type[] types) {
+            var builder = FactoryProviderBuilder.Create(this, type, lifetime, factory, types);
             PendingToBuild.AddLast(builder);
             return builder;
         }

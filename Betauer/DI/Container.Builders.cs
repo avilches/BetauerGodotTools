@@ -59,15 +59,16 @@ namespace Betauer.DI {
 
     public static class FactoryProviderBuilder {
         public static IProviderBuilder Create(Container container, Type type,
-            Lifetime lifetime = Lifetime.Singleton, IEnumerable<Type> types = null) {
+            Lifetime lifetime, Func<object>? factory = null, IEnumerable<Type> types = null) {
             var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new[] { type });
             var ctor = factoryType.GetConstructors().First(info =>
-                info.GetParameters().Length == 3 &&
+                info.GetParameters().Length == 4 &&
                 info.GetParameters()[0].ParameterType == typeof(Container) &&
                 info.GetParameters()[1].ParameterType == typeof(Lifetime) &&
-                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
+                info.GetParameters()[2].ParameterType == typeof(Func<object>) &&
+                info.GetParameters()[3].ParameterType == typeof(IEnumerable<Type>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, types });
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, factory, types });
             return @this;
         }
     }
@@ -81,10 +82,13 @@ namespace Betauer.DI {
         }
 
         // This constructor is used by reflection
-        public FactoryProviderBuilder(Container container, Lifetime lifetime, IEnumerable<Type> types) :
+        public FactoryProviderBuilder(Container container, Lifetime lifetime, Func<object>? factory, IEnumerable<Type> types) :
             base(container) {
             _lifetime = lifetime;
             As(types.ToArray());
+            if (factory != null) {
+                _factory = () => (T)factory();
+            }
         }
 
         public FactoryProviderBuilder<T> IsTransient() => Lifetime(DI.Lifetime.Transient);
