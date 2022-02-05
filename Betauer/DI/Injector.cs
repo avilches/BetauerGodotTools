@@ -5,6 +5,7 @@ using Godot;
 namespace Betauer.DI {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property)]
     public class InjectAttribute : Attribute {
+        public bool Nullable { get; set; } = false;
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -42,18 +43,19 @@ namespace Betauer.DI {
             foreach (var field in fields) {
                 if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
                     continue;
-                InjectField(target, context, field);
+                InjectField(target, context, field, inject.Nullable);
             }
         }
 
-        private void InjectField(object target, ResolveContext context, FieldInfo field) {
+        private void InjectField(object target, ResolveContext context, FieldInfo field, bool nullable) {
             if (field.GetValue(target) != null) {
                 // Ignore the already defined values
                 // TODO: test
                 return;
             }
             if (!_container.Exist(field.FieldType)) {
-                if (field.FieldType.GetGenericTypeDefinition() == typeof(Func<>) &&
+                if (field.FieldType.IsGenericType &&
+                    field.FieldType.GetGenericTypeDefinition() == typeof(Func<>) &&
                     field.FieldType.GetGenericArguments().Length == 1) {
                     var outType = field.FieldType.GetGenericArguments()[0];
                     // [Inject] private Func<TOut>
@@ -82,9 +84,11 @@ namespace Betauer.DI {
                     }
                 }
 
-                throw new InjectFieldException(field, target,
-                    "Injectable property [" + field.FieldType.Name + " " + field.Name +
-                    "] not found while injecting fields in " + target.GetType().Name);
+                if (!nullable) {
+                    throw new InjectFieldException(field, target,
+                        "Injectable property [" + field.FieldType.Name + " " + field.Name +
+                        "] not found while injecting fields in " + target.GetType().Name);
+                }
             } else {
                 _logger.Debug("Injecting field " + target.GetType() + "(" + target + ")." + field.Name + " " +
                               field.FieldType.Name);

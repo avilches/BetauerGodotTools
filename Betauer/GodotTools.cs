@@ -6,6 +6,13 @@ using Godot;
 namespace Betauer {
 
     public static partial class GodotExtension {
+        public static object? FindFirstChild(this Node parent, Type type) {
+            foreach (var child in parent.GetChildren()) {
+                if (child.GetType() == type) return child;
+            }
+            return null;
+        }
+
         public static T? FindFirstChild<T>(this Node parent) where T : class {
             foreach (var child in parent.GetChildren()) {
                 if (child is T result) return result;

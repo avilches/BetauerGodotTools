@@ -12,7 +12,12 @@ namespace Betauer.Tests.DI {
 
         [Singleton]
         public class MyServiceWithNotScanned {
-            [Inject] internal INotTagged singleton22;
+            [Inject] internal INotTagged notFound;
+        }
+
+        [Singleton]
+        public class MyServiceWithWithNullable {
+            [Inject(Nullable = true)] internal INotTagged nullable;
         }
 
         [Test(Description = "Types not found")]
@@ -27,6 +32,15 @@ namespace Betauer.Tests.DI {
                 Assert.That(false, "It should fail!");
             } catch (InjectFieldException e) {
             }
+        }
+
+        [Test(Description = "Nullable")]
+        public void Nullable() {
+            var di = new Container(this);
+            di.Scanner.Scan<MyServiceWithWithNullable>();
+            Assert.That(!di.Exist<INotTagged>());
+            var x = di.Resolve<MyServiceWithWithNullable>();
+            Assert.That(x.nullable, Is.Null);
         }
 
         [Transient]

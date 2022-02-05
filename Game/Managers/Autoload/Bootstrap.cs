@@ -24,11 +24,11 @@ namespace Veronenger.Game.Managers.Autoload {
         private const bool LogToFileEnabled = false; // TODO: enabled by a parameter
 
         public override void _Ready() {
+            base._Ready();
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             DevTools.CheckErrorPolicy(GetTree(), UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
-            // TODO: this it really works?
-            this.DisableAllNotifications();
+            this. DisableAllNotifications();
         }
 
         public override Container CreateContainer() {
