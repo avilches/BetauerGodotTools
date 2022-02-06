@@ -36,15 +36,15 @@ namespace Betauer.DI {
     public class Container {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
-        private readonly Queue<Type> _singletonTypes = new Queue<Type>();
+        private readonly Queue<IProvider> _resolvedPending = new Queue<IProvider>();
         public readonly Node Owner;
         public readonly Scanner Scanner;
         public readonly Injector Injector;
         public Action<object>? OnInstanceCreated { get; set; }
         public bool CreateIfNotFound { get; set; }
 
-        public void EnqueueSingleton(Type type) {
-            _singletonTypes.Enqueue(type);
+        public void EnqueueProvider(IProvider provider) {
+            _resolvedPending.Enqueue(provider);
         }
 
         internal readonly LinkedList<IProviderBuilder> PendingToBuild = new LinkedList<IProviderBuilder>();
@@ -60,10 +60,10 @@ namespace Betauer.DI {
             foreach (var providerBuilder in PendingToBuild.ToList()) {
                 providerBuilder.Build(); // the Build() already deletes itself from the PendingToBuild list
             }
-            while (_singletonTypes.Count > 0) {
-                var singleton = _singletonTypes.Dequeue();
+            while (_resolvedPending.Count > 0) {
+                var singleton = _resolvedPending.Dequeue();
                 _logger.Debug("Resolving Singleton Type: "+singleton);
-                Resolve(singleton); // Resolve() will also add the instance to the Owner if the service is a Node singleton
+                singleton.Get(new ResolveContext(this)); // Resolve() will also add the instance to the Owner if the service is a Node singleton
             }
         }
 
@@ -111,7 +111,7 @@ namespace Betauer.DI {
             }
             if (provider.GetLifetime() == Lifetime.Singleton) {
                 // It's a node type, so let's schedule a Resolve() in the Build() stage so they can be built and added to the Owner
-                EnqueueSingleton(provider.GetProviderType());
+                EnqueueProvider(provider);
             }
             return provider;
         }
@@ -137,7 +137,7 @@ namespace Betauer.DI {
 
         internal object Resolve(Type type, ResolveContext context) {
             _registry.TryGetValue(type, out IProvider provider);
-            if (provider != null) return provider.Resolve(context);
+            if (provider != null) return provider.Get(context);
             if (CreateIfNotFound) return CreateNonRegisteredTransientInstance(type, context);
             throw new KeyNotFoundException("Type not found: " + type.Name);
         }

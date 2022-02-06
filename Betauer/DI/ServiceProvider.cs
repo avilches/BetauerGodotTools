@@ -11,7 +11,7 @@ namespace Betauer.DI {
         public Type[] GetRegisterTypes();
         public Type GetProviderType();
         public Lifetime GetLifetime();
-        public object Resolve(ResolveContext? context);
+        public object Get(ResolveContext? context);
     }
 
     public abstract class BaseProvider<T> : IProvider where T : class {
@@ -29,7 +29,7 @@ namespace Betauer.DI {
         }
 
         public abstract Lifetime GetLifetime();
-        public abstract object Resolve(ResolveContext? context);
+        public abstract object Get(ResolveContext? context);
     }
 
     public abstract class FactoryProvider<T> : BaseProvider<T> where T : class {
@@ -50,7 +50,7 @@ namespace Betauer.DI {
         }
 
         public abstract override Lifetime GetLifetime();
-        public abstract override object Resolve(ResolveContext? context);
+        public abstract override object Get(ResolveContext? context);
     }
 
     public class SingletonProvider<T> : FactoryProvider<T> where T : class {
@@ -62,7 +62,7 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
-        public override object Resolve(ResolveContext? context) {
+        public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (_singletonDefined) return _singleton!;
             if (context.Has<T>()) {
@@ -87,7 +87,7 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
 
-        public override object Resolve(ResolveContext? context) {
+        public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.Has<T>()) {
                 T o = context.Get<T>();
@@ -107,7 +107,7 @@ namespace Betauer.DI {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
-        public override object Resolve(ResolveContext? context) {
+        public override object Get(ResolveContext? context) {
             return _value;
         }
     }
