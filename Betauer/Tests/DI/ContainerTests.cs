@@ -29,15 +29,19 @@ namespace Betauer.Tests.DI {
 
     [TestFixture]
     public class ContainerTests : Node {
-        [Test(Description = "Container in container")]
-        [Only]
+        [Test(Description = "Container in container, assert Contains and TryGetProvider")]
         public void Container() {
             var di = new Container(this);
             Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
-            Assert.That(di.Exist<Container>());
-            Assert.That(di.Exist<Container>(Lifetime.Singleton));
-            Assert.That(!di.Exist<Container>(Lifetime.Transient));
+            Assert.That(di.Contains<Container>());
+            Assert.That(di.Contains<Container>(Lifetime.Singleton));
+            Assert.That(!di.Contains<Container>(Lifetime.Transient));
             Assert.That(di.Resolve(typeof(Container)), Is.EqualTo(di));
+
+            Assert.That(di.GetProvider<Container>().Get(new ResolveContext(di)), Is.EqualTo(di));
+            Assert.That(di.TryGetProvider<Container>(out var provider));
+            Assert.That(!di.TryGetProvider<Node>(out var notFound));
+            Assert.That(provider!.Get(new ResolveContext(di)), Is.EqualTo(di));
         }
 
         [Test(Description = "Types not found")]
@@ -98,14 +102,14 @@ namespace Betauer.Tests.DI {
 
             s = di.Instance(node).Build();
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
-            Assert.That(!di.Exist<IDisposable>());
+            Assert.That(!di.Contains<IDisposable>());
 
             // Explicit ignore IDisposable (Node implements it)
             di = new Container(this);
             var mySingleton = new ClassWith2Interfaces();
             s = di.Instance(mySingleton).AsAll<IDisposable>().As<IDisposable>().Build();
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
-            Assert.That(!di.Exist<IDisposable>());
+            Assert.That(!di.Contains<IDisposable>());
         }
 
         [Test(Description = "Register singleton instances")]
@@ -136,9 +140,9 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<ClassWith2Interfaces>(), Is.EqualTo(classWith2Interfaces));
-            Assert.That(!di.Exist<IInterface1>());
-            Assert.That(!di.Exist<IInterface2>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<IInterface1>());
+            Assert.That(!di.Contains<IInterface2>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             // Class with only one interfaces only. Try to resolve using the class will not work
             // IDisposable
@@ -149,8 +153,8 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
             Assert.That(di.Resolve<IInterface2>(), Is.EqualTo(mySingleton));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface1>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface1>());
         }
 
         /*
@@ -166,7 +170,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith1Interface)));
             Assert.That(di.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(!di.Exist<IInterface1>());
+            Assert.That(!di.Contains<IInterface1>());
         }
 
         [Test(Description = "Register factory uses As<I> where I is different thant Type register only <I>")]
@@ -177,7 +181,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(!di.Exist<ClassWith1Interface>());
+            Assert.That(!di.Contains<ClassWith1Interface>());
         }
 
         [Test(Description = "Register factory using AsAll<class> + IsTransient")]
@@ -216,8 +220,8 @@ namespace Betauer.Tests.DI {
             Assert.That(di.Resolve(typeof(IInterface2_2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface1>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface1>());
         }
 
         [Test(Description = "Register a factory using type from Func<T>")]
@@ -228,7 +232,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(di.Resolve(typeof(IInterface1)).GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(!di.Exist<ClassWith1Interface>());
+            Assert.That(!di.Contains<ClassWith1Interface>());
         }
 
         [Test(Description = "Register a factory using a smaller type from Func<T>")]
@@ -239,17 +243,17 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
             Assert.That(di.Resolve(typeof(IInterface2)).GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface1>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface1>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             di = new Container(this);
             s = di.Register(() => new Sprite()).As<CanvasItem>().Build();
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(CanvasItem)));
             Assert.That(di.Resolve<CanvasItem>().GetType(), Is.EqualTo(typeof(Sprite)));
-            Assert.That(!di.Exist<Sprite>());
-            Assert.That(!di.Exist<Node>());
+            Assert.That(!di.Contains<Sprite>());
+            Assert.That(!di.Contains<Node>());
         }
 
         [Test(Description = "Factories lifestyle")]
@@ -308,9 +312,9 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<IInterface1>());
-            Assert.That(!di.Exist<IInterface2>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<IInterface1>());
+            Assert.That(!di.Contains<IInterface2>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             // auto factory
             di = new Container(this);
@@ -319,9 +323,9 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface2>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface2>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             // auto factory with all classes
             di = new Container(this);
@@ -349,9 +353,9 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<IInterface1>());
-            Assert.That(!di.Exist<IInterface2>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<IInterface1>());
+            Assert.That(!di.Contains<IInterface2>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             // Runtime Type needs the array of type to be explicit
             di = new Container(this);
@@ -363,8 +367,8 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface2_2>());
 
             di = new Container(this);
             s = di.Register(typeof(ClassWith2Interfaces),
@@ -376,8 +380,8 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
             Assert.That(di.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<ClassWith2Interfaces>());
-            Assert.That(!di.Exist<IInterface2>());
+            Assert.That(!di.Contains<ClassWith2Interfaces>());
+            Assert.That(!di.Contains<IInterface2>());
 
             // Runtime Type will use the class registered type as default
             di = new Container(this);
@@ -386,9 +390,9 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(di.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
-            Assert.That(!di.Exist<IInterface1>());
-            Assert.That(!di.Exist<IInterface2>());
-            Assert.That(!di.Exist<IInterface2_2>());
+            Assert.That(!di.Contains<IInterface1>());
+            Assert.That(!di.Contains<IInterface2>());
+            Assert.That(!di.Contains<IInterface2_2>());
         }
 
         [Test(Description = "Register auto factory with wrong type fails")]
@@ -645,12 +649,12 @@ namespace Betauer.Tests.DI {
             di.Register<Node>();
             di.Register<IInterface1, ClassWith1Interface>();
 
-            Assert.That(!di.Exist<Node>());
-            Assert.That(!di.Exist<IInterface1>());
+            Assert.That(!di.Contains<Node>());
+            Assert.That(!di.Contains<IInterface1>());
 
             di.Build();
-            Assert.That(di.Exist<Node>());
-            Assert.That(di.Exist<IInterface1>());
+            Assert.That(di.Contains<Node>());
+            Assert.That(di.Contains<IInterface1>());
         }
 
 

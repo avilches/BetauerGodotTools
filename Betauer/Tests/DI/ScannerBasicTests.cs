@@ -25,8 +25,8 @@ namespace Betauer.Tests.DI {
             var di = new Container(this);
             di.Scanner.Scan<INotTagged>();
             di.Scanner.Scan<MyServiceWithNotScanned>();
-            Assert.That(!di.Exist<INotTagged>());
-            Assert.That(di.Exist<MyServiceWithNotScanned>());
+            Assert.That(!di.Contains<INotTagged>());
+            Assert.That(di.Contains<MyServiceWithNotScanned>());
             try {
                 di.Resolve<MyServiceWithNotScanned>();
                 Assert.That(false, "It should fail!");
@@ -38,7 +38,7 @@ namespace Betauer.Tests.DI {
         public void Nullable() {
             var di = new Container(this);
             di.Scanner.Scan<MyServiceWithWithNullable>();
-            Assert.That(!di.Exist<INotTagged>());
+            Assert.That(!di.Contains<INotTagged>());
             var x = di.Resolve<MyServiceWithWithNullable>();
             Assert.That(x.nullable, Is.Null);
         }

@@ -53,7 +53,8 @@ namespace Betauer.DI {
             Owner = owner;
             Scanner = new Scanner(this);
             Injector = new Injector(this);
-            Instance<Container>(this).Build(); // Adding the Container in the Container allows to use [Inject] Container c;
+            Instance<Container>(this)
+                .Build(); // Adding the Container in the Container allows to use [Inject] Container c;
         }
 
         public void Build() {
@@ -62,8 +63,10 @@ namespace Betauer.DI {
             }
             while (_resolvedPending.Count > 0) {
                 var singleton = _resolvedPending.Dequeue();
-                _logger.Debug("Resolving Singleton Type: "+singleton);
-                singleton.Get(new ResolveContext(this)); // Resolve() will also add the instance to the Owner if the service is a Node singleton
+                _logger.Debug("Resolving Singleton Type: " + singleton);
+                singleton.Get(
+                    new ResolveContext(
+                        this)); // Resolve() will also add the instance to the Owner if the service is a Node singleton
             }
         }
 
@@ -116,29 +119,44 @@ namespace Betauer.DI {
             return provider;
         }
 
-        public T Resolve<T>() {
-            return (T)Resolve(typeof(T));
+        public bool Contains<T>(Lifetime? lifetime = null) {
+            return Contains(typeof(T), lifetime);
         }
 
-        public bool Exist<T>(Lifetime? lifetime = null) {
-            return Exist(typeof(T), lifetime);
-        }
-
-        public bool Exist(Type key, Lifetime? lifetime = null) {
-            if (_registry.TryGetValue(key, out var o)) {
+        public bool Contains(Type type, Lifetime? lifetime = null) {
+            if (_registry.TryGetValue(type, out var o)) {
                 return lifetime == null || o.GetLifetime() == lifetime;
             }
             return false;
         }
 
-        public object Resolve(Type type) {
-            return Resolve(type, new ResolveContext(this));
+        public IProvider GetProvider<T>() {
+            return GetProvider(typeof(T));
         }
 
-        internal object Resolve(Type type, ResolveContext context) {
-            _registry.TryGetValue(type, out IProvider provider);
-            if (provider != null) return provider.Get(context);
-            if (CreateIfNotFound) return CreateNonRegisteredTransientInstance(type, context);
+        public IProvider GetProvider(Type type) {
+            return _registry[type];
+        }
+
+        public bool TryGetProvider<T>(out IProvider? provider) {
+            return TryGetProvider(typeof(T), out provider);
+        }
+
+        public bool TryGetProvider(Type type, out IProvider? provider) {
+            var found = _registry.TryGetValue(type, out provider);
+            if (!found) provider = null;
+            return found;
+        }
+
+        public T Resolve<T>(ResolveContext? context = null) {
+            return (T)Resolve(typeof(T), context);
+        }
+
+        public object Resolve(Type type, ResolveContext? context = null) {
+            TryGetProvider(type, out IProvider? provider);
+            if (provider != null) return provider.Get(context ?? new ResolveContext(this));
+            if (CreateIfNotFound)
+                return CreateNonRegisteredTransientInstance(type, context ?? new ResolveContext(this));
             throw new KeyNotFoundException("Type not found: " + type.Name);
         }
 
