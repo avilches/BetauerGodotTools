@@ -365,19 +365,20 @@ namespace Betauer {
         }
 
         public void WriteLine(string line) {
-            if (!_disposed) _writer.WriteLine(line);
+            _writer.WriteLine(line);
+            if (_disposed) {
+                _writer.Flush();
+            }
         }
 
         public void Flush() {
-            if (!_disposed) _writer.Flush();
+            _writer.Flush();
         }
 
         public void Dispose() {
             if (_disposed) return;
             _disposed = true;
-            _writer.WriteLine("Log disposed");
             _writer.Flush();
-            _writer.Dispose();
         }
     }
 }
