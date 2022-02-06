@@ -16,7 +16,6 @@ using Path = System.IO.Path;
 namespace Veronenger.Game.Managers.Autoload {
 
     public class Bootstrap : Betauer.DI.Bootstrap /* needed to be instantiated as an Autoload from Godot */ {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
