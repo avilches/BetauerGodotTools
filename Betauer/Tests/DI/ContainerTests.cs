@@ -29,6 +29,17 @@ namespace Betauer.Tests.DI {
 
     [TestFixture]
     public class ContainerTests : Node {
+        [Test(Description = "Container in container")]
+        [Only]
+        public void Container() {
+            var di = new Container(this);
+            Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
+            Assert.That(di.Exist<Container>());
+            Assert.That(di.Exist<Container>(Lifetime.Singleton));
+            Assert.That(!di.Exist<Container>(Lifetime.Transient));
+            Assert.That(di.Resolve(typeof(Container)), Is.EqualTo(di));
+        }
+
         [Test(Description = "Types not found")]
         public void NotFound() {
             var di = new Container(this);
@@ -440,27 +451,19 @@ namespace Betauer.Tests.DI {
         }
 
         /*
-         * OnInstanceCreated
+         * OnInstanceCreated is affected by factories only
          */
-        [Test(Description = "Singleton instance OnInstanceCreated is executed on Resolve (only the first time)")]
+        [Test(Description = "Singleton instance doesn't execute OnInstanceCreated")]
         public void RegisterSingletonInstanceOnInstanceCreated() {
             var di = new Container(this);
             var x = 0;
-            di.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
+            di.OnInstanceCreated = (o) => x++;
             var instance = new Node();
             di.Instance(instance).Build();
 
             Assert.That(x, Is.EqualTo(0));
-            Assert.That(instance.GetMeta("x"), Is.Null);
-
-            var i1 = di.Resolve<Node>();
-            Assert.That(i1, Is.EqualTo(instance));
-            Assert.That(i1.GetMeta("x"), Is.EqualTo("y1"));
-
-            // Second time is not executed
-            var i2 = di.Resolve<Node>();
-            Assert.That(i2, Is.EqualTo(instance));
-            Assert.That(i2.GetMeta("x"), Is.EqualTo("y1"));
+            di.Resolve<Node>();
+            Assert.That(x, Is.EqualTo(0));
         }
 
         [Test(Description = "Singleton Factory OnInstanceCreated is executed on Resolve (only the first time)")]
@@ -508,7 +511,7 @@ namespace Betauer.Tests.DI {
         /*
          * Node Singleton are added to the owner when resolved
          */
-        [Test(Description = "Register a instance Node adds it as child when it's resolved")]
+        [Test(Description = "Register a instance Node doesn't adds it as child when it's resolved")]
         public void RegisterNodeInstanceAddedToOwner() {
             var di = new Container(this);
             var instance = new Node();
@@ -516,10 +519,10 @@ namespace Betauer.Tests.DI {
             Assert.That(!GetChildren().Contains(instance));
 
             di.Resolve<Node>();
-            Assert.That(GetChildren().Contains(instance));
+            Assert.That(!GetChildren().Contains(instance));
         }
 
-        [Test(Description = "Register a instance Node adds it as child on Build")]
+        [Test(Description = "Register a instance Node doesn't add it as child on Build")]
         public void RegisterNodeInstanceAddedToOwnerOnBuild() {
             var di = new Container(this);
             var instance = new Node();
@@ -527,7 +530,7 @@ namespace Betauer.Tests.DI {
             Assert.That(!GetChildren().Contains(instance));
 
             di.Build();
-            Assert.That(GetChildren().Contains(instance));
+            Assert.That(!GetChildren().Contains(instance));
         }
 
         [Test(Description = "Register a Singleton Factory Node adds it as child when resolved")]

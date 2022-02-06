@@ -11,7 +11,7 @@ namespace Betauer.DI {
         public Type[] GetRegisterTypes();
         public Type GetProviderType();
         public Lifetime GetLifetime();
-        public object Resolve(ResolveContext context);
+        public object Resolve(ResolveContext? context);
     }
 
     public abstract class BaseProvider<T> : IProvider where T : class {
@@ -29,7 +29,7 @@ namespace Betauer.DI {
         }
 
         public abstract Lifetime GetLifetime();
-        public abstract object Resolve(ResolveContext context);
+        public abstract object Resolve(ResolveContext? context);
     }
 
     public abstract class FactoryProvider<T> : BaseProvider<T> where T : class {
@@ -50,7 +50,7 @@ namespace Betauer.DI {
         }
 
         public abstract override Lifetime GetLifetime();
-        public abstract override object Resolve(ResolveContext context);
+        public abstract override object Resolve(ResolveContext? context);
     }
 
     public class SingletonProvider<T> : FactoryProvider<T> where T : class {
@@ -62,8 +62,9 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
-        public override object Resolve(ResolveContext context) {
-            if (_singletonDefined) return _singleton;
+        public override object Resolve(ResolveContext? context) {
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (_singletonDefined) return _singleton!;
             if (context.Has<T>()) {
                 T o = context.Get<T>();
                 Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
@@ -72,7 +73,7 @@ namespace Betauer.DI {
             }
             lock (this) {
                 // Just in case another thread was waiting for the lock
-                if (_singletonDefined) return _singleton;
+                if (_singletonDefined) return _singleton!;
                 _singleton = CreateNewInstance(GetLifetime(), context);
                 _singletonDefined = true;
             }
@@ -86,7 +87,8 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
 
-        public override object Resolve(ResolveContext context) {
+        public override object Resolve(ResolveContext? context) {
+            if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.Has<T>()) {
                 T o = context.Get<T>();
                 Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
@@ -94,6 +96,19 @@ namespace Betauer.DI {
                 return o;
             }
             return CreateNewInstance(GetLifetime(), context);
+        }
+    }
+
+    public class StaticProvider<T> : BaseProvider<T> where T : class {
+        private readonly T _value;
+
+        public StaticProvider(Type[] types, T value) : base(types) {
+            _value = value;
+        }
+
+        public override Lifetime GetLifetime() => Lifetime.Singleton;
+        public override object Resolve(ResolveContext? context) {
+            return _value;
         }
     }
 

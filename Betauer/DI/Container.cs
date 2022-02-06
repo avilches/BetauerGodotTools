@@ -52,6 +52,7 @@ namespace Betauer.DI {
             Owner = owner;
             Scanner = new Scanner(this);
             Injector = new Injector(this);
+            Instance<Container>(this).Build(); // Adding the Container in the Container allows to use [Inject] Container c;
         }
 
         public void Build() {
@@ -64,8 +65,10 @@ namespace Betauer.DI {
             }
         }
 
-        public FactoryProviderBuilder<T> Instance<T>(T instance) where T : class {
-            return Register<T>().With(() => instance).Lifetime(Lifetime.Singleton);
+        public StaticProviderBuilder<T> Instance<T>(T instance) where T : class {
+            var builder = new StaticProviderBuilder<T>(this, instance);
+            PendingToBuild.AddLast(builder);
+            return builder;
         }
 
         public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
@@ -131,8 +134,8 @@ namespace Betauer.DI {
         }
 
         internal object Resolve(Type type, ResolveContext context) {
-            var found = _registry.TryGetValue(type, out IProvider provider);
-            if (found) return provider!.Resolve(context);
+            _registry.TryGetValue(type, out IProvider provider);
+            if (provider != null) return provider.Resolve(context);
             if (CreateIfNotFound) return CreateNonRegisteredTransientInstance(type, context);
             throw new KeyNotFoundException("Type not found: " + type.Name);
         }

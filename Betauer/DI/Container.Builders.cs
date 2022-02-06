@@ -24,19 +24,19 @@ namespace Betauer.DI {
         protected abstract IProvider CreateProvider();
     }
 
-    public abstract class TypedProviderBuilder<TBuilder> : BaseProviderBuilder where TBuilder : class {
+    public abstract class TypedProviderBuilder<T, TBuilder> : BaseProviderBuilder where TBuilder : class {
         protected readonly HashSet<Type> Types = new HashSet<Type>();
 
         protected TypedProviderBuilder(Container? container) : base(container) {
         }
 
-        public TBuilder As<T>() => As(typeof(T));
+        public TBuilder As<T1>() => As(typeof(T1));
         public TBuilder As<T1, T2>() => As(typeof(T1), typeof(T2));
         public TBuilder As<T1, T2, T3>() => As(typeof(T1), typeof(T2), typeof(T3));
         public TBuilder As<T1, T2, T3, T4>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4));
         public TBuilder As<T1, T2, T3, T4, T5>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 
-        public TBuilder AsAll<T>() => AsAll(typeof(T));
+        public TBuilder AsAll<T1>() => AsAll(typeof(T1));
         public TBuilder AsAll(Type type) => As(GetTypesFrom(type));
 
         public TBuilder As(params Type[] types) {
@@ -55,6 +55,23 @@ namespace Betauer.DI {
             types.Add(type);
             return types.ToArray();
         }
+
+        protected sealed override IProvider CreateProvider() {
+            Types.Remove(typeof(IDisposable));
+            if (Types.Count == 0) As<T>();
+            var typeToBuild = typeof(T);
+            foreach (var registeredType in Types) {
+                if (!registeredType.IsAssignableFrom(typeToBuild)) {
+                    throw new InvalidCastException("Error registering type " + registeredType + " to provide " +
+                                                   typeToBuild);
+                }
+            }
+            return CreateTypedProvider();
+        }
+
+        protected abstract IProvider CreateTypedProvider();
+
+
     }
 
     public static class FactoryProviderBuilder {
@@ -73,7 +90,7 @@ namespace Betauer.DI {
         }
     }
 
-    public class FactoryProviderBuilder<T> : TypedProviderBuilder<FactoryProviderBuilder<T>>
+    public class FactoryProviderBuilder<T> : TypedProviderBuilder<T, FactoryProviderBuilder<T>>
         where T : class {
         private Lifetime _lifetime = DI.Lifetime.Singleton;
         private Func<T>? _factory;
@@ -104,21 +121,13 @@ namespace Betauer.DI {
             return this;
         }
 
-        protected override IProvider CreateProvider() {
-            Types.Remove(typeof(IDisposable));
-            if (Types.Count == 0) As<T>();
+        protected override IProvider CreateTypedProvider() {
             var typeToBuild = typeof(T);
             if (_factory == null) {
                 if (typeToBuild.IsAbstract || typeToBuild.IsInterface) {
                     throw new ArgumentException("Can't create a default factory with interface or abstract class");
                 }
                 _factory = Activator.CreateInstance<T>;
-            }
-            foreach (var registeredType in Types) {
-                if (!registeredType.IsAssignableFrom(typeToBuild)) {
-                    throw new InvalidCastException("Error registering type " + registeredType + " to provide " +
-                                                   typeToBuild);
-                }
             }
             IProvider provider = _lifetime switch {
                 DI.Lifetime.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory),
@@ -129,15 +138,20 @@ namespace Betauer.DI {
         }
     }
 
-    public class FunctionProviderBuilder<TIn, TOut> : BaseProviderBuilder {
-        private readonly Func<TIn, TOut> _factory;
+    public class StaticProviderBuilder<T> : TypedProviderBuilder<T, StaticProviderBuilder<T>> where T : class {
+        private readonly T _value;
 
-        public FunctionProviderBuilder(Container? container, Func<TIn, TOut> factory) : base(container) {
-            _factory = factory;
+        public StaticProviderBuilder(Container? container, T value) : base(container) {
+            _value = value;
         }
 
-        protected override IProvider CreateProvider() {
-            return new SingletonProvider<Func<TIn, TOut>>(new[] { typeof(Func<TIn, TOut>) }, () => _factory);
+        protected override IProvider CreateTypedProvider() {
+            return new StaticProvider<T>(Types.ToArray(), _value);
+        }
+    }
+
+    public class FunctionProviderBuilder<TIn, TOut> : StaticProviderBuilder<Func<TIn, TOut>> {
+        public FunctionProviderBuilder(Container? container, Func<TIn, TOut> value) : base(container, value) {
         }
     }
 }
