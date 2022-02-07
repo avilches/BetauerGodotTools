@@ -113,7 +113,7 @@ namespace Betauer.DI {
 
         public ContainerBuilder Scan(IEnumerable<Type> types, Predicate<Type>? predicate = null) {
             foreach (Type type in types) {
-                if (predicate == null || predicate(type)) Scan(type);
+                if (predicate?.Invoke(type) ?? true) Scan(type);
             }
             return this;
         }
