@@ -1,16 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Godot;
-using NUnit.Framework;
 
 namespace Betauer.DI {
-    internal class ResolvedEntry {
-        internal Type type;
-        public object instance;
-    }
-
     public class ResolveContext {
         internal readonly Dictionary<Type, object> _objects = new Dictionary<Type, object>();
         internal readonly Container Container;
@@ -36,69 +29,16 @@ namespace Betauer.DI {
     public class Container {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
-        private readonly Queue<IProvider> _resolvedPending = new Queue<IProvider>();
         public readonly Node Owner;
-        public readonly Scanner Scanner;
         public readonly Injector Injector;
         public Action<object>? OnInstanceCreated { get; set; }
         public bool CreateIfNotFound { get; set; }
 
-        public void EnqueueProvider(IProvider provider) {
-            _resolvedPending.Enqueue(provider);
-        }
-
-        internal readonly LinkedList<IProviderBuilder> PendingToBuild = new LinkedList<IProviderBuilder>();
-
         public Container(Node owner) {
             Owner = owner;
-            Scanner = new Scanner(this);
             Injector = new Injector(this);
-            Instance<Container>(this)
-                .Build(); // Adding the Container in the Container allows to use [Inject] Container c;
-        }
-
-        public void Build() {
-            foreach (var providerBuilder in PendingToBuild.ToList()) {
-                providerBuilder.Build(); // the Build() already deletes itself from the PendingToBuild list
-            }
-            while (_resolvedPending.Count > 0) {
-                var singleton = _resolvedPending.Dequeue();
-                _logger.Debug("Resolving Singleton Type: " + singleton);
-                singleton.Get(
-                    new ResolveContext(
-                        this)); // Resolve() will also add the instance to the Owner if the service is a Node singleton
-            }
-        }
-
-        public StaticProviderBuilder<T> Instance<T>(T instance) where T : class {
-            var builder = new StaticProviderBuilder<T>(this, instance);
-            PendingToBuild.AddLast(builder);
-            return builder;
-        }
-
-        public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
-            return Register<T>().With(factory);
-        }
-
-        public FactoryProviderBuilder<T> Register<TI, T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
-            return Register<T>(lifetime).As<TI>();
-        }
-
-        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
-            var builder = new FactoryProviderBuilder<T>(this).Lifetime(lifetime);
-            PendingToBuild.AddLast(builder);
-            return builder;
-        }
-
-        public IProviderBuilder Register(Type type, Lifetime lifetime, params Type[] types) {
-            return Register(type, null, lifetime, types);
-        }
-
-        public IProviderBuilder Register(Type type, Func<object> factory = null, Lifetime lifetime = Lifetime.Singleton,
-            params Type[] types) {
-            var builder = FactoryProviderBuilder.Create(this, type, lifetime, factory, types);
-            PendingToBuild.AddLast(builder);
-            return builder;
+            Add(new StaticProvider<Container>(new Type[] { typeof(Container) },
+                this)); // Adding the Container in the Container allows to use [Inject] Container...
         }
 
         public IProvider Add(IProvider provider) {
@@ -111,10 +51,6 @@ namespace Betauer.DI {
             if (_logger.IsEnabled(TraceLevel.Info)) {
                 _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
                              string.Join(",", provider.GetRegisterTypes().ToList()));
-            }
-            if (provider.GetLifetime() == Lifetime.Singleton) {
-                // It's a node type, so let's schedule a Resolve() in the Build() stage so they can be built and added to the Owner
-                EnqueueProvider(provider);
             }
             return provider;
         }

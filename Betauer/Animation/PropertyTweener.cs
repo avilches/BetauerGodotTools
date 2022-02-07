@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Betauer.Application;
 using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;

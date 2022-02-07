@@ -5,27 +5,6 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Memory {
-    public static class DefaultObjectPool {
-        public static ObjectPool Registry { get; private set; } = new ObjectPool();
-        public static bool UsePool = true;
-
-        public static void SetPool(ObjectPool objectPool) {
-            Registry = objectPool;
-        }
-
-        public static IObjectPool<T> Pool<T>() where T : class, IRecyclable {
-            return Registry.Pool<T>();
-        }
-
-        public static T Get<T>() where T : class, IRecyclable {
-            if (!UsePool) {
-                var recyclable = (T)Activator.CreateInstance(typeof(T));
-                recyclable.SetPool(null);
-                return recyclable;
-            }
-            return Registry.Get<T>();
-        }
-    }
 
     public interface IObjectPool {
         bool Return(IRecyclable o);

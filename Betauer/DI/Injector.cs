@@ -10,7 +10,10 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Field)]
     public class OnReadyAttribute : Attribute {
-        public readonly string Path;
+        public readonly string? Path;
+
+        public OnReadyAttribute() {
+        }
 
         public OnReadyAttribute(string path) {
             Path = path;
@@ -47,61 +50,43 @@ namespace Betauer.DI {
             }
         }
 
+        private static bool IsZeroParametersFunction(Type type) =>
+            type.IsGenericType &&
+            type.GetGenericTypeDefinition() == typeof(Func<>) &&
+            type.GetGenericArguments().Length == 1;
+
         private void InjectField(object target, ResolveContext context, FieldInfo field, bool nullable) {
             if (field.GetValue(target) != null) {
                 // Ignore the already defined values
                 // TODO: test
                 return;
             }
-            if (!_container.Exist(field.FieldType)) {
-                if (field.FieldType.IsGenericType &&
-                    field.FieldType.GetGenericTypeDefinition() == typeof(Func<>) &&
-                    field.FieldType.GetGenericArguments().Length == 1) {
+            if (_container.Contains(field.FieldType)) {
+                // There is a provider for the field type
+                _logger.Debug("Injecting field " + field.Name + " " + field.FieldType.Name + " in " + target.GetType() +
+                              "(" + target.GetHashCode() + ")");
+                var service = _container.Resolve(field.FieldType, context);
+                field.SetValue(target, service);
+
+            } else {
+                /*
+                if (IsZeroParametersFunction(field.FieldType)) {
                     var outType = field.FieldType.GetGenericArguments()[0];
                     // [Inject] private Func<TOut>
-                    // Find a Func<TIn, TOut> where TIn is the current instance type or any of its base classes
-                    var inputType = target.GetType();
-                    object? service;
-                    do {
-                        var funcType = typeof(Func<,>).MakeGenericType(new[] { inputType, outType });
-                        service = _container.Exist(funcType) ? _container.Resolve(funcType, context) : null;
-                        if (service == null) {
-                            inputType = inputType.BaseType;
-                        }
-                    } while (service == null && inputType != null);
-
-                    MethodInfo inject = GetType().GetMethod("Inject", BindingFlags.Static | BindingFlags.Public)!;
-                    if (service != null) {
-                        // field.SetValue(target, service);
-                        // Func<Node, RootSceneHolder> function = (Node node, RootSceneHolder scene) => { .... return sceneHolder; }
-
-                        // Func<RootSceneHolder> service = () => function(node)
-
-                        var closure = inject.MakeGenericMethod(new[] { inputType, outType })
-                            .Invoke(this, new object[] { service, target });
-                        field.SetValue(target, closure);
-                        return;
-                    }
+                    // Find a Func<TIn, TOut> where TIn is the current instance Type or any of its base classes
+                    Delegate function = _container.ResolveAndCreateClosure(target, outType);
+                    // TODO: test when function is not found, it should throw InjectFieldException
+                    field.SetValue(target, function);
+                    return;
                 }
+                */
 
                 if (!nullable) {
                     throw new InjectFieldException(field, target,
                         "Injectable property [" + field.FieldType.Name + " " + field.Name +
                         "] not found while injecting fields in " + target.GetType().Name);
                 }
-            } else {
-                _logger.Debug("Injecting field " + target.GetType() + "(" + target + ")." + field.Name + " " +
-                              field.FieldType.Name);
-                var service = _container.Resolve(field.FieldType, context);
-                field.SetValue(target, service);
             }
-        }
-
-        public static Func<T2> Inject<T1, T2>(Func<T1, T2> func, T1 inject) {
-            return () => {
-                GD.Print("Composing factory with " + inject);
-                return func(inject);
-            };
         }
 
         public void LoadOnReadyNodes(Node target) {
@@ -111,18 +96,31 @@ namespace Betauer.DI {
                 if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
                         onReady))
                     continue;
-                var instance = target.GetNode(onReady.Path);
+                LoadOnReadyField(target, onReady, property);
+            }
+        }
+
+        private void LoadOnReadyField(Node target, OnReadyAttribute onReady, FieldInfo property) {
+            if (onReady.Path != null) {
+                var node = target.GetNode(onReady.Path);
                 var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.FieldType.Name + " " +
                                 property.Name;
-                if (instance == null) {
+                if (node == null) {
                     throw new Exception("OnReady path is null in field " + fieldInfo + ", class " +
                                         target.GetType().Name);
-                } else if (instance.GetType() != property.FieldType) {
-                    throw new Exception("OnReady path returned a wrong type (" + instance.GetType().Name +
+                } else if (node.GetType() != property.FieldType) {
+                    throw new Exception("OnReady path returned a wrong type (" + node.GetType().Name +
                                         ") in field " + fieldInfo + ", class " +
                                         target.GetType().Name);
                 }
-                property.SetValue(target, instance);
+                property.SetValue(target, node);
+            } else {
+                /*
+                Delegate func =
+                    _container.ResolveCompatibleFunction(target.GetType(), property.FieldType);
+                var value = func.DynamicInvoke(target);
+                property.SetValue(target, value);
+            */
             }
         }
     }

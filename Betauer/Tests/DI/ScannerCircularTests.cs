@@ -39,21 +39,21 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Circular dependency")]
         public void CircularSingleton() {
-            var di = new Container(this);
+            var di = new ContainerBuilder(this);
             SingletonA.Created = 0;
             SingletonB.Created = 0;
             SingletonC.Created = 0;
-            di.Scanner.Scan<SingletonA>();
-            di.Scanner.Scan<SingletonB>();
-            di.Scanner.Scan<SingletonC>();
+            di.Scan<SingletonA>();
+            di.Scan<SingletonB>();
+            di.Scan<SingletonC>();
 
-            var sa = di.Resolve<SingletonA>();
+            var sa = di.Build().Resolve<SingletonA>();
             Assert.That(SingletonA.Created, Is.EqualTo(1));
             Assert.That(SingletonB.Created, Is.EqualTo(1));
             Assert.That(SingletonC.Created, Is.EqualTo(1));
 
-            var sb = di.Resolve<SingletonB>();
-            var sc = di.Resolve<SingletonC>();
+            var sb = di.Build().Resolve<SingletonB>();
+            var sc = di.Build().Resolve<SingletonC>();
 
             Assert.That(sa, Is.Not.EqualTo(sb));
             Assert.That(sb, Is.Not.EqualTo(sc));
@@ -98,20 +98,20 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Transient dependency")]
         public void CircularTransient() {
-            var di = new Container(this);
+            var di = new ContainerBuilder(this);
             TransientA.Created = 0;
             TransientB.Created = 0;
             TransientC.Created = 0;
-            di.Scanner.Scan<TransientA>();
-            di.Scanner.Scan<TransientB>();
-            di.Scanner.Scan<TransientC>();
+            di.Scan<TransientA>();
+            di.Scan<TransientB>();
+            di.Scan<TransientC>();
 
-            var sa = di.Resolve<TransientA>();
+            var sa = di.Build().Resolve<TransientA>();
             Assert.That(TransientA.Created, Is.EqualTo(1));
             Assert.That(TransientB.Created, Is.EqualTo(1));
             Assert.That(TransientC.Created, Is.EqualTo(1));
 
-            var sb = di.Resolve<TransientB>();
+            var sb = di.Build().Resolve<TransientB>();
             Assert.That(TransientA.Created, Is.EqualTo(2));
             Assert.That(TransientB.Created, Is.EqualTo(2));
             Assert.That(TransientC.Created, Is.EqualTo(2));
@@ -161,15 +161,15 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Multiple Transient dependency is not allowed")]
         public void CircularMultipleTransient() {
-            var di = new Container(this);
+            var di = new ContainerBuilder(this);
             MultiTransientA.Created = 0;
             MultiTransientB.Created = 0;
             MultiTransientC.Created = 0;
-            di.Scanner.Scan<MultiTransientA>();
-            di.Scanner.Scan<MultiTransientB>();
-            di.Scanner.Scan<MultiTransientC>();
+            di.Scan<MultiTransientA>();
+            di.Scan<MultiTransientB>();
+            di.Scan<MultiTransientC>();
 
-            var sa = di.Resolve<MultiTransientA>();
+            var sa = di.Build().Resolve<MultiTransientA>();
             Assert.That(MultiTransientA.Created, Is.EqualTo(1));
             Assert.That(MultiTransientB.Created, Is.EqualTo(1));
             Assert.That(MultiTransientC.Created, Is.EqualTo(1));

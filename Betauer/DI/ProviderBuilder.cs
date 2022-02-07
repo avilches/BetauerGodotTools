@@ -4,31 +4,11 @@ using System.Linq;
 
 namespace Betauer.DI {
     public interface IProviderBuilder {
-        public IProvider Build();
+        public IProvider CreateProvider();
     }
 
-    public abstract class BaseProviderBuilder : IProviderBuilder {
-        protected readonly Container Container;
-
-        protected BaseProviderBuilder(Container? container) {
-            Container = container ?? throw new ArgumentNullException(nameof(container));
-        }
-
-        public IProvider Build() {
-            Container.PendingToBuild.Remove(this);
-            var provider = CreateProvider();
-            Container.Add(provider);
-            return provider;
-        }
-
-        protected abstract IProvider CreateProvider();
-    }
-
-    public abstract class TypedProviderBuilder<T, TBuilder> : BaseProviderBuilder where TBuilder : class {
+    public abstract class TypedProviderBuilder<T, TBuilder> : IProviderBuilder where TBuilder : class, IProviderBuilder {
         protected readonly HashSet<Type> Types = new HashSet<Type>();
-
-        protected TypedProviderBuilder(Container? container) : base(container) {
-        }
 
         public TBuilder As<T1>() => As(typeof(T1));
         public TBuilder As<T1, T2>() => As(typeof(T1), typeof(T2));
@@ -36,16 +16,11 @@ namespace Betauer.DI {
         public TBuilder As<T1, T2, T3, T4>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4));
         public TBuilder As<T1, T2, T3, T4, T5>() => As(typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
 
-        public TBuilder AsAll<T1>() => AsAll(typeof(T1));
+        public TBuilder AsAll<T>() => AsAll(typeof(T));
         public TBuilder AsAll(Type type) => As(GetTypesFrom(type));
 
         public TBuilder As(params Type[] types) {
-            foreach (var type in types) As(type);
-            return (this as TBuilder)!;
-        }
-
-        public TBuilder As(Type? type) {
-            if (type != null) Types.Add(type);
+            foreach (var type in types) Types.Add(type);
             return (this as TBuilder)!;
         }
 
@@ -56,7 +31,7 @@ namespace Betauer.DI {
             return types.ToArray();
         }
 
-        protected sealed override IProvider CreateProvider() {
+        public IProvider CreateProvider() {
             Types.Remove(typeof(IDisposable));
             if (Types.Count == 0) As<T>();
             var typeToBuild = typeof(T);
@@ -68,24 +43,20 @@ namespace Betauer.DI {
             }
             return CreateTypedProvider();
         }
-
         protected abstract IProvider CreateTypedProvider();
-
-
     }
 
     public static class FactoryProviderBuilder {
-        public static IProviderBuilder Create(Container container, Type type,
+        public static IProviderBuilder Create(Type type,
             Lifetime lifetime, Func<object>? factory = null, IEnumerable<Type> types = null) {
             var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new[] { type });
             var ctor = factoryType.GetConstructors().First(info =>
-                info.GetParameters().Length == 4 &&
-                info.GetParameters()[0].ParameterType == typeof(Container) &&
-                info.GetParameters()[1].ParameterType == typeof(Lifetime) &&
-                info.GetParameters()[2].ParameterType == typeof(Func<object>) &&
-                info.GetParameters()[3].ParameterType == typeof(IEnumerable<Type>)
+                info.GetParameters().Length == 3 &&
+                info.GetParameters()[0].ParameterType == typeof(Lifetime) &&
+                info.GetParameters()[1].ParameterType == typeof(Func<object>) &&
+                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { container, lifetime, factory, types });
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { lifetime, factory, types });
             return @this;
         }
     }
@@ -95,12 +66,11 @@ namespace Betauer.DI {
         private Lifetime _lifetime = DI.Lifetime.Singleton;
         private Func<T>? _factory;
 
-        public FactoryProviderBuilder(Container container) : base(container) {
+        public FactoryProviderBuilder() {
         }
 
         // This constructor is used by reflection
-        public FactoryProviderBuilder(Container container, Lifetime lifetime, Func<object>? factory, IEnumerable<Type> types) :
-            base(container) {
+        public FactoryProviderBuilder(Lifetime lifetime, Func<object>? factory, IEnumerable<Type> types) {
             _lifetime = lifetime;
             As(types.ToArray());
             if (factory != null) {
@@ -141,7 +111,7 @@ namespace Betauer.DI {
     public class StaticProviderBuilder<T> : TypedProviderBuilder<T, StaticProviderBuilder<T>> where T : class {
         private readonly T _value;
 
-        public StaticProviderBuilder(Container? container, T value) : base(container) {
+        public StaticProviderBuilder(T value) {
             _value = value;
         }
 
@@ -151,7 +121,7 @@ namespace Betauer.DI {
     }
 
     public class FunctionProviderBuilder<TIn, TOut> : StaticProviderBuilder<Func<TIn, TOut>> {
-        public FunctionProviderBuilder(Container? container, Func<TIn, TOut> value) : base(container, value) {
+        public FunctionProviderBuilder(Func<TIn, TOut> value) : base(value) {
         }
     }
 }

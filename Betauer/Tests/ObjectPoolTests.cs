@@ -1,3 +1,4 @@
+using Betauer.Application;
 using Betauer.Memory;
 using Betauer.TestRunner;
 using Godot;
@@ -18,6 +19,45 @@ namespace Betauer.Tests {
 
         public GR() {
             Created++;
+        }
+    }
+
+    [TestFixture]
+    public class DefaultObjectPoolTests {
+        [Test(Description = "DefaultObjectPool")]
+        public void DefaultObjectPoolTest() {
+            R.Created = 0;
+            GR.Created = 0;
+
+            var objectPool = new ObjectPool();
+            DefaultObjectPool.SetPool(objectPool);
+            Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
+            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
+
+            DefaultObjectPool.UsePool = true;
+            R r = DefaultObjectPool.Get<R>();
+            GR gr = DefaultObjectPool.Get<GR>();
+            Assert.That(R.Created, Is.EqualTo(1));
+            Assert.That(GR.Created, Is.EqualTo(1));
+            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(2));
+        }
+
+        [Test(Description = "DefaultObjectPool disabled")]
+        public void DefaultObjectPoolDisabledTest() {
+            R.Created = 0;
+            GR.Created = 0;
+
+            var objectPool = new ObjectPool();
+            DefaultObjectPool.SetPool(objectPool);
+            Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
+            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
+
+            DefaultObjectPool.UsePool = false;
+            R r = DefaultObjectPool.Get<R>();
+            GR gr = DefaultObjectPool.Get<GR>();
+            Assert.That(R.Created, Is.EqualTo(1));
+            Assert.That(GR.Created, Is.EqualTo(1));
+            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
         }
     }
 
@@ -245,43 +285,5 @@ namespace Betauer.Tests {
             Assert.That(objectPool.GetAvailable().Contains(gr));
             Assert.That(objectPool.GetInUse().Count, Is.EqualTo(0));
         }
-
-        [Test(Description = "DefaultObjectPool")]
-        public void DefaultObjectPoolTest() {
-            R.Created = 0;
-            GR.Created = 0;
-
-            var objectPool = new ObjectPool();
-            DefaultObjectPool.SetPool(objectPool);
-            Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
-            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
-
-            DefaultObjectPool.UsePool = true;
-            R r = DefaultObjectPool.Get<R>();
-            GR gr = DefaultObjectPool.Get<GR>();
-            Assert.That(R.Created, Is.EqualTo(1));
-            Assert.That(GR.Created, Is.EqualTo(1));
-            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(2));
-        }
-
-        [Test(Description = "DefaultObjectPool disabled")]
-        public void DefaultObjectPoolDisabledTest() {
-            R.Created = 0;
-            GR.Created = 0;
-
-            var objectPool = new ObjectPool();
-            DefaultObjectPool.SetPool(objectPool);
-            Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
-            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
-
-            DefaultObjectPool.UsePool = false;
-            R r = DefaultObjectPool.Get<R>();
-            GR gr = DefaultObjectPool.Get<GR>();
-            Assert.That(R.Created, Is.EqualTo(1));
-            Assert.That(GR.Created, Is.EqualTo(1));
-            Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
-        }
-
-
     }
 }

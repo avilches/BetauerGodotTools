@@ -1,5 +1,4 @@
 using System;
-using Godot;
 
 namespace Betauer.DI {
     public enum Lifetime {
@@ -15,17 +14,15 @@ namespace Betauer.DI {
     }
 
     public abstract class BaseProvider<T> : IProvider where T : class {
+        private readonly Type[] _registeredTypes;
+        private readonly Type _providerType;
 
-        protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
-        private readonly Type[] _types;
-        private readonly Type _type;
+        public Type[] GetRegisterTypes() => _registeredTypes;
+        public Type GetProviderType() => _providerType;
 
-        public Type[] GetRegisterTypes() => _types;
-        public Type GetProviderType() => _type;
-
-        public BaseProvider(Type[] types) {
-            _types = types;
-            _type = typeof(T);
+        public BaseProvider(Type[] registeredTypes) {
+            _registeredTypes = registeredTypes;
+            _providerType = typeof(T);
         }
 
         public abstract Lifetime GetLifetime();
@@ -33,20 +30,21 @@ namespace Betauer.DI {
     }
 
     public abstract class FactoryProvider<T> : BaseProvider<T> where T : class {
+        protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(FactoryProvider<>));
         private readonly Func<T> _factory;
 
-        protected FactoryProvider(Type[] types, Func<T> factory) : base(types) {
+        protected FactoryProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes) {
             _factory = factory;
         }
 
         protected T CreateNewInstance(Lifetime lifetime, ResolveContext context) {
-            var o = _factory();
+            var instance = _factory();
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                Logger.Debug("Creating " + lifetime + " " + o.GetType().Name + " exposed as " +
-                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
+                Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AfterCreate(lifetime, o);
-            return o;
+            context.AfterCreate(lifetime, instance);
+            return instance;
         }
 
         public abstract override Lifetime GetLifetime();
@@ -54,35 +52,35 @@ namespace Betauer.DI {
     }
 
     public class SingletonProvider<T> : FactoryProvider<T> where T : class {
-        private bool _singletonDefined;
+        private bool _isSingletonDefined;
         private T? _singleton;
 
-        public SingletonProvider(Type[] types, Func<T> factory) : base(types, factory) {
+        public SingletonProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes, factory) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
         public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (_singletonDefined) return _singleton!;
+            if (_isSingletonDefined) return _singleton!;
             if (context.Has<T>()) {
-                T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
-                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
-                return o;
+                T singleton = context.Get<T>();
+                Logger.Debug("Get from context " + GetLifetime() + " " + singleton.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + singleton.GetHashCode().ToString("X"));
+                return singleton;
             }
             lock (this) {
                 // Just in case another thread was waiting for the lock
-                if (_singletonDefined) return _singleton!;
+                if (_isSingletonDefined) return _singleton!;
                 _singleton = CreateNewInstance(GetLifetime(), context);
-                _singletonDefined = true;
+                _isSingletonDefined = true;
             }
             return _singleton;
         }
     }
 
     public class TransientProvider<T> : FactoryProvider<T> where T : class {
-        public TransientProvider(Type[] types, Func<T> factory) : base(types, factory) {
+        public TransientProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes, factory) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
@@ -90,10 +88,10 @@ namespace Betauer.DI {
         public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.Has<T>()) {
-                T o = context.Get<T>();
-                Logger.Debug("Resolving from context " + GetLifetime() + " " + o.GetType().Name + " exposed as " +
-                             typeof(T) + ": " + o.GetHashCode().ToString("X"));
-                return o;
+                T transient = context.Get<T>();
+                Logger.Debug("Get from context " + GetLifetime() + " " + transient.GetType().Name + " exposed as " +
+                             typeof(T) + ": " + transient.GetHashCode().ToString("X"));
+                return transient;
             }
             return CreateNewInstance(GetLifetime(), context);
         }
@@ -102,14 +100,14 @@ namespace Betauer.DI {
     public class StaticProvider<T> : BaseProvider<T> where T : class {
         private readonly T _value;
 
-        public StaticProvider(Type[] types, T value) : base(types) {
+        public StaticProvider(Type[] registeredTypes, T value) : base(registeredTypes) {
             _value = value;
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
+
         public override object Get(ResolveContext? context) {
             return _value;
         }
     }
-
 }

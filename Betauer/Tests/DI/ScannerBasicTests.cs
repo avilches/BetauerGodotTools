@@ -2,11 +2,15 @@ using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
     public class ScannerBasicTests : Node {
+        [SetUp]
+        public void Setup() {
+            LoggerFactory.OverrideTraceLevel(TraceLevel.All);
+        }
+
         public interface INotTagged {
         }
 
@@ -22,13 +26,11 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Types not found")]
         public void NotFound() {
-            var di = new Container(this);
-            di.Scanner.Scan<INotTagged>();
-            di.Scanner.Scan<MyServiceWithNotScanned>();
-            Assert.That(!di.Contains<INotTagged>());
-            Assert.That(di.Contains<MyServiceWithNotScanned>());
+            var di = new ContainerBuilder(this);
+            di.Scan<INotTagged>();
+            di.Scan<MyServiceWithNotScanned>();
             try {
-                di.Resolve<MyServiceWithNotScanned>();
+                di.Build();
                 Assert.That(false, "It should fail!");
             } catch (InjectFieldException e) {
             }
@@ -36,10 +38,11 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Nullable")]
         public void Nullable() {
-            var di = new Container(this);
-            di.Scanner.Scan<MyServiceWithWithNullable>();
-            Assert.That(!di.Contains<INotTagged>());
-            var x = di.Resolve<MyServiceWithWithNullable>();
+            var di = new ContainerBuilder(this);
+            di.Scan<MyServiceWithWithNullable>();
+            var c = di.Build();
+            Assert.That(!c.Contains<INotTagged>());
+            var x = c.Resolve<MyServiceWithWithNullable>();
             Assert.That(x.nullable, Is.Null);
         }
 
@@ -79,22 +82,29 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Inject singletons in singleton")]
         public void SingletonInSingleton() {
-            var di = new Container(this);
+            var di = new ContainerBuilder(this);
             EmptyTransient.Created = 0;
             SingletonWith2Transients.Created = 0;
             MySingleton.Created = 0;
 
-            di.Scanner.Scan<EmptyTransient>();
-            di.Scanner.Scan<MySingleton>();
-            di.Scanner.Scan<SingletonWith2Transients>();
-            var s1 = di.Resolve<SingletonWith2Transients>();
-            var s2 = di.Resolve<SingletonWith2Transients>();
-            var ms1 = di.Resolve<MySingleton>();
-            var ms2 = di.Resolve<MySingleton>();
+            di.Scan<EmptyTransient>();
+            // Order matters: MySingleton contains SingletonWith2Transients, so register SingletonWith2Transients first
+            // will create 1 EmptyTransient. Then resolve the MySingleton will create a new context, so it will create
+            // another EmptyTransient, 2 in total.
+            // So, registering MySingleton first will create only one EmptyTransient, because it contains
+            // SingletonWith2Transients
+            di.Scan<SingletonWith2Transients>();
+            di.Scan<MySingleton>();
+            var c = di.Build();
 
             Assert.That(EmptyTransient.Created, Is.EqualTo(2));
             Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
             Assert.That(MySingleton.Created, Is.EqualTo(1));
+
+            var s1 = c.Resolve<SingletonWith2Transients>();
+            var s2 = c.Resolve<SingletonWith2Transients>();
+            var ms1 = c.Resolve<MySingleton>();
+            var ms2 = c.Resolve<MySingleton>();
 
             // Singleton are all the same instance
             Assert.That(s1, Is.EqualTo(s2));
@@ -124,27 +134,28 @@ namespace Betauer.Tests.DI {
 
         [Test(Description = "Inject transients in transient")]
         public void SingletonInTransient() {
-            var di = new Container(this);
+            var di = new ContainerBuilder(this);
             EmptyTransient.Created = 0;
             SingletonWith2Transients.Created = 0;
             TransientService.Created = 0;
             EmptyTransient.Created = 0;
 
-            di.Scanner.Scan<EmptyTransient>();
-            di.Scanner.Scan<TransientService>();
-            di.Scanner.Scan<SingletonWith2Transients>();
-            di.Scanner.Scan<EmptyTransient>();
-            var s1 = di.Resolve<SingletonWith2Transients>();
+            di.Scan<EmptyTransient>();
+            di.Scan<TransientService>();
+            di.Scan<SingletonWith2Transients>();
+            di.Scan<EmptyTransient>();
+            var c = di.Build();
+            var s1 = c.Resolve<SingletonWith2Transients>();
 
             Assert.That(EmptyTransient.Created, Is.EqualTo(1));
             Assert.That(s1.et1, Is.EqualTo(s1.et2));
 
-            var ts1 = di.Resolve<TransientService>();
+            var ts1 = c.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(1));
             Assert.That(EmptyTransient.Created, Is.EqualTo(2));
             Assert.That(s1.et1, Is.Not.EqualTo(ts1.et));
 
-            var ts2 = di.Resolve<TransientService>();
+            var ts2 = c.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(2));
             Assert.That(EmptyTransient.Created, Is.EqualTo(3));
             Assert.That(ts1.et, Is.Not.EqualTo(ts2.et));

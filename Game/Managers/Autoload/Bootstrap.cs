@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Memory;
@@ -14,27 +15,33 @@ using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
-
-    public class Bootstrap : Betauer.DI.Bootstrap /* needed to be instantiated as an Autoload from Godot */ {
+    public class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
-        private const UnhandledExceptionPolicy UnhandledExceptionPolicyConfig = UnhandledExceptionPolicy.TerminateApplication;
-        private const bool LogToFileEnabled = false; // TODO: enabled by a parameter
+        private const UnhandledExceptionPolicy UnhandledExceptionPolicyConfig =
+            UnhandledExceptionPolicy.TerminateApplication;
+
+        private const bool LogToFileEnabled = false; // TODO: enabled by a command line parameter
+
+        public Bootstrap() {
+            var builder = new ContainerBuilder(this);
+            builder.Instance<Func<SceneTree>>(GetTree);
+            builder.Scan();
+            var container = builder.Build();
+            DefaultContainer.Set(container);
+            container.InjectAllFields(this);
+            ConfigureLoggerFactory();
+            Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
+        }
 
         public override void _Ready() {
-            base._Ready();
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             DevTools.CheckErrorPolicy(GetTree(), UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
-            this. DisableAllNotifications();
+            this.DisableAllNotifications();
         }
-
-        public override Container CreateContainer() {
-            ConfigureLoggerFactory();
-            return new Container(this);
-        }
-
 
         private void ConfigureLoggerFactory() {
             LoggerFactory.Start(this);
@@ -67,7 +74,7 @@ namespace Veronenger.Game.Managers.Autoload {
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Error);
-            
+
             // Managers
             LoggerFactory.SetTraceLevel(typeof(InputManager), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
@@ -121,6 +128,5 @@ namespace Veronenger.Game.Managers.Autoload {
                 $"{calls} calls in {x.Elapsed.ToString()}: {x.ElapsedMilliseconds / (float)calls} calls/ms. {(x.ElapsedMilliseconds * 1000) / (float)calls} calls/s.");
             // Quit();
         }
-
     }
 }
