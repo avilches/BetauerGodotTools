@@ -100,7 +100,7 @@ namespace Betauer.DI {
                     _container.Owner.GetType().Assembly,
                     GetType().Assembly
                 },
-                (type) => !type.Namespace!.StartsWith("Betauer.Tests"));
+                (type) => !type.Namespace?.StartsWith("Betauer.Tests") ?? true);
         }
 
         public ContainerBuilder Scan(IEnumerable<Assembly> assemblies, Predicate<Type>? predicate = null) {

@@ -8,8 +8,9 @@ namespace Betauer.DI {
         public bool Nullable { get; set; } = false;
     }
 
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class OnReadyAttribute : Attribute {
+        public bool Nullable { get; set; } = false;
         public readonly string? Path;
 
         public OnReadyAttribute() {
@@ -20,15 +21,38 @@ namespace Betauer.DI {
         }
     }
 
-    public class InjectFieldException : Exception {
-        public FieldInfo FieldInfo { get; }
+    public abstract class InjectException : Exception {
         public object Instance { get; }
 
-        public InjectFieldException(FieldInfo fieldInfo, object instance, string message) : base(message) {
-            FieldInfo = fieldInfo;
+        public InjectException(string message, object instance) : base(message) {
             Instance = instance;
         }
     }
+
+    public class InjectFieldException : InjectException {
+        public FieldInfo FieldInfo { get; }
+
+        public InjectFieldException(FieldInfo fieldInfo, object instance, string message) : base(message, instance) {
+            FieldInfo = fieldInfo;
+        }
+    }
+
+    public abstract class OnReadyException : Exception {
+        public object Instance { get; }
+
+        public OnReadyException(string message, object instance) : base(message) {
+            Instance = instance;
+        }
+    }
+
+    public class OnReadyFieldException : OnReadyException {
+        public string Name { get; }
+
+        public OnReadyFieldException(string name, object instance, string message) : base(message, instance) {
+            Name = name;
+        }
+    }
+
 
     public class Injector {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Injector));
@@ -48,6 +72,13 @@ namespace Betauer.DI {
                     continue;
                 InjectField(target, context, field, inject.Nullable);
             }
+            // var properties = target.GetType()
+            //     .GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            // foreach (var field in properties) {
+            //     if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
+            //         continue;
+            //     InjectField(target, context, field, inject.Nullable);
+            // }
         }
 
         private static bool IsZeroParametersFunction(Type type) =>
@@ -67,7 +98,6 @@ namespace Betauer.DI {
                               "(" + target.GetHashCode() + ")");
                 var service = _container.Resolve(field.FieldType, context);
                 field.SetValue(target, service);
-
             } else {
                 /*
                 if (IsZeroParametersFunction(field.FieldType)) {
@@ -92,26 +122,49 @@ namespace Betauer.DI {
         public void LoadOnReadyNodes(Node target) {
             var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Public |
                                                     BindingFlags.Instance);
+            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Public |
+                                                    BindingFlags.Instance);
             foreach (var property in fields) {
                 if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
                         onReady))
                     continue;
-                LoadOnReadyField(target, onReady, property);
+                LoadOnReadyField(target, onReady, new Setter(property.FieldType, property.Name, property.SetValue));
+            }
+            foreach (var property in properties) {
+                if (!(Attribute.GetCustomAttribute(property, typeof(OnReadyAttribute), false) is OnReadyAttribute
+                        onReady))
+                    continue;
+                LoadOnReadyField(target, onReady, new Setter(property.PropertyType, property.Name, property.SetValue));
             }
         }
 
-        private void LoadOnReadyField(Node target, OnReadyAttribute onReady, FieldInfo property) {
+        private class Setter {
+            internal Type Type;
+            internal string Name;
+            internal Action<object, object> SetValue;
+
+            public Setter(Type type, string name, Action<object, object> setValue) {
+                Type = type;
+                Name = name;
+                SetValue = setValue;
+            }
+        }
+
+        private void LoadOnReadyField(Node target, OnReadyAttribute onReady, Setter property) {
             if (onReady.Path != null) {
                 var node = target.GetNode(onReady.Path);
-                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.FieldType.Name + " " +
+                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.Type.Name + " " +
                                 property.Name;
+
                 if (node == null) {
-                    throw new Exception("OnReady path is null in field " + fieldInfo + ", class " +
-                                        target.GetType().Name);
-                } else if (node.GetType() != property.FieldType) {
-                    throw new Exception("OnReady path returned a wrong type (" + node.GetType().Name +
-                                        ") in field " + fieldInfo + ", class " +
-                                        target.GetType().Name);
+                    if (onReady.Nullable) return;
+                    throw new OnReadyFieldException(property.Name, target,
+                        "Path returns a null value for field " + fieldInfo + ", class " + target.GetType().Name);
+                }
+                if (!property.Type.IsInstanceOfType(node)) {
+                    throw new OnReadyFieldException(property.Name, target,
+                        "Path returns an incompatible type " + node.GetType().Name + " for field " + fieldInfo +
+                        ", class " + target.GetType().Name);
                 }
                 property.SetValue(target, node);
             } else {
