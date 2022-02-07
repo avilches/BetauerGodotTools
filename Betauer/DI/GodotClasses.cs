@@ -1,16 +1,17 @@
+using Betauer.Application;
 using Godot;
 
 namespace Betauer.DI {
 
     public abstract class Di {
-        protected Di() => Bootstrap.Container.InjectAllFields(this);
+        protected Di() => DefaultContainer.Container.InjectAllFields(this);
     }
 
     public abstract class DiNode : Node {
-        protected DiNode() => Bootstrap.Container.InjectAllFields(this);
+        protected DiNode() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -19,10 +20,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiControl : Control {
-        protected DiControl() => Bootstrap.Container.InjectAllFields(this);
+        protected DiControl() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -31,10 +32,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiButton : Button {
-        protected DiButton() => Bootstrap.Container.InjectAllFields(this);
+        protected DiButton() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -43,10 +44,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiNode2D : Node2D {
-        protected DiNode2D() => Bootstrap.Container.InjectAllFields(this);
+        protected DiNode2D() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -55,10 +56,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiKinematicBody2D : KinematicBody2D {
-        protected DiKinematicBody2D() => Bootstrap.Container.InjectAllFields(this);
+        protected DiKinematicBody2D() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -67,10 +68,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiCamera2D : Camera2D {
-        protected DiCamera2D() => Bootstrap.Container.InjectAllFields(this);
+        protected DiCamera2D() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -79,10 +80,10 @@ namespace Betauer.DI {
     }
 
     public abstract class DiArea2D : Area2D {
-        protected DiArea2D() => Bootstrap.Container.InjectAllFields(this);
+        protected DiArea2D() => DefaultContainer.Container.InjectAllFields(this);
 
         public sealed override void _Ready() {
-            Bootstrap.Container.LoadOnReadyNodes(this);
+            DefaultContainer.Container.LoadOnReadyNodes(this);
             Ready();
         }
 
@@ -90,9 +91,4 @@ namespace Betauer.DI {
         }
     }
 
-    public class RootSceneHolder : Node {
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-        }
-    }
 }

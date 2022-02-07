@@ -203,7 +203,7 @@ namespace Betauer.Screen {
         }
 
         protected override void OnDispose(bool disposing) {
-            _onResizeWindowHandler.Free();
+            if (disposing) _onResizeWindowHandler.Free();
         }
 
         public List<ScaledResolution> GetResolutions() {
