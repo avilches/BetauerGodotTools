@@ -23,16 +23,16 @@ namespace Betauer.DI {
             var fields = target.GetType().GetFields(InjectFlags);
 
             foreach (var field in fields) {
-                if (!(Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject))
-                    continue;
-                InjectField(target, context, new Setter(field), inject.Nullable);
+                if (Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject) {
+                    InjectField(target, context, new Setter(field), inject.Nullable);
+                }
             }
             var properties = target.GetType().GetProperties(InjectFlags);
 
             foreach (var property in properties) {
-                if (!(Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject))
-                    continue;
-                InjectField(target, context, new Setter(property), inject.Nullable);
+                if (Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject) {
+                    InjectField(target, context, new Setter(property), inject.Nullable);
+                }
             }
         }
 
@@ -76,7 +76,6 @@ namespace Betauer.DI {
                     LoadOnReadyField(target, onReady, new Setter(field));
                 }
             }
-
             foreach (var property in target.GetType().GetProperties(OnReadyFlags)) {
                 if (Attribute.GetCustomAttribute(property,
                         typeof(OnReadyAttribute), false) is OnReadyAttribute onReady) {
