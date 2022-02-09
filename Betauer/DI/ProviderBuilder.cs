@@ -119,9 +119,4 @@ namespace Betauer.DI {
             return new StaticProvider<T>(Types.ToArray(), _value);
         }
     }
-
-    public class FunctionProviderBuilder<TIn, TOut> : StaticProviderBuilder<Func<TIn, TOut>> {
-        public FunctionProviderBuilder(Func<TIn, TOut> value) : base(value) {
-        }
-    }
 }

@@ -60,7 +60,7 @@ namespace Betauer.DI {
             return _container;
         }
 
-        public StaticProviderBuilder<T> Singleton<T>(T instance) where T : class {
+        public StaticProviderBuilder<T> Static<T>(T instance) where T : class {
             var builder = new StaticProviderBuilder<T>(instance);
             AddToBuildQueue(builder);
             return builder;

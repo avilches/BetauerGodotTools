@@ -3,6 +3,27 @@ using System.Reflection;
 using Godot;
 
 namespace Betauer.DI {
+    public class Setter {
+        public readonly Type Type;
+        public readonly string Name;
+        public readonly Action<object, object> SetValue;
+        public readonly Func<object, object> GetValue;
+
+        public Setter(PropertyInfo property) {
+            Type = property.PropertyType;
+            Name = property.Name;
+            SetValue = property.SetValue;
+            GetValue = property.GetValue;
+        }
+
+        public Setter(FieldInfo property) {
+            Type = property.FieldType;
+            Name = property.Name;
+            SetValue = property.SetValue;
+            GetValue = property.GetValue;
+        }
+    }
+
     public class Injector {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Injector));
         private readonly Container _container;
@@ -36,36 +57,28 @@ namespace Betauer.DI {
             }
         }
 
-        private void InjectField(object target, ResolveContext context, Setter field, bool nullable) {
-            if (field.GetValue(target) != null) {
+        private void InjectField(object target, ResolveContext context, Setter setter, bool nullable) {
+            if (setter.GetValue(target) != null) {
                 // Ignore the already defined values
                 // TODO: test
                 return;
             }
-            if (_container.Contains(field.Type)) {
-                // There is a provider for the field type
-                _logger.Debug("Injecting field " + field.Name + " " + field.Type.Name + " in " + target.GetType() +
-                              "(" + target.GetHashCode() + ")");
-                var service = _container.Resolve(field.Type, context);
-                field.SetValue(target, service);
-            } else {
-                /*
-                if (IsZeroParametersFunction(field.FieldType)) {
-                    var outType = field.FieldType.GetGenericArguments()[0];
-                    // [Inject] private Func<TOut>
-                    // Find a Func<TIn, TOut> where TIn is the current instance Type or any of its base classes
-                    Delegate function = _container.ResolveAndCreateClosure(target, outType);
-                    // TODO: test when function is not found, it should throw InjectFieldException
-                    field.SetValue(target, function);
-                    return;
-                }
-                */
 
-                if (!nullable) {
-                    throw new InjectFieldException(field.Name, target,
-                        "Injectable property [" + field.Type.Name + " " + field.Name +
-                        "] not found while injecting fields in " + target.GetType().Name);
-                }
+            if (InjectorFunction.InjectField(_container, target, setter)) return;
+
+            if (_container.Contains(setter.Type)) {
+                // There is a provider for the field type
+                _logger.Debug("Injecting field " + setter.Name + " " + setter.Type.Name + " in " + target.GetType() +
+                              "(" + target.GetHashCode() + ")");
+                var service = _container.Resolve(setter.Type, context);
+                setter.SetValue(target, service);
+                return;
+            }
+
+            if (!nullable) {
+                throw new InjectFieldException(setter.Name, target,
+                    "Injectable property [" + setter.Type.Name + " " + setter.Name +
+                    "] not found while injecting fields in " + target.GetType().Name);
             }
         }
 
@@ -84,57 +97,29 @@ namespace Betauer.DI {
             }
         }
 
-        private void LoadOnReadyField(Node target, OnReadyAttribute onReady, Setter property) {
+        private void LoadOnReadyField(Node target, OnReadyAttribute onReady, Setter setter) {
             if (onReady.Path != null) {
+                // [OnReady("path/to/node")
+                // private Sprite sprite = this.GetNode<Sprite>("path/to/node");
                 var node = target.GetNode(onReady.Path);
-                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + property.Type.Name + " " +
-                                property.Name;
+                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + setter.Type.Name + " " +
+                                setter.Name;
 
                 if (node == null) {
                     if (onReady.Nullable) return;
-                    throw new OnReadyFieldException(property.Name, target,
+                    throw new OnReadyFieldException(setter.Name, target,
                         "Path returns a null value for field " + fieldInfo + ", class " + target.GetType().Name);
                 }
-                if (!property.Type.IsInstanceOfType(node)) {
-                    throw new OnReadyFieldException(property.Name, target,
+                if (!setter.Type.IsInstanceOfType(node)) {
+                    throw new OnReadyFieldException(setter.Name, target,
                         "Path returns an incompatible type " + node.GetType().Name + " for field " + fieldInfo +
                         ", class " + target.GetType().Name);
                 }
-                property.SetValue(target, node);
-            } else {
-                /*
-                Delegate func =
-                    _container.ResolveCompatibleFunction(target.GetType(), property.FieldType);
-                var value = func.DynamicInvoke(target);
-                property.SetValue(target, value);
-            */
-            }
-        }
-
-        private static bool IsZeroParametersFunction(Type type) =>
-            type.IsGenericType &&
-            type.GetGenericTypeDefinition() == typeof(Func<>) &&
-            type.GetGenericArguments().Length == 1;
-
-        private class Setter {
-            internal Type Type;
-            internal string Name;
-            internal Action<object, object> SetValue;
-            internal Func<object, object> GetValue;
-
-            public Setter(PropertyInfo property) {
-                Type = property.PropertyType;
-                Name = property.Name;
-                SetValue = property.SetValue;
-                GetValue = property.GetValue;
+                setter.SetValue(target, node);
+                return;
             }
 
-            public Setter(FieldInfo property) {
-                Type = property.FieldType;
-                Name = property.Name;
-                SetValue = property.SetValue;
-                GetValue = property.GetValue;
-            }
+            InjectorFunction.OnReadyField(_container, target, setter);
         }
     }
 }

@@ -100,7 +100,7 @@ namespace Betauer.Tests.DI {
             // Ensure IDisposable is ignored. Assert that Node implements IDisposable
             Assert.That(typeof(Node).GetInterfaces(), Contains.Item(typeof(IDisposable)));
 
-            s = di.Singleton(node).CreateProvider();
+            s = di.Static(node).CreateProvider();
             var c = di.Build();
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(!c.Contains<IDisposable>());
@@ -108,7 +108,7 @@ namespace Betauer.Tests.DI {
             // Explicit ignore IDisposable (Node implements it)
             di = new ContainerBuilder(this);
             var mySingleton = new ClassWith2Interfaces();
-            s = di.Singleton(mySingleton).AsAll<IDisposable>().As<IDisposable>().CreateProvider();
+            s = di.Static(mySingleton).AsAll<IDisposable>().As<IDisposable>().CreateProvider();
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(!c.Contains<IDisposable>());
         }
@@ -122,7 +122,7 @@ namespace Betauer.Tests.DI {
             // Class with no interfaces
             var node = new Node();
             // Ensure IDisposable is ignored. Assert that Node implements IDisposable
-            s = di.Singleton(node).CreateProvider();
+            s = di.Static(node).CreateProvider();
             c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
@@ -131,7 +131,7 @@ namespace Betauer.Tests.DI {
 
             // Instances of the same Type can be overriden
             var instance2 = new Node();
-            s = di.Singleton(instance2).CreateProvider();
+            s = di.Static(instance2).CreateProvider();
             c = di.Build();
             Assert.That(c.Resolve<Node>(), Is.EqualTo(instance2));
             Assert.That(c.Resolve(typeof(Node)), Is.EqualTo(instance2));
@@ -139,7 +139,7 @@ namespace Betauer.Tests.DI {
             // Class with type and all nested interfaces by default
             di = new ContainerBuilder(this);
             var classWith2Interfaces = new ClassWith2Interfaces();
-            s = di.Singleton(classWith2Interfaces).CreateProvider();
+            s = di.Static(classWith2Interfaces).CreateProvider();
             c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
@@ -153,7 +153,7 @@ namespace Betauer.Tests.DI {
             // IDisposable
             di = new ContainerBuilder(this);
             var mySingleton = new ClassWith2Interfaces();
-            s = di.Singleton<IInterface2>(mySingleton).As<IDisposable>().CreateProvider();
+            s = di.Static<IInterface2>(mySingleton).As<IDisposable>().CreateProvider();
             c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
@@ -484,7 +484,7 @@ namespace Betauer.Tests.DI {
             var c = di.Build();
             c.OnInstanceCreated = (o) => x++;
             var instance = new Node();
-            di.Singleton(instance);
+            di.Static(instance);
             Assert.That(x, Is.EqualTo(0));
             di.Build();
             c.Resolve<Node>();
@@ -543,7 +543,7 @@ namespace Betauer.Tests.DI {
         public void RegisterNodeInstanceAddedToOwner() {
             var di = new ContainerBuilder(this);
             var instance = new Node();
-            di.Singleton(instance).CreateProvider();
+            di.Static(instance).CreateProvider();
             Assert.That(!GetChildren().Contains(instance));
 
             di.Build().Resolve<Node>();
@@ -554,7 +554,7 @@ namespace Betauer.Tests.DI {
         public void RegisterNodeInstanceAddedToOwnerOnBuild() {
             var di = new ContainerBuilder(this);
             var instance = new Node();
-            di.Singleton(instance).CreateProvider();
+            di.Static(instance).CreateProvider();
             Assert.That(!GetChildren().Contains(instance));
 
             di.Build();
@@ -686,7 +686,7 @@ namespace Betauer.Tests.DI {
         public void RegisterFactoryAsInstance() {
             var di = new ContainerBuilder(this);
             var n = 0;
-            di.Singleton<Func<int>>(() => ++n).CreateProvider();
+            di.Static<Func<int>>(() => ++n).CreateProvider();
 
             Func<int> resolve = di.Build().Resolve<Func<int>>();
 
