@@ -60,14 +60,34 @@ namespace Betauer.DI {
             return _container;
         }
 
-        public StaticProviderBuilder<T> Instance<T>(T instance) where T : class {
+        public StaticProviderBuilder<T> Singleton<T>(T instance) where T : class {
             var builder = new StaticProviderBuilder<T>(instance);
             AddToBuildQueue(builder);
             return builder;
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Func<T> factory) where T : class {
-            return Register<T>().With(factory);
+        public FactoryProviderBuilder<T> Singleton<T>(Func<T> factory = null) where T : class {
+            return Register<T>().IsSingleton().With(factory);
+        }
+
+        public FactoryProviderBuilder<T> Singleton<TI, T>(Func<T> factory = null) where T : class {
+            return Register<T>().IsSingleton().With(factory).As<TI>();
+        }
+
+        public FactoryProviderBuilder<T> Transient<T>(Func<T> factory = null) where T : class {
+            return Register<T>().IsTransient().With(factory);
+        }
+
+        public FactoryProviderBuilder<T> Transient<TI, T>(Func<T> factory = null) where T : class {
+            return Register<T>().IsTransient().With(factory).As<TI>();
+        }
+
+        public FactoryProviderBuilder<T> Register<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton) where T : class {
+            return Register<T>().With(factory).Lifetime(lifetime);
+        }
+
+        public FactoryProviderBuilder<T> Register<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton) where T : class {
+            return Register<T>().With(factory).Lifetime(lifetime).As<TI>();
         }
 
         public FactoryProviderBuilder<T> Register<TI, T>(Lifetime lifetime = Lifetime.Singleton) where T : class {

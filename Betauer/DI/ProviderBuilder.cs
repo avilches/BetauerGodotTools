@@ -82,12 +82,12 @@ namespace Betauer.DI {
         public FactoryProviderBuilder<T> IsSingleton() => Lifetime(DI.Lifetime.Singleton);
 
         public FactoryProviderBuilder<T> Lifetime(Lifetime? lifetime) {
-            _lifetime = lifetime ?? throw new ArgumentNullException(nameof(lifetime));
+            if (lifetime.HasValue) _lifetime = lifetime.Value;
             return this;
         }
 
-        public FactoryProviderBuilder<T> With(Func<T> factory) {
-            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        public FactoryProviderBuilder<T> With(Func<T>? factory) {
+            if (factory != null) _factory = factory;
             return this;
         }
 

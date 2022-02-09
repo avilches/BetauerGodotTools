@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
+    [Only]
     public class ScannerBasicTests : Node {
         [SetUp]
         public void Setup() {
@@ -63,8 +64,8 @@ namespace Betauer.Tests.DI {
                 Created++;
             }
 
-            [Inject] internal EmptyTransient et1;
-            [Inject] internal EmptyTransient et2;
+            [Inject] internal EmptyTransient et1 { get; set; }
+            [Inject] internal EmptyTransient et2 { get; set; }
         }
 
         [Singleton]
@@ -75,12 +76,12 @@ namespace Betauer.Tests.DI {
                 Created++;
             }
 
-            [Inject] internal SingletonWith2Transients singleton1;
-            [Inject] internal SingletonWith2Transients singleton2;
-            [Inject] internal EmptyTransient et;
+            [Inject] internal SingletonWith2Transients singleton1 { get; set; }
+            [Inject] internal SingletonWith2Transients singleton2 { get; set; }
+            [Inject] internal EmptyTransient et { get; set; }
         }
 
-        [Test(Description = "Inject singletons in singleton")]
+        [Test(Description = "Inject singletons in singleton + get/set properties")]
         public void SingletonInSingleton() {
             var di = new ContainerBuilder(this);
             EmptyTransient.Created = 0;
