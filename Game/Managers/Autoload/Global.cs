@@ -11,7 +11,6 @@ namespace Veronenger.Game.Managers.Autoload {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager;
         private Launcher _launcher = new Launcher();
-
         public override void Ready() {
             this.DisableAllNotifications();
             _launcher = new Launcher().CreateNewTween(this);

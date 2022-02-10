@@ -18,7 +18,6 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] public InputManager InputManager;
         [Inject] public GameManager GameManager;
-        [Inject] public ScreenSettings ScreenSettings;
         [Inject] public ScreenManager ScreenManager;
 
         private Launcher _launcher;
@@ -101,7 +100,7 @@ namespace Veronenger.Game.Controller.Menu {
                 })
                 .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
                     List<ScaledResolution> resolutions = ScreenManager.GetResolutions();
-                    Resolution resolution = ScreenSettings.WindowedResolution;
+                    Resolution resolution = ScreenManager.Settings.WindowedResolution;
                     var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
                     pos = pos == -1 ? 0 : pos;
 
@@ -166,11 +165,11 @@ namespace Veronenger.Game.Controller.Menu {
             _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
 
             // Load data from settings
-            _fullscreenButton.Pressed = ScreenSettings.Fullscreen;
-            _videoMenu.GetCheckButton("PixelPerfect")!.Pressed = ScreenSettings.PixelPerfect;
+            _fullscreenButton.Pressed = ScreenManager.Settings.Fullscreen;
+            _videoMenu.GetCheckButton("PixelPerfect")!.Pressed = ScreenManager.Settings.PixelPerfect;
             _videoMenu.GetCheckButton("VSync")!.Pressed = OS.VsyncEnabled;
-            _borderless.Pressed = ScreenSettings.Borderless;
-            _scale.Disabled = _borderless.Disabled = ScreenSettings.Fullscreen;
+            _borderless.Pressed = ScreenManager.Settings.Borderless;
+            _scale.Disabled = _borderless.Disabled = ScreenManager.Settings.Fullscreen;
 
             _scale.Menu.Refresh();
             return mainMenu;
@@ -184,7 +183,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private void UpdateResolutionButton() {
             List<ScaledResolution> resolutions = ScreenManager.GetResolutions();
-            Resolution resolution = ScreenSettings.WindowedResolution;
+            Resolution resolution = ScreenManager.Settings.WindowedResolution;
             var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
             pos = pos == -1 ? 0 : pos;
 

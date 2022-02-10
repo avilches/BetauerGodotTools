@@ -1,33 +1,37 @@
 using System;
 using System.Collections.Generic;
-using Betauer;
 using Betauer.DI;
 using Betauer.Screen;
 using Godot;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class ScreenManager : DisposableObject {
+    public class ScreenManager {
+        private readonly UserScreenSettings _settings = new UserScreenSettings();
         private const bool DontSave = false;
         private ScreenService _service;
 
         [Inject] private Func<SceneTree> GetTree;
 
-        [Inject] public ScreenSettings Settings;
+        public IUserScreenSettings Settings => _settings;
 
-        public void LoadSettingsAndConfigure() {
-            _service?.Dispose();
-            _service = new ScreenService(GetTree(), ScreenSettings.Configuration,
-                ScreenService.Strategy.PixelPerfectScale);
+        public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.Strategy? strategy) {
+            _service.SetScreenConfiguration(screenConfiguration, strategy);
+        }
 
-            Settings.Load();
-            if (Settings.Fullscreen) {
+        public void Load() {
+            _settings.Load();
+        }
+
+        public void Start(ScreenConfiguration initialConfiguration) {
+            _service = new ScreenService(GetTree(), initialConfiguration);
+            SetPixelPerfect(_settings.PixelPerfect, DontSave);
+            SetVSync(_settings.VSync, DontSave);
+            if (_settings.Fullscreen) {
                 SetFullscreen(true, DontSave);
             } else {
-                SetPixelPerfect(Settings.PixelPerfect, DontSave);
-                SetWindowed(Settings.WindowedResolution, DontSave);
-                SetBorderless(Settings.Borderless, DontSave);
-                SetVSync(Settings.VSync, DontSave);
+                SetWindowed(_settings.WindowedResolution, DontSave);
+                SetBorderless(_settings.Borderless, DontSave);
             }
         }
 
@@ -35,53 +39,52 @@ namespace Veronenger.Game.Managers {
         public List<ScaledResolution> GetResolutions() => _service.GetResolutions();
 
         public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
-            _service.SetStrategy(pixelPerfect
+            var strategy = pixelPerfect
                 ? ScreenService.Strategy.PixelPerfectScale
-                : ScreenService.Strategy.FitToScreen);
+                : ScreenService.Strategy.FitToScreen;
+            _service.SetStrategy(strategy);
             if (save) {
-                Settings.PixelPerfect = pixelPerfect;
-                Settings.Save();
+                _settings.PixelPerfect = pixelPerfect;
+                _settings.Save();
             }
         }
 
         public void SetBorderless(bool borderless, bool save = true) {
             _service.SetBorderless(borderless);
             if (save) {
-                Settings.Borderless = borderless;
-                Settings.Save();
+                _settings.Borderless = borderless;
+                _settings.Save();
             }
         }
 
         public void SetVSync(bool vsync, bool save = true) {
             OS.VsyncEnabled = vsync;
             if (save) {
-                Settings.VSync = vsync;
-                Settings.Save();
+                _settings.VSync = vsync;
+                _settings.Save();
             }
         }
 
         public void SetFullscreen(bool fs, bool save = true) {
             if (fs) _service.SetFullscreen();
-            else SetWindowed(Settings.WindowedResolution);
+            else SetWindowed(_settings.WindowedResolution);
             if (save) {
-                Settings.Fullscreen = fs;
-                Settings.Save();
+                _settings.Fullscreen = fs;
+                _settings.Save();
             }
         }
 
         public void SetWindowed(Resolution resolution, bool save = true) {
             _service.SetWindowed(resolution);
             if (save) {
-                Settings.WindowedResolution = resolution;
-                Settings.Save();
+                _settings.WindowedResolution = resolution;
+                _settings.Save();
             }
         }
 
-        protected override void OnDispose(bool disposing) {
-            // TODO: better handling
-            _service?.Dispose();
+        public void CenterWindow() {
+            _service.CenterWindow();
         }
-
 
         /*
         private int _currentScreen = -1;

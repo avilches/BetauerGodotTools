@@ -107,7 +107,7 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
 
-            ScreenManager.ChangeScreenConfiguration(ScreenSettings.Configuration2, ScreenService.Strategy.FitToScreen);
+            ScreenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2, ScreenService.Strategy.FitToScreen);
             ScreenManager.CenterWindow();
 
         }

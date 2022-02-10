@@ -24,7 +24,7 @@ namespace Veronenger.Game.Controller {
         private Vector2 baseResolutionSize;
 
         public override void _EnterTree() {
-            ScreenManager.Settings.Load();
+            ScreenManager.Load();
             if (ScreenManager.Settings.Fullscreen) {
                 OS.WindowFullscreen = true;
             }
@@ -50,7 +50,7 @@ namespace Veronenger.Game.Controller {
 
             await LoadMuchasCosas();
             GameManager.Start(this);
-            ScreenManager.Start(ScreenSettings.Configuration);
+            ScreenManager.Start(ApplicationConfig.Configuration);
         }
 
         private async Task LoadMuchasCosas() {
@@ -122,6 +122,9 @@ namespace Veronenger.Game.Controller {
                     }
 
                     Stopwatch x2 = Stopwatch.StartNew();
+                    await GetTree().AwaitIdleFrame();
+                    // TODO: this will make the load slower to see the animation replace it by a timer that can be skipped with a keystroke or a button but only
+                    // if everything is loaded
                     await GetTree().AwaitPhysicsFrame();
                     idle.Add(x2.ElapsedMilliseconds);
                 }
