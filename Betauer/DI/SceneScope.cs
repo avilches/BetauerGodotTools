@@ -9,6 +9,13 @@ namespace Betauer.DI {
         // }
     // }
 
+    // TODO: not tested and not used yet. The RootSceneHolder is an object child of the scene and can be accessed
+    // from everywhere. The SceneScope keeps the track in a Dictionary as a cache only for the first frame, where
+    // its built. It means if 3 objects try to access to the RootSceneHolder before its created, the first call
+    // will create it, but it will add the RootSceneHolder as a child of the scene in the next frame (deferred).
+    // So, the next two objects will not found RootSceneHolder neither but they will use the instance stored in the
+    // Dictionary.
+
     public class SceneScope {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SceneScope));
 
@@ -21,6 +28,9 @@ namespace Betauer.DI {
         //         // TODO: test
         //         throw new Exception(nameof(RootSceneHolder) + " can't be used from singleton");
         //     }
+        //     if (scene != null) // remove from _sceneHolders dictionary and mark is as already searchable, so it could
+        //     be safely deleted in other thread, just to avoid to fill the dictionary with not needed stuff.
+        //
         //     if (!_sceneHolders.TryGetValue(scene, out var sceneHolder)) {
         //         sceneHolder = new RootSceneHolder();
         //         _sceneHolders[scene] = sceneHolder;
