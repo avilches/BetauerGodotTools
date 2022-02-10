@@ -16,13 +16,18 @@ namespace Veronenger.Game.Managers {
         private const string BorderlessProperty = "Borderless";
         private const string WindowedResolutionProperty = "WindowedResolution";
 
+        // TODO: move these two configuration out of this singleton
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV3,
             SceneTree.StretchMode.Viewport,
             SceneTree.StretchAspect.Keep,
-            Resolutions.All(),
-            new List<AspectRatio> { AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5 },
-            1);
+            Resolutions.All(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
+
+        public static readonly ScreenConfiguration Configuration2 = new ScreenConfiguration(
+            Resolutions.FULLHD,
+            SceneTree.StretchMode.Viewport,
+            SceneTree.StretchAspect.Keep,
+            Resolutions.All(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
 
         public bool PixelPerfect = true;
         public bool Fullscreen = true;

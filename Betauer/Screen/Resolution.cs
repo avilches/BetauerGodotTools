@@ -98,13 +98,12 @@ namespace Betauer.Screen {
             return resolution;
         }
 
-        public static List<Resolution> All() => new List<Resolution>(_all);
-
-        public static List<Resolution> All(AspectRatio aspectRatio) =>
-            _all.FindAll(aspectRatio.Matches);
-
-        public static List<Resolution> All(List<AspectRatio> aspectRatios) =>
-            _all.FindAll(resolution => aspectRatios.Any(ratio => ratio.Matches(resolution)));
+        public static List<Resolution> All(params AspectRatio[] aspectRatios) =>
+            aspectRatios.Length switch {
+                0 => new List<Resolution>(_all),
+                1 => _all.FindAll(aspectRatios[0].Matches),
+                _ => _all.FindAll(resolution => aspectRatios.Any(ratio => ratio.Matches(resolution)))
+            };
     }
 
     public struct AspectRatio {

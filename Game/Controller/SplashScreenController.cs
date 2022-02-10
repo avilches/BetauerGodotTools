@@ -50,7 +50,7 @@ namespace Veronenger.Game.Controller {
 
             await LoadMuchasCosas();
             GameManager.Start(this);
-            ScreenManager.LoadSettingsAndConfigure();
+            ScreenManager.Start(ScreenSettings.Configuration);
         }
 
         private async Task LoadMuchasCosas() {

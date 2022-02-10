@@ -27,7 +27,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public Bootstrap() {
             var builder = new ContainerBuilder(this);
-            builder.Instance<Func<SceneTree>>(GetTree);
+            builder.Static<Func<SceneTree>>(GetTree);
             builder.Scan();
             var container = builder.Build();
             DefaultContainer.Set(container);
@@ -53,6 +53,7 @@ namespace Veronenger.Game.Managers.Autoload {
             }
 
             DisposeTools.ShowShutdownWarning = true;
+            DisposeTools.ShowMessageOnCreate = false;
 
             LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
             LoggerFactory.IncludeTimestamp(true);

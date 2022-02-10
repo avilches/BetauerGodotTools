@@ -49,13 +49,15 @@ namespace Veronenger.Game.Controller.Menu {
                     ctx.Refresh();
                 })
                 .AddButton("Continue", "Continue", async (ctx) => {
-                    GD.Print("Continue");
-                    ctx.ActionButton.Disabled = true;
-                    ctx.Refresh();
-                    await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
-                            MenuEffectTime)
-                        .Await();
-                    ctx.ActionButton.Save();
+                    // GD.Print("Continue");
+                    // ctx.ActionButton.Disabled = true;
+                    // ctx.Refresh();
+                    // await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
+                    //         MenuEffectTime)
+                    //     .Await();
+                    // ctx.ActionButton.Save();
+                    GameManager.LoadAnimaDemo();
+
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
@@ -154,7 +156,7 @@ namespace Veronenger.Game.Controller.Menu {
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
                 );
 
-            mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
+            // mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
 
             _videoMenu = mainMenu.GetMenu("Video");
             _fullscreenButton = _videoMenu.GetCheckButton("Fullscreen")!;

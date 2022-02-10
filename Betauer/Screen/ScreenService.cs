@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Screen {
@@ -13,44 +14,57 @@ namespace Betauer.Screen {
         public SceneTree.StretchMode StretchMode { get; }
         public SceneTree.StretchAspect StretchAspect { get; }
         public float Zoom { get; }
-        public ICollection<AspectRatio> AspectRatios { get; }
 
         public ScreenConfiguration(Resolution baseResolution, SceneTree.StretchMode stretchMode,
-            SceneTree.StretchAspect stretchAspect, List<Resolution> resolutions, ICollection<AspectRatio> aspectRatios,
-            float zoom = 1f) {
+            SceneTree.StretchAspect stretchAspect, List<Resolution>? resolutions = null, float zoom = 1f) {
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
             StretchAspect = stretchAspect;
-            Resolutions = resolutions;
-            AspectRatios = aspectRatios;
+            Resolutions = resolutions ?? Betauer.Screen.Resolutions.All(AspectRatios.Ratio16_9);
             Zoom = zoom;
         }
     }
 
-    public class ScreenService : IScreenService {
-        private readonly ScreenConfiguration _screenConfiguration;
+    public class ScreenService {
         private readonly SceneTree _tree;
-
-        private IScreenService _currentService;
+        private readonly Dictionary<Strategy, IScreenService> _strategies = new Dictionary<Strategy, IScreenService>();
+        private ScreenConfiguration _currentScreenConfiguration;
+        private IScreenService? _currentService;
+        private Strategy _currentStrategy = Strategy.Unknown;
 
         public enum Strategy {
-            PixelPerfectScale = 0,
-            FitToScreen = 1,
+            Unknown = 0,
+            PixelPerfectScale = 1,
+            FitToScreen = 2,
         }
 
-        public ScreenService(SceneTree tree, ScreenConfiguration screenConfiguration, Strategy strategy) {
+        public ScreenService(SceneTree tree, ScreenConfiguration currentScreenConfiguration, Strategy? strategy = null) {
             _tree = tree;
-            _screenConfiguration = screenConfiguration;
-            SetStrategy(strategy);
+            _currentScreenConfiguration = currentScreenConfiguration;
+            _strategies[Strategy.FitToScreen] = new FitToScreenResolutionService(_tree);
+            _strategies[Strategy.PixelPerfectScale] = new PixelPerfectScreenResolutionService(_tree);
+            if (strategy.HasValue) SetStrategy(strategy.Value);
+        }
+
+        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, Strategy? strategy = null) {
+            if (_currentScreenConfiguration != screenConfiguration || (strategy.HasValue && strategy.Value != strategy)) {
+                _currentScreenConfiguration = screenConfiguration;
+                _currentStrategy = strategy ?? _currentStrategy;
+                ConfigureService();
+            }
         }
 
         public void SetStrategy(Strategy strategy) {
-            _currentService?.Dispose();
-            _currentService = strategy switch {
-                Strategy.FitToScreen => new FitToScreenResolutionService(_tree, _screenConfiguration),
-                Strategy.PixelPerfectScale => new PixelPerfectScreenResolutionService(_tree, _screenConfiguration),
-                _ => throw new Exception()
-            };
+            if (_currentStrategy != strategy) {
+                _currentStrategy = strategy;
+                ConfigureService();
+            }
+        }
+
+        private void ConfigureService() {
+            _currentService?.Disable(); // can be null, but only the first time
+            _currentService = _strategies[_currentStrategy];
+            _currentService.Enable(_currentScreenConfiguration);
         }
 
         public void Dispose() => _currentService?.Dispose();
@@ -60,6 +74,8 @@ namespace Betauer.Screen {
         public void SetBorderless(bool borderless) => _currentService.SetBorderless(borderless);
         public void SetWindowed(Resolution resolution) => _currentService.SetWindowed(resolution);
         public List<ScaledResolution> GetResolutions() => _currentService.GetResolutions();
+
+        public void CenterWindow() => _currentService.CenterWindow();
     }
 
     public interface IScreenService : IDisposable {
@@ -68,25 +84,26 @@ namespace Betauer.Screen {
         void SetBorderless(bool borderless);
         void SetWindowed(Resolution resolution);
         List<ScaledResolution> GetResolutions();
+        void Disable();
+        void Enable(ScreenConfiguration screenConfiguration);
+        void CenterWindow();
     }
 
     public abstract class BaseScreenResolutionService : DisposableObject {
-        private readonly ScreenConfiguration _screenConfiguration;
         protected readonly SceneTree Tree;
-        protected Resolution BaseResolution => _screenConfiguration.BaseResolution;
-        protected List<Resolution> Resolutions => _screenConfiguration.Resolutions;
-        protected ICollection<AspectRatio> AspectRatios => _screenConfiguration.AspectRatios;
-        protected SceneTree.StretchMode StretchMode => _screenConfiguration.StretchMode;
-        protected SceneTree.StretchAspect StretchAspect => _screenConfiguration.StretchAspect;
-        protected float Zoom => _screenConfiguration.Zoom;
+        protected ScreenConfiguration ScreenConfiguration;
+        protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
 
-        protected BaseScreenResolutionService(SceneTree tree, ScreenConfiguration screenConfiguration) {
+        protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
+
+        // protected ICollection<AspectRatio> AspectRatios => _screenConfiguration.AspectRatios;
+        protected SceneTree.StretchMode StretchMode => ScreenConfiguration.StretchMode;
+        protected SceneTree.StretchAspect StretchAspect => ScreenConfiguration.StretchAspect;
+        protected float Zoom => ScreenConfiguration.Zoom;
+
+        protected BaseScreenResolutionService(SceneTree tree) {
             Tree = tree;
-            _screenConfiguration = screenConfiguration;
-            DoConfigure();
         }
-
-        protected abstract void DoConfigure();
 
         public bool IsFullscreen() => OS.WindowFullscreen;
         public abstract void SetFullscreen();
@@ -130,14 +147,20 @@ namespace Betauer.Screen {
     public class FitToScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(FitToScreenResolutionService));
 
-        public FitToScreenResolutionService(SceneTree tree, ScreenConfiguration screenConfiguration) : base(tree,
-            screenConfiguration) {
+        public FitToScreenResolutionService(SceneTree tree) : base(tree) {
         }
 
-        protected override void DoConfigure() {
+        public void Enable(ScreenConfiguration screenConfiguration) {
+            ScreenConfiguration = screenConfiguration;
             // Enforce minimum resolution.
             OS.MinWindowSize = BaseResolution.Size;
+            if (OS.WindowSize < OS.MinWindowSize) {
+                OS.WindowSize = OS.MinWindowSize;
+            }
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
+        }
+
+        public void Disable() {
         }
 
         protected override void OnDispose(bool disposing) {
@@ -145,24 +168,10 @@ namespace Betauer.Screen {
 
         public List<ScaledResolution> GetResolutions() {
             var screenSize = OS.GetScreenSize();
-            List<ScaledResolution> resolutions = new List<ScaledResolution>();
-            foreach (var resolution in Resolutions ?? Betauer.Screen.Resolutions.All()) {
-                if (resolution.x <= screenSize.x &&
-                    resolution.y <= screenSize.y &&
-                    resolution.x >= BaseResolution.x &&
-                    resolution.y >= BaseResolution.y) {
-                    if (AspectRatios != null) {
-                        foreach (var aspectRatio in AspectRatios) {
-                            if (aspectRatio.Matches(resolution)) {
-                                resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
-                            }
-                        }
-                    } else {
-                        resolutions.Add(new ScaledResolution(BaseResolution.Size, resolution.Size));
-                    }
-                }
-            }
-            return resolutions;
+            return (from resolution in Resolutions ?? Betauer.Screen.Resolutions.All()
+                where resolution.x <= screenSize.x && resolution.y <= screenSize.y &&
+                      resolution.x >= BaseResolution.x && resolution.y >= BaseResolution.y
+                select new ScaledResolution(BaseResolution.Size, resolution.Size)).ToList();
         }
 
         public override void SetFullscreen() {
@@ -172,10 +181,13 @@ namespace Betauer.Screen {
             }
         }
 
-        protected override void DoSetBorderless(bool borderless) => OS.WindowBorderless = borderless;
+        protected override void DoSetBorderless(bool borderless) {
+            if (OS.WindowBorderless == borderless) return;
+            OS.WindowBorderless = borderless;
+        }
 
         protected override void DoSetWindowed(Resolution resolution) {
-            OS.WindowFullscreen = false;
+            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
             CenterWindow();
         }
@@ -187,60 +199,73 @@ namespace Betauer.Screen {
     public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
         private OnResizeWindowHandler _onResizeWindowHandler = null!;
+        private bool _enabled = false;
 
-        public PixelPerfectScreenResolutionService(SceneTree tree, ScreenConfiguration screenConfiguration) : base(
-            tree, screenConfiguration) {
+        public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
+            _onResizeWindowHandler = Tree.OnResizeWindow(OnResizeWindowHandler);
         }
 
-        protected override void DoConfigure() {
+        public void OnResizeWindowHandler() {
+            if (_enabled) ScaleResolutionViewport();
+        }
+
+        public void Enable(ScreenConfiguration screenConfiguration) {
+            ScreenConfiguration = screenConfiguration;
             // Enforce minimum resolution.
             OS.MinWindowSize = BaseResolution.Size;
+            if (OS.WindowSize < OS.MinWindowSize) {
+                OS.WindowSize = OS.MinWindowSize;
+            }
             // Remove default stretch behavior.
             Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep, BaseResolution.Size,
                 1);
-            _onResizeWindowHandler = Tree.OnResizeWindow(ScaleResolutionViewport);
             ScaleResolutionViewport();
+            _enabled = true;
         }
 
-        protected override void OnDispose(bool disposing) {
-            if (disposing) _onResizeWindowHandler.Free();
+        public void Disable() {
+            _enabled = false;
         }
 
         public List<ScaledResolution> GetResolutions() {
             var screenSize = OS.GetScreenSize();
             var maxScale = Resolution.CalculateMaxScale(screenSize, BaseResolution.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
+            HashSet<AspectRatio> otherAspectRatios = new HashSet<AspectRatio>();
+            // Loop all the possible resolution just to extract all the aspect ratios...
+            foreach (var resolution in Resolutions.Where(resolution => !resolution.AspectRatio.Matches(BaseResolution))) {
+                otherAspectRatios.Add(resolution.AspectRatio);
+            }
             for (var scale = 1; scale <= maxScale; scale++) {
                 var scaledResolution = new ScaledResolution(BaseResolution.Size, BaseResolution.Size * scale);
+                // Add the baseResolution x scale
                 resolutions.Add(scaledResolution);
-                if (AspectRatios != null) {
-                    foreach (var aspectRatio in AspectRatios) {
-                        if (aspectRatio.Matches(scaledResolution.Base)) continue;
-                        // TODO: This is only with landscapes
-                        if (aspectRatio.Ratio > scaledResolution.AspectRatio.Ratio) {
-                            // Convert the resolution to a wider aspect ratio, keeping the height and adding more width
-                            // So, if base is 1920x1080 = 1,77777 16:9
-                            // to 21:9 => 2,3333
-                            // x=1080*2,333=2520
-                            // 2520x1080 = 2,3333 21:9
-                            var newWidth = scaledResolution.y * aspectRatio.Ratio;
-                            if (newWidth <= screenSize.x) {
-                                var newResolution = new Vector2(newWidth, scaledResolution.y);
-                                var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
-                                resolutions.Add(scaledResolutionUpdated);
-                            }
-                        } else {
-                            // Convert the resolution to a stretcher aspect ratio, keeping the width and adding more height
-                            // So, if base is 1920x1080 = 1,77777 16:9
-                            // to 4:3 => 1,333
-                            // y=1920/1,333=823
-                            // 1920x1440 = 1,3333 3:4
-                            var newHeight = scaledResolution.x / aspectRatio.Ratio;
-                            if (newHeight <= screenSize.y) {
-                                var newResolution = new Vector2(scaledResolution.x, newHeight);
-                                var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
-                                resolutions.Add(scaledResolutionUpdated);
-                            }
+                // And add it again adapted to other aspect ratios
+                foreach (var aspectRatio in otherAspectRatios) {
+                    // TODO: This is only with landscapes
+                    if (aspectRatio.Ratio > scaledResolution.AspectRatio.Ratio) {
+                        // Convert the resolution to a wider aspect ratio, keeping the height and adding more width
+                        // So, if base is 1920x1080 = 1,77777 16:9
+                        // to 21:9 => 2,3333
+                        // x=1080*2,333=2520
+                        // 2520x1080 = 2,3333 21:9
+                        var newWidth = scaledResolution.y * aspectRatio.Ratio;
+                        if (newWidth <= screenSize.x) {
+                            var newResolution = new Vector2(newWidth, scaledResolution.y);
+                            var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
+                            resolutions.Add(scaledResolutionUpdated);
+                        }
+                    } else {
+                        // Convert the resolution to a stretcher aspect ratio, keeping the width and adding more height
+                        // So, if base is 1920x1080 = 1,77777 16:9
+                        // to 4:3 => 1,333
+                        // y=1920/1,333=823
+                        // 1920x1440 = 1,3333 3:4
+                        var newHeight = scaledResolution.x / aspectRatio.Ratio;
+                        if (newHeight <= screenSize.y) {
+                            var newResolution = new Vector2(scaledResolution.x, newHeight);
+                            var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
+                            resolutions.Add(scaledResolutionUpdated);
                         }
                     }
                 }
@@ -257,12 +282,13 @@ namespace Betauer.Screen {
         }
 
         protected override void DoSetBorderless(bool borderless) {
+            if (OS.WindowBorderless == borderless) return;
             OS.WindowBorderless = borderless;
             ScaleResolutionViewport();
         }
 
         protected override void DoSetWindowed(Resolution resolution) {
-            OS.WindowFullscreen = false;
+            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
             CenterWindow();
             ScaleResolutionViewport();

@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.DI;
+using Betauer.Screen;
 using Veronenger.Game.Controller;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
     /**
@@ -18,7 +22,7 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class GameManager {
+    public class GameManager  {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
         [Inject] public StageManager StageManager;
 
@@ -31,10 +35,10 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
+        [Inject] private ScreenManager ScreenManager;
         [Inject] private Func<SceneTree> GetTree;
 
         public void Start(SplashScreenController splashScreen) {
-
             SceneWorld1 = Load("res://Worlds/World1.tscn");
             SceneWorld2 = Load("res://Worlds/World2.tscn");
             Player = Load("res://Scenes/Player.tscn");
@@ -68,11 +72,11 @@ namespace Veronenger.Game.Managers {
             AddSceneDeferred(_mainMenuScene);
         }
 
-        public async void QueueChangeScene(string scene) {
+        public async void QueueChangeSceneWithPlayer(string sceneName) {
             StageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
-            var nextScene = ResourceLoader.Load<PackedScene>(scene).Instance();
+            var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
             await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
@@ -95,6 +99,17 @@ namespace Veronenger.Game.Managers {
         private async Task AddSceneDeferred(Node scene) {
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(scene);
+        }
+
+        public async Task LoadAnimaDemo() {
+            _mainMenuScene.QueueFree();
+            var nextScene = ResourceLoader.Load<PackedScene>("demos/AnimationsPreview.tscn").Instance();
+            _currentGameScene = nextScene;
+            await AddSceneDeferred(_currentGameScene);
+
+            ScreenManager.ChangeScreenConfiguration(ScreenSettings.Configuration2, ScreenService.Strategy.FitToScreen);
+            ScreenManager.CenterWindow();
+
         }
     }
 }
