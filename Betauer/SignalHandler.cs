@@ -40,18 +40,25 @@ namespace Betauer {
             _target = target;
             _signal = signal;
             Action = action;
-            if (!IsInstanceValid(target)) {
-                throw new Exception($"Can't connect '{signal}' to a freed object");
+            Connect();
+        }
+        
+        public void Connect() {
+            if (!IsInstanceValid(_target)) {
+                throw new Exception($"Can't connect '{_signal}' to a freed object");
             }
-            Error err = target.Connect(signal, this, nameof(SignalHandler.Call));
+            Error err = _target.Connect(_signal, this, nameof(SignalHandler.Call));
             if (err != Error.Ok) {
-                throw new Exception($"Connecting signal '{signal}' to ${target} failed: '{err}'");
+                throw new Exception($"Connecting signal '{_signal}' to ${_target} failed: '{err}'");
             }
         }
 
+        public bool IsConnected() {
+            return IsInstanceValid(_target) && _target.IsConnected(_signal, this, nameof(SignalHandler.Call));
+        }
+
         public void Disconnect() {
-            if (IsInstanceValid(_target) &&
-                _target.IsConnected(_signal, this, nameof(SignalHandler.Call))) {
+            if (IsInstanceValid(_target)) {
                 _target.Disconnect(_signal, this, nameof(SignalHandler.Call));
             }
         }
