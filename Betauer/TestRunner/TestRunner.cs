@@ -62,8 +62,8 @@ namespace Betauer.TestRunner {
             public Result Result { get; private set; }
             public bool Only { get; set; }
 
-            public MethodInfo Setup { get; set; }
-            public MethodInfo TearDown { get; set; }
+            public IEnumerable<MethodInfo>? Setup { get; set; }
+            public IEnumerable<MethodInfo>? TearDown { get; set; }
             public string Id { get; set; }
 
             public TestMethod(MethodInfo method, object instance, string description, bool only) {
@@ -76,7 +76,6 @@ namespace Betauer.TestRunner {
                 Only = only;
             }
 
-
             public async Task Execute(SceneTree sceneTree) {
                 try {
                     Stopwatch.Start();
@@ -84,7 +83,7 @@ namespace Betauer.TestRunner {
                         await sceneTree.AwaitIdleFrame();
                         sceneTree.Root.AddChild(node);
                     }
-                    Setup?.Invoke(_instance, EmptyParameters);
+                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(_instance, EmptyParameters);
                     var obj = _method.Invoke(_instance, EmptyParameters);
                     if (obj is Task task) {
                         await task;
@@ -99,12 +98,12 @@ namespace Betauer.TestRunner {
                         }
                     }
                     Result = Result.Passed;
-                    TearDown?.Invoke(_instance, EmptyParameters);
+                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(_instance, EmptyParameters);
                 } catch (Exception e) {
                     Exception = e.InnerException ?? e;
                     Result = Result.Failed;
                     try {
-                        TearDown?.Invoke(_instance, EmptyParameters);
+                        if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(_instance, EmptyParameters);
                     } catch (Exception) {
                         // ignore tearDown error in failed tests
                     }
@@ -172,8 +171,8 @@ namespace Betauer.TestRunner {
         private static TestFixture CreateFixture(Type type) {
             var onlyThisType = Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute;
             List<TestMethod> testMethods = new List<TestMethod>();
-            MethodInfo setup = null;
-            MethodInfo tearDown = null;
+            SimpleLinkedList<MethodInfo> setup = new SimpleLinkedList<MethodInfo>();
+            SimpleLinkedList<MethodInfo> tearDown = new SimpleLinkedList<MethodInfo>();
             var isAnyMethodWithOnly = false;
             foreach (var method in type.GetMethods()) {
                 if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {
@@ -201,15 +200,15 @@ namespace Betauer.TestRunner {
                     }
                 } else if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),
                                false) is SetUpAttribute) {
-                    setup = method;
+                    setup.Add(method);
                 } else if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is
                            TearDownAttribute) {
-                    tearDown = method;
+                    tearDown.Add(method);
                 }
             }
             testMethods.ForEach(testMethod => {
-                testMethod.Setup = setup;
-                testMethod.TearDown = tearDown;
+                if (setup.Count > 0) testMethod.Setup = setup;
+                if (tearDown.Count > 0) testMethod.TearDown = tearDown;
             });
             if (!isAnyMethodWithOnly && onlyThisType) {
                 // If none of the methods has Only, but the Fixture has Only, then mark all methods as Only too
