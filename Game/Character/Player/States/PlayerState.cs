@@ -7,8 +7,7 @@ using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Player.States {
-    public abstract class PlayerState : State {
-
+    public abstract class PlayerState : BaseState {
         public const string StateIdle = nameof(GroundStateIdle);
         public const string StateRun = nameof(GroundStateRun);
         public const string StateFallShort = nameof(AirStateFallShort);
@@ -17,25 +16,19 @@ namespace Veronenger.Game.Character.Player.States {
 
         public const string CoyoteJumpEnabledKey = nameof(CoyoteJumpEnabledKey);
 
-        public PlayerState(string name, PlayerController player) : base(name) {
-            Player = player;
-        }
 
         [Inject] public PlatformManager PlatformManager;
         [Inject] public InputManager InputManager;
 
         protected readonly PlayerController Player;
         protected MotionBody Body => Player.MotionBody;
-        private Logger _loggerJumpHelper;
-        private Logger _loggerCoyoteJump;
-        private Logger _loggerJumpVelocity;
+        private readonly Logger _loggerJumpHelper = LoggerFactory.GetLogger("Player", "JumpHelper");
+        private readonly Logger _loggerCoyoteJump = LoggerFactory.GetLogger("Player", "CoyoteJump");
+        private readonly Logger _loggerJumpVelocity = LoggerFactory.GetLogger("Player", "JumpVelocity");
 
-        public override void ConfigureLogging(StateMachine stateMachine) {
-            _loggerJumpHelper = LoggerFactory.GetLogger(stateMachine.Name, "JumpHelper");
-            _loggerCoyoteJump = LoggerFactory.GetLogger(stateMachine.Name, "CoyoteJump");
-            _loggerJumpVelocity = LoggerFactory.GetLogger(stateMachine.Name, "JumpVelocity");
+        protected PlayerState(string name, PlayerController player) : base(name) {
+            Player = player;
         }
-
 
         // Input from the player
         protected float XInput => InputManager.LateralMotion.Strength;

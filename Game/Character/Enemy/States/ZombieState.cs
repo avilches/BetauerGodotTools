@@ -2,7 +2,7 @@ using Betauer.Statemachine;
 using Veronenger.Game.Controller.Character;
 
 namespace Veronenger.Game.Character.Enemy.States {
-    public abstract class ZombieState : State {
+    public abstract class ZombieState : BaseState {
         public const string Attacked = nameof(ZombieStateAttacked);
         public const string Idle = nameof(ZombieStateIdle);
         public const string PatrolStep = nameof(ZombieStatePatrolStep);

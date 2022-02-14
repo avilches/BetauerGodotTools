@@ -4,46 +4,61 @@ using Betauer.DI;
 using Godot;
 
 namespace Betauer.Statemachine {
-    public abstract class State : Di {
+    public interface IState {
+        public string Name { get; }
 
-        public readonly string Name;
+        public NextState Execute(Context context);
 
-        protected State(string name) {
+        public void Start(Context context);
+
+        public void End();
+    }
+
+    public abstract class BaseState : Di, IState {
+        public string Name { get; }
+
+        protected BaseState(string name) {
             Name = name;
         }
 
-        public virtual NextState Execute(Context context) {
-            return context.Current();
-        }
+        public abstract NextState Execute(Context context);
 
         public virtual void Start(Context context) {
         }
 
         public virtual void End() {
         }
-
-        protected Logger Logger;
-
-        public void OnAddedToStateMachine(StateMachine stateMachine) {
-            ConfigureLogging(stateMachine);
-        }
-
-        public virtual void ConfigureLogging(StateMachine stateMachine) {
-        }
     }
 
-    public static class StateHelper {
-        public static bool HasStartImplemented(State state) {
-            var startMethod = ReflectionTools.FindMethod(state, "Start", typeof(void),
-                new [] { typeof(Context) });
-            return startMethod != null;
+    public class State : IState {
+        private readonly Action<Context>? _start;
+        private readonly Func<Context, NextState> _execute;
+        private readonly Action? _end;
+        public string Name { get; }
+
+
+        public State(string name, Func<Context, NextState> execute, Action? end = null) :
+            this(name, null, execute, end) {
         }
 
-        public static bool HasEndImplemented(State state) {
-            var endMethod = ReflectionTools.FindMethod(state, "End", typeof(void));
-            return endMethod != null;
+        public State(string name, Action<Context>? start, Func<Context, NextState> execute, Action? end = null) {
+            Name = name;
+            _start = start;
+            _execute = execute;
+            _end = end;
         }
 
+        public NextState Execute(Context context) {
+            return _execute(context);
+        }
+
+        public void Start(Context context) {
+            _start?.Invoke(context);
+        }
+
+        public void End() {
+            _end?.Invoke();
+        }
     }
 
     public class StateConfig {

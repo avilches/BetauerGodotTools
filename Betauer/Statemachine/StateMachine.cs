@@ -8,8 +8,8 @@ namespace Betauer.Statemachine {
         public readonly StateMachine StateMachine;
         public readonly Timer StateTimer;
         public Node Owner => StateMachine.Owner;
-        public State FromState { get; private set; }
-        public State CurrentState { get; private set; }
+        public IState FromState { get; private set; }
+        public IState CurrentState { get; private set; }
         public StateConfig Config { get; private set; }
         public int FrameCount { get; private set; }
         public float Delta { get; private set; }
@@ -19,7 +19,7 @@ namespace Betauer.Statemachine {
             StateTimer = new AutoTimer(StateMachine.Owner).Start();
         }
 
-        internal void Reset(State currentState, State fromState, StateConfig config) {
+        internal void Reset(IState currentState, IState fromState, StateConfig config) {
             CurrentState = currentState;
             FromState = fromState;
             Config = config;
@@ -34,12 +34,12 @@ namespace Betauer.Statemachine {
         }
 
         public NextState NextFrame(string name, StateConfig? config = null) {
-            State state = StateMachine.GetState(name);
+            IState state = StateMachine.GetState(name);
             return new NextState(state, false, config);
         }
 
         public NextState Immediate(string name, StateConfig? config = null) {
-            State state = StateMachine.GetState(name);
+            IState state = StateMachine.GetState(name);
             return new NextState(state, true, config);
         }
 
@@ -65,11 +65,11 @@ namespace Betauer.Statemachine {
     }
 
     public readonly struct NextState {
-        public readonly State State;
+        public readonly IState State;
         public readonly bool IsImmediate;
         public readonly StateConfig Config;
 
-        internal NextState(State state, bool isImmediate, StateConfig? config = null) {
+        internal NextState(IState state, bool isImmediate, StateConfig? config = null) {
             State = state;
             IsImmediate = isImmediate;
             Config = config;
@@ -84,7 +84,7 @@ namespace Betauer.Statemachine {
         public readonly Node Owner; // Node Owner is needed to setup the state Timer
         private bool _disposed = false;
 
-        internal readonly Dictionary<string, State> States = new Dictionary<string, State>();
+        internal readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
 
         private NextState NextState { get; set; }
         private readonly Context _currentContext;
@@ -96,13 +96,20 @@ namespace Betauer.Statemachine {
             Logger = LoggerFactory.GetLogger(name, "StateMachine");
         }
 
-        public StateMachine AddState(State state) {
+        public StateMachine AddState(string name, Action<Context> start, Func<Context, NextState> execute, Action? end = null) {
+            return AddState(new State(name, start, execute, end));
+        }
+
+        public StateMachine AddState(string name, Func<Context, NextState> execute, Action? end = null) {
+            return AddState(new State(name, null, execute, end));
+        }
+
+        public StateMachine AddState(IState state) {
             States[state.Name] = state;
-            state.OnAddedToStateMachine(this);
             return this;
         }
 
-        public State GetState(string stateTypeName) {
+        public IState GetState(string stateTypeName) {
             return States[stateTypeName];
         }
 
@@ -119,7 +126,7 @@ namespace Betauer.Statemachine {
             _Execute(delta, _currentContext.CurrentState, NextState, new List<string>());
         }
 
-        private void _Execute(float delta, State initialState, NextState nextState,
+        private void _Execute(float delta, IState initialState, NextState nextState,
             List<string> immediateChanges) {
             if (_disposed) return;
             _EndPreviousStateIfNeeded(nextState);
@@ -141,7 +148,7 @@ namespace Betauer.Statemachine {
             _currentContext.CurrentState.End();
         }
 
-        private void _StartNextStateIfNeeded(State initialState, NextState nextState,
+        private void _StartNextStateIfNeeded(IState initialState, NextState nextState,
             List<string> immediateChanges) {
             if (_disposed) return;
             if (_currentContext.CurrentState == nextState.State) return;
@@ -159,7 +166,7 @@ namespace Betauer.Statemachine {
             nextState.State.Start(_currentContext);
         }
 
-        private void CheckImmediateChanges(State initialState, List<string> immediateChanges) {
+        private void CheckImmediateChanges(IState initialState, List<string> immediateChanges) {
             // _logger.Debug(initialState?.Name + " : " + string.Join(", ", immediateChanges));
             if (immediateChanges.Count > MaxChanges) {
                 if (immediateChanges.Count != immediateChanges.Distinct().Count()) {
