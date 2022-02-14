@@ -28,7 +28,7 @@ namespace Betauer.Tests.Animation {
 
             // when created, it's not running
             var t = new SingleSequencePlayer()
-                .CreateNewTween(this, false)
+                .WithParent(this, false)
                 .CreateSequence()
                 .Callback(() => l1++)
                 .EndSequence()
@@ -36,7 +36,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(t.IsRunning, Is.EqualTo(false));
 
             // When started, it's running
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
 
             // Await, then it's not running and results are ok
@@ -54,7 +54,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(1));
 
             // If start + await again, it will work properly
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
             await t.Await();
             Assert.That(t.IsRunning, Is.EqualTo(false));
@@ -62,10 +62,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(2));
 
             // If start + await again multiple times, it will work properly
-            t.Start();
-            t.Start();
-            t.Start();
-            t.Start();
+            t.Play();
+            t.Play();
+            t.Play();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
             await t.Await();
             await t.Await();
@@ -83,7 +83,7 @@ namespace Betauer.Tests.Animation {
 
             // when created, it's not running
             var t = new SingleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .Callback(() => l1++)
                 .EndSequence()
@@ -91,7 +91,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(t.IsRunning, Is.EqualTo(false));
 
             // When started, it's running
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
 
             // Await, then it's not running and results are ok
@@ -108,8 +108,8 @@ namespace Betauer.Tests.Animation {
             Assert.That(l1, Is.EqualTo(1));
             Assert.That(l2, Is.EqualTo(1));
 
-            // If start + await again, it will not run again, but at least it doesn't fail
-            t.Start();
+            // If start + await again (the tween has been disposed) it will not run again, but at least it doesn't fail
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(false));
             await t.Await();
             Assert.That(t.IsRunning, Is.EqualTo(false));
@@ -118,10 +118,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(1));
 
             // If start + await again multiple times, it will not run again, but at least it doesn't fail
-            t.Start();
-            t.Start();
-            t.Start();
-            t.Start();
+            t.Play();
+            t.Play();
+            t.Play();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(false));
             await t.Await();
             await t.Await();
@@ -140,7 +140,7 @@ namespace Betauer.Tests.Animation {
 
             // when created, it's not running
             var t = new MultipleSequencePlayer()
-                .CreateNewTween(this, false)
+                .WithParent(this, false)
                 .CreateSequence()
                 .Callback(() => l1++)
                 .EndSequence()
@@ -148,7 +148,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(t.IsRunning, Is.EqualTo(false));
 
             // When started, it's running
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
 
             // Await, then it's not running and results are ok
@@ -166,7 +166,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(1));
 
             // If start + await again, it will work properly
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
             await t.Await();
             Assert.That(t.IsRunning, Is.EqualTo(false));
@@ -174,10 +174,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(2));
 
             // If start + await again multiple times, it will work properly
-            t.Start();
-            t.Start();
-            t.Start();
-            t.Start();
+            t.Play();
+            t.Play();
+            t.Play();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
             await t.Await();
             await t.Await();
@@ -195,7 +195,7 @@ namespace Betauer.Tests.Animation {
 
             // when created, it's not running
             var t = new MultipleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .Callback(() => l1++)
                 .EndSequence()
@@ -203,7 +203,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(t.IsRunning, Is.EqualTo(false));
 
             // When started, it's running
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(true));
 
             // Await, then it's not running and results are ok
@@ -221,7 +221,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(1));
 
             // If start + await again, it will not be executed but at least it will not fail
-            t.Start();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(false));
             await t.Await();
             Assert.That(t.IsRunning, Is.EqualTo(false));
@@ -230,10 +230,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(l2, Is.EqualTo(1));
 
             // If start + await again multiple times, it will not be executed but at least it will not fail
-            t.Start();
-            t.Start();
-            t.Start();
-            t.Start();
+            t.Play();
+            t.Play();
+            t.Play();
+            t.Play();
             Assert.That(t.IsRunning, Is.EqualTo(false));
             await t.Await();
             await t.Await();
@@ -247,7 +247,7 @@ namespace Betauer.Tests.Animation {
 
         [Test(Description = "LoopStatus await, callbacks and an OnFinish")]
         public async Task LauncherTests() {
-            var launcher = new Launcher().CreateNewTween(this);
+            var launcher = new Launcher().WithParent(this);
             var l1 = 0;
             var l2 = 0;
             var s1 = SequenceBuilder.Create().Callback(() => l1++);
@@ -353,7 +353,7 @@ namespace Betauer.Tests.Animation {
                 })
                 .SetLoops(1);
             var looped = new Launcher()
-                .CreateNewTween(this)
+                .WithParent(this)
                 .PlayForever(sequence);
 
             loopStatus = looped;
@@ -371,7 +371,7 @@ namespace Betauer.Tests.Animation {
             const int seq1Loops = 9;
 
             await new SingleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
@@ -379,7 +379,7 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq1Loops)
                 .EndSequence()
                 .AddOnFinishAll(() => finished++)
-                .Start()
+                .Play()
                 .Await();
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
@@ -402,10 +402,10 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(seq1Loops);
 
             await new SingleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .WithSequence(sequence)
                 .AddOnFinishAll(() => finished++)
-                .Start()
+                .Play()
                 .Await();
 
             Assert.That(firstLoop, Is.EqualTo(seq1Loops));
@@ -424,7 +424,7 @@ namespace Betauer.Tests.Animation {
 
             Stopwatch x = Stopwatch.StartNew();
             await new SingleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
@@ -432,7 +432,7 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetLoops(seq1Loops)
                 .AddOnFinishAll(() => finished++)
-                .Start()
+                .Play()
                 .Await();
 
             Console.WriteLine("It should take: " + estimatedDuration +
@@ -457,7 +457,7 @@ namespace Betauer.Tests.Animation {
 
             Stopwatch x = Stopwatch.StartNew();
             await new MultipleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(pause)
@@ -472,7 +472,7 @@ namespace Betauer.Tests.Animation {
                 .EndSequence()
                 .SetLoops(playerLoops)
                 .AddOnFinishAll(() => finished++)
-                .Start()
+                .Play()
                 .Await();
 
             Console.WriteLine("It should take: " + estimatedDuration +
@@ -491,14 +491,14 @@ namespace Betauer.Tests.Animation {
             var finished = 0;
 
             var tweenPlayer = new MultipleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Pause(1f)
                 .Callback(() => callback++)
                 .EndSequence()
                 .AddOnFinishAll(() => finished++)
-                .Start();
+                .Play();
 
             await Task.Delay(200);
             tweenPlayer.Stop();
@@ -513,10 +513,10 @@ namespace Betauer.Tests.Animation {
             Assert.That(finished, Is.EqualTo(0));
 
             // Player resume, callbacks were executed
-            tweenPlayer.Start();
-            tweenPlayer.Start();
-            tweenPlayer.Start();
-            tweenPlayer.Start();
+            tweenPlayer.Play();
+            tweenPlayer.Play();
+            tweenPlayer.Play();
+            tweenPlayer.Play();
             await Task.Delay(900);
             Assert.That(callback, Is.EqualTo(1));
             Assert.That(finished, Is.EqualTo(1));
@@ -536,7 +536,7 @@ namespace Betauer.Tests.Animation {
             await this.AwaitIdleFrame();
 
             await new MultipleSequencePlayer()
-                .CreateNewTween(this, true)
+                .WithParent(this, true)
                 .CreateSequence()
                 .AnimateSteps(sprite, Property.Opacity)
                 .To(12, 0.1f, Easing.BackIn, (node) => callbackStep1++)
@@ -552,7 +552,7 @@ namespace Betauer.Tests.Animation {
                 .SetLoops(loops)
                 .EndSequence()
                 .SetLoops(loops)
-                .Start()
+                .Play()
                 .Await();
 
             Assert.That(callbackStep1, Is.EqualTo(loops * loops));

@@ -1,136 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Betauer.Application;
-using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ITweener {
-        float Start(Tween tween, float initialDelay, Node defaultTarget, float duration);
+        float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration);
         public abstract Node Target { get; }
-    }
-
-    internal class InterpolateAction<TProperty> : GodotObjectRecyclable {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-        private Tween? _tween;
-        private Action<TProperty>? _callback;
-
-        public static InterpolateAction<TProperty> Create(Action<TProperty> action, Tween tween) {
-            return DefaultObjectPool.Get<InterpolateAction<TProperty>>().Recycle(action, tween);
-        }
-
-        internal InterpolateAction<TProperty> Recycle(Action<TProperty> callback, Tween tween) {
-            _tween = tween;
-            _callback = callback;
-            return this;
-        }
-
-        internal void Start(TProperty @from, TProperty to, float duration,
-            Tween.TransitionType transitionType, Tween.EaseType easeType, float start) {
-            if (!IsInstanceValid(_tween)) {
-                Logger.Warning("Can't start a " + nameof(InterpolateAction<TProperty>) +
-                               " from a freed tween instance");
-                ReturnToPool();
-                return;
-            }
-            _tween!.InterpolateMethod(this, nameof(InterpolateMethodCallFromGodot), @from, to, duration, transitionType, easeType, start);
-            _tween!.InterpolateCallback(this, start + duration, nameof(InterpolateCallbackCallFromGodot), GetToken());
-        }
-
-        private void InterpolateMethodCallFromGodot(TProperty value) {
-            _callback?.Invoke(value);
-        }
-
-        public void InterpolateCallbackCallFromGodot(string token) {
-            if (token != GetToken()) {
-                Logger.Error("Wrong token in "+nameof(InterpolateAction<TProperty>)+". The object has been returned to the pool before the end of the lifecycle");
-                return;
-            }
-            ReturnToPool();
-        }
-    }
-
-    public class DelayedAction : GodotObjectRecyclable {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-        private Tween? _tween;
-        private Action? _callback;
-
-        public static DelayedAction Create(Action finishedLoop, Tween tween) {
-            return DefaultObjectPool.Get<DelayedAction>().Recycle(finishedLoop, tween);
-        }
-
-        public DelayedAction Recycle(Action callback, Tween tween) {
-            _tween = tween;
-            _callback = callback;
-            return this;
-        }
-
-        internal void Start(float start) {
-            if (!IsInstanceValid(_tween)) {
-                Logger.Warning("Can't start a " + nameof(DelayedAction) + " from a freed tween instance");
-                ReturnToPool();
-                return;
-            }
-            _tween!.InterpolateCallback(this, start, nameof(InterpolateCallbackCallFromGodot), GetToken());
-        }
-
-        private void InterpolateCallbackCallFromGodot(string token) {
-            if (token != GetToken()) {
-                Logger.Error("Wrong token in "+nameof(DelayedAction)+". The object has been returned to the pool before the end of the lifecycle");
-                return;
-            }
-            try {
-                _callback?.Invoke();
-            } catch(Exception e) {
-                Console.WriteLine(e);
-            } finally {
-                ReturnToPool();
-            }
-        }
-
-    }
-
-    public class DelayedActionWithNode : GodotObjectRecyclable {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-        private Tween? _tween;
-        private Action<Node>? _callback;
-        private Node? _node;
-
-        public static DelayedActionWithNode Create(Action<Node> callback, Node node, Tween tween) {
-            return DefaultObjectPool.Get<DelayedActionWithNode>().Recycle(callback, node, tween);
-        }
-
-        public DelayedActionWithNode Recycle(Action<Node> callback, Node node, Tween tween) {
-            _tween = tween;
-            _callback = callback;
-            _node = node;
-            return this;
-        }
-
-        internal void Start(float start) {
-            if (!IsInstanceValid(_tween)) {
-                Logger.Warning("Can't start a " + nameof(DelayedActionWithNode) + " from a freed tween instance");
-                ReturnToPool();
-                return;
-            }
-            _tween!.InterpolateCallback(this, start, nameof(InterpolateCallbackCallFromGodot), GetToken());
-        }
-
-        private void InterpolateCallbackCallFromGodot(string token) {
-            if (token != GetToken()) {
-                Logger.Error("Wrong token in "+nameof(DelayedActionWithNode)+". The object has been returned to the pool before the end of the lifecycle");
-                return;
-            }
-            try {
-                _callback?.Invoke(_node);
-            } catch(Exception e) {
-                Console.WriteLine(e);
-            } finally {
-                ReturnToPool();
-            }
-        }
     }
 
     internal class CallbackTweener : ITweener {
@@ -144,7 +21,7 @@ namespace Betauer.Animation {
             _callback = callback;
         }
 
-        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(ActionTween tween, float initialDelay, Node ignoredDefaultTarget,
             float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
@@ -152,7 +29,7 @@ namespace Betauer.Animation {
             }
             var start = _delay + initialDelay;
             Logger.Info("Adding anonymous callback with " + _delay + "s delay. Scheduled: " + start.ToString("F"));
-            DelayedAction.Create(_callback, tween).Start(start);
+            tween.ScheduleCallback(start, _callback);
             return _delay;
         }
     }
@@ -181,7 +58,7 @@ namespace Betauer.Animation {
             _p5 = p5;
         }
 
-        public float Start(Tween tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
+        public float Start(ActionTween tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
                 return 0;
@@ -208,7 +85,7 @@ namespace Betauer.Animation {
             _delay = delay;
         }
 
-        public float Start(Tween tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(ActionTween tween, float initialDelay, Node ignoredDefaultTarget,
             float ignoredDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
@@ -254,7 +131,7 @@ namespace Betauer.Animation {
             DefaultEasing = defaultEasing;
         }
 
-        public abstract float Start(Tween tween, float initialDelay, Node defaultTarget, float duration);
+        public abstract float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration);
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
@@ -276,7 +153,7 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(AnimationContext<TProperty> context, Tween tween,
+        protected void RunStep(AnimationContext<TProperty> context, ActionTween tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing? easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
@@ -298,10 +175,10 @@ namespace Betauer.Animation {
             }
         }
 
-        private static void RunCurveBezierStep(AnimationContext<TProperty> context, Tween tween,
+        private static void RunCurveBezierStep(AnimationContext<TProperty> context, ActionTween tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
-            InterpolateAction<float>.Create(
+            tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
                 (float linearY) => {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
@@ -309,11 +186,10 @@ namespace Betauer.Animation {
                     // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
                     context.Value = value;
                     property.SetValue(context);
-                }, tween).Start(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut,
-                start);
+                });
         }
 
-        private static void RunEasingStep(AnimationContext<TProperty> context, Tween tween,
+        private static void RunEasingStep(AnimationContext<TProperty> context, ActionTween tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             var target = context.Target;
@@ -321,12 +197,12 @@ namespace Betauer.Animation {
                 tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
             } else {
-                InterpolateAction<TProperty>.Create(
+                tween.InterpolateAction(@from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start,
                     (TProperty value) => {
                         // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
                         context.Value = value;
                         property.SetValue(context);
-                    }, tween).Start(@from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start);
+                    });
             }
         }
     }
@@ -341,7 +217,7 @@ namespace Betauer.Animation {
             base(target, property, defaultEasing) {
         }
 
-        public override float Start(Tween tween, float initialDelay, Node defaultTarget, float duration) {
+        public override float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration) {
             var target = Target ?? defaultTarget;
             if (!Validate(_steps.Count, target, Property)) return 0;
             // TODO: duration is ignored. It should be % or absolute or nothing
@@ -361,7 +237,7 @@ namespace Betauer.Animation {
                     RunStep(context, tween, Property, from, to, start, durationStep, step.Easing);
                 }
                 if (step.CallbackNode != null) {
-                    DelayedActionWithNode.Create(step.CallbackNode, target, tween).Start(start);
+                    tween.ScheduleCallback(start, () => step.CallbackNode(target));
                 }
                 from = to;
                 startTime += durationStep;
@@ -383,7 +259,7 @@ namespace Betauer.Animation {
             base(target, property, defaultEasing) {
         }
 
-        public override float Start(Tween tween, float initialDelay, Node defaultTarget, float duration) {
+        public override float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration) {
             var target = Target ?? defaultTarget;
             var allStepsDuration = duration > 0 ? duration : AllStepsDuration;
             if (allStepsDuration <= 0)
@@ -412,7 +288,7 @@ namespace Betauer.Animation {
                     RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing);
                 }
                 if (step.CallbackNode != null) {
-                    DelayedActionWithNode.Create(step.CallbackNode, target, tween).Start(start);
+                    tween.ScheduleCallback(start, () => step.CallbackNode(target));
                 }
                 from = to;
                 // percentStart = percentEnd;

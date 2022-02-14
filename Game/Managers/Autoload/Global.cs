@@ -13,7 +13,7 @@ namespace Veronenger.Game.Managers.Autoload {
         private Launcher _launcher = new Launcher();
         public override void Ready() {
             this.DisableAllNotifications();
-            _launcher = new Launcher().CreateNewTween(this);
+            _launcher = new Launcher().WithParent(this);
         }
 
         public bool IsPlayer(KinematicBody2D player) {

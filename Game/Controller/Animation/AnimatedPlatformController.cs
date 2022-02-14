@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             _original = Position;
 
-            _sequencePlayer = new MultipleSequencePlayer().CreateNewTween(this);
+            _sequencePlayer = new MultipleSequencePlayer().WithParent(this);
 
             Stopwatch x = Stopwatch.StartNew();
             SequenceBuilder seq = SequenceBuilder.Create();
@@ -72,7 +72,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Start() {
-            _sequencePlayer.Start();
+            _sequencePlayer.Play();
         }
 
         public void Pause() {

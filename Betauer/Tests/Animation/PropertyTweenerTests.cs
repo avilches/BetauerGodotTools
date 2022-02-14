@@ -10,6 +10,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
+    // [Only]
     public class PropertyTweenerTests : NodeTest {
         [SetUp]
         public void SetUp() {
@@ -120,7 +121,7 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
+            await new Launcher().WithParent(this).Play(sequence, spritePlayer).Await();
             Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
             Assert.That(steps[1].Target, Is.EqualTo(spritePlayer));
@@ -140,9 +141,9 @@ namespace Betauer.Tests.Animation {
 
             try {
                 await new MultipleSequencePlayer()
-                    .CreateNewTween(spritePlayer, true)
+                    .WithParent(spritePlayer, true)
                     .AddSequence(sequence)
-                    .Start()
+                    .Play()
                     .Await();
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
@@ -167,9 +168,9 @@ namespace Betauer.Tests.Animation {
 
             try {
                 await new SingleSequencePlayer()
-                    .CreateNewTween(spritePlayer, true)
+                    .WithParent(spritePlayer, true)
                     .WithSequence(sequence)
-                    .Start()
+                    .Play()
                     .Await();
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
@@ -194,7 +195,7 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
+            await new Launcher().WithParent(this).Play(sequence, spritePlayer).Await();
 
             Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps[0].Target, Is.EqualTo(spriteAnimation));
@@ -215,7 +216,7 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            await new Launcher().CreateNewTween(this).Play(sequence, spritePlayer).Await();
+            await new Launcher().WithParent(this).Play(sequence, spritePlayer).Await();
             Assert.That(sequence.DefaultTarget, Is.EqualTo(spriteSequence));
             Assert.That(steps[0].Target, Is.EqualTo(spriteSequence));
         }
@@ -234,7 +235,7 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .BuildTemplate();
 
-            await new Launcher().CreateNewTween(this).Play(template, spritePlayer).Await();
+            await new Launcher().WithParent(this).Play(template, spritePlayer).Await();
             Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer
             Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
         }
@@ -254,9 +255,9 @@ namespace Betauer.Tests.Animation {
                 .BuildTemplate();
 
             await new MultipleSequencePlayer()
-                .CreateNewTween(spritePlayer, true)
+                .WithParent(spritePlayer, true)
                 .ImportTemplate(template, spritePlayer).EndSequence()
-                .Start()
+                .Play()
                 .Await();
 
             Assert.That(template.DefaultTarget, Is.Null); // the sequence is cloned inside with the spritePlayer

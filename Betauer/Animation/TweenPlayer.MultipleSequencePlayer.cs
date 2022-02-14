@@ -30,12 +30,6 @@ namespace Betauer.Animation {
         public int Loops { get; private set; }
         public bool IsInfiniteLoop => Loops == -1;
 
-        public MultipleSequencePlayer() {
-        }
-
-        public MultipleSequencePlayer(Tween tween) : base(tween) {
-        }
-
         public MultipleSequencePlayer SetInfiniteLoops() {
             Loops = -1;
             return this;
@@ -92,10 +86,10 @@ namespace Betauer.Animation {
             var sequence = Sequences[_currentSequence];
             Logger.Debug(
                 $"RunSequence: Main loop: {(IsInfiniteLoop ? "infinite loop" : (_currentPlayerLoop + 1) + "/" + Loops)}. Sequence {_currentSequence + 1}/{Sequences.Count}. Sequence loop: {_sequenceLoop + 1}/{GetLoopsFromSequence(sequence)}");
-            Tween.PlaybackSpeed = sequence.Speed;
-            Tween.PlaybackProcessMode = sequence.ProcessMode;
-            var accumulatedDelay = sequence.Execute(Tween);
-            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            PlaybackSpeed = sequence.Speed;
+            PlaybackProcessMode = sequence.ProcessMode;
+            var accumulatedDelay = sequence.Execute(this);
+            ScheduleCallback(accumulatedDelay, OnSequenceFinished);
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

@@ -38,7 +38,7 @@ namespace Veronenger.Game.Controller {
             CenterContainer.RectSize = baseResolutionSize;
             ColorRect.RectSize = baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
-            _launcher.CreateNewTween(this)
+            _launcher.WithParent(this)
                 .Play(SequenceBuilder
                         .Create(_sprite)
                         .SetInfiniteLoops()

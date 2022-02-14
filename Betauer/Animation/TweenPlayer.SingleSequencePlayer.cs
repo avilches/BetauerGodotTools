@@ -31,22 +31,16 @@ namespace Betauer.Animation {
 
         public bool IsInfiniteLoop => Loops == -1;
 
-        public SingleSequencePlayer() {
-        }
-
-        public SingleSequencePlayer(Tween tween) : base(tween) {
-        }
-
         public static SingleSequencePlayer Create(Node node, SequenceTemplate template, float duration = -1) {
             return new SingleSequencePlayer()
-                .CreateNewTween(node)
+                .WithParent(node)
                 .ImportTemplate(template, node, duration)
                 .EndSequence();
         }
 
         public static SingleSequencePlayer Create(Node node, ISequence sequence) {
             return new SingleSequencePlayer()
-                .CreateNewTween(node)
+                .WithParent(node)
                 .WithSequence(sequence);
         }
 
@@ -110,10 +104,10 @@ namespace Betauer.Animation {
             var loopState = IsInfiniteLoop ? "infinite loop" : $"{_currentLoop + 1}/{Loops} loops";
             Logger.Debug(
                 $"RunSequence: Single sequence: {loopState}");
-            Tween.PlaybackSpeed = Sequence.Speed;
-            Tween.PlaybackProcessMode = Sequence.ProcessMode;
-            var accumulatedDelay = Sequence.Execute(Tween);
-            Tween.InterpolateCallback(this, accumulatedDelay, nameof(OnSequenceFinished));
+            PlaybackSpeed = Sequence.Speed;
+            PlaybackProcessMode = Sequence.ProcessMode;
+            var accumulatedDelay = Sequence.Execute(this);
+            ScheduleCallback(accumulatedDelay, OnSequenceFinished);
             Logger.Debug($"RunSequence: Estimated time: {accumulatedDelay:F}");
         }
 

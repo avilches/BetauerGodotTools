@@ -86,7 +86,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _tweenStack = new AnimationStack(_name, _animationPlayer, new SingleSequencePlayer().CreateNewTween(this));
+            _tweenStack = new AnimationStack(_name, _animationPlayer, new SingleSequencePlayer().WithParent(this));
             PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
             DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
             ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());

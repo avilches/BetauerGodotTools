@@ -9,7 +9,7 @@ namespace Betauer.Application {
         public static void SetPool(ObjectPool objectPool) {
             Registry = objectPool;
         }
-
+    
         public static IObjectPool<T> Pool<T>() where T : class, IRecyclable {
             return Registry.Pool<T>();
         }

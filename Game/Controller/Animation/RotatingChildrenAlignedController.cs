@@ -24,7 +24,7 @@ namespace Veronenger.Game.Controller.Animation {
         private void RotateAligned(float angle) => AnimationTools.RotateAligned(_platforms, angle, Radius);
 
         private void Configure() {
-            _sequence.CreateNewTween(this)
+            _sequence.WithParent(this)
                 .CreateSequence(this)
                 .AnimateSteps<float>(RotateAligned)
                 .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easing.QuadInOut)
@@ -34,14 +34,14 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .SetInfiniteLoops()
                 .EndSequence()
-                .Start();
+                .Play();
 
             _platforms = this.GetChildrenFilter<PhysicsBody2D>();
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 
         public void Start() {
-            _sequence.Start();
+            _sequence.Play();
         }
 
         public void Pause() {

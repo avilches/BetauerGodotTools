@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Animation {
         private MultipleSequencePlayer _multipleSequencePlayer3;
 
         public override void Ready() {
-            _multipleSequencePlayer1 = new SingleSequencePlayer().CreateNewTween(this);
+            _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
             _multipleSequencePlayer1
                 .CreateSequence()
                 .AnimateKeys<float>(body1, Property.Scale2DY, Easing.SineInOut)
@@ -25,13 +25,13 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
-                .Start();
+                .Play();
 
             BezierCurve curve = BezierCurve.Create(0.37f, 0.0f, 0.63f, 1f);
             // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            _multipleSequencePlayer2 = new SingleSequencePlayer().CreateNewTween(this)
+            _multipleSequencePlayer2 = new SingleSequencePlayer().WithParent(this)
                 .CreateSequence()
                 .AnimateStepsBy(body2, Property.PositionX, curve)
                 .Offset(50f, 0.5f)
@@ -39,9 +39,9 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
-                .Start();
+                .Play();
 
-            _multipleSequencePlayer3 = new MultipleSequencePlayer().CreateNewTween(this)
+            _multipleSequencePlayer3 = new MultipleSequencePlayer().WithParent(this)
                 .CreateSequence()
                 .AnimateKeys<float>(body3, Property.Scale2DY)
                 .From(1)
@@ -57,7 +57,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .EndSequence()
                 .SetInfiniteLoops()
-                .Start();
+                .Play();
         }
     }
 }

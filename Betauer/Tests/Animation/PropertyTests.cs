@@ -13,6 +13,7 @@ namespace Betauer.Tests.Animation {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
+            LoggerFactory.OverrideTraceLevel(TraceLevel.All);
         }
 
         [TearDown]
@@ -31,6 +32,7 @@ namespace Betauer.Tests.Animation {
          */
 
         [Test(Description = "Lambda with value only property")]
+        [Only]
         public async Task LambdaValueProperty() {
             var spritePlayer = await CreateSprite();
             var spriteAnimation = await CreateSprite();
@@ -41,6 +43,7 @@ namespace Betauer.Tests.Animation {
             List<float> values1kb = new List<float>();
             List<float> values1rk = new List<float>();
 
+            var actionTween = await CreateTween();
             await SequenceBuilder.Create()
                 // values1 animation
                 .AnimateSteps((float x) => values1s.Add(x))
@@ -55,7 +58,7 @@ namespace Betauer.Tests.Animation {
                 .From(12).KeyframeOffset(1, 400).EndAnimate()
                 .AnimateRelativeKeys((float x) => values1rk.Add(x)).Duration(0.01f)
                 .From(13).KeyframeOffset(1, 400).EndAnimate()
-                .Play(await CreateTween(), spritePlayer)
+                .Play(actionTween, spritePlayer)
                 .Await();
 
             Assert.That(values1s[0], Is.EqualTo(8));
@@ -71,6 +74,7 @@ namespace Betauer.Tests.Animation {
             Assert.That(values1k.Last(), Is.EqualTo(400));
             Assert.That(values1kb.Last(), Is.EqualTo(412));
             Assert.That(values1rk.Last(), Is.EqualTo(413));
+            Assert.That(actionTween.GetPendingObjects().Count, Is.EqualTo(0));
         }
 
         [Test(Description = "Lambda with value only property (Template)")]
@@ -655,7 +659,7 @@ namespace Betauer.Tests.Animation {
             property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new MultipleSequencePlayer()
-                .CreateNewTween(node, true)
+                .WithParent(node, true)
                 .CreateSequence()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
@@ -663,7 +667,7 @@ namespace Betauer.Tests.Animation {
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate()
                 .EndSequence()
-                .Start()
+                .Play()
                 .Await();
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
@@ -671,7 +675,7 @@ namespace Betauer.Tests.Animation {
             property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             await new SingleSequencePlayer()
-                .CreateNewTween(node, true)
+                .WithParent(node, true)
                 .CreateSequence()
                 .AnimateSteps(node, property)
                 .SetDebugSteps(steps)
@@ -679,7 +683,7 @@ namespace Betauer.Tests.Animation {
                 .To(to, 0.1f, Easing.BackIn)
                 .EndAnimate()
                 .EndSequence()
-                .Start()
+                .Play()
                 .Await();
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
@@ -687,7 +691,7 @@ namespace Betauer.Tests.Animation {
             property.SetValue(new AnimationContext<T>(node, from, -1, from));
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             var status = await new Launcher()
-                .CreateNewTween(node)
+                .WithParent(node)
                 .Play(sequence)
                 .Await();
 

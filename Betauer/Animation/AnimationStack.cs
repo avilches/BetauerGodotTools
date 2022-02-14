@@ -131,7 +131,7 @@ namespace Betauer.Animation {
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sequencePlayer.Clear().WithSequence(_sequence).SetInfiniteLoops().Start();
+                _sequencePlayer.Clear().WithSequence(_sequence).SetInfiniteLoops().Play();
             }
 
             internal override void ExecuteOnEnd() {
@@ -154,7 +154,7 @@ namespace Betauer.Animation {
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sequencePlayer.Clear().WithSequence(_sequence).Start();
+                _sequencePlayer.Clear().WithSequence(_sequence).Play();
             }
 
             internal override void ExecuteOnEnd() {

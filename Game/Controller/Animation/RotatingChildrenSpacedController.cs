@@ -26,14 +26,14 @@ namespace Veronenger.Game.Controller.Animation {
 
         private void Configure() {
             _platforms = PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
-            _sequence.CreateNewTween(this)
+            _sequence.WithParent(this)
                 .CreateSequence(this)
                 .AnimateSteps<float>(RotateSpaced)
                 .From(0).To(Mathf.Tau, 4, Easing.LinearInOut)
                 .EndAnimate()
                 .SetInfiniteLoops()
                 .EndSequence()
-                .Start();
+                .Play();
         }
     }
 }

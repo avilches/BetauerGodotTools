@@ -23,7 +23,7 @@ namespace Veronenger.Game.Controller.Menu {
         private Launcher _launcher;
 
         public override async void Ready() {
-            _launcher = new Launcher().CreateNewTween(this);
+            _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
             await _menuController.Start("Root");
             UpdateResolutionButton();

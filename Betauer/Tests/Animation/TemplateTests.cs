@@ -167,7 +167,7 @@ namespace Betauer.Tests.Animation {
             // the node contains a Tween child
             var tween = node.GetChild<Tween>(0);
             Assert.That(tween, Is.Not.Null);
-            Assert.That(player.Tween, Is.EqualTo(tween));
+            Assert.That(player, Is.EqualTo(tween));
 
             Assert.That(imported, Is.Not.EqualTo(tem));
 
@@ -191,7 +191,7 @@ namespace Betauer.Tests.Animation {
 
             try {
                 new MultipleSequencePlayer()
-                    .CreateNewTween(node)
+                    .WithParent(node)
                     .AddSequence(template);
                 Assert.That(false, "It should fail!");
             } catch (Exception e) {
