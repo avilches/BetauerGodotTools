@@ -10,7 +10,6 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Tests.Animation {
     [TestFixture]
-    // [Only]
     public class PropertyTweenerTests : NodeTest {
         [SetUp]
         public void SetUp() {

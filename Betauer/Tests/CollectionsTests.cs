@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class CollectionsTest {
         [SetUp]
         public void Setup() {

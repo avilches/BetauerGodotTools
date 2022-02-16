@@ -12,7 +12,6 @@ namespace Betauer.Tests {
     [TestFixture]
     public class StateMachineTests : NodeTest {
         [Test]
-        [Only]
         public void Basic() {
             var builder = new StateMachine.StateMachine(this, "X").CreateBuilder();
 
@@ -71,7 +70,8 @@ namespace Betauer.Tests {
             states.Clear();
             stateMachine.Execute(100f);
             Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
+            Assert.That(string.Join(",", states),
+                Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
 
             states.Clear();
             stateMachine.Execute(100f);
@@ -81,12 +81,11 @@ namespace Betauer.Tests {
             states.Clear();
             stateMachine.Execute(100f);
             Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
-
+            Assert.That(string.Join(",", states),
+                Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
         }
 
         [Test]
-        [Only]
         public async Task Node() {
             var builder = new StateMachineNode("X", StateMachineNode.ProcessMode.Idle).CreateBuilder();
 
@@ -132,12 +131,14 @@ namespace Betauer.Tests {
             states.Clear();
             await this.AwaitIdleFrame();
             Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states), Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
+            Assert.That(string.Join(",", states),
+                Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
 
             states.Clear();
             await this.AwaitIdleFrame();
             Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states), Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
+            Assert.That(string.Join(",", states),
+                Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
         }
     }
 }
