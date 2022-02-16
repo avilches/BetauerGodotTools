@@ -109,7 +109,7 @@ namespace Betauer.TestRunner {
                     }
                 }
                 if (_instance is Node node2) {
-                    node2.Dispose();
+                    node2.QueueFree();
                     await sceneTree.AwaitIdleFrame();
                 }
                 Stopwatch.Stop();
