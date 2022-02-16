@@ -32,7 +32,6 @@ namespace Betauer.Tests.Animation {
          */
 
         [Test(Description = "Lambda with value only property")]
-        [Only]
         public async Task LambdaValueProperty() {
             var spritePlayer = await CreateSprite();
             var spriteAnimation = await CreateSprite();
