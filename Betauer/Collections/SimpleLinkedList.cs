@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Betauer {
+namespace Betauer.Collections {
     public class SimpleLinkedList<T> : ICollection<T> {
-        private readonly Node _head = new Node();
+        private Node _head;
         private Node _last;
 
         public SimpleLinkedList() {
@@ -44,6 +44,7 @@ namespace Betauer {
         }
 
         public void AddStart(T data) {
+            if (_head == null) _head = new Node();
             Node newHead = new Node();
             newHead.Next = _head.Next;
             newHead.Data = data;
@@ -52,6 +53,7 @@ namespace Betauer {
         }
 
         public void Add(T data) {
+            if (_head == null) _head = new Node();
             Node newEnd = new Node();
             newEnd.Data = data;
             if (Count == 0) {
@@ -100,6 +102,7 @@ namespace Betauer {
         }
 
         public void ForEach(Action<T> action) {
+            if (Count == 0) return;
             Node curr = _head;
             while (curr.Next != null) {
                 curr = curr.Next;
@@ -108,6 +111,7 @@ namespace Betauer {
         }
 
         public T Find(Predicate<T> element) {
+            if (Count == 0) return (T)(object)null;
             Node curr = _head;
             while (curr.Next != null) {
                 curr = curr.Next;
@@ -136,7 +140,7 @@ namespace Betauer {
             }
 
             public bool MoveNext() {
-                if (_current.Next == null) return false;
+                if (_list.Count == 0 || _current.Next == null) return false;
                 Current = _current.Next.Data;
                 _current = _current.Next;
                 return true;

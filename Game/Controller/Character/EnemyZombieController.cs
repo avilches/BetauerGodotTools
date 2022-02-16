@@ -3,17 +3,16 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
-using Betauer.Statemachine;
+using Betauer.StateMachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
-using Veronenger.Game.Character.Enemy.States;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
     public sealed class EnemyZombieController : DiKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
-        private readonly StateMachine _stateMachine;
+
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
@@ -21,7 +20,9 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Position2D")] public Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-        [Inject] public CharacterManager CharacterManager;
+        [Inject] private EnemyZombieStateMachine _stateMachine;
+        [Inject] private CharacterManager _characterManager;
+        [Inject] public MotionBody MotionBody;
 
         public ILoopStatus AnimationIdle { get; private set; }
         public IOnceStatus AnimationStep { get; private set; }
@@ -30,18 +31,11 @@ namespace Veronenger.Game.Controller.Character {
 
         public readonly EnemyConfig EnemyConfig = new EnemyConfig();
 
-        public MotionBody MotionBody;
         public IFlipper _flippers;
 
         public EnemyZombieController() {
             _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
-            _stateMachine = new StateMachine(this, _name)
-                .AddState(new ZombieStatePatrolStep(ZombieState.PatrolStep, this))
-                .AddState(new ZombieStatePatrolWait(ZombieState.PatrolWait, this))
-                .AddState(new ZombieStateIdle(ZombieState.Idle, this))
-                .AddState(new ZombieStateAttacked(ZombieState.Attacked, this))
-                .SetNextState(ZombieState.Idle);
         }
 
         private AnimationStack _animationStack;
@@ -54,19 +48,18 @@ namespace Veronenger.Game.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            MotionBody = new MotionBody(this, _flippers, _name, EnemyConfig.MotionConfig);
+            MotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
 
-            CharacterManager.ConfigureEnemyCollisions(this);
+            _stateMachine.Configure(this);
+
+            _characterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
-            CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
+            _characterManager.ConfigureEnemyDamageArea2D(_damageArea);
         }
 
         public override void _PhysicsProcess(float delta) {
-            MotionBody.StartFrame(delta);
-            _stateMachine.Execute(delta);
-
-            if (CharacterManager.PlayerController?.PlayerDetector?.Position != null) {
-                Label.Text = "" + DegreesTo(CharacterManager.PlayerController.PlayerDetector);
+            if (_characterManager.PlayerController?.PlayerDetector?.Position != null) {
+                Label.Text = "" + DegreesTo(_characterManager.PlayerController.PlayerDetector);
             }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
@@ -75,7 +68,6 @@ namespace Veronenger.Game.Controller.Character {
                           "Moving: " + IsOnMovingPlatform() + "\n" +
                           "Falling: " + IsOnFallingPlatform();
             */
-            MotionBody.EndFrame();
         }
 
         public void DisableAll() {
@@ -126,14 +118,13 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.SetNextState(ZombieState.Attacked);
+            _stateMachine.SetNextState(EnemyZombieStateMachine.Attacked);
         }
 
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
                 _animationStack?.Free(); // It's a GodotObject, it needs to be freed manually
-                _stateMachine?.Dispose();
             }
         }
     }

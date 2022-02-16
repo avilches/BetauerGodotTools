@@ -1,4 +1,7 @@
+using Betauer.DI;
+
 namespace Veronenger.Game.Character.Player {
+    [Singleton]
     public class PlayerConfig {
         public const float CoyoteJumpTime = 0.1f; // seconds. How much time the player can jump when falling
         public const float JumpHelperTime = 0.1f; // seconds. If the user press jump just before land

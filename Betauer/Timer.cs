@@ -57,8 +57,16 @@ namespace Betauer {
 
         private class NodeTimer : Node {
             private readonly AutoTimer _autoTimer;
-            public NodeTimer(AutoTimer autoTimer) => _autoTimer = autoTimer;
-            public override void _PhysicsProcess(float delta) => _autoTimer._Update(delta);
+
+            public NodeTimer(AutoTimer autoTimer) {
+                _autoTimer = autoTimer;
+                SetProcessInput(false);
+                SetProcessUnhandledInput(false);
+                SetProcessUnhandledKeyInput(false);
+                SetPhysicsProcess(false);
+            }
+
+            public override void _Process(float delta) => _autoTimer._Update(delta);
         }
     }
 

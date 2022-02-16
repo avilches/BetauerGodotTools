@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using Betauer.Collections;
 using Godot;
 using NUnit.Framework;
 using NUnit.Framework.Internal;

@@ -1,3 +1,5 @@
+using Betauer.Collections;
+
 namespace Betauer.Input {
     public class ActionList : IKeyboardOrController {
         public bool IsUsingKeyboard { get; set; }

@@ -3,11 +3,8 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Bus.Topics;
 using Betauer.DI;
-using Betauer.Input;
-using Betauer.Statemachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
-using Veronenger.Game.Character.Player.States;
 using Veronenger.Game.Managers;
 using Timer = Betauer.Timer;
 
@@ -15,7 +12,6 @@ namespace Veronenger.Game.Controller.Character {
     public sealed class PlayerController : DiKinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
-        private readonly StateMachine _stateMachine;
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
@@ -23,32 +19,21 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-        public readonly PlayerConfig PlayerConfig = new PlayerConfig();
-        public readonly Timer FallingJumpTimer;
-        public readonly Timer FallingTimer;
         private SceneTree _sceneTree;
+        private IFlipper _flippers;
 
-        [Inject] public GameManager GameManager;
-        [Inject] public PlatformManager PlatformManager;
-        [Inject] public CharacterManager CharacterManager;
-        [Inject] public SlopeStairsManager SlopeStairsManager;
-        [Inject] public InputManager InputManager;
-
-        public MotionBody MotionBody;
-        public IFlipper _flippers;
+        [Inject] private GameManager _gameManager;
+        [Inject] private PlatformManager _platformManager;
+        [Inject] private CharacterManager _characterManager;
+        [Inject] private SlopeStairsManager _slopeStairsManager;
+        [Inject] private InputManager _inputManager;
+        [Inject] private PlayerStateMachine _stateMachine;
+        [Inject] private PlayerConfig _playerConfig;
+        [Inject] public MotionBody MotionBody;
 
         public PlayerController() {
-            FallingJumpTimer = new AutoTimer(this).Stop();
-            FallingTimer = new AutoTimer(this).Stop();
             _name = "Player:" + GetHashCode().ToString("x8");
             _logger = LoggerFactory.GetLogger(_name);
-            _stateMachine = new StateMachine(this, _name)
-                .AddState(new GroundStateIdle(PlayerState.StateIdle, this))
-                .AddState(new GroundStateRun(PlayerState.StateRun, this))
-                .AddState(new AirStateFallShort(PlayerState.StateFallShort, this))
-                .AddState(new AirStateFallLong(PlayerState.StateFallLong, this))
-                .AddState(new AirStateJump(PlayerState.StateJump, this))
-                .SetNextState(PlayerState.StateIdle);
         }
 
         public ILoopStatus AnimationIdle { get; private set; }
@@ -67,11 +52,9 @@ namespace Veronenger.Game.Controller.Character {
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
         public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
-
         public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
         private BodyOnArea2DStatus _slopeStairsDown;
         private BodyOnArea2DStatus _slopeStairsUp;
-
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
 
@@ -93,21 +76,24 @@ namespace Veronenger.Game.Controller.Character {
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            MotionBody = new MotionBody(this, _flippers, _name, PlayerConfig.MotionConfig);
-            CharacterManager.RegisterPlayerController(this);
-            CharacterManager.ConfigurePlayerCollisions(this);
-            CharacterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
+            MotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
+
+            _stateMachine.Configure(this);
+
+            _characterManager.RegisterPlayerController(this);
+            _characterManager.ConfigurePlayerCollisions(this);
+            _characterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
-            _slopeStairsUp = SlopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
-            _slopeStairsDown = SlopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
+            _slopeStairsUp = _slopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
+            _slopeStairsDown = _slopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
 
-            SlopeStairsManager.SubscribeSlopeStairsEnabler(
+            _slopeStairsManager.SubscribeSlopeStairsEnabler(
                 new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsEnablerEnter));
-            SlopeStairsManager.SubscribeSlopeStairsDisabler(
+            _slopeStairsManager.SubscribeSlopeStairsDisabler(
                 new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsDisablerEnter));
 
-            PlatformManager.SubscribeFallingPlatformOut(
+            _platformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerAction(Name, this, this, _OnFallingPlatformExit));
         }
 
@@ -195,24 +181,25 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void EnableSlopeStairs() {
-            SlopeStairsManager.DisableSlopeStairsCoverForBody(this);
-            SlopeStairsManager.EnableSlopeStairsForBody(this);
+            _slopeStairsManager.DisableSlopeStairsCoverForBody(this);
+            _slopeStairsManager.EnableSlopeStairsForBody(this);
         }
 
         public void DisableSlopeStairs() {
-            SlopeStairsManager.EnableSlopeStairsCoverForBody(this);
-            SlopeStairsManager.DisableSlopeStairsForBody(this);
+            _slopeStairsManager.EnableSlopeStairsCoverForBody(this);
+            _slopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
 
-        public void _OnFallingPlatformExit(BodyOnArea2D evt) => PlatformManager.BodyStopFallFromPlatform(this);
+        public void _OnFallingPlatformExit(BodyOnArea2D evt) => _platformManager.BodyStopFallFromPlatform(this);
 
         public void _OnSlopeStairsEnablerEnter(BodyOnArea2D evt) => EnableSlopeStairs();
 
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
 
-        public override void _PhysicsProcess(float Delta) {
+        // public override void _PhysicsProcess(float delta) {
+        public override void _Process(float delta) {
             // Update();
             // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
             // Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
@@ -220,9 +207,6 @@ namespace Veronenger.Game.Controller.Character {
             Label.BbcodeText = _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name +
                                "\n" +
                                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name;
-            MotionBody.StartFrame(Delta);
-            _stateMachine.Execute(Delta);
-            InputManager.ClearJustStates();
             /*
                 Label.Text = "Floor: " + IsOnFloor() + "\n" +
                               "Slope: " + IsOnSlope() + "\n" +
@@ -230,25 +214,24 @@ namespace Veronenger.Game.Controller.Character {
                               "Moving: " + IsOnMovingPlatform() + "\n" +
                               "Falling: " + IsOnFallingPlatform();
                 */
-            MotionBody.EndFrame();
         }
 
 
         public override void _Input(InputEvent @event) {
-            var action = InputManager.OnEvent(@event);
+            var action = _inputManager.OnEvent(@event);
             if (action != null) {
                 _sceneTree.SetInputAsHandled();
             }
-            InputManager.Debug(action);
+            _inputManager.Debug(action);
 
             if (@event.IsAction("ui_cancel")) {
-                GameManager.ExitGameAndBackToMainMenu();
+                _gameManager.ExitGameAndBackToMainMenu();
             }
         }
 
         public override void _Notification(int what) {
             if (what == MainLoop.NotificationWmFocusOut) {
-                InputManager.ClearStates();
+                _inputManager.ClearStates();
             }
         }
 
@@ -268,9 +251,7 @@ namespace Veronenger.Game.Controller.Character {
             if (disposing) {
                 _tweenStack?.Free(); // It's a GodotObject, it needs to be freed manually
                 _animationStack?.Free(); // It's a GodotObject, it needs to be freed manually
-                _stateMachine?.Dispose();
             }
         }
-
     }
 }

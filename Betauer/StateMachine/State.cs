@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Betauer.DI;
 using Godot;
 
-namespace Betauer.Statemachine {
+namespace Betauer.StateMachine {
     public interface IState {
         public string Name { get; }
 
@@ -14,7 +14,7 @@ namespace Betauer.Statemachine {
         public void End();
     }
 
-    public abstract class BaseState : Di, IState {
+    public abstract class BaseState : IState {
         public string Name { get; }
 
         protected BaseState(string name) {
@@ -28,6 +28,34 @@ namespace Betauer.Statemachine {
 
         public virtual void End() {
         }
+    }
+
+    public class StateBuilder {
+        private Action<Context>? _start;
+        private Func<Context, NextState> _execute;
+        private Action? _end;
+        private readonly string _name;
+
+        internal StateBuilder(string name) {
+            _name = name;
+        }
+
+        public StateBuilder Enter(Action<Context> start) {
+            _start = start;
+            return this;
+        }
+
+        public StateBuilder Execute(Func<Context, NextState> execute) {
+            _execute = execute;
+            return this;
+        }
+
+        public StateBuilder Exit(Action end) {
+            _end = end;
+            return this;
+        }
+
+        internal IState Build() => new State(_name, _start, _execute, _end);
     }
 
     public class State : IState {
@@ -59,35 +87,5 @@ namespace Betauer.Statemachine {
         public void End() {
             _end?.Invoke();
         }
-    }
-
-    public class StateConfig {
-        private HashSet<string> _flags = new HashSet<string>();
-        public Dictionary<string, object> Dictionary { get; } = new Dictionary<string, object>();
-
-        public bool HasFlag(string flag) {
-            return _flags.Contains(flag);
-        }
-
-        public StateConfig AddFlag(string flag) => Flag(flag, true);
-        public StateConfig RemoveFlag(string flag) => Flag(flag, false);
-
-        public StateConfig Flag(string flag, bool value) {
-            if (value) {
-                _flags.Add(flag);
-            } else {
-                _flags.Remove(flag);
-            }
-            return this;
-        }
-
-        public StateConfig Add(string key, object value) {
-            Dictionary.Add(key, value);
-            return this;
-        }
-
-        public T Get<T>(string key) => (T)Dictionary[key];
-        public bool ContainsKey<T>(string key) => Dictionary.ContainsKey(key);
-        public bool Remove(string key) => Dictionary.Remove(key);
     }
 }

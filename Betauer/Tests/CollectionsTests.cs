@@ -1,11 +1,31 @@
 using System.Collections.Generic;
+using Betauer.Collections;
+using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class CollectionsTest {
         [SetUp]
         public void Setup() {
+        }
+
+        [Test]
+        public void Empty() {
+            int x = 0;
+            new SimpleLinkedList<int>().ForEach(i => x++);
+            Assert.That(x, Is.EqualTo(0));
+
+            Assert.That(new SimpleLinkedList<int>().Count, Is.EqualTo(0));
+            Assert.That(new SimpleLinkedList<string>().Find(i => true), Is.Null);
+
+            SimpleLinkedList<int> p = new SimpleLinkedList<int>();
+            p.AddStart(1);
+            p.AddStart(2);
+            AssertLoop(p, new int[] { 2, 1 });
+
         }
 
         [Test]

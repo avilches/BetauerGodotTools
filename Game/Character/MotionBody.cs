@@ -7,14 +7,15 @@ using Veronenger.Game.Managers;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
-    public class MotionBody : Di, IFlipper {
-        private readonly KinematicBody2D _body;
-        private readonly string _name;
-        private readonly IFlipper _flippers;
-        private readonly MotionConfig _motionConfig;
-        private readonly Logger _loggerCollision;
-        private readonly Logger _loggerMotion;
-        private readonly RayCast2D _floorDetector;
+    [Transient]
+    public class MotionBody : IFlipper {
+        private KinematicBody2D _body;
+        private string _name;
+        private IFlipper _flippers;
+        private MotionConfig _motionConfig;
+        private Logger _loggerCollision;
+        private Logger _loggerMotion;
+        private RayCast2D _floorDetector;
 
         private Vector2 _lastMotion = Vector2.Zero;
 
@@ -22,11 +23,10 @@ namespace Veronenger.Game.Character {
 
         public Vector2 Motion = Vector2.Zero;
 
-        [Inject] private PlatformManager PlatformManager;
-        [Inject] private SlopeStairsManager SlopeStairsManager;
+        [Inject] private PlatformManager _platformManager;
+        [Inject] private SlopeStairsManager _slopeStairsManager;
 
-
-        public MotionBody(KinematicBody2D body, IFlipper flippers, string name, MotionConfig motionConfig) {
+        public void Configure(KinematicBody2D body, IFlipper flippers, string name, MotionConfig motionConfig) {
             _body = body;
             _name = name;
             _flippers = flippers;
@@ -256,15 +256,15 @@ namespace Veronenger.Game.Character {
                 __isOnSlopeUpRight = __colliderNormal.x < 0;
             }
 
-            if (collisionCollider is PhysicsBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
+            if (collisionCollider is PhysicsBody2D falling && _platformManager.IsFallingPlatform(falling)) {
                 __isOnFallingPlatform = true;
             }
 
-            if (collisionCollider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
+            if (collisionCollider is KinematicBody2D moving && _platformManager.IsMovingPlatform(moving)) {
                 __isOnMovingPlatform = true;
             }
 
-            if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
+            if (collisionCollider is PhysicsBody2D slopeStairs && _slopeStairsManager.IsSlopeStairs(slopeStairs)) {
                 __isOnSlopeStairs = true;
             }
             _body.Update(); // this allow to call to _draw() with the colliderNormal updated
@@ -289,15 +289,15 @@ namespace Veronenger.Game.Character {
                     }
                 }
 
-                if (collisionCollider is PhysicsBody2D falling && PlatformManager.IsFallingPlatform(falling)) {
+                if (collisionCollider is PhysicsBody2D falling && _platformManager.IsFallingPlatform(falling)) {
                     _isOnFallingPlatform = true;
                 }
 
-                if (collisionCollider is KinematicBody2D moving && PlatformManager.IsMovingPlatform(moving)) {
+                if (collisionCollider is KinematicBody2D moving && _platformManager.IsMovingPlatform(moving)) {
                     _isOnMovingPlatform = true;
                 }
 
-                if (collisionCollider is PhysicsBody2D slopeStairs && SlopeStairsManager.IsSlopeStairs(slopeStairs)) {
+                if (collisionCollider is PhysicsBody2D slopeStairs && _slopeStairsManager.IsSlopeStairs(slopeStairs)) {
                     _isOnSlopeStairs = true;
                 }
                 // TODO: is this really needed? check if the Reference is disposed/GC

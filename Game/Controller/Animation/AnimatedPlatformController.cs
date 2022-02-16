@@ -25,10 +25,6 @@ namespace Veronenger.Game.Controller.Animation {
             UpdatePosition();
         }
 
-        // private void bla() {
-        // GD.Print("bla");
-        // }
-
         public void Configure() {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 
@@ -42,8 +38,7 @@ namespace Veronenger.Game.Controller.Animation {
             seq.Callback(() => x = Stopwatch.StartNew());
 
             seq.AnimateStepsBy(this, new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(100, 0), 1, Easing.LinearInOut,
-                    (node) => LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Volviendo"))
+                .Offset(new Vector2(100, 0), 1, Easing.LinearInOut)
                 .Offset(new Vector2(-50, 0), 1)
                 .EndAnimate();
 
@@ -56,12 +51,6 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .AnimateSteps(this, Property.Modulate).To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
                 .EndAnimate();
-
-            seq.Callback(() => {
-                x.Stop();
-                GD.Print("Elapsed:" + x.ElapsedMilliseconds);
-                // _player.SetTween(new Tween());
-            });
 
             _sequencePlayer.AddSequence(seq);
             _sequencePlayer.SetInfiniteLoops();
