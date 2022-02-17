@@ -114,7 +114,6 @@ namespace Veronenger.Game.Managers.Autoload {
             var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
             Logger.Info("User requested exit the application. Uptime: " + elapsed);
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
-            // DefaultRepository.Dispose();
         }
 
         private void MicroBenchmarks() {

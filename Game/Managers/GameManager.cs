@@ -7,6 +7,7 @@ using Betauer;
 using Betauer.DI;
 using Betauer.Screen;
 using Veronenger.Game.Controller;
+using Veronenger.Game.Controller.Menu;
 using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
@@ -24,56 +25,47 @@ namespace Veronenger.Game.Managers {
     [Singleton]
     public class GameManager  {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
-        [Inject] public StageManager StageManager;
 
-        private PackedScene SceneWorld1;
-        private PackedScene SceneWorld2;
-        private PackedScene MainMenu;
-        private PackedScene Player;
-
-        private Node _mainMenuScene;
+        private MainMenu _mainMenuScene;
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        [Inject] private ScreenManager ScreenManager;
+        [Inject] private StageManager _stageManager;
+        [Inject] private ScreenManager _screenManager;
         [Inject] private Func<SceneTree> GetTree;
+        [Inject] private ResourceManager _resourceManager;
 
         public void Start(SplashScreenController splashScreen) {
-            SceneWorld1 = Load("res://Worlds/World1.tscn");
-            SceneWorld2 = Load("res://Worlds/World2.tscn");
-            Player = Load("res://Scenes/Player.tscn");
             splashScreen.QueueFree();
-            MainMenu = Load("res://Scenes/MainMenu.tscn");
-            CreateMainMenu();
-            // Called from splash screen ready, no need to wait for idle frame
-            GetTree().Root.AddChild(_mainMenuScene);
+            ShowMainMenu();
         }
 
-        private PackedScene Load(string scene) {
-            return ResourceLoader.Load<PackedScene>(scene);
+        private async void ShowMainMenu() {
+            _mainMenuScene = _resourceManager.CreateMainMenu();
+            await AddSceneDeferred(_mainMenuScene);
         }
 
+        private void CloseMainMenu() {
+            _mainMenuScene?.QueueFree();
+            _mainMenuScene = null;
+        }
 
         public async void StartGame() {
-            _mainMenuScene.QueueFree();
-            _mainMenuScene = null;
-
-            _currentGameScene = SceneWorld1.Instance();
+            CloseMainMenu();
+            _currentGameScene = _resourceManager.CreateWorld1();
             await AddSceneDeferred(_currentGameScene);
             AddPlayerToScene(_currentGameScene);
         }
 
-
         public void ExitGameAndBackToMainMenu() {
+            _currentGameScene.PrintStrayNodes();
             _currentGameScene.QueueFree();
             _currentGameScene = null;
-
-            CreateMainMenu();
-            AddSceneDeferred(_mainMenuScene);
+            ShowMainMenu();
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
-            StageManager.ClearTransition();
+            _stageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
             var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
@@ -83,7 +75,7 @@ namespace Veronenger.Game.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene) {
-            _playerScene = (Node2D)Player.Instance();
+            _playerScene = _resourceManager.CreatePlayer();
             nextScene.AddChild(_playerScene);
             var position2D = nextScene.FindChild<Node2D>("PositionPlayer");
             if (position2D == null) {
@@ -92,23 +84,18 @@ namespace Veronenger.Game.Managers {
             _playerScene.GlobalPosition = position2D.GlobalPosition;
         }
 
-        private void CreateMainMenu() {
-            _mainMenuScene = MainMenu.Instance();
-        }
-
         private async Task AddSceneDeferred(Node scene) {
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(scene);
         }
 
         public async Task LoadAnimaDemo() {
-            _mainMenuScene.QueueFree();
             var nextScene = ResourceLoader.Load<PackedScene>("demos/AnimationsPreview.tscn").Instance();
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
 
-            ScreenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2, ScreenService.Strategy.FitToScreen);
-            ScreenManager.CenterWindow();
+            _screenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2, ScreenService.Strategy.FitToScreen);
+            _screenManager.CenterWindow();
 
         }
     }
