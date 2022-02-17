@@ -8,6 +8,7 @@ namespace Betauer.Animation {
     public class ActionTween : Tween {
         private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
         private readonly Dictionary<Object, Object> _objects = new Dictionary<Object, Object>();
+        public const float ExtraDelayToFinish = 0.01f;
 
         public void ScheduleCallback(float delay, Action callback) {
             var actionHashCode = callback.GetHashCode();
@@ -28,7 +29,7 @@ namespace Betauer.Animation {
             _objects[actionWrapper] = actionWrapper;
             InterpolateMethod(actionWrapper, nameof(ActionWrapper<T>.CallFromGodot), @from, to, duration,
                 transitionType, easeType, delay);
-            ScheduleCallback(delay + duration + 0.01f, actionWrapper.Finish);
+            ScheduleCallback(delay + duration + ExtraDelayToFinish, actionWrapper.Finish);
         }
 
         public List<Object> GetPendingObjects() {

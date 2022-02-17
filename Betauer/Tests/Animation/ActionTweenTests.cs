@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Betauer.Animation;
 using Godot;
 using NUnit.Framework;
 
@@ -35,7 +36,7 @@ namespace Betauer.Tests.Animation {
             tween.InterpolateAction<int>(0, 1, 0.01f, Tween.TransitionType.Linear, Tween.EaseType.InOut, 0f,
                 (p) => x = x + p);
             Assert.That(tween.GetPendingObjects().Count, Is.EqualTo(1));
-            await Task.Delay(50);
+            await Task.Delay((int)(ActionTween.ExtraDelayToFinish * 2 * 1000));
             Assert.That(x, Is.EqualTo(2));
             Assert.That(tween.GetPendingObjects().Count, Is.EqualTo(0));
         }
