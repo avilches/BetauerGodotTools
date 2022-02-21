@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://Game/Controller/Menu/MainMenu.cs" type="Script" id=1]
+[ext_resource path="res://Game/Controller/Menu/PauseMenu.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Lato-Bold-XL.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Lato-Bold-m.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/SimpleBox/SimpleBox.tres" type="Theme" id=4]

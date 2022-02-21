@@ -12,19 +12,22 @@ namespace Veronenger.Game.Managers {
         [Inject] private Func<SceneTree> GetTree;
 
         private const string MainMenu = "res://Scenes/MainMenu.tscn";
+        private const string PauseMenu = "res://Scenes/PauseMenu.tscn";
         private const string World1 = "res://Worlds/World1.tscn";
         private const string World2 = "res://Worlds/World2.tscn";
         private const string Player = "res://Scenes/Player.tscn";
 
-        public Node CreateWorld1() => ((PackedScene)_resources[World1]).Instance();
-        public Node CreateWorld2() => ((PackedScene)_resources[World2]).Instance();
-        public MainMenu CreateMainMenu() => ((PackedScene)_resources[MainMenu]).Instance<MainMenu>();
-        public Node2D CreatePlayer() => ((PackedScene)_resources[Player]).Instance<Node2D>();
+        public Node CreateWorld1() => Resource<PackedScene>(World1).Instance();
+        public Node CreateWorld2() => Resource<PackedScene>(World2).Instance();
+        public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
+        public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
+        public Node2D CreatePlayer() => Resource<PackedScene>(Player).Instance<Node2D>();
 
         private Dictionary<string, Resource> _resources;
 
         public async Task Load(Action<LoadingContext> progress, Func<Task> awaiter) {
             string[] resourcesToLoad = {
+                PauseMenu,
                 MainMenu,
                 World1,
                 World2,
@@ -72,5 +75,7 @@ namespace Veronenger.Game.Managers {
                 GD.Print(resourcesValue);
             }
         }
+
+        private T Resource<T>(string res) where T : class =>  _resources[res] as T;
     }
 }

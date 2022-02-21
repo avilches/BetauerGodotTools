@@ -54,7 +54,7 @@ namespace Veronenger.Game.Controller {
             }, async () => await GetTree().AwaitPhysicsFrame());
 
             _screenManager.Start(ApplicationConfig.Configuration);
-            _gameManager.Start(this);
+            _gameManager.OnFinishLoad(this);
         }
     }
 }

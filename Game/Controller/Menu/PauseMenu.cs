@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Screen;
@@ -8,11 +10,7 @@ using Godot;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenu : DiControl {
-        private const float MenuEffectTime = 0.10f;
-        private const float FadeMainMenuEffectTime = 0.6f;
-
-
+    public class PauseMenu : DiControl {
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
         private VBoxContainer _menuBase;
 
@@ -27,20 +25,10 @@ namespace Veronenger.Game.Controller.Menu {
         public override async void Ready() {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
-            await ShowMainMenu();
+            await _menuController.Start("Root");
             UpdateResolutionButton();
         }
 
-        public async Task ShowMainMenu() {
-            Visible = true;
-            await _launcher.Play(Template.FadeIn, this, 0f,FadeMainMenuEffectTime).Await();
-            await _menuController.Start("Root");
-        }
-
-        public async Task CloseMainMenu() {
-            await _launcher.Play(Template.FadeOut, this, 0f,FadeMainMenuEffectTime).Await();
-            Visible = false;
-        }
 
         public MenuController BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
@@ -283,6 +271,8 @@ namespace Veronenger.Game.Controller.Menu {
             }
             await lastToWaitFor.Await();
         }
+
+        private const float MenuEffectTime = 0.10f;
 
         public override void _Input(InputEvent @event) {
             // if (@event.IsAction("ui_up") ||
