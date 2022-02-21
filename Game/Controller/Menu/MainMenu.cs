@@ -10,7 +10,7 @@ using Veronenger.Game.Managers;
 namespace Veronenger.Game.Controller.Menu {
     public class MainMenu : DiControl {
         private const float MenuEffectTime = 0.10f;
-        private const float FadeMainMenuEffectTime = 0.6f;
+        private const float FadeMainMenuEffectTime = 0.75f;
 
 
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
@@ -32,14 +32,18 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public async Task ShowMainMenu() {
+            GetTree().Root.GuiDisableInput = true;
             Visible = true;
-            await _launcher.Play(Template.FadeIn, this, 0f,FadeMainMenuEffectTime).Await();
             await _menuController.Start("Root");
+            await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task CloseMainMenu() {
-            await _launcher.Play(Template.FadeOut, this, 0f,FadeMainMenuEffectTime).Await();
+            GetTree().Root.GuiDisableInput = true;
+            await _launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
             Visible = false;
+            GetTree().Root.GuiDisableInput = false;
         }
 
         public MenuController BuildMenu() {
@@ -68,7 +72,6 @@ namespace Veronenger.Game.Controller.Menu {
                     //     .Await();
                     // ctx.ActionButton.Save();
                     GameManager.LoadAnimaDemo();
-
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
@@ -97,7 +100,7 @@ namespace Veronenger.Game.Controller.Menu {
                     _scale.Disabled = _borderless.Disabled = newState;
                     _borderless.Pressed = false;
                     ctx.Refresh();
-                    
+
                     ScreenManager.SetFullscreen(newState);
                     return true;
                 })

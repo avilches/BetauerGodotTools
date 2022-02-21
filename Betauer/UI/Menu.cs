@@ -390,6 +390,7 @@ namespace Betauer.UI {
         }
 
         public override void _Input(InputEvent @event) {
+            // It takes into account if the Root.GuiDisableInput = true
             if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
                 if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
                     GetTree().SetInputAsHandled();
@@ -453,6 +454,7 @@ namespace Betauer.UI {
         }
 
         public override void _Input(InputEvent @event) {
+            // It takes into account if the Root.GuiDisableInput = true
             if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
                 if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
                     GetTree().SetInputAsHandled();
