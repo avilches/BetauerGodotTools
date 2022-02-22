@@ -8,7 +8,7 @@ using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
     [Transient]
-    public class KinematicPlatformMoKtionBody : IFlipper {
+    public class KinematicPlatformMotionBody : IFlipper {
         private KinematicBody2D _body;
         private string _name;
         private IFlipper _flippers;
