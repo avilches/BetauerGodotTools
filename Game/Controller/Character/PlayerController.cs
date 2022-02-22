@@ -224,8 +224,15 @@ namespace Veronenger.Game.Controller.Character {
             }
             _inputManager.Debug(action);
 
-            if (@event.IsAction("ui_cancel")) {
-                _gameManager.ExitGameAndBackToMainMenu();
+            if (_gameManager.CanGameBePaused() &&  @event.IsActionPressed("ui_cancel")) {
+                // TODO: bug: 1) player is going right, pressing the key 2) menu is paused 3) the right key is released
+                // but this release event is not registered in the InputManager 4) pause menu is closed 5) the player
+                // is running to the right without pressing the right key.
+                // Two workarounds:
+                // 1) the inputManager should be located outside of the player controller and it shouldn't
+                // be paused at all (PauseMode = Process instead of inherit)
+                // 2) stop using InputManager and use the godot input manager instead
+                _gameManager.ShowPauseMenu();
             }
         }
 

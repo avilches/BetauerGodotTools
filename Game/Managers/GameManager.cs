@@ -32,8 +32,13 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        private readonly Launcher _launcher = new Launcher();
+        private bool _paused = false;
+        private bool _canGameBePaused = false;
 
+        public bool IsGamePaused() => _paused;
+        public bool CanGameBePaused() => _canGameBePaused;
+
+        private readonly Launcher _launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
         [Inject] private ScreenManager _screenManager;
@@ -42,17 +47,27 @@ namespace Veronenger.Game.Managers {
 
         public async void OnFinishLoad(SplashScreenController splashScreen) {
             splashScreen.QueueFree();
-            _pauseMenuScene = _resourceManager.CreatePauseMenu();
-            _pauseMenuScene.Visible = false;
-            GetTree().Root.AddChild(_pauseMenuScene);
+            CreateAndConfigurePauseMenu();
 
             _mainMenuScene = _resourceManager.CreateMainMenu();
             GetTree().Root.AddChild(_mainMenuScene);
             await ShowMainMenu();
         }
 
+        private void CreateAndConfigurePauseMenu() {
+            _pauseMenuScene = _resourceManager.CreatePauseMenu();
+            _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
+            _pauseMenuScene.DisableAllNotifications();
+            _pauseMenuScene.Visible = false;
+            var canvasLayer = new CanvasLayer();
+            canvasLayer.Name = "PauseMenuLayer";
+            canvasLayer.Layer = 1;
+            canvasLayer.AddChild(_pauseMenuScene);
+            GetTree().Root.AddChild(canvasLayer);
+        }
+
         private async Task ShowMainMenu() {
-            await _mainMenuScene.ShowMainMenu();
+            await _mainMenuScene.ShowMenu();
         }
 
         public async void StartGame() {
@@ -60,6 +75,22 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = _resourceManager.CreateWorld1();
             await AddSceneDeferred(_currentGameScene);
             AddPlayerToScene(_currentGameScene);
+            _canGameBePaused = true;
+        }
+
+        public async void ShowPauseMenu() {
+            _pauseMenuScene.Visible = true;
+            await _pauseMenuScene.ShowMenu();
+            GetTree().Paused = true;
+            _paused = true;
+            _pauseMenuScene.EnableAllNotifications();
+        }
+
+        public void ClosePauseMenu() {
+            _pauseMenuScene.Visible = false;
+            _pauseMenuScene.DisableAllNotifications();
+            GetTree().Paused = false;
+            _paused = false;
         }
 
         public async Task ExitGameAndBackToMainMenu() {
@@ -70,6 +101,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
+            _canGameBePaused = false;
             _stageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
@@ -77,6 +109,7 @@ namespace Veronenger.Game.Managers {
             await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
+            _canGameBePaused = true;
         }
 
         private void AddPlayerToScene(Node nextScene) {
@@ -103,5 +136,6 @@ namespace Veronenger.Game.Managers {
             _screenManager.CenterWindow();
 
         }
+
     }
 }
