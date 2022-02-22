@@ -40,11 +40,19 @@ namespace Betauer {
         }
 
         public static void DisableAllNotifications(this Node node) {
-            node.SetProcess(false);
-            node.SetProcessInput(false);
-            node.SetProcessUnhandledInput(false);
-            node.SetProcessUnhandledKeyInput(false);
-            node.SetPhysicsProcess(false);
+            SetAllNotifications(node, false);
+        }
+
+        public static void EnableAllNotifications(this Node node) {
+            SetAllNotifications(node, true);
+        }
+
+        public static void SetAllNotifications(this Node node, bool enable) {
+            node.SetProcess(enable);
+            node.SetProcessInput(enable);
+            node.SetProcessUnhandledInput(enable);
+            node.SetProcessUnhandledKeyInput(enable);
+            node.SetPhysicsProcess(enable);
         }
     }
 
