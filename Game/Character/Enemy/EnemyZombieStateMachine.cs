@@ -17,7 +17,7 @@ namespace Veronenger.Game.Character.Enemy {
         private EnemyZombieController _enemyZombieController;
         private StateMachineNode _stateMachineNode;
 
-        private MotionBody Body => _enemyZombieController.MotionBody;
+        private KinematicPlatformMotionBody Body => _enemyZombieController.KinematicPlatformMotionBody;
         private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
 
         // State sharad between states

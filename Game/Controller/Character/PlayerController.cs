@@ -29,7 +29,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private InputManager _inputManager;
         [Inject] private PlayerStateMachine _stateMachine;
         [Inject] private PlayerConfig _playerConfig;
-        [Inject] public MotionBody MotionBody;
+        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
@@ -76,7 +76,7 @@ namespace Veronenger.Game.Controller.Character {
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            MotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
+            KinematicPlatformMotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
 
             _stateMachine.Configure(this);
 

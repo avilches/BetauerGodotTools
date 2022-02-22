@@ -22,7 +22,7 @@ namespace Veronenger.Game.Controller.Character {
 
         [Inject] private EnemyZombieStateMachine _stateMachine;
         [Inject] private CharacterManager _characterManager;
-        [Inject] public MotionBody MotionBody;
+        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
 
         public ILoopStatus AnimationIdle { get; private set; }
         public IOnceStatus AnimationStep { get; private set; }
@@ -48,7 +48,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            MotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
+            KinematicPlatformMotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
 
             _stateMachine.Configure(this);
 

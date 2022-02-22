@@ -8,7 +8,7 @@ using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
     [Transient]
-    public class MotionBody : IFlipper {
+    public class KinematicPlatformMoKtionBody : IFlipper {
         private KinematicBody2D _body;
         private string _name;
         private IFlipper _flippers;
@@ -176,7 +176,7 @@ namespace Veronenger.Game.Character {
             _colliderNormal = Vector2.Zero;
         }
 
-        private MotionBody UpdateFloorCollisions() {
+        private KinematicPlatformMotionBody UpdateFloorCollisions() {
             ResetCollisionFlags();
             if (!_body.IsOnFloor()) {
                 _loggerCollision.Debug(

@@ -30,7 +30,7 @@ namespace Veronenger.Game.Character.Player {
         private PlayerController _player;
         private StateMachineNode _stateMachineNode;
 
-        private MotionBody Body => _player.MotionBody;
+        private KinematicPlatformMotionBody Body => _player.KinematicPlatformMotionBody;
 
         // Input from the player
         private float XInput => _inputManager.LateralMotion.Strength;
@@ -41,7 +41,7 @@ namespace Veronenger.Game.Character.Player {
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
         private bool IsDown => YInput > 0;
-        private Vector2 Motion => _player.MotionBody.Motion;
+        private Vector2 Motion => _player.KinematicPlatformMotionBody.Motion;
         private MotionConfig MotionConfig => _playerConfig.MotionConfig;
 
         // State sharad between states
