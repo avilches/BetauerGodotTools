@@ -71,9 +71,9 @@ namespace Veronenger.Game.Managers {
                 "res://Game/Controller/Stage/StageCameraController.cs"
             };
             _resources = await Loader.Load(resourcesToLoad, progress, awaiter);
-            foreach (var resourcesValue in _resources.Values) {
-                GD.Print(resourcesValue);
-            }
+            // foreach (var resourcesValue in _resources.Values) {
+                // GD.Print(resourcesValue);
+            // }
         }
 
         private T Resource<T>(string res) where T : class =>  _resources[res] as T;

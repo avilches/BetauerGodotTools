@@ -45,12 +45,10 @@ namespace Veronenger.Game.Controller {
                         .EndAnimate()
                     , _sprite);
 
-
             await _resourceManager.Load(context => {
-                GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
-                         context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
-                         context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                // GD.Print(context.TotalLoadedPercent.ToString("P")+" "+context.ResourcePath+" "+context.ResourceLoadedPercent.ToString("P"));
+                // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
+                // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
+                // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
             }, async () => await GetTree().AwaitPhysicsFrame());
 
             _screenManager.Start(ApplicationConfig.Configuration);
