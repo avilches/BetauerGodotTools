@@ -33,15 +33,15 @@ namespace Betauer.Input {
                 }
                 return true;
             }
-            ClearJustState();
+            ClearJustPressedState();
             return false;
         }
 
-        public override void ClearState() {
+        public override void ClearPressedState() {
             Pressed = false;
         }
 
-        public override void ClearJustState() {
+        public override void ClearJustPressedState() {
             JustPressed = JustReleased = false;
         }
 

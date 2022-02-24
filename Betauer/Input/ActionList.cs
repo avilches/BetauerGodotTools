@@ -27,12 +27,11 @@ namespace Betauer.Input {
         }
 
         public void ClearJustStates() {
-            _actions.ForEach(actionInput => actionInput.ClearJustState());
+            _actions.ForEach(actionInput => actionInput.ClearJustPressedState());
         }
 
         public void ClearStates() {
-            _actions.ForEach(actionInput => actionInput.ClearState());
+            _actions.ForEach(actionInput => actionInput.ClearPressedState());
         }
-
     }
 }

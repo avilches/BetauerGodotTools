@@ -3,12 +3,11 @@ namespace Betauer.Input {
         public string Name;
         public bool Enabled = true;
         public abstract bool Update(EventWrapper w);
-        public abstract void ClearJustState();
-        public abstract void ClearState();
+        public abstract void ClearJustPressedState();
+        public abstract void ClearPressedState();
 
         protected IActionUpdate(string name) {
             Name = name;
         }
-
     }
 }

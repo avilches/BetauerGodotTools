@@ -73,10 +73,10 @@ namespace Betauer.Input {
             return false;
         }
 
-        public override void ClearJustState() {
+        public override void ClearJustPressedState() {
         }
 
-        public override void ClearState() {
+        public override void ClearPressedState() {
             _inputTotalKey = _inputPositiveKey = _inputNegativeKey = _inputTotalButton = _inputPositiveButton = _inputNegativeButton = _axisValue = 0;
         }
 
