@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.Screen;
 using Betauer.UI;
 using Godot;
@@ -18,6 +19,11 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private GameManager _gameManager;
         [Inject] private ScreenManager _screenManager;
+        [Inject] private InputManager _inputManager;
+
+        private ActionState UiAccept => _inputManager.UiAccept;
+        private ActionState UiCancel => _inputManager.UiCancel;
+        private ActionState UiStart => _inputManager.UiStart;
 
         private Launcher _launcher;
 
@@ -42,7 +48,7 @@ namespace Veronenger.Game.Controller.Menu {
                 })
                 .AddButton("Options", "Options",
                     (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
-                .AddButton("Quit", "Quit", async (ctx) => {
+                .AddButton("EndGame", "End game", async (ctx) => {
                     _gameManager.ClosePauseMenu();
                     await _gameManager.ExitGameAndBackToMainMenu();
                 });
@@ -258,12 +264,14 @@ namespace Veronenger.Game.Controller.Menu {
             if (!_gameManager.IsGamePaused()) {
                 return;
             }
-            if (@event.IsActionPressed("ui_cancel")) {
+            if (UiCancel.IsEventPressed(@event)) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
                     _gameManager.ClosePauseMenu();
                 } else {
                     _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
+            } else if (UiStart.IsEventPressed(@event)) {
+                _gameManager.ClosePauseMenu();
             }
         }
     }

@@ -14,6 +14,7 @@ namespace Veronenger.Game.Managers {
         public readonly ActionState Attack;
         public readonly ActionState UiAccept;
         public readonly ActionState UiSelect;
+        public readonly ActionState UiStart;
         public readonly ActionState UiCancel;
 
         private readonly ActionList _actionList;
@@ -36,6 +37,7 @@ namespace Veronenger.Game.Managers {
             UiAccept = _actionList.AddAction("ui_accept");
             UiCancel = _actionList.AddAction("ui_cancel");
             UiSelect = _actionList.AddAction("ui_select");
+            UiStart = _actionList.AddAction("ui_start");
             Configure();
         }
 
@@ -78,6 +80,11 @@ namespace Veronenger.Game.Managers {
             UiCancel.ClearConfig()
                 .AddKey(KeyList.Escape)
                 .AddButton(JoystickList.XboxB)
+                .Build();
+
+            UiStart.ClearConfig()
+                .AddKey(KeyList.Escape)
+                .AddButton(JoystickList.Start)
                 .Build();
 
             UiLateralMotion.ImportFrom(LateralMotion).Build();
