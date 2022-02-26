@@ -66,7 +66,6 @@ namespace Veronenger.Game.Character.Player {
             builder.Build();
 
             _stateMachineNode.AfterExecute((delta) => {
-                _inputManager.ClearJustStates();
                 Body.EndFrame();
             });
 

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.Screen;
 using Betauer.UI;
 using Godot;
@@ -20,6 +22,11 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private GameManager _gameManager;
         [Inject] private ScreenManager _screenManager;
+        [Inject] private InputManager _inputManager;
+
+        private LateralAction UiLateralMotion => _inputManager.UiLateralMotion;
+        private ActionState UiAccept => _inputManager.UiAccept;
+        private ActionState UiCancel => _inputManager.UiCancel;
 
         private Launcher _launcher;
 
@@ -91,26 +98,28 @@ namespace Veronenger.Game.Controller.Menu {
 
             mainMenu.AddMenu("Video")
                 .AddCheckButton("Fullscreen", "Fullscreen", (ActionCheckButton.InputEventContext ctx) => {
-                    if (!ctx.InputEvent.IsActionPressed("ui_left") &&
-                        !ctx.InputEvent.IsActionPressed("ui_right") &&
-                        !ctx.InputEvent.IsActionPressed("ui_accept")) return false;
-                    var newState = !ctx.Pressed;
-                    ctx.ActionCheckButton.Pressed = newState;
-                    _scale.Disabled = _borderless.Disabled = newState;
-                    _borderless.Pressed = false;
-                    ctx.Refresh();
+                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
+                        UiAccept.IsEventPressed(ctx.InputEvent)) {
+                        var newState = !ctx.Pressed;
+                        ctx.ActionCheckButton.Pressed = newState;
+                        _scale.Disabled = _borderless.Disabled = newState;
+                        _borderless.Pressed = false;
+                        ctx.Refresh();
 
-                    _screenManager.SetFullscreen(newState);
-                    return true;
+                        _screenManager.SetFullscreen(newState);
+                        return true;
+                    }
+                    return false;
                 })
                 .AddCheckButton("PixelPerfect", "Pixel perfect", (ActionCheckButton.InputEventContext ctx) => {
-                    if (!ctx.InputEvent.IsActionPressed("ui_left") &&
-                        !ctx.InputEvent.IsActionPressed("ui_right") &&
-                        !ctx.InputEvent.IsActionPressed("ui_accept")) return false;
-                    var newState = !ctx.Pressed;
-                    ctx.ActionCheckButton.Pressed = newState;
-                    _screenManager.SetPixelPerfect(newState);
-                    return true;
+                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
+                        UiAccept.IsEventPressed(ctx.InputEvent)) {
+                        var newState = !ctx.Pressed;
+                        ctx.ActionCheckButton.Pressed = newState;
+                        _screenManager.SetPixelPerfect(newState);
+                        return true;
+                    }
+                    return false;
                 })
                 .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
                     List<ScaledResolution> resolutions = _screenManager.GetResolutions();
@@ -118,13 +127,13 @@ namespace Veronenger.Game.Controller.Menu {
                     var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
                     pos = pos == -1 ? 0 : pos;
 
-                    if (ctx.InputEvent.IsActionPressed("ui_left")) {
+                    if (UiLateralMotion.IsLeftEventPressed(ctx.InputEvent)) {
                         if (pos > 0) {
                             _screenManager.SetWindowed(resolutions[pos - 1]);
                             UpdateResolutionButton();
                             return true;
                         }
-                    } else if (ctx.InputEvent.IsActionPressed("ui_right")) {
+                    } else if (UiLateralMotion.IsRightEventPressed(ctx.InputEvent)) {
                         if (pos < resolutions.Count - 1) {
                             _screenManager.SetWindowed(resolutions[pos + 1]);
                         } else {
@@ -138,7 +147,7 @@ namespace Veronenger.Game.Controller.Menu {
                         }
                         UpdateResolutionButton();
                         return true;
-                    } else if (ctx.InputEvent.IsActionPressed("ui_accept")) {
+                    } else if (UiAccept.IsEventPressed(ctx.InputEvent)) {
                         _screenManager.SetWindowed(pos == resolutions.Count - 1
                             ? resolutions[0]
                             : resolutions[pos + 1]);
@@ -148,22 +157,24 @@ namespace Veronenger.Game.Controller.Menu {
                     return false;
                 })
                 .AddCheckButton("Borderless", "Borderless window", (ActionCheckButton.InputEventContext ctx) => {
-                    if (!ctx.InputEvent.IsActionPressed("ui_left") &&
-                        !ctx.InputEvent.IsActionPressed("ui_right") &&
-                        !ctx.InputEvent.IsActionPressed("ui_accept")) return false;
-                    var newState = !ctx.Pressed;
-                    ctx.ActionCheckButton.Pressed = newState;
-                    _screenManager.SetBorderless(newState);
-                    return true;
+                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
+                        UiAccept.IsEventPressed(ctx.InputEvent)) {
+                        var newState = !ctx.Pressed;
+                        ctx.ActionCheckButton.Pressed = newState;
+                        _screenManager.SetBorderless(newState);
+                        return true;
+                    }
+                    return false;
                 })
                 .AddCheckButton("VSync", "Vertical Sync", (ActionCheckButton.InputEventContext ctx) => {
-                    if (!ctx.InputEvent.IsActionPressed("ui_left") &&
-                        !ctx.InputEvent.IsActionPressed("ui_right") &&
-                        !ctx.InputEvent.IsActionPressed("ui_accept")) return false;
-                    var newState = !ctx.Pressed;
-                    ctx.ActionCheckButton.Pressed = newState;
-                    _screenManager.SetVSync(newState);
-                    return true;
+                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
+                        UiAccept.IsEventPressed(ctx.InputEvent)) {
+                        var newState = !ctx.Pressed;
+                        ctx.ActionCheckButton.Pressed = newState;
+                        _screenManager.SetVSync(newState);
+                        return true;
+                    }
+                    return false;
                 })
                 .AddButton("Back", "Back", (ctx) =>
                     ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
@@ -287,32 +298,9 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public override void _Input(InputEvent @event) {
-            // if (@event.IsAction("ui_up") ||
-            //     @event.IsAction("ui_down") ||
-            //     @event.IsAction("ui_left") ||
-            //     @event.IsAction("ui_right") ||
-            //     @event.IsAction("ui_page_up") ||
-            //     @event.IsAction("ui_page_down") ||
-            //     @event.IsAction("ui_home") ||
-            //     @event.IsAction("ui_focus_next") ||
-            //     @event.IsAction("ui_focus_prev") ||
-            //     @event.IsAction("ui_accept") ||
-            //     @event.IsAction("ui_cancel")) {
-            // }
-
-            if (@event.IsActionPressed("ui_cancel")) {
+            if (UiCancel.IsEventPressed(@event)) {
                 _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
         }
-
-
-        // private float delay = 0f;
-        // public override void _Process(float delta) {
-        // delay += delta;
-        // if (delay > 5f) {
-        // GameManager.Quit();
-        // }
-
-        // }
     }
 }

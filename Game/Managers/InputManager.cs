@@ -6,10 +6,15 @@ using Godot;
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class InputManager {
-        public readonly DirectionInput LateralMotion;
-        public readonly DirectionInput VerticalMotion;
+        public readonly LateralAction LateralMotion;
+        public readonly LateralAction UiLateralMotion;
+        public readonly VerticalAction UiVerticalMotion;
+        public readonly VerticalAction VerticalMotion;
         public readonly ActionState Jump;
         public readonly ActionState Attack;
+        public readonly ActionState UiAccept;
+        public readonly ActionState UiSelect;
+        public readonly ActionState UiCancel;
 
         private readonly ActionList _actionList;
 
@@ -18,60 +23,77 @@ namespace Veronenger.Game.Managers {
         // TODO: subscribe to signal with the mapping preferences on load or on change
         public InputManager() {
             _actionList = new ActionList(-1);
-            LateralMotion = _actionList.AddDirectionalMotion("Lateral");
-            VerticalMotion = _actionList.AddDirectionalMotion("Vertical");
 
+            // Game actions
+            LateralMotion = _actionList.AddLateralAction("left", "right");
+            VerticalMotion = _actionList.AddVerticalAction("up", "down");
             Jump = _actionList.AddAction("Jump");
             Attack = _actionList.AddAction("Attack");
 
+            // UI actions
+            UiLateralMotion = _actionList.AddLateralAction("ui_left", "ui_right");
+            UiVerticalMotion = _actionList.AddVerticalAction("ui_up", "ui_down");
+            UiAccept = _actionList.AddAction("ui_accept");
+            UiCancel = _actionList.AddAction("ui_cancel");
+            UiSelect = _actionList.AddAction("ui_select");
+            Configure();
+        }
+
+        public void Configure() {
+
+            // Game actions
             LateralMotion
                 .ClearConfig()
+                .SetDeadZone(0.5f)
                 .ConfigureAxis(JoystickList.Axis0)
                 .AddLateralCursorKeys()
-                .AddVerticalDPadButtons();
+                .AddLateralDPadButtons()
+                .Build();
 
             VerticalMotion
                 .ClearConfig()
+                .SetDeadZone(0.5f)
                 .ConfigureAxis(JoystickList.Axis1)
                 .AddVerticalCursorKeys()
-                .AddVerticalDPadButtons();
+                .AddVerticalDPadButtons()
+                .Build();
 
             Jump.ClearConfig()
                 .AddKey(KeyList.Space)
-                .AddButton(JoystickList.XboxA);
+                .AddButton(JoystickList.XboxA)
+                .Build();
 
             Attack.ClearConfig()
                 .AddKey(KeyList.C)
-                .AddButton(JoystickList.XboxX);
+                .AddButton(JoystickList.XboxX)
+                .Build();
 
-            LateralMotion.AxisDeadZone = 0.5f;
-            VerticalMotion.AxisDeadZone = 0.5f;
+            // UI actions
+            UiAccept.ClearConfig()
+                .AddKey(KeyList.Space)
+                .AddKey(KeyList.Enter)
+                .AddButton(JoystickList.XboxA)
+                .Build();
+
+            UiCancel.ClearConfig()
+                .AddKey(KeyList.Escape)
+                .AddButton(JoystickList.XboxB)
+                .Build();
+
+            UiLateralMotion.ImportFrom(LateralMotion).Build();
+            UiVerticalMotion.ImportFrom(VerticalMotion).Build();
         }
 
-        private readonly EventWrapper _wrapper = new EventWrapper(null);
 
-        public IActionUpdate OnEvent(InputEvent @event) {
-            _wrapper.Event = @event;
-            return _actionList.Update(_wrapper);
-        }
-
-        public void ClearJustStates() {
-            _actionList.ClearJustStates();
-        }
-
-        public void ClearStates() {
-            _actionList.ClearStates();
-        }
-
-        public void Debug(IActionUpdate action) {
+        public void Debug(BaseAction baseAction) {
             if (Logger.IsEnabled(TraceLevel.Debug)) {
-                if (_wrapper.IsMotion()) {
-                    Logger.Debug($"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) ({action?.Name})");
-                } else if (_wrapper.IsAnyButton()) {
-                    Logger.Debug($"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) ({action?.Name})");
-                } else if (_wrapper.IsAnyKey()) {
-                    Logger.Debug($"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} ({action?.Name})");
-                }
+                // if (_wrapper.IsMotion()) {
+                // Logger.Debug($"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) ({action?.Name})");
+                // } else if (_wrapper.IsAnyButton()) {
+                // Logger.Debug($"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) ({action?.Name})");
+                // } else if (_wrapper.IsAnyKey()) {
+                // Logger.Debug($"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} ({action?.Name})");
+                // }
                 /*
                  * Aqui se comprueba que el JustPressed, Pressed y JustReleased del SALTO SOLO de InputManager coinciden
                  * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta

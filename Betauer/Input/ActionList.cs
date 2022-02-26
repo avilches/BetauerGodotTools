@@ -3,15 +3,21 @@ using Betauer.Collections;
 namespace Betauer.Input {
     public class ActionList : IKeyboardOrController {
         public bool IsUsingKeyboard { get; set; }
-        private readonly SimpleLinkedList<IActionUpdate> _actions = new SimpleLinkedList<IActionUpdate>();
+        private readonly SimpleLinkedList<BaseAction> _actions = new SimpleLinkedList<BaseAction>();
         private readonly int _deviceId;
 
         public ActionList(int deviceId) {
             _deviceId = deviceId;
         }
 
-        public DirectionInput AddDirectionalMotion(string name) {
-            var actionState = new DirectionInput(name, this, _deviceId);
+        public VerticalAction AddVerticalAction(string negativeName, string positiveName) {
+            var actionVertical = new VerticalAction(negativeName, positiveName, this, _deviceId);
+            _actions.Add(actionVertical);
+            return actionVertical;
+        }
+
+        public LateralAction AddLateralAction(string negativeName, string positiveName) {
+            var actionState = new LateralAction(negativeName, positiveName, this, _deviceId);
             _actions.Add(actionState);
             return actionState;
         }
@@ -20,18 +26,6 @@ namespace Betauer.Input {
             var actionState = new ActionState(name, this, _deviceId);
             _actions.Add(actionState);
             return actionState;
-        }
-
-        public IActionUpdate Update(EventWrapper w) {
-            return _actions.Find(actionInput => actionInput.Enabled && actionInput.Update(w));
-        }
-
-        public void ClearJustStates() {
-            _actions.ForEach(actionInput => actionInput.ClearJustPressedState());
-        }
-
-        public void ClearStates() {
-            _actions.ForEach(actionInput => actionInput.ClearPressedState());
         }
     }
 }
