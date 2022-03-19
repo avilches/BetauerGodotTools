@@ -19,7 +19,7 @@ namespace Betauer.UI {
         public MenuController(Container baseHolder) {
             _baseHolder = baseHolder;
             _baseHolder.DisableAllNotifications();
-            baseHolder.Hide();
+            _baseHolder.Hide();
         }
 
         public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {

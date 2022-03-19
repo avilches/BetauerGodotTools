@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Screen;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
@@ -21,11 +20,8 @@ namespace Veronenger.Game.Controller.Menu {
         private MenuController _menuController;
 
         [Inject] private GameManager _gameManager;
-        [Inject] private ScreenManager _screenManager;
         [Inject] private InputManager _inputManager;
 
-        private LateralAction UiLateralMotion => _inputManager.UiLateralMotion;
-        private ActionState UiAccept => _inputManager.UiAccept;
         private ActionState UiCancel => _inputManager.UiCancel;
 
         private Launcher _launcher;
@@ -34,7 +30,6 @@ namespace Veronenger.Game.Controller.Menu {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
             await ShowMenu();
-            UpdateResolutionButton();
         }
 
         public async Task ShowMenu() {
@@ -79,8 +74,6 @@ namespace Veronenger.Game.Controller.Menu {
                     // ctx.ActionButton.Save();
                     _gameManager.LoadAnimaDemo();
                 })
-                .AddButton("Options", "Options",
-                    (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
                 .AddButton("Quit", "Quit", async (ctx) => {
                     // QueueFree();
                     var tree = GetTree();
@@ -88,146 +81,7 @@ namespace Veronenger.Game.Controller.Menu {
                     tree.Notification(MainLoop.NotificationWmQuitRequest);
                 });
 
-            mainMenu.AddMenu("Options")
-                .AddButton("Video", "Video", (ctx) => { ctx.Go("Video", GoGoodbyeAnimation, GoNewMenuAnimation); })
-                .AddButton("Controls", "Controls", () => GD.Print("Controls"))
-                .AddHSeparator()
-                .AddButton("Back", "Back", (ctx) =>
-                    ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
-                );
-
-            mainMenu.AddMenu("Video")
-                .AddCheckButton("Fullscreen", "Fullscreen", (ActionCheckButton.InputEventContext ctx) => {
-                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
-                        UiAccept.IsEventPressed(ctx.InputEvent)) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        _scale.Disabled = _borderless.Disabled = newState;
-                        _borderless.Pressed = false;
-                        ctx.Refresh();
-
-                        _screenManager.SetFullscreen(newState);
-                        return true;
-                    }
-                    return false;
-                })
-                .AddCheckButton("PixelPerfect", "Pixel perfect", (ActionCheckButton.InputEventContext ctx) => {
-                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
-                        UiAccept.IsEventPressed(ctx.InputEvent)) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        _screenManager.SetPixelPerfect(newState);
-                        return true;
-                    }
-                    return false;
-                })
-                .AddButton("Scale", "", (ActionButton.InputEventContext ctx) => {
-                    List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-                    Resolution resolution = _screenManager.Settings.WindowedResolution;
-                    var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
-                    pos = pos == -1 ? 0 : pos;
-
-                    if (UiLateralMotion.IsLeftEventPressed(ctx.InputEvent)) {
-                        if (pos > 0) {
-                            _screenManager.SetWindowed(resolutions[pos - 1]);
-                            UpdateResolutionButton();
-                            return true;
-                        }
-                    } else if (UiLateralMotion.IsRightEventPressed(ctx.InputEvent)) {
-                        if (pos < resolutions.Count - 1) {
-                            _screenManager.SetWindowed(resolutions[pos + 1]);
-                        } else {
-                            _scale.Disabled = _borderless.Disabled = true;
-                            _borderless.Pressed = false;
-                            _fullscreenButton.Pressed = true;
-                            _fullscreenButton.GrabFocus();
-                            ctx.Refresh();
-
-                            _screenManager.SetFullscreen(true);
-                        }
-                        UpdateResolutionButton();
-                        return true;
-                    } else if (UiAccept.IsEventPressed(ctx.InputEvent)) {
-                        _screenManager.SetWindowed(pos == resolutions.Count - 1
-                            ? resolutions[0]
-                            : resolutions[pos + 1]);
-                        UpdateResolutionButton();
-                        return true;
-                    }
-                    return false;
-                })
-                .AddCheckButton("Borderless", "Borderless window", (ActionCheckButton.InputEventContext ctx) => {
-                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
-                        UiAccept.IsEventPressed(ctx.InputEvent)) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        _screenManager.SetBorderless(newState);
-                        return true;
-                    }
-                    return false;
-                })
-                .AddCheckButton("VSync", "Vertical Sync", (ActionCheckButton.InputEventContext ctx) => {
-                    if (UiLateralMotion.IsEventPressed(ctx.InputEvent) ||
-                        UiAccept.IsEventPressed(ctx.InputEvent)) {
-                        var newState = !ctx.Pressed;
-                        ctx.ActionCheckButton.Pressed = newState;
-                        _screenManager.SetVSync(newState);
-                        return true;
-                    }
-                    return false;
-                })
-                .AddButton("Back", "Back", (ctx) =>
-                    ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
-                );
-
-            // mainMenu.GetMenu("Root").GetButton("Continue")!.Disabled = true;
-
-            _videoMenu = mainMenu.GetMenu("Video");
-            _fullscreenButton = _videoMenu.GetCheckButton("Fullscreen")!;
-            _scale = mainMenu.GetMenu("Video").GetButton("Scale")!;
-            _scale.OnFocusEntered(UpdateResolutionButton);
-            _scale.OnFocusExited(UpdateResolutionButton);
-            _borderless = mainMenu.GetMenu("Video").GetCheckButton("Borderless")!;
-
-            // Load data from settings
-            _fullscreenButton.Pressed = _screenManager.Settings.Fullscreen;
-            _videoMenu.GetCheckButton("PixelPerfect")!.Pressed = _screenManager.Settings.PixelPerfect;
-            _videoMenu.GetCheckButton("VSync")!.Pressed = OS.VsyncEnabled;
-            _borderless.Pressed = _screenManager.Settings.Borderless;
-            _scale.Disabled = _borderless.Disabled = _screenManager.Settings.Fullscreen;
-
-            _scale.Menu.Refresh();
             return mainMenu;
-        }
-
-        private ActionMenu _videoMenu;
-        private ActionCheckButton _fullscreenButton;
-        private ActionButton _scale;
-        private ActionCheckButton _borderless;
-
-
-        private void UpdateResolutionButton() {
-            List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-            Resolution resolution = _screenManager.Settings.WindowedResolution;
-            var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
-            pos = pos == -1 ? 0 : pos;
-
-            var prefix = "";
-            var suffix = "";
-            if (_menuController!.ActiveMenu!.GetFocusOwner() == _scale) {
-                prefix = pos > 0 ? "< " : "";
-                suffix = pos < resolutions.Count - 1 ? " >" : "";
-            }
-            ScaledResolution scaledResolution = resolutions[pos];
-            var res = scaledResolution.ToString();
-            if (scaledResolution.IsPixelPerfectScale()) {
-                if (scaledResolution.GetPixelPerfectScale() == 1) {
-                    res += " (Original)";
-                } else {
-                    res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
-                }
-            }
-            _scale!.Text = prefix + res + suffix;
         }
 
         private async Task GoGoodbyeAnimation(MenuTransition transition) {

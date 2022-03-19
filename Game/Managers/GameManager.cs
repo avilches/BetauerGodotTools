@@ -86,6 +86,9 @@ namespace Veronenger.Game.Managers {
             _pauseMenuScene.EnableAllNotifications();
         }
 
+        public void ShowOptionsMenus() {
+        }
+
         public void ClosePauseMenu() {
             _pauseMenuScene.Visible = false;
             _pauseMenuScene.DisableAllNotifications();
