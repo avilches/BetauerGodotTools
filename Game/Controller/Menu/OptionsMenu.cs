@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
@@ -13,7 +11,7 @@ using Veronenger.Game.Managers;
 namespace Veronenger.Game.Controller.Menu {
     public class OptionsMenu : DiControl {
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
-        private VBoxContainer _menuBase;
+        private Godot.Container _menuBase;
 
         private MenuController _menuController;
 

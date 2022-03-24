@@ -49,7 +49,7 @@ namespace Veronenger.Game.Controller {
                 // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                 // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                 // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-            }, async () => await GetTree().AwaitPhysicsFrame());
+            }, async () => await GetTree().AwaitIdleFrame());
 
             _screenManager.Start(ApplicationConfig.Configuration);
             _gameManager.OnFinishLoad(this);

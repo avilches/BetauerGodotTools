@@ -32,25 +32,39 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        private bool _paused = false;
-        private bool _canGameBePaused = false;
+        // private bool _paused = false;
+        // private bool _canGameBePaused = false;
 
-        public bool IsGamePaused() => _paused;
-        public bool CanGameBePaused() => _canGameBePaused;
+        public bool IsGamePaused() => CurrentState == State.PauseMenu;
+        public bool IsGaming() => CurrentState == State.Gaming;
+        public bool IsModal() => CurrentState == State.Modal;
+        public bool IsMainMenu() => CurrentState == State.MainMenu;
+        public bool IsOptions() => CurrentState == State.Options;
 
-        private readonly Launcher _launcher = new Launcher();
+        public readonly Launcher Launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
         [Inject] private ScreenManager _screenManager;
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
 
+        public enum State {
+            Loading,
+            MainMenu,
+            Gaming,
+            PauseMenu,
+            Options,
+            Modal
+        }
+
+        public State CurrentState = State.Loading;
+
         public async void OnFinishLoad(SplashScreenController splashScreen) {
             splashScreen.QueueFree();
             CreateAndConfigurePauseMenu();
-
             _mainMenuScene = _resourceManager.CreateMainMenu();
             GetTree().Root.AddChild(_mainMenuScene);
+            Launcher.WithParent(GetTree().Root);
             await ShowMainMenu();
         }
 
@@ -67,33 +81,46 @@ namespace Veronenger.Game.Managers {
         }
 
         private async Task ShowMainMenu() {
+            CurrentState = State.MainMenu;
             await _mainMenuScene.ShowMenu();
         }
 
         public async void StartGame() {
-            await _mainMenuScene.CloseMainMenu();
+            await _mainMenuScene.HideMainMenu();
             _currentGameScene = _resourceManager.CreateWorld1();
             await AddSceneDeferred(_currentGameScene);
             AddPlayerToScene(_currentGameScene);
-            _canGameBePaused = true;
+            CurrentState = State.Gaming;
         }
 
         public async void ShowPauseMenu() {
             _pauseMenuScene.Visible = true;
             await _pauseMenuScene.ShowMenu();
             GetTree().Paused = true;
-            _paused = true;
+            CurrentState = State.PauseMenu;
             _pauseMenuScene.EnableAllNotifications();
         }
 
         public void ShowOptionsMenus() {
         }
 
+        public async Task<bool> ShowModalBox() {
+            ModalBox modalBox = _resourceManager.CreateModalBox();
+            modalBox.PauseMode = Node.PauseModeEnum.Process;
+            GetTree().Root.AddChild(modalBox);
+            var old = CurrentState;
+            CurrentState = State.Modal;
+            var result = await modalBox.AwaitResult();
+            CurrentState = old;
+            modalBox.QueueFree();
+            return result;
+        }
+
         public void ClosePauseMenu() {
             _pauseMenuScene.Visible = false;
             _pauseMenuScene.DisableAllNotifications();
             GetTree().Paused = false;
-            _paused = false;
+            CurrentState = State.Gaming;
         }
 
         public async Task ExitGameAndBackToMainMenu() {
@@ -104,7 +131,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
-            _canGameBePaused = false;
+            CurrentState = State.Loading;
             _stageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
@@ -112,7 +139,7 @@ namespace Veronenger.Game.Managers {
             await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
-            _canGameBePaused = true;
+            CurrentState = State.Gaming;
         }
 
         private void AddPlayerToScene(Node nextScene) {

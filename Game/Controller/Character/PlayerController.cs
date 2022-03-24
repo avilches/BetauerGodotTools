@@ -218,7 +218,7 @@ namespace Veronenger.Game.Controller.Character {
 
 
         public override void _Input(InputEvent @event) {
-            if (_gameManager.CanGameBePaused() && _inputManager.UiStart.IsEventPressed(@event)) {
+            if (_gameManager.IsGaming() && _inputManager.UiStart.IsEventPressed(@event)) {
                 _gameManager.ShowPauseMenu();
             }
         }

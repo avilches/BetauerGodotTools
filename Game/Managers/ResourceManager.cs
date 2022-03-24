@@ -13,6 +13,7 @@ namespace Veronenger.Game.Managers {
 
         private const string MainMenu = "res://Scenes/MainMenu.tscn";
         private const string PauseMenu = "res://Scenes/PauseMenu.tscn";
+        private const string ModalBox = "res://Scenes/ModalBox.tscn";
         private const string World1 = "res://Worlds/World1.tscn";
         private const string World2 = "res://Worlds/World2.tscn";
         private const string Player = "res://Scenes/Player.tscn";
@@ -21,6 +22,7 @@ namespace Veronenger.Game.Managers {
         public Node CreateWorld2() => Resource<PackedScene>(World2).Instance();
         public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
         public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
+        public ModalBox CreateModalBox() => Resource<PackedScene>(ModalBox).Instance<ModalBox>();
         public Node2D CreatePlayer() => Resource<PackedScene>(Player).Instance<Node2D>();
 
         private Dictionary<string, Resource> _resources;
@@ -29,6 +31,7 @@ namespace Veronenger.Game.Managers {
             string[] resourcesToLoad = {
                 PauseMenu,
                 MainMenu,
+                ModalBox,
                 World1,
                 World2,
                 Player,

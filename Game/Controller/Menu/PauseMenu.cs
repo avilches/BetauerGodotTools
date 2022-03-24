@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
@@ -32,7 +34,6 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public async Task ShowMenu() {
-            RectSize = new Vector2(ApplicationConfig.Configuration.BaseResolution.x, RectSize.y);
             await _menuController.Start("Root");
         }
 
@@ -43,14 +44,19 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("Continue", "Resume", (ctx) => {
+                .AddButton("Resume", "Resume", (ctx) => {
                     _gameManager.ClosePauseMenu();
                 })
                 .AddButton("Options", "Options",
                     (ctx) => _gameManager.ShowOptionsMenus())
                 .AddButton("QuitGame", "Quit game", async (ctx) => {
-                    _gameManager.ClosePauseMenu();
-                    await _gameManager.ExitGameAndBackToMainMenu();
+                    var result = await _gameManager.ShowModalBox();
+                    if (result) {
+                        _gameManager.ClosePauseMenu();
+                        await _gameManager.ExitGameAndBackToMainMenu();
+                    } else {
+                        ctx.ActionButton.GrabFocus();
+                    }
                 });
 
             return mainMenu;
@@ -130,11 +136,13 @@ namespace Veronenger.Game.Controller.Menu {
             if (UiCancel.IsEventPressed(@event)) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
                     _gameManager.ClosePauseMenu();
+                    GetTree().SetInputAsHandled();
                 } else {
                     _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
             } else if (UiStart.IsEventPressed(@event)) {
                 _gameManager.ClosePauseMenu();
+                GetTree().SetInputAsHandled();
             }
         }
     }

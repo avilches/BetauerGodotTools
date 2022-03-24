@@ -15,7 +15,7 @@ namespace Veronenger.Game.Controller.Menu {
 
 
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
-        private VBoxContainer _menuBase;
+        private Godot.Container _menuBase;
 
         private MenuController _menuController;
 
@@ -24,10 +24,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private ActionState UiCancel => _inputManager.UiCancel;
 
-        private Launcher _launcher;
-
         public override async void Ready() {
-            _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
             await ShowMenu();
         }
@@ -36,13 +33,13 @@ namespace Veronenger.Game.Controller.Menu {
             GetTree().Root.GuiDisableInput = true;
             Visible = true;
             await _menuController.Start("Root");
-            await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
 
-        public async Task CloseMainMenu() {
+        public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await _launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
+            await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -76,9 +73,15 @@ namespace Veronenger.Game.Controller.Menu {
                 })
                 .AddButton("Quit", "Quit", async (ctx) => {
                     // QueueFree();
-                    var tree = GetTree();
-                    // await tree.AwaitIdleFrame();
-                    tree.Notification(MainLoop.NotificationWmQuitRequest);
+                    var exit = await _gameManager.ShowModalBox();
+                    if (exit) {
+                        _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f);
+                        var tree = GetTree();
+                        // await tree.AwaitIdleFrame();
+                        tree.Notification(MainLoop.NotificationWmQuitRequest);
+                    } else {
+                        ctx.ActionButton.GrabFocus();
+                    }
                 });
 
             return mainMenu;
@@ -94,7 +97,7 @@ namespace Veronenger.Game.Controller.Menu {
                 if (child is Control control) {
                     // actionButton.Modulate =
                     // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -110,7 +113,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
                     control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -125,7 +128,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.FromMenu.GetChildren()) {
                 if (child is Control control) {
                     // control.Modulate = new Color(1f,1f,1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -144,7 +147,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
                     control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -152,7 +155,7 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public override void _Input(InputEvent @event) {
-            if (UiCancel.IsEventPressed(@event)) {
+            if (_gameManager.IsMainMenu() && UiCancel.IsEventPressed(@event)) {
                 _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
         }
