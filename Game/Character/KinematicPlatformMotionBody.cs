@@ -276,6 +276,9 @@ namespace Veronenger.Game.Character {
             Vector2 lastColliderNormal = Vector2.Zero;
             for (var i = 0; i < slideCount; i++) {
                 var collision = _body.GetSlideCollision(i);
+                if (collision == null) {
+                    continue;
+                }
                 var collisionCollider = collision.Collider;
                 var currentColliderNormal = collision.Normal;
                 if (currentColliderNormal != Vector2.Zero) {
