@@ -25,7 +25,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("ColorRect")] private ColorRect _colorRect;
 
         [OnReady("CenterContainer/VBoxContainer/Menu")]
-        private VBoxContainer _menuBase;
+        private Godot.Container _menuBase;
 
         [OnReady("CenterContainer/VBoxContainer/Title")]
         private Label _title;
@@ -38,12 +38,14 @@ namespace Veronenger.Game.Controller.Menu {
         private ActionState UiAccept => _inputManager.UiAccept;
         private ActionState UiCancel => _inputManager.UiCancel;
         private ActionState UiStart => _inputManager.UiStart;
+        private ActionButton _optionsButton;
 
         private Launcher _launcher;
 
         public override void Ready() {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
+            _optionsButton = _menuController.GetMenu("Root")!.GetButton("Options");
             Hide();
         }
 
@@ -51,6 +53,10 @@ namespace Veronenger.Game.Controller.Menu {
             _container.Visible = _colorRect.Visible = true;
             _launcher.Play(PartialFadeOut, _colorRect, 0f, 0.5f);
             await _menuController.Start("Root");
+        }
+
+        public void FocusOptions() {
+            _optionsButton.GrabFocus();
         }
 
         public void Hide() {
@@ -69,7 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
                     _gameManager.ClosePauseMenu();
                 })
                 .AddButton("Options", "Options",
-                    (ctx) => _gameManager.ShowOptionsMenus())
+                    (ctx) => _gameManager.ShowOptionsMenu())
                 .AddButton("QuitGame", "Quit game", async (ctx) => {
                     var result = await _gameManager.ShowModalBox();
                     if (result) {

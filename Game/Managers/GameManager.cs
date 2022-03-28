@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using Godot;
 using Betauer;
@@ -9,7 +8,6 @@ using Betauer.DI;
 using Betauer.Screen;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Managers {
     /**
@@ -24,16 +22,14 @@ namespace Veronenger.Game.Managers {
      *
      */
     [Singleton]
-    public class GameManager  {
+    public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
 
         private MainMenu _mainMenuScene;
         private PauseMenu _pauseMenuScene;
+        private OptionsMenu _optionsMenuScene;
         private Node _currentGameScene;
         private Node2D _playerScene;
-
-        // private bool _paused = false;
-        // private bool _canGameBePaused = false;
 
         public bool IsGamePaused() => CurrentState == State.PauseMenu;
         public bool IsGaming() => CurrentState == State.Gaming;
@@ -57,21 +53,22 @@ namespace Veronenger.Game.Managers {
             Modal
         }
 
-        public State CurrentState = State.Loading;
+        private readonly Stack<State> _states = new Stack<State>();
+        public State CurrentState => _states.Peek();
 
         public async void OnFinishLoad(SplashScreenController splashScreen) {
+            _states.Push(State.Loading);
             splashScreen.QueueFree();
             Launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
+            _optionsMenuScene = _resourceManager.CreateOptionsMenu();
+            _optionsMenuScene.PauseMode = Node.PauseModeEnum.Process;
             _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(_pauseMenuScene);
             GetTree().Root.AddChild(_mainMenuScene);
-            await ShowMainMenu();
-        }
-
-        private async Task ShowMainMenu() {
-            CurrentState = State.MainMenu;
+            GetTree().Root.AddChild(_pauseMenuScene);
+            GetTree().Root.AddChild(_optionsMenuScene);
+            _states.Push(State.MainMenu);
             await _mainMenuScene.ShowMenu();
         }
 
@@ -80,26 +77,37 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = _resourceManager.CreateWorld1();
             await AddSceneDeferred(_currentGameScene);
             AddPlayerToScene(_currentGameScene);
-            CurrentState = State.Gaming;
+            _states.Push(State.Gaming);
         }
 
         public async void ShowPauseMenu() {
             GetTree().Paused = true;
             await _pauseMenuScene.Show();
-            CurrentState = State.PauseMenu;
+            _states.Push(State.PauseMenu);
         }
 
-        public void ShowOptionsMenus() {
+        public async void ShowOptionsMenu() {
+            await _optionsMenuScene.Show();
+            _states.Push(State.Options);
+        }
+
+        public void CloseOptionsMenu() {
+            _optionsMenuScene.Hide();
+            _states.Pop();
+            if (IsMainMenu()) {
+                _mainMenuScene.FocusOptions();
+            } else if (IsGamePaused()) {
+                _pauseMenuScene.FocusOptions();
+            }
         }
 
         public async Task<bool> ShowModalBox() {
             ModalBox modalBox = _resourceManager.CreateModalBox();
             modalBox.PauseMode = Node.PauseModeEnum.Process;
             GetTree().Root.AddChild(modalBox);
-            var old = CurrentState;
-            CurrentState = State.Modal;
+            _states.Push(State.Modal);
             var result = await modalBox.AwaitResult();
-            CurrentState = old;
+            _states.Pop();
             modalBox.QueueFree();
             return result;
         }
@@ -107,18 +115,19 @@ namespace Veronenger.Game.Managers {
         public void ClosePauseMenu() {
             _pauseMenuScene.Hide();
             GetTree().Paused = false;
-            CurrentState = State.Gaming;
+            _states.Pop();
         }
 
         public async Task ExitGameAndBackToMainMenu() {
             _currentGameScene.PrintStrayNodes();
             _currentGameScene.QueueFree();
             _currentGameScene = null;
-            await ShowMainMenu();
+            _states.Pop();
+            await _mainMenuScene.ShowMenu();
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
-            CurrentState = State.Loading;
+            _states.Push(State.Loading);
             _stageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
@@ -126,7 +135,7 @@ namespace Veronenger.Game.Managers {
             await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
-            CurrentState = State.Gaming;
+            _states.Pop();
         }
 
         private void AddPlayerToScene(Node nextScene) {
@@ -149,10 +158,9 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
 
-            _screenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2, ScreenService.Strategy.FitToScreen);
+            _screenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2,
+                ScreenService.Strategy.FitToScreen);
             _screenManager.CenterWindow();
-
         }
-
     }
 }

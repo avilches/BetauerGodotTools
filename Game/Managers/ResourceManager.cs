@@ -13,9 +13,12 @@ namespace Veronenger.Game.Managers {
 
         private const string MainMenu = "res://Scenes/MainMenu.tscn";
         private const string PauseMenu = "res://Scenes/PauseMenu.tscn";
+        private const string OptionsMenu = "res://Scenes/OptionsMenu.tscn";
         private const string ModalBox = "res://Scenes/ModalBox.tscn";
+
         private const string World1 = "res://Worlds/World1.tscn";
         private const string World2 = "res://Worlds/World2.tscn";
+
         private const string Player = "res://Scenes/Player.tscn";
 
         public Node CreateWorld1() => Resource<PackedScene>(World1).Instance();
@@ -23,7 +26,9 @@ namespace Veronenger.Game.Managers {
 
         public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
         public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
+        public OptionsMenu CreateOptionsMenu() => Resource<PackedScene>(OptionsMenu).Instance<OptionsMenu>();
         public ModalBox CreateModalBox() => Resource<PackedScene>(ModalBox).Instance<ModalBox>();
+
         public Node2D CreatePlayer() => Resource<PackedScene>(Player).Instance<Node2D>();
 
         private Dictionary<string, Resource> _resources;
@@ -32,9 +37,12 @@ namespace Veronenger.Game.Managers {
             string[] resourcesToLoad = {
                 PauseMenu,
                 MainMenu,
+                OptionsMenu,
                 ModalBox,
+
                 World1,
                 World2,
+
                 Player,
                 "res://Scenes/SplashScreen.tscn",
                 "res://Worlds/Environment/GVaniaBridgeTileMap.tscn",
@@ -76,10 +84,10 @@ namespace Veronenger.Game.Managers {
             };
             _resources = await Loader.Load(resourcesToLoad, progress, awaiter);
             // foreach (var resourcesValue in _resources.Values) {
-                // GD.Print(resourcesValue);
+            // GD.Print(resourcesValue);
             // }
         }
 
-        private T Resource<T>(string res) where T : class =>  _resources[res] as T;
+        private T Resource<T>(string res) where T : class => _resources[res] as T;
     }
 }

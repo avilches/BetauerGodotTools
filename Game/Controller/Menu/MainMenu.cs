@@ -23,9 +23,11 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputManager _inputManager;
 
         private ActionState UiCancel => _inputManager.UiCancel;
+        private ActionButton _optionsButton;
 
         public override async void Ready() {
             _menuController = BuildMenu();
+            _optionsButton = _menuController.GetMenu("Root")!.GetButton("Options");
             await ShowMenu();
         }
 
@@ -35,6 +37,10 @@ namespace Veronenger.Game.Controller.Menu {
             await _menuController.Start("Root");
             await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
+        }
+
+        public void FocusOptions() {
+            _optionsButton.GrabFocus();
         }
 
         public async Task HideMainMenu() {
@@ -70,6 +76,9 @@ namespace Veronenger.Game.Controller.Menu {
                     //     .Await();
                     // ctx.ActionButton.Save();
                     _gameManager.LoadAnimaDemo();
+                })
+                .AddButton("Options", "Options", async (ctx) => {
+                    _gameManager.ShowOptionsMenu();
                 })
                 .AddButton("Quit", "Quit", async (ctx) => {
                     // QueueFree();

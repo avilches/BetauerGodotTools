@@ -10,8 +10,13 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
     public class OptionsMenu : DiNode {
-        [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
+        [OnReady("CenterContainer")] private Godot.Container _container;
+
+        [OnReady("CenterContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
+
+        [OnReady("CenterContainer/VBoxContainer/Title")]
+        private Label _title;
 
         private MenuController _menuController;
 
@@ -25,39 +30,35 @@ namespace Veronenger.Game.Controller.Menu {
 
         private Launcher _launcher;
 
-        public override async void Ready() {
+        public override void Ready() {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
-            await ShowMenu();
+            Hide();
+        }
+
+        public async Task Show() {
+            _container.Visible = true;
+            await _menuController.Start("Root");
             UpdateResolutionButton();
         }
 
-        public async Task ShowMenu() {
-            await _menuController.Start("Root");
+        public void Hide() {
+            _launcher.RemoveAll();
+            _container.Visible = false;
         }
 
+
         public MenuController BuildMenu() {
+            // TODO i18n
+            _title.Text = "Options";
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("Continue", "Continue", (ctx) => {
-                    _gameManager.ClosePauseMenu();
-                })
-                .AddButton("Options", "Options",
-                    (ctx) => ctx.Go("Options", GoGoodbyeAnimation, GoNewMenuAnimation))
-                .AddButton("EndGame", "End game", async (ctx) => {
-                    _gameManager.ClosePauseMenu();
-                    await _gameManager.ExitGameAndBackToMainMenu();
-                });
-
-            mainMenu.AddMenu("Options")
                 .AddButton("Video", "Video", (ctx) => { ctx.Go("Video", GoGoodbyeAnimation, GoNewMenuAnimation); })
                 .AddButton("Controls", "Controls", () => GD.Print("Controls"))
                 .AddHSeparator()
-                .AddButton("Back", "Back", (ctx) =>
-                    ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation)
-                );
+                .AddButton("Back", "Back", (ctx) => { _gameManager.CloseOptionsMenu(); });
 
             mainMenu.AddMenu("Video")
                 .AddCheckButton("Fullscreen", "Fullscreen", (ActionCheckButton.InputEventContext ctx) => {
@@ -259,17 +260,19 @@ namespace Veronenger.Game.Controller.Menu {
         private const float MenuEffectTime = 0.10f;
 
         public override void _Input(InputEvent @event) {
-            if (!_gameManager.IsGamePaused()) {
+            if (!_gameManager.IsOptions()) {
                 return;
             }
             if (UiCancel.IsEventPressed(@event)) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
-                    _gameManager.ClosePauseMenu();
+                    _gameManager.CloseOptionsMenu();
+                    GetTree().SetInputAsHandled();
                 } else {
                     _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
             } else if (UiStart.IsEventPressed(@event)) {
-                _gameManager.ClosePauseMenu();
+                // _gameManager.CloseOptionsMenu();
+                // GetTree().SetInputAsHandled();
             }
         }
     }
