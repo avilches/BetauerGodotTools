@@ -9,7 +9,7 @@ using Godot;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class OptionsMenu : DiControl {
+    public class OptionsMenu : DiNode {
         [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 

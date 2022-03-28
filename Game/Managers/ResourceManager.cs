@@ -20,6 +20,7 @@ namespace Veronenger.Game.Managers {
 
         public Node CreateWorld1() => Resource<PackedScene>(World1).Instance();
         public Node CreateWorld2() => Resource<PackedScene>(World2).Instance();
+
         public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
         public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
         public ModalBox CreateModalBox() => Resource<PackedScene>(ModalBox).Instance<ModalBox>();

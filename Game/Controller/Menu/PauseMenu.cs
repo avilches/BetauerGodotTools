@@ -7,13 +7,27 @@ using Betauer.Input;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
+using Container = Godot.Container;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class PauseMenu : DiControl {
-        [OnReady("VBoxContainer/Menu")]
+    public class PauseMenu : DiCanvasLayer {
+        private static readonly SequenceTemplate PartialFadeOut = TemplateBuilder.Create()
+            .SetDuration(0.3f)
+            .AnimateKeys(Property.Opacity)
+            .KeyframeTo(0f, 0f)
+            .KeyframeTo(1f, 0.8f)
+            .EndAnimate()
+            .BuildTemplate();
+
+        [OnReady("CenterContainer")]
+        private Container _container;
+
+        [OnReady("ColorRect")] private ColorRect _colorRect;
+
+        [OnReady("CenterContainer/VBoxContainer/Menu")]
         private VBoxContainer _menuBase;
 
-        [OnReady("VBoxContainer/Title")]
+        [OnReady("CenterContainer/VBoxContainer/Title")]
         private Label _title;
 
         private MenuController _menuController;
@@ -27,14 +41,21 @@ namespace Veronenger.Game.Controller.Menu {
 
         private Launcher _launcher;
 
-        public override async void Ready() {
+        public override void Ready() {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
-            await ShowMenu();
+            Hide();
         }
 
-        public async Task ShowMenu() {
+        public async Task Show() {
+            _container.Visible = _colorRect.Visible = true;
+            _launcher.Play(PartialFadeOut, _colorRect, 0f, 0.5f);
             await _menuController.Start("Root");
+        }
+
+        public void Hide() {
+            _launcher.RemoveAll();
+            _container.Visible = _colorRect.Visible = false;
         }
 
         public MenuController BuildMenu() {

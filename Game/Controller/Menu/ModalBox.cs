@@ -9,15 +9,6 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
     public class ModalBox : DiNode {
-        private static readonly SequenceTemplate PartialFadeOut = TemplateBuilder.Create()
-            .SetDuration(0.3f)
-            .AnimateKeys(Property.Opacity)
-            .KeyframeTo(0f, 0f)
-            .KeyframeTo(1f, 0.8f)
-            .EndAnimate()
-            .BuildTemplate();
-
-
         [OnReady("CenterContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
@@ -40,8 +31,6 @@ namespace Veronenger.Game.Controller.Menu {
         public override async void Ready() {
             _menuController = BuildMenu();
             await _menuController.Start("Root");
-            Console.WriteLine("Modal ready, fading...");
-            // _gameManager.Launcher.Play(PartialFadeOut, _colorRect, 0f, 0.3f);
         }
 
         public Task<bool> AwaitResult() {

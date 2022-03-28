@@ -75,7 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
                     // QueueFree();
                     var exit = await _gameManager.ShowModalBox();
                     if (exit) {
-                        _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f);
+                        await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
                         var tree = GetTree();
                         // await tree.AwaitIdleFrame();
                         tree.Notification(MainLoop.NotificationWmQuitRequest);

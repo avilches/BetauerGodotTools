@@ -61,23 +61,13 @@ namespace Veronenger.Game.Managers {
 
         public async void OnFinishLoad(SplashScreenController splashScreen) {
             splashScreen.QueueFree();
-            CreateAndConfigurePauseMenu();
-            _mainMenuScene = _resourceManager.CreateMainMenu();
-            GetTree().Root.AddChild(_mainMenuScene);
             Launcher.WithParent(GetTree().Root);
-            await ShowMainMenu();
-        }
-
-        private void CreateAndConfigurePauseMenu() {
+            _mainMenuScene = _resourceManager.CreateMainMenu();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
             _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
-            _pauseMenuScene.DisableAllNotifications();
-            _pauseMenuScene.Visible = false;
-            var canvasLayer = new CanvasLayer();
-            canvasLayer.Name = "PauseMenuLayer";
-            canvasLayer.Layer = 1;
-            canvasLayer.AddChild(_pauseMenuScene);
-            GetTree().Root.AddChild(canvasLayer);
+            GetTree().Root.AddChild(_pauseMenuScene);
+            GetTree().Root.AddChild(_mainMenuScene);
+            await ShowMainMenu();
         }
 
         private async Task ShowMainMenu() {
@@ -94,11 +84,9 @@ namespace Veronenger.Game.Managers {
         }
 
         public async void ShowPauseMenu() {
-            _pauseMenuScene.Visible = true;
-            await _pauseMenuScene.ShowMenu();
             GetTree().Paused = true;
+            await _pauseMenuScene.Show();
             CurrentState = State.PauseMenu;
-            _pauseMenuScene.EnableAllNotifications();
         }
 
         public void ShowOptionsMenus() {
@@ -117,8 +105,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ClosePauseMenu() {
-            _pauseMenuScene.Visible = false;
-            _pauseMenuScene.DisableAllNotifications();
+            _pauseMenuScene.Hide();
             GetTree().Paused = false;
             CurrentState = State.Gaming;
         }
