@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller {
                         .SetInfiniteLoops()
                         .AnimateSteps(null, Property.Modulate)
                         .From(Colors.White)
-                        .To(Colors.Red, 0.5f)
+                        .To(Colors.Red, 0.2f)
                         .EndAnimate()
                     , _sprite);
 
@@ -49,9 +49,12 @@ namespace Veronenger.Game.Controller {
                 // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                 // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                 // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-            }, async () => await GetTree().AwaitIdleFrame());
+            }, async () => {
+                await GetTree().AwaitIdleFrame();
+            });
 
             _screenManager.Start(ApplicationConfig.Configuration);
+            await GetTree().AwaitIdleFrame();
             _gameManager.OnFinishLoad(this);
         }
     }

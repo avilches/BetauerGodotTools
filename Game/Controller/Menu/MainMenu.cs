@@ -34,9 +34,12 @@ namespace Veronenger.Game.Controller.Menu {
         public async Task ShowMenu() {
             GetTree().Root.GuiDisableInput = true;
             Visible = true;
+            var modulate = Colors.White;
+            modulate.a = 0;
+            Modulate = modulate;
             await _menuController.Start("Root");
-            await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
+            await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
         }
 
         public void FocusOptions() {

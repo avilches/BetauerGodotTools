@@ -56,7 +56,7 @@ namespace Veronenger.Game.Managers {
         private readonly Stack<State> _states = new Stack<State>();
         public State CurrentState => _states.Peek();
 
-        public async void OnFinishLoad(SplashScreenController splashScreen) {
+        public void OnFinishLoad(SplashScreenController splashScreen) {
             _states.Push(State.Loading);
             splashScreen.QueueFree();
             Launcher.WithParent(GetTree().Root);
@@ -65,11 +65,11 @@ namespace Veronenger.Game.Managers {
             _optionsMenuScene = _resourceManager.CreateOptionsMenu();
             _optionsMenuScene.PauseMode = Node.PauseModeEnum.Process;
             _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(_mainMenuScene);
             GetTree().Root.AddChild(_pauseMenuScene);
             GetTree().Root.AddChild(_optionsMenuScene);
+
+            GetTree().Root.AddChild(_mainMenuScene); // Main menu shows itself in Ready
             _states.Push(State.MainMenu);
-            await _mainMenuScene.ShowMenu();
         }
 
         public async void StartGame() {
