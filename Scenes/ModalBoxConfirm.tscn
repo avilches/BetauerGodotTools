@@ -1,0 +1,126 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Game/Controller/Menu/ModalBoxConfirm.cs" type="Script" id=1]
+[ext_resource path="res://Assets/Lato-Bold-XL.tres" type="DynamicFont" id=2]
+[ext_resource path="res://Assets/Lato-Bold-m.tres" type="DynamicFont" id=3]
+[ext_resource path="res://Assets/SimpleBox/SimpleBox.tres" type="Theme" id=4]
+
+[node name="CanvasLayer" type="CanvasLayer"]
+layer = 101
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_horizontal_guides_": [  ],
+"_edit_vertical_guides_": [  ]
+}
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Panel" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -170.0
+margin_top = -100.0
+margin_right = 170.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+theme = ExtResource( 4 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="VBoxContainerDouble" type="VBoxContainer" parent="Panel/VBoxContainer"]
+visible = false
+margin_right = 340.0
+margin_bottom = 125.0
+grow_vertical = 2
+rect_min_size = Vector2( 0, 125 )
+size_flags_vertical = 0
+
+[node name="Control" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+margin_right = 340.0
+
+[node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 20.0
+margin_right = 340.0
+margin_bottom = 59.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 2 )
+text = "Are you sure?"
+align = 1
+autowrap = true
+
+[node name="Subtitle" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 79.0
+margin_right = 340.0
+margin_bottom = 99.0
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 3 )
+text = "Any progress not saved will be lost"
+align = 1
+autowrap = true
+
+[node name="VBoxContainerSingle" type="VBoxContainer" parent="Panel/VBoxContainer"]
+margin_right = 340.0
+margin_bottom = 125.0
+grow_vertical = 2
+rect_min_size = Vector2( 0, 125 )
+size_flags_vertical = 0
+
+[node name="Control" type="Control" parent="Panel/VBoxContainer/VBoxContainerSingle"]
+margin_right = 340.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerSingle"]
+margin_top = 50.0
+margin_right = 340.0
+margin_bottom = 89.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 2 )
+text = "Are you sure?"
+align = 1
+autowrap = true
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Panel/VBoxContainer"]
+visible = false
+margin_top = 140.0
+margin_right = 340.0
+margin_bottom = 265.0
+grow_vertical = 2
+rect_min_size = Vector2( 0, 125 )
+size_flags_vertical = 0
+
+[node name="Menu" type="HBoxContainer" parent="Panel/VBoxContainer"]
+margin_top = 145.0
+margin_right = 340.0
+margin_bottom = 185.0
+size_flags_horizontal = 3
+custom_constants/separation = 15
+alignment = 1
+
+[node name="Yes" type="Button" parent="Panel/VBoxContainer/Menu"]
+margin_left = 72.0
+margin_right = 162.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 0 )
+text = "Yes"
+
+[node name="No" type="Button" parent="Panel/VBoxContainer/Menu"]
+margin_left = 177.0
+margin_right = 267.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 90, 0 )
+text = "No"

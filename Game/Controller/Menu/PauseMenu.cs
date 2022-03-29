@@ -77,7 +77,7 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton("Options", "Options",
                     (ctx) => _gameManager.ShowOptionsMenu())
                 .AddButton("QuitGame", "Quit game", async (ctx) => {
-                    var result = await _gameManager.ShowModalBox();
+                    var result = await _gameManager.ModalBoxConfirmQuitGame();
                     if (result) {
                         _gameManager.ClosePauseMenu();
                         await _gameManager.ExitGameAndBackToMainMenu();

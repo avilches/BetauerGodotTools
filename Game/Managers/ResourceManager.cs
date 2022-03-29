@@ -14,7 +14,7 @@ namespace Veronenger.Game.Managers {
         private const string MainMenu = "res://Scenes/MainMenu.tscn";
         private const string PauseMenu = "res://Scenes/PauseMenu.tscn";
         private const string OptionsMenu = "res://Scenes/OptionsMenu.tscn";
-        private const string ModalBox = "res://Scenes/ModalBox.tscn";
+        private const string ModalBoxConfirm = "res://Scenes/ModalBoxConfirm.tscn";
 
         private const string World1 = "res://Worlds/World1.tscn";
         private const string World2 = "res://Worlds/World2.tscn";
@@ -27,7 +27,9 @@ namespace Veronenger.Game.Managers {
         public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
         public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
         public OptionsMenu CreateOptionsMenu() => Resource<PackedScene>(OptionsMenu).Instance<OptionsMenu>();
-        public ModalBox CreateModalBox() => Resource<PackedScene>(ModalBox).Instance<ModalBox>();
+
+        public ModalBoxConfirm CreateModalBoxConfirm() =>
+            Resource<PackedScene>(ModalBoxConfirm).Instance<ModalBoxConfirm>();
 
         public Node2D CreatePlayer() => Resource<PackedScene>(Player).Instance<Node2D>();
 
@@ -38,7 +40,7 @@ namespace Veronenger.Game.Managers {
                 PauseMenu,
                 MainMenu,
                 OptionsMenu,
-                ModalBox,
+                ModalBoxConfirm,
 
                 World1,
                 World2,

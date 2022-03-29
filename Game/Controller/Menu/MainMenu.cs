@@ -84,7 +84,7 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton("Exit", "Exit", async (ctx) => {
                     // QueueFree();
                     _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.3f).Await();
-                    var exit = await _gameManager.ShowModalBox();
+                    var exit = await _gameManager.ModalBoxConfirmExitDesktop();
                     if (exit) {
                         // await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
                         GetTree().Notification(MainLoop.NotificationWmQuitRequest);

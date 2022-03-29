@@ -101,14 +101,23 @@ namespace Veronenger.Game.Managers {
             }
         }
 
-        public async Task<bool> ShowModalBox() {
-            ModalBox modalBox = _resourceManager.CreateModalBox();
-            modalBox.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(modalBox);
+        public async Task<bool> ModalBoxConfirmExitDesktop() {
+            return await ShowModalBox("Exit game?");
+        }
+
+        public async Task<bool> ModalBoxConfirmQuitGame() {
+            return await ShowModalBox("Quit game?", "Any progress not saved will be lost");
+        }
+
+        private async Task<bool> ShowModalBox(string title, string subtitle = null) {
+            ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
+            modalBoxConfirm.Title(title, subtitle);
+            modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
+            GetTree().Root.AddChild(modalBoxConfirm);
             _states.Push(State.Modal);
-            var result = await modalBox.AwaitResult();
+            var result = await modalBoxConfirm.AwaitResult();
             _states.Pop();
-            modalBox.QueueFree();
+            modalBoxConfirm.QueueFree();
             return result;
         }
 
