@@ -82,6 +82,9 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton("Yes", "Yes", (ctx) => {
                     _promise.TrySetResult(true);
                 });
+            var noButton = mainMenu.GetMenu("Root")!.GetButton("No");
+            var yesButton = mainMenu.GetMenu("Root")!.GetButton("Yes");
+            noButton.RectMinSize = yesButton.RectMinSize = new Vector2(60, 0);
             return mainMenu;
         }
 
