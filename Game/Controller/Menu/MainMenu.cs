@@ -27,7 +27,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override async void Ready() {
             _menuController = BuildMenu();
-            _optionsButton = _menuController.GetMenu("Root")!.GetButton("Options");
+            _optionsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
             await ShowMenu();
         }
 
@@ -58,8 +58,7 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("NewGame", "New game", (ctx) => {
-                    // GD.Print("New Game");
+                .AddButton("Start", "Start", (ctx) => {
                     _gameManager.StartGame();
                     // var continueButton = ctx.Menu.GetButton("Continue");
                     // continueButton!.Disabled = !continueButton.Disabled;
@@ -67,31 +66,31 @@ namespace Veronenger.Game.Controller.Menu {
                     //         MenuEffectTime)
                     //     .Await();
                     // continueButton.Save();
-
-                    ctx.Refresh();
-                })
-                .AddButton("Continue", "Continue", async (ctx) => {
-                    // GD.Print("Continue");
-                    // ctx.ActionButton.Disabled = true;
                     // ctx.Refresh();
-                    // await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
-                    //         MenuEffectTime)
-                    //     .Await();
-                    // ctx.ActionButton.Save();
-                    _gameManager.LoadAnimaDemo();
                 })
-                .AddButton("Options", "Options", async (ctx) => {
+                // .AddButton("Continue", "Continue", async (ctx) => {
+                //     // GD.Print("Continue");
+                //     // ctx.ActionButton.Disabled = true;
+                //     // ctx.Refresh();
+                //     // await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
+                //     //         MenuEffectTime)
+                //     //     .Await();
+                //     // ctx.ActionButton.Save();
+                //     _gameManager.LoadAnimaDemo();
+                // })
+                .AddButton("Settings", "Settings", async (ctx) => {
                     _gameManager.ShowOptionsMenu();
                 })
-                .AddButton("Quit", "Quit", async (ctx) => {
+                .AddButton("Exit", "Exit", async (ctx) => {
                     // QueueFree();
+                    _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.3f).Await();
                     var exit = await _gameManager.ShowModalBox();
                     if (exit) {
-                        await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
-                        var tree = GetTree();
-                        // await tree.AwaitIdleFrame();
-                        tree.Notification(MainLoop.NotificationWmQuitRequest);
+                        // await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
+                        GetTree().Notification(MainLoop.NotificationWmQuitRequest);
                     } else {
+                        _gameManager.Launcher.RemoveAll();
+                        Modulate = Colors.White;
                         ctx.ActionButton.GrabFocus();
                     }
                 });
