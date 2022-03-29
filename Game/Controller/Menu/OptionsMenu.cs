@@ -10,12 +10,12 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
     public class OptionsMenu : DiNode {
-        [OnReady("CenterContainer")] private Godot.Container _container;
+        [OnReady("MarginContainer")] private Godot.Container _container;
 
-        [OnReady("CenterContainer/VBoxContainer/Menu")]
+        [OnReady("MarginContainer/CenterContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
-        [OnReady("CenterContainer/VBoxContainer/Title")]
+        [OnReady("MarginContainer/CenterContainer/VBoxContainer/Title")]
         private Label _title;
 
         private MenuController _menuController;

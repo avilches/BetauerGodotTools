@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Menu {
         private const float FadeMainMenuEffectTime = 0.75f;
 
 
-        [OnReady("MarginContainer/HBoxContainer/VBoxContainer/Menu")]
+        [OnReady("GridContainer/MarginContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
         private MenuController _menuController;
