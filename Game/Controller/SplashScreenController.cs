@@ -17,17 +17,19 @@ namespace Veronenger.Game.Controller {
         private TextureRect _sprite;
 
         private readonly Launcher _launcher = new Launcher();
-
         private Vector2 _baseResolutionSize;
+        private bool _loadFinished = false;
 
         public override void _EnterTree() {
             _screenManager.Load();
+            _baseResolutionSize = _screenManager.Settings.WindowedResolution.Size;
             if (_screenManager.Settings.Fullscreen) {
                 OS.WindowFullscreen = true;
+            } else {
+                OS.CenterWindow();
+                OS.WindowSize = _screenManager.Settings.WindowedResolution.Size;
             }
-            _baseResolutionSize = new Vector2(OS.WindowSize.x, _screenManager.Settings.WindowedResolution.Size.y);
-            _baseResolutionSize = OS.WindowSize;
-            GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.KeepHeight,
+            GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,
                 _baseResolutionSize, 1);
         }
 
@@ -49,13 +51,21 @@ namespace Veronenger.Game.Controller {
                 // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                 // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                 // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-            }, async () => {
-                await GetTree().AwaitIdleFrame();
-            });
+            }, async () => { await GetTree().AwaitIdleFrame(); });
+            _loadFinished = true;
+            _launcher.RemoveAll();
+        }
 
-            _screenManager.Start(ApplicationConfig.Configuration);
-            await GetTree().AwaitIdleFrame();
-            _gameManager.OnFinishLoad(this);
+        public override void _Input(InputEvent e) {
+            if (_loadFinished &&
+                e is InputEventKey { Pressed: true } ||
+                e is InputEventJoypadButton { Pressed: true } ||
+                e is InputEventMouseButton { Pressed: true }) {
+                Visible = false;
+                GetTree().SetInputAsHandled();
+                _loadFinished = false; // Avoid double input executed twice
+                _gameManager.OnFinishLoad(this);
+            }
         }
     }
 }
