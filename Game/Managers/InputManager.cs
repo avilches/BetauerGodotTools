@@ -16,6 +16,7 @@ namespace Veronenger.Game.Managers {
         public readonly ActionState UiSelect;
         public readonly ActionState UiStart;
         public readonly ActionState UiCancel;
+        public readonly ActionState PixelPerfect;
 
         private readonly ActionList _actionList;
 
@@ -30,6 +31,8 @@ namespace Veronenger.Game.Managers {
             VerticalMotion = _actionList.AddVerticalAction("up", "down");
             Jump = _actionList.AddAction("Jump");
             Attack = _actionList.AddAction("Attack");
+
+            PixelPerfect  = _actionList.AddAction("PixelPerfect");
 
             // UI actions
             UiLateralMotion = _actionList.AddLateralAction("ui_left", "ui_right");
@@ -68,6 +71,10 @@ namespace Veronenger.Game.Managers {
             Attack.ClearConfig()
                 .AddKey(KeyList.C)
                 .AddButton(JoystickList.XboxX)
+                .Build();
+
+            PixelPerfect.ClearConfig()
+                .AddKey(KeyList.F9)
                 .Build();
 
             // UI actions

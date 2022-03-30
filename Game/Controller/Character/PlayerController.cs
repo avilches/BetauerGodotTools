@@ -27,6 +27,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private CharacterManager _characterManager;
         [Inject] private SlopeStairsManager _slopeStairsManager;
         [Inject] private InputManager _inputManager;
+        [Inject] private ScreenManager _screenManager;
         [Inject] private PlayerStateMachine _stateMachine;
         [Inject] private PlayerConfig _playerConfig;
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
@@ -218,8 +219,11 @@ namespace Veronenger.Game.Controller.Character {
 
 
         public override void _Input(InputEvent @event) {
-            if (_gameManager.IsGaming() && _inputManager.UiStart.IsEventPressed(@event)) {
+            if (!_gameManager.IsGaming()) return;
+            if (_inputManager.UiStart.IsEventPressed(@event)) {
                 _gameManager.ShowPauseMenu();
+            } else if (_inputManager.PixelPerfect.IsEventPressed(@event)) {
+                _screenManager.SetPixelPerfect(!_screenManager.Settings.PixelPerfect);
             }
         }
 
