@@ -3,5 +3,5 @@
 [ext_resource path="res://Assets/pixellocale-v-1-4.ttf" type="DynamicFontData" id=1]
 
 [resource]
-size = 8
+size = 9
 font_data = ExtResource( 1 )

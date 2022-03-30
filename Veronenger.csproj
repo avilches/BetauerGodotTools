@@ -19,6 +19,7 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="Assets\*" />
         <Content Include="Scenes\*" />
         <Content Include="Worlds\*" />
         <Content Include="Tilemaps\*" />
