@@ -216,8 +216,11 @@ namespace Betauer.Screen {
             if (OS.WindowSize < OS.MinWindowSize) {
                 OS.WindowSize = OS.MinWindowSize;
             }
-            // Remove default stretch behavior.
-            Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Keep, BaseResolution.Size,
+            // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
+            // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
+
+            // Mode2D shows betters fonts
+            Tree.SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep, BaseResolution.Size,
                 1);
             ScaleResolutionViewport();
             _enabled = true;
