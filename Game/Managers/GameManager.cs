@@ -57,6 +57,7 @@ namespace Veronenger.Game.Managers {
         public State CurrentState => _states.Peek();
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
+            _screenManager.Start(ApplicationConfig.Configuration);
             _states.Push(State.Loading);
             splashScreen.QueueFree();
             Launcher.WithParent(GetTree().Root);
@@ -167,7 +168,7 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
 
-            _screenManager.ChangeScreenConfiguration(ApplicationConfig.Configuration2,
+            _screenManager.ChangeScreenConfiguration(ApplicationConfig.AnimaDemoConfiguration,
                 ScreenService.Strategy.FitToScreen);
             _screenManager.CenterWindow();
         }

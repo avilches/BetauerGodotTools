@@ -1,0 +1,39 @@
+[gd_resource type="Theme" load_steps=9 format=2]
+
+[ext_resource path="res://Assets/pixellocale-16.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Assets/Buttons/ButtonStyle_Pressed.tres" type="StyleBox" id=2]
+[ext_resource path="res://Assets/Buttons/ButtonStyle_Normal.tres" type="StyleBox" id=3]
+[ext_resource path="res://Assets/Buttons/ButtonStyle_Focussed.tres" type="StyleBox" id=4]
+[ext_resource path="res://Assets/Buttons/ButtonStyle_Hover.tres" type="StyleBox" id=5]
+[ext_resource path="res://Assets/Images/ToggleOff.png" type="Texture" id=6]
+[ext_resource path="res://Assets/Images/ToggleOn.png" type="Texture" id=7]
+[ext_resource path="res://Assets/Buttons/ButtonStyle_Disabled.tres" type="StyleBox" id=8]
+
+[resource]
+Button/fonts/font = ExtResource( 1 )
+Button/styles/disabled = ExtResource( 8 )
+Button/styles/focus = ExtResource( 4 )
+Button/styles/hover = ExtResource( 5 )
+Button/styles/normal = ExtResource( 3 )
+Button/styles/pressed = ExtResource( 2 )
+CheckButton/fonts/font = ExtResource( 1 )
+CheckButton/icons/off = ExtResource( 6 )
+CheckButton/icons/off_disabled = ExtResource( 6 )
+CheckButton/icons/on = ExtResource( 7 )
+CheckButton/icons/on_disabled = ExtResource( 7 )
+CheckButton/styles/disabled = ExtResource( 8 )
+CheckButton/styles/focus = ExtResource( 4 )
+CheckButton/styles/hover = ExtResource( 5 )
+CheckButton/styles/hover_pressed = ExtResource( 2 )
+CheckButton/styles/normal = ExtResource( 3 )
+CheckButton/styles/pressed = ExtResource( 3 )
+Label/colors/font_color = Color( 1, 1, 1, 1 )
+Label/colors/font_color_shadow = Color( 0, 0, 0, 0 )
+Label/colors/font_outline_modulate = Color( 1, 1, 1, 1 )
+Label/constants/line_spacing = 3
+Label/constants/shadow_as_outline = 0
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 1
+Label/fonts/font = ExtResource( 1 )
+Label/styles/normal = null
+Panel/styles/panel = ExtResource( 3 )

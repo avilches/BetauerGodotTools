@@ -19,15 +19,15 @@ namespace Veronenger.Game.Controller.Menu {
             .EndAnimate()
             .BuildTemplate();
 
-        [OnReady("CenterContainer")]
-        private Container _container;
+        [OnReady("Panel")]
+        private Panel _container;
 
         [OnReady("ColorRect")] private ColorRect _colorRect;
 
-        [OnReady("CenterContainer/VBoxContainer/Menu")]
+        [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
-        [OnReady("CenterContainer/VBoxContainer/Title")]
+        [OnReady("Panel/VBoxContainer/Title")]
         private Label _title;
 
         private MenuController _menuController;

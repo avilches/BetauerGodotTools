@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Game/Controller/UI/ActionCheckButton.cs" type="Script" id=1]
+
+[node name="CheckButton" type="CheckButton"]
+script = ExtResource( 1 )

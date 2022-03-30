@@ -3,7 +3,7 @@
 [ext_resource path="res://Game/Controller/Menu/ModalBoxConfirm.cs" type="Script" id=1]
 [ext_resource path="res://Assets/Lato-Bold-XL.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Lato-Bold-m.tres" type="DynamicFont" id=3]
-[ext_resource path="res://Assets/SimpleBox/SimpleBox.tres" type="Theme" id=4]
+[ext_resource path="res://Assets/my_theme.tres" type="Theme" id=4]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 layer = 101
@@ -84,9 +84,9 @@ margin_bottom = 30.0
 rect_min_size = Vector2( 0, 30 )
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerSingle"]
-margin_top = 50.0
+margin_top = 34.0
 margin_right = 340.0
-margin_bottom = 89.0
+margin_bottom = 73.0
 rect_min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 2 )
@@ -104,9 +104,9 @@ rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Menu" type="HBoxContainer" parent="Panel/VBoxContainer"]
-margin_top = 145.0
+margin_top = 129.0
 margin_right = 340.0
-margin_bottom = 185.0
+margin_bottom = 164.0
 size_flags_horizontal = 3
 custom_constants/separation = 15
 alignment = 1
@@ -114,13 +114,13 @@ alignment = 1
 [node name="Yes" type="Button" parent="Panel/VBoxContainer/Menu"]
 margin_left = 72.0
 margin_right = 162.0
-margin_bottom = 40.0
+margin_bottom = 35.0
 rect_min_size = Vector2( 90, 0 )
 text = "Yes"
 
 [node name="No" type="Button" parent="Panel/VBoxContainer/Menu"]
 margin_left = 177.0
 margin_right = 267.0
-margin_bottom = 40.0
+margin_bottom = 35.0
 rect_min_size = Vector2( 90, 0 )
 text = "No"
