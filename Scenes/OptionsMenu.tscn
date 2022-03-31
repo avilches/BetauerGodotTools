@@ -44,6 +44,12 @@ custom_fonts/font = ExtResource( 3 )
 text = "OPTIONS"
 align = 1
 
+[node name="VSplitContainer" type="VSplitContainer" parent="Panel/VBoxContainer"]
+visible = false
+margin_top = 27.0
+margin_right = 360.0
+margin_bottom = 27.0
+
 [node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer"]
 margin_top = 27.0
 margin_right = 360.0
@@ -95,7 +101,7 @@ margin_right = 360.0
 margin_bottom = 12.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
-text = "A=Change B=Back"
+text = "A: Change - B: Back"
 align = 1
 
 [node name="line2" type="Label" parent="Panel/VBoxContainer/VBoxContainer"]

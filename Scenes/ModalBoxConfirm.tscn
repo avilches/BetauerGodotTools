@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/ModalBoxConfirm.cs" type="Script" id=1]
-[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=4]
 
@@ -35,92 +34,100 @@ theme = ExtResource( 4 )
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_left = 10.0
+margin_right = -10.0
 rect_min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
 [node name="VBoxContainerDouble" type="VBoxContainer" parent="Panel/VBoxContainer"]
-visible = false
-margin_right = 340.0
+margin_right = 320.0
 margin_bottom = 125.0
 grow_vertical = 2
 rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Control" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
-margin_right = 340.0
+margin_right = 320.0
+margin_bottom = 20.0
+rect_min_size = Vector2( 0, 20 )
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 20.0
-margin_right = 340.0
-margin_bottom = 59.0
-rect_min_size = Vector2( 300, 0 )
+margin_top = 24.0
+margin_right = 320.0
+margin_bottom = 54.0
+rect_min_size = Vector2( 300, 30 )
 size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 2 )
+custom_fonts/font = ExtResource( 3 )
 text = "Are you sure?"
 align = 1
 autowrap = true
 
 [node name="Subtitle" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 79.0
-margin_right = 340.0
-margin_bottom = 99.0
+margin_top = 58.0
+margin_right = 320.0
+margin_bottom = 107.0
 size_flags_horizontal = 3
+custom_colors/font_color = Color( 1, 1, 1, 1 )
 custom_fonts/font = ExtResource( 3 )
 text = "Any progress not saved will be lost"
 align = 1
+valign = 1
 autowrap = true
 
 [node name="VBoxContainerSingle" type="VBoxContainer" parent="Panel/VBoxContainer"]
-margin_right = 340.0
-margin_bottom = 125.0
+visible = false
+margin_top = 129.0
+margin_right = 320.0
+margin_bottom = 254.0
 grow_vertical = 2
 rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Control" type="Control" parent="Panel/VBoxContainer/VBoxContainerSingle"]
-margin_right = 340.0
-margin_bottom = 30.0
-rect_min_size = Vector2( 0, 30 )
+margin_right = 320.0
+margin_bottom = 45.0
+rect_min_size = Vector2( 0, 45 )
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerSingle"]
-margin_top = 34.0
-margin_right = 340.0
-margin_bottom = 73.0
+margin_top = 49.0
+margin_right = 320.0
+margin_bottom = 72.0
 rect_min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 2 )
+custom_fonts/font = ExtResource( 3 )
 text = "Are you sure?"
 align = 1
 autowrap = true
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="Panel/VBoxContainer"]
 visible = false
-margin_top = 140.0
-margin_right = 340.0
-margin_bottom = 265.0
+margin_top = 129.0
+margin_right = 320.0
+margin_bottom = 254.0
 grow_vertical = 2
 rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Menu" type="HBoxContainer" parent="Panel/VBoxContainer"]
-margin_top = 129.0
-margin_right = 340.0
-margin_bottom = 164.0
+margin_top = 132.0
+margin_right = 320.0
+margin_bottom = 153.0
+rect_min_size = Vector2( 0, 24 )
 size_flags_horizontal = 3
 custom_constants/separation = 15
 alignment = 1
 
 [node name="Yes" type="Button" parent="Panel/VBoxContainer/Menu"]
-margin_left = 72.0
-margin_right = 162.0
-margin_bottom = 35.0
+margin_left = 62.0
+margin_right = 152.0
+margin_bottom = 24.0
 rect_min_size = Vector2( 90, 0 )
 text = "Yes"
 
 [node name="No" type="Button" parent="Panel/VBoxContainer/Menu"]
-margin_left = 177.0
-margin_right = 267.0
-margin_bottom = 35.0
+margin_left = 167.0
+margin_right = 257.0
+margin_bottom = 24.0
 rect_min_size = Vector2( 90, 0 )
 text = "No"
