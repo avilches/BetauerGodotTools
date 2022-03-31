@@ -2,7 +2,7 @@
 
 [sub_resource type="DynamicFontData" id=1]
 antialiased = false
-font_path = "res://Assets/pixellocale-v-1-4.ttf"
+font_path = "res://Assets/Fonts/pixellocale-v-1-4.ttf"
 
 [resource]
 size = 18

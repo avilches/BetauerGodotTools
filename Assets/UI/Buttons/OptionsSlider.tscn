@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://Assets/Fonts/pixellocale-8.tres" type="DynamicFont" id=1]
+[ext_resource path="pixellocale-8.tres" type="DynamicFont" id=1]
 [ext_resource path="res://Assets/UI/Images/SliderGrabber1.png" type="Texture" id=2]
 [ext_resource path="res://Assets/UI/Images/SliderGrabber2.png" type="Texture" id=3]
 [ext_resource path="res://Assets/UI/Images/Slider1.png" type="Texture" id=4]
@@ -35,7 +35,7 @@ __meta__ = {
 
 [node name="ScaleName" type="Label" parent="."]
 margin_right = 47.0
-margin_bottom = 18.0
+margin_bottom = 2.0
 rect_min_size = Vector2( 36, 0 )
 size_flags_vertical = 1
 custom_fonts/font = ExtResource( 1 )
@@ -43,9 +43,9 @@ text = "Master"
 align = 1
 
 [node name="HSlider" type="HSlider" parent="."]
-margin_top = 22.0
+margin_top = 6.0
 margin_right = 47.0
-margin_bottom = 32.0
+margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_icons/tick = ExtResource( 2 )
 custom_icons/grabber_disabled = ExtResource( 2 )

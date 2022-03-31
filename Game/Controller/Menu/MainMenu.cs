@@ -38,8 +38,8 @@ namespace Veronenger.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuController.Start("Root");
-            GetTree().Root.GuiDisableInput = false;
             await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            GetTree().Root.GuiDisableInput = false;
         }
 
         public void FocusOptions() {
