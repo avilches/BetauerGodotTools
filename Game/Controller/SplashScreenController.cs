@@ -26,8 +26,8 @@ namespace Veronenger.Game.Controller {
 			if (_screenManager.Settings.Fullscreen) {
 				OS.WindowFullscreen = true;
 			} else {
-				OS.CenterWindow();
 				OS.WindowSize = _screenManager.Settings.WindowedResolution.Size;
+				OS.CenterWindow();
 			}
 			GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,
 				_baseResolutionSize, 1);
