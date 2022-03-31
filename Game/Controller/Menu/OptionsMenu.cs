@@ -107,12 +107,8 @@ namespace Veronenger.Game.Controller.Menu {
 			var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
 			pos = pos == -1 ? 0 : pos;
 
-			var prefix = "";
-			var suffix = "";
-			if (_resolutionButton.HasFocus()) {
-				prefix = pos > 0 ? "< " : "";
-				suffix = pos < resolutions.Count - 1 ? " >" : "";
-			}
+			var prefix = pos > 0 ? "< " : "";
+			var suffix = pos < resolutions.Count - 1 ? " >" : "";
 			ScaledResolution scaledResolution = resolutions[pos];
 			var res = scaledResolution.ToString();
 			if (scaledResolution.IsPixelPerfectScale()) {

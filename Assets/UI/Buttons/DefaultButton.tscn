@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="pixellocale-8.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=1]
 
 [sub_resource type="StyleBoxFlat" id=1]
 content_margin_left = 2.0

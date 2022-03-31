@@ -19,15 +19,11 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
-        <Content Include="Assets\*" />
-        <Content Include="Characters\*" />
-        <Content Include="Scenes\*" />
-        <Content Include="Worlds\*" />
-        <Content Include="Tilemaps\*" />
+        <Content Include="Assets\**" />
+        <Content Include="Characters\**" />
         <Content Include="Docs\*" />
-        <Content Include="Worlds\*" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Assets\UI\Fonts" />
+        <Content Include="Scenes\**" />
+        <Content Include="Worlds\**" />
+        <Content Include="Worlds\**" />
     </ItemGroup>
 </Project>

@@ -2,8 +2,10 @@
 
 [sub_resource type="DynamicFontData" id=1]
 antialiased = false
-font_path = "res://Assets/Fonts/pixellocale-v-1-4.ttf"
+font_path = "res://Assets/Fonts/dpcomic.ttf"
 
 [resource]
-size = 9
+size = 24
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
 font_data = SubResource( 1 )
