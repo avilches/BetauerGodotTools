@@ -20,10 +20,14 @@
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
         <Content Include="Assets\*" />
+        <Content Include="Characters\*" />
         <Content Include="Scenes\*" />
         <Content Include="Worlds\*" />
         <Content Include="Tilemaps\*" />
         <Content Include="Docs\*" />
-        <Content Include="Characters\*" />
+        <Content Include="Worlds\*" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Assets\UI\Fonts" />
     </ItemGroup>
 </Project>
