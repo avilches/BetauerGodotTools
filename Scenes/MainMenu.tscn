@@ -2,7 +2,7 @@
 
 [ext_resource path="res://icon.png" type="Texture" id=1]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
-[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=3]
+[ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Game/Controller/Menu/MainMenu.cs" type="Script" id=4]
 [ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=5]
 
@@ -39,25 +39,25 @@ custom_constants/separation = 15
 alignment = 2
 
 [node name="New game" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
-margin_top = 137.0
+margin_top = 173.0
 margin_right = 150.0
-margin_bottom = 161.0
+margin_bottom = 188.0
 text = "New game"
 
 [node name="Continue" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
-margin_top = 176.0
+margin_top = 203.0
 margin_right = 150.0
-margin_bottom = 200.0
+margin_bottom = 218.0
 text = "Continue"
 
 [node name="Options" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
-margin_top = 215.0
+margin_top = 233.0
 margin_right = 150.0
-margin_bottom = 239.0
+margin_bottom = 248.0
 text = "Options"
 
 [node name="Quit" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
-margin_top = 254.0
+margin_top = 263.0
 margin_right = 150.0
 margin_bottom = 278.0
 text = "Exit"
@@ -104,21 +104,21 @@ rect_min_size = Vector2( 0, 50 )
 [node name="Title" type="Label" parent="GridContainer/VBoxContainer2"]
 margin_top = 54.0
 margin_right = 450.0
-margin_bottom = 77.0
+margin_bottom = 84.0
 custom_fonts/font = ExtResource( 3 )
 text = "Veronenger"
 align = 1
 
 [node name="Sep2" type="Control" parent="GridContainer/VBoxContainer2"]
-margin_top = 81.0
+margin_top = 88.0
 margin_right = 450.0
-margin_bottom = 131.0
+margin_bottom = 138.0
 rect_min_size = Vector2( 0, 50 )
 
 [node name="CenterContainer" type="CenterContainer" parent="GridContainer/VBoxContainer2"]
-margin_top = 135.0
+margin_top = 142.0
 margin_right = 450.0
-margin_bottom = 263.0
+margin_bottom = 270.0
 
 [node name="TextureRect" type="TextureRect" parent="GridContainer/VBoxContainer2/CenterContainer"]
 margin_left = 161.0

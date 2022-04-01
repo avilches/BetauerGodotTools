@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/PauseMenu.cs" type="Script" id=1]
-[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=3]
+[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=2]
+[ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=4]
 
 [node name="CanvasLayer" type="CanvasLayer"]
@@ -33,7 +34,7 @@ margin_right = 180.0
 margin_bottom = 55.0
 rect_min_size = Vector2( 0, 55 )
 size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 3 )
+custom_fonts/font = ExtResource( 2 )
 text = "- PAUSED -"
 align = 1
 valign = 1
@@ -41,7 +42,7 @@ valign = 1
 [node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer"]
 margin_top = 59.0
 margin_right = 180.0
-margin_bottom = 161.0
+margin_bottom = 134.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 15
@@ -49,19 +50,19 @@ alignment = 1
 
 [node name="Resume" type="Button" parent="Panel/VBoxContainer/Menu"]
 margin_right = 180.0
-margin_bottom = 24.0
+margin_bottom = 15.0
 text = "Resume"
 
 [node name="Options" type="Button" parent="Panel/VBoxContainer/Menu"]
-margin_top = 39.0
+margin_top = 30.0
 margin_right = 180.0
-margin_bottom = 63.0
+margin_bottom = 45.0
 text = "Options"
 
 [node name="Quit game" type="Button" parent="Panel/VBoxContainer/Menu"]
-margin_top = 78.0
+margin_top = 60.0
 margin_right = 180.0
-margin_bottom = 102.0
+margin_bottom = 75.0
 text = "Quit game"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
