@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Assets/UI/Images/ToggleOn.png" type="Texture" id=1]
 [ext_resource path="res://Assets/UI/Images/ToggleOff.png" type="Texture" id=2]
-[ext_resource path="res://Assets/Fonts/pixellocale-16.tres" type="DynamicFont" id=3]
+[ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=3]
 
 [sub_resource type="StyleBoxEmpty" id=1]
 

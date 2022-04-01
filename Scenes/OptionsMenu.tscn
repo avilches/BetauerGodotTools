@@ -2,8 +2,8 @@
 
 [ext_resource path="res://Game/Controller/Menu/OptionsMenu.cs" type="Script" id=1]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
+[ext_resource path="res://Scenes/UI/FakeButton.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Scenes/UI/CheckButton.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Game/Controller/UI/ActionButton.cs" type="Script" id=5]
 [ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=6]
 
 [node name="CanvasLayer" type="CanvasLayer"]
@@ -40,14 +40,8 @@ margin_right = 360.0
 margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
-text = "OPTIONS"
+text = "Options"
 align = 1
-
-[node name="VSplitContainer" type="VSplitContainer" parent="Panel/VBoxContainer"]
-visible = false
-margin_top = 27.0
-margin_right = 360.0
-margin_bottom = 27.0
 
 [node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer"]
 margin_top = 20.0
@@ -64,13 +58,12 @@ margin_right = 360.0
 margin_bottom = 61.0
 text = "Fullscreen"
 
-[node name="Resolution" type="Button" parent="Panel/VBoxContainer/Menu"]
+[node name="Resolution" parent="Panel/VBoxContainer/Menu" instance=ExtResource( 3 )]
 margin_top = 76.0
 margin_right = 360.0
 margin_bottom = 91.0
-text = "Screen size 16:9 640x480 (original)"
+text = "Resolution"
 align = 0
-script = ExtResource( 5 )
 
 [node name="PixelPerfect" parent="Panel/VBoxContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 106.0

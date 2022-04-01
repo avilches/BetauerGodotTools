@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/PauseMenu.cs" type="Script" id=1]
-[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=2]
+[ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=4]
 
@@ -35,7 +35,7 @@ margin_bottom = 55.0
 rect_min_size = Vector2( 0, 55 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 2 )
-text = "- PAUSED -"
+text = "Paused"
 align = 1
 valign = 1
 

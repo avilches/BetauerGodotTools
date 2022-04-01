@@ -42,4 +42,4 @@ Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
 Label/fonts/font = ExtResource( 1 )
 Label/styles/normal = null
-Panel/styles/panel = ExtResource( 3 )
+Panel/styles/panel = null
