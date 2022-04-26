@@ -67,6 +67,7 @@ namespace Betauer.Animation {
         private Vector2 _position;
         private Vector2 _scale;
         private float _rotation;
+        private bool _disabled; // TODO: this flag doesn't have tests
         private Vector2 _rectPivotOffset;
 
         public ControlRestorer(Control control) {
@@ -80,6 +81,7 @@ namespace Betauer.Animation {
             _scale = _control.RectScale;
             _rotation = _control.RectRotation;
             _rectPivotOffset = _control.RectPivotOffset;
+            _disabled = _control is BaseButton { Disabled: true };
             // GD.Print("Save _modulate:" + _modulate);
             // GD.Print("Save _selfModulate:" + _selfModulate);
             // GD.Print("Save _position:" + _position);
@@ -101,6 +103,9 @@ namespace Betauer.Animation {
             _control.RectScale = _scale;
             _control.RectRotation = _rotation;
             _control.RectPivotOffset = _rectPivotOffset;
+            if (_control is BaseButton button) {
+                button.Disabled = _disabled;
+            }
         }
     }
 

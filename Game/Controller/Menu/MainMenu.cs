@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
@@ -82,13 +80,15 @@ namespace Veronenger.Game.Controller.Menu {
                     _gameManager.ShowOptionsMenu();
                 })
                 .AddButton("Exit", "Exit", async (ctx) => {
-                    // QueueFree();
+                    ctx.Menu.Save();
+                    ctx.Menu.DisableButtons();
                     _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.3f).Await();
                     var exit = await _gameManager.ModalBoxConfirmExitDesktop();
                     if (exit) {
                         // await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
                         GetTree().Notification(MainLoop.NotificationWmQuitRequest);
                     } else {
+                        ctx.Menu.Restore();
                         _gameManager.Launcher.RemoveAll();
                         Modulate = Colors.White;
                         ctx.ActionButton.GrabFocus();

@@ -240,6 +240,12 @@ namespace Betauer.UI {
             return false;
         }
 
+        public void DisableButtons() {
+            foreach (var child in Container.GetChildren()) {
+                if (child is BaseButton button) button.Disabled = true;
+            }
+        }
+
         public ActionMenu Refresh(Control? focused = null) {
             Control? first = null;
             Control? last = null;
