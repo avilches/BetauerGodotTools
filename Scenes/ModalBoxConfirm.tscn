@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/ModalBoxConfirm.cs" type="Script" id=1]
+[ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=4]
 
@@ -47,7 +48,7 @@ grow_vertical = 2
 rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
-[node name="Control" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+[node name="Spacer1" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
 margin_right = 320.0
 margin_bottom = 20.0
 rect_min_size = Vector2( 0, 20 )
@@ -63,17 +64,29 @@ text = "Are you sure?"
 align = 1
 autowrap = true
 
-[node name="Subtitle" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+[node name="Spacer2" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
 margin_top = 58.0
 margin_right = 320.0
-margin_bottom = 107.0
+margin_bottom = 73.0
+rect_min_size = Vector2( 0, 15 )
+
+[node name="Subtitle" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 77.0
+margin_right = 320.0
+margin_bottom = 91.0
 size_flags_horizontal = 3
 custom_colors/font_color = Color( 1, 1, 1, 1 )
-custom_fonts/font = ExtResource( 3 )
-text = "Any progress not saved will be lost"
+custom_fonts/font = ExtResource( 2 )
+text = " Any progress not saved will be lost."
 align = 1
 valign = 1
 autowrap = true
+
+[node name="Spacer3" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 95.0
+margin_right = 320.0
+margin_bottom = 110.0
+rect_min_size = Vector2( 0, 15 )
 
 [node name="VBoxContainerSingle" type="VBoxContainer" parent="Panel/VBoxContainer"]
 visible = false
@@ -92,7 +105,7 @@ rect_min_size = Vector2( 0, 45 )
 [node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerSingle"]
 margin_top = 49.0
 margin_right = 320.0
-margin_bottom = 72.0
+margin_bottom = 79.0
 rect_min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
@@ -110,7 +123,7 @@ rect_min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Menu" type="HBoxContainer" parent="Panel/VBoxContainer"]
-margin_top = 132.0
+margin_top = 129.0
 margin_right = 320.0
 margin_bottom = 153.0
 rect_min_size = Vector2( 0, 24 )
