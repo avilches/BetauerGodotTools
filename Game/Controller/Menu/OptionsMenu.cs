@@ -39,6 +39,10 @@ namespace Veronenger.Game.Controller.Menu {
 			_launcher = new Launcher().WithParent(this);
 			_fullscreenButton.Action = isChecked => {
 				Disable(_resolutionButton, isChecked);
+				Disable(_borderlessButton, isChecked);
+				if (isChecked) {
+					_borderlessButton.Pressed = false;
+				}
 				_screenManager.SetFullscreen(isChecked);
 			};
 			_resolutionButton.ActionWithInputEventContext = ctx => {
@@ -73,7 +77,6 @@ namespace Veronenger.Game.Controller.Menu {
 			};
 			_borderlessButton.Action = isChecked => {
 				_screenManager.SetBorderless(isChecked);
-				_vsyncButton.Disabled = isChecked;
 			};
 			_vsyncButton.Action = isChecked => {
 				_screenManager.SetVSync(isChecked);
@@ -84,6 +87,7 @@ namespace Veronenger.Game.Controller.Menu {
 			_borderlessButton.Pressed = _screenManager.Settings.Borderless;
 
 			Disable(_resolutionButton, _screenManager.Settings.Fullscreen);
+			Disable(_borderlessButton, _screenManager.Settings.Fullscreen);
 			UpdateResolutionButton();
 			_resolutionButton.OnFocusEntered(UpdateResolutionButton);
 			_resolutionButton.OnFocusExited(UpdateResolutionButton);
