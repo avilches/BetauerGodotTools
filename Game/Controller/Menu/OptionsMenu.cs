@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Animation;
@@ -11,7 +10,8 @@ using ActionButton = Veronenger.Game.Controller.UI.ActionButton;
 using ActionCheckButton = Veronenger.Game.Controller.UI.ActionCheckButton;
 
 namespace Veronenger.Game.Controller.Menu {
-	public class OptionsMenu : DiNode {
+	public class OptionsMenu : DiCanvasLayer {
+		
 		[OnReady("Panel")] private Panel _panel;
 
 		[OnReady("Panel/VBoxContainer/Menu/Fullscreen")] private ActionCheckButton _fullscreenButton;
@@ -73,6 +73,7 @@ namespace Veronenger.Game.Controller.Menu {
 			};
 			_borderlessButton.Action = isChecked => {
 				_screenManager.SetBorderless(isChecked);
+				_vsyncButton.Disabled = isChecked;
 			};
 			_vsyncButton.Action = isChecked => {
 				_screenManager.SetVSync(isChecked);
@@ -87,18 +88,17 @@ namespace Veronenger.Game.Controller.Menu {
 			_resolutionButton.OnFocusEntered(UpdateResolutionButton);
 			_resolutionButton.OnFocusExited(UpdateResolutionButton);
 
-			Hide();
+			HideOptionsMenu();
 		}
 
-		public async Task Show() {
-			_panel.Visible = true;
-
+		public async Task ShowOptionsMenu() {
+			_panel.Show();
 			_fullscreenButton.GrabFocus();
 		}
 
-		public void Hide() {
+		public void HideOptionsMenu() {
 			_launcher.RemoveAll();
-			_panel.Visible = false;
+			_panel.Hide();
 		}
 
 		private void UpdateResolutionButton() {

@@ -1,84 +1,100 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/PauseMenu.cs" type="Script" id=1]
-[ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=2]
+[ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=3]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=4]
 
-[node name="CanvasLayer" type="CanvasLayer"]
+[node name="PauseMenu" type="CanvasLayer"]
 layer = 100
 script = ExtResource( 1 )
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="BackgroundFader" type="ColorRect" parent="Node2D"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color( 0, 0, 0, 1 )
 
-[node name="Panel" type="Panel" parent="."]
-margin_left = 230.0
+[node name="BlackBar" type="ColorRect" parent="Node2D"]
+anchor_right = 1.0
 margin_top = 83.0
-margin_right = 410.0
-margin_bottom = 277.0
-rect_min_size = Vector2( 180, 220 )
+margin_right = 150.0
+margin_bottom = 223.0
+rect_min_size = Vector2( 150, 140 )
 size_flags_horizontal = 3
 size_flags_vertical = 2
 theme = ExtResource( 4 )
+color = Color( 0, 0, 0, 1 )
+__meta__ = {
+"_editor_description_": ""
+}
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
-rect_min_size = Vector2( 180, 0 )
+[node name="CenterContainer" type="CenterContainer" parent="Node2D"]
+anchor_right = 1.0
+margin_top = 90.0
+margin_right = 110.0
+margin_bottom = 199.0
+rect_min_size = Vector2( 0, 100 )
+theme = ExtResource( 4 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Node2D/CenterContainer"]
+margin_right = 110.0
+margin_bottom = 109.0
+rect_min_size = Vector2( 110, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 2
 
-[node name="Title" type="Label" parent="Panel/VBoxContainer"]
-margin_right = 180.0
-margin_bottom = 55.0
-rect_min_size = Vector2( 0, 55 )
+[node name="Title" type="Label" parent="Node2D/CenterContainer/VBoxContainer"]
+margin_right = 110.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 0, 30 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 2 )
 text = "Paused"
 align = 1
 valign = 1
 
-[node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer"]
-margin_top = 59.0
-margin_right = 180.0
-margin_bottom = 134.0
+[node name="Menu" type="VBoxContainer" parent="Node2D/CenterContainer/VBoxContainer"]
+margin_top = 34.0
+margin_right = 110.0
+margin_bottom = 109.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 15
 alignment = 1
 
-[node name="Resume" type="Button" parent="Panel/VBoxContainer/Menu"]
-margin_right = 180.0
+[node name="Resume" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
+margin_right = 110.0
 margin_bottom = 15.0
 text = "Resume"
 
-[node name="Options" type="Button" parent="Panel/VBoxContainer/Menu"]
+[node name="Options" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
 margin_top = 30.0
-margin_right = 180.0
+margin_right = 110.0
 margin_bottom = 45.0
 text = "Options"
 
-[node name="Quit game" type="Button" parent="Panel/VBoxContainer/Menu"]
+[node name="Quit game" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
 margin_top = 60.0
-margin_right = 180.0
+margin_right = 110.0
 margin_bottom = 75.0
 text = "Quit game"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Node2D/CenterContainer/VBoxContainer"]
 visible = false
 margin_top = 213.0
 margin_right = 180.0
 margin_bottom = 257.0
 
-[node name="line1" type="Label" parent="Panel/VBoxContainer/VBoxContainer"]
+[node name="line1" type="Label" parent="Node2D/CenterContainer/VBoxContainer/VBoxContainer"]
 margin_right = 180.0
 margin_bottom = 20.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 align = 1
 
-[node name="line2" type="Label" parent="Panel/VBoxContainer/VBoxContainer"]
+[node name="line2" type="Label" parent="Node2D/CenterContainer/VBoxContainer/VBoxContainer"]
 margin_top = 24.0
 margin_right = 180.0
 margin_bottom = 44.0

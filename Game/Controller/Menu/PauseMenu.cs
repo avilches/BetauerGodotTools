@@ -19,15 +19,14 @@ namespace Veronenger.Game.Controller.Menu {
             .EndAnimate()
             .BuildTemplate();
 
-        [OnReady("Panel")]
-        private Panel _container;
+        [OnReady("Node2D")] private Node2D _container;
 
-        [OnReady("ColorRect")] private ColorRect _colorRect;
+        [OnReady("Node2D/BackgroundFader")] private ColorRect _backgroundFader;
 
-        [OnReady("Panel/VBoxContainer/Menu")]
+        [OnReady("Node2D/CenterContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
-        [OnReady("Panel/VBoxContainer/Title")]
+        [OnReady("Node2D/CenterContainer/VBoxContainer/Title")]
         private Label _title;
 
         private MenuController _menuController;
@@ -46,12 +45,12 @@ namespace Veronenger.Game.Controller.Menu {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
             _optionsButton = _menuController.GetMenu("Root")!.GetButton("Options");
-            Hide();
+            HidePauseMenu();
         }
 
-        public async Task Show() {
-            _container.Visible = _colorRect.Visible = true;
-            _launcher.Play(PartialFadeOut, _colorRect, 0f, 0.5f);
+        public async Task ShowPauseMenu() {
+            _container.Show();
+            _launcher.Play(PartialFadeOut, _backgroundFader, 0f, 0.5f);
             await _menuController.Start("Root");
         }
 
@@ -59,9 +58,9 @@ namespace Veronenger.Game.Controller.Menu {
             _optionsButton.GrabFocus();
         }
 
-        public void Hide() {
+        public void HidePauseMenu() {
             _launcher.RemoveAll();
-            _container.Visible = _colorRect.Visible = false;
+            _container.Hide();
         }
 
         public MenuController BuildMenu() {

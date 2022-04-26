@@ -64,8 +64,9 @@ namespace Veronenger.Game.Managers {
             _mainMenuScene = _resourceManager.CreateMainMenu();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
             _optionsMenuScene = _resourceManager.CreateOptionsMenu();
-            _optionsMenuScene.PauseMode = Node.PauseModeEnum.Process;
-            _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
+            
+            // Never pause the pause menu and the options menu!
+            _optionsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
             GetTree().Root.AddChild(_pauseMenuScene);
             GetTree().Root.AddChild(_optionsMenuScene);
 
@@ -83,17 +84,17 @@ namespace Veronenger.Game.Managers {
 
         public async void ShowPauseMenu() {
             GetTree().Paused = true;
-            await _pauseMenuScene.Show();
+            await _pauseMenuScene.ShowPauseMenu();
             _states.Push(State.PauseMenu);
         }
 
         public async void ShowOptionsMenu() {
-            await _optionsMenuScene.Show();
+            await _optionsMenuScene.ShowOptionsMenu();
             _states.Push(State.Options);
         }
 
         public void CloseOptionsMenu() {
-            _optionsMenuScene.Hide();
+            _optionsMenuScene.HideOptionsMenu();
             _states.Pop();
             if (IsMainMenu()) {
                 _mainMenuScene.FocusOptions();
@@ -123,7 +124,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ClosePauseMenu() {
-            _pauseMenuScene.Hide();
+            _pauseMenuScene.HidePauseMenu();
             GetTree().Paused = false;
             _states.Pop();
         }

@@ -1,0 +1,16 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Game/Controller/UI/ActionButton.cs" type="Script" id=1]
+[ext_resource path="res://Assets/UI/Buttons/FakeButton_Normal.tres" type="StyleBox" id=2]
+[ext_resource path="res://Assets/UI/Buttons/FakeButton_Hover.tres" type="StyleBox" id=3]
+[ext_resource path="res://Assets/UI/Buttons/FakeButton_Pressed.tres" type="StyleBox" id=4]
+[ext_resource path="res://Assets/UI/Buttons/FakeButton_Disabled.tres" type="StyleBox" id=5]
+[ext_resource path="res://Assets/UI/Buttons/FakeButton_Focussed.tres" type="StyleBox" id=6]
+
+[node name="CheckButton" type="Button"]
+custom_styles/hover = ExtResource( 3 )
+custom_styles/pressed = ExtResource( 4 )
+custom_styles/focus = ExtResource( 6 )
+custom_styles/disabled = ExtResource( 5 )
+custom_styles/normal = ExtResource( 2 )
+script = ExtResource( 1 )
