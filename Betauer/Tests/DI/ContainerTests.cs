@@ -201,14 +201,12 @@ namespace Betauer.Tests.DI {
             var di = new ContainerBuilder(this);
 
             // Use As<T>() by default
-            var s = di.Register(() => new ClassWith1Interface()).As("X").CreateProvider();
+            var s = di.Register(() => new ClassWith1Interface()).CreateProvider();
             var c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith1Interface)));
-            Assert.That(s.GetAliases(), Is.EqualTo(new[] { "X", "Y" }));
             Assert.That(c.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.Resolve("X").GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(!c.Contains<IInterface1>());
         }
 
