@@ -8,7 +8,6 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
-    [Only]
     public class FunctionTests : Node {
         private Container? _backup;
 

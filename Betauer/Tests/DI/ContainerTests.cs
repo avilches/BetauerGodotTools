@@ -28,7 +28,6 @@ namespace Betauer.Tests.DI {
     }
 
     [TestFixture]
-    [Only]
     public class ContainerTests : Node {
         [Test(Description = "Container in container, assert Contains and TryGetProvider")]
         public void Container() {
