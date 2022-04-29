@@ -28,6 +28,7 @@ namespace Betauer.DI {
 
     public class Container {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
+        private readonly Dictionary<string, IProvider> _registryNames = new Dictionary<string, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Node Owner;
         public readonly Injector Injector;
@@ -37,8 +38,8 @@ namespace Betauer.DI {
         public Container(Node owner) {
             Owner = owner;
             Injector = new Injector(this);
-            Add(new StaticProvider<Container>(new Type[] { typeof(Container) },
-                this)); // Adding the Container in the Container allows to use [Inject] Container...
+            // Adding the Container in the Container allows to use [Inject] Container...
+            Add(new StaticProvider<Container>(new [] { typeof(Container) },this));
         }
 
         public IProvider Add(IProvider provider) {
@@ -47,6 +48,11 @@ namespace Betauer.DI {
             }
             foreach (var providerType in provider.GetRegisterTypes()) {
                 _registry[providerType] = provider;
+            }
+            if (provider.GetAliases() != null) {
+                foreach (var alias in provider.GetAliases()!) {
+                    _registryNames[alias] = provider;
+                }
             }
             if (_logger.IsEnabled(TraceLevel.Info)) {
                 _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
@@ -65,6 +71,12 @@ namespace Betauer.DI {
             }
             return false;
         }
+        public bool Contains(string type, Lifetime? lifetime = null) {
+            if (_registryNames.TryGetValue(type, out var o)) {
+                return lifetime == null || o.GetLifetime() == lifetime;
+            }
+            return false;
+        }
 
         public IProvider GetProvider<T>() {
             return GetProvider(typeof(T));
@@ -74,12 +86,21 @@ namespace Betauer.DI {
             return _registry[type];
         }
 
+        public IProvider GetProvider(string alias) {
+            return _registryNames[alias];
+        }
+
         public bool TryGetProvider<T>(out IProvider? provider) {
             return TryGetProvider(typeof(T), out provider);
         }
 
         public bool TryGetProvider(Type type, out IProvider? provider) {
             var found = _registry.TryGetValue(type, out provider);
+            if (!found) provider = null;
+            return found;
+        }
+        public bool TryGetProvider(string type, out IProvider? provider) {
+            var found = _registryNames.TryGetValue(type, out provider);
             if (!found) provider = null;
             return found;
         }
@@ -94,6 +115,12 @@ namespace Betauer.DI {
             if (CreateIfNotFound)
                 return CreateNonRegisteredTransientInstance(type, context ?? new ResolveContext(this));
             throw new KeyNotFoundException("Type not found: " + type.Name);
+        }
+
+        public object Resolve(string alias, ResolveContext? context = null) {
+            TryGetProvider(alias, out IProvider? provider);
+            if (provider != null) return provider.Get(context ?? new ResolveContext(this));
+            throw new KeyNotFoundException("Alias not found: " + alias);
         }
 
         private object CreateNonRegisteredTransientInstance(Type type, ResolveContext context) {

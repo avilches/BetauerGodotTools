@@ -7,6 +7,7 @@ namespace Betauer.DI {
     }
 
     public interface IProvider {
+        public string[]? GetAliases();
         public Type[] GetRegisterTypes();
         public Type GetProviderType();
         public Lifetime GetLifetime();
@@ -16,13 +17,16 @@ namespace Betauer.DI {
     public abstract class BaseProvider<T> : IProvider where T : class {
         private readonly Type[] _registeredTypes;
         private readonly Type _providerType;
+        private readonly string[]? _aliases;
+        public string[]? GetAliases() => _aliases;
 
         public Type[] GetRegisterTypes() => _registeredTypes;
         public Type GetProviderType() => _providerType;
 
-        public BaseProvider(Type[] registeredTypes) {
+        public BaseProvider(Type[] registeredTypes, string[]? aliases = null) {
             _registeredTypes = registeredTypes;
             _providerType = typeof(T);
+            _aliases = aliases;
         }
 
         public abstract Lifetime GetLifetime();
@@ -33,7 +37,7 @@ namespace Betauer.DI {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(FactoryProvider<>));
         private readonly Func<T> _factory;
 
-        protected FactoryProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes) {
+        protected FactoryProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, aliases) {
             _factory = factory;
         }
 
@@ -55,7 +59,7 @@ namespace Betauer.DI {
         private bool _isSingletonDefined;
         private T? _singleton;
 
-        public SingletonProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes, factory) {
+        public SingletonProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, factory, aliases) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
@@ -80,7 +84,7 @@ namespace Betauer.DI {
     }
 
     public class TransientProvider<T> : FactoryProvider<T> where T : class {
-        public TransientProvider(Type[] registeredTypes, Func<T> factory) : base(registeredTypes, factory) {
+        public TransientProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, factory, aliases) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
@@ -100,7 +104,7 @@ namespace Betauer.DI {
     public class StaticProvider<T> : BaseProvider<T> where T : class {
         private readonly T _value;
 
-        public StaticProvider(Type[] registeredTypes, T value) : base(registeredTypes) {
+        public StaticProvider(Type[] registeredTypes, T value, string[]? aliases = null) : base(registeredTypes, aliases) {
             _value = value;
         }
 

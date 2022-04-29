@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
+    [Only]
     public class ScannerBasicTests : Node {
         [SetUp]
         public void Setup() {
@@ -165,5 +166,100 @@ namespace Betauer.Tests.DI {
             Assert.That(ts1.SingletonWith2Transients, Is.EqualTo(s1));
             Assert.That(ts2.SingletonWith2Transients, Is.EqualTo(s1));
         }
+        
+        public interface IMultipleImp {
+            
+        }
+
+        [Singleton(Name = "M1")]
+        public class MultipleImpl1 : IMultipleImp {}
+
+        [Singleton(Name = "M2")]
+        public class MultipleImpl2 : IMultipleImp {}
+
+        [Transient(Name = "M3")]
+        public class MultipleImpl3 : IMultipleImp {
+            public static int Created = 0;
+
+            public MultipleImpl3() {
+                Created++;
+            }
+            
+        }
+
+        [Singleton]
+        public class ServiceWithMultipleImpl1 {
+            [Inject(Name = "M1")] internal IMultipleImp mul11;
+            [Inject(Name = "M1")] internal IMultipleImp mul12;
+            
+            [Inject(Name = "M2")] internal IMultipleImp mul21;
+            [Inject(Name = "M2")] internal IMultipleImp mul22;
+            
+            [Inject(Name = "M3")] internal IMultipleImp mul31;
+            [Inject(Name = "M3")] internal IMultipleImp mul32;
+        }
+
+        [Singleton]
+        public class ServiceWithMultipleImpl2 {
+            [Inject(Name = "M1")] internal IMultipleImp mul11;
+            [Inject(Name = "M1")] internal IMultipleImp mul12;
+            
+            [Inject(Name = "M2")] internal IMultipleImp mul21;
+            [Inject(Name = "M2")] internal IMultipleImp mul22;
+            
+            [Inject(Name = "M3")] internal IMultipleImp mul31;
+            [Inject(Name = "M3")] internal IMultipleImp mul32;
+        }
+
+        [Test(Description = "When an interface has multiple implementations")]
+        public void InterfaceWithMultipleImplementations() {
+            var di = new ContainerBuilder(this);
+            di.Scan<MultipleImpl1>();
+            di.Scan<MultipleImpl2>();
+            di.Scan<MultipleImpl3>();
+            di.Scan<ServiceWithMultipleImpl1>();
+            di.Scan<ServiceWithMultipleImpl2>();
+            var c = di.Build();
+            var i1 = c.Resolve<MultipleImpl1>();
+            var i2 = c.Resolve<MultipleImpl2>();
+            Assert.That(MultipleImpl3.Created, Is.EqualTo(2));            
+            var s1 = c.Resolve<ServiceWithMultipleImpl1>();
+            var s2 = c.Resolve<ServiceWithMultipleImpl2>();
+            Assert.That(MultipleImpl3.Created, Is.EqualTo(2));            
+
+            Assert.That(s1.mul11, Is.EqualTo(i1));
+            Assert.That(s1.mul12, Is.EqualTo(i1));
+            Assert.That(s1.mul21, Is.EqualTo(i2));
+            Assert.That(s1.mul22, Is.EqualTo(i2));
+            Assert.That(s2.mul11, Is.EqualTo(i1));
+            Assert.That(s2.mul12, Is.EqualTo(i1));
+            Assert.That(s2.mul21, Is.EqualTo(i2));
+            Assert.That(s2.mul22, Is.EqualTo(i2));
+            Assert.That(s1.mul31, Is.EqualTo(s1.mul32));
+            Assert.That(s2.mul31, Is.EqualTo(s2.mul32));
+            
+            Assert.That(s1.mul31, Is.Not.EqualTo(s2.mul31));
+        }
+
+        class AutoTransient1 {
+        }
+
+        class AutoTransient2 {
+            [Inject] internal AutoTransient1 auto;
+        }
+
+        [Test(Description = "Inject transients in transient")]
+        public void CreateIfNotFound() {
+            var di = new ContainerBuilder(this);
+            var c = di.Build();
+            c.CreateIfNotFound = true;
+            var s1 = c.Resolve<AutoTransient2>();
+            var s2 = c.Resolve<AutoTransient2>();
+
+            Assert.That(s1, Is.Not.EqualTo(s2));
+            Assert.That(s1.auto, Is.Not.EqualTo(s2.auto));
+            
+        }
+
     }
 }

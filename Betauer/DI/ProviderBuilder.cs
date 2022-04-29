@@ -7,8 +7,24 @@ namespace Betauer.DI {
         public IProvider CreateProvider();
     }
 
-    public abstract class TypedProviderBuilder<T, TBuilder> : IProviderBuilder where TBuilder : class, IProviderBuilder {
+    public abstract class TypedProviderBuilder<T, TBuilder> : IProviderBuilder
+        where TBuilder : class, IProviderBuilder {
         protected readonly HashSet<Type> Types = new HashSet<Type>();
+        protected readonly HashSet<string> Aliases = new HashSet<string>();
+
+        public TBuilder As(string alias) {
+            Aliases.Add(alias);
+            return (this as TBuilder);
+        }
+
+        public TBuilder As(IEnumerable<string>? aliases) {
+            if (aliases != null) {
+                foreach (var alias in aliases) {
+                    Aliases.Add(alias);
+                }
+            }
+            return (this as TBuilder);
+        }
 
         public TBuilder As<T1>() => As(typeof(T1));
         public TBuilder As<T1, T2>() => As(typeof(T1), typeof(T2));
@@ -43,20 +59,22 @@ namespace Betauer.DI {
             }
             return CreateTypedProvider();
         }
+
         protected abstract IProvider CreateTypedProvider();
     }
 
     public static class FactoryProviderBuilder {
         public static IProviderBuilder Create(Type type,
-            Lifetime lifetime, Func<object>? factory = null, IEnumerable<Type> types = null) {
+            Lifetime lifetime, Func<object>? factory = null, IEnumerable<Type>? types = null, IEnumerable<string>? aliases = null) {
             var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new[] { type });
             var ctor = factoryType.GetConstructors().First(info =>
-                info.GetParameters().Length == 3 &&
+                info.GetParameters().Length == 4 &&
                 info.GetParameters()[0].ParameterType == typeof(Lifetime) &&
                 info.GetParameters()[1].ParameterType == typeof(Func<object>) &&
-                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>)
+                info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>) &&
+                info.GetParameters()[3].ParameterType == typeof(IEnumerable<string>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { lifetime, factory, types });
+            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { lifetime, factory, types, aliases });
             return @this;
         }
     }
@@ -70,9 +88,11 @@ namespace Betauer.DI {
         }
 
         // This constructor is used by reflection
-        public FactoryProviderBuilder(Lifetime lifetime, Func<object>? factory, IEnumerable<Type> types) {
+        public FactoryProviderBuilder(Lifetime lifetime, Func<object>? factory, IEnumerable<Type>? types,
+            IEnumerable<string>? aliases) {
             _lifetime = lifetime;
-            As(types.ToArray());
+            if (types != null) As(types.ToArray());
+            if (aliases != null) As(aliases.ToArray());
             if (factory != null) {
                 _factory = () => (T)factory();
             }
@@ -100,8 +120,8 @@ namespace Betauer.DI {
                 _factory = Activator.CreateInstance<T>;
             }
             IProvider provider = _lifetime switch {
-                DI.Lifetime.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory),
-                DI.Lifetime.Transient => new TransientProvider<T>(Types.ToArray(), _factory),
+                DI.Lifetime.Singleton => new SingletonProvider<T>(Types.ToArray(), _factory, Aliases.ToArray()),
+                DI.Lifetime.Transient => new TransientProvider<T>(Types.ToArray(), _factory, Aliases.ToArray()),
                 _ => throw new Exception("Unknown lifetime " + _lifetime)
             };
             return provider;
@@ -116,7 +136,7 @@ namespace Betauer.DI {
         }
 
         protected override IProvider CreateTypedProvider() {
-            return new StaticProvider<T>(Types.ToArray(), _value);
+            return new StaticProvider<T>(Types.ToArray(), _value, Aliases.ToArray());
         }
     }
 }

@@ -45,19 +45,19 @@ namespace Betauer.DI {
 
             foreach (var field in fields) {
                 if (Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject) {
-                    InjectField(target, context, new Setter(field), inject.Nullable);
+                    InjectField(target, context, new Setter(field), inject.Nullable, inject.Name);
                 }
             }
             var properties = target.GetType().GetProperties(InjectFlags);
 
             foreach (var property in properties) {
                 if (Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject) {
-                    InjectField(target, context, new Setter(property), inject.Nullable);
+                    InjectField(target, context, new Setter(property), inject.Nullable, inject.Name);
                 }
             }
         }
 
-        private void InjectField(object target, ResolveContext context, Setter setter, bool nullable) {
+        private void InjectField(object target, ResolveContext context, Setter setter, bool nullable, string? name) {
             if (setter.GetValue(target) != null) {
                 // Ignore the already defined values
                 // TODO: test
@@ -66,7 +66,24 @@ namespace Betauer.DI {
 
             if (InjectorFunction.InjectField(_container, target, setter)) return;
 
-            if (_container.Contains(setter.Type)) {
+            if (name != null) {
+                if (_container.Contains(name)) {
+                    // There is a provider for the alias
+                    _logger.Debug("Injecting field alias " + name + " " + setter.Name + " " + setter.Type.Name +
+                                  " in " + target.GetType() + "(" + target.GetHashCode() + ")");
+                    var service = _container.Resolve(name, context);
+                    setter.SetValue(target, service);
+                    return;
+                }
+                if (!nullable) {
+                    throw new InjectFieldException(setter.Name, target,
+                        "Injectable property [Inject(Name=\""+name+"\")] " + setter.Type.Name + " " + setter.Name +
+                        " not found while injecting fields in " + target.GetType().Name);
+                }
+                return;
+            } 
+            
+            if (_container.CreateIfNotFound || _container.Contains(setter.Type)) {
                 // There is a provider for the field type
                 _logger.Debug("Injecting field " + setter.Name + " " + setter.Type.Name + " in " + target.GetType() +
                               "(" + target.GetHashCode() + ")");
@@ -77,8 +94,8 @@ namespace Betauer.DI {
 
             if (!nullable) {
                 throw new InjectFieldException(setter.Name, target,
-                    "Injectable property [" + setter.Type.Name + " " + setter.Name +
-                    "] not found while injecting fields in " + target.GetType().Name);
+                    "Injectable property [Inject] " + setter.Type.Name + " " + setter.Name +
+                    " not found while injecting fields in " + target.GetType().Name);
             }
         }
 

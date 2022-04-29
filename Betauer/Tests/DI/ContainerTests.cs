@@ -28,6 +28,7 @@ namespace Betauer.Tests.DI {
     }
 
     [TestFixture]
+    [Only]
     public class ContainerTests : Node {
         [Test(Description = "Container in container, assert Contains and TryGetProvider")]
         public void Container() {
@@ -44,7 +45,7 @@ namespace Betauer.Tests.DI {
             Assert.That(provider!.Get(new ResolveContext(di)), Is.EqualTo(di));
         }
 
-        [Test(Description = "Types not found")]
+        [Test(Description = "Types & alias not found")]
         public void NotFound() {
             var di = new Container(this);
 
@@ -57,6 +58,11 @@ namespace Betauer.Tests.DI {
 
             try {
                 di.Resolve(typeof(IInterface1));
+                Assert.That(false, "It should fail!");
+            } catch (KeyNotFoundException e) {
+            }
+            try {
+                di.Resolve("X");
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
@@ -112,6 +118,31 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(!c.Contains<IDisposable>());
         }
+
+        [Test(Description = "Register singleton instances by name")]
+        public void RegisterSingletonInstanceServiceByName() {
+            var di = new ContainerBuilder(this);
+            Container c;
+            IProvider s = null;
+
+            var node = new Node();
+            s = di.Static(node).As("X").As("Y").CreateProvider();
+            c = di.Build();
+            Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Node)));
+            Assert.That(c.Contains("X"));
+            Assert.That(c.Contains("Y"));
+            Assert.That(c.GetProvider("X").Get(new ResolveContext(c)), Is.EqualTo(node));
+            Assert.That(c.GetProvider("Y").Get(new ResolveContext(c)), Is.EqualTo(node));
+            Assert.That(c.TryGetProvider("X", out var provider1));
+            Assert.That(c.TryGetProvider("Y", out var provider2));
+            Assert.That(!c.TryGetProvider("W", out var notFound));
+            Assert.That(c.Resolve<Node>(), Is.EqualTo(node));
+            Assert.That(c.Resolve("X"), Is.EqualTo(node));
+            Assert.That(c.Resolve("Y"), Is.EqualTo(node));
+        }
+
 
         [Test(Description = "Register singleton instances")]
         public void RegisterSingletonInstanceServiceAllTypes() {
@@ -171,12 +202,14 @@ namespace Betauer.Tests.DI {
             var di = new ContainerBuilder(this);
 
             // Use As<T>() by default
-            var s = di.Register(() => new ClassWith1Interface()).CreateProvider();
+            var s = di.Register(() => new ClassWith1Interface()).As("X").CreateProvider();
             var c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith1Interface)));
+            Assert.That(s.GetAliases(), Is.EqualTo(new[] { "X", "Y" }));
             Assert.That(c.Resolve<ClassWith1Interface>().GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.Resolve("X").GetType(), Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(!c.Contains<IInterface1>());
         }
 
@@ -198,7 +231,8 @@ namespace Betauer.Tests.DI {
 
             // AsAll with the class uses the Type and all the interfaces
             di = new ContainerBuilder(this);
-            var s = di.Register(() => new ClassWith2Interfaces()).IsTransient().AsAll<ClassWith2Interfaces>().CreateProvider();
+            var s = di.Register(() => new ClassWith2Interfaces()).IsTransient().AsAll<ClassWith2Interfaces>()
+                .CreateProvider();
             var c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Transient));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(4));
@@ -364,11 +398,24 @@ namespace Betauer.Tests.DI {
             IProvider s = null;
 
             di = new ContainerBuilder(this);
-            s = di.Register(typeof(ClassWith2Interfaces), Lifetime.Transient).CreateProvider();
+            s = di.Register(typeof(ClassWith2Interfaces), Lifetime.Transient, null, new[] { "X", "Y" }).CreateProvider();
             var c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Transient));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetAliases(), Is.EqualTo(new[] { "X", "Y" }));
+            Assert.That(c.Resolve("X").GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(c.Resolve("Y").GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
+            Assert.That(c.Contains("X"));
+            Assert.That(c.Contains("Y"));
+
+            di = new ContainerBuilder(this);
+            s = di.Register(typeof(ClassWith2Interfaces), Lifetime.Transient).CreateProvider();
+            c = di.Build();
+            Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Transient));
+            Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
+            Assert.That(s.GetAliases().Length, Is.EqualTo(0));
             Assert.That(c.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!c.Contains<IInterface1>());
             Assert.That(!c.Contains<IInterface2>());
@@ -383,6 +430,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(2));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2)));
+            Assert.That(s.GetAliases().Length, Is.EqualTo(0));
             Assert.That(c.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(c.Resolve<IInterface2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!c.Contains<ClassWith2Interfaces>());
@@ -391,12 +439,13 @@ namespace Betauer.Tests.DI {
             di = new ContainerBuilder(this);
             s = di.Register(typeof(ClassWith2Interfaces),
                 Lifetime.Singleton,
-                typeof(IInterface1), typeof(IInterface2_2)).CreateProvider();
+                new Type[] { typeof(IInterface1), typeof(IInterface2_2) }).CreateProvider();
             c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(2));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface1)));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(IInterface2_2)));
+            Assert.That(s.GetAliases().Length, Is.EqualTo(0));
             Assert.That(c.Resolve<IInterface1>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(c.Resolve<IInterface2_2>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!c.Contains<ClassWith2Interfaces>());
@@ -409,6 +458,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Transient));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(ClassWith2Interfaces)));
+            Assert.That(s.GetAliases().Length, Is.EqualTo(0));
             Assert.That(c.Resolve<ClassWith2Interfaces>().GetType(), Is.EqualTo(typeof(ClassWith2Interfaces)));
             Assert.That(!c.Contains<IInterface1>());
             Assert.That(!c.Contains<IInterface2>());
@@ -539,7 +589,7 @@ namespace Betauer.Tests.DI {
         /*
          * Node Singleton are added to the owner when resolved
          */
-        [Test(Description = "Register a instance Node doesn't adds it as child when it's resolved")]
+        [Test(Description = "Register a instance Node doesn't add it as child when it's resolved")]
         public void RegisterNodeInstanceAddedToOwner() {
             var di = new ContainerBuilder(this);
             var instance = new Node();
@@ -597,7 +647,7 @@ namespace Betauer.Tests.DI {
         /**
          * Lifecycle
          */
-        [Test(Description = "Register a Singleton factory is executed only the first time")]
+        [Test(Description = "Register a Singleton factory, it is executed only the first time")]
         public void RegisterSingletonFactory() {
             var di = new ContainerBuilder(this);
             var n = 0;
@@ -618,53 +668,62 @@ namespace Betauer.Tests.DI {
             Assert.That(instance1, Is.EqualTo(instance2));
         }
 
-        [Test(Description = "Register a Transient factory and is executed only the first time")]
+        [Test(Description = "Register a Transient factory, it is executed every time")]
         public void RegisterTransientFactory() {
             var di = new ContainerBuilder(this);
             var n = 0;
             var s = di.Register(() => {
                 n++;
                 return new Node();
-            }).IsTransient().CreateProvider();
-
-            // Ensures that factory is called only the first time
+            }).IsTransient().As("X").As("Y").CreateProvider();
             Assert.That(n, Is.EqualTo(0));
-            var instance1 = di.Build().Resolve<Node>();
-            Assert.That(n, Is.EqualTo(1));
-
-            var instance2 = di.Build().Resolve<Node>();
-            Assert.That(n, Is.EqualTo(2));
-
-            // Ensure 2 instances are different
-            Assert.That(instance1, Is.Not.EqualTo(instance2));
+            var c = di.Build();
+            c.Resolve<Node>();
+            c.Resolve<Node>();
+            c.Resolve("X");
+            c.Resolve("X");
+            c.Resolve("Y");
+            c.Resolve("Y");
+            Assert.That(n, Is.EqualTo(6));
         }
 
         [Test(Description = "Register a Singleton auto factory by Type is executed only the first time")]
         public void RegisterSingletonAutoFactory() {
             var di = new ContainerBuilder(this);
             var n = 0;
-            var s = di.Register(typeof(Node), Lifetime.Singleton).CreateProvider();
+            var s = di.Register(typeof(Node), Lifetime.Singleton, null, new[] { "X" }).CreateProvider();
+            var c = di.Build();
 
             // Ensures that factory is called only the first time
-            var instance1 = di.Build().Resolve<Node>();
-            var instance2 = di.Build().Resolve<Node>();
+            var instance1 = c.Resolve<Node>();
+            var instance2 = c.Resolve<Node>();
+            var instance3 = c.Resolve("X");
+            var instance4 = c.Resolve("X");
 
-            // Ensure 2 instances are equal
+            // Ensure all instances are equal
             Assert.That(instance1, Is.EqualTo(instance2));
+            Assert.That(instance1, Is.EqualTo(instance3));
+            Assert.That(instance1, Is.EqualTo(instance4));
         }
 
         [Test(Description = "Register a Transient auto factory by Type is executed only the first time")]
         public void RegisterTransientAutoFactory() {
             var di = new ContainerBuilder(this);
             var n = 0;
-            var s = di.Register(typeof(Node), Lifetime.Transient).CreateProvider();
+            var s = di.Register(typeof(Node), Lifetime.Transient, null, new[] { "X" }).CreateProvider();
+            var c = di.Build();
 
             // Ensures that factory is called only the first time
-            var instance1 = di.Build().Resolve<Node>();
-            var instance2 = di.Build().Resolve<Node>();
+            var instance1 = c.Resolve<Node>();
+            var instance2 = c.Resolve<Node>();
+            var instance3 = c.Resolve("X");
+            var instance4 = c.Resolve("X");
 
-            // Ensure 2 instances are different
+            // Ensure all instances are different
             Assert.That(instance1, Is.Not.EqualTo(instance2));
+            Assert.That(instance2, Is.Not.EqualTo(instance3));
+            Assert.That(instance3, Is.Not.EqualTo(instance4));
+            Assert.That(instance4, Is.Not.EqualTo(instance1));
         }
 
         [Test(Description = "Container Build")]

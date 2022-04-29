@@ -6,13 +6,12 @@ using Godot;
 namespace Betauer.DI {
     [AttributeUsage(AttributeTargets.Class)]
     public class SingletonAttribute : Attribute {
-        // public string Name { get; set; } // TODO: use Name so more than one factory can be used per name
-        // public Type Type { get; set;  }
-        // public Type[] Types { get; set;  }
+        public string? Name { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Class)]
     public class TransientAttribute : Attribute {
+        public string? Name { get; set; }
     }
 
     // TODO: add [Component] attribute: it means the class has inside services exposed as methods like:
@@ -94,19 +93,19 @@ namespace Betauer.DI {
             return Register<T>(lifetime).As<TI>();
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
-            var builder = new FactoryProviderBuilder<T>().Lifetime(lifetime);
+        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton, IEnumerable<string>? aliases = null) where T : class {
+            var builder = new FactoryProviderBuilder<T>().Lifetime(lifetime).As(aliases);
             AddToBuildQueue(builder);
             return builder;
         }
 
-        public IProviderBuilder Register(Type type, Lifetime lifetime, params Type[] types) {
-            return Register(type, null, lifetime, types);
+        public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton, IEnumerable<Type>? types = null, IEnumerable<string>? aliases = null) {
+            return Register(type, null, lifetime, types, aliases);
         }
 
-        public IProviderBuilder Register(Type type, Func<object> factory = null, Lifetime lifetime = Lifetime.Singleton,
-            params Type[] types) {
-            var builder = FactoryProviderBuilder.Create(type, lifetime, factory, types);
+        public IProviderBuilder Register(Type type, Func<object> factory, Lifetime lifetime,
+            IEnumerable<Type>? types, IEnumerable<string>? aliases = null) {
+            var builder = FactoryProviderBuilder.Create(type, lifetime, factory, types, aliases);
             AddToBuildQueue(builder);
             return builder;
         }
@@ -146,10 +145,12 @@ namespace Betauer.DI {
             // TransientAttribute tr = attrib.FirstOrDefault(attribute => attribute is TransientAttribute != null) as TransientAttribute;
             if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute), false) is
                 SingletonAttribute singletonAttribute) {
-                Register(type, Lifetime.Singleton, new[] { type });
+                var aliases = singletonAttribute.Name != null ? new[] { singletonAttribute.Name } : null;
+                Register(type, Lifetime.Singleton, new[] { type }, aliases);
             } else if (Attribute.GetCustomAttribute(type, typeof(TransientAttribute), false) is
                        TransientAttribute transientAttribute) {
-                Register(type, Lifetime.Transient, new[] { type });
+                var aliases = transientAttribute.Name != null ? new[] { transientAttribute.Name } : null;
+                Register(type, Lifetime.Transient, new[] { type }, aliases);
             }
             return this;
         }
