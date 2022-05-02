@@ -32,7 +32,7 @@ namespace Veronenger.Game.Managers {
             Jump = _actionList.AddAction("Jump");
             Attack = _actionList.AddAction("Attack");
 
-            PixelPerfect  = _actionList.AddAction("PixelPerfect");
+            PixelPerfect = _actionList.AddAction("PixelPerfect");
 
             // UI actions
             UiLateralMotion = _actionList.AddLateralAction("ui_left", "ui_right");
@@ -45,7 +45,6 @@ namespace Veronenger.Game.Managers {
         }
 
         public void Configure() {
-
             // Game actions
             LateralMotion
                 .ClearConfig()
@@ -99,30 +98,29 @@ namespace Veronenger.Game.Managers {
         }
 
 
-        public void Debug(BaseAction baseAction) {
-            if (Logger.IsEnabled(TraceLevel.Debug)) {
-                // if (_wrapper.IsMotion()) {
-                // Logger.Debug($"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) ({action?.Name})");
-                // } else if (_wrapper.IsAnyButton()) {
-                // Logger.Debug($"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) ({action?.Name})");
-                // } else if (_wrapper.IsAnyKey()) {
-                // Logger.Debug($"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} ({action?.Name})");
-                // }
-                /*
-                 * Aqui se comprueba que el JustPressed, Pressed y JustReleased del SALTO SOLO de InputManager coinciden
-                 * con las del singleton Input de Godot. Se genera un texto con los 3 resultados y si no coinciden se pinta
-                 */
-                /*
-                 var mine = InputManager.Jump.JustPressed + " " + InputManager.Jump.JustReleased + " " +
-                            InputManager.Jump.Pressed;
-                 var godot = Input.IsActionJustPressed("ui_select") + " " + Input.IsActionJustReleased("ui_select") +
-                             " " +
-                             Input.IsActionPressed("ui_select");
-                 if (!mine.Equals(godot)) {
-                     _logger.Debug("INPUT MISMATCH: Mine : " + mine);
-                     _logger.Debug("INPUT MISTMATCH Godot: " + godot);
-                 }
-                 */
+        public void Debug(InputEvent e, bool actionsOnly = true) {
+            var _wrapper = new EventWrapper(e);
+
+            var action = _actionList.FindAction(e);
+            string actionName = null;
+            switch (action) {
+                case ActionState state:
+                    actionName = state.Name;
+                    break;
+                case DirectionalAction directional:
+                    actionName = directional.Strength < 0 ? directional.NegativeName : directional.PositiveName;
+                    break;
+            }
+            if (actionName == null && actionsOnly) return;
+            if (_wrapper.IsMotion()) {
+                Logger.Debug(
+                    $"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) {actionName}");
+            } else if (_wrapper.IsAnyButton()) {
+                Logger.Debug(
+                    $"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) {actionName}");
+            } else if (_wrapper.IsAnyKey()) {
+                Logger.Debug(
+                    $"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} {actionName}");
             }
         }
     }

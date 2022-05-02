@@ -3,7 +3,11 @@ using Godot;
 
 namespace Betauer.Input {
     public abstract class BaseAction {
-        public static bool ActionPressed(string name, InputEvent e, bool includeEchoEvents) {
+        public abstract bool IsEventPressed(InputEvent e, bool includeEchoEvents = false);
+    }
+    
+    public static class InputTools {  
+        public static bool EventIsAction(string name, InputEvent e, bool includeEchoEvents) {
             if (e is InputEventJoypadMotion joyPad) {
                 var strength = Math.Abs(Godot.Input.GetActionStrength(name));
                 if (Math.Abs(joyPad.AxisValue) == strength) {

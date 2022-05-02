@@ -10,8 +10,8 @@ namespace Betauer.Input {
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
         public bool JustReleased => Godot.Input.IsActionJustReleased(Name);
 
-        public bool IsEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(Name, e, echo);
+        public override bool IsEventPressed(InputEvent e, bool echo = false) {
+            return InputTools.EventIsAction(Name, e, echo);
         }
 
         private readonly IKeyboardOrController _isKeyboardOrController;

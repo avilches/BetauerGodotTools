@@ -78,6 +78,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Managers
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(InputManager), TraceLevel.Error);
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);

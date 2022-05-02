@@ -1,4 +1,5 @@
 using Betauer.Collections;
+using Godot;
 
 namespace Betauer.Input {
     public class ActionList : IKeyboardOrController {
@@ -26,6 +27,10 @@ namespace Betauer.Input {
             var actionState = new ActionState(name, this, _deviceId);
             _actions.Add(actionState);
             return actionState;
+        }
+
+        public BaseAction FindAction(InputEvent inputEvent, bool echo = false) {
+            return _actions.Find(action => action.IsEventPressed(inputEvent, echo));
         }
     }
 }

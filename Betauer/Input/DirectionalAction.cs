@@ -7,12 +7,16 @@ namespace Betauer.Input {
             int deviceId) : base(negativeName, positiveName, isKeyboardOrController, deviceId) {
         }
 
+        public bool IsActionPressed(InputEvent e, bool echo = false) {
+            return IsRightEventPressed(e, echo) || IsLeftEventPressed(e, echo);
+        }
+
         public bool IsRightEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(PositiveName, e, echo);
+            return InputTools.EventIsAction(PositiveName, e, echo);
         }
 
         public bool IsLeftEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(NegativeName, e, echo);
+            return InputTools.EventIsAction(NegativeName, e, echo);
         }
     }
 
@@ -20,13 +24,13 @@ namespace Betauer.Input {
         public VerticalAction(string negativeName, string positiveName, IKeyboardOrController isKeyboardOrController,
             int deviceId) : base(negativeName, positiveName, isKeyboardOrController, deviceId) {
         }
-
+        
         public bool IsDownEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(PositiveName, e, echo);
+            return InputTools.EventIsAction(PositiveName, e, echo);
         }
 
         public bool IsUpEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(NegativeName, e, echo);
+            return InputTools.EventIsAction(NegativeName, e, echo);
         }
     }
 
@@ -58,8 +62,8 @@ namespace Betauer.Input {
 
         public int DeviceId = -1;
 
-        protected readonly string NegativeName;
-        protected readonly string PositiveName;
+        public readonly string NegativeName;
+        public readonly string PositiveName;
 
         public float AxisDeadZone { get; private set; } = 0.5f;
 
@@ -74,16 +78,16 @@ namespace Betauer.Input {
             ClearConfig();
         }
 
-        public bool IsEventPressed(InputEvent e) {
-            return IsPositiveEventPressed(e) || IsNegativeEventPressed(e);
+        public override bool IsEventPressed(InputEvent e, bool includeEchoEvents = false) {
+            return IsPositiveEventPressed(e, includeEchoEvents) || IsNegativeEventPressed(e, includeEchoEvents);
         }
 
         public bool IsPositiveEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(PositiveName, e, echo);
+            return InputTools.EventIsAction(PositiveName, e, echo);
         }
 
         public bool IsNegativeEventPressed(InputEvent e, bool echo = false) {
-            return ActionPressed(NegativeName, e, echo);
+            return InputTools.EventIsAction(NegativeName, e, echo);
         }
 
         public DirectionalAction Build() {
