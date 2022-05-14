@@ -3,8 +3,8 @@ using Godot;
 
 namespace Betauer.Input {
     public class ActionState : BaseAction {
-        private ISet<int> _buttons = new HashSet<int>();
-        private ISet<uint> _keys = new HashSet<uint>();
+        public ISet<JoystickList> Buttons = new HashSet<JoystickList>();
+        public ISet<KeyList> Keys = new HashSet<KeyList>();
 
         public bool Pressed => Godot.Input.IsActionPressed(Name);
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
@@ -33,32 +33,32 @@ namespace Betauer.Input {
 
         private List<InputEvent> CreateInputEvents() {
             List<InputEvent> events = new List<InputEvent>();
-            foreach (var key in _keys) {
+            foreach (var key in Keys) {
                 var e = new InputEventKey();
-                e.Scancode = key;
+                e.Scancode = (uint)key;
                 events.Add(e);
             }
-            foreach (var button in _buttons) {
+            foreach (var button in Buttons) {
                 var e = new InputEventJoypadButton();
-                e.ButtonIndex = button;
+                e.ButtonIndex = (int)button;
                 events.Add(e);
             }
             return events;
         }
 
         public ActionState ClearConfig() {
-            _buttons = new HashSet<int>();
-            _keys = new HashSet<uint>();
+            Buttons = new HashSet<JoystickList>();
+            Keys = new HashSet<KeyList>();
             return this;
         }
 
         public ActionState AddKey(KeyList key) {
-            _keys.Add((uint)key);
+            Keys.Add(key);
             return this;
         }
 
         public ActionState AddButton(JoystickList button) {
-            _buttons.Add((int)button);
+            Buttons.Add(button);
             return this;
         }
     }

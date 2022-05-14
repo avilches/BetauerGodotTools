@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Betauer.Collections;
 using Godot;
 
@@ -5,6 +6,7 @@ namespace Betauer.Input {
     public class ActionList : IKeyboardOrController {
         public bool IsUsingKeyboard { get; set; }
         private readonly SimpleLinkedList<BaseAction> _actions = new SimpleLinkedList<BaseAction>();
+        private readonly Dictionary<string, ActionState> _map = new Dictionary<string, ActionState>();
         private readonly int _deviceId;
 
         public ActionList(int deviceId) {
@@ -26,7 +28,12 @@ namespace Betauer.Input {
         public ActionState AddAction(string name) {
             var actionState = new ActionState(name, this, _deviceId);
             _actions.Add(actionState);
+            _map.Add(name, actionState);
             return actionState;
+        }
+
+        public ActionState FindActionState(string name) {
+            return _map[name];
         }
 
         public BaseAction FindAction(InputEvent inputEvent, bool echo = false) {

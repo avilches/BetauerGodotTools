@@ -13,8 +13,10 @@ namespace Veronenger.Game.Controller.UI {
         [Inject] protected ResourceManager _resourceManager;
 
         public override void Ready() {
-            // TODO: this should depends on the controller connected
-            Configure(Xbox360);
+            if (_config == null) {
+                // TODO: this should depends on the controller connected
+                Configure(Xbox360);
+            }
         }
         
         public void Configure(SpriteConfig config) {
@@ -24,10 +26,6 @@ namespace Veronenger.Game.Controller.UI {
 
         public JoystickList _buttonToShow = JoystickList.InvalidOption;
         public bool _pressed = false;
-
-        public void ShowAction(ActionButton actionButton) {
-            // actionButton.Pressed
-        }
 
         public void ShowButton(JoystickList buttonToShow) {
             _buttonToShow = buttonToShow;

@@ -124,8 +124,12 @@ namespace Veronenger.Game.Managers {
             }
         }
 
-        public BaseAction FindAction(InputEvent e) {
-            return _actionList.FindAction(e);
+        public ActionState FindActionState(string name) {
+            return _actionList.FindActionState(name);
+        }
+
+        public BaseAction FindAction(InputEvent e, bool echo = false) {
+            return _actionList.FindAction(e, echo);
         }
     }
 }
