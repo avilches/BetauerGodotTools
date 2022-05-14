@@ -45,7 +45,7 @@ namespace Veronenger.Game.Controller.UI {
             Change(_buttonToShow, _pressed);
         }
 
-        protected void Change(JoystickList button, bool pressed) {
+        public void Change(JoystickList button, bool pressed) {
             ConsoleButtonView view = _config.Get(button);
             Frame = pressed ? view.FramePressed : view.Frame;
         }

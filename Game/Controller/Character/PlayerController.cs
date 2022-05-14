@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using Betauer;
 using Betauer.Animation;
@@ -5,6 +6,7 @@ using Betauer.Bus.Topics;
 using Betauer.DI;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
+using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 using Timer = Betauer.Timer;
 
@@ -18,6 +20,8 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("RichTextLabel")] private RichTextLabel Label;
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+        [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
+        private Launcher _launcher = new Launcher();
 
         private SceneTree _sceneTree;
         private IFlipper _flippers;
@@ -61,6 +65,7 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void Ready() {
             _sceneTree = GetTree();
+            _launcher.WithParent(this);
 
             _animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
@@ -220,11 +225,19 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _Input(InputEvent @event) {
             if (!_gameManager.IsGaming()) return;
-            _inputManager.Debug(@event, false);
+            // _inputManager.Debug(@event, false);
             if (_inputManager.UiStart.IsEventPressed(@event)) {
                 _gameManager.ShowPauseMenu();
             } else if (_inputManager.PixelPerfect.IsEventPressed(@event)) {
                 _screenManager.SetPixelPerfect(!_screenManager.Settings.PixelPerfect);
+            } else if (@event is InputEventJoypadButton button) {
+                _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
+                if (button.Pressed == false) {
+                    _launcher.Stop();
+                    _launcher.Play(Template.FadeOut, _consoleButton, 0, 0.6f);
+                } else {
+                    _consoleButton.Modulate = Colors.White;
+                }
             }
         }
 

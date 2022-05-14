@@ -416,9 +416,6 @@ margin_left = -28.0
 margin_top = 3.0
 margin_right = 69.0
 margin_bottom = 105.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="StopIdle" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_right = 105.0
@@ -458,9 +455,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" parent="PlayerBody/VBoxContainer" instance=ExtResource( 8 )]
-frame = 67
-
 [node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
 margin_top = -88.0
 margin_right = 236.0
@@ -494,6 +488,10 @@ anims/Idle = SubResource( 5 )
 anims/Jump = SubResource( 6 )
 anims/JumpAttack = SubResource( 7 )
 anims/Run = SubResource( 8 )
+
+[node name="ConsoleButton" parent="PlayerBody" instance=ExtResource( 8 )]
+position = Vector2( -28, 3 )
+frame = 67
 
 [node name="RayCasts" type="Node2D" parent="PlayerBody"]
 
