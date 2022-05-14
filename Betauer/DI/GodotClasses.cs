@@ -31,6 +31,18 @@ namespace Betauer.DI {
         }
     }
 
+    public abstract class DiSprite : Sprite {
+        protected DiSprite() => DefaultContainer.Container.InjectAllFields(this);
+
+        public sealed override void _Ready() {
+            DefaultContainer.Container.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
+
     public abstract class DiControl : Control {
         protected DiControl() => DefaultContainer.Container.InjectAllFields(this);
 

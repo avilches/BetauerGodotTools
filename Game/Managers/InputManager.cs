@@ -99,9 +99,8 @@ namespace Veronenger.Game.Managers {
 
 
         public void Debug(InputEvent e, bool actionsOnly = true) {
-            var _wrapper = new EventWrapper(e);
 
-            var action = _actionList.FindAction(e);
+            var action = FindAction(e);
             string actionName = null;
             switch (action) {
                 case ActionState state:
@@ -112,6 +111,7 @@ namespace Veronenger.Game.Managers {
                     break;
             }
             if (actionName == null && actionsOnly) return;
+            var _wrapper = new EventWrapper(e);
             if (_wrapper.IsMotion()) {
                 Logger.Debug(
                     $"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) {actionName}");
@@ -122,6 +122,10 @@ namespace Veronenger.Game.Managers {
                 Logger.Debug(
                     $"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} {actionName}");
             }
+        }
+
+        public BaseAction FindAction(InputEvent e) {
+            return _actionList.FindAction(e);
         }
     }
 }

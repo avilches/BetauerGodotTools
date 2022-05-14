@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://Game/Controller/Character/PlayerController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Player-heroine/run.png" type="Texture" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://Game/Controller/Stage/StageCameraController.cs" type="Script" id=5]
 [ext_resource path="res://Characters/Player-heroine/attack.png" type="Texture" id=6]
 [ext_resource path="res://Characters/Player-heroine/jump-attack.png" type="Texture" id=7]
+[ext_resource path="res://Assets/UI/Consoles/Xbox 360 Button.tscn" type="PackedScene" id=8]
 
 [sub_resource type="RectangleShape2D" id=2]
 extents = Vector2( 7, 20 )
@@ -420,42 +421,45 @@ __meta__ = {
 }
 
 [node name="StopIdle" type="Button" parent="PlayerBody/VBoxContainer"]
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 20.0
 text = "Stop Idle"
 
 [node name="StartIdle" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 24.0
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 44.0
 text = "Start Idle"
 
 [node name="StopModulate" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 48.0
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 68.0
 text = "Stop Modulate"
 
 [node name="StartModulate" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 72.0
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 92.0
 text = "Start Modulate"
 
 [node name="StopSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 96.0
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 116.0
 text = "Stop Squeeze"
 
 [node name="StartSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 120.0
-margin_right = 113.0
+margin_right = 105.0
 margin_bottom = 140.0
 text = "Start Squeeze"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Sprite" parent="PlayerBody/VBoxContainer" instance=ExtResource( 8 )]
+frame = 67
 
 [node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
 margin_top = -88.0

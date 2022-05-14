@@ -20,6 +20,13 @@ namespace Veronenger.Game.Managers {
         private const string World2 = "res://Worlds/World2.tscn";
 
         private const string Player = "res://Scenes/Player.tscn";
+        
+        public const string Xbox360Buttons = "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png";
+        public const string XboxOneButtons = "res://Assets/UI/Consoles/Xbox One Controller Updated.png";
+
+
+        public Texture Xbox360ButtonsTexture => Resource<Texture>(Xbox360Buttons); 
+        public Texture XboxOneButtonsTexture => Resource<Texture>(XboxOneButtons); 
 
         public Node CreateWorld1() => Resource<PackedScene>(World1).Instance();
         public Node CreateWorld2() => Resource<PackedScene>(World2).Instance();
@@ -46,6 +53,9 @@ namespace Veronenger.Game.Managers {
                 World2,
 
                 Player,
+                
+                Xbox360Buttons,
+                XboxOneButtons,
             };
             _resources = await Loader.Load(resourcesToLoad, progress, awaiter);
             // foreach (var resourcesValue in _resources.Values) {
@@ -53,6 +63,6 @@ namespace Veronenger.Game.Managers {
             // }
         }
 
-        private T Resource<T>(string res) where T : class => _resources[res] as T;
+        public T Resource<T>(string res) where T : class => _resources[res] as T;
     }
 }
