@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Animation;
@@ -14,11 +15,13 @@ namespace Veronenger.Game.Controller.Menu {
 		
 		[OnReady("Panel")] private Panel _panel;
 
-		[OnReady("Panel/VBoxContainer/Menu/Fullscreen")] private ActionCheckButton _fullscreenButton;
-		[OnReady("Panel/VBoxContainer/Menu/Resolution")] private ActionButton _resolutionButton;
-		[OnReady("Panel/VBoxContainer/Menu/PixelPerfect")] private ActionCheckButton _pixelPerfectButton;
-		[OnReady("Panel/VBoxContainer/Menu/Borderless")] private ActionCheckButton _borderlessButton;
-		[OnReady("Panel/VBoxContainer/Menu/VSync")] private ActionCheckButton _vsyncButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Fullscreen")] private ActionCheckButton _fullscreenButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Resolution")] private ActionButton _resolutionButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/PixelPerfect")] private ActionCheckButton _pixelPerfectButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Borderless")] private ActionCheckButton _borderlessButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/VSync")] private ActionCheckButton _vsyncButton;
+		[OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls")] private VBoxContainer _controls;
+		[OnReady("Panel/VBoxContainer/ScrollContainer")] private ScrollContainer _scrollContainer;
 
 		[Inject] private GameManager _gameManager;
 		[Inject] private ScreenManager _screenManager;
@@ -37,6 +40,8 @@ namespace Veronenger.Game.Controller.Menu {
 
 		public override void Ready() {
 			_launcher = new Launcher().WithParent(this);
+			_fullscreenButton.OnFocusEntered(() => _scrollContainer.ScrollVertical = 0); 
+			_controls.GetChild<ActionButton>(_controls.GetChildCount()-1).OnFocusEntered(() => _scrollContainer.ScrollVertical = int.MaxValue); 
 			_fullscreenButton.Action = isChecked => {
 				Disable(_resolutionButton, isChecked);
 				Disable(_borderlessButton, isChecked);
