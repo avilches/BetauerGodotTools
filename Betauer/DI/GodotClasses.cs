@@ -54,6 +54,30 @@ namespace Betauer.DI {
         public virtual void Ready() {
         }
     }
+    
+    public abstract class DiHBoxContainer : HBoxContainer {
+        protected DiHBoxContainer() => DefaultContainer.Container.InjectAllFields(this);
+
+        public sealed override void _Ready() {
+            DefaultContainer.Container.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
+    
+    public abstract class DiVBoxContainer : HBoxContainer {
+        protected DiVBoxContainer() => DefaultContainer.Container.InjectAllFields(this);
+
+        public sealed override void _Ready() {
+            DefaultContainer.Container.LoadOnReadyNodes(this);
+            Ready();
+        }
+
+        public virtual void Ready() {
+        }
+    }
 
     public abstract class DiButton : Button {
         protected DiButton() => DefaultContainer.Container.InjectAllFields(this);
