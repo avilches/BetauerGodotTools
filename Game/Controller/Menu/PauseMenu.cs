@@ -37,14 +37,14 @@ namespace Veronenger.Game.Controller.Menu {
         private ActionState UiAccept => _inputManager.UiAccept;
         private ActionState UiCancel => _inputManager.UiCancel;
         private ActionState UiStart => _inputManager.UiStart;
-        private ActionButton _optionsButton;
+        private ActionButton _settingsButton;
 
         private Launcher _launcher;
 
         public override void Ready() {
             _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
-            _optionsButton = _menuController.GetMenu("Root")!.GetButton("Options");
+            _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
             HidePauseMenu();
         }
 
@@ -54,8 +54,8 @@ namespace Veronenger.Game.Controller.Menu {
             await _menuController.Start("Root");
         }
 
-        public void FocusOptions() {
-            _optionsButton.GrabFocus();
+        public void FocusSettings() {
+            _settingsButton.GrabFocus();
         }
 
         public void HidePauseMenu() {
@@ -73,8 +73,8 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton("Resume", "Resume", (ctx) => {
                     _gameManager.ClosePauseMenu();
                 })
-                .AddButton("Options", "Options",
-                    (ctx) => _gameManager.ShowOptionsMenu())
+                .AddButton("Settings", "Settings",
+                    (ctx) => _gameManager.ShowSettingsMenu())
                 .AddButton("QuitGame", "Quit game", async (ctx) => {
                     ctx.Menu.Save();
                     ctx.Menu.DisableButtons();

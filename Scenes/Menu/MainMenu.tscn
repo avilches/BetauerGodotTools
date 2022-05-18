@@ -50,11 +50,11 @@ margin_right = 150.0
 margin_bottom = 218.0
 text = "Continue"
 
-[node name="Options" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
+[node name="Settings" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
 margin_top = 233.0
 margin_right = 150.0
 margin_bottom = 248.0
-text = "Options"
+text = "Settings"
 
 [node name="Quit" type="Button" parent="GridContainer/MarginContainer/VBoxContainer/Menu"]
 margin_top = 263.0

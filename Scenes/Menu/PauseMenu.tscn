@@ -70,11 +70,11 @@ margin_right = 110.0
 margin_bottom = 15.0
 text = "Resume"
 
-[node name="Options" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
+[node name="Settings" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
 margin_top = 30.0
 margin_right = 110.0
 margin_bottom = 45.0
-text = "Options"
+text = "Settings"
 
 [node name="Quit game" type="Button" parent="Node2D/CenterContainer/VBoxContainer/Menu"]
 margin_top = 60.0

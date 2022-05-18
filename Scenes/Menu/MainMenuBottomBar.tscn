@@ -1,0 +1,55 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Game/Controller/Menu/MainMenuBottomBar.cs" type="Script" id=1]
+[ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
+[ext_resource path="res://Assets/UI/Consoles/Xbox 360 Controller Updated.png" type="Texture" id=3]
+
+[sub_resource type="AtlasTexture" id=1]
+atlas = ExtResource( 3 )
+region = Rect2( 16, 16, 16, 16 )
+
+[node name="BottomBar" type="CanvasLayer"]
+layer = 101
+script = ExtResource( 1 )
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_top = 342.0
+margin_right = 618.0
+margin_bottom = 380.0
+rect_min_size = Vector2( 618, 0 )
+theme = ExtResource( 2 )
+alignment = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer"]
+margin_left = 525.0
+margin_right = 598.0
+margin_bottom = 16.0
+size_flags_vertical = 0
+
+[node name="TextureRect" type="TextureRect" parent="HBoxContainer/HBoxContainer"]
+margin_right = 16.0
+margin_bottom = 16.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+texture = SubResource( 1 )
+stretch_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/HBoxContainer"]
+margin_left = 20.0
+margin_top = 1.0
+margin_right = 73.0
+margin_bottom = 15.0
+text = "Holaaaaaa"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="HBoxContainer"]
+margin_left = 602.0
+margin_right = 618.0
+margin_bottom = 38.0
+
+[node name="TextureRect" type="TextureRect" parent="HBoxContainer/HBoxContainer2"]
+margin_right = 16.0
+margin_bottom = 16.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+texture = SubResource( 1 )
+stretch_mode = 2

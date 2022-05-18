@@ -47,9 +47,6 @@ namespace Veronenger.Game.Controller.Menu {
             subtitleText = subtitle;
         }
 
-        public void Options(string yes, string no) {
-        }
-
         public override async void Ready() {
             // TODO i18n
             if (subtitleText != null) {

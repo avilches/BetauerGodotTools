@@ -8,6 +8,7 @@ using Betauer.DI;
 using Betauer.Screen;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
+using Veronenger.Game.Controller.UI;
 
 namespace Veronenger.Game.Managers {
     /**
@@ -26,8 +27,9 @@ namespace Veronenger.Game.Managers {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
 
         private MainMenu _mainMenuScene;
+        private MainMenuBottomBar _mainMenuBottomBarScene;
         private PauseMenu _pauseMenuScene;
-        private OptionsMenu _optionsMenuScene;
+        private SettingsMenu _settingsMenuScene;
         private Node _currentGameScene;
         private Node2D _playerScene;
 
@@ -35,7 +37,7 @@ namespace Veronenger.Game.Managers {
         public bool IsGaming() => CurrentState == State.Gaming;
         public bool IsModal() => CurrentState == State.Modal;
         public bool IsMainMenu() => CurrentState == State.MainMenu;
-        public bool IsOptions() => CurrentState == State.Options;
+        public bool IsSettings() => CurrentState == State.Settings;
 
         public readonly Launcher Launcher = new Launcher();
 
@@ -49,7 +51,7 @@ namespace Veronenger.Game.Managers {
             MainMenu,
             Gaming,
             PauseMenu,
-            Options,
+            Settings,
             Modal
         }
 
@@ -62,15 +64,17 @@ namespace Veronenger.Game.Managers {
             splashScreen.QueueFree();
             Launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
+            _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
-            _optionsMenuScene = _resourceManager.CreateOptionsMenu();
+            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
             
-            // Never pause the pause menu and the options menu!
-            _optionsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
+            // Never pause the pause menu and the settings menu!
+            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
             GetTree().Root.AddChild(_pauseMenuScene);
-            GetTree().Root.AddChild(_optionsMenuScene);
+            GetTree().Root.AddChild(_settingsMenuScene);
 
             GetTree().Root.AddChild(_mainMenuScene); // Main menu shows itself in Ready
+            GetTree().Root.AddChild(_mainMenuBottomBarScene);
             _states.Push(State.MainMenu);
         }
 
@@ -88,18 +92,18 @@ namespace Veronenger.Game.Managers {
             _states.Push(State.PauseMenu);
         }
 
-        public async void ShowOptionsMenu() {
-            await _optionsMenuScene.ShowOptionsMenu();
-            _states.Push(State.Options);
+        public async void ShowSettingsMenu() {
+            await _settingsMenuScene.ShowSettingsMenu();
+            _states.Push(State.Settings);
         }
 
-        public void CloseOptionsMenu() {
-            _optionsMenuScene.HideOptionsMenu();
+        public void CloseSettingsMenu() {
+            _settingsMenuScene.HideSettingsMenu();
             _states.Pop();
             if (IsMainMenu()) {
-                _mainMenuScene.FocusOptions();
+                _mainMenuScene.FocusSettings();
             } else if (IsGamePaused()) {
-                _pauseMenuScene.FocusOptions();
+                _pauseMenuScene.FocusSettings();
             }
         }
 

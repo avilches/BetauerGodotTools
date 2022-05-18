@@ -11,7 +11,7 @@ using ActionButton = Veronenger.Game.Controller.UI.ActionButton;
 using ActionCheckButton = Veronenger.Game.Controller.UI.ActionCheckButton;
 
 namespace Veronenger.Game.Controller.Menu {
-	public class OptionsMenu : DiCanvasLayer {
+	public class SettingsMenu : DiCanvasLayer {
 		
 		[OnReady("Panel")] private Panel _panel;
 
@@ -97,15 +97,15 @@ namespace Veronenger.Game.Controller.Menu {
 			_resolutionButton.OnFocusEntered(UpdateResolutionButton);
 			_resolutionButton.OnFocusExited(UpdateResolutionButton);
 
-			HideOptionsMenu();
+			HideSettingsMenu();
 		}
 
-		public async Task ShowOptionsMenu() {
+		public async Task ShowSettingsMenu() {
 			_panel.Show();
 			_fullscreenButton.GrabFocus();
 		}
 
-		public void HideOptionsMenu() {
+		public void HideSettingsMenu() {
 			_launcher.RemoveAll();
 			_panel.Hide();
 		}
@@ -133,14 +133,14 @@ namespace Veronenger.Game.Controller.Menu {
 		private const float MenuEffectTime = 0.10f;
 
 		public override void _Input(InputEvent @event) {
-			if (!_gameManager.IsOptions()) {
+			if (!_gameManager.IsSettings()) {
 				return;
 			}
 			if (UiCancel.IsEventPressed(@event)) {
-				_gameManager.CloseOptionsMenu();
+				_gameManager.CloseSettingsMenu();
 				GetTree().SetInputAsHandled();
 			} else if (UiStart.IsEventPressed(@event)) {
-				// _gameManager.CloseOptionsMenu();
+				// _gameManager.CloseSettingsMenu();
 				// GetTree().SetInputAsHandled();
 			}
 		}

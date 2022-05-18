@@ -32,11 +32,11 @@ namespace Betauer.Input {
             return actionState;
         }
 
-        public ActionState FindActionState(string name) {
-            return _map[name];
+        public ActionState? FindActionState(string name) {
+            return _map.TryGetValue(name, out var action) ? action : null;
         }
 
-        public BaseAction FindAction(InputEvent inputEvent, bool echo = false) {
+        public BaseAction? FindAction(InputEvent inputEvent, bool echo = false) {
             return _actions.Find(action => action.IsEventPressed(inputEvent, echo));
         }
     }

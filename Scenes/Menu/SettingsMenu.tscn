@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://Game/Controller/Menu/OptionsMenu.cs" type="Script" id=1]
+[ext_resource path="res://Game/Controller/Menu/SettingsMenu.cs" type="Script" id=1]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
 [ext_resource path="res://Scenes/UI/FakeButton.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Scenes/UI/CheckButton.tscn" type="PackedScene" id=4]
@@ -40,7 +40,7 @@ margin_right = 360.0
 margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
-text = "Options"
+text = "Settings"
 align = 1
 
 [node name="Title2" type="Label" parent="Panel/VBoxContainer"]

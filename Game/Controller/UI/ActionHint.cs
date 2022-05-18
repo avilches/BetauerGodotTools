@@ -13,11 +13,18 @@ namespace Veronenger.Game.Controller.UI {
         [Export] private string ActionName;
         [Export] private string ActionText;
 
+        public ActionHint(string actionName, string actionText) {
+            ActionName = actionName;
+            ActionText = actionText;
+        }
+
         public override void Ready() {
             _label.Text = ActionText;
-            ActionState action = _inputManager.FindActionState(ActionName);
-            JoystickList button = action.Buttons.First();
-            _consoleButton.ShowButton(button, false);
+            ActionState? action = _inputManager.FindActionState(ActionName);
+            if (action != null) {
+                JoystickList button = action.Buttons.First();
+                _consoleButton.ShowButton(button, false);
+            }
 
         }
     }

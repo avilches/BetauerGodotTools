@@ -5,16 +5,18 @@ using Betauer;
 using Betauer.DI;
 using Godot;
 using Veronenger.Game.Controller.Menu;
+using Veronenger.Game.Controller.UI;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class ResourceManager {
         [Inject] private Func<SceneTree> GetTree;
 
-        private const string MainMenu = "res://Scenes/MainMenu.tscn";
-        private const string PauseMenu = "res://Scenes/PauseMenu.tscn";
-        private const string OptionsMenu = "res://Scenes/OptionsMenu.tscn";
-        private const string ModalBoxConfirm = "res://Scenes/ModalBoxConfirm.tscn";
+        private const string MainMenu = "res://Scenes/Menu/MainMenu.tscn";
+        private const string MainMenuBottomBar = "res://Scenes/Menu/MainMenuBottomBar.tscn";
+        private const string PauseMenu = "res://Scenes/Menu/PauseMenu.tscn";
+        private const string SettingsMenu = "res://Scenes/Menu/SettingsMenu.tscn";
+        private const string ModalBoxConfirm = "res://Scenes/Menu/ModalBoxConfirm.tscn";
 
         private const string World1 = "res://Worlds/World1.tscn";
         private const string World2 = "res://Worlds/World2.tscn";
@@ -32,11 +34,15 @@ namespace Veronenger.Game.Managers {
         public Node CreateWorld2() => Resource<PackedScene>(World2).Instance();
 
         public MainMenu CreateMainMenu() => Resource<PackedScene>(MainMenu).Instance<MainMenu>();
+        public MainMenuBottomBar CreateMainMenuBottomBar() => Resource<PackedScene>(MainMenuBottomBar).Instance<MainMenuBottomBar>();
         public PauseMenu CreatePauseMenu() => Resource<PackedScene>(PauseMenu).Instance<PauseMenu>();
-        public OptionsMenu CreateOptionsMenu() => Resource<PackedScene>(OptionsMenu).Instance<OptionsMenu>();
+        public SettingsMenu CreateSettingsMenu() => Resource<PackedScene>(SettingsMenu).Instance<SettingsMenu>();
 
         public ModalBoxConfirm CreateModalBoxConfirm() =>
             Resource<PackedScene>(ModalBoxConfirm).Instance<ModalBoxConfirm>();
+
+        public MainMenuBottomBar CreateBottomBar() =>
+            Resource<PackedScene>(ModalBoxConfirm).Instance<MainMenuBottomBar>();
 
         public Node2D CreatePlayer() => Resource<PackedScene>(Player).Instance<Node2D>();
 
@@ -44,9 +50,13 @@ namespace Veronenger.Game.Managers {
 
         public async Task Load(Action<LoadingContext> progress, Func<Task> awaiter) {
             string[] resourcesToLoad = {
+                Xbox360Buttons,
+                XboxOneButtons,
+
                 PauseMenu,
                 MainMenu,
-                OptionsMenu,
+                MainMenuBottomBar,
+                SettingsMenu,
                 ModalBoxConfirm,
 
                 World1,
@@ -54,8 +64,6 @@ namespace Veronenger.Game.Managers {
 
                 Player,
                 
-                Xbox360Buttons,
-                XboxOneButtons,
             };
             _resources = await Loader.Load(resourcesToLoad, progress, awaiter);
             // foreach (var resourcesValue in _resources.Values) {
