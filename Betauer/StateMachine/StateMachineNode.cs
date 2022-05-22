@@ -16,8 +16,10 @@ namespace Betauer.StateMachine {
         }
 
         public readonly IStateMachine StateMachine;
+        public IState CurrentState => StateMachine.CurrentState;
+        public NextState NextState => StateMachine.NextState;
         public ProcessMode Mode { get; set; } = ProcessMode.Idle;
-
+        
         private Action<float>? _beforeExecute;
         private Action<float>? _afterExecute;
 
@@ -38,8 +40,8 @@ namespace Betauer.StateMachine {
             return StateMachine.AddState(state);
         }
 
-        public IState GetState(string name) {
-            return StateMachine.GetState(name);
+        public IState FindState(string name) {
+            return StateMachine.FindState(name);
         }
 
         public IStateMachine SetNextState(string nextState) {

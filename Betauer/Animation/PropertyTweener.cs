@@ -8,7 +8,7 @@ using Object = Godot.Object;
 namespace Betauer.Animation {
     public interface ITweener {
         float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration);
-        public abstract Node Target { get; }
+        public Node Target { get; }
     }
 
     internal class CallbackTweener : ITweener {

@@ -48,7 +48,7 @@ namespace Veronenger.Game.Character.Enemy {
         }
 
         private void AddStates(StateMachineBuilder<StateMachineNode> builder) {
-            builder.CreateState(PatrolStep)
+            builder.State(PatrolStep)
                 .Enter(context => {
                     _patrolTimer.Start();
                     if (context.FromState.Name is PatrolWait) {
@@ -73,7 +73,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (_patrolTimer.IsAlarm()) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return Context.Immediate(Idle);
+                            return NextState.Immediate(Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
@@ -83,7 +83,7 @@ namespace Veronenger.Game.Character.Enemy {
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return Context.NextFrame(PatrolWait);
+                        return NextState.NextFrame(PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
@@ -93,11 +93,11 @@ namespace Veronenger.Game.Character.Enemy {
                     return context.Current();
                 });
 
-            builder.CreateState(PatrolWait)
+            builder.State(PatrolWait)
                 .Enter(context => { })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return Context.Immediate(PatrolStep);
+                        return NextState.Immediate(PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
@@ -106,7 +106,7 @@ namespace Veronenger.Game.Character.Enemy {
                 })
                 ;
 
-            builder.CreateState(Idle)
+            builder.State(Idle)
                 .Enter(context => { _enemyZombieController.AnimationIdle.PlayLoop(); })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
@@ -125,7 +125,7 @@ namespace Veronenger.Game.Character.Enemy {
                 })
                 ;
 
-            builder.CreateState(Attacked)
+            builder.State(Attacked)
                 .Enter(context => {
                     _enemyZombieController.DisableAll();
 

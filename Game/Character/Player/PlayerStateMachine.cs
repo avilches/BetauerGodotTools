@@ -96,24 +96,24 @@ namespace Veronenger.Game.Character.Player {
                 }
             }
 
-            builder.CreateState(StateIdle)
+            builder.State(StateIdle)
                 .Enter(context => { _player.AnimationIdle.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
 
                     if (!_player.IsOnFloor()) {
-                        return Context.NextFrame(StateFallShort);
+                        return NextState.NextFrame(StateFallShort);
                     }
 
                     if (XInput != 0) {
-                        return Context.Immediate(StateRun);
+                        return NextState.Immediate(StateRun);
                     }
 
                     if (Jump.JustPressed) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
-                            return Context.Immediate(StateJump);
+                            return NextState.Immediate(StateJump);
                         }
                     }
 
@@ -129,25 +129,25 @@ namespace Veronenger.Game.Character.Player {
                     return context.Current();
                 });
 
-            builder.CreateState(StateRun)
+            builder.State(StateRun)
                 .Enter(context => { _player.AnimationRun.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
 
                     if (!_player.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
-                        return Context.Immediate(StateFallShort);
+                        return NextState.Immediate(StateFallShort);
                     }
 
                     if (XInput == 0 && Motion.x == 0) {
-                        return Context.Immediate(StateIdle);
+                        return NextState.Immediate(StateIdle);
                     }
 
                     if (Jump.JustPressed) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
-                            return Context.Immediate(StateJump);
+                            return NextState.Immediate(StateJump);
                         }
                     }
 
@@ -181,7 +181,7 @@ namespace Veronenger.Game.Character.Player {
                     _fallingJumpTimer.Stop();
                     if (_fallingJumpTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
                         DebugJumpHelper($"{_fallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!");
-                        return Context.Immediate(StateJump);
+                        return NextState.Immediate(StateJump);
                     }
                     DebugJumpHelper(
                         $"{_fallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME");
@@ -193,9 +193,9 @@ namespace Veronenger.Game.Character.Player {
                         // Evita resbalarse hacia abajo al caer sobre un slope
                         Body.SetMotionX(0);
                     }
-                    return Context.Immediate(StateIdle);
+                    return NextState.Immediate(StateIdle);
                 }
-                return Context.Immediate(StateRun);
+                return NextState.Immediate(StateRun);
             }
 
             bool CheckAirAttack() {
@@ -217,7 +217,7 @@ namespace Veronenger.Game.Character.Player {
                 return false;
             }
 
-            builder.CreateState(StateJump)
+            builder.State(StateJump)
                 .Enter(context => {
                     Body.SetMotionY(-MotionConfig.JumpForce);
                     DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
@@ -238,13 +238,13 @@ namespace Veronenger.Game.Character.Player {
                     Body.Fall();
 
                     if (Motion.y >= 0) {
-                        return Context.Immediate(StateFallShort);
+                        return NextState.Immediate(StateFallShort);
                     }
 
                     return CheckLanding(context);
                 });
 
-            builder.CreateState(StateFallShort)
+            builder.State(StateFallShort)
                 .Enter(context => {
                     // Only if the state comes from running -> fall, the Coyote jump is enabled
                     // Other cases (state comes from idle or jump), the coyote is not enabled
@@ -255,10 +255,10 @@ namespace Veronenger.Game.Character.Player {
 
                     if (_coyoteJumpEnabled && CheckCoyoteJump()) {
                         _coyoteJumpEnabled = false;
-                        return Context.Immediate(StateJump);
+                        return NextState.Immediate(StateJump);
                     }
                     if (Motion.y > MotionConfig.StartFallingSpeed) {
-                        return Context.Immediate(StateFallLong);
+                        return NextState.Immediate(StateFallLong);
                     }
 
                     Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
@@ -270,7 +270,7 @@ namespace Veronenger.Game.Character.Player {
                     return CheckLanding(context);
                 });
 
-            builder.CreateState(StateFallLong)
+            builder.State(StateFallLong)
                 .Enter(context => {
                     if (_fallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
                         DebugCoyoteJump(
@@ -282,7 +282,7 @@ namespace Veronenger.Game.Character.Player {
                         CheckAirAttack();
 
                         if (CheckCoyoteJump()) {
-                            return Context.Immediate(StateJump);
+                            return NextState.Immediate(StateJump);
                         }
 
                         Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,

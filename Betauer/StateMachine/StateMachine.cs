@@ -8,28 +8,31 @@ using Godot;
 namespace Betauer.StateMachine {
     public interface IStateMachine {
         public IStateMachine AddState(IState state);
-        public IState GetState(string name);
+        public IState FindState(string name);
         public IStateMachine SetNextState(string nextState);
         public void Execute(float delta);
+        public IState CurrentState { get; }
+        public NextState NextState { get; }
+
     }
 
     public class StateMachineBuilder<T> where T : IStateMachine {
         private readonly T _stateMachine;
-        private readonly Queue<StateBuilder> _pending = new Queue<StateBuilder>();
+        private readonly Queue<StateBuilder<T, StateMachineBuilder<T>>> _pending = new Queue<StateBuilder<T, StateMachineBuilder<T>>>();
 
         public StateMachineBuilder(T stateMachine) {
             _stateMachine = stateMachine;
         }
 
-        public StateBuilder CreateState(string name) {
-            var stateBuilder = new StateBuilder(name);
+        public StateBuilder<T, StateMachineBuilder<T>> State(string name) {
+            var stateBuilder = new StateBuilder<T, StateMachineBuilder<T>>(name, this);
             _pending.Enqueue(stateBuilder);
             return stateBuilder;
         }
 
         public T Build() {
             while (_pending.Count > 0) {
-                _stateMachine.AddState(_pending.Dequeue().Build());
+                _pending.Dequeue().Build(_stateMachine, null);
             }
             return _stateMachine;
         }
@@ -44,8 +47,9 @@ namespace Betauer.StateMachine {
 
         internal readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
 
-        private NextState NextState { get; set; }
+        public NextState NextState { get; set; }
         private readonly Context _currentContext;
+        public IState CurrentState => _currentContext.CurrentState;
 
         public StateMachine(Node owner, string name) {
             Owner = owner;
@@ -64,18 +68,23 @@ namespace Betauer.StateMachine {
             return this;
         }
 
-        public IState GetState(string stateTypeName) {
+        public IState FindState(string stateTypeName) {
             return States[stateTypeName];
         }
 
+        public IStateMachine PopNextState() {
+            NextState = Validate(NextState.PopNextFrame);
+            return this;
+        }
+
         public IStateMachine SetNextState(string nextState) {
-            NextState = Context.NextFrame(nextState);
+            NextState = Validate(NextState.NextFrame(nextState));
             return this;
         }
 
         public void Execute(float delta) {
             if (_disposed) return;
-            if (NextState.Name == null) throw new Exception("Please, initialize the state machine with the next state");
+            if (CurrentState == null && NextState.Name == null) throw new Exception("Please, initialize the state machine with a valid next state");
             _Execute(delta, _currentContext.CurrentState);
         }
 
@@ -87,10 +96,35 @@ namespace Betauer.StateMachine {
                 _EndPreviousStateIfNeeded(NextState);
                 _StartNextStateIfNeeded(initialState, NextState, immediateChanges);
                 _currentContext.Update(delta);
-                NextState = _currentContext.CurrentState.Execute(_currentContext);
+                NextState = Validate(_currentContext.CurrentState.Execute(_currentContext));
                 // Only if the state is different than the current state and it's immediate, will be executed right now
                 execute = NextState.IsImmediate;
             }
+        }
+
+        private NextState Validate(NextState candidate) {
+            if (candidate.Name == null) {
+                // Pop
+                if (CurrentState?.Parent == null) {
+                    throw new Exception("Can't pop state from a root or null state (there is no parent to go!)");
+                }
+                return new NextState(CurrentState.Parent.Name, candidate.IsImmediate);
+            } else {
+                IState newState = FindState(candidate.Name);
+                if (CurrentState == null) {
+                    if (newState.Parent != null) {
+                        throw new Exception("Only root (non-nested) states are allowed");
+                    }
+                } else {
+                    if (newState.Parent != CurrentState.Parent && // sibling state 
+                        newState.Parent != CurrentState && // child state
+                        newState != CurrentState.Parent // parent state
+                    ) {
+                        throw new Exception("Only siblings or child states are allowed");
+                    }
+                }
+            }
+            return candidate;
         }
 
         private void _EndPreviousStateIfNeeded(NextState nextState) {
@@ -108,7 +142,7 @@ namespace Betauer.StateMachine {
             Logger.Debug($"New State: \"{nextState.Name}\"");
             immediateChanges.Add(nextState.Name);
             CheckImmediateChanges(initialState, immediateChanges);
-            var state = GetState(nextState.Name);
+            var state = FindState(nextState.Name);
             // To avoid having null as from state, the first execution from state = current state
             var fromState = _currentContext.CurrentState ?? state;
             _currentContext.Reset(state, fromState);

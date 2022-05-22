@@ -26,7 +26,6 @@ namespace Veronenger.Game.Controller.Menu {
         public override async void Ready() {
             _menuController = BuildMenu();
             _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
-            await ShowMenu();
         }
 
         public async Task ShowMenu() {
@@ -77,7 +76,7 @@ namespace Veronenger.Game.Controller.Menu {
                 //     _gameManager.LoadAnimaDemo();
                 // })
                 .AddButton("Settings", "Settings", async (ctx) => {
-                    _gameManager.ShowSettingsMenu();
+                    _gameManager.ShowMainMenuSettings();
                 })
                 .AddButton("Exit", "Exit", async (ctx) => {
                     ctx.Menu.Save();

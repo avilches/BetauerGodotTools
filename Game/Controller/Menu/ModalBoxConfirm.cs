@@ -86,7 +86,7 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public override void _Input(InputEvent @event) {
-            if (_gameManager.IsModal() && UiCancel.IsEventPressed(@event)) {
+            if (UiCancel.IsEventPressed(@event)) {
                 _promise.TrySetResult(false);
                 GetTree().SetInputAsHandled();
             }

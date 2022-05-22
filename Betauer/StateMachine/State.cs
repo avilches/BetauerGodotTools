@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Betauer.DI;
 using Godot;
 
 namespace Betauer.StateMachine {
     public interface IState {
+        public IState? Parent { get; }
+
         public string Name { get; }
 
         public NextState Execute(Context context);
@@ -17,8 +20,11 @@ namespace Betauer.StateMachine {
     public abstract class BaseState : IState {
         public string Name { get; }
 
-        protected BaseState(string name) {
+        public IState? Parent { get; }
+
+        protected BaseState(IState? parent, string name) {
             Name = name;
+            Parent = parent;
         }
 
         public abstract NextState Execute(Context context);
@@ -30,46 +36,71 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class StateBuilder {
-        private Action<Context>? _start;
-        private Func<Context, NextState> _execute;
+    public class StateBuilder<T, TParent> where T : IStateMachine {
+        private Func<Context, Task>? _startFunc;
+        private Func<Context, NextState>? _execute;
         private Action? _end;
         private readonly string _name;
+        private Queue<StateBuilder<T, StateBuilder<T, TParent>>>? _pending;
+        private readonly TParent _parent;
 
-        internal StateBuilder(string name) {
+        internal StateBuilder(string name, TParent parent) {
             _name = name;
+            _parent = parent;
         }
 
-        public StateBuilder Enter(Action<Context> start) {
-            _start = start;
+        public StateBuilder<T, TParent> Enter(Action<Context> start) {
+            _startFunc = async context => start(context);
             return this;
         }
 
-        public StateBuilder Execute(Func<Context, NextState> execute) {
+        public StateBuilder<T, TParent> Enter(Func<Context, Task> start) {
+            _startFunc = start;
+            return this;
+        }
+
+        public StateBuilder<T, StateBuilder<T, TParent>> State(string name) {
+            _pending ??= new Queue<StateBuilder<T, StateBuilder<T, TParent>>>();
+            var stateBuilder = new StateBuilder<T, StateBuilder<T, TParent>>(name, this);
+            _pending.Enqueue(stateBuilder);
+            return stateBuilder;
+        }
+
+        public StateBuilder<T, TParent> Execute(Func<Context, NextState> execute) {
             _execute = execute;
             return this;
         }
 
-        public StateBuilder Exit(Action end) {
+        public StateBuilder<T, TParent> Exit(Action end) {
             _end = end;
             return this;
         }
 
-        internal IState Build() => new State(_name, _start, _execute, _end);
+        public TParent End() {
+            return _parent;
+        } 
+
+        internal IState Build(T stateMachine, IState? parent) {
+            IState state = new State(parent, _name, _startFunc, _execute, _end);
+            stateMachine.AddState(state);
+            if (_pending != null) {
+                while (_pending.Count > 0) {
+                    _pending.Dequeue().Build(stateMachine, state);
+                }
+            }
+            return state;
+        }
     }
 
     public class State : IState {
-        private readonly Action<Context>? _start;
-        private readonly Func<Context, NextState> _execute;
+        private readonly Func<Context, Task>? _start;
+        private readonly Func<Context, NextState>? _execute;
         private readonly Action? _end;
         public string Name { get; }
+        public IState? Parent { get; }
 
-
-        public State(string name, Func<Context, NextState> execute, Action? end = null) :
-            this(name, null, execute, end) {
-        }
-
-        public State(string name, Action<Context>? start, Func<Context, NextState> execute, Action? end = null) {
+        public State(IState? parent, string name, Func<Context, Task>? start = null, Func<Context, NextState>? execute = null, Action? end = null) {
+            Parent = parent;
             Name = name;
             _start = start;
             _execute = execute;
@@ -77,15 +108,25 @@ namespace Betauer.StateMachine {
         }
 
         public NextState Execute(Context context) {
-            return _execute(context);
+            if (_execute != null) {
+                // Console.WriteLine("Execute "+Name);
+                return _execute.Invoke(context);
+            }
+            return context.Current();
         }
 
-        public void Start(Context context) {
-            _start?.Invoke(context);
+        public async void Start(Context context) {
+            if (_start != null) {
+                // Console.WriteLine("Start "+Name);
+                await _start.Invoke(context);
+            }
         }
 
         public void End() {
-            _end?.Invoke();
+            if (_end != null) {
+                // Console.WriteLine("End " + Name);
+                _end.Invoke();
+            }
         }
     }
 }

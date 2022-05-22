@@ -71,17 +71,16 @@ namespace Veronenger.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
                 .AddButton("Resume", "Resume", (ctx) => {
-                    _gameManager.ClosePauseMenu();
+                    _gameManager.GoGaming();
                 })
                 .AddButton("Settings", "Settings",
-                    (ctx) => _gameManager.ShowSettingsMenu())
+                    (ctx) => _gameManager.ShowPauseMenuSettings())
                 .AddButton("QuitGame", "Quit game", async (ctx) => {
                     ctx.Menu.Save();
                     ctx.Menu.DisableButtons();
                     var result = await _gameManager.ModalBoxConfirmQuitGame();
                     ctx.Menu.Restore();
                     if (result) {
-                        _gameManager.ClosePauseMenu();
                         await _gameManager.ExitGameAndBackToMainMenu();
                     } else {
                         ctx.ActionButton.GrabFocus();
@@ -164,13 +163,13 @@ namespace Veronenger.Game.Controller.Menu {
             }
             if (UiCancel.IsEventPressed(@event)) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
-                    _gameManager.ClosePauseMenu();
+                    _gameManager.GoGaming();
                     GetTree().SetInputAsHandled();
                 } else {
                     _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
             } else if (UiStart.IsEventPressed(@event)) {
-                _gameManager.ClosePauseMenu();
+                _gameManager.GoGaming();
                 GetTree().SetInputAsHandled();
             }
         }

@@ -59,6 +59,8 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.IncludeTimestamp(true);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
 
+            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
+
             // Tools
             LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);

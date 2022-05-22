@@ -1,12 +1,25 @@
 namespace Betauer.StateMachine {
     public readonly struct NextState {
-        public readonly string Name;
+        public readonly string? Name;
         public readonly bool IsImmediate;
 
-        internal NextState(string name, bool isImmediate) {
+        internal NextState(string? name, bool isImmediate) {
             Name = name;
             IsImmediate = isImmediate;
         }
+        
+        public static NextState NextFrame(string name) {
+            return new NextState(name, false);
+        }
+
+        public static NextState Immediate(string name) {
+            return new NextState(name, true);
+        }
+
+        public static NextState PopNextFrame = new NextState(null, false);
+
+        public static NextState PopImmediate = new NextState(null, false);
+        
     }
 
     public class Context {
@@ -35,34 +48,25 @@ namespace Betauer.StateMachine {
             FrameCount++;
         }
 
-        public static NextState NextFrame(string name) {
-            // IState state = StateMachine.GetState(name);
-            return new NextState(name, false);
-        }
-
-        public static NextState Immediate(string name) {
-            // IState state = StateMachine.GetState(name);
-            return new NextState(name, true);
-        }
 
         public NextState Current() {
             return new NextState(CurrentState.Name, false);
         }
 
         public NextState ImmediateIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? Immediate(name) : Current();
+            return StateTimer.IsAlarm() ? NextState.Immediate(name) : Current();
         }
 
         public NextState ImmediateIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? Immediate(name) : Current();
+            return StateTimer.Elapsed > elapsed ? NextState.Immediate(name) : Current();
         }
 
         public NextState NextFrameIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? NextFrame(name) : Current();
+            return StateTimer.IsAlarm() ? NextState.NextFrame(name) : Current();
         }
 
         public NextState NextFrameIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? NextFrame(name) : Current();
+            return StateTimer.Elapsed > elapsed ? NextState.NextFrame(name) : Current();
         }
     }
 }

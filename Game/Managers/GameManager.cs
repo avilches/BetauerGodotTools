@@ -6,22 +6,14 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Screen;
+using Betauer.StateMachine;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
 using Veronenger.Game.Controller.UI;
 
 namespace Veronenger.Game.Managers {
-    /**
-     * GameManager es Node para estar en autoload y recibir eventos
-     * Crea automaticamente a los otros managers (Manager = siempre cargado)
-     * Los Controller son scripts de objetos de le escena que se cargan y se registran en los managers
-     *
-     * Los Manager actuan de intermediarios entre objetos que no se conocen entre si. Por ejemplo: las death zones,
-     * plataformas o stages se añaden en sus managers, que escucha a las señales que estos objetos producen.
-     * Por otro lado, el jugador se registra en estos mismos manager para escuchar estas señales, sin llegar a saber
-     * donde estan realmente estos objetos (plataformas o areas).
-     *
-     */
+
+
     [Singleton]
     public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
@@ -33,11 +25,11 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        public bool IsGamePaused() => CurrentState == State.PauseMenu;
-        public bool IsGaming() => CurrentState == State.Gaming;
-        public bool IsModal() => CurrentState == State.Modal;
-        public bool IsMainMenu() => CurrentState == State.MainMenu;
-        public bool IsSettings() => CurrentState == State.Settings;
+        public bool IsGamePaused() => _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.PauseMenu);
+        public bool IsGaming() =>_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.Gaming);
+        public bool IsMainMenu() =>_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenu);
+        public bool IsSettings() => _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenuSettings) ||
+                                    _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.PauseMenuSettings);
 
         public readonly Launcher Launcher = new Launcher();
 
@@ -45,65 +37,150 @@ namespace Veronenger.Game.Managers {
         [Inject] private ScreenManager _screenManager;
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
+        
+        
 
         public enum State {
             Loading,
             MainMenu,
+            MainMenuSettings,
+            StartGame,
             Gaming,
             PauseMenu,
-            Settings,
-            Modal
+            PauseMenuSettings
         }
 
-        private readonly Stack<State> _states = new Stack<State>();
-        public State CurrentState => _states.Peek();
+        private StateMachineNode _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            _screenManager.Start(ApplicationConfig.Configuration);
-            _states.Push(State.Loading);
             splashScreen.QueueFree();
-            Launcher.WithParent(GetTree().Root);
-            _mainMenuScene = _resourceManager.CreateMainMenu();
-            _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
-            _pauseMenuScene = _resourceManager.CreatePauseMenu();
-            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
+            _stateMachineNode = new StateMachineNode("GameManager", StateMachineNode.ProcessMode.Idle);
+            GetTree().Root.AddChild(_stateMachineNode);
+            _stateMachineNode.PauseMode = Node.PauseModeEnum.Process;
+            var builder = _stateMachineNode.CreateBuilder();
             
-            // Never pause the pause menu and the settings menu!
-            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(_pauseMenuScene);
-            GetTree().Root.AddChild(_settingsMenuScene);
+            
+            builder.State(nameof(State.Loading))
+                .Enter(context => {
+                    _screenManager.Start(ApplicationConfig.Configuration);
+                    Launcher.WithParent(GetTree().Root);
+                    _mainMenuScene = _resourceManager.CreateMainMenu();
+                    _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
+                    _pauseMenuScene = _resourceManager.CreatePauseMenu();
+                    _settingsMenuScene = _resourceManager.CreateSettingsMenu();
 
-            GetTree().Root.AddChild(_mainMenuScene); // Main menu shows itself in Ready
-            GetTree().Root.AddChild(_mainMenuBottomBarScene);
-            _states.Push(State.MainMenu);
+                    // Never pause the pause menu and the settings menu!
+                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
+                    GetTree().Root.AddChild(_pauseMenuScene);
+                    GetTree().Root.AddChild(_settingsMenuScene);
+
+                    GetTree().Root.AddChild(_mainMenuScene);
+                    GetTree().Root.AddChild(_mainMenuBottomBarScene);
+                })
+                .Execute(context => NextState.NextFrame(nameof(State.MainMenu)));
+
+            builder.State(nameof(State.MainMenu))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.Loading)) {
+                        _mainMenuScene.ShowMenu();
+                    } else if (context.FromState.Name == nameof(State.MainMenuSettings)) {
+                        _settingsMenuScene.HideSettingsMenu();
+                        _mainMenuScene.FocusSettings();
+                    } else if (context.FromState.Name == nameof(State.PauseMenu)) {
+                        _pauseMenuScene.HidePauseMenu();
+                        GetTree().Paused = false;
+                        _currentGameScene.PrintStrayNodes();
+                        _currentGameScene.QueueFree();
+                        _currentGameScene = null;
+                        await _mainMenuScene.ShowMenu();
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                });
+
+            builder.State(nameof(State.MainMenuSettings))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.MainMenu)) {
+                        await _settingsMenuScene.ShowSettingsMenu();
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                });
+
+            builder.State(nameof(State.PauseMenuSettings))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.PauseMenu)) {
+                        await _settingsMenuScene.ShowSettingsMenu();
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                });
+
+            builder.State(nameof(State.StartGame))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.MainMenu)) {
+                        await _mainMenuScene.HideMainMenu();
+                        _currentGameScene = _resourceManager.CreateWorld1();
+                        await AddSceneDeferred(_currentGameScene);
+                        AddPlayerToScene(_currentGameScene);
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                })
+                .Execute(context => NextState.Immediate(nameof(State.Gaming)));
+
+            builder.State(nameof(State.Gaming))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.PauseMenu)) {
+                        _pauseMenuScene.HidePauseMenu();
+                        GetTree().Paused = false;
+                    } else if (context.FromState.Name == nameof(State.StartGame)) {
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                });
+                
+            
+            builder.State(nameof(State.PauseMenu))
+                .Enter(async context => {
+                    if (context.FromState.Name == nameof(State.PauseMenuSettings)) {
+                        _settingsMenuScene.HideSettingsMenu();
+                        await _pauseMenuScene.ShowPauseMenu();
+                        _pauseMenuScene.FocusSettings();
+                    } else if (context.FromState.Name == nameof(State.Gaming)) {
+                        GetTree().Paused = true;
+                        await _pauseMenuScene.ShowPauseMenu();
+                    } else {
+                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
+                    }
+                });
+            
+            builder.Build();
+            _stateMachineNode.SetNextState(nameof(State.Loading));
+
         }
 
-        public async void StartGame() {
-            await _mainMenuScene.HideMainMenu();
-            _currentGameScene = _resourceManager.CreateWorld1();
-            await AddSceneDeferred(_currentGameScene);
-            AddPlayerToScene(_currentGameScene);
-            _states.Push(State.Gaming);
+        public void StartGame() {
+            _stateMachineNode.SetNextState(nameof(State.StartGame));
         }
 
-        public async void ShowPauseMenu() {
-            GetTree().Paused = true;
-            await _pauseMenuScene.ShowPauseMenu();
-            _states.Push(State.PauseMenu);
+        public void ShowPauseMenu() {
+            _stateMachineNode.SetNextState(nameof(State.PauseMenu));
         }
 
-        public async void ShowSettingsMenu() {
-            await _settingsMenuScene.ShowSettingsMenu();
-            _states.Push(State.Settings);
+        public void ShowPauseMenuSettings() {
+            _stateMachineNode.SetNextState(nameof(State.PauseMenuSettings));
+        }
+
+        public void ShowMainMenuSettings() {
+            _stateMachineNode.SetNextState(nameof(State.MainMenuSettings));
         }
 
         public void CloseSettingsMenu() {
-            _settingsMenuScene.HideSettingsMenu();
-            _states.Pop();
-            if (IsMainMenu()) {
-                _mainMenuScene.FocusSettings();
-            } else if (IsGamePaused()) {
-                _pauseMenuScene.FocusSettings();
+            if (_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenuSettings)) {
+                _stateMachineNode.SetNextState(nameof(State.MainMenu));
+            } else {
+                _stateMachineNode.SetNextState(nameof(State.PauseMenu));
             }
         }
 
@@ -120,29 +197,20 @@ namespace Veronenger.Game.Managers {
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
             GetTree().Root.AddChild(modalBoxConfirm);
-            _states.Push(State.Modal);
             var result = await modalBoxConfirm.AwaitResult();
-            _states.Pop();
             modalBoxConfirm.QueueFree();
             return result;
         }
 
-        public void ClosePauseMenu() {
-            _pauseMenuScene.HidePauseMenu();
-            GetTree().Paused = false;
-            _states.Pop();
+        public void GoGaming() {
+            _stateMachineNode.SetNextState(nameof(State.Gaming));
         }
 
         public async Task ExitGameAndBackToMainMenu() {
-            _currentGameScene.PrintStrayNodes();
-            _currentGameScene.QueueFree();
-            _currentGameScene = null;
-            _states.Pop();
-            await _mainMenuScene.ShowMenu();
+            _stateMachineNode.SetNextState(nameof(State.MainMenu));
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
-            _states.Push(State.Loading);
             _stageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
@@ -150,7 +218,6 @@ namespace Veronenger.Game.Managers {
             await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
-            _states.Pop();
         }
 
         private void AddPlayerToScene(Node nextScene) {
