@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class StateMachineTests : NodeTest {
         [Test(Description = "Regular change between root states with immediate or next frame using inside every state")]
         public async Task StateMachinePlainFlow() {
@@ -84,6 +85,7 @@ namespace Betauer.Tests {
         }
 
         [Test(Description = "Changes with nested states using stateMachine change methods")]
+        [Ignore("Incomplete")]
         public void BaseState() {
             var sm = new StateMachine.StateMachine(this, "X");
 
@@ -97,11 +99,28 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        public void AsyncActions() {
+        public async Task WrongStates() {
             var sm = new StateMachine.StateMachine(this, "X")
                 .CreateBuilder()
-                .State("A").Execute(context => context.Immediate("B")).End()
-                .State("B").Execute(context => context.Immediate("A")).End()
+                .State("A").End()
+                .Build();
+
+            Assert.ThrowsAsync<Exception>(async () => await sm.Execute(0f));
+            Assert.Throws<Exception>((() => sm.PopNextState()));
+            
+            sm.PushNextState("A");
+            await sm.Execute(0f);
+            Assert.That(sm.CurrentState.Name, Is.EqualTo("A"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { "A" }));
+            Assert.Throws<Exception>((() => sm.PopNextState()));
+        }
+
+        [Test]
+        public void InfiniteLoopChangeAsync() {
+            var sm = new StateMachine.StateMachine(this, "X")
+                .CreateBuilder()
+                .State("A").Execute(async context => context.Immediate("B")).End()
+                .State("B").Execute(async context => context.Immediate("A")).End()
                 .Build();
 
             sm.SetNextState("A");
@@ -121,12 +140,23 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        public void InfiniteLoopPushPop() {
+        public void InfiniteLoopPopPushAsync() {
             var sm = new StateMachine.StateMachine(this, "X")
                 .CreateBuilder()
-                .State("N1").Execute(context => context.Immediate("N2"))
-                    .State("N2").Execute(context => context.PopImmediate()).End()
-                .End()
+                .State("N1").Execute(async context => context.PushImmediate("N2")).End()
+                .State("N2").Execute(async context => context.PopImmediate()).End()
+                .Build();
+
+            sm.SetNextState("N1");
+            Assert.ThrowsAsync<StackOverflowException>(async () => await sm.Execute(0f));
+        }
+        
+        [Test]
+        public void InfiniteLoopPopPush() {
+            var sm = new StateMachine.StateMachine(this, "X")
+                .CreateBuilder()
+                .State("N1").Execute(context => context.PushImmediate("N2")).End()
+                .State("N2").Execute(context => context.PopImmediate()).End()
                 .Build();
 
             sm.SetNextState("N1");
@@ -139,73 +169,68 @@ namespace Betauer.Tests {
 
             var sm = builder
                 .State("Debug").End()
-                .State("MainMenu")
-                    .State("Settings")
-                        .State("Audio").End()
-                        .State("Video").End()
-                    .End()
-                .End()
+                .State("MainMenu").End()
+                .State("Settings").End()
+                .State("Audio").End()
+                .State("Video").End()
                 .Build();
-
-            Assert.That(sm.FindState("Debug").Parent, Is.Null);
-            Assert.That(sm.FindState("MainMenu").Parent, Is.Null);
-            Assert.That(sm.FindState("Settings").Parent, Is.EqualTo(sm.FindState("MainMenu")));
-            Assert.That(sm.FindState("Audio").Parent, Is.EqualTo(sm.FindState("Settings")));
-            Assert.That(sm.FindState("Video").Parent, Is.EqualTo(sm.FindState("Settings")));
 
             // Wrong initial state
             Assert.ThrowsAsync<Exception>(async () => await sm.Execute(0f));
 
             Assert.Throws<Exception>((() => sm.PopNextState()));
-            Assert.Throws<Exception>((() => sm.SetNextState("Settings")));
-            Assert.Throws<Exception>((() => sm.SetNextState("Audio")));
             sm.SetNextState("Debug");
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("Debug"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"Debug"}));
 
             // Wrong next states from Debug
             Assert.Throws<Exception>((() => sm.PopNextState()));
-            Assert.Throws<Exception>((() => sm.SetNextState("Settings")));
-            Assert.Throws<Exception>((() => sm.SetNextState("Audio")));
-            Assert.Throws<Exception>((() => sm.SetNextState("Video")));
 
             // Debug to MainMenu (sibling)
             sm.SetNextState("MainMenu");
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu"}));
 
             // Wrong next states from MainMenu
             Assert.Throws<Exception>((() => sm.PopNextState()));
-            Assert.Throws<Exception>((() => sm.SetNextState("Audio")));
-            Assert.Throws<Exception>((() => sm.SetNextState("Video")));
 
             // MainMenu to Settings (child)
-            sm.SetNextState("Settings");
+            sm.PushNextState("Settings");
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("Settings"));
-            Assert.Throws<Exception>((() => sm.SetNextState("Debug")));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings"}));
 
             // Settings to Audio (child)
-            sm.SetNextState("Audio");
+            sm.PushNextState("Audio");
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("Audio"));
-            Assert.Throws<Exception>((() => sm.SetNextState("MainMenu")));
-            Assert.Throws<Exception>((() => sm.SetNextState("Debug")));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings", "Audio"}));
+
+            // Settings to Audio (child)
+            sm.PopPushNextState("Video");
+            await sm.Execute(0f);
+            Assert.That(sm.CurrentState.Name, Is.EqualTo("Video"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings", "Video"}));
 
             // POP: Audio to Settings (parent)
-            sm.SetNextState("Settings");
+            sm.PopNextState();
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("Settings"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings"}));
 
             // POP: Settings to MainMenu (parent)
             sm.PopNextState();
             await sm.Execute(0f);
             Assert.That(sm.CurrentState.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu"}));
+
             Assert.Throws<Exception>(() => sm.PopNextState());
         }
         
         [Test]
-        public async Task NestedStatesPushPopFlow() {
+        public async Task EnterOnPushExitOnPop() {
             var builder = new StateMachine.StateMachine(this, "X").CreateBuilder();
             List<string> states = new List<string>();
 
@@ -235,6 +260,7 @@ namespace Betauer.Tests {
                 .Exit(()=>{
                     states.Add("MainMenu:end");
                 })
+                .End()
                 .State("Settings")
                 .Enter(async context => {
                     states.Add("Settings:start");
@@ -247,6 +273,7 @@ namespace Betauer.Tests {
                 .Exit(async () =>{
                     states.Add("Settings:end");
                 })
+                .End()
                 .State("Audio")
                 .Enter(context => {
                     states.Add("Audio:start");
@@ -272,41 +299,56 @@ namespace Betauer.Tests {
                     states.Add("Video:end");
                 })
                 .End()
-                .End()
-                .End()
                 .Build();
 
             sm.SetNextState("Debug");
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(", ", states));
+            Console.WriteLine(String.Join(",", states));
             sm.SetNextState("MainMenu");
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(", ", states));
-            sm.SetNextState("Settings");
+            Console.WriteLine(String.Join(",", states));
+            sm.PushNextState("Settings");
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(", ", states));
-            sm.SetNextState("Audio");
+            Console.WriteLine(String.Join(",", states));
+            sm.PushNextState("Audio");
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(", ", states));
-            sm.SetNextState("Video");
+            Console.WriteLine(String.Join(",", states));
+            sm.PopPushNextState("Video");
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(",", states));
+            Console.WriteLine(String.Join(",", states));
             sm.PopNextState();
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(",", states));
+            Console.WriteLine(String.Join(",", states));
             sm.PopNextState();
             await sm.Execute(0f);
-            // Console.WriteLine(String.Join(",", states));
-            
+            Console.WriteLine(String.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "Debug:start,Debug,Debug:end," +
                 "MainMenu:start,MainMenu," +
-                    "Settings:start," +
-                    "Settings," +
+                    "Settings:start,Settings," +
                         "Audio:start,Audio,Audio:end," +
                         "Video:start,Video,Video:end," +
                     "Settings,Settings:end," +
                 "MainMenu"));
+            
+            
+            states.Clear();
+            sm.PushNextState("Settings");
+            await sm.Execute(0f);
+            sm.PushNextState("Audio");
+            await sm.Execute(0f);
+            sm.PushNextState("Video");
+            await sm.Execute(0f);
+            sm.SetNextState("Debug");
+            await sm.Execute(0f);
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo(
+                "Settings:start,Settings," +
+                    "Audio:start,Audio," +
+                        "Video:start,Video," +
+                        "Video:end,Audio:end,Settings:end,MainMenu:end," +
+                "Debug:start,Debug"));
+            
         }
 
         [Test]

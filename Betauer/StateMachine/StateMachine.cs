@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Collections;
 using Godot;
@@ -10,9 +11,12 @@ namespace Betauer.StateMachine {
         public IStateMachine AddState(IState state);
         public IState FindState(string name);
         public IStateMachine SetNextState(string nextState);
+        public IStateMachine PushNextState(string nextState);
+        public IStateMachine PopPushNextState(string nextState);
+        public IStateMachine PopNextState();
         public Task Execute(float delta);
         public IState CurrentState { get; }
-        public Transition Transition { get; }
+        public StateChange Transition { get; }
 
     }
 
@@ -48,8 +52,10 @@ namespace Betauer.StateMachine {
         internal readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
         internal readonly Stack<IState> StackState = new Stack<IState>();
 
-        public Transition Transition { get; set;  }
+        public StateChange Transition { get; set;  }
         private readonly Context _currentContext;
+        private readonly Stack<IState> _stack = new Stack<IState>();
+        public string[] GetStack() => _stack.Reverse().Select(e => e.Name).ToArray();
         public IState CurrentState => _currentContext.CurrentState;
 
         public StateMachine(Node owner, string name) {
@@ -73,16 +79,25 @@ namespace Betauer.StateMachine {
             return States[stateTypeName];
         }
 
-        public IStateMachine PopNextState() {
-            Transition = Validate(StateChange.CreatePopFrame());
-            return this;
-        }
-
         public IStateMachine SetNextState(string nextState) {
             Transition = Validate(StateChange.CreateNextFrame(nextState));
             return this;
         }
 
+        public IStateMachine PushNextState(string nextState) {
+            Transition = Validate(StateChange.CreatePushNextFrame(nextState));
+            return this;
+        }
+
+        public IStateMachine PopPushNextState(string nextState) {
+            Transition = Validate(StateChange.CreatePopPushNextFrame(nextState));
+            return this;
+        }
+
+        public IStateMachine PopNextState() {
+            Transition = Validate(StateChange.CreatePopNextFrame());
+            return this;
+        }
 
         public async Task Execute(float delta) {
             if (_disposed) return;
@@ -106,58 +121,60 @@ namespace Betauer.StateMachine {
             }
         }
 
-        private Transition Validate(StateChange candidate) {
-            if (candidate.Name == null) {
-                // Pop
-                if (CurrentState?.Parent == null) {
+        private StateChange Validate(StateChange candidate) {
+            if (candidate.Type == StateChange.TransitionType.Change && CurrentState?.Name == candidate.Name) {
+                return candidate.IsImmediate ? StateChange._CreateImmediateNone() : StateChange.CreateNone();
+            }
+            if (candidate.Type == StateChange.TransitionType.Pop) {
+                if (_stack.Count <= 1) {
                     throw new Exception("Can't pop state from a root or null state (there is no parent to go!)");
                 }
-                return new Transition(CurrentState.Parent, Transition.TransitionType.Pop, candidate.IsImmediate);
+                var o = _stack.Pop();
+                candidate = candidate.WithState(_stack.Peek());
+                _stack.Push(o);
+                return candidate;
+            }
+            if (candidate.Type == StateChange.TransitionType.None) {
+                return candidate.WithState(_stack.Peek());
             }
             IState newState = FindState(candidate.Name);
-            if (CurrentState == null) {
-                if (newState.Parent != null) {
-                    throw new Exception("Only root (non-nested) states are allowed");
-                }
-                return new Transition(newState, Transition.TransitionType.Push, candidate.IsImmediate);
-            }
-            if (newState == CurrentState) {
-                return new Transition(newState, Transition.TransitionType.None, candidate.IsImmediate);
-            }
-            if (newState.Parent == CurrentState.Parent) {
-                return new Transition(newState, Transition.TransitionType.Change, candidate.IsImmediate);
-            }
-            if (newState.Parent == CurrentState) {
-                return new Transition(newState, Transition.TransitionType.Push, candidate.IsImmediate);
-            }
-            if (newState == CurrentState.Parent) {
-                return new Transition(newState, Transition.TransitionType.Pop, candidate.IsImmediate);
-            }
-            throw new Exception("Only parent, siblings or child states are allowed");
+            return candidate.WithState(newState);
         }
 
         private async Task _ExitPreviousStateIfNeeded() {
             if (_disposed) return;
             if (_currentContext.CurrentState == null ||
-                Transition.Type == Transition.TransitionType.None ||
-                Transition.Type == Transition.TransitionType.Push) return;
+                Transition.Type == StateChange.TransitionType.None ||
+                Transition.Type == StateChange.TransitionType.Push) return;
             // Exit the current state
             Logger.Debug($"Exit: \"{_currentContext.CurrentState.Name}\"");
+            _stack.Pop();
             await _currentContext.CurrentState.Exit();
+            if (Transition.Type == StateChange.TransitionType.Change) {
+                while (_stack.Count > 0) {
+                    Logger.Debug($"Exit: \"{_stack.Peek().Name}\"");
+                    await _stack.Pop().Exit();                    
+                }
+            }
         }
 
         private async Task _EnterNextStateIfNeeded(IState initialState, ICollection<string> immediateChanges) {
             if (_disposed) return;
-            if (Transition.Type == Transition.TransitionType.None) return;
+            if (Transition.Type == StateChange.TransitionType.None) return;
             // Change the current state
             Logger.Debug($"{Transition.Type} State: \"{Transition.State.Name}\"");
             immediateChanges.Add(Transition.State.Name);
             CheckImmediateChanges(initialState, immediateChanges);
             // To avoid having null as from state, the first execution from state = current state
             var fromState = _currentContext.CurrentState ?? Transition.State;
+            // TODO: Cuando hay un POP, no se ejecuta el enter pero se resetea todo (el timer por ejemplo)
+            // El context deberia ser un stack tambien
             _currentContext.Reset(Transition.State, fromState);
 
-            if (Transition.Type == Transition.TransitionType.Pop) return;
+            if (Transition.Type == StateChange.TransitionType.Pop) {
+                return;
+            }
+            _stack.Push(Transition.State);
             // Push or Change: enter the new state
             Logger.Debug($"Enter: \"{Transition.State.Name}\"");
             await Transition.State.Enter(_currentContext);

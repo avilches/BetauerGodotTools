@@ -19,7 +19,7 @@ namespace Betauer.StateMachine {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1,1);
         public readonly IStateMachine StateMachine;
         public IState CurrentState => StateMachine.CurrentState;
-        public Transition Transition => StateMachine.Transition;
+        public StateChange Transition => StateMachine.Transition;
         public ProcessMode Mode { get; set; } = ProcessMode.Idle;
         
         private Func<float, Task>? _beforeExecute;
@@ -50,6 +50,19 @@ namespace Betauer.StateMachine {
         public IStateMachine SetNextState(string nextState) {
             return StateMachine.SetNextState(nextState);
         }
+
+        public IStateMachine PushNextState(string nextState) {
+            return StateMachine.PushNextState(nextState);
+        }
+
+        public IStateMachine PopPushNextState(string nextState) {
+            return StateMachine.PopPushNextState(nextState);
+        }
+
+        public IStateMachine PopNextState() {
+            return StateMachine.PopNextState();
+        }
+
 
         public async Task Execute(float delta) {
             var canEnter = await _semaphoreSlim.WaitAsync(0);
