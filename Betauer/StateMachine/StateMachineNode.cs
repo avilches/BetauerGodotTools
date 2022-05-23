@@ -27,6 +27,7 @@ namespace Betauer.StateMachine {
             StateMachine = new StateMachine(this, name);
             Mode = mode;
         }
+
         public StateMachineNode(IStateMachine stateMachine, ProcessMode mode) {
             StateMachine = stateMachine;
             Mode = mode;
@@ -55,11 +56,19 @@ namespace Betauer.StateMachine {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) Execute(delta);
+            if (Mode == ProcessMode.Physics) {
+                Execute(delta);
+            } else {
+                SetPhysicsProcess(false);
+            }
         }
 
         public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) Execute(delta);
+            if (Mode == ProcessMode.Idle) {
+                Execute(delta);
+            } else {
+                SetProcess(false);
+            }
         }
 
         public StateMachineNode BeforeExecute(Action<float> beforeExecute) {
