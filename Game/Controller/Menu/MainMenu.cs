@@ -56,7 +56,7 @@ namespace Veronenger.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
                 .AddButton("Start", "Start", (ctx) => {
-                    _gameManager.StartGame();
+                    _gameManager.xStartGame();
                     // var continueButton = ctx.Menu.GetButton("Continue");
                     // continueButton!.Disabled = !continueButton.Disabled;
                     // await _launcher.Play(Template.FadeIn, continueButton, 0f,

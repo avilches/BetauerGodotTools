@@ -25,11 +25,19 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        public bool IsGamePaused() => _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.PauseMenu);
-        public bool IsGaming() =>_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.Gaming);
-        public bool IsMainMenu() =>_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenu);
-        public bool IsSettings() => _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenuSettings) ||
-                                    _stateMachineNode.StateMachine.CurrentState.Name == nameof(State.PauseMenuSettings);
+        public const string Loading = nameof(Loading);
+        public const string MainMenu = nameof(MainMenu);
+        public const string MainMenuSettings = nameof(MainMenuSettings);
+        public const string StartGame = nameof(StartGame);
+        public const string Gaming = nameof(Gaming);
+        public const string PauseMenu = nameof(PauseMenu);
+        public const string PauseMenuSettings = nameof(PauseMenuSettings);
+
+        public bool IsGamePaused() => _stateMachineNode.StateMachine.CurrentState.Name == PauseMenu;
+        public bool IsGaming() =>_stateMachineNode.StateMachine.CurrentState.Name == Gaming;
+        public bool IsMainMenu() =>_stateMachineNode.StateMachine.CurrentState.Name == MainMenu;
+        public bool IsSettings() => _stateMachineNode.StateMachine.CurrentState.Name == MainMenuSettings ||
+                                    _stateMachineNode.StateMachine.CurrentState.Name == PauseMenuSettings;
 
         public readonly Launcher Launcher = new Launcher();
 
@@ -40,15 +48,6 @@ namespace Veronenger.Game.Managers {
         
         
 
-        public enum State {
-            Loading,
-            MainMenu,
-            MainMenuSettings,
-            StartGame,
-            Gaming,
-            PauseMenu,
-            PauseMenuSettings
-        }
 
         private StateMachineNode _stateMachineNode;
 
@@ -58,9 +57,8 @@ namespace Veronenger.Game.Managers {
             GetTree().Root.AddChild(_stateMachineNode);
             _stateMachineNode.PauseMode = Node.PauseModeEnum.Process;
             var builder = _stateMachineNode.CreateBuilder();
-            
-            
-            builder.State(nameof(State.Loading))
+
+            builder.State(Loading)
                 .Enter(context => {
                     _screenManager.Start(ApplicationConfig.Configuration);
                     Launcher.WithParent(GetTree().Root);
@@ -77,110 +75,85 @@ namespace Veronenger.Game.Managers {
                     GetTree().Root.AddChild(_mainMenuScene);
                     GetTree().Root.AddChild(_mainMenuBottomBarScene);
                 })
-                .Execute(context => context.NextFrame(nameof(State.MainMenu)));
-
-            builder.State(nameof(State.MainMenu))
+                .Execute(context => context.NextFrame(MainMenu))
+                .State(MainMenu)
                 .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.Loading)) {
-                        _mainMenuScene.ShowMenu();
-                    } else if (context.FromState.Name == nameof(State.MainMenuSettings)) {
-                        _settingsMenuScene.HideSettingsMenu();
-                        _mainMenuScene.FocusSettings();
-                    } else if (context.FromState.Name == nameof(State.PauseMenu)) {
-                        _pauseMenuScene.HidePauseMenu();
-                        GetTree().Paused = false;
-                        _currentGameScene.PrintStrayNodes();
-                        _currentGameScene.QueueFree();
-                        _currentGameScene = null;
-                        await _mainMenuScene.ShowMenu();
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
-                });
-
-            builder.State(nameof(State.MainMenuSettings))
-                .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.MainMenu)) {
-                        await _settingsMenuScene.ShowSettingsMenu();
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
-                });
-
-            builder.State(nameof(State.PauseMenuSettings))
-                .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.PauseMenu)) {
-                        await _settingsMenuScene.ShowSettingsMenu();
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
-                });
-
-            builder.State(nameof(State.StartGame))
-                .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.MainMenu)) {
-                        await _mainMenuScene.HideMainMenu();
-                        _currentGameScene = _resourceManager.CreateWorld1();
-                        await AddSceneDeferred(_currentGameScene);
-                        AddPlayerToScene(_currentGameScene);
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
+                    await _mainMenuScene.ShowMenu();
                 })
-                .Execute(context => context.Immediate(nameof(State.Gaming)));
+                .State(MainMenuSettings)
+                .Enter(async context => {
+                    await _settingsMenuScene.ShowSettingsMenu();
+                })
+                .Exit(() => {
+                    _settingsMenuScene.HideSettingsMenu();
+                    _mainMenuScene.FocusSettings();
+                })
+                .End()
+                .State(StartGame)
+                .Enter(async context => {
+                    await _mainMenuScene.HideMainMenu();
+                    _currentGameScene = _resourceManager.CreateWorld1();
+                    await AddSceneDeferred(_currentGameScene);
+                    AddPlayerToScene(_currentGameScene);
+                })
+                .Execute(context => context.Immediate(Gaming))
+                .End()
+                .State(Gaming)
+                .Enter(async context => {
+                })
+                .Exit(async () => {
+                    _currentGameScene.PrintStrayNodes();
+                    _currentGameScene.QueueFree();
+                    _currentGameScene = null;
+                    await _mainMenuScene.ShowMenu();
+                })
+                .State(PauseMenu)
+                .Enter(async context => {
+                    GetTree().Paused = true;
+                    await _pauseMenuScene.ShowPauseMenu();
+                })
+                .Exit(async () => {
+                    _pauseMenuScene.HidePauseMenu();
+                    GetTree().Paused = false;
+                })
+                .State(PauseMenuSettings)
+                .Enter(async context => {
+                    await _settingsMenuScene.ShowSettingsMenu();
+                })
+                .Exit(async () => {
+                    _settingsMenuScene.HideSettingsMenu();
+                    await _pauseMenuScene.ShowPauseMenu();
+                    _pauseMenuScene.FocusSettings();
+                })
+                .End();
 
-            builder.State(nameof(State.Gaming))
-                .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.PauseMenu)) {
-                        _pauseMenuScene.HidePauseMenu();
-                        GetTree().Paused = false;
-                    } else if (context.FromState.Name == nameof(State.StartGame)) {
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
-                });
-                
-            
-            builder.State(nameof(State.PauseMenu))
-                .Enter(async context => {
-                    if (context.FromState.Name == nameof(State.PauseMenuSettings)) {
-                        _settingsMenuScene.HideSettingsMenu();
-                        await _pauseMenuScene.ShowPauseMenu();
-                        _pauseMenuScene.FocusSettings();
-                    } else if (context.FromState.Name == nameof(State.Gaming)) {
-                        GetTree().Paused = true;
-                        await _pauseMenuScene.ShowPauseMenu();
-                    } else {
-                        Console.WriteLine("WAAAT??? " + context.FromState.Name);
-                    }
-                });
             
             builder.Build();
-            _stateMachineNode.SetNextState(nameof(State.Loading));
+            _stateMachineNode.SetNextState(Loading);
 
         }
 
-        public void StartGame() {
-            _stateMachineNode.SetNextState(nameof(State.StartGame));
+        public void xStartGame() {
+            _stateMachineNode.SetNextState(StartGame);
         }
 
         public void ShowPauseMenu() {
-            _stateMachineNode.SetNextState(nameof(State.PauseMenu));
+            _stateMachineNode.SetNextState(PauseMenu);
         }
 
         public void ShowPauseMenuSettings() {
-            _stateMachineNode.SetNextState(nameof(State.PauseMenuSettings));
+            _stateMachineNode.SetNextState(PauseMenuSettings);
         }
 
         public void ShowMainMenuSettings() {
-            _stateMachineNode.SetNextState(nameof(State.MainMenuSettings));
+            _stateMachineNode.SetNextState(MainMenuSettings);
         }
 
         public void CloseSettingsMenu() {
-            if (_stateMachineNode.StateMachine.CurrentState.Name == nameof(State.MainMenuSettings)) {
-                _stateMachineNode.SetNextState(nameof(State.MainMenu));
+            if (_stateMachineNode.StateMachine.CurrentState.Name == MainMenuSettings) {
+                _stateMachineNode.SetNextState(MainMenu);
             } else {
-                _stateMachineNode.SetNextState(nameof(State.PauseMenu));
+                _stateMachineNode.SetNextState(PauseMenu);
             }
         }
 
@@ -203,11 +176,11 @@ namespace Veronenger.Game.Managers {
         }
 
         public void GoGaming() {
-            _stateMachineNode.SetNextState(nameof(State.Gaming));
+            _stateMachineNode.SetNextState(Gaming);
         }
 
         public async Task ExitGameAndBackToMainMenu() {
-            _stateMachineNode.SetNextState(nameof(State.MainMenu));
+            _stateMachineNode.SetNextState(MainMenu);
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {

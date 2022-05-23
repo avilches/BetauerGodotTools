@@ -13,10 +13,10 @@ namespace Betauer.StateMachine {
         public Task Exit();
     }
 
-    public abstract class State : IState {
+    public abstract class BaseState : IState {
         public string Name { get; }
         public IState? Parent { get; }
-        protected State(IState? parent, string name) {
+        protected BaseState(IState? parent, string name) {
             Name = name;
             Parent = parent;
         }
@@ -29,14 +29,14 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class ActionState : State {
+    public class State : BaseState {
         private readonly Func<Context, Task>? _enter;
         private readonly Func<Context, Task<StateChange>>? _execute;
         private readonly Func<Task>? _exit;
         public string Name { get; }
         public IState? Parent { get; }
 
-        public ActionState(IState? parent, string name, Func<Context, Task>? enter = null, Func<Context, Task<StateChange>>? execute = null, Func<Task>? exit = null) : base(parent, name) {
+        public State(IState? parent, string name, Func<Context, Task>? enter = null, Func<Context, Task<StateChange>>? execute = null, Func<Task>? exit = null) : base(parent, name) {
             _enter = enter;
             _execute = execute;
             _exit = exit;
@@ -118,7 +118,7 @@ namespace Betauer.StateMachine {
         } 
 
         internal IState Build(T stateMachine, IState? parent) {
-            IState state = new ActionState(parent, _name, _enter, _execute, _exit);
+            IState state = new State(parent, _name, _enter, _execute, _exit);
             stateMachine.AddState(state);
             if (_pending != null) {
                 while (_pending.Count > 0) {
