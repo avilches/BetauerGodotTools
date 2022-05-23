@@ -12,7 +12,7 @@ namespace Betauer.UI {
 
         private readonly Container _baseHolder;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
-        private readonly LinkedList<ActionState> _navigationState = new LinkedList<ActionState>();
+        private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
         public ActionMenu? ActiveMenu { get; private set; } = null;
 
@@ -53,7 +53,7 @@ namespace Betauer.UI {
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             ActionMenu toMenu = GetMenu(toMenuName);
-            _navigationState.AddLast(new ActionState(ActiveMenu, fromButton));
+            _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
 
             ActionButton? toButton = toButtonName != null ? toMenu.GetButton(toButtonName) : null;
             MenuTransition transition = new MenuTransition(fromButton.Menu, fromButton, toMenu, toButton);
@@ -74,7 +74,7 @@ namespace Betauer.UI {
                 // back from root menu!
                 return;
             }
-            ActionState lastState = _navigationState.Last();
+            MenuState lastState = _navigationState.Last();
             _navigationState.RemoveLast();
             ActionMenu fromMenu = fromButton != null ? fromButton.Menu : ActiveMenu;
             ActionMenu toMenu = lastState.Menu;
@@ -506,11 +506,11 @@ namespace Betauer.UI {
         }
     }
 
-    internal class ActionState {
+    internal class MenuState {
         internal readonly ActionMenu Menu;
         internal readonly ActionButton Button;
 
-        internal ActionState(ActionMenu menu, ActionButton button) {
+        internal MenuState(ActionMenu menu, ActionButton button) {
             Menu = menu;
             Button = button;
         }

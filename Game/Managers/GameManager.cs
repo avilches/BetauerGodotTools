@@ -77,7 +77,7 @@ namespace Veronenger.Game.Managers {
                     GetTree().Root.AddChild(_mainMenuScene);
                     GetTree().Root.AddChild(_mainMenuBottomBarScene);
                 })
-                .Execute(context => NextState.NextFrame(nameof(State.MainMenu)));
+                .Execute(context => context.NextFrame(nameof(State.MainMenu)));
 
             builder.State(nameof(State.MainMenu))
                 .Enter(async context => {
@@ -127,7 +127,7 @@ namespace Veronenger.Game.Managers {
                         Console.WriteLine("WAAAT??? " + context.FromState.Name);
                     }
                 })
-                .Execute(context => NextState.Immediate(nameof(State.Gaming)));
+                .Execute(context => context.Immediate(nameof(State.Gaming)));
 
             builder.State(nameof(State.Gaming))
                 .Enter(async context => {

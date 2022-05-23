@@ -1,25 +1,38 @@
 namespace Betauer.StateMachine {
-    public readonly struct NextState {
+    public readonly struct Transition {
+        public enum TransitionType {
+            Push,
+            Pop,
+            Change,
+            None
+        }
+        public readonly IState State;
+        public readonly TransitionType Type;
+        public readonly bool IsImmediate;
+
+        public Transition(IState state, TransitionType type, bool isImmediate) {
+            State = state;
+            Type = type;
+            IsImmediate = isImmediate;
+        }
+    }
+
+    public readonly struct StateChange {
         public readonly string? Name;
         public readonly bool IsImmediate;
 
-        internal NextState(string? name, bool isImmediate) {
+        public static StateChange CreatePopFrame() => new StateChange(null, false);
+
+        public static StateChange CreatePopImmediate() => new StateChange(null, true);
+
+        public static StateChange CreateNextFrame(string name) => new StateChange(name, false);
+
+        public static StateChange CreateImmediate(string name) => new StateChange(name, true);
+
+        internal StateChange(string? name, bool isImmediate) {
             Name = name;
             IsImmediate = isImmediate;
         }
-        
-        public static NextState NextFrame(string name) {
-            return new NextState(name, false);
-        }
-
-        public static NextState Immediate(string name) {
-            return new NextState(name, true);
-        }
-
-        public static NextState PopNextFrame = new NextState(null, false);
-
-        public static NextState PopImmediate = new NextState(null, false);
-        
     }
 
     public class Context {
@@ -48,25 +61,32 @@ namespace Betauer.StateMachine {
             FrameCount++;
         }
 
+        public StateChange NextFrame(string name) => StateChange.CreateNextFrame(name);
 
-        public NextState Current() {
-            return new NextState(CurrentState.Name, false);
+        public StateChange Immediate(string name) => StateChange.CreateImmediate(name);
+
+        public StateChange PopFrame() => StateChange.CreatePopFrame();
+
+        public StateChange PopImmediate() => StateChange.CreatePopImmediate();
+
+        public StateChange Repeat() {
+            return new StateChange(CurrentState.Name, false);
         }
 
-        public NextState ImmediateIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? NextState.Immediate(name) : Current();
+        public StateChange ImmediateIfAlarm(string name) {
+            return StateTimer.IsAlarm() ? Immediate(name) : Repeat();
         }
 
-        public NextState ImmediateIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? NextState.Immediate(name) : Current();
+        public StateChange ImmediateIfElapsed(float elapsed, string name) {
+            return StateTimer.Elapsed > elapsed ? Immediate(name) : Repeat();
         }
 
-        public NextState NextFrameIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? NextState.NextFrame(name) : Current();
+        public StateChange NextFrameIfAlarm(string name) {
+            return StateTimer.IsAlarm() ? NextFrame(name) : Repeat();
         }
 
-        public NextState NextFrameIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? NextState.NextFrame(name) : Current();
+        public StateChange NextFrameIfElapsed(float elapsed, string name) {
+            return StateTimer.Elapsed > elapsed ? NextFrame(name) : Repeat();
         }
     }
 }

@@ -67,37 +67,37 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!_enemyZombieController.IsOnFloor()) {
                         _enemyZombieController.AnimationIdle.PlayLoop();
                         Body.Fall();
-                        return context.Current();
+                        return context.Repeat();
                     }
 
                     if (_patrolTimer.IsAlarm()) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return NextState.Immediate(Idle);
+                            return context.Immediate(Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
                             Body.MoveSnapping();
                         }
-                        return context.Current();
+                        return context.Repeat();
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return NextState.NextFrame(PatrolWait);
+                        return context.NextFrame(PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
                         MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
                     Body.LimitMotion();
                     Body.MoveSnapping();
-                    return context.Current();
+                    return context.Repeat();
                 });
 
             builder.State(PatrolWait)
                 .Enter(context => { })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return NextState.Immediate(PatrolStep);
+                        return context.Immediate(PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
@@ -111,7 +111,7 @@ namespace Veronenger.Game.Character.Enemy {
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
                         Body.Fall();
-                        return context.Current();
+                        return context.Repeat();
                     }
 
                     if (!Body.IsOnMovingPlatform()) {
@@ -139,7 +139,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!_enemyZombieController.AnimationDieRight.Playing && !_enemyZombieController.AnimationDieLeft.Playing) {
                         _enemyZombieController.QueueFree();
                     }
-                    return context.Current();
+                    return context.Repeat();
                 })
                 ;
 

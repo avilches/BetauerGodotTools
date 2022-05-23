@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.StateMachine {
@@ -14,14 +16,14 @@ namespace Betauer.StateMachine {
             /// </summary>
             Idle,
         }
-
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1,1);
         public readonly IStateMachine StateMachine;
         public IState CurrentState => StateMachine.CurrentState;
-        public NextState NextState => StateMachine.NextState;
+        public Transition Transition => StateMachine.Transition;
         public ProcessMode Mode { get; set; } = ProcessMode.Idle;
         
-        private Action<float>? _beforeExecute;
-        private Action<float>? _afterExecute;
+        private Func<float, Task>? _beforeExecute;
+        private Func<float, Task>? _afterExecute;
 
         public StateMachineNode(string name, ProcessMode mode) {
             StateMachine = new StateMachine(this, name);
@@ -49,33 +51,51 @@ namespace Betauer.StateMachine {
             return StateMachine.SetNextState(nextState);
         }
 
-        public void Execute(float delta) {
-            _beforeExecute?.Invoke(delta);
-            StateMachine.Execute(delta);
-            _afterExecute?.Invoke(delta);
+        public async Task Execute(float delta) {
+            var canEnter = await _semaphoreSlim.WaitAsync(0);
+            if (!canEnter) {
+                return;
+            }
+            try {
+                if (_beforeExecute != null) await _beforeExecute.Invoke(delta);
+                await StateMachine.Execute(delta);
+                if (_afterExecute != null) await _afterExecute.Invoke(delta);
+            } finally {
+                _semaphoreSlim.Release();
+            }
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override async void _PhysicsProcess(float delta) {
             if (Mode == ProcessMode.Physics) {
-                Execute(delta);
+                await Execute(delta);
             } else {
                 SetPhysicsProcess(false);
             }
         }
 
-        public override void _Process(float delta) {
+        public override async void _Process(float delta) {
             if (Mode == ProcessMode.Idle) {
-                Execute(delta);
+                await Execute(delta);
             } else {
                 SetProcess(false);
             }
         }
 
         public StateMachineNode BeforeExecute(Action<float> beforeExecute) {
+            _beforeExecute = async delta => beforeExecute(delta);
+            return this;
+        }
+
+        public StateMachineNode BeforeExecute(Func<float, Task> beforeExecute) {
             _beforeExecute = beforeExecute;
             return this;
         }
+
         public StateMachineNode AfterExecute(Action<float> afterExecute) {
+            _afterExecute = async delta => afterExecute(delta);
+            return this;
+        }
+        public StateMachineNode AfterExecute(Func<float, Task> afterExecute) {
             _afterExecute = afterExecute;
             return this;
         }

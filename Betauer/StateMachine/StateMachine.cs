@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
+using System.Threading.Tasks;
 using Betauer.Collections;
 using Godot;
 
@@ -10,9 +10,9 @@ namespace Betauer.StateMachine {
         public IStateMachine AddState(IState state);
         public IState FindState(string name);
         public IStateMachine SetNextState(string nextState);
-        public void Execute(float delta);
+        public Task Execute(float delta);
         public IState CurrentState { get; }
-        public NextState NextState { get; }
+        public Transition Transition { get; }
 
     }
 
@@ -46,8 +46,9 @@ namespace Betauer.StateMachine {
         private bool _disposed = false;
 
         internal readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
+        internal readonly Stack<IState> StackState = new Stack<IState>();
 
-        public NextState NextState { get; set; }
+        public Transition Transition { get; set;  }
         private readonly Context _currentContext;
         public IState CurrentState => _currentContext.CurrentState;
 
@@ -73,90 +74,100 @@ namespace Betauer.StateMachine {
         }
 
         public IStateMachine PopNextState() {
-            NextState = Validate(NextState.PopNextFrame);
+            Transition = Validate(StateChange.CreatePopFrame());
             return this;
         }
 
         public IStateMachine SetNextState(string nextState) {
-            NextState = Validate(NextState.NextFrame(nextState));
+            Transition = Validate(StateChange.CreateNextFrame(nextState));
             return this;
         }
 
-        public void Execute(float delta) {
+
+        public async Task Execute(float delta) {
             if (_disposed) return;
-            if (CurrentState == null && NextState.Name == null) throw new Exception("Please, initialize the state machine with a valid next state");
-            _Execute(delta, _currentContext.CurrentState);
+            if (CurrentState == null && Transition.State == null)
+                throw new Exception("Please, initialize the state machine with a valid next state");
+            await _Execute(delta, CurrentState ?? Transition.State);
         }
 
-        private void _Execute(float delta, IState initialState) {
+        private async Task _Execute(float delta, IState initialState) {
             var execute = true;
             SimpleLinkedList<string> immediateChanges = new SimpleLinkedList<string>();
             while (execute) {
                 if (_disposed) return;
-                _EndPreviousStateIfNeeded(NextState);
-                _StartNextStateIfNeeded(initialState, NextState, immediateChanges);
+                await _ExitPreviousStateIfNeeded();
+                await _EnterNextStateIfNeeded(initialState, immediateChanges);
                 _currentContext.Update(delta);
-                NextState = Validate(_currentContext.CurrentState.Execute(_currentContext));
+                var stateChange = await _currentContext.CurrentState.Execute(_currentContext);
+                Transition = Validate(stateChange);
                 // Only if the state is different than the current state and it's immediate, will be executed right now
-                execute = NextState.IsImmediate;
+                execute = Transition.IsImmediate;
             }
         }
 
-        private NextState Validate(NextState candidate) {
+        private Transition Validate(StateChange candidate) {
             if (candidate.Name == null) {
                 // Pop
                 if (CurrentState?.Parent == null) {
                     throw new Exception("Can't pop state from a root or null state (there is no parent to go!)");
                 }
-                return new NextState(CurrentState.Parent.Name, candidate.IsImmediate);
-            } else {
-                IState newState = FindState(candidate.Name);
-                if (CurrentState == null) {
-                    if (newState.Parent != null) {
-                        throw new Exception("Only root (non-nested) states are allowed");
-                    }
-                } else {
-                    if (newState.Parent != CurrentState.Parent && // sibling state 
-                        newState.Parent != CurrentState && // child state
-                        newState != CurrentState.Parent // parent state
-                    ) {
-                        throw new Exception("Only siblings or child states are allowed");
-                    }
-                }
+                return new Transition(CurrentState.Parent, Transition.TransitionType.Pop, candidate.IsImmediate);
             }
-            return candidate;
+            IState newState = FindState(candidate.Name);
+            if (CurrentState == null) {
+                if (newState.Parent != null) {
+                    throw new Exception("Only root (non-nested) states are allowed");
+                }
+                return new Transition(newState, Transition.TransitionType.Push, candidate.IsImmediate);
+            }
+            if (newState == CurrentState) {
+                return new Transition(newState, Transition.TransitionType.None, candidate.IsImmediate);
+            }
+            if (newState.Parent == CurrentState.Parent) {
+                return new Transition(newState, Transition.TransitionType.Change, candidate.IsImmediate);
+            }
+            if (newState.Parent == CurrentState) {
+                return new Transition(newState, Transition.TransitionType.Push, candidate.IsImmediate);
+            }
+            if (newState == CurrentState.Parent) {
+                return new Transition(newState, Transition.TransitionType.Pop, candidate.IsImmediate);
+            }
+            throw new Exception("Only parent, siblings or child states are allowed");
         }
 
-        private void _EndPreviousStateIfNeeded(NextState nextState) {
+        private async Task _ExitPreviousStateIfNeeded() {
             if (_disposed) return;
-            if (_currentContext.CurrentState == null || _currentContext.CurrentState.Name == nextState.Name) return;
-            // End the current state
-            Logger.Debug($"End: \"{_currentContext.CurrentState.Name}\"");
-            _currentContext.CurrentState.End();
+            if (_currentContext.CurrentState == null ||
+                Transition.Type == Transition.TransitionType.None ||
+                Transition.Type == Transition.TransitionType.Push) return;
+            // Exit the current state
+            Logger.Debug($"Exit: \"{_currentContext.CurrentState.Name}\"");
+            await _currentContext.CurrentState.Exit();
         }
 
-        private void _StartNextStateIfNeeded(IState initialState, NextState nextState, ICollection<string> immediateChanges) {
+        private async Task _EnterNextStateIfNeeded(IState initialState, ICollection<string> immediateChanges) {
             if (_disposed) return;
-            if (_currentContext.CurrentState?.Name == nextState.Name) return;
+            if (Transition.Type == Transition.TransitionType.None) return;
             // Change the current state
-            Logger.Debug($"New State: \"{nextState.Name}\"");
-            immediateChanges.Add(nextState.Name);
+            Logger.Debug($"{Transition.Type} State: \"{Transition.State.Name}\"");
+            immediateChanges.Add(Transition.State.Name);
             CheckImmediateChanges(initialState, immediateChanges);
-            var state = FindState(nextState.Name);
             // To avoid having null as from state, the first execution from state = current state
-            var fromState = _currentContext.CurrentState ?? state;
-            _currentContext.Reset(state, fromState);
+            var fromState = _currentContext.CurrentState ?? Transition.State;
+            _currentContext.Reset(Transition.State, fromState);
 
-            // Start the new state
-            Logger.Debug($"Start: \"{nextState.Name}\"");
-            state.Start(_currentContext);
+            if (Transition.Type == Transition.TransitionType.Pop) return;
+            // Push or Change: enter the new state
+            Logger.Debug($"Enter: \"{Transition.State.Name}\"");
+            await Transition.State.Enter(_currentContext);
         }
 
         private static void CheckImmediateChanges(IState initialState, ICollection<string> immediateChanges) {
             // Logger.Debug(
             // initialState?.Name + " (" + immediateChanges.Count + "):" + string.Join(", ", immediateChanges));
             if (immediateChanges.Count > MaxChanges) {
-                throw new Exception(
+                throw new StackOverflowException(
                     $"Too many state changes detected in {initialState.Name}: {string.Join(", ", immediateChanges)}");
             }
         }
