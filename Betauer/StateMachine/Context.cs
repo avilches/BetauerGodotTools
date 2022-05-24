@@ -7,6 +7,11 @@ namespace Betauer.StateMachine {
             Change,
             None
         }
+        private static readonly StateChange _createPopNextFrame = new StateChange(TransitionType.Pop, false);
+        private static readonly StateChange _createPopImmediate = new StateChange(TransitionType.Pop, true);
+        private static readonly StateChange _stateChange = new StateChange(TransitionType.None, false);
+        private static readonly StateChange _createImmediateNone = new StateChange(TransitionType.None, true);
+
         internal readonly IState? State;
         public readonly string Name;
         public readonly TransitionType Type;
@@ -16,12 +21,12 @@ namespace Betauer.StateMachine {
         public static StateChange CreatePushImmediate(string name) => new StateChange(name, TransitionType.Push, true);
         public static StateChange CreatePopPushNextFrame(string name) => new StateChange(name, TransitionType.PopPush, false);
         public static StateChange CreatePopPushImmediate(string name) => new StateChange(name, TransitionType.PopPush, true);
-        public static StateChange CreatePopNextFrame() => new StateChange(TransitionType.Pop, false);
-        public static StateChange CreatePopImmediate() => new StateChange(TransitionType.Pop, true);
+        public static StateChange CreatePopNextFrame() => _createPopNextFrame;
+        public static StateChange CreatePopImmediate() => _createPopImmediate;
         public static StateChange CreateNextFrame(string name) => new StateChange(name, TransitionType.Change, false);
         public static StateChange CreateImmediate(string name) => new StateChange(name, TransitionType.Change, true);
-        public static StateChange CreateNone() => new StateChange(TransitionType.None, false);
-        internal static StateChange _CreateImmediateNone() => new StateChange(TransitionType.None, true);
+        public static StateChange CreateNone() => _stateChange;
+        internal static StateChange _CreateImmediateNone() => _createImmediateNone;
 
         private StateChange(TransitionType type, bool isImmediate) {
             State = null;
@@ -29,7 +34,7 @@ namespace Betauer.StateMachine {
             Type = type;
             IsImmediate = isImmediate;
         }
-        public StateChange(string name, TransitionType type, bool isImmediate) {
+        private StateChange(string name, TransitionType type, bool isImmediate) {
             State = null;
             Name = name;
             Type = type;
@@ -62,8 +67,8 @@ namespace Betauer.StateMachine {
             StateTimer = new AutoTimer(StateMachine.Owner).Start();
         }
 
-        internal void Reset(IState currentState, IState fromState) {
-            CurrentState = currentState;
+        internal void ChangeState(IState fromState, IState newState) {
+            CurrentState = newState;
             FromState = fromState;
             FrameCount = 0;
             Delta = 0.16f;

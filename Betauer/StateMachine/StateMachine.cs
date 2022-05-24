@@ -44,17 +44,16 @@ namespace Betauer.StateMachine {
 
     public class StateMachine : IStateMachine {
         private const int MaxChanges = 10;
+
+        private bool _disposed = false;
+        private readonly Context _currentContext;
+        private readonly Stack<IState> _stack = new Stack<IState>();
+
         public readonly Logger Logger;
         public readonly string Name;
         public readonly Node Owner; // Node Owner is needed to setup the state Timer
-        private bool _disposed = false;
-
-        internal readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
-        internal readonly Stack<IState> StackState = new Stack<IState>();
-
+        public readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
         public StateChange Transition { get; set;  }
-        private readonly Context _currentContext;
-        private readonly Stack<IState> _stack = new Stack<IState>();
         public string[] GetStack() => _stack.Reverse().Select(e => e.Name).ToArray();
         public IState CurrentState => _currentContext.CurrentState;
 
@@ -101,24 +100,26 @@ namespace Betauer.StateMachine {
 
         public async Task Execute(float delta) {
             if (_disposed) return;
-            if (CurrentState == null && Transition.State == null)
+            var transition = Transition;
+            if (CurrentState == null && transition.State == null)
                 throw new Exception("Please, initialize the state machine with a valid next state");
-            await _Execute(delta, CurrentState ?? Transition.State);
+            await _Execute(delta, transition, CurrentState ?? transition.State);
         }
 
-        private async Task _Execute(float delta, IState initialState) {
+        private async Task _Execute(float delta, StateChange transition, IState initialState) {
             var execute = true;
             SimpleLinkedList<string> immediateChanges = new SimpleLinkedList<string>();
             while (execute) {
                 if (_disposed) return;
-                await _ExitPreviousStateIfNeeded();
-                await _EnterNextStateIfNeeded(initialState, immediateChanges);
+                await _ExitPreviousStateIfNeeded(transition);
+                await _EnterNextStateIfNeeded(transition, initialState, immediateChanges);
                 _currentContext.Update(delta);
-                var stateChange = await _currentContext.CurrentState.Execute(_currentContext);
-                Transition = Validate(stateChange);
+                var stateChange = await CurrentState.Execute(_currentContext);
+                transition = Validate(stateChange);
                 // Only if the state is different than the current state and it's immediate, will be executed right now
-                execute = Transition.IsImmediate;
+                execute = transition.IsImmediate;
             }
+            Transition = transition;
         }
 
         private StateChange Validate(StateChange candidate) {
@@ -135,22 +136,25 @@ namespace Betauer.StateMachine {
                 return candidate;
             }
             if (candidate.Type == StateChange.TransitionType.None) {
-                return candidate.WithState(_stack.Peek());
+                return candidate.WithState(CurrentState);
             }
             IState newState = FindState(candidate.Name);
             return candidate.WithState(newState);
         }
 
-        private async Task _ExitPreviousStateIfNeeded() {
+        private async Task _ExitPreviousStateIfNeeded(StateChange transition) {
             if (_disposed) return;
-            if (_currentContext.CurrentState == null ||
-                Transition.Type == StateChange.TransitionType.None ||
-                Transition.Type == StateChange.TransitionType.Push) return;
+            if (CurrentState == null ||
+                transition.Type == StateChange.TransitionType.None) return;
+            if (transition.Type == StateChange.TransitionType.Push) {
+                Logger.Debug($"Suspend: \"{CurrentState.Name}\"");
+                await CurrentState.Suspend(_currentContext);
+                return;
+            }
             // Exit the current state
-            Logger.Debug($"Exit: \"{_currentContext.CurrentState.Name}\"");
-            _stack.Pop();
-            await _currentContext.CurrentState.Exit();
-            if (Transition.Type == StateChange.TransitionType.Change) {
+            Logger.Debug($"Exit: \"{CurrentState.Name}\"");
+            await _stack.Pop().Exit(); // TODO: enviar el contexto tambien?
+            if (transition.Type == StateChange.TransitionType.Change) {
                 while (_stack.Count > 0) {
                     Logger.Debug($"Exit: \"{_stack.Peek().Name}\"");
                     await _stack.Pop().Exit();                    
@@ -158,26 +162,29 @@ namespace Betauer.StateMachine {
             }
         }
 
-        private async Task _EnterNextStateIfNeeded(IState initialState, ICollection<string> immediateChanges) {
+        private async Task _EnterNextStateIfNeeded(StateChange transition, IState initialState, ICollection<string> immediateChanges) {
             if (_disposed) return;
-            if (Transition.Type == StateChange.TransitionType.None) return;
+            if (transition.Type == StateChange.TransitionType.None) return;
             // Change the current state
-            Logger.Debug($"{Transition.Type} State: \"{Transition.State.Name}\"");
-            immediateChanges.Add(Transition.State.Name);
+            var newState = transition.State;
+            Logger.Debug($"{transition.Type} State: \"{newState.Name}\"");
+            immediateChanges.Add(newState.Name);
             CheckImmediateChanges(initialState, immediateChanges);
             // To avoid having null as from state, the first execution from state = current state
-            var fromState = _currentContext.CurrentState ?? Transition.State;
+            var fromState = CurrentState ?? newState;
             // TODO: Cuando hay un POP, no se ejecuta el enter pero se resetea todo (el timer por ejemplo)
             // El context deberia ser un stack tambien
-            _currentContext.Reset(Transition.State, fromState);
+            _currentContext.ChangeState(fromState, newState); // CurrentState == newState;
 
-            if (Transition.Type == StateChange.TransitionType.Pop) {
+            if (transition.Type == StateChange.TransitionType.Pop) {
+                Logger.Debug($"Awake: \"{newState.Name}\"");
+                await newState.Awake(_currentContext);
                 return;
             }
-            _stack.Push(Transition.State);
+            _stack.Push(newState);
             // Push or Change: enter the new state
-            Logger.Debug($"Enter: \"{Transition.State.Name}\"");
-            await Transition.State.Enter(_currentContext);
+            Logger.Debug($"Enter: \"{newState.Name}\"");
+            await newState.Enter(_currentContext);
         }
 
         private static void CheckImmediateChanges(IState initialState, ICollection<string> immediateChanges) {
