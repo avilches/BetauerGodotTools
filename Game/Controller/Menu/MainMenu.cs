@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.StateMachine;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
@@ -23,7 +24,7 @@ namespace Veronenger.Game.Controller.Menu {
         private ActionState UiCancel => _inputManager.UiCancel;
         private ActionButton _settingsButton;
 
-        public override async void Ready() {
+        public override void Ready() {
             _menuController = BuildMenu();
             _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
         }
@@ -164,10 +165,11 @@ namespace Veronenger.Game.Controller.Menu {
             await lastToWaitFor.Await();
         }
 
-        public override void _Input(InputEvent @event) {
-            if (_gameManager.IsMainMenu() && UiCancel.IsEventPressed(@event)) {
-                _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
+        public async Task<StateChange> Execute(Context context) {
+            if (UiCancel.JustPressed) {
+                await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
+            return context.None();
         }
     }
 }

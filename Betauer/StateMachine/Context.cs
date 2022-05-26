@@ -92,28 +92,28 @@ namespace Betauer.StateMachine {
 
         public StateChange PopPushImmediate(string name) => StateChange.CreatePopPushImmediate(name);
 
-        public StateChange PopFrame() => StateChange.CreatePopNextFrame();
+        public StateChange PopNextFrame() => StateChange.CreatePopNextFrame();
 
         public StateChange PopImmediate() => StateChange.CreatePopImmediate();
 
-        public StateChange Repeat() {
+        public StateChange None() {
             return StateChange.CreateNone();
         }
 
         public StateChange ImmediateIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? Immediate(name) : Repeat();
+            return StateTimer.IsAlarm() ? Immediate(name) : None();
         }
 
         public StateChange ImmediateIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? Immediate(name) : Repeat();
+            return StateTimer.Elapsed > elapsed ? Immediate(name) : None();
         }
 
         public StateChange NextFrameIfAlarm(string name) {
-            return StateTimer.IsAlarm() ? NextFrame(name) : Repeat();
+            return StateTimer.IsAlarm() ? NextFrame(name) : None();
         }
 
         public StateChange NextFrameIfElapsed(float elapsed, string name) {
-            return StateTimer.Elapsed > elapsed ? NextFrame(name) : Repeat();
+            return StateTimer.Elapsed > elapsed ? NextFrame(name) : None();
         }
     }
 }

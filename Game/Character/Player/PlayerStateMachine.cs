@@ -126,7 +126,7 @@ namespace Veronenger.Game.Character.Player {
                     }
                     Body.MoveSnapping();
 
-                    return context.Repeat();
+                    return context.None();
                 });
 
             builder.State(StateRun)
@@ -166,13 +166,13 @@ namespace Veronenger.Game.Character.Player {
 
                     Body.MoveSnapping();
 
-                    return context.Repeat();
+                    return context.None();
                 });
         }
 
         public void AirStates(StateMachineBuilder<StateMachineNode> builder) {
             StateChange CheckLanding(Context context) {
-                if (!_player.IsOnFloor()) return context.Repeat(); // Still in the air! :)
+                if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
                 _platformManager.BodyStopFallFromPlatform(_player);
 

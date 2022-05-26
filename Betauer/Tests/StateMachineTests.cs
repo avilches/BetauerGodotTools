@@ -31,7 +31,7 @@ namespace Betauer.Tests {
                         return context.Immediate("Jump");
                     }
 
-                    return context.Repeat();
+                    return context.None();
                 })
                 .End()
                 .State("Jump")
@@ -258,7 +258,7 @@ namespace Betauer.Tests {
                 .Enter(context => states.Add("Debug:start"))
                 .Execute(context => {
                     states.Add("Debug");
-                    return context.Repeat();
+                    return context.None();
 
                 })
                 .Suspend(context => states.Add("Debug:suspend"))
@@ -269,7 +269,7 @@ namespace Betauer.Tests {
                 .Enter(context => states.Add("MainMenu:start"))
                 .Execute(context => {
                     states.Add("MainMenu");
-                    return context.Repeat();
+                    return context.None();
                 })
                 .Suspend(context => states.Add("MainMenu:suspend"))
                 .Exit(()=>{
@@ -281,7 +281,7 @@ namespace Betauer.Tests {
                 .Enter(async context => states.Add("Settings:start"))
                 .Execute(async context => {
                     states.Add("Settings");
-                    return context.Repeat();
+                    return context.None();
                 })
                 .Suspend(context => states.Add("Settings:suspend"))
                 .Exit(async () =>{
@@ -293,7 +293,7 @@ namespace Betauer.Tests {
                 .Enter(context => states.Add("Audio:start"))
                 .Execute(context => {
                     states.Add("Audio");
-                    return context.Repeat();
+                    return context.None();
                 })
                 .Suspend(context => states.Add("Audio:suspend"))
                 .Exit(()=>{
@@ -305,7 +305,7 @@ namespace Betauer.Tests {
                 .Enter(context => states.Add("Video:start"))
                 .Execute(context => {
                     states.Add("Video");
-                    return context.Repeat();
+                    return context.None();
                 })
                 .Suspend(context => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:end"));
@@ -486,7 +486,7 @@ namespace Betauer.Tests {
                     Assert.That(context.FromState.Name, Is.EqualTo("Attack"));
                     x++;
                     states.Add("End(" + x + ")");
-                    return context.Repeat();
+                    return context.None();
                 });
 
             var stateMachine = builder.Build();

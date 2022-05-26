@@ -25,7 +25,7 @@ namespace Betauer.StateMachine {
         public virtual async Task Enter(Context context) {
         }
         public virtual async Task<StateChange> Execute(Context context) {
-            return context.Repeat();
+            return context.None();
         }
         public virtual async Task Exit() {
         }
@@ -67,7 +67,7 @@ namespace Betauer.StateMachine {
             if (_execute != null) {
                 return await _execute.Invoke(context);
             }
-            return context.Repeat();
+            return context.None();
         }
 
         public override async Task Exit() {

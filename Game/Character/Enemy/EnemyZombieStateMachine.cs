@@ -67,7 +67,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!_enemyZombieController.IsOnFloor()) {
                         _enemyZombieController.AnimationIdle.PlayLoop();
                         Body.Fall();
-                        return context.Repeat();
+                        return context.None();
                     }
 
                     if (_patrolTimer.IsAlarm()) {
@@ -79,7 +79,7 @@ namespace Veronenger.Game.Character.Enemy {
                                 MotionConfig.StopIfSpeedIsLessThan);
                             Body.MoveSnapping();
                         }
-                        return context.Repeat();
+                        return context.None();
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
@@ -90,7 +90,7 @@ namespace Veronenger.Game.Character.Enemy {
                         MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
                     Body.LimitMotion();
                     Body.MoveSnapping();
-                    return context.Repeat();
+                    return context.None();
                 });
 
             builder.State(PatrolWait)
@@ -111,7 +111,7 @@ namespace Veronenger.Game.Character.Enemy {
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
                         Body.Fall();
-                        return context.Repeat();
+                        return context.None();
                     }
 
                     if (!Body.IsOnMovingPlatform()) {
@@ -139,7 +139,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!_enemyZombieController.AnimationDieRight.Playing && !_enemyZombieController.AnimationDieLeft.Playing) {
                         _enemyZombieController.QueueFree();
                     }
-                    return context.Repeat();
+                    return context.None();
                 })
                 ;
 

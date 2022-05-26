@@ -33,21 +33,13 @@ namespace Veronenger.Game.Managers {
         public const string PauseMenu = nameof(PauseMenu);
         public const string PauseMenuSettings = nameof(PauseMenuSettings);
 
-        public bool IsGamePaused() => _stateMachineNode.StateMachine.CurrentState.Name == PauseMenu;
-        public bool IsGaming() =>_stateMachineNode.StateMachine.CurrentState.Name == Gaming;
-        public bool IsMainMenu() =>_stateMachineNode.StateMachine.CurrentState.Name == MainMenu;
-        public bool IsSettings() => _stateMachineNode.StateMachine.CurrentState.Name == MainMenuSettings ||
-                                    _stateMachineNode.StateMachine.CurrentState.Name == PauseMenuSettings;
-
         public readonly Launcher Launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
         [Inject] private ScreenManager _screenManager;
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
-        
-        
-
+        [Inject] private InputManager _inputManager;
 
         private StateMachineNode _stateMachineNode;
 
@@ -76,16 +68,14 @@ namespace Veronenger.Game.Managers {
                     GetTree().Root.AddChild(_mainMenuBottomBarScene);
                 })
                 .Execute(context => context.NextFrame(MainMenu));
-                
-           builder.State(MainMenu)
-                .Enter(async context => {
-                    await _mainMenuScene.ShowMenu();
-                });
+
+            builder.State(MainMenu)
+                .Enter(async context => await _mainMenuScene.ShowMenu())
+                .Execute(async context => await _mainMenuScene.Execute(context));
 
            builder.State(MainMenuSettings)
-               .Enter(async context => {
-                   await _settingsMenuScene.ShowSettingsMenu();
-               })
+               .Enter(async context => await _settingsMenuScene.ShowSettingsMenu() )
+               .Execute(async context => await _settingsMenuScene.Execute(context))
                .Exit(() => {
                    _settingsMenuScene.HideSettingsMenu();
                    _mainMenuScene.FocusSettings();
@@ -114,21 +104,20 @@ namespace Veronenger.Game.Managers {
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
-                .Exit(async () => {
+                .Execute(async context => await _pauseMenuScene.Execute(context))
+                .Exit(() => {
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
-                
+
            builder.State(PauseMenuSettings)
-                .Enter(async context => {
-                    await _settingsMenuScene.ShowSettingsMenu();
-                })
-                .Exit(async () => {
-                    _settingsMenuScene.HideSettingsMenu();
-                    await _pauseMenuScene.ShowPauseMenu();
-                    _pauseMenuScene.FocusSettings();
-                })
-                .End();
+               .Enter(async context => await _settingsMenuScene.ShowSettingsMenu())
+               .Execute(async context => await _settingsMenuScene.Execute(context))
+               .Exit(async () => {
+                   _settingsMenuScene.HideSettingsMenu();
+                   await _pauseMenuScene.ShowPauseMenu();
+                   _pauseMenuScene.FocusSettings();
+               });
             
             builder.Build();
             _stateMachineNode.SetNextState(Loading);
@@ -151,8 +140,12 @@ namespace Veronenger.Game.Managers {
             _stateMachineNode.PushNextState(MainMenuSettings);
         }
 
-        public void CloseSettingsMenu() {
+        public void GoGaming() {
             _stateMachineNode.PopNextState();
+        }
+
+        public async Task ExitGameAndBackToMainMenu() {
+            _stateMachineNode.SetNextState(MainMenu);
         }
 
         public async Task<bool> ModalBoxConfirmExitDesktop() {

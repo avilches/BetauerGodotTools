@@ -5,6 +5,7 @@ using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Screen;
+using Betauer.StateMachine;
 using Godot;
 using Veronenger.Game.Managers;
 using ActionButton = Veronenger.Game.Controller.UI.ActionButton;
@@ -132,17 +133,14 @@ namespace Veronenger.Game.Controller.Menu {
 
 		private const float MenuEffectTime = 0.10f;
 
-		public override void _Input(InputEvent @event) {
-			if (!_gameManager.IsSettings()) {
-				return;
-			}
-			if (UiCancel.IsEventPressed(@event)) {
-				_gameManager.CloseSettingsMenu();
-				GetTree().SetInputAsHandled();
-			} else if (UiStart.IsEventPressed(@event)) {
+		public async Task<StateChange> Execute(Context context) {
+			if (UiCancel.JustPressed) {
+				return context.PopNextFrame();
+			} else if (UiStart.JustPressed) {
 				// _gameManager.CloseSettingsMenu();
 				// GetTree().SetInputAsHandled();
 			}
+			return context.None();
 		}
 	}
 }
