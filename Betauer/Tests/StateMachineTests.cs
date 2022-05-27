@@ -10,328 +10,320 @@ namespace Betauer.Tests {
     [TestFixture]
     [Only]
     public class StateMachineTests : NodeTest {
-        [Test(Description = "Regular change between root states with immediate or next frame using inside every state")]
+        [Test(Description = "Constructor")]
+        public void StateMachineConstructors() {
+            var sm1 = new StateMachine.StateMachine("X");
+            Assert.That(sm1.Name, Is.EqualTo("X"));
+
+            var sm3 = new StateMachine.StateMachine();
+            Assert.That(sm3.Name, Is.Null);
+        }
+
+        [Test(Description = "Constructor")]
+        public void StateMachineNodeConstructors() {
+            var sm1 = new StateMachineNode("X");
+            Assert.That(((StateMachine.StateMachine)sm1.StateMachine).Name, Is.EqualTo("X"));
+            Assert.That(sm1.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Idle));
+
+            var sm2 = new StateMachineNode(StateMachineNode.ProcessMode.Physics);
+            Assert.That(((StateMachine.StateMachine)sm2.StateMachine).Name, Is.Null);
+            Assert.That(sm2.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Physics));
+
+            var sm3 = new StateMachineNode();
+            Assert.That(((StateMachine.StateMachine)sm3.StateMachine).Name, Is.Null);
+            Assert.That(sm3.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Idle));
+        }
+
+        [Test(Description = "Regular changes between root states inside state.Execute()")]
         public async Task StateMachinePlainFlow() {
-            var builder = new StateMachine.StateMachine(this, "X").CreateBuilder();
+            var builder = new StateMachine.StateMachine().CreateBuilder();
 
             var x = 0;
             List<string> states = new List<string>();
 
             builder.State("Idle")
-                .Enter(context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Idle"));
+                .Enter(() => {
                     x = 0;
                     states.Add("IdleEnter");
                 })
-                .Execute(context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Idle"));
+                .Execute(() => {
                     x++;
                     states.Add("IdleExecute(" + x + ")");
                     if (x == 2) {
-                        return context.Immediate("Jump");
+                        return Transition.Set("Jump");
                     }
 
-                    return context.None();
-                })
-                .End()
-                .State("Jump")
-                .Enter(context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Jump"));
-                    Assert.That(context.FromState.Name, Is.EqualTo("Idle"));
+                    return Transition.None();
+                });
+
+            builder.State("Jump")
+                .Enter(() => {
                     states.Add("JumpEnter");
                 })
-                .Execute(context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Jump"));
-                    Assert.That(context.FromState.Name, Is.EqualTo("Idle"));
+                .Execute(() => {
                     states.Add("JumpExecute(" + x + ")");
-                    return context.Immediate("Attack");
-                })
-                .Exit(() => { states.Add("JumpExit"); })
-                .End()
-                .State("Attack")
+                    return Transition.Set("Attack");
+                });
+                // No exit because it's optional
+                
+            builder.State("Attack")
                 // No enter because it's optional
-                .Execute(context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Attack"));
+                .Execute(() => {
                     states.Add("AttackExecute");
-                    return context.NextFrame("Idle");
+                    return Transition.Set("Idle");
                 })
                 .Exit(() => { states.Add("AttackExit"); });
 
-            var stateMachine = builder.Build();
+            var sm = builder.Build();
 
-            stateMachine.SetNextState("Idle");
+            sm.SetState("Idle");
 
             states.Clear();
-            await stateMachine.Execute(100f);
+            await sm.Execute(100f);
+            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
+            Assert.That(sm.Transition.Name, Is.EqualTo("Idle"));
+            Assert.That(sm.Transition.State.Name, Is.EqualTo("Idle"));
+            Assert.That(sm.Transition.Type, Is.EqualTo(Transition.TransitionType.None));
+            
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleEnter,IdleExecute(1)"));
 
             states.Clear();
-            await stateMachine.Execute(100f);
+            await sm.Execute(100f);
+            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
+            Assert.That(sm.Transition.Name, Is.EqualTo("Jump"));
+            Assert.That(sm.Transition.State.Name, Is.EqualTo("Jump"));
+            Assert.That(sm.Transition.Type, Is.EqualTo(Transition.TransitionType.Change));
             Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states),
-                Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
+            Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2)"));
+            states.Clear();
+            
+            states.Clear();
+            await sm.Execute(100f);
+            Assert.That(sm.State.Name, Is.EqualTo("Jump")); 
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo("JumpEnter,JumpExecute(2)"));
 
             states.Clear();
-            await stateMachine.Execute(100f);
+            await sm.Execute(100f);
+            Assert.That(sm.State.Name, Is.EqualTo("Attack")); 
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo("AttackExecute"));
+
+            states.Clear();
+            await sm.Execute(100f);
+            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExit,IdleEnter,IdleExecute(1)"));
 
-            states.Clear();
-            await stateMachine.Execute(100f);
-            Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states),
-                Is.EqualTo("IdleExecute(2),JumpEnter,JumpExecute(2),JumpExit,AttackExecute"));
-        }
-
-        [Test(Description = "Changes with nested states using stateMachine change methods")]
-        [Ignore("Incomplete")]
-        public void BaseState() {
-            var sm = new StateMachine.StateMachine(this, "X");
-
-            // sm.AddState();
-            // var builder = sm.CreateBuilder();
-            
-            
-            // var sm = builder
-                // .State("Debug").End()
-                // .State("MainMenu")
         }
 
         [Test]
         public async Task WrongStates() {
-            var sm = new StateMachine.StateMachine(this, "X")
+            var sm = new StateMachine.StateMachine()
                 .CreateBuilder()
                 .State("A").End()
                 .Build();
 
             Assert.ThrowsAsync<Exception>(async () => await sm.Execute(0f));
-            Assert.Throws<Exception>((() => sm.PopNextState()));
+            Assert.Throws<Exception>((() => sm.PopState()));
             
-            sm.PushNextState("A");
+            sm.PushState("A");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("A"));
+            Assert.That(sm.State.Name, Is.EqualTo("A"));
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { "A" }));
-            Assert.Throws<Exception>((() => sm.PopNextState()));
+            Assert.Throws<Exception>((() => sm.PopState()));
         }
 
-        [Test]
-        public void InfiniteLoopChangeAsync() {
-            var sm = new StateMachine.StateMachine(this, "X")
-                .CreateBuilder()
-                .State("A").Execute(async context => context.Immediate("B")).End()
-                .State("B").Execute(async context => context.Immediate("A")).End()
-                .Build();
-
-            sm.SetNextState("A");
-            Assert.ThrowsAsync<StackOverflowException>(async () => await sm.Execute(0f));
-        }
-
-        [Test]
-        public void InfiniteLoopChange() {
-            var sm = new StateMachine.StateMachine(this, "X")
-                .CreateBuilder()
-                .State("A").Execute(context => context.Immediate("B")).End()
-                .State("B").Execute(context => context.Immediate("A")).End()
-                .Build();
-
-            sm.SetNextState("A");
-            Assert.ThrowsAsync<StackOverflowException>(async () => await sm.Execute(0f));
-        }
-
-        [Test]
-        public void InfiniteLoopPopPushAsync() {
-            var sm = new StateMachine.StateMachine(this, "X")
-                .CreateBuilder()
-                .State("N1").Execute(async context => context.PushImmediate("N2")).End()
-                .State("N2").Execute(async context => context.PopImmediate()).End()
-                .Build();
-
-            sm.SetNextState("N1");
-            Assert.ThrowsAsync<StackOverflowException>(async () => await sm.Execute(0f));
-        }
-        
-        [Test]
-        public void InfiniteLoopPopPush() {
-            var sm = new StateMachine.StateMachine(this, "X")
-                .CreateBuilder()
-                .State("N1").Execute(context => context.PushImmediate("N2")).End()
-                .State("N2").Execute(context => context.PopImmediate()).End()
-                .Build();
-
-            sm.SetNextState("N1");
-            Assert.ThrowsAsync<StackOverflowException>(async () => await sm.Execute(0f));
+        [Test(Description = "Changes using stateMachine change methods")]
+        public async Task DeltaInExecute() {
+            var builder = new StateMachine.StateMachine().CreateBuilder();
+            const float expected1 = 10f;
+            const float expected2 = 10f;
+            builder.State("Debug1").Execute(delta => {
+                Assert.That(delta, Is.EqualTo(expected1));
+                return Transition.None();
+            });
+            builder.State("Debug2").Execute(async delta => {
+                Assert.That(delta, Is.EqualTo(expected2));
+                return Transition.None();
+            });
+            var sm = builder.Build();
+            sm.SetState("Debug1");
+            await sm.Execute(expected1);
+            sm.SetState("Debug2");
+            await sm.Execute(expected2);
         }
 
         [Test(Description = "Changes using stateMachine change methods")]
         public async Task NestedStates() {
-            var builder = new StateMachine.StateMachine(this, "X").CreateBuilder();
+            var builder = new StateMachine.StateMachine().CreateBuilder();
 
-            var sm = builder
-                .State("Debug").End()
-                .State("MainMenu").End()
-                .State("Settings").End()
-                .State("Audio").End()
-                .State("Video").End()
-                .Build();
+            builder.State("Debug");
+            builder.State("MainMenu");
+            builder.State("Settings");
+            builder.State("Audio");
+            builder.State("Video");
+            var sm = builder.Build();
 
             // Wrong initial state
             Assert.ThrowsAsync<Exception>(async () => await sm.Execute(0f));
 
-            Assert.Throws<Exception>((() => sm.PopNextState()));
-            sm.SetNextState("Debug");
+            Assert.Throws<Exception>((() => sm.PopState()));
+            sm.SetState("Debug");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Debug"));
+            Assert.That(sm.State.Name, Is.EqualTo("Debug"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"Debug"}));
 
             // Wrong next states from Debug
-            Assert.Throws<Exception>((() => sm.PopNextState()));
+            Assert.Throws<Exception>((() => sm.PopState()));
 
             // Debug to MainMenu (sibling)
-            sm.SetNextState("MainMenu");
+            sm.SetState("MainMenu");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu"}));
 
             // Wrong next states from MainMenu
-            Assert.Throws<Exception>((() => sm.PopNextState()));
+            Assert.Throws<Exception>((() => sm.PopState()));
 
             // MainMenu to Settings (child)
-            sm.PushNextState("Settings");
+            sm.PushState("Settings");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Settings"));
+            Assert.That(sm.State.Name, Is.EqualTo("Settings"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings"}));
 
             // Settings to Audio (child)
-            sm.PushNextState("Audio");
+            sm.PushState("Audio");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Audio"));
+            Assert.That(sm.State.Name, Is.EqualTo("Audio"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings", "Audio"}));
 
             // Settings to Audio (child)
-            sm.PopPushNextState("Video");
+            sm.PopPushState("Video");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Video"));
+            Assert.That(sm.State.Name, Is.EqualTo("Video"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings", "Video"}));
 
             // POP: Audio to Settings (parent)
-            sm.PopNextState();
+            sm.PopState();
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Settings"));
+            Assert.That(sm.State.Name, Is.EqualTo("Settings"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings"}));
 
             // POP: Settings to MainMenu (parent)
-            sm.PopNextState();
+            sm.PopState();
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu"}));
 
-            Assert.Throws<Exception>(() => sm.PopNextState());
+            Assert.Throws<Exception>(() => sm.PopState());
             
             // MainMenu to Settings (child)
-            sm.PushNextState("Settings");
+            sm.PushState("Settings");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Settings"));
+            Assert.That(sm.State.Name, Is.EqualTo("Settings"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings"}));
 
             // Settings to Audio (child)
-            sm.PushNextState("Audio");
+            sm.PushState("Audio");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Audio"));
+            Assert.That(sm.State.Name, Is.EqualTo("Audio"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Settings", "Audio"}));
             
             // MainMenu to Settings (child)
-            sm.SetNextState("Debug");
+            sm.SetState("Debug");
             await sm.Execute(0f);
-            Assert.That(sm.CurrentState.Name, Is.EqualTo("Debug"));
+            Assert.That(sm.State.Name, Is.EqualTo("Debug"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"Debug"}));
             
         }
-        
+
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
-            var builder = new StateMachine.StateMachine(this, "X").CreateBuilder();
+            var builder = new StateMachine.StateMachine().CreateBuilder();
+            
             List<string> states = new List<string>();
 
             builder.State("Debug")
-                .Awake(context => states.Add("Debug:awake"))
-                .Enter(context => states.Add("Debug:start"))
-                .Execute(context => {
+                .Awake(() => states.Add("Debug:awake"))
+                .Enter(() => states.Add("Debug:start"))
+                .Execute(() => {
                     states.Add("Debug");
-                    return context.None();
+                    return Transition.None();
 
                 })
-                .Suspend(context => states.Add("Debug:suspend"))
+                .Suspend(() => states.Add("Debug:suspend"))
                 .Exit(() => states.Add("Debug:end"));
             
             builder.State("MainMenu")
-                .Awake(context => states.Add("MainMenu:awake"))
-                .Enter(context => states.Add("MainMenu:start"))
-                .Execute(context => {
+                .Awake(() => states.Add("MainMenu:awake"))
+                .Enter(() => states.Add("MainMenu:start"))
+                .Execute(() => {
                     states.Add("MainMenu");
-                    return context.None();
+                    return Transition.None();
                 })
-                .Suspend(context => states.Add("MainMenu:suspend"))
+                .Suspend(() => states.Add("MainMenu:suspend"))
                 .Exit(()=>{
                     states.Add("MainMenu:end");
                 });
             
             builder.State("Settings")
-                .Awake(context => states.Add("Settings:awake"))
-                .Enter(async context => states.Add("Settings:start"))
-                .Execute(async context => {
+                .Awake(() => states.Add("Settings:awake"))
+                .Enter(async () => states.Add("Settings:start"))
+                .Execute(async () => {
                     states.Add("Settings");
-                    return context.None();
+                    return Transition.None();
                 })
-                .Suspend(context => states.Add("Settings:suspend"))
+                .Suspend(() => states.Add("Settings:suspend"))
                 .Exit(async () =>{
                     states.Add("Settings:end");
                 });
             
             builder.State("Audio")
-                .Awake(context => states.Add("Audio:awake"))
-                .Enter(context => states.Add("Audio:start"))
-                .Execute(context => {
+                .Awake(() => states.Add("Audio:awake"))
+                .Enter(() => states.Add("Audio:start"))
+                .Execute(() => {
                     states.Add("Audio");
-                    return context.None();
+                    return Transition.None();
                 })
-                .Suspend(context => states.Add("Audio:suspend"))
+                .Suspend(() => states.Add("Audio:suspend"))
                 .Exit(()=>{
                     states.Add("Audio:end");
                 });
 
             builder.State("Video")
-                .Awake(context => states.Add("Video:awake"))
-                .Enter(context => states.Add("Video:start"))
-                .Execute(context => {
+                .Awake(() => states.Add("Video:awake"))
+                .Enter(() => states.Add("Video:start"))
+                .Execute(() => {
                     states.Add("Video");
-                    return context.None();
+                    return Transition.None();
                 })
-                .Suspend(context => states.Add("Video:suspend"))
+                .Suspend(() => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:end"));
 
             var sm = builder.Build();
-            sm.SetNextState("Debug");
+            sm.SetState("Debug");
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.SetNextState("MainMenu");
+            Console.WriteLine(string.Join(",", states));
+            sm.SetState("MainMenu");
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.PushNextState("Settings");
+            Console.WriteLine(string.Join(",", states));
+            sm.PushState("Settings");
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.PushNextState("Audio");
+            Console.WriteLine(string.Join(",", states));
+            sm.PushState("Audio");
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.PopPushNextState("Video");
+            Console.WriteLine(string.Join(",", states));
+            sm.PopPushState("Video");
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.PopNextState();
+            Console.WriteLine(string.Join(",", states));
+            sm.PopState();
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
-            sm.PopNextState();
+            Console.WriteLine(string.Join(",", states));
+            sm.PopState();
             await sm.Execute(0f);
-            Console.WriteLine(String.Join(",", states));
+            Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "Debug:start,Debug,Debug:end," +
                 "MainMenu:start,MainMenu,MainMenu:suspend," +
@@ -343,13 +335,13 @@ namespace Betauer.Tests {
             
             
             states.Clear();
-            sm.PushNextState("Settings");
+            sm.PushState("Settings");
             await sm.Execute(0f);
-            sm.PushNextState("Audio");
+            sm.PushState("Audio");
             await sm.Execute(0f);
-            sm.PushNextState("Video");
+            sm.PushState("Video");
             await sm.Execute(0f);
-            sm.SetNextState("Debug");
+            sm.SetState("Debug");
             await sm.Execute(0f);
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
@@ -361,152 +353,81 @@ namespace Betauer.Tests {
             
         }
 
-        [Test]
-        public async Task AsyncStateMachineNodeTest() {
-            var builder = new StateMachineNode("X", StateMachineNode.ProcessMode.Idle).CreateBuilder();
-
-            var x = 0;
-            List<string> states = new List<string>();
-
-            StateMachineNode stateMachine = null;
-            builder.State("Start")
-                .Enter((context) => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Attack");
-                })
-                .Execute(async (context) => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-
-                    return context.Immediate("Idle");
-                })
-                .Exit(() => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-                });
-
-            builder.State("Idle")
-                .Enter(async (context) => { x = 0; })
-                .Execute(async (context) => {
-                    x++;
-                    states.Add("IdleExecute(" + x + ")");
-                    if (x == 2) {
-                        return context.Immediate("Attack");
-                    }
-
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-
-                    return context.Immediate("Idle");
-                })
-                .Exit(() => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-                });
-
-            builder.State("Attack")
-                .Enter((context) => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-                })
-                .Execute(async (context) => {
-                    x++;
-                    states.Add("AttackExecute(" + x + ")");
-                    return context.NextFrame("Idle");
-                })
-                .Exit(() => {
-                    // This command is ignored
-                    stateMachine.SetNextState("Start");
-                });
-
-            stateMachine = builder.Build();
-            AddChild(stateMachine);
-
-            stateMachine.SetNextState("Start");
-            stateMachine.BeforeExecute(f => states.Add("BeforeExecute"));
-            stateMachine.AfterExecute(f => states.Add("AfterExecute"));
-
-            states.Clear();
-            await this.AwaitIdleFrame();
-            Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states),
-                Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
-
-            states.Clear();
-            await this.AwaitIdleFrame();
-            Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states),
-                Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute"));
-        }
-        
-        [Test]
+        [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
         public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var builder = new StateMachineNode("X", StateMachineNode.ProcessMode.Idle).CreateBuilder();
+            var stateMachine = new StateMachineNode(StateMachineNode.ProcessMode.Idle);
+            var builder = stateMachine.CreateBuilder();
 
             var x = 0;
             List<string> states = new List<string>();
 
             builder.State("Start")
-                .Execute(async context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Start"));
-                    Assert.That(context.FromState.Name, Is.EqualTo("Start"));
+                .Execute(async () => {
+                    stateMachine.SetState("Attack"); // This change is ignored
+                    states.Add("Start");
                     await this.AwaitIdleFrame();
-                    return context.Immediate("Idle");
+                    return Transition.Set("Idle");
                 });
 
             builder.State("Idle")
-                .Enter(async context => {
+                .Enter(async () => {
+                    stateMachine.SetState("Idle"); // This change is ignored
                     await this.AwaitIdleFrame();
                     x = 0;
                 })
-                .Execute(async context => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Idle"));
+                .Execute(async () => {
                     await this.AwaitIdleFrame();
+                    stateMachine.SetState("Idle"); // This change is ignored
                     x++;
                     await this.AwaitIdleFrame();
                     states.Add("IdleExecute(" + x + ")");
                     if (x == 2) {
-                        return context.Immediate("Attack");
+                        return Transition.Set("Attack");
                     }
 
-                    return context.Immediate("Idle");
+                    return Transition.Set("Idle");
+                })
+                .Exit(async () => {
+                    stateMachine.SetState("Idle"); // This change is ignored
+                    await this.AwaitIdleFrame();
+                    states.Add("IdleExit(" + x + ")");
                 });
 
             builder.State("Attack")
-                .Execute(async (context) => {
-                    Assert.That(context.CurrentState.Name, Is.EqualTo("Attack"));
-                    Assert.That(context.FromState.Name, Is.EqualTo("Idle"));
+                .Execute(async () => {
                     x++;
+                    stateMachine.SetState("Start"); // This change is ignored
                     states.Add("AttackExecute(" + x + ")");
-                    return context.NextFrame("End");
+                    return Transition.Set("End");
                 });
 
             builder.State("End")
-                .Execute(async context => {
-                    Assert.That(context.FromState.Name, Is.EqualTo("Attack"));
+                .Execute(async () => {
                     x++;
                     states.Add("End(" + x + ")");
-                    return context.None();
+                    stateMachine.SetState("Start"); // This change is ignored
+                    await this.AwaitIdleFrame();
+                    return Transition.None();
                 });
 
-            var stateMachine = builder.Build();
-            stateMachine.SetNextState("Start");
+            builder.Build();
+            stateMachine.SetState("Start");
             AddChild(stateMachine);
             
             stateMachine.BeforeExecute(async (f) => {
-                states.Add("BeforeExecute");
+                states.Add(">");
             });
             stateMachine.AfterExecute(async (f)  => {
-                states.Add("AfterExecute");
+                states.Add("<");
             });
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            while (stateMachine.CurrentState?.Name != "End" && stopwatch.ElapsedMilliseconds < 1000) {
+            while (stateMachine.State?.Name != "End" && stopwatch.ElapsedMilliseconds < 1000) {
                 await this.AwaitIdleFrame();
                 
             }
             Assert.That(string.Join(",", states),
-                Is.EqualTo("BeforeExecute,IdleExecute(1),IdleExecute(2),AttackExecute(3),AfterExecute,BeforeExecute,End(4),AfterExecute"));
+                Is.EqualTo(">,Start,<,>,IdleExecute(1),<,>,IdleExecute(2),<,>,IdleExit(2),AttackExecute(3),<,>,End(4)"));
          
         }
     }

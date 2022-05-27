@@ -18,15 +18,20 @@ namespace Betauer.StateMachine {
         }
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1,1);
         public readonly IStateMachine StateMachine;
-        public IState CurrentState => StateMachine.CurrentState;
-        public StateChange Transition => StateMachine.Transition;
-        public ProcessMode Mode { get; set; } = ProcessMode.Idle;
+        public IState State => StateMachine.State;
+        public Transition Transition => StateMachine.Transition;
+        public ProcessMode Mode { get; set; }
         
         private Func<float, Task>? _beforeExecute;
         private Func<float, Task>? _afterExecute;
 
-        public StateMachineNode(string name, ProcessMode mode) {
-            StateMachine = new StateMachine(this, name);
+        public StateMachineNode(ProcessMode mode = ProcessMode.Idle) {
+            StateMachine = new StateMachine();
+            Mode = mode;
+        }
+
+        public StateMachineNode(string name, ProcessMode mode = ProcessMode.Idle) {
+            StateMachine = new StateMachine(name);
             Mode = mode;
         }
 
@@ -47,22 +52,21 @@ namespace Betauer.StateMachine {
             return StateMachine.FindState(name);
         }
 
-        public IStateMachine SetNextState(string nextState) {
-            return StateMachine.SetNextState(nextState);
+        public IStateMachine SetState(string nextState) {
+            return StateMachine.SetState(nextState);
         }
 
-        public IStateMachine PushNextState(string nextState) {
-            return StateMachine.PushNextState(nextState);
+        public IStateMachine PushState(string nextState) {
+            return StateMachine.PushState(nextState);
         }
 
-        public IStateMachine PopPushNextState(string nextState) {
-            return StateMachine.PopPushNextState(nextState);
+        public IStateMachine PopPushState(string nextState) {
+            return StateMachine.PopPushState(nextState);
         }
 
-        public IStateMachine PopNextState() {
-            return StateMachine.PopNextState();
+        public IStateMachine PopState() {
+            return StateMachine.PopState();
         }
-
 
         public async Task Execute(float delta) {
             var canEnter = await _semaphoreSlim.WaitAsync(0);

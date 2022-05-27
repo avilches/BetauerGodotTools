@@ -1,54 +1,47 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.DI;
-using Godot;
 
 namespace Betauer.StateMachine {
     public interface IState {
         public string Name { get; }
-        public Task Enter(Context context);
-        public Task Suspend(Context context);
-        public Task Awake(Context context);
-        public Task<StateChange> Execute(Context context);
+        public Task Enter();
+        public Task Suspend();
+        public Task Awake();
+        public Task<Transition> Execute(float delta);
         public Task Exit();
     }
 
     public abstract class BaseState : IState {
         public string Name { get; }
         
-        public IState[] Parents { get; }
-        protected BaseState(IState[] parents, string name) {
+        protected BaseState(string name) {
             Name = name;
-            Parents = parents;
         }
-        public virtual async Task Enter(Context context) {
+        public virtual async Task Enter() {
         }
-        public virtual async Task<StateChange> Execute(Context context) {
-            return context.None();
+        public virtual async Task<Transition> Execute(float delta) {
+            return Transition.None();
         }
         public virtual async Task Exit() {
         }
 
-        public virtual async Task Suspend(Context context) {
+        public virtual async Task Suspend() {
         }
 
-        public virtual async Task Awake(Context context) {
+        public virtual async Task Awake() {
         }
     }
 
     public class State : BaseState {
-        private readonly Func<Context, Task>? _enter;
-        private readonly Func<Context, Task<StateChange>>? _execute;
+        private readonly Func<Task>? _enter;
+        private readonly Func<float, Task<Transition>>? _execute;
         private readonly Func<Task>? _exit;
-        private readonly Func<Context, Task>? _suspend;
-        private readonly Func<Context, Task>? _awake;
-        public string Name { get; }
-        public IState? Parent { get; }
+        private readonly Func<Task>? _suspend;
+        private readonly Func<Task>? _awake;
 
-        public State(IState[] parents, string name, 
-            Func<Context, Task>? enter = null, Func<Context, Task<StateChange>>? execute = null, Func<Task>? exit = null, 
-            Func<Context, Task>? suspend = null, Func<Context, Task>? awake = null) : base(parents, name) {
+        public State(string name, 
+            Func<Task>? enter = null, Func<float, Task<Transition>>? execute = null, Func<Task>? exit = null, 
+            Func<Task>? suspend = null, Func<Task>? awake = null) : base(name) {
             _enter = enter;
             _execute = execute;
             _exit = exit;
@@ -57,17 +50,17 @@ namespace Betauer.StateMachine {
             
         }
 
-        public override async Task Enter(Context context) {
+        public override async Task Enter() {
             if (_enter != null) {
-                await _enter.Invoke(context);
+                await _enter.Invoke();
             }
         }
 
-        public override async Task<StateChange> Execute(Context context) {
+        public override async Task<Transition> Execute(float delta) {
             if (_execute != null) {
-                return await _execute.Invoke(context);
+                return await _execute.Invoke(delta);
             }
-            return context.None();
+            return Transition.None();
         }
 
         public override async Task Exit() {
@@ -76,25 +69,25 @@ namespace Betauer.StateMachine {
             }
         }
 
-        public override async Task Suspend(Context context) {
+        public override async Task Suspend() {
             if (_suspend != null) {
-                await _suspend.Invoke(context);
+                await _suspend.Invoke();
             }
         }
 
-        public override async Task Awake(Context context) {
+        public override async Task Awake() {
             if (_awake != null) {
-                await _awake.Invoke(context);
+                await _awake.Invoke();
             }
         }
     }
 
     public class StateBuilder<T, TParent> where T : IStateMachine {
-        private Func<Context, Task>? _enter;
-        private Func<Context, Task<StateChange>>? _execute;
+        private Func<Task>? _enter;
+        private Func<float, Task<Transition>>? _execute;
         private Func<Task>? _exit;
-        private Func<Context, Task>? _suspend;
-        private Func<Context, Task>? _awake;
+        private Func<Task>? _suspend;
+        private Func<Task>? _awake;
         private readonly string _name;
         private readonly TParent _parent;
 
@@ -103,23 +96,33 @@ namespace Betauer.StateMachine {
             _parent = parent;
         }
 
-        public StateBuilder<T, TParent> Enter(Action<Context> enter) {
-            _enter = async context => enter(context);
+        public StateBuilder<T, TParent> Enter(Action enter) {
+            _enter = async () => enter();
             return this;
         }
 
-        public StateBuilder<T, TParent> Enter(Func<Context, Task> enter) {
+        public StateBuilder<T, TParent> Enter(Func<Task> enter) {
             _enter = enter;
             return this;
         }
 
-        public StateBuilder<T, TParent> Execute(Func<Context, Task<StateChange>> execute) {
+        public StateBuilder<T, TParent> Execute(Func<Task<Transition>> execute) {
+            _execute = delta => execute();
+            return this;
+        }
+
+        public StateBuilder<T, TParent> Execute(Func<float, Task<Transition>> execute) {
             _execute = execute;
             return this;
         }
 
-        public StateBuilder<T, TParent> Execute(Func<Context, StateChange> execute) {
-            _execute = async context => execute(context);;
+        public StateBuilder<T, TParent> Execute(Func<Transition> execute) {
+            _execute = async delta => execute();;
+            return this;
+        }
+
+        public StateBuilder<T, TParent> Execute(Func<float, Transition> execute) {
+            _execute = async delta => execute(delta);;
             return this;
         }
 
@@ -132,22 +135,22 @@ namespace Betauer.StateMachine {
             return this;
         }
 
-        public StateBuilder<T, TParent> Suspend(Action<Context> suspend) {
-            _suspend = async context => suspend(context);
+        public StateBuilder<T, TParent> Suspend(Action suspend) {
+            _suspend = async () => suspend();
             return this;
         }
 
-        public StateBuilder<T, TParent> Suspend(Func<Context, Task> suspend) {
+        public StateBuilder<T, TParent> Suspend(Func<Task> suspend) {
             _suspend = suspend;
             return this;
         }
 
-        public StateBuilder<T, TParent> Awake(Action<Context> awake) {
-            _awake = async context => awake(context);
+        public StateBuilder<T, TParent> Awake(Action awake) {
+            _awake = async () => awake();
             return this;
         }
 
-        public StateBuilder<T, TParent> Awake(Func<Context, Task> awake) {
+        public StateBuilder<T, TParent> Awake(Func<Task> awake) {
             _awake = awake;
             return this;
         }
@@ -156,8 +159,8 @@ namespace Betauer.StateMachine {
             return _parent;
         } 
 
-        internal IState Build(T stateMachine, IState[] parents) {
-            IState state = new State(parents, _name, _enter, _execute, _exit, _suspend, _awake);
+        internal IState Build(T stateMachine) {
+            IState state = new State(_name, _enter, _execute, _exit, _suspend, _awake);
             stateMachine.AddState(state);
             return state;
         }

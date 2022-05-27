@@ -158,17 +158,17 @@ namespace Veronenger.Game.Controller.Menu {
 
         private const float MenuEffectTime = 0.10f;
 
-        public async Task<StateChange> Execute(Context context) {
+        public async Task<Transition> Execute() {
             if (UiCancel.JustPressed) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
-                    return context.PopNextFrame();
+                    return Transition.Pop();
                 } else {
                     await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
             } else if (UiStart.JustPressed) {
-                return context.PopNextFrame();
+                return Transition.Pop();
             }
-            return context.None();
+            return Transition.None();
         }
     }
 }
