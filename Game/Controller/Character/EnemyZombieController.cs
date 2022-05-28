@@ -118,7 +118,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.SetState(EnemyZombieStateMachine.Attacked);
+            _stateMachine.TriggerAttacked();
         }
 
         protected override void Dispose(bool disposing) {

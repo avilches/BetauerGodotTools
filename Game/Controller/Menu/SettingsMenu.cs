@@ -135,7 +135,7 @@ namespace Veronenger.Game.Controller.Menu {
 
 		public async Task<Transition> Execute() {
 			if (UiCancel.JustPressed) {
-				return Transition.Pop();
+				return Transition.Trigger("Back");
 			} else if (UiStart.JustPressed) {
 				// _gameManager.CloseSettingsMenu();
 				// GetTree().SetInputAsHandled();

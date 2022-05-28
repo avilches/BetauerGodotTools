@@ -57,7 +57,7 @@ namespace Veronenger.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
                 .AddButton("Start", "Start", (ctx) => {
-                    _gameManager.xStartGame();
+                    _gameManager.TriggerStartGame();
                     // var continueButton = ctx.Menu.GetButton("Continue");
                     // continueButton!.Disabled = !continueButton.Disabled;
                     // await _launcher.Play(Template.FadeIn, continueButton, 0f,
@@ -77,7 +77,7 @@ namespace Veronenger.Game.Controller.Menu {
                 //     _gameManager.LoadAnimaDemo();
                 // })
                 .AddButton("Settings", "Settings", async (ctx) => {
-                    _gameManager.ShowMainMenuSettings();
+                    _gameManager.TriggerSettings();
                 })
                 .AddButton("Exit", "Exit", async (ctx) => {
                     ctx.Menu.Save();

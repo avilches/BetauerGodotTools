@@ -44,28 +44,24 @@ namespace Betauer.StateMachine {
             return new StateMachineBuilder<StateMachineNode>(this);
         }
 
-        public IStateMachine AddState(IState state) {
-            return StateMachine.AddState(state);
+        public void AddState(IState state) {
+            StateMachine.AddState(state);
         }
 
         public IState FindState(string name) {
             return StateMachine.FindState(name);
         }
 
-        public IStateMachine SetState(string nextState) {
-            return StateMachine.SetState(nextState);
+        public void InitialState(string nextState) {
+            StateMachine.InitialState(nextState);
         }
 
-        public IStateMachine PushState(string nextState) {
-            return StateMachine.PushState(nextState);
+        public void On(string on, Transition transition) {
+            StateMachine.On(on, transition);
         }
 
-        public IStateMachine PopPushState(string nextState) {
-            return StateMachine.PopPushState(nextState);
-        }
-
-        public IStateMachine PopState() {
-            return StateMachine.PopState();
+        public void Trigger(string name) {
+            StateMachine.Trigger(name);
         }
 
         public async Task Execute(float delta) {

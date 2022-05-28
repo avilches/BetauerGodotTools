@@ -38,18 +38,19 @@ namespace Veronenger.Game.Character.Enemy {
             var builder = _stateMachineNode.CreateBuilder();
             AddStates(builder);
             builder.Build();
-            _stateMachineNode.SetState(Idle);
+            _stateMachineNode.InitialState(Idle);
             _stateMachineNode.AfterExecute((delta) => {
                 Body.EndFrame();
             });
 
         }
 
-        public void SetState(string attacked) {
-            _stateMachineNode.SetState(attacked);
+        public void TriggerAttacked() {
+            _stateMachineNode.Trigger(Attacked);
         }
 
         private void AddStates(StateMachineBuilder<StateMachineNode> builder) {
+            builder.On(Attacked, Transition.Set(Attacked));
             builder.State(Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);

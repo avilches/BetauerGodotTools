@@ -69,7 +69,7 @@ namespace Veronenger.Game.Character.Player {
                 Body.EndFrame();
             });
 
-            _stateMachineNode.SetState(StateIdle);
+            _stateMachineNode.InitialState(StateIdle);
         }
 
         public void GroundStates(StateMachineBuilder<StateMachineNode> builder) {

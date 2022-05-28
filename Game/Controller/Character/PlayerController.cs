@@ -226,7 +226,7 @@ namespace Veronenger.Game.Controller.Character {
         public override void _Input(InputEvent @event) {
             // _inputManager.Debug(@event, false);
             if (_inputManager.UiStart.IsEventPressed(@event)) {
-                _gameManager.ShowPauseMenu();
+                _gameManager.TriggerPauseMenu();
             } else if (_inputManager.PixelPerfect.IsEventPressed(@event)) {
                 _screenManager.SetPixelPerfect(!_screenManager.Settings.PixelPerfect);
             } else if (@event is InputEventJoypadButton button) {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
@@ -9,13 +10,17 @@ namespace Betauer.StateMachine {
         public Task Awake();
         public Task<Transition> Execute(float delta);
         public Task Exit();
+        Transition GetTransition(string name);
+        bool HasTransition(string name);
     }
 
     public abstract class BaseState : IState {
         public string Name { get; }
+        private readonly Dictionary<string, Transition>? _events;
         
-        protected BaseState(string name) {
+        protected BaseState(string name, Dictionary<string, Transition>? events) {
             Name = name;
+            _events = events;
         }
         public virtual async Task Enter() {
         }
@@ -30,6 +35,14 @@ namespace Betauer.StateMachine {
 
         public virtual async Task Awake() {
         }
+
+        public virtual Transition GetTransition(string name) {
+            return _events[name];
+        }
+
+        public virtual bool HasTransition(string name) {
+            return _events?.ContainsKey(name)??false;
+        }
     }
 
     public class State : BaseState {
@@ -39,15 +52,19 @@ namespace Betauer.StateMachine {
         private readonly Func<Task>? _suspend;
         private readonly Func<Task>? _awake;
 
-        public State(string name, 
-            Func<Task>? enter = null, Func<float, Task<Transition>>? execute = null, Func<Task>? exit = null, 
-            Func<Task>? suspend = null, Func<Task>? awake = null) : base(name) {
+        public State(string name,
+            Func<Task>? enter = null, 
+            Func<float, Task<Transition>>? execute = null, 
+            Func<Task>? exit = null,
+            Func<Task>? suspend = null, 
+            Func<Task>? awake = null, 
+            Dictionary<string, Transition>? events = null) :
+            base(name, events) {
             _enter = enter;
             _execute = execute;
             _exit = exit;
             _suspend = suspend;
             _awake = awake;
-            
         }
 
         public override async Task Enter() {
@@ -80,6 +97,8 @@ namespace Betauer.StateMachine {
                 await _awake.Invoke();
             }
         }
+
+
     }
 
     public class StateBuilder<T, TParent> where T : IStateMachine {
@@ -88,12 +107,22 @@ namespace Betauer.StateMachine {
         private Func<Task>? _exit;
         private Func<Task>? _suspend;
         private Func<Task>? _awake;
+        private Dictionary<string, Transition>? _events;
         private readonly string _name;
         private readonly TParent _parent;
 
         internal StateBuilder(string name, TParent parent) {
             _name = name;
             _parent = parent;
+        }
+
+        public StateBuilder<T, TParent> On(string on, Transition transition) {
+            _events ??= new Dictionary<string, Transition>();
+            if (transition.Type == Transition.TransitionType.Trigger) {
+                throw new StackOverflowException("Transition " + on + " can't be other transition");
+            }         
+            _events[on] = transition;
+            return this;
         }
 
         public StateBuilder<T, TParent> Enter(Action enter) {
@@ -160,7 +189,7 @@ namespace Betauer.StateMachine {
         } 
 
         internal IState Build(T stateMachine) {
-            IState state = new State(_name, _enter, _execute, _exit, _suspend, _awake);
+            IState state = new State(_name, _enter, _execute, _exit, _suspend, _awake, _events);
             stateMachine.AddState(state);
             return state;
         }

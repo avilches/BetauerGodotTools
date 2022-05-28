@@ -5,6 +5,7 @@ namespace Betauer.StateMachine {
             PopPush,
             Pop,
             Change,
+            Trigger,
             None
         }
 
@@ -20,6 +21,7 @@ namespace Betauer.StateMachine {
         public static Transition Pop() => TransitionPop;
         public static Transition Set(string name) => new Transition(name, TransitionType.Change);
         public static Transition None() => TransitionNone;
+        public static Transition Trigger(string on) => new Transition(on, TransitionType.Trigger);
 
         private Transition(TransitionType type) {
             State = null;
@@ -42,5 +44,6 @@ namespace Betauer.StateMachine {
         internal Transition WithState(IState state) {
             return new Transition(state, Type);
         }
+
     }
 }
