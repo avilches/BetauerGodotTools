@@ -165,7 +165,7 @@ namespace Veronenger.Game.Controller.Menu {
             await lastToWaitFor.Await();
         }
 
-        public async Task<ExecuteTransition<string, string>> Execute(ExecuteContext<string, string> executeContext) {
+        public async Task<ExecuteTransition<GameManager.State, GameManager.Transition>> Execute(ExecuteContext<GameManager.State, GameManager.Transition> executeContext) {
             if (UiCancel.JustPressed) {
                 await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }

@@ -72,7 +72,7 @@ namespace Veronenger.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
                 .AddButton("Resume", "Resume", (ctx) => {
-                    _gameManager.Back();
+                    _gameManager.TriggerBack();
                 })
                 .AddButton("Settings", "Settings",
                     (ctx) => _gameManager.TriggerSettings())
@@ -158,15 +158,15 @@ namespace Veronenger.Game.Controller.Menu {
 
         private const float MenuEffectTime = 0.10f;
 
-        public async Task<ExecuteTransition<string, string>> Execute(ExecuteContext<string, string> executeContext) {
+        public async Task<ExecuteTransition<GameManager.State, GameManager.Transition>> Execute(ExecuteContext<GameManager.State, GameManager.Transition> executeContext) {
             if (UiCancel.JustPressed) {
                 if (_menuController.ActiveMenu?.Name == "Root") {
-                    return executeContext.Trigger("Back");
+                    return executeContext.Trigger(GameManager.Transition.Back);
                 } else {
                     await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
                 }
             } else if (UiStart.JustPressed) {
-                return executeContext.Trigger("Back");
+                return executeContext.Trigger(GameManager.Transition.Back);
             }
             return executeContext.None();
         }

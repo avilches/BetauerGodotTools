@@ -7,15 +7,21 @@ using Veronenger.Game.Managers;
 namespace Veronenger.Game.Character.Enemy {
     [Transient]
     public class EnemyZombieStateMachine {
-        public const string Attacked = nameof(Attacked);
-        public const string Idle = nameof(Idle);
-        public const string PatrolStep = nameof(PatrolStep);
-        public const string PatrolWait = nameof(PatrolWait);
+        public enum Transition {
+            Attacked
+        }
 
+        public enum State {
+            Destroy,
+            Idle,
+            PatrolStep,
+            PatrolWait,
+        }
+    
         [Inject] private CharacterManager CharacterManager;
 
         private EnemyZombieController _enemyZombieController;
-        private StateMachineNode<string, string> _stateMachineNode;
+        private StateMachineNode<State, Transition> _stateMachineNode;
 
         private KinematicPlatformMotionBody Body => _enemyZombieController.KinematicPlatformMotionBody;
         private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
@@ -26,7 +32,7 @@ namespace Veronenger.Game.Character.Enemy {
 
         public void Configure(EnemyZombieController enemyZombie) {
             _enemyZombieController = enemyZombie;
-            _stateMachineNode = new StateMachineNode<string, string>(Idle, "Zombie", ProcessMode.Idle);
+            _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, "Zombie", ProcessMode.Idle);
             _patrolTimer = new AutoTimer(enemyZombie);
             _stateTimer = new AutoTimer(enemyZombie);
             enemyZombie.AddChild(_stateMachineNode);
@@ -45,12 +51,12 @@ namespace Veronenger.Game.Character.Enemy {
         }
 
         public void TriggerAttacked() {
-            _stateMachineNode.Trigger(Attacked);
+            _stateMachineNode.Trigger(Transition.Attacked);
         }
 
-        private void AddStates(StateMachineBuilder<StateMachineNode<string, string>, string, string> builder) {
-            builder.On(Attacked, context => context.Set(Attacked));
-            builder.State(Idle)
+        private void AddStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
+            builder.On(Transition.Attacked, context => context.Set(State.Destroy));
+            builder.State(State.Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);
                     _enemyZombieController.AnimationIdle.PlayLoop();
@@ -70,12 +76,12 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.MoveSnapping();
                     if (_stateTimer.IsAlarm()) {
                         _patrolTimer.SetAlarm(4).Reset().Start();
-                        return context.Set(PatrolStep);
+                        return context.Set(State.PatrolStep);
                     }
                     return context.None();
                 });
             
-            builder.State(PatrolStep)
+            builder.State(State.PatrolStep)
                 .Enter(() => {
                     _enemyZombieController.FaceTo(CharacterManager.PlayerController.PlayerDetector);
                     _enemyZombieController.AnimationStep.PlayOnce();
@@ -93,7 +99,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (_patrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return context.Set(Idle);
+                            return context.Set(State.Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
@@ -103,7 +109,7 @@ namespace Veronenger.Game.Character.Enemy {
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return context.Set(PatrolWait);
+                        return context.Set(State.PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
@@ -113,21 +119,21 @@ namespace Veronenger.Game.Character.Enemy {
                     return context.None();
                 });
 
-            builder.State(PatrolWait)
+            builder.State(State.PatrolWait)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(0.3f);
                 })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return context.Set(PatrolStep);
+                        return context.Set(State.PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
-                    return _stateTimer.IsAlarm() ? context.Set(PatrolStep) : context.None();
+                    return _stateTimer.IsAlarm() ? context.Set(State.PatrolStep) : context.None();
                 });
 
-            builder.State(Attacked)
+            builder.State(State.Destroy)
                 .Enter(() => {
                     _enemyZombieController.DisableAll();
 
