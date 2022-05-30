@@ -4,63 +4,58 @@ using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.StateMachine {
-    public class StateMachineNode : Node, IStateMachine {
-        public enum ProcessMode {
-            /// <summary>
-            /// <para>The state machine is updated in the <c>_PhysicsProcess</c> callback.</para>
-            /// </summary>
-            Physics,
+    public enum ProcessMode {
+        /// <summary>
+        /// <para>The state machine is updated in the <c>_PhysicsProcess</c> callback.</para>
+        /// </summary>
+        Physics,
 
-            /// <summary>
-            /// <para>The state machine is updated int the <c>_Process</c> callback.</para>
-            /// </summary>
-            Idle,
-        }
+        /// <summary>
+        /// <para>The state machine is updated int the <c>_Process</c> callback.</para>
+        /// </summary>
+        Idle,
+    }
+    public class StateMachineNode<TStateKey, TTransitionKey> : Node, IStateMachine<TStateKey, TTransitionKey> {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1,1);
-        public readonly IStateMachine StateMachine;
-        public IState State => StateMachine.State;
-        public Transition Transition => StateMachine.Transition;
+        public readonly IStateMachine<TStateKey, TTransitionKey> StateMachine;
+        public IState<TStateKey, TTransitionKey> State => StateMachine.State;
         public ProcessMode Mode { get; set; }
         
         private Func<float, Task>? _beforeExecute;
         private Func<float, Task>? _afterExecute;
 
-        public StateMachineNode(ProcessMode mode = ProcessMode.Idle) {
-            StateMachine = new StateMachine();
+        public StateMachineNode(TStateKey initialState, ProcessMode mode = ProcessMode.Idle) {
+            StateMachine = new StateMachine<TStateKey, TTransitionKey>(initialState);
             Mode = mode;
         }
 
-        public StateMachineNode(string name, ProcessMode mode = ProcessMode.Idle) {
-            StateMachine = new StateMachine(name);
+        public StateMachineNode(TStateKey initialState, string name, ProcessMode mode = ProcessMode.Idle) {
+            StateMachine = new StateMachine<TStateKey, TTransitionKey>(initialState, name);
             Mode = mode;
         }
 
-        public StateMachineNode(IStateMachine stateMachine, ProcessMode mode) {
+        public StateMachineNode(IStateMachine<TStateKey, TTransitionKey> stateMachine, ProcessMode mode) {
             StateMachine = stateMachine;
             Mode = mode;
         }
 
-        public StateMachineBuilder<StateMachineNode> CreateBuilder() {
-            return new StateMachineBuilder<StateMachineNode>(this);
+        public StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {
+            return new StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
         }
 
-        public void AddState(IState state) {
+        public void AddState(IState<TStateKey, TTransitionKey> state) {
             StateMachine.AddState(state);
         }
 
-        public IState FindState(string name) {
+        public IState<TStateKey, TTransitionKey> FindState(TStateKey name) {
             return StateMachine.FindState(name);
         }
 
-        public void InitialState(string nextState) {
-            StateMachine.InitialState(nextState);
-        }
-
-        public void On(string on, Transition transition) {
+        public void On(TTransitionKey on, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
             StateMachine.On(on, transition);
         }
 
-        public void Trigger(string name) {
+        public void Trigger(TTransitionKey name) {
             StateMachine.Trigger(name);
         }
 
@@ -94,21 +89,21 @@ namespace Betauer.StateMachine {
             }
         }
 
-        public StateMachineNode BeforeExecute(Action<float> beforeExecute) {
+        public StateMachineNode<TStateKey, TTransitionKey> BeforeExecute(Action<float> beforeExecute) {
             _beforeExecute = async delta => beforeExecute(delta);
             return this;
         }
 
-        public StateMachineNode BeforeExecute(Func<float, Task> beforeExecute) {
+        public StateMachineNode<TStateKey, TTransitionKey> BeforeExecute(Func<float, Task> beforeExecute) {
             _beforeExecute = beforeExecute;
             return this;
         }
 
-        public StateMachineNode AfterExecute(Action<float> afterExecute) {
+        public StateMachineNode<TStateKey, TTransitionKey> AfterExecute(Action<float> afterExecute) {
             _afterExecute = async delta => afterExecute(delta);
             return this;
         }
-        public StateMachineNode AfterExecute(Func<float, Task> afterExecute) {
+        public StateMachineNode<TStateKey, TTransitionKey> AfterExecute(Func<float, Task> afterExecute) {
             _afterExecute = afterExecute;
             return this;
         }

@@ -165,11 +165,11 @@ namespace Veronenger.Game.Controller.Menu {
             await lastToWaitFor.Await();
         }
 
-        public async Task<Transition> Execute() {
+        public async Task<ExecuteTransition<string, string>> Execute(ExecuteContext<string, string> executeContext) {
             if (UiCancel.JustPressed) {
                 await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
             }
-            return Transition.None();
+            return executeContext.None();
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Veronenger.Game.Character.Enemy {
         [Inject] private CharacterManager CharacterManager;
 
         private EnemyZombieController _enemyZombieController;
-        private StateMachineNode _stateMachineNode;
+        private StateMachineNode<string, string> _stateMachineNode;
 
         private KinematicPlatformMotionBody Body => _enemyZombieController.KinematicPlatformMotionBody;
         private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
@@ -26,7 +26,7 @@ namespace Veronenger.Game.Character.Enemy {
 
         public void Configure(EnemyZombieController enemyZombie) {
             _enemyZombieController = enemyZombie;
-            _stateMachineNode = new StateMachineNode("Zombie", StateMachineNode.ProcessMode.Idle);
+            _stateMachineNode = new StateMachineNode<string, string>(Idle, "Zombie", ProcessMode.Idle);
             _patrolTimer = new AutoTimer(enemyZombie);
             _stateTimer = new AutoTimer(enemyZombie);
             enemyZombie.AddChild(_stateMachineNode);
@@ -38,7 +38,6 @@ namespace Veronenger.Game.Character.Enemy {
             var builder = _stateMachineNode.CreateBuilder();
             AddStates(builder);
             builder.Build();
-            _stateMachineNode.InitialState(Idle);
             _stateMachineNode.AfterExecute((delta) => {
                 Body.EndFrame();
             });
@@ -49,17 +48,17 @@ namespace Veronenger.Game.Character.Enemy {
             _stateMachineNode.Trigger(Attacked);
         }
 
-        private void AddStates(StateMachineBuilder<StateMachineNode> builder) {
-            builder.On(Attacked, Transition.Set(Attacked));
+        private void AddStates(StateMachineBuilder<StateMachineNode<string, string>, string, string> builder) {
+            builder.On(Attacked, context => context.Set(Attacked));
             builder.State(Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);
                     _enemyZombieController.AnimationIdle.PlayLoop();
                 })
-                .Execute(delta => {
+                .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
                         Body.Fall();
-                        return Transition.None();
+                        return context.None();
                     }
 
                     if (!Body.IsOnMovingPlatform()) {
@@ -71,9 +70,9 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.MoveSnapping();
                     if (_stateTimer.IsAlarm()) {
                         _patrolTimer.SetAlarm(4).Reset().Start();
-                        return Transition.Set(PatrolStep);
+                        return context.Set(PatrolStep);
                     }
-                    return Transition.None();
+                    return context.None();
                 });
             
             builder.State(PatrolStep)
@@ -84,48 +83,48 @@ namespace Veronenger.Game.Character.Enemy {
                 /*
                  * AnimationStep + lateral move -> wait(1,2) + stop
                  */
-                .Execute(delta => {
+                .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
                         _enemyZombieController.AnimationIdle.PlayLoop();
                         Body.Fall();
-                        return Transition.None();
+                        return context.None();
                     }
 
                     if (_patrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return Transition.Set(Idle);
+                            return context.Set(Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
                             Body.MoveSnapping();
                         }
-                        return Transition.None();
+                        return context.None();
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return Transition.Set(PatrolWait);
+                        return context.Set(PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
                         MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
                     Body.LimitMotion();
                     Body.MoveSnapping();
-                    return Transition.None();
+                    return context.None();
                 });
 
             builder.State(PatrolWait)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(0.3f);
                 })
-                .Execute(delta => {
+                .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return Transition.Set(PatrolStep);
+                        return context.Set(PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
-                    return _stateTimer.IsAlarm() ? Transition.Set(PatrolStep) : Transition.None();
+                    return _stateTimer.IsAlarm() ? context.Set(PatrolStep) : context.None();
                 });
 
             builder.State(Attacked)
@@ -138,11 +137,11 @@ namespace Veronenger.Game.Character.Enemy {
                         _enemyZombieController.AnimationDieRight.PlayOnce(true);
                     }
                 })
-                .Execute(delta => {
+                .Execute(context => {
                     if (!_enemyZombieController.AnimationDieRight.Playing && !_enemyZombieController.AnimationDieLeft.Playing) {
                         _enemyZombieController.QueueFree();
                     }
-                    return Transition.None();
+                    return context.None();
                 });
         }
     }

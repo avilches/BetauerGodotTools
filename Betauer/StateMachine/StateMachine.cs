@@ -8,198 +8,208 @@ using Godot;
 
 namespace Betauer.StateMachine {
 
-    public class StateMachineAlreadyStartedException : Exception { }
-
-    public class StateMachineNotInitializedException : Exception { }
-    public interface IStateMachine {
-        public void On(string on, Transition transition);
-        public void InitialState(string state);
-        public void AddState(IState state);
-        public IState FindState(string name);
-        public void Trigger(string name);
+    public interface IStateMachine<TStateKey, TTransitionKey> {
+        public void On(TTransitionKey on, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
+        public void AddState(IState<TStateKey, TTransitionKey> state);
+        public IState<TStateKey, TTransitionKey> FindState(TStateKey name);
+        public void Trigger(TTransitionKey name);
         public Task Execute(float delta);
-        public IState State { get; }
-        public Transition Transition { get; }
-
+        public IState<TStateKey, TTransitionKey> State { get; }
     }
 
-    public class StateMachineBuilder<T> where T : IStateMachine {
+    public class StateMachineBuilder<T, TStateKey, TTransitionKey> where T : IStateMachine<TStateKey, TTransitionKey> {
         private readonly T _stateMachine;
-        private readonly Queue<StateBuilder<T, StateMachineBuilder<T>>> _pending = new Queue<StateBuilder<T, StateMachineBuilder<T>>>();
-        private Queue<Tuple<string, Transition>>? _events;
+        private readonly Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>> _pendingStateBuilders =
+            new Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>>();
+        private Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _pendingEvents;
 
         public StateMachineBuilder(T stateMachine) {
             _stateMachine = stateMachine;
         }
 
-        public StateMachineBuilder<T> On(string on, Transition transition) {
-            if (transition.Type == Transition.TransitionType.Trigger) {
-                throw new StackOverflowException("Transition " + on + " can't be other transition");
-            }         
-            _events ??= new Queue<Tuple<string, Transition>>();
-            _events.Enqueue(new Tuple<string, Transition>(on, transition));
+        public StateMachineBuilder<T, TStateKey, TTransitionKey> On(TTransitionKey on, 
+            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
+            _pendingEvents ??= new Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
+            _pendingEvents.Enqueue(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(on, transition));
             return this;
         }
 
-        public StateBuilder<T, StateMachineBuilder<T>> State(string name) {
-            var stateBuilder = new StateBuilder<T, StateMachineBuilder<T>>(name, this);
-            _pending.Enqueue(stateBuilder);
+        public StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>> State(TStateKey name) {
+            var stateBuilder = new StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>(name, this);
+            _pendingStateBuilders.Enqueue(stateBuilder);
             return stateBuilder;
         }
 
         public T Build() {
-            while (_pending.Count > 0) _pending.Dequeue().Build(_stateMachine);
-            while (_events != null && _events.Count > 0) {
-                var entry = _events.Dequeue();
+            while (_pendingStateBuilders.Count > 0) _pendingStateBuilders.Dequeue().Build(_stateMachine);
+            while (_pendingEvents != null && _pendingEvents.Count > 0) {
+                var entry = _pendingEvents.Dequeue();
                 _stateMachine.On(entry.Item1, entry.Item2);
             }
             return _stateMachine;
         }
     }
 
-    public class StateMachine : IStateMachine {
+    public class StateMachine<TStateKey, TTransitionKey> : IStateMachine<TStateKey, TTransitionKey> {
+        internal readonly struct Change {
+            internal readonly IState<TStateKey, TTransitionKey>? State;
+            internal readonly TransitionType Type;
+            internal Change(IState<TStateKey, TTransitionKey>? state, TransitionType type) {
+                State = state;
+                if (type == TransitionType.Trigger)
+                    throw new ArgumentException("Change type can't be a trigger");
+                Type = type;
+            }
+            internal bool IsPop() => Type == TransitionType.Pop;
+            internal bool IsPopPush() => Type == TransitionType.PopPush;
+            internal bool IsPush() => Type == TransitionType.Push;
+            internal bool IsChange() => Type == TransitionType.Change;
+            internal bool IsChange(TStateKey key) {
+                return Type == TransitionType.Change && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
+            }
+            internal bool IsNone() => Type == TransitionType.None;
+        }
+
+
+        
+        private readonly Stack<IState<TStateKey, TTransitionKey>> _stack = new Stack<IState<TStateKey, TTransitionKey>>();
+        private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new ExecuteContext<TStateKey, TTransitionKey>();
+        private readonly TriggerContext<TStateKey> _triggerContext = new TriggerContext<TStateKey>();
+        private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
+        private Change _nextChange;
+        private readonly TStateKey _initialState;
         private bool _disposed = false;
-        private readonly Stack<IState> _stack = new Stack<IState>();
 
         public readonly Logger Logger;
         public readonly string? Name;
-        public readonly Dictionary<string, IState> States = new Dictionary<string, IState>();
-        public Transition Transition { get; private set; }
-        public string[] GetStack() => _stack.Reverse().Select(e => e.Name).ToArray();
-        public IState State { get; private set; }
-        private Dictionary<string, Transition>? _events;
+        public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new Dictionary<TStateKey, IState<TStateKey, TTransitionKey>>();
+        public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
+        public IState<TStateKey, TTransitionKey> State { get; private set; }
 
-        public StateMachine(string? name = null) {
+        public StateMachine(TStateKey initialState, string? name = null) {
+            _initialState = initialState;
             Name = name;
             Logger = name != null ?
                 LoggerFactory.GetLogger(name, "StateMachine") : 
                 LoggerFactory.GetLogger("StateMachine");
         }
 
-        public StateMachineBuilder<StateMachine> CreateBuilder() {
-            return new StateMachineBuilder<StateMachine>(this);
+        public StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {
+            return new StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
         }
 
-        public void On(string on, Transition transition) {
-            if (transition.Type == Transition.TransitionType.Trigger) {
-                throw new StackOverflowException("Transition " + on + " can't be other transition");
-            }         
-            _events ??= new Dictionary<string, Transition>();
+        public void On(TTransitionKey on, 
+            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
+            _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
             _events[on] = transition;
         }
 
 
-        public void AddState(IState state) {
-            if (States.ContainsKey(state.Name)) throw new DuplicateNameException();
-            States[state.Name] = state;
+        public void AddState(IState<TStateKey, TTransitionKey> state) {
+            if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
+            States[state.Key] = state;
         }
 
-        public IState FindState(string stateTypeName) {
+        public IState<TStateKey, TTransitionKey> FindState(TStateKey stateTypeName) {
             return States[stateTypeName];
         }
 
-        public void Trigger(string name) {
-            Transition = GetTransitionFromTrigger(name);
-        }
-
-        private Transition GetTransitionFromTrigger(string name) {
-            if (State != null && State.HasTransition(name)) {
-                Transition transition = State.GetTransition(name);
-                if (transition.Type == Transition.TransitionType.Trigger) {
-                    throw new StackOverflowException("Transition " + name + " can't be other transition");
-                }         
-                return Validate(transition);
-            }
-            if (_events != null && _events.ContainsKey(name)) {
-                Transition transition = _events[name];
-                if (transition.Type == Transition.TransitionType.Trigger) {
-                    throw new StackOverflowException("Transition " + name + " can't be other transition");
-                }         
-                return Validate(transition);
-            }
-            throw new KeyNotFoundException("Transition " + name + " not found");
-        }
-
-        public void InitialState(string state) {
-            if (State == null) {
-                Transition = Validate(Transition.Set(state));
-                return;
-            }
-            throw new StateMachineAlreadyStartedException();
+        public void Trigger(TTransitionKey name) {
+            var transition = GetTransitionFromTrigger(name);
+            _nextChange = CreateChange(transition);
         }
 
         public async Task Execute(float delta) {
             if (_disposed) return;
-            var transition = Transition;
-            if (State == null && transition.State == null)
-                throw new StateMachineNotInitializedException();
-            // IState fromState = State ?? transition.State;
-            await _ExitPreviousStateIfNeeded(transition);
-            await _EnterNextStateIfNeeded(transition);
-            Transition = Validate(await State.Execute(delta));
+            var change = State == null && _nextChange.State == null
+                ? new Change(FindState(_initialState), TransitionType.Change)
+                : _nextChange;
+            await _ExitPreviousStateIfNeeded(change);
+            await _EnterNextStateIfNeeded(change);
+            _executeContext.Delta = delta;
+            var transition = await State.Execute(_executeContext);
+            _nextChange = CreateChange(transition);
         }
 
-        private Transition Validate(Transition candidate) {
-            if (candidate.Type == Transition.TransitionType.Trigger ) {
-                candidate = GetTransitionFromTrigger(candidate.Name);
+        private Change CreateChange(ExecuteTransition<TStateKey, TTransitionKey> candidate) {
+            if (candidate.IsTrigger() ) {
+                candidate = GetTransitionFromTrigger(candidate.TransitionKey);
             }
-            if (candidate.Type == Transition.TransitionType.Change && State?.Name == candidate.Name) {
-                return Transition.None();
+            if (State != null && candidate.IsChange(State.Key)) {
+                return new Change(State, TransitionType.None);
             }
-            if (candidate.Type == Transition.TransitionType.Pop) {
+            if (candidate.IsPop()) {
                 if (_stack.Count <= 1) {
                     throw new InvalidOperationException("Pop");
                 }
                 var o = _stack.Pop();
-                candidate = candidate.WithState(_stack.Peek());
+                var transition = new Change(_stack.Peek(), TransitionType.Pop);
                 _stack.Push(o);
-                return candidate;
+                return transition;
             }
-            if (candidate.Type == Transition.TransitionType.None) {
-                return candidate.WithState(State);
+            if (candidate.IsNone()) {
+                return new Change(State, TransitionType.None);
             }
-            IState newState = FindState(candidate.Name);
-            return candidate.WithState(newState);
+            IState<TStateKey, TTransitionKey> newState = FindState(candidate.StateKey);
+            return new Change(newState, candidate.Type);
         }
 
-        private async Task _ExitPreviousStateIfNeeded(Transition transition) {
+        private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
+            TriggerTransition<TStateKey> triggerTransition = default;
+            var found = false;
+            if (State != null && State.HasTransition(name)) {
+                triggerTransition = State.GetTransition(name)(_triggerContext);
+                found = true;
+            }
+            if (!found && _events != null && _events.ContainsKey(name)) {
+                triggerTransition = _events[name](_triggerContext);
+                found = true;
+            }
+            if (!found) {
+                throw new KeyNotFoundException("Transition " + name + " not found");
+            }
+            var transition = triggerTransition.ToTransition<TTransitionKey>();
+            return transition;
+        }
+
+        private async Task _ExitPreviousStateIfNeeded(Change change) {
             if (_disposed) return;
-            if (State == null ||
-                transition.Type == Transition.TransitionType.None) return;
-            if (transition.Type == Transition.TransitionType.Push) {
-                Logger.Debug($"Suspend: \"{State.Name}\"");
+            if (State == null) {
+                return;
+            }
+            if (change.IsNone()) return;
+            if (change.IsPush()) {
+                Logger.Debug($"Suspend: \"{State.Key}\"");
                 await State.Suspend();
                 return;
             }
             // Exit the current state
-            Logger.Debug($"Exit: \"{State.Name}\"");
+            Logger.Debug($"Exit: \"{State.Key}\"");
             await _stack.Pop().Exit();
-            if (transition.Type == Transition.TransitionType.Change) {
+            if (change.IsChange()) {
                 while (_stack.Count > 0) {
-                    Logger.Debug($"Exit: \"{_stack.Peek().Name}\"");
+                    Logger.Debug($"Exit: \"{_stack.Peek().Key}\"");
                     await _stack.Pop().Exit();                    
                 }
             }
         }
 
-        private async Task _EnterNextStateIfNeeded(Transition transition) {
+        private async Task _EnterNextStateIfNeeded(Change change) {
             if (_disposed) return;
-            if (transition.Type == Transition.TransitionType.None) return;
+            if (change.IsNone()) return;
             // Change the current state
-            var newState = transition.State;
-            Logger.Debug($"{transition.Type} State: \"{newState.Name}\"");
-            // To avoid having null as from state, the first execution from state = current state
-            // var fromState = State ?? newState;
+            var newState = change.State;
+            Logger.Debug($"{change.Type} State: \"{newState.Key}\"");
             State = newState;
 
-            if (transition.Type == Transition.TransitionType.Pop) {
-                Logger.Debug($"Awake: \"{newState.Name}\"");
+            if (change.IsPop()) {
+                Logger.Debug($"Awake: \"{newState.Key}\"");
                 await newState.Awake();
                 return;
             }
             _stack.Push(newState);
             // Push or Change: enter the new state
-            Logger.Debug($"Enter: \"{newState.Name}\"");
+            Logger.Debug($"Enter: \"{newState.Key}\"");
             await newState.Enter();
         }
 

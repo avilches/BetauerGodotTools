@@ -8,142 +8,141 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class StateMachineTests : NodeTest {
+        enum State {
+            A, B                        
+        }
+        enum Trans {
+            T1, T2
+            
+        }
         [Test(Description = "Constructor")]
-        public void StateMachineConstructors() {
-            var sm1 = new StateMachine.StateMachine("X");
+        public void StateMachineConstructorsEnum() {
+            var sm1 = new StateMachine<State, Trans>(State.A, "X");
             Assert.That(sm1.Name, Is.EqualTo("X"));
 
-            var sm3 = new StateMachine.StateMachine();
+            var sm3 = new StateMachine<State, Trans>(State.A);
+            Assert.That(sm3.Name, Is.Null);
+        }
+
+        [Test(Description = "Constructor")]
+        public void StateMachineConstructors() {
+            var sm1 = new StateMachine<string, string>("init", "X");
+            Assert.That(sm1.Name, Is.EqualTo("X"));
+
+            var sm3 = new StateMachine<string, string>("init");
             Assert.That(sm3.Name, Is.Null);
         }
 
         [Test(Description = "Constructor")]
         public void StateMachineNodeConstructors() {
-            var sm1 = new StateMachineNode("X");
-            Assert.That(((StateMachine.StateMachine)sm1.StateMachine).Name, Is.EqualTo("X"));
-            Assert.That(sm1.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Idle));
+            var sm1 = new StateMachineNode<string, string>("init", "X");
+            Assert.That(((StateMachine<string, string>)sm1.StateMachine).Name, Is.EqualTo("X"));
+            Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
 
-            var sm2 = new StateMachineNode(StateMachineNode.ProcessMode.Physics);
-            Assert.That(((StateMachine.StateMachine)sm2.StateMachine).Name, Is.Null);
-            Assert.That(sm2.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Physics));
+            var sm2 = new StateMachineNode<string, string>("init", ProcessMode.Physics);
+            Assert.That(((StateMachine<string, string>)sm2.StateMachine).Name, Is.Null);
+            Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
 
-            var sm3 = new StateMachineNode();
-            Assert.That(((StateMachine.StateMachine)sm3.StateMachine).Name, Is.Null);
-            Assert.That(sm3.Mode, Is.EqualTo(StateMachineNode.ProcessMode.Idle));
+            var sm3 = new StateMachineNode<string, string>("init");
+            Assert.That(((StateMachine<string, string>)sm3.StateMachine).Name, Is.Null);
+            Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
         }
 
         /*
          * Error cases
          */
 
-        [Test(Description = "Error with Start")]
+        [Test(Description = "InitialState not found on start")]
         public async Task WrongStartStates() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("NOT FOUND")
                 .CreateBuilder()
                 .State("A").End()
-                .State("B").End()
                 .Build();
 
-            // Execute without Start (current state)
-            Assert.ThrowsAsync<StateMachineNotInitializedException>(async () => await sm.Execute(0f));
-            
             // Start state not found
-            Assert.Throws<KeyNotFoundException>( () => {
-                sm.InitialState("NOT FOUND");
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => {
+                await sm.Execute(0);
             });
+        }
 
-            // Start ok
-            sm.InitialState("A");
-            sm.InitialState("B");
-            sm.InitialState("A");
-            sm.InitialState("B");
+        [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
+        public async Task WrongStartStates2() {
+            var sm = new StateMachine<string, string>("NOT FOUND")
+                .CreateBuilder()
+                .On("T1", context => context.Set("A"))
+                .State("A").End()
+                .Build();
+
+            sm.Trigger("T1");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("B"));
-            
-            // Start again error
-            Assert.Throws<StateMachineAlreadyStartedException>( () => sm.InitialState("A"));
+            Assert.That(sm.State.Key, Is.EqualTo("A"));
         }
 
         [Test(Description = "Error when a state changes to a not found state: set")]
         public async Task WrongStatesUnknownStateSet() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("B")
                 .CreateBuilder()
-                .State("B").Execute(() => Transition.Set("NOT FOUND")).End()
+                .State("B").Execute(context => context.Set("NOT FOUND")).End()
                 .Build();
 
-            sm.InitialState("B");
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
         }
 
         [Test(Description = "Error when a state changes to a not found state: PopPush")]
         public async Task WrongStatesUnknownStatePushPop() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("B")
                 .CreateBuilder()
-                .State("B").Execute(() => Transition.PopPush("NOT FOUND")).End()
+                .State("B").Execute(context => context.PopPush("NOT FOUND")).End()
                 .Build();
 
-            sm.InitialState("B");
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
         }
 
         [Test(Description = "Error when a state changes to a not found state: Push")]
         public async Task WrongStatesUnknownStatePushPush() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("B")
                 .CreateBuilder()
-                .State("B").Execute(() => Transition.Push("NOT FOUND")).End()
+                .State("B").Execute(context => context.Push("NOT FOUND")).End()
                 .Build();
 
-            sm.InitialState("B");
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
         public async Task WrongStatesPopWhenEmptyStack() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("A")
                 .CreateBuilder()
-                .State("A").Execute(Transition.Pop).End()
+                .State("A").Execute(context => context.Pop()).End()
                 .Build();
 
             // State ends with a wrong state
-            sm.InitialState("A");
             Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute(0f));
         }
 
         [Test(Description = "Error when a state trigger a not found transition")]
         public async Task WrongStatesTriggerUnknownTransition() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("C")
                 .CreateBuilder()
-                .State("C").Execute(() => Transition.Trigger("T")).End()
+                .State("C").Execute(context => context.Trigger("T")).End()
                 .Build();
 
             Assert.Throws<KeyNotFoundException>(() => sm.Trigger("NOT FOUND"));
 
-            sm.InitialState("C");
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
         }
 
         [Test(Description = "Error when a state trigger another transition")]
         public async Task WrongStatesTriggerTransitionOnOtherTransition() {
-            var sm = new StateMachine.StateMachine()
+            var sm = new StateMachine<string, string>("C")
                 .CreateBuilder()
-                .State("C").Execute(() => Transition.Trigger("T")).End()
+                .State("C").Execute(context => context.Trigger("T")).End()
                 .Build();
 
             Assert.Throws<KeyNotFoundException>(() => sm.Trigger("NOT FOUND"));
 
-            sm.InitialState("C");
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
-        }
-
-        [Test(Description = "Error when create a transition with another transition")]
-        public async Task TriggerOnTrigger() {
-            var b = new StateMachine.StateMachine().CreateBuilder();
-
-            Assert.Throws<StackOverflowException>(() => b.State("X").On("T1", Transition.Trigger("L")));
-            Assert.Throws<StackOverflowException>(() => b.On("T2", Transition.Trigger("L")));
-            Assert.Throws<StackOverflowException>(() => b.Build().On("T3", Transition.Trigger("L")));
-            
         }
         
         /*
@@ -152,7 +151,7 @@ namespace Betauer.Tests {
         
         [Test(Description = "Regular changes between root states inside state.Execute()")]
         public async Task StateMachinePlainFlow() {
-            var builder = new StateMachine.StateMachine().CreateBuilder();
+            var builder = new StateMachine<string, string>("Idle").CreateBuilder();
 
             var x = 0;
             List<string> states = new List<string>();
@@ -162,73 +161,65 @@ namespace Betauer.Tests {
                     x = 0;
                     states.Add("IdleEnter");
                 })
-                .Execute(() => {
+                .Execute(context => {
                     x++;
                     states.Add("IdleExecute(" + x + ")");
                     if (x == 2) {
-                        return Transition.Set("Jump");
+                        return context.Set("Jump");
                     }
 
-                    return Transition.None();
+                    return context.None();
                 });
 
             builder.State("Jump")
                 .Enter(() => {
                     states.Add("JumpEnter");
                 })
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("JumpExecute(" + x + ")");
-                    return Transition.Set("Attack");
+                    return context.Set("Attack");
                 });
             // No exit because it's optional
                 
             builder.State("Attack")
                 // No enter because it's optional
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("AttackExecute");
-                    return Transition.Set("Idle");
+                    return context.Set("Idle");
                 })
                 .Exit(() => { states.Add("AttackExit"); });
 
             var sm = builder.Build();
 
-            sm.InitialState("Idle");
-
             states.Clear();
             await sm.Execute(100f);
-            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
-            Assert.That(sm.Transition.Name, Is.EqualTo("Idle"));
-            Assert.That(sm.Transition.State.Name, Is.EqualTo("Idle"));
-            Assert.That(sm.Transition.Type, Is.EqualTo(Transition.TransitionType.None));
+            Assert.That(sm.State.Key, Is.EqualTo("Idle")); 
             
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleEnter,IdleExecute(1)"));
 
             states.Clear();
             await sm.Execute(100f);
-            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
-            Assert.That(sm.Transition.Name, Is.EqualTo("Jump"));
-            Assert.That(sm.Transition.State.Name, Is.EqualTo("Jump"));
-            Assert.That(sm.Transition.Type, Is.EqualTo(Transition.TransitionType.Change));
+            Assert.That(sm.State.Key, Is.EqualTo("Idle")); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2)"));
             states.Clear();
             
             states.Clear();
             await sm.Execute(100f);
-            Assert.That(sm.State.Name, Is.EqualTo("Jump")); 
+            Assert.That(sm.State.Key, Is.EqualTo("Jump")); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("JumpEnter,JumpExecute(2)"));
 
             states.Clear();
             await sm.Execute(100f);
-            Assert.That(sm.State.Name, Is.EqualTo("Attack")); 
+            Assert.That(sm.State.Key, Is.EqualTo("Attack")); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExecute"));
 
             states.Clear();
             await sm.Execute(100f);
-            Assert.That(sm.State.Name, Is.EqualTo("Idle")); 
+            Assert.That(sm.State.Key, Is.EqualTo("Idle")); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExit,IdleEnter,IdleExecute(1)"));
 
@@ -237,107 +228,133 @@ namespace Betauer.Tests {
 
         [Test(Description = "Check delta works")]
         public async Task DeltaInExecute() {
-            var builder = new StateMachine.StateMachine().CreateBuilder();
+            var builder = new StateMachine<string, string>("Debug1").CreateBuilder();
             const float expected1 = 10f;
             const float expected2 = 10f;
-            builder.State("Debug1").Execute(delta => {
-                Assert.That(delta, Is.EqualTo(expected1));
-                return Transition.Set("Debug2");
+            builder.State("Debug1").Execute(context => {
+                Assert.That(context.Delta, Is.EqualTo(expected1));
+                return context.Set("Debug2");
             });
-            builder.State("Debug2").Execute(async delta => {
-                Assert.That(delta, Is.EqualTo(expected2));
-                return Transition.None();
+            builder.State("Debug2").Execute(async context => {
+                Assert.That(context.Delta, Is.EqualTo(expected2));
+                return context.None();
             });
             var sm = builder.Build();
-            sm.InitialState("Debug1");
             await sm.Execute(expected1);
             await sm.Execute(expected2);
         }
 
+        [Test(Description = "State transitions have more priority than global transition")]
+        public async Task StateTransitionTrigger() {
+            var builder = new StateMachine<string, string>("Start").CreateBuilder();
+
+            builder.State("Start").On("Local", context => context.Push("Local"));
+            builder.On("Global", context => context.Set("Global"));
+            builder.On("Local", context => context.Set("Global"));
+            builder.State("Global");
+            builder.State("Local");
+            var sm = builder.Build();
+
+            await sm.Execute(0);
+            Assert.That(sm.State.Key, Is.EqualTo("Start"));
+            
+            sm.Trigger("Local");
+            await sm.Execute(0);
+            Assert.That(sm.State.Key, Is.EqualTo("Local"));
+            
+            sm.Trigger("Global");
+            await sm.Execute(0);
+            Assert.That(sm.State.Key, Is.EqualTo("Global"));
+            
+            sm.Trigger("Local");
+            await sm.Execute(0);
+            Assert.That(sm.State.Key, Is.EqualTo("Global"));
+
+        }
+
         [Test(Description = "Changes using stateMachine change methods")]
         public async Task TransitionTrigger() {
-            var builder = new StateMachine.StateMachine().CreateBuilder();
+            var builder = new StateMachine<string, string>("Audio").CreateBuilder();
 
             builder.State("Debug");
-            builder.State("MainMenu").On("Audio", Transition.Push("Audio"));
-            builder.State("Settings").On("Back", Transition.Set("MainMenu"));;
-            builder.State("Audio").On("Back", Transition.Pop());
-            builder.On("Restart", Transition.Set("MainMenu"));
-            builder.On("Settings", Transition.Set("Settings"));
-            builder.On("MainMenu", Transition.Set("MainMenu"));
+            builder.State("MainMenu").On("Audio", context => context.Push("Audio"));
+            builder.State("Settings").On("Back", context => context.Set("MainMenu"));;
+            builder.State("Audio").On("Back", context => context.Pop());
+            builder.On("Restart", context => context.Set("MainMenu"));
+            builder.On("Settings", context => context.Set("Settings"));
+            builder.On("MainMenu", context => context.Set("MainMenu"));
             var sm = builder.Build();
 
 
             // Global event
-            sm.InitialState("Audio");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("Audio"));
+            Assert.That(sm.State.Key, Is.EqualTo("Audio"));
             sm.Trigger("Restart");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Key, Is.EqualTo("MainMenu"));
             
             // State event
             sm.Trigger("Settings");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("Settings"));
+            Assert.That(sm.State.Key, Is.EqualTo("Settings"));
             sm.Trigger("Back");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Key, Is.EqualTo("MainMenu"));
 
             // State event: pop
             sm.Trigger("MainMenu");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Key, Is.EqualTo("MainMenu"));
             sm.Trigger("Audio");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("Audio"));
+            Assert.That(sm.State.Key, Is.EqualTo("Audio"));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {"MainMenu", "Audio"}));
             sm.Trigger("Back");
             await sm.Execute(0);
-            Assert.That(sm.State.Name, Is.EqualTo("MainMenu"));
+            Assert.That(sm.State.Key, Is.EqualTo("MainMenu"));
         }
 
 
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
-            var builder = new StateMachine.StateMachine().CreateBuilder();
+            var builder = new StateMachine<string, string>("Debug").CreateBuilder();
             
             List<string> states = new List<string>();
 
-            builder.On("Debug", Transition.Set("Debug"));
+            builder.On("Debug", context => context.Set("Debug"));
             builder.State("Debug")
                 .Awake(() => states.Add("Debug:awake"))
                 .Enter(() => states.Add("Debug:start"))
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("Debug");
-                    return Transition.None();
+                    return context.None();
 
                 })
                 .Suspend(() => states.Add("Debug:suspend"))
                 .Exit(() => states.Add("Debug:end"));
 
-            builder.On("MainMenu", Transition.Set("MainMenu"));
+            builder.On("MainMenu", context => context.Set("MainMenu"));
             builder.State("MainMenu")
                 .Awake(() => states.Add("MainMenu:awake"))
                 .Enter(() => states.Add("MainMenu:start"))
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("MainMenu");
-                    return Transition.None();
+                    return context.None();
                 })
                 .Suspend(() => states.Add("MainMenu:suspend"))
                 .Exit(()=>{
                     states.Add("MainMenu:end");
                 });
             
-            builder.On("Settings", Transition.Push("Settings"));
+            builder.On("Settings", context => context.Push("Settings"));
             builder.State("Settings")
-                .On("Audio", Transition.Push("Audio"))
-                .On("Back", Transition.Pop())
+                .On("Audio", context => context.Push("Audio"))
+                .On("Back", context => context.Pop())
                 .Awake(() => states.Add("Settings:awake"))
                 .Enter(async () => states.Add("Settings:start"))
-                .Execute(async () => {
+                .Execute(async context => {
                     states.Add("Settings");
-                    return Transition.None();
+                    return context.None();
                 })
                 .Suspend(() => states.Add("Settings:suspend"))
                 .Exit(async () =>{
@@ -345,13 +362,13 @@ namespace Betauer.Tests {
                 });
             
             builder.State("Audio")
-                .On("Video", Transition.PopPush("Video"))
-                .On("Back", Transition.Pop())
+                .On("Video", context => context.PopPush("Video"))
+                .On("Back", context => context.Pop())
                 .Awake(() => states.Add("Audio:awake"))
                 .Enter(() => states.Add("Audio:start"))
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("Audio");
-                    return Transition.None();
+                    return context.None();
                 })
                 .Suspend(() => states.Add("Audio:suspend"))
                 .Exit(()=>{
@@ -359,18 +376,17 @@ namespace Betauer.Tests {
                 });
 
             builder.State("Video")
-                .On("Back", Transition.Pop())
+                .On("Back", context => context.Pop())
                 .Awake(() => states.Add("Video:awake"))
                 .Enter(() => states.Add("Video:start"))
-                .Execute(() => {
+                .Execute(context => {
                     states.Add("Video");
-                    return Transition.None();
+                    return context.None();
                 })
                 .Suspend(() => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:end"));
 
             var sm = builder.Build();
-            sm.InitialState("Debug");
             await sm.Execute(0f);
             Console.WriteLine(string.Join(",", states));
             sm.Trigger("MainMenu");
@@ -404,17 +420,17 @@ namespace Betauer.Tests {
 
         [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
         public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var stateMachine = new StateMachineNode(StateMachineNode.ProcessMode.Idle);
+            var stateMachine = new StateMachineNode<string, string>("Start", ProcessMode.Idle);
             var builder = stateMachine.CreateBuilder();
 
             var x = 0;
             List<string> states = new List<string>();
 
             builder.State("Start")
-                .Execute(async () => {
+                .Execute(async context => {
                     states.Add("Start");
                     await this.AwaitIdleFrame();
-                    return Transition.Set("Idle");
+                    return context.Set("Idle");
                 });
 
             builder.State("Idle")
@@ -422,16 +438,16 @@ namespace Betauer.Tests {
                     await this.AwaitIdleFrame();
                     x = 0;
                 })
-                .Execute(async () => {
+                .Execute(async context => {
                     await this.AwaitIdleFrame();
                     x++;
                     await this.AwaitIdleFrame();
                     states.Add("IdleExecute(" + x + ")");
                     if (x == 2) {
-                        return Transition.Set("Attack");
+                        return context.Set("Attack");
                     }
 
-                    return Transition.Set("Idle");
+                    return context.Set("Idle");
                 })
                 .Exit(async () => {
                     await this.AwaitIdleFrame();
@@ -439,22 +455,21 @@ namespace Betauer.Tests {
                 });
 
             builder.State("Attack")
-                .Execute(async () => {
+                .Execute(async context => {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
-                    return Transition.Set("End");
+                    return context.Set("End");
                 });
 
             builder.State("End")
-                .Execute(async () => {
+                .Execute(async context => {
                     x++;
                     states.Add("End(" + x + ")");
                     await this.AwaitIdleFrame();
-                    return Transition.None();
+                    return context.None();
                 });
 
             builder.Build();
-            stateMachine.InitialState("Start");
             AddChild(stateMachine);
             
             stateMachine.BeforeExecute(async (f) => {
@@ -465,7 +480,7 @@ namespace Betauer.Tests {
             });
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-            while (stateMachine.State?.Name != "End" && stopwatch.ElapsedMilliseconds < 1000) {
+            while (stateMachine.State?.Key != "End" && stopwatch.ElapsedMilliseconds < 1000) {
                 await this.AwaitIdleFrame();
                 
             }
