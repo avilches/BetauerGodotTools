@@ -127,8 +127,8 @@ namespace Betauer.StateMachine {
             var change = State == null && _nextChange.State == null
                 ? new Change(States[_initialState], TransitionType.Change)
                 : _nextChange;
-            await _ExitPreviousStateIfNeeded(change);
-            await _EnterNextStateIfNeeded(change);
+            await _ExitCurrentState(change);
+            await _EnterNewState(change);
             _executeContext.Delta = delta;
             var transition = await State.Execute(_executeContext);
             _nextChange = CreateChange(transition);
@@ -178,45 +178,47 @@ namespace Betauer.StateMachine {
             return transition;
         }
 
-        private async Task _ExitPreviousStateIfNeeded(Change change) {
-            if (_disposed) return;
-            if (State == null) {
+        private async Task _ExitCurrentState(Change change) {
+            if (_disposed || State == null || change.IsNone()) {
                 return;
             }
-            if (change.IsNone()) return;
             if (change.IsPush()) {
-                Logger.Debug($"Suspend: \"{State.Key}\"");
-                await State.Suspend();
-                return;
-            }
-            // Exit the current state
-            Logger.Debug($"Exit: \"{State.Key}\"");
-            await _stack.Pop().Exit();
-            if (change.IsChange()) {
+                Logger.Debug($"Suspend: \"{State.Key}\"(to:{change.State!.Key})");
+                await State.Suspend(change.State!.Key);
+                
+            } else if (change.IsChange() && _stack.Count > 1) {
+                // Spacial case: 
+                // Exit from all the states in stack, in order, until the next change
                 while (_stack.Count > 0) {
-                    Logger.Debug($"Exit: \"{_stack.Peek().Key}\"");
-                    await _stack.Pop().Exit();                    
+                    var exitingState = _stack.Pop();
+                    var nextState = _stack.Count > 0 ? _stack.Peek() : change.State;
+                    Logger.Debug($"Exit: \"{exitingState.Key}\"(to:{nextState.Key})");
+                    await exitingState.Exit(nextState.Key);
                 }
+            } else {
+                // Pop, PopPush or Change with no stack: just exit the current state
+                var currentState = _stack.Pop();
+                Logger.Debug($"Exit: \"{currentState.Key}\"(to:{change.State.Key})\"");
+                await currentState.Exit(change.State.Key);
             }
         }
 
-        private async Task _EnterNextStateIfNeeded(Change change) {
-            if (_disposed) return;
-            if (change.IsNone()) return;
-            // Change the current state
+        private async Task _EnterNewState(Change change) {
+            if (_disposed || change.IsNone()) return;
+            var oldState = State;
             var newState = change.State;
-            Logger.Debug($"{change.Type} State: \"{newState.Key}\"");
+            Logger.Debug($"> {change.Type} State: \"{newState.Key}\"");
             State = newState;
 
             if (change.IsPop()) {
-                Logger.Debug($"Awake: \"{newState.Key}\"");
-                await newState.Awake();
-                return;
+                Logger.Debug($"Awake: \"{newState.Key}\"(from:{oldState.Key})");
+                await newState.Awake(oldState.Key);
+            } else {
+                // Push, PopPush or Change: enter the new state
+                _stack.Push(newState);
+                Logger.Debug($"Enter: \"{newState.Key}\"(from:{(oldState == null ? "" : oldState.Key.ToString())})");
+                await newState.Enter(oldState == null ? default : oldState.Key);
             }
-            _stack.Push(newState);
-            // Push or Change: enter the new state
-            Logger.Debug($"Enter: \"{newState.Key}\"");
-            await newState.Enter();
         }
 
         public void Dispose() {

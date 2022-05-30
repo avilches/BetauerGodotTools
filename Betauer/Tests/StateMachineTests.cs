@@ -68,7 +68,7 @@ namespace Betauer.Tests {
         }
 
         [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
-        public async Task WrongStartStates2() {
+        public async Task WrongStartWithTriggering() {
             var sm = new StateMachine<string, string>("NOT FOUND")
                 .CreateBuilder()
                 .On("T1", context => context.Set("A"))
@@ -316,6 +316,98 @@ namespace Betauer.Tests {
 
 
         [Test]
+        public async Task ValidateFromAndToInEvents() {
+            var builder = new StateMachine<string, string>("Start").CreateBuilder();
+
+            builder.On("Start", context => context.Set("Start"));
+            builder.On("Settings", context => context.Set("Settings"));
+
+            builder.State("Start")
+                .Enter(from => {
+                    // Case 1: enter in initial state, from is null
+                    Assert.That(from, Is.Null);
+                })
+                .Exit(to => {
+                    // Case 3: exit to
+                    Assert.That(to, Is.EqualTo("Settings"));
+                });
+                
+            builder.State("Settings")
+                .Enter(from => {
+                    // Case 2: enter from other state
+                    Assert.That(from, Is.EqualTo("Start"));
+                })
+                .Execute(context => context.Push("Audio"))
+                .Suspend(to => {
+                    // Case 3: suspend when push Audio
+                    Assert.That(to, Is.EqualTo("Audio"));
+                })
+                .Awake(from => {
+                    // Case 3: await when pop Audio
+                    Assert.That(from, Is.EqualTo("Audio"));
+                });
+
+            builder.State("Audio")
+                .Enter(from => {
+                    Assert.That(from, Is.EqualTo("Settings"));
+                })
+                .Execute(context => context.Pop())
+                .Exit(to => {
+                    Assert.That(to, Is.EqualTo("Settings"));
+                });
+            
+            
+            var sm = builder.Build();
+            await sm.Execute(0f);
+
+            sm.Trigger("Settings");
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Settings"));
+            
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Audio"));
+
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Settings"));
+
+        }
+        
+        [Test]
+        [Only]
+        public async Task ValidateFromAndToInEventsMultipleExi() {
+            var builder = new StateMachine<string, string>("MainMenu").CreateBuilder();
+
+            builder.On("Debug", context => context.Set("Debug"));
+            builder.On("Settings", context => context.Push("Settings"));
+            builder.On("Audio", context => context.Push("Audio"));
+            builder.State("MainMenu")
+                .Exit(to => Assert.That(to, Is.EqualTo("Debug")));
+            builder.State("Settings")
+                .Exit(to => Assert.That(to, Is.EqualTo("MainMenu")));
+            builder.State("Audio")
+                .Exit(to => Assert.That(to, Is.EqualTo("Settings")));
+            builder.State("Debug");
+            
+            var sm = builder.Build();
+
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("MainMenu"));
+
+            sm.Trigger("Settings");
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Settings"));
+            
+            sm.Trigger("Audio");
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Audio"));
+
+            sm.Trigger("Debug");
+            await sm.Execute(0f);
+            Assert.That(sm.State.Key, Is.EqualTo("Debug"));
+
+        }
+
+        [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
             var builder = new StateMachine<string, string>("Debug").CreateBuilder();
             
@@ -416,6 +508,25 @@ namespace Betauer.Tests {
                     "Settings:awake,Settings,Settings:end," +
                 "MainMenu:awake,MainMenu"));
             
+            // Test multiple exits when more than one state is in the stack and change is Set instead of Pop
+            states.Clear();
+            sm.Trigger("Settings");
+            await sm.Execute(0f);
+            Console.WriteLine(string.Join(",", states));
+            sm.Trigger("Audio");
+            await sm.Execute(0f);
+            Console.WriteLine(string.Join(",", states));
+            sm.Trigger("Debug");
+            await sm.Execute(0f);
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo(
+                "MainMenu:suspend," +
+                    "Settings:start,Settings,Settings:suspend," +
+                        "Audio:start,Audio," +
+                        "Audio:end,Settings:end,MainMenu:end," + // This is the important part: three end in a row 
+                "Debug:start,Debug"));
+
+
         }
 
         [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]

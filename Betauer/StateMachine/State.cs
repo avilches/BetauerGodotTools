@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 namespace Betauer.StateMachine {
     public interface IState<TStateKey, TTransitionKey> {
         public TStateKey Key { get; }
-        public Task Enter();
-        public Task Suspend();
-        public Task Awake();
+        public Task Enter(TStateKey from);
+        public Task Awake(TStateKey from);
         public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(ExecuteContext<TStateKey, TTransitionKey> executeContext);
-        public Task Exit();
+        public Task Suspend(TStateKey to);
+        public Task Exit(TStateKey to);
     }
 
     public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey> {
@@ -18,35 +18,36 @@ namespace Betauer.StateMachine {
         protected BaseState(TStateKey key) {
             Key = key;
         }
-        public virtual async Task Enter() {
+        public virtual async Task Enter(TStateKey from) {
         }
+
+        public virtual async Task Awake(TStateKey from) {
+        }
+
         public virtual async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(ExecuteContext<TStateKey, TTransitionKey> executeContext) {
             return executeContext.None();
         }
-        public virtual async Task Exit() {
+
+        public virtual async Task Suspend(TStateKey to) {
         }
 
-        public virtual async Task Suspend() {
+        public virtual async Task Exit(TStateKey to) {
         }
-
-        public virtual async Task Awake() {
-        }
-
     }
 
     public class State<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey> {
-        private readonly Func<Task>? _enter;
+        private readonly Func<TStateKey, Task>? _enter;
+        private readonly Func<TStateKey, Task>? _awake;
         private readonly Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? _execute;
-        private readonly Func<Task>? _exit;
-        private readonly Func<Task>? _suspend;
-        private readonly Func<Task>? _awake;
+        private readonly Func<TStateKey, Task>? _suspend;
+        private readonly Func<TStateKey, Task>? _exit;
 
         public State(TStateKey key,
-            Func<Task>? enter = null, 
+            Func<TStateKey, Task>? enter = null, 
             Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? execute = null, 
-            Func<Task>? exit = null,
-            Func<Task>? suspend = null, 
-            Func<Task>? awake = null) :
+            Func<TStateKey, Task>? exit = null,
+            Func<TStateKey, Task>? suspend = null, 
+            Func<TStateKey, Task>? awake = null) :
             base(key) {
             _enter = enter;
             _execute = execute;
@@ -55,9 +56,15 @@ namespace Betauer.StateMachine {
             _awake = awake;
         }
 
-        public override async Task Enter() {
+        public override async Task Enter(TStateKey from) {
             if (_enter != null) {
-                await _enter.Invoke();
+                await _enter.Invoke(from);
+            }
+        }
+
+        public override async Task Awake(TStateKey from) {
+            if (_awake != null) {
+                await _awake.Invoke(from);
             }
         }
 
@@ -68,31 +75,25 @@ namespace Betauer.StateMachine {
             return executeContext.None();
         }
 
-        public override async Task Exit() {
-            if (_exit != null) {
-                await _exit.Invoke();
-            }
-        }
-
-        public override async Task Suspend() {
+        public override async Task Suspend(TStateKey to) {
             if (_suspend != null) {
-                await _suspend.Invoke();
+                await _suspend.Invoke(to);
             }
         }
 
-        public override async Task Awake() {
-            if (_awake != null) {
-                await _awake.Invoke();
+        public override async Task Exit(TStateKey to) {
+            if (_exit != null) {
+                await _exit.Invoke(to);
             }
         }
     }
 
     public class StateBuilder<T, TStateKey, TTransitionKey, TParent> where T : IStateMachine<TStateKey, TTransitionKey> {
-        private Func<Task>? _enter;
+        private Func<TStateKey, Task>? _enter;
         private Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? _execute;
-        private Func<Task>? _exit;
-        private Func<Task>? _suspend;
-        private Func<Task>? _awake;
+        private Func<TStateKey, Task>? _exit;
+        private Func<TStateKey, Task>? _suspend;
+        private Func<TStateKey, Task>? _awake;
         private Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _events;
         private readonly TStateKey _key;
         private readonly TParent _parent;
@@ -110,15 +111,53 @@ namespace Betauer.StateMachine {
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Action enter) {
-            _enter = async () => enter();
+        /*
+         * Enter
+         */
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Func<TStateKey, Task> enter) {
+            _enter = enter;
             return this;
         }
 
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Func<Task> enter) {
-            _enter = enter;
+            _enter = async from => await enter();
             return this;
         }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Action<TStateKey> enter) {
+            _enter = async from => enter(from);
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Action enter) {
+            _enter = async from => enter();
+            return this;
+        }
+        
+        /*
+         * Awake
+         */
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Func<TStateKey, Task> awake) {
+            _awake = awake;
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Func<Task> awake) {
+            _awake = async from => await awake();
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Action<TStateKey> awake) {
+            _awake = async from => awake(from);
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Action awake) {
+            _awake = async from => awake();
+            return this;
+        }
+
 
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<Task<ExecuteTransition<TStateKey, TTransitionKey>>> execute) {
             _execute = delta => execute();
@@ -140,35 +179,52 @@ namespace Betauer.StateMachine {
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Action exit) {
-            _exit = async () => exit();
-            return this;
-        }
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Func<Task> exit) {
-            _exit = exit;
-            return this;
-        }
-
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Action suspend) {
-            _suspend = async () => suspend();
-            return this;
-        }
-
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Func<Task> suspend) {
+        /*
+         * Suspend
+         */
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Func<TStateKey, Task> suspend) {
             _suspend = suspend;
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Action awake) {
-            _awake = async () => awake();
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Func<Task> suspend) {
+            _suspend = async to => await suspend();
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Func<Task> awake) {
-            _awake = awake;
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Action<TStateKey> suspend) {
+            _suspend = async to => suspend(to);
             return this;
         }
 
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Action suspend) {
+            _suspend = async to => suspend();
+            return this;
+        }
+
+        /*
+         * Exit
+         */
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Func<TStateKey, Task> exit) {
+            _exit = exit;
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Func<Task> exit) {
+            _exit = async to => await exit();
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Action<TStateKey> exit) {
+            _exit = async to => exit(to);
+            return this;
+        }
+
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Action exit) {
+            _exit = async to => exit();
+            return this;
+        }
+        
         public TParent End() {
             return _parent;
         } 

@@ -36,11 +36,10 @@ namespace Veronenger.Game.Managers {
         public enum State {
             Loading,
             MainMenu,
-            MainMenuSettings,
+            Settings,
             StartingGame,
             Gaming,
             PauseMenu,
-            PauseMenuSettings,
         }
 
         public readonly Launcher Launcher = new Launcher();
@@ -82,17 +81,19 @@ namespace Veronenger.Game.Managers {
 
             builder.State(State.MainMenu)
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
-                .On(Transition.Settings, context => context.Push(State.MainMenuSettings))
+                .On(Transition.Settings, context => context.Push(State.Settings))
+                .Awake(from => {
+                    if (from == State.Settings) _mainMenuScene.FocusSettings();
+                })
                 .Enter(async () => await _mainMenuScene.ShowMenu())
                 .Execute(async context => await _mainMenuScene.Execute(context));
 
-           builder.State(State.MainMenuSettings)
+           builder.State(State.Settings)
                .On(Transition.Back, context => context.Pop())                                           
                .Enter(async () => await _settingsMenuScene.ShowSettingsMenu() )
                .Execute(async context => await _settingsMenuScene.Execute(context))
                .Exit(() => {
                    _settingsMenuScene.HideSettingsMenu();
-                   _mainMenuScene.FocusSettings();
                });
            
            builder.State(State.StartingGame)
@@ -117,7 +118,10 @@ namespace Veronenger.Game.Managers {
            builder.State(State.PauseMenu)
                 .On(Transition.Quit, context => context.Set(State.MainMenu))
                 .On(Transition.Back, context => context.Pop())
-                .On(Transition.Settings, context => context.Push(State.PauseMenuSettings))
+                .On(Transition.Settings, context => context.Push(State.Settings))
+                .Awake(from => {
+                    if (from == State.Settings) _pauseMenuScene.FocusSettings();
+                })
                 .Enter(async () => {
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
@@ -127,16 +131,7 @@ namespace Veronenger.Game.Managers {
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
-
-           builder.State(State.PauseMenuSettings)
-               .On(Transition.Back, context => context.Pop())
-               .Enter(async () => await _settingsMenuScene.ShowSettingsMenu())
-               .Execute(async context => await _settingsMenuScene.Execute(context))
-               .Exit(async () => {
-                   _settingsMenuScene.HideSettingsMenu();
-                   _pauseMenuScene.FocusSettings();
-               });
-            
+           
             builder.Build();
         }
         
