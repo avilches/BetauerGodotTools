@@ -5,6 +5,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
@@ -50,6 +51,11 @@ namespace Veronenger.Game.Managers {
         [Inject] private ResourceManager _resourceManager;
         [Inject] private InputManager _inputManager;
 
+        private ActionState UiAccept => _inputManager.UiAccept;
+        private ActionState UiCancel => _inputManager.UiCancel;
+        private ActionState UiStart => _inputManager.UiStart;
+
+
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
@@ -86,12 +92,22 @@ namespace Veronenger.Game.Managers {
                     if (from == State.Settings) _mainMenuScene.FocusSettings();
                 })
                 .Enter(async () => await _mainMenuScene.ShowMenu())
-                .Execute(async context => await _mainMenuScene.Execute(context));
+                .Execute(async context => {
+                    if (UiCancel.JustPressed) {
+                        await _mainMenuScene.BackMenu();
+                    }
+                    return context.None();
+                });
 
            builder.State(State.Settings)
                .On(Transition.Back, context => context.Pop())                                           
                .Enter(async () => await _settingsMenuScene.ShowSettingsMenu() )
-               .Execute(async context => await _settingsMenuScene.Execute(context))
+               .Execute(context => {
+                   if (UiCancel.JustPressed) {
+                       return context.Trigger(GameManager.Transition.Back);
+                   }
+                   return context.None();
+               })
                .Exit(() => {
                    _settingsMenuScene.HideSettingsMenu();
                });
@@ -126,7 +142,18 @@ namespace Veronenger.Game.Managers {
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
-                .Execute(async context => await _pauseMenuScene.Execute(context))
+                .Execute(async context => {
+                    if (UiCancel.JustPressed) {
+                        if (_pauseMenuScene.IsRootMenuActive()) {
+                            return context.Trigger(GameManager.Transition.Back);
+                        } else {
+                            await _pauseMenuScene.BackMenu();
+                        }
+                    } else if (UiStart.JustPressed) {
+                        return context.Trigger(GameManager.Transition.Back);
+                    }
+                    return context.None();
+                })
                 .Exit(() => {
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;

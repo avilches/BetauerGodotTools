@@ -98,6 +98,13 @@ namespace Veronenger.Game.Controller.Menu {
             return mainMenu;
         }
 
+        public bool IsRootMenuActive() {
+            return _menuController.ActiveMenu?.Name == "Root";
+        }
+
+        public async Task BackMenu() {
+            await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
+        }
         private async Task GoGoodbyeAnimation(MenuTransition transition) {
             // await _launcher.Play(Template.BackOutLeftFactory.Get(150), transition.FromMenu.Control, 0f, MenuEffectTime).Await();
             // await _launcher.Play(Template.FadeOut, transition.FromButton, 0f, MenuEffectTime*2).Await();
@@ -163,13 +170,6 @@ namespace Veronenger.Game.Controller.Menu {
                 }
             }
             await lastToWaitFor.Await();
-        }
-
-        public async Task<ExecuteTransition<GameManager.State, GameManager.Transition>> Execute(ExecuteContext<GameManager.State, GameManager.Transition> executeContext) {
-            if (UiCancel.JustPressed) {
-                await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
-            }
-            return executeContext.None();
         }
     }
 }

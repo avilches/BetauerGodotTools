@@ -132,15 +132,5 @@ namespace Veronenger.Game.Controller.Menu {
 		}
 
 		private const float MenuEffectTime = 0.10f;
-
-		public async Task<ExecuteTransition<GameManager.State, GameManager.Transition>> Execute(ExecuteContext<GameManager.State, GameManager.Transition> executeContext) {
-			if (UiCancel.JustPressed) {
-				return executeContext.Trigger(GameManager.Transition.Back);
-			} else if (UiStart.JustPressed) {
-				// _gameManager.CloseSettingsMenu();
-				// GetTree().SetInputAsHandled();
-			}
-			return executeContext.None();
-		}
 	}
 }
