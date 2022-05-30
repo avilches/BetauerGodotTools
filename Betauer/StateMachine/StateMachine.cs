@@ -9,12 +9,12 @@ using Godot;
 namespace Betauer.StateMachine {
 
     public interface IStateMachine<TStateKey, TTransitionKey> {
-        public void On(TTransitionKey on, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public void AddState(IState<TStateKey, TTransitionKey> state);
-        public IState<TStateKey, TTransitionKey> FindState(TStateKey name);
+        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
+        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
+        public IState<TStateKey, TTransitionKey> State { get; }
         public void Trigger(TTransitionKey name);
         public Task Execute(float delta);
-        public IState<TStateKey, TTransitionKey> State { get; }
     }
 
     public class StateMachineBuilder<T, TStateKey, TTransitionKey> where T : IStateMachine<TStateKey, TTransitionKey> {
@@ -27,10 +27,10 @@ namespace Betauer.StateMachine {
             _stateMachine = stateMachine;
         }
 
-        public StateMachineBuilder<T, TStateKey, TTransitionKey> On(TTransitionKey on, 
+        public StateMachineBuilder<T, TStateKey, TTransitionKey> On(TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
             _pendingEvents ??= new Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
-            _pendingEvents.Enqueue(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(on, transition));
+            _pendingEvents.Enqueue(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey, transition));
             return this;
         }
 
@@ -76,6 +76,7 @@ namespace Betauer.StateMachine {
         private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new ExecuteContext<TStateKey, TTransitionKey>();
         private readonly TriggerContext<TStateKey> _triggerContext = new TriggerContext<TStateKey>();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
+        private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
         private Change _nextChange;
         private readonly TStateKey _initialState;
         private bool _disposed = false;
@@ -98,20 +99,22 @@ namespace Betauer.StateMachine {
             return new StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
         }
 
-        public void On(TTransitionKey on, 
+        public void On(TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
             _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
-            _events[on] = transition;
+            _events[transitionKey] = transition;
+        }
+
+        public void On(TStateKey stateKey, TTransitionKey transitionKey,
+            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
+            _stateEvents ??= new Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
+            _stateEvents[new Tuple<TStateKey, TTransitionKey>(stateKey, transitionKey)] = transition;
         }
 
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
             States[state.Key] = state;
-        }
-
-        public IState<TStateKey, TTransitionKey> FindState(TStateKey stateTypeName) {
-            return States[stateTypeName];
         }
 
         public void Trigger(TTransitionKey name) {
@@ -122,7 +125,7 @@ namespace Betauer.StateMachine {
         public async Task Execute(float delta) {
             if (_disposed) return;
             var change = State == null && _nextChange.State == null
-                ? new Change(FindState(_initialState), TransitionType.Change)
+                ? new Change(States[_initialState], TransitionType.Change)
                 : _nextChange;
             await _ExitPreviousStateIfNeeded(change);
             await _EnterNextStateIfNeeded(change);
@@ -150,16 +153,19 @@ namespace Betauer.StateMachine {
             if (candidate.IsNone()) {
                 return new Change(State, TransitionType.None);
             }
-            IState<TStateKey, TTransitionKey> newState = FindState(candidate.StateKey);
+            IState<TStateKey, TTransitionKey> newState = States[candidate.StateKey];
             return new Change(newState, candidate.Type);
         }
 
         private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
             TriggerTransition<TStateKey> triggerTransition = default;
             var found = false;
-            if (State != null && State.HasTransition(name)) {
-                triggerTransition = State.GetTransition(name)(_triggerContext);
-                found = true;
+            if (State != null && _stateEvents != null) {
+                var key = new Tuple<TStateKey, TTransitionKey>(State.Key, name);
+                if (_stateEvents != null && _stateEvents.ContainsKey(key)) {
+                    triggerTransition = _stateEvents[key](_triggerContext);
+                    found = true;
+                }
             }
             if (!found && _events != null && _events.ContainsKey(name)) {
                 triggerTransition = _events[name](_triggerContext);

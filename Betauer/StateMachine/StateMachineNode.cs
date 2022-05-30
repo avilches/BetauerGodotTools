@@ -47,12 +47,12 @@ namespace Betauer.StateMachine {
             StateMachine.AddState(state);
         }
 
-        public IState<TStateKey, TTransitionKey> FindState(TStateKey name) {
-            return StateMachine.FindState(name);
+        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
+            StateMachine.On(transitionKey, transition);
         }
 
-        public void On(TTransitionKey on, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            StateMachine.On(on, transition);
+        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
+            StateMachine.On(stateKey, transitionKey, transition);
         }
 
         public void Trigger(TTransitionKey name) {

@@ -27,8 +27,8 @@ namespace Betauer.StateMachine {
         public ExecuteTransition<TStateKey, TTransitionKey> None() =>
             new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.None);
 
-        public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey on) =>
-            new ExecuteTransition<TStateKey, TTransitionKey>(on);
+        public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey transitionKey) =>
+            new ExecuteTransition<TStateKey, TTransitionKey>(transitionKey);
 
         public float Delta { get; internal set; }
     }
