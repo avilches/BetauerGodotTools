@@ -8,7 +8,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class StateMachineTests : NodeTest {
         enum State {
             A, B                        
@@ -373,7 +372,6 @@ namespace Betauer.Tests {
         }
         
         [Test]
-        [Only]
         public async Task ValidateFromAndToInEventsMultipleExi() {
             var builder = new StateMachine<string, string>("MainMenu").CreateBuilder();
 

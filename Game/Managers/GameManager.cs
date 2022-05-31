@@ -89,9 +89,13 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Awake(from => {
+                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     if (from == State.Settings) _mainMenuScene.FocusSettings();
                 })
-                .Enter(async () => await _mainMenuScene.ShowMenu())
+                .Enter(async () => {
+                    _mainMenuBottomBarScene.ConfigureAcceptBack();
+                    await _mainMenuScene.ShowMenu();
+                })
                 .Execute(async context => {
                     if (UiCancel.JustPressed) {
                         await _mainMenuScene.BackMenu();
@@ -115,6 +119,7 @@ namespace Veronenger.Game.Managers {
            builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
+                    _mainMenuBottomBarScene.HideAll();
                     _currentGameScene = _resourceManager.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
@@ -136,9 +141,11 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Awake(from => {
+                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     if (from == State.Settings) _pauseMenuScene.FocusSettings();
                 })
                 .Enter(async () => {
+                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
@@ -155,6 +162,7 @@ namespace Veronenger.Game.Managers {
                     return context.None();
                 })
                 .Exit(() => {
+                    _mainMenuBottomBarScene.HideAll();
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
@@ -191,11 +199,14 @@ namespace Veronenger.Game.Managers {
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
+            _mainMenuBottomBarScene.Save();
+            _mainMenuBottomBarScene.ConfigureAcceptCancel();
             ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
             GetTree().Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
+            _mainMenuBottomBarScene.Restore();
             modalBoxConfirm.QueueFree();
             return result;
         }

@@ -16,15 +16,31 @@ rect_min_size = Vector2( 618, 0 )
 theme = ExtResource( 2 )
 alignment = 2
 
-[node name="ActionHint" parent="HBoxContainer" instance=ExtResource( 3 )]
-margin_left = 426.0
-margin_right = 520.0
+[node name="ActionHint1" parent="HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 230.0
+margin_right = 324.0
 margin_bottom = 16.0
 ActionName = "ui_accept"
 ActionText1 = ""
 ActionText2 = "Accept"
 
 [node name="ActionHint2" parent="HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 328.0
+margin_right = 422.0
+margin_bottom = 16.0
+ActionName = "ui_cancel"
+ActionText1 = ""
+ActionText2 = "Cancel"
+
+[node name="ActionHint3" parent="HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 426.0
+margin_right = 520.0
+margin_bottom = 16.0
+ActionName = "ui_cancel"
+ActionText1 = ""
+ActionText2 = "Cancel"
+
+[node name="ActionHint4" parent="HBoxContainer" instance=ExtResource( 3 )]
 margin_left = 524.0
 margin_right = 618.0
 margin_bottom = 16.0
