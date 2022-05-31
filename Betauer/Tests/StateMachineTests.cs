@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class StateMachineTests : NodeTest {
         enum State {
             A, B                        
@@ -323,8 +324,8 @@ namespace Betauer.Tests {
 
             builder.State("Start")
                 .Enter(from => {
-                    // Case 1: enter in initial state, from is null
-                    Assert.That(from, Is.Null);
+                    // Case 1: enter in initial state, from is the same
+                    Assert.That(from, Is.EqualTo("Start"));
                 })
                 .Exit(to => {
                     // Case 3: exit to
@@ -405,6 +406,29 @@ namespace Betauer.Tests {
 
         }
 
+        class TestListener : IStateListener<string> {
+            internal List<string> states = new List<string>();
+            public void OnEnter(string state, string from) {
+                states.Add(state + ":start");
+            }
+
+            public void OnAwake(string state, string from) {
+                states.Add(state + ":awake");
+            }
+
+            public void OnSuspend(string state, string to) {
+                states.Add(state + ":suspend");
+            }
+
+            public void OnExit(string state, string to) {
+                states.Add(state + ":end");
+            }
+
+            public void OnTransition(string from, string to) {
+                states.Add("from:" + from + "-to:" + to);
+            }
+        }
+
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
             var builder = new StateMachine<string, string>("Debug").CreateBuilder();
@@ -475,8 +499,10 @@ namespace Betauer.Tests {
                 })
                 .Suspend(() => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:end"));
-
-            var sm = builder.Build();
+            
+            var stateListener = new TestListener();
+            var sm = builder.AddListener(stateListener).Build();
+            
             await sm.Execute(0f);
             Console.WriteLine(string.Join(",", states));
             sm.Trigger("MainMenu");
@@ -505,6 +531,17 @@ namespace Betauer.Tests {
                         "Video:start,Video,Video:end," +
                     "Settings:awake,Settings,Settings:end," +
                 "MainMenu:awake,MainMenu"));
+
+            // Test listener
+            Console.WriteLine(string.Join(",", stateListener.states));
+            Assert.That(string.Join(",", stateListener.states), Is.EqualTo(
+                "from:Debug-to:Debug,Debug:start,Debug:end," +
+                "from:Debug-to:MainMenu,MainMenu:start,MainMenu:suspend," +
+                    "from:MainMenu-to:Settings,Settings:start,Settings:suspend," +
+                        "from:Settings-to:Audio,Audio:start,Audio:end," +
+                        "from:Audio-to:Video,Video:start,Video:end," +
+                    "from:Video-to:Settings,Settings:awake,Settings:end," +
+                "from:Settings-to:MainMenu,MainMenu:awake"));
             
             // Test multiple exits when more than one state is in the stack and change is Set instead of Pop
             states.Clear();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Betauer.Collections;
 
 namespace Betauer.StateMachine {
     public interface IState<TStateKey, TTransitionKey> {
@@ -94,11 +95,13 @@ namespace Betauer.StateMachine {
         private Func<TStateKey, Task>? _exit;
         private Func<TStateKey, Task>? _suspend;
         private Func<TStateKey, Task>? _awake;
-        private Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _events;
+        private SimpleLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _events;
         private readonly TStateKey _key;
         private readonly TParent _parent;
+        private readonly T _stateMachine;
 
-        internal StateBuilder(TStateKey key, TParent parent) {
+        internal StateBuilder(T stateMachine, TStateKey key, TParent parent) {
+            _stateMachine = stateMachine;
             _key = key;
             _parent = parent;
         }
@@ -106,8 +109,8 @@ namespace Betauer.StateMachine {
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> On(
             TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new Queue<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
-            _events.Enqueue(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey, transition));
+            _events ??= new SimpleLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
+            _events.Add(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey, transition));
             return this;
         }
 
@@ -229,14 +232,10 @@ namespace Betauer.StateMachine {
             return _parent;
         } 
 
-        internal IState<TStateKey, TTransitionKey> Build(T stateMachine) {
+        internal IState<TStateKey, TTransitionKey> Build() {
             IState<TStateKey, TTransitionKey> state = new State<TStateKey, TTransitionKey>(_key, _enter, _execute, _exit, _suspend, _awake);
-            stateMachine.AddState(state);
-            if (_events != null)
-                while (_events.Count > 0) {
-                    var tuple = _events.Dequeue();
-                    stateMachine.On(state.Key, tuple.Item1, tuple.Item2);
-                }
+            _stateMachine.AddState(state);
+            _events?.ForEach(tuple => _stateMachine.On(state.Key, tuple.Item1, tuple.Item2));
             return state;
         }
     }
