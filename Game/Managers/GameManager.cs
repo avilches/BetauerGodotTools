@@ -198,12 +198,6 @@ namespace Veronenger.Game.Managers {
             return await ShowModalBox("Quit game?", "Any progress not saved will be lost");
         }
         
-        // 2 bugs
-            // el modal box se cree que esta en el anterior estado, asi que al pulsar escape, se cree que pulsas escape en 
-            // el pause menu
-        
-        // add listeners al state machine, de manera que el button bar se suscriba y haga cosas al cambiar de estado
-
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
             _mainMenuBottomBarScene.Save();
             _mainMenuBottomBarScene.ConfigureAcceptCancel();
