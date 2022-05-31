@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Betauer;
 using Betauer.DI;
 using Betauer.Input;
@@ -19,6 +21,7 @@ namespace Veronenger.Game.Managers {
         public readonly ActionState PixelPerfect;
 
         private readonly ActionList _actionList;
+        public readonly List<ActionState> ConfigurableActionList;
 
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(InputManager));
 
@@ -41,6 +44,8 @@ namespace Veronenger.Game.Managers {
             UiCancel = _actionList.AddAction("ui_cancel");
             UiSelect = _actionList.AddAction("ui_select");
             UiStart = _actionList.AddAction("ui_start");
+            
+            ConfigurableActionList = new []{ Jump, Attack }.ToList();
             Configure();
         }
 

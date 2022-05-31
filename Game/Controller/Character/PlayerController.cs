@@ -7,8 +7,8 @@ using Betauer.DI;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI;
+using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
-using Timer = Betauer.Timer;
 
 namespace Veronenger.Game.Controller.Character {
     public sealed class PlayerController : DiKinematicBody2D {
@@ -21,7 +21,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
-        private Launcher _launcher = new Launcher();
+        private readonly Launcher _launcher = new Launcher();
 
         private SceneTree _sceneTree;
         private IFlipper _flippers;
