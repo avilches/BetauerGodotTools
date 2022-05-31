@@ -59,41 +59,40 @@ namespace Veronenger.Game.Managers {
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            
-            splashScreen.QueueFree();
-            _stateMachineNode = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle);
+            _screenManager.Start(ApplicationConfig.Configuration);
+            Launcher.WithParent(GetTree().Root);
+            _mainMenuScene = _resourceManager.CreateMainMenu();
+            _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
+            _pauseMenuScene = _resourceManager.CreatePauseMenu();
+            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
+            _stateMachineNode = BuildStateMachine();
+
+            // Never pause the pause, settings and the state machine, because they will not work!
+            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = _stateMachineNode.PauseMode = 
+                Node.PauseModeEnum.Process;
+
+            GetTree().Root.AddChild(_pauseMenuScene);
+            GetTree().Root.AddChild(_settingsMenuScene);
+            GetTree().Root.AddChild(_mainMenuScene);
+            GetTree().Root.AddChild(_mainMenuBottomBarScene);
             GetTree().Root.AddChild(_stateMachineNode);
-            _stateMachineNode.PauseMode = Node.PauseModeEnum.Process;
-            var builder = _stateMachineNode.CreateBuilder();
-
+            splashScreen.QueueFree();
+        }
+        
+        private StateMachineNode<State, Transition> BuildStateMachine() {
+            var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
+                .CreateBuilder();
+            builder.AddListener(_mainMenuBottomBarScene);
             builder.State(State.Loading)
-                .Enter(() => {
-                    _screenManager.Start(ApplicationConfig.Configuration);
-                    Launcher.WithParent(GetTree().Root);
-                    _mainMenuScene = _resourceManager.CreateMainMenu();
-                    _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
-                    _pauseMenuScene = _resourceManager.CreatePauseMenu();
-                    _settingsMenuScene = _resourceManager.CreateSettingsMenu();
-
-                    // Never pause the pause menu and the settings menu!
-                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = Node.PauseModeEnum.Process;
-                    GetTree().Root.AddChild(_pauseMenuScene);
-                    GetTree().Root.AddChild(_settingsMenuScene);
-
-                    GetTree().Root.AddChild(_mainMenuScene);
-                    GetTree().Root.AddChild(_mainMenuBottomBarScene);
-                })
                 .Execute(context => context.Set(State.MainMenu));
 
             builder.State(State.MainMenu)
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Awake(from => {
-                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     if (from == State.Settings) _mainMenuScene.FocusSettings();
                 })
                 .Enter(async () => {
-                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     await _mainMenuScene.ShowMenu();
                 })
                 .Execute(async context => {
@@ -119,7 +118,6 @@ namespace Veronenger.Game.Managers {
            builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    _mainMenuBottomBarScene.HideAll();
                     _currentGameScene = _resourceManager.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
@@ -141,11 +139,9 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Awake(from => {
-                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     if (from == State.Settings) _pauseMenuScene.FocusSettings();
                 })
                 .Enter(async () => {
-                    _mainMenuBottomBarScene.ConfigureAcceptBack();
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
@@ -162,12 +158,11 @@ namespace Veronenger.Game.Managers {
                     return context.None();
                 })
                 .Exit(() => {
-                    _mainMenuBottomBarScene.HideAll();
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
            
-            builder.Build();
+            return builder.Build();
         }
         
         public void TriggerStartGame() {

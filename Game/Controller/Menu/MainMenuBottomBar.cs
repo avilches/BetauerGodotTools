@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using Betauer.Animation;
 using Betauer.DI;
+using Betauer.StateMachine;
 using Veronenger.Game.Controller.UI;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar: DiCanvasLayer {
+    public class MainMenuBottomBar: DiCanvasLayer, IStateListener<GameManager.State> {
         [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1; 
         [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2; 
         [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 
@@ -56,6 +57,31 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton(null,"ui_accept", "Accept")
                 .AddButton(null,"ui_cancel", "Cancel");
         }
-        
+
+        public void OnEnter(GameManager.State state, GameManager.State from) {
+        }
+
+        public void OnAwake(GameManager.State state, GameManager.State from) {
+        }
+
+        public void OnSuspend(GameManager.State state, GameManager.State to) {
+        }
+
+        public void OnExit(GameManager.State state, GameManager.State to) {
+        }
+
+        public void OnTransition(GameManager.State from, GameManager.State to) {
+            switch (to) {
+                case GameManager.State.Settings:
+                    break;
+                case GameManager.State.MainMenu:
+                case GameManager.State.PauseMenu:
+                    ConfigureAcceptBack();
+                    break;
+                case GameManager.State.Gaming:
+                    HideAll();
+                    break;
+            }
+        }
     }
 }
