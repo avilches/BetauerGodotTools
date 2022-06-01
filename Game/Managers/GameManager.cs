@@ -155,6 +155,7 @@ namespace Veronenger.Game.Managers {
                     return context.None();
                 })
                 .Exit(() => {
+                    _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
