@@ -38,26 +38,25 @@ namespace Veronenger.Game.Controller.Menu {
         private ActionState UiStart => _inputManager.UiStart;
         private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
 
-
-        private string titleText;
-        private string subtitleText;
+        private string _titleText;
+        private string _subtitleText;
 
         public void Title(string title, string subtitle = null) {
-            titleText = title;
-            subtitleText = subtitle;
+            _titleText = title;
+            _subtitleText = subtitle;
         }
 
         public override async void Ready() {
             // TODO i18n
-            if (subtitleText != null) {
+            if (_subtitleText != null) {
                 doubleContainer.Visible = true;
                 singleContainer.Visible = false;
-                _title.Text = titleText;
-                _subtitle.Text = subtitleText;
+                _title.Text = _titleText;
+                _subtitle.Text = _subtitleText;
             } else {
                 doubleContainer.Visible = false;
                 singleContainer.Visible = true;
-                _singleTitle.Text = titleText;
+                _singleTitle.Text = _titleText;
             }
 
             _menuController = BuildMenu();
@@ -81,14 +80,13 @@ namespace Veronenger.Game.Controller.Menu {
                 });
             var noButton = mainMenu.GetMenu("Root")!.GetButton("No");
             var yesButton = mainMenu.GetMenu("Root")!.GetButton("Yes");
-            noButton.RectMinSize = yesButton.RectMinSize = new Vector2(60, 0);
+            noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
             return mainMenu;
         }
 
-        public override void _Input(InputEvent @event) {
-            if (UiCancel.IsEventPressed(@event)) {
+        public override void _Process(float delta) {
+            if (UiCancel.JustPressed) {
                 _promise.TrySetResult(false);
-                GetTree().SetInputAsHandled();
             }
         }
     }

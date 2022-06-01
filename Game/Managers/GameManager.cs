@@ -10,7 +10,6 @@ using Betauer.Screen;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
-using Veronenger.Game.Controller.UI;
 
 namespace Veronenger.Game.Managers {
 
@@ -31,7 +30,8 @@ namespace Veronenger.Game.Managers {
             Pause,
             Quit,
             Settings,
-            StartGame
+            StartGame,
+            OpenModal
         }
 
         public enum State {
@@ -41,6 +41,7 @@ namespace Veronenger.Game.Managers {
             StartingGame,
             Gaming,
             PauseMenu,
+            Modal,
         }
 
         public readonly Launcher Launcher = new Launcher();
@@ -107,7 +108,7 @@ namespace Veronenger.Game.Managers {
                .Enter(async () => await _settingsMenuScene.ShowSettingsMenu() )
                .Execute(context => {
                    if (UiCancel.JustPressed) {
-                       return context.Trigger(GameManager.Transition.Back);
+                       return context.Pop();
                    }
                    return context.None();
                })
@@ -135,7 +136,6 @@ namespace Veronenger.Game.Managers {
                 });
            
            builder.State(State.PauseMenu)
-                .On(Transition.Quit, context => context.Set(State.MainMenu))
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Awake(from => {
@@ -148,12 +148,12 @@ namespace Veronenger.Game.Managers {
                 .Execute(async context => {
                     if (UiCancel.JustPressed) {
                         if (_pauseMenuScene.IsRootMenuActive()) {
-                            return context.Trigger(GameManager.Transition.Back);
+                            return context.Pop();
                         } else {
                             await _pauseMenuScene.BackMenu();
                         }
                     } else if (UiStart.JustPressed) {
-                        return context.Trigger(GameManager.Transition.Back);
+                        return context.Pop();
                     }
                     return context.None();
                 })
@@ -161,28 +161,34 @@ namespace Veronenger.Game.Managers {
                     _pauseMenuScene.HidePauseMenu();
                     GetTree().Paused = false;
                 });
-           
+
+           builder.On(Transition.OpenModal, context => context.Push(State.Modal));
+           builder.State(State.Modal)
+               .On(Transition.Quit, context => context.Set(State.MainMenu))
+               .On(Transition.Back, context => context.Pop());
+               
+
             return builder.Build();
         }
         
         public void TriggerStartGame() {
-            _stateMachineNode.Trigger(GameManager.Transition.StartGame);
+            _stateMachineNode.Trigger(Transition.StartGame);
         }
 
         public void TriggerPauseMenu() {
-            _stateMachineNode.Trigger(GameManager.Transition.Pause);
+            _stateMachineNode.Trigger(Transition.Pause);
         }
 
         public void TriggerSettings() {
-            _stateMachineNode.Trigger(GameManager.Transition.Settings);
+            _stateMachineNode.Trigger(Transition.Settings);
         }
 
         public void TriggerBack() {
-            _stateMachineNode.Trigger(GameManager.Transition.Back);
+            _stateMachineNode.Trigger(Transition.Back);
         }
 
         public void TriggerExitGame() {
-            _stateMachineNode.Trigger(GameManager.Transition.Quit);
+            _stateMachineNode.Trigger(Transition.Quit);
         }
 
         public async Task<bool> ModalBoxConfirmExitDesktop() {
@@ -194,6 +200,7 @@ namespace Veronenger.Game.Managers {
         }
         
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
+            _stateMachineNode.Trigger(Transition.OpenModal);
             _mainMenuBottomBarScene.Save();
             _mainMenuBottomBarScene.ConfigureAcceptCancel();
             ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
@@ -203,6 +210,7 @@ namespace Veronenger.Game.Managers {
             var result = await modalBoxConfirm.AwaitResult();
             _mainMenuBottomBarScene.Restore();
             modalBoxConfirm.QueueFree();
+            _stateMachineNode.Trigger(Transition.Back);
             return result;
         }
 

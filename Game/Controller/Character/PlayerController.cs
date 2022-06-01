@@ -222,6 +222,7 @@ namespace Veronenger.Game.Controller.Character {
                 */
         }
 
+        
 
         public override void _Input(InputEvent @event) {
             // _inputManager.Debug(@event, false);
