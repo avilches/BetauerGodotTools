@@ -5,7 +5,7 @@ using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar: DiCanvasLayer, IStateListener<GameManager.State> {
+    public class MainMenuBottomBar: DiCanvasLayer, IStateMachineListener<GameManager.State> {
         [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1; 
         [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2; 
         [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 

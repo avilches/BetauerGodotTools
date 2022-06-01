@@ -10,7 +10,7 @@ namespace Betauer.StateMachine {
 
     public interface IStateMachine<TStateKey, TTransitionKey> {
         public void AddState(IState<TStateKey, TTransitionKey> state);
-        public void AddListener(IStateListener<TStateKey> listener);
+        public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public IState<TStateKey, TTransitionKey> State { get; }
@@ -45,8 +45,8 @@ namespace Betauer.StateMachine {
             return stateBuilder;
         }
 
-        public StateMachineBuilder<T, TStateKey, TTransitionKey> AddListener(IStateListener<TStateKey> listener) {
-            _stateMachine.AddListener(listener);
+        public StateMachineBuilder<T, TStateKey, TTransitionKey> AddListener(IStateMachineListener<TStateKey> machineListener) {
+            _stateMachine.AddListener(machineListener);
             return this;
         }
 
@@ -56,7 +56,7 @@ namespace Betauer.StateMachine {
         }
     }
     
-    public interface IStateListener<in TStateKey> {
+    public interface IStateMachineListener<in TStateKey> {
         public void OnEnter(TStateKey state, TStateKey from);
         public void OnAwake(TStateKey state, TStateKey from);
         public void OnSuspend(TStateKey state, TStateKey to);
@@ -64,7 +64,7 @@ namespace Betauer.StateMachine {
         public void OnTransition(TStateKey from, TStateKey to);
     }
 
-    public class StateListenerBase<TStateKey> : IStateListener<TStateKey> {
+    public class StateMachineListenerBase<TStateKey> : IStateMachineListener<TStateKey> {
         public virtual void OnEnter(TStateKey state, TStateKey from) {
         }
 
@@ -106,7 +106,7 @@ namespace Betauer.StateMachine {
         private readonly TriggerContext<TStateKey> _triggerContext = new TriggerContext<TStateKey>();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
-        private SimpleLinkedList<IStateListener<TStateKey>>? _listeners;
+        private SimpleLinkedList<IStateMachineListener<TStateKey>>? _listeners;
         private Change _nextChange;
         private readonly TStateKey _initialState;
         private bool _disposed = false;
@@ -141,9 +141,9 @@ namespace Betauer.StateMachine {
             _stateEvents[new Tuple<TStateKey, TTransitionKey>(stateKey, transitionKey)] = transition;
         }
 
-        public void AddListener(IStateListener<TStateKey> listener) {
-            _listeners ??= new SimpleLinkedList<IStateListener<TStateKey>>();
-            _listeners.Add(listener);
+        public void AddListener(IStateMachineListener<TStateKey> machineListener) {
+            _listeners ??= new SimpleLinkedList<IStateMachineListener<TStateKey>>();
+            _listeners.Add(machineListener);
         }
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {

@@ -405,7 +405,7 @@ namespace Betauer.Tests {
 
         }
 
-        class TestListener : IStateListener<string> {
+        class TestMachineListener : IStateMachineListener<string> {
             internal List<string> states = new List<string>();
             public void OnEnter(string state, string from) {
                 states.Add(state + ":start");
@@ -499,7 +499,7 @@ namespace Betauer.Tests {
                 .Suspend(() => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:end"));
             
-            var stateListener = new TestListener();
+            var stateListener = new TestMachineListener();
             var sm = builder.AddListener(stateListener).Build();
             
             await sm.Execute(0f);

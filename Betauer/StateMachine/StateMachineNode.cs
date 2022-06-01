@@ -43,8 +43,8 @@ namespace Betauer.StateMachine {
             return new StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
         }
 
-        public void AddListener(IStateListener<TStateKey> listener) {
-            StateMachine.AddListener(listener);
+        public void AddListener(IStateMachineListener<TStateKey> machineListener) {
+            StateMachine.AddListener(machineListener);
         }
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
