@@ -20,11 +20,13 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private GameManager _gameManager;
         [Inject] private InputManager _inputManager;
+        private Launcher _launcher;
 
         private ActionState UiCancel => _inputManager.UiCancel;
         private ActionButton _settingsButton;
 
         public override void Ready() {
+            _launcher = new Launcher().WithParent(this);
             _menuController = BuildMenu();
             _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
         }
@@ -40,15 +42,20 @@ namespace Veronenger.Game.Controller.Menu {
             GetTree().Root.GuiDisableInput = false;
         }
 
-        public void FocusSettings() {
-            _settingsButton.GrabFocus();
-        }
-
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
             await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
+        }
+
+        public void DisableMenus() {
+            _menuController.ActiveMenu!.Save();
+            _menuController.ActiveMenu!.DisableButtons();
+        }
+
+        public void EnableMenus() {
+            _menuController.ActiveMenu!.Restore();
         }
 
         public MenuController BuildMenu() {
@@ -80,22 +87,19 @@ namespace Veronenger.Game.Controller.Menu {
                     _gameManager.TriggerSettings();
                 })
                 .AddButton("Exit", "Exit", async (ctx) => {
-                    ctx.Menu.Save();
-                    ctx.Menu.DisableButtons();
-                    _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.3f).Await();
-                    var exit = await _gameManager.ModalBoxConfirmExitDesktop();
-                    if (exit) {
-                        // await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, 0.2f).Await();
-                        GetTree().Notification(MainLoop.NotificationWmQuitRequest);
-                    } else {
-                        ctx.Menu.Restore();
-                        _gameManager.Launcher.RemoveAll();
-                        Modulate = Colors.White;
-                        ctx.ActionButton.GrabFocus();
-                    }
+                    _gameManager.TriggerModalBoxConfirmExitDesktop();
                 });
 
             return mainMenu;
+        }
+
+        public void DimOut() {
+            _launcher.Play(Template.FadeOut, this, 0f, 1f).Await();
+        }
+
+        public void RollbackDimOut() {
+            _launcher.RemoveAll();
+            Modulate = Colors.White;
         }
 
         public bool IsRootMenuActive() {

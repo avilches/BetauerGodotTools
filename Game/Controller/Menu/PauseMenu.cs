@@ -25,7 +25,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Node2D/BackgroundFader")] private ColorRect _backgroundFader;
 
         [OnReady("Node2D/CenterContainer/VBoxContainer/Menu")]
-        private Godot.Container _menuBase;
+        private Container _menuBase;
 
         [OnReady("Node2D/CenterContainer/VBoxContainer/Title")]
         private Label _title;
@@ -55,13 +55,18 @@ namespace Veronenger.Game.Controller.Menu {
             await _menuController.Start("Root");
         }
 
-        public void FocusSettings() {
-            _settingsButton.GrabFocus();
-        }
-
         public void HidePauseMenu() {
             _launcher.RemoveAll();
             _container.Hide();
+        }
+
+        public void DisableMenus() {
+            _menuController.ActiveMenu!.Save();
+            _menuController.ActiveMenu!.DisableButtons();
+        }
+
+        public void EnableMenus() {
+            _menuController.ActiveMenu!.Restore();
         }
 
         public MenuController BuildMenu() {
@@ -71,23 +76,9 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuController(_menuBase);
             mainMenu.AddMenu("Root")
-                .AddButton("Resume", "Resume", (ctx) => {
-                    _gameManager.TriggerBack();
-                })
-                .AddButton("Settings", "Settings",
-                    (ctx) => _gameManager.TriggerSettings())
-                .AddButton("QuitGame", "Quit game", async (ctx) => {
-                    ctx.Menu.Save();
-                    ctx.Menu.DisableButtons();
-                    var result = await _gameManager.ModalBoxConfirmQuitGame();
-                    ctx.Menu.Restore();
-                    if (result) {
-                        _gameManager.TriggerExitGame();
-                    } else {
-                        ctx.ActionButton.GrabFocus();
-                    }
-                });
-
+                .AddButton("Resume", "Resume", (ctx) => _gameManager.TriggerBack())
+                .AddButton("Settings", "Settings", (ctx) => _gameManager.TriggerSettings())
+                .AddButton("QuitGame", "Quit game", (ctx) => _gameManager.TriggerModalBoxConfirmQuitGame());
             return mainMenu;
         }
 

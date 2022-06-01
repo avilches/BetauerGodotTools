@@ -72,13 +72,16 @@ namespace Veronenger.Game.Controller.Menu {
 
         public void OnTransition(GameManager.State from, GameManager.State to) {
             switch (to) {
-                case GameManager.State.Settings:
+                case GameManager.State.ModalExitDesktop:
+                case GameManager.State.ModalQuitGame:
+                    ConfigureAcceptCancel();
                     break;
                 case GameManager.State.MainMenu:
                 case GameManager.State.PauseMenu:
                     ConfigureAcceptBack();
                     break;
                 case GameManager.State.Gaming:
+                case GameManager.State.ExitDesktop:
                     HideAll();
                     break;
             }
