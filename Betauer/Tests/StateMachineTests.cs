@@ -8,7 +8,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class StateMachineTests : NodeTest {
         enum State {
             A, B                        
