@@ -161,11 +161,59 @@ namespace Betauer.StateMachine {
             var change = State == null && _nextChange.State == null
                 ? new Change(States[_initialState], TransitionType.Change)
                 : _nextChange;
-            await _ExitCurrentState(change);
-            await _EnterNewState(change);
+            if (change.Type == TransitionType.Pop) await DoPop(change);
+            else if (change.Type == TransitionType.Push) await DoPush(change);
+            else if (change.Type == TransitionType.PopPush) await DoPopPush(change);
+            else if (change.Type == TransitionType.Change) await DoChange(change);
+
             _executeContext.Delta = delta;
             var transition = await State.Execute(_executeContext);
             _nextChange = CreateChange(transition);
+        }
+
+        private async Task DoPop(Change change) {
+            if (State != null) await Exit(_stack.Pop(), change.State.Key);
+            var newState = TransitionTo(change, out var oldState);
+            await Awake(newState, oldState.Key);
+        }
+
+        private async Task DoPopPush(Change change) {
+            if (State != null) await Exit(_stack.Pop(), change.State.Key);
+            var newState = TransitionTo(change, out var oldState);
+            _stack.Push(newState);
+            await Enter(State, oldState.Key);
+        }
+
+        private async Task DoPush(Change change) {
+            if (State != null) await Suspend(State, change.State!.Key);
+            var newState = TransitionTo(change, out var oldState);
+            _stack.Push(newState);
+            await Enter(State, oldState.Key);
+        }
+
+        private async Task DoChange(Change change) {
+            if (_stack.Count > 1) {
+                // Spacial case: 
+                // Exit from all the states in stack, in order, until the next change
+                while (_stack.Count > 0) {
+                    var exitingState = _stack.Pop();
+                    var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
+                    await Exit(exitingState, to);
+                }
+            } else if (_stack.Count == 1) {
+                await Exit(_stack.Pop(), change.State.Key);
+            }
+            var newState = TransitionTo(change, out var oldState);
+            _stack.Push(newState);
+            await Enter(State, oldState.Key);
+        }
+
+        private IState<TStateKey, TTransitionKey> TransitionTo(Change change, out IState<TStateKey, TTransitionKey> oldState) {
+            var newState = change.State;
+            oldState = State ?? newState;
+            State = newState;
+            Transition(change, oldState, newState);
+            return newState;
         }
 
         private Change CreateChange(ExecuteTransition<TStateKey, TTransitionKey> candidate) {
@@ -191,6 +239,7 @@ namespace Betauer.StateMachine {
             return new Change(newState, candidate.Type);
         }
 
+
         private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
             TriggerTransition<TStateKey> triggerTransition = default;
             var found = false;
@@ -210,44 +259,6 @@ namespace Betauer.StateMachine {
             }
             var transition = triggerTransition.ToTransition<TTransitionKey>();
             return transition;
-        }
-
-        private async Task _ExitCurrentState(Change change) {
-            if (_disposed || State == null || change.IsNone()) {
-                return;
-            }
-            if (change.IsPush()) {
-                await Suspend(State, change.State!.Key);
-            } else if (change.IsChange() && _stack.Count > 1) {
-                // Spacial case: 
-                // Exit from all the states in stack, in order, until the next change
-                while (_stack.Count > 0) {
-                    var exitingState = _stack.Pop();
-                    var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
-                    await Exit(exitingState, to);
-                }
-            } else {
-                // Pop, PopPush or Change with no stack: just exit the current state
-                var currentState = _stack.Pop();
-                await Exit(currentState, change.State.Key);
-            }
-        }
-
-        private async Task _EnterNewState(Change change) {
-            if (_disposed || change.IsNone()) return;
-            var newState = change.State;
-            var oldState = State ?? newState;
-            State = newState;
-
-            Transition(change, oldState, newState);
-
-            if (change.IsPop()) {
-                await Awake(newState, oldState.Key);
-            } else {
-                // Push, PopPush or Change: enter the new state
-                _stack.Push(newState);
-                await Enter(State, oldState.Key);
-            }
         }
 
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {
