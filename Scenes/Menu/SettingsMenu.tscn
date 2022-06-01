@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/SettingsMenu.cs" type="Script" id=1]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
 [ext_resource path="res://Scenes/UI/FlatButton.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Scenes/UI/CheckButton.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Scenes/UI/RedefineActionButton.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=6]
 
 [node name="CanvasLayer" type="CanvasLayer"]
@@ -138,16 +139,9 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
 
-[node name="CheckButton" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 3 )]
+[node name="Jump" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
 margin_right = 352.0
 margin_bottom = 15.0
-text = "Jump"
-
-[node name="CheckButton2" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 3 )]
-margin_top = 20.0
-margin_right = 352.0
-margin_bottom = 35.0
-text = "Attack"
 
 [node name="ControlsTitle2" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
 margin_top = 227.0

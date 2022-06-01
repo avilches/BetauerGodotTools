@@ -46,16 +46,29 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         // TODO: i18n
-        public void ConfigureAcceptBack() {
+        public void ConfigureMenuAcceptBack() {
             HideAll()
                 .AddButton(null,"ui_accept", "Accept")
                 .AddButton(null,"ui_cancel", "Back");
         }
 
-        public void ConfigureAcceptCancel() {
+        public void ConfigureModalAcceptCancel() {
             HideAll()
                 .AddButton(null,"ui_accept", "Accept")
                 .AddButton(null,"ui_cancel", "Cancel");
+        }
+
+        public void ConfigureChangeBack() {
+            HideAll()
+                .AddButton(null,"ui_accept", "Change")
+                .AddButton(null,"ui_cancel", "Back");
+        }
+
+        public void ConfigureResolution() {
+            HideAll()
+                .AddButton(null,"ui_left", "left")
+                .AddButton(null,"ui_right", "right")
+                .AddButton(null,"ui_cancel", "Back");
         }
 
         public void OnEnter(GameManager.State state, GameManager.State from) {
@@ -74,11 +87,11 @@ namespace Veronenger.Game.Controller.Menu {
             switch (to) {
                 case GameManager.State.ModalExitDesktop:
                 case GameManager.State.ModalQuitGame:
-                    ConfigureAcceptCancel();
+                    ConfigureModalAcceptCancel();
                     break;
                 case GameManager.State.MainMenu:
                 case GameManager.State.PauseMenu:
-                    ConfigureAcceptBack();
+                    ConfigureMenuAcceptBack();
                     break;
                 case GameManager.State.Gaming:
                 case GameManager.State.ExitDesktop:

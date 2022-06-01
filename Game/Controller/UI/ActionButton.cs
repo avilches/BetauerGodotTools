@@ -1,10 +1,11 @@
 using System;
 using Betauer;
 using Betauer.Animation;
+using Betauer.DI;
 using Godot;
 
 namespace Veronenger.Game.Controller.UI {
-    public class ActionButton : Button {
+    public class ActionButton : DiButton {
         public class Context {
             public ActionButton ActionButton { get; }
 

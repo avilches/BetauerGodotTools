@@ -17,7 +17,7 @@ namespace Veronenger.Game.Managers {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
 
         private MainMenu _mainMenuScene;
-        private MainMenuBottomBar _mainMenuBottomBarScene;
+        public MainMenuBottomBar MainMenuBottomBarScene;
         private PauseMenu _pauseMenuScene;
         private SettingsMenu _settingsMenuScene;
         private Node _currentGameScene;
@@ -63,7 +63,7 @@ namespace Veronenger.Game.Managers {
             _screenManager.Start(ApplicationConfig.Configuration);
             _launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
-            _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
+            MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
             _settingsMenuScene = _resourceManager.CreateSettingsMenu();
             _stateMachineNode = BuildStateMachine();
@@ -75,7 +75,7 @@ namespace Veronenger.Game.Managers {
             GetTree().Root.AddChild(_pauseMenuScene);
             GetTree().Root.AddChild(_settingsMenuScene);
             GetTree().Root.AddChild(_mainMenuScene);
-            GetTree().Root.AddChild(_mainMenuBottomBarScene);
+            GetTree().Root.AddChild(MainMenuBottomBarScene);
             GetTree().Root.AddChild(_stateMachineNode);
             splashScreen.QueueFree();
         }
@@ -83,7 +83,7 @@ namespace Veronenger.Game.Managers {
         private StateMachineNode<State, Transition> BuildStateMachine() {
             var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
                 .CreateBuilder();
-            builder.AddListener(_mainMenuBottomBarScene);
+            builder.AddListener(MainMenuBottomBarScene);
             builder.State(State.Loading)
                 .Execute(context => context.Set(State.MainMenu));
 

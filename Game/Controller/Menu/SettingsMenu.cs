@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Godot;
+using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 using ActionButton = Veronenger.Game.Controller.UI.ActionButton;
 using ActionCheckButton = Veronenger.Game.Controller.UI.ActionCheckButton;
@@ -41,8 +43,23 @@ namespace Veronenger.Game.Controller.Menu {
 
 		public override void Ready() {
 			_launcher.WithParent(this);
-			_fullscreenButton.OnFocusEntered(() => _scrollContainer.ScrollVertical = 0); 
-			_controls.GetChild<ActionButton>(_controls.GetChildCount()-1).OnFocusEntered(() => _scrollContainer.ScrollVertical = int.MaxValue); 
+			// _controls.
+			// _jump.ActionHint.Configure("Attack", _inputManager.Attack.Name, null);
+			// _jump.Action = () => {
+				
+			// }; 
+			_fullscreenButton.OnFocusEntered(() => {
+				_scrollContainer.ScrollVertical = 0;
+				_gameManager.MainMenuBottomBarScene.ConfigureChangeBack();
+			}); 
+			_controls.GetChildrenFilter<ActionButton>().ForEach(button => button.OnFocusEntered(() => _gameManager.MainMenuBottomBarScene.ConfigureChangeBack())); 
+			_controls.GetChild<ActionButton>(_controls.GetChildCount()-1).OnFocusEntered(() => {
+				_gameManager.MainMenuBottomBarScene.ConfigureChangeBack();
+				_scrollContainer.ScrollVertical = int.MaxValue;
+			}); 
+			_fullscreenButton.OnFocusEntered(() => {
+				_gameManager.MainMenuBottomBarScene.ConfigureResolution();
+			});
 			_fullscreenButton.Action = isChecked => {
 				Disable(_resolutionButton, isChecked);
 				Disable(_borderlessButton, isChecked);
