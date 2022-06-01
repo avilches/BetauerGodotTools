@@ -136,8 +136,10 @@ namespace Betauer.UI {
             baseHolder.GetParent().AddChildBelowNode(baseHolder, Container);
         }
 
+        private Control? _lastFocused;
         public ActionMenu Save() {
             _saver.Save();
+            _lastFocused = GetFocusOwner();
             foreach (var button in Container.GetChildren())
                 if (button is IActionControl control) control.Save();
             return this;
@@ -147,6 +149,10 @@ namespace Betauer.UI {
             _saver.Restore();
             foreach (var button in Container.GetChildren())
                 if (button is IActionControl control) control.Restore();
+            if (_lastFocused != null) {
+                _lastFocused.GrabFocus();
+                _lastFocused = null;
+            }
             return this;
         }
 
