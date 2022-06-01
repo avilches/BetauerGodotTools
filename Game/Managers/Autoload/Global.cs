@@ -10,10 +10,10 @@ namespace Veronenger.Game.Managers.Autoload {
     public class Global : DiNode /* needed because it's an autoload */ {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager;
-        private Launcher _launcher = new Launcher();
+        private readonly Launcher _launcher = new Launcher();
         public override void Ready() {
             this.DisableAllNotifications();
-            _launcher = new Launcher().WithParent(this);
+            _launcher.WithParent(this);
         }
 
         public bool IsPlayer(KinematicBody2D player) {

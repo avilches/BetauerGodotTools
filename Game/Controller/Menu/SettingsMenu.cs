@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Menu {
 		private ActionState UiCancel => _inputManager.UiCancel;
 		private ActionState UiStart => _inputManager.UiStart;
 
-		private Launcher _launcher;
+		private readonly Launcher _launcher = new Launcher();
 
 		private void Disable(Button control, bool isDisabled) {
 			control.FocusMode = isDisabled ? Control.FocusModeEnum.None : Control.FocusModeEnum.All;
@@ -40,7 +40,7 @@ namespace Veronenger.Game.Controller.Menu {
 		}
 
 		public override void Ready() {
-			_launcher = new Launcher().WithParent(this);
+			_launcher.WithParent(this);
 			_fullscreenButton.OnFocusEntered(() => _scrollContainer.ScrollVertical = 0); 
 			_controls.GetChild<ActionButton>(_controls.GetChildCount()-1).OnFocusEntered(() => _scrollContainer.ScrollVertical = int.MaxValue); 
 			_fullscreenButton.Action = isChecked => {

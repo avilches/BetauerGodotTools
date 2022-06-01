@@ -20,13 +20,13 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private GameManager _gameManager;
         [Inject] private InputManager _inputManager;
-        private Launcher _launcher;
+        private readonly Launcher _launcher = new Launcher();
 
         private ActionState UiCancel => _inputManager.UiCancel;
         private ActionButton _settingsButton;
 
         public override void Ready() {
-            _launcher = new Launcher().WithParent(this);
+            _launcher.WithParent(this);
             _menuController = BuildMenu();
             _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
         }
@@ -38,13 +38,13 @@ namespace Veronenger.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuController.Start("Root");
-            await _gameManager.Launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await _gameManager.Launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
+            await _launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -119,7 +119,7 @@ namespace Veronenger.Game.Controller.Menu {
                 if (child is Control control) {
                     // actionButton.Modulate =
                     // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -135,7 +135,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
                     control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -150,7 +150,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.FromMenu.GetChildren()) {
                 if (child is Control control) {
                     // control.Modulate = new Color(1f,1f,1f, 0f);
-                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }
@@ -169,7 +169,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in transition.ToMenu.GetChildren()) {
                 if (child is Control control) {
                     control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _gameManager.Launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
+                    lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
                     x++;
                 }
             }

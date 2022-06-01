@@ -12,8 +12,6 @@ using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
-
-
     [Singleton]
     public class GameManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
@@ -46,7 +44,7 @@ namespace Veronenger.Game.Managers {
             ExitDesktop,
         }
 
-        public readonly Launcher Launcher = new Launcher();
+        private readonly Launcher _launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
         [Inject] private ScreenManager _screenManager;
@@ -63,7 +61,7 @@ namespace Veronenger.Game.Managers {
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
             _screenManager.Start(ApplicationConfig.Configuration);
-            Launcher.WithParent(GetTree().Root);
+            _launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
             _mainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
@@ -71,7 +69,7 @@ namespace Veronenger.Game.Managers {
             _stateMachineNode = BuildStateMachine();
 
             // Never pause the pause, settings and the state machine, because they will not work!
-            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = _stateMachineNode.PauseMode = 
+            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = _stateMachineNode.PauseMode =
                 Node.PauseModeEnum.Process;
 
             GetTree().Root.AddChild(_pauseMenuScene);
@@ -81,7 +79,7 @@ namespace Veronenger.Game.Managers {
             GetTree().Root.AddChild(_stateMachineNode);
             splashScreen.QueueFree();
         }
-        
+
         private StateMachineNode<State, Transition> BuildStateMachine() {
             var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
                 .CreateBuilder();
@@ -102,20 +100,18 @@ namespace Veronenger.Game.Managers {
                     return context.None();
                 });
 
-           builder.State(State.Settings)
-               .On(Transition.Back, context => context.Pop())                                           
-               .Enter(async () => await _settingsMenuScene.ShowSettingsMenu() )
-               .Execute(context => {
-                   if (UiCancel.JustPressed) {
-                       return context.Pop();
-                   }
-                   return context.None();
-               })
-               .Exit(() => {
-                   _settingsMenuScene.HideSettingsMenu();
-               });
-           
-           builder.State(State.StartingGame)
+            builder.State(State.Settings)
+                .On(Transition.Back, context => context.Pop())
+                .Enter(async () => await _settingsMenuScene.ShowSettingsMenu())
+                .Execute(context => {
+                    if (UiCancel.JustPressed) {
+                        return context.Pop();
+                    }
+                    return context.None();
+                })
+                .Exit(() => { _settingsMenuScene.HideSettingsMenu(); });
+
+            builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
                     _currentGameScene = _resourceManager.CreateWorld1();
@@ -123,8 +119,8 @@ namespace Veronenger.Game.Managers {
                     AddPlayerToScene(_currentGameScene);
                 })
                 .Execute(context => context.Set(State.Gaming));
-                
-           builder.State(State.Gaming)
+
+            builder.State(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
                 .Exit(() => {
@@ -132,8 +128,8 @@ namespace Veronenger.Game.Managers {
                     _currentGameScene.QueueFree();
                     _currentGameScene = null;
                 });
-           
-           builder.State(State.PauseMenu)
+
+            builder.State(State.PauseMenu)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())
@@ -160,30 +156,30 @@ namespace Veronenger.Game.Managers {
                     GetTree().Paused = false;
                 });
 
-           builder.On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
-           builder.State(State.ModalQuitGame)
-               .On(Transition.Back, context => context.Pop())
-               .Execute(async (context) => {
-                   var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
-                   return result ? context.Set(State.MainMenu) : context.Pop();
-               });
-               
-           builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
-           builder.State(State.ModalExitDesktop)
-               .On(Transition.Back, context => context.Pop())
-               .Enter(() => _mainMenuScene.DimOut())
-               .Exit(() => _mainMenuScene.RollbackDimOut())
-               .Execute(async (context) => {
-                   var result = await ShowModalBox("Exit game?");
-                   return result ? context.Push(State.ExitDesktop) : context.Pop();
-               });
+            builder.On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
+            builder.State(State.ModalQuitGame)
+                .On(Transition.Back, context => context.Pop())
+                .Execute(async (context) => {
+                    var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
+                    return result ? context.Set(State.MainMenu) : context.Pop();
+                });
 
-           builder.State(State.ExitDesktop)
-               .Enter(() => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
+            builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
+            builder.State(State.ModalExitDesktop)
+                .On(Transition.Back, context => context.Pop())
+                .Enter(() => _mainMenuScene.DimOut())
+                .Exit(() => _mainMenuScene.RollbackDimOut())
+                .Execute(async (context) => {
+                    var result = await ShowModalBox("Exit game?");
+                    return result ? context.Push(State.ExitDesktop) : context.Pop();
+                });
+
+            builder.State(State.ExitDesktop)
+                .Enter(() => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
 
             return builder.Build();
         }
-        
+
         public void TriggerStartGame() {
             _stateMachineNode.Trigger(Transition.StartGame);
         }
@@ -207,7 +203,7 @@ namespace Veronenger.Game.Managers {
         public void TriggerModalBoxConfirmQuitGame() {
             _stateMachineNode.Trigger(Transition.ModalBoxConfirmQuitGame);
         }
-        
+
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);

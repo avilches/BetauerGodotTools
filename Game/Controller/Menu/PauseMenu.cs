@@ -40,10 +40,10 @@ namespace Veronenger.Game.Controller.Menu {
         private ActionState UiStart => _inputManager.UiStart;
         private ActionButton _settingsButton;
 
-        private Launcher _launcher;
+        private readonly Launcher _launcher = new Launcher();
 
         public override void Ready() {
-            _launcher = new Launcher().WithParent(this);
+            _launcher.WithParent(this);
             _menuController = BuildMenu();
             _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
             HidePauseMenu();
