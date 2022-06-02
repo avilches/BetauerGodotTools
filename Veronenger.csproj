@@ -3,6 +3,7 @@
         <TargetFramework>net472</TargetFramework>
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
         <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="**/*.cs" Exclude="Betauer/**" />

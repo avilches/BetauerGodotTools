@@ -51,17 +51,21 @@ namespace Veronenger.Game.Controller.UI {
         public void Save() =>_saver.Save();
         public void Restore() => _saver.Restore();
 
-        private Action _onFocusEntered;
+        private Action? _onFocusEntered;
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_entered, this, nameof(ExecuteOnFocusEntered));
+            if (_onFocusEntered == null) {
+                Connect(GodotConstants.GODOT_SIGNAL_focus_entered, this, nameof(ExecuteOnFocusEntered));
+            }
             _onFocusEntered = onFocus;
         }
 
-        private Action _onFocusExited;
+        private Action? _onFocusExited;
         private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
         public void OnFocusExited(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_exited, this, nameof(ExecuteOnFocusExited));
+            if (_onFocusExited == null) {
+                Connect(GodotConstants.GODOT_SIGNAL_focus_exited, this, nameof(ExecuteOnFocusExited));
+            }
             _onFocusExited = onFocus;
         }
     }

@@ -14,10 +14,13 @@ namespace Veronenger.Game.Managers {
         public readonly VerticalAction VerticalMotion;
         public readonly ActionState Jump;
         public readonly ActionState Attack;
+        public readonly ActionState UiLeft;
+        public readonly ActionState UiRight;
         public readonly ActionState UiAccept;
         public readonly ActionState UiSelect;
         public readonly ActionState UiStart;
         public readonly ActionState UiCancel;
+        
         public readonly ActionState PixelPerfect;
 
         private readonly ActionList _actionList;
@@ -40,6 +43,9 @@ namespace Veronenger.Game.Managers {
             // UI actions
             UiLateralMotion = _actionList.AddLateralAction("ui_left", "ui_right");
             UiVerticalMotion = _actionList.AddVerticalAction("ui_up", "ui_down");
+            
+            UiLeft = _actionList.AddAction("ui_left");
+            UiRight = _actionList.AddAction("ui_right");
             UiAccept = _actionList.AddAction("ui_accept");
             UiCancel = _actionList.AddAction("ui_cancel");
             UiSelect = _actionList.AddAction("ui_select");
@@ -57,6 +63,16 @@ namespace Veronenger.Game.Managers {
                 .ConfigureAxis(JoystickList.Axis0)
                 .AddLateralCursorKeys()
                 .AddLateralDPadButtons()
+                .Build();
+
+            UiLeft.ClearConfig()
+                .AddKey(KeyList.Left)
+                .AddButton(JoystickList.DpadLeft)
+                .Build();
+
+            UiRight.ClearConfig()
+                .AddKey(KeyList.Right)
+                .AddButton(JoystickList.DpadRight)
                 .Build();
 
             VerticalMotion

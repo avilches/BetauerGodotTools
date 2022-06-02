@@ -12,6 +12,8 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         
         [Inject] protected ResourceManager _resourceManager;
 
+        [OnReady("AnimationPlayer")] private AnimationPlayer _animation;
+
         public override void Ready() {
             if (_config == null) {
                 // TODO: this should depends on the controller connected
@@ -44,8 +46,38 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         }
 
         public void Change(JoystickList button, bool pressed) {
+            _animation.Stop();
             ConsoleButtonView view = _config.Get(button);
             Frame = pressed ? view.FramePressed : view.Frame;
+        }
+
+        public void AnimateLeftVertical() {
+            _animation.Play("left vertical");
+        }
+
+        public void AnimateLeftLateral() {
+            _animation.Play("left lateral");
+        }
+
+        public void AnimateLeftCircular() {
+            _animation.Play("left circular");
+        }
+
+        public bool HasAnimation(string animation) {
+            return _animation.HasAnimation(animation);
+        }
+
+        public void Animate(string animation) {
+            _animation.Play(animation);
+        }
+
+        public void Animate(JoystickList button) {
+            ConsoleButtonView view = _config.Get(button);
+            if (!string.IsNullOrEmpty(view.Animation) && _animation.HasAnimation(view.Animation)) {
+                _animation.Play(view.Animation);
+            } else {
+                ShowButton(button);
+            }
         }
     }
 
@@ -72,41 +104,44 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         public abstract ConsoleButtonView CreateDefaultView();
         protected abstract string ConfigureTexture();
 
-        protected void Add(JoystickList joystickList, int frame, int framePressed) {
-            _mapping.Add(joystickList, new ConsoleButtonView(frame, framePressed));
+        protected void Add(JoystickList joystickList, string animation, int frame, int framePressed) {
+            _mapping.Add(joystickList, new ConsoleButtonView(animation, frame, framePressed));
         }
     }
 
     [Singleton]
     public class Xbox360SpriteConfig : SpriteConfig {
-        public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(0, 0);
+        public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(null, 0, 0);
         
         protected override string ConfigureTexture() {
             return ResourceManager.Xbox360Buttons;
         }
 
         public override void ConfigureButtons() {
-            Add(JoystickList.XboxA, 13, 14);
-            Add(JoystickList.XboxB, 49, 50);
-            Add(JoystickList.XboxX, 25, 26);
-            Add(JoystickList.XboxY, 37, 38);
+            Add(JoystickList.XboxA, "A", 13, 14);
+            Add(JoystickList.XboxB, "B", 49, 50);
+            Add(JoystickList.XboxX, "X", 25, 26);
+            Add(JoystickList.XboxY, "Y", 37, 38);
 
-            Add(JoystickList.L, 46, 45); // LB
-            Add(JoystickList.R, 58, 57); // RB
-            Add(JoystickList.AnalogL2, 22, 21); // LT
-            Add(JoystickList.AnalogR2, 34, 33); // RT
+            Add(JoystickList.L, null, 46, 45); // LB
+            Add(JoystickList.R, null, 58, 57); // RB
+            Add(JoystickList.AnalogL2, null, 22, 21); // LT
+            Add(JoystickList.AnalogR2, null, 34, 33); // RT
 
-            Add(JoystickList.Select, 16, 15);
-            Add(JoystickList.Start, 19, 20);
-            Add(JoystickList.Guide, 17, 18); // Xbox Button (big button between select & start)
+            Add(JoystickList.Select, "", 16, 15);
+            Add(JoystickList.Start, "", 19, 20);
+            Add(JoystickList.Guide, "", 17, 18); // Xbox Button (big button between select & start)
 
-            Add(JoystickList.DpadRight, 27, 28);
-            Add(JoystickList.DpadDown, 27, 29);
-            Add(JoystickList.DpadLeft, 27, 30);
-            Add(JoystickList.DpadUp, 27, 31);
+            Add(JoystickList.DpadRight, "", 28, 27);
+            Add(JoystickList.DpadDown, "", 29, 27);
+            Add(JoystickList.DpadLeft, "", 30, 27);
+            Add(JoystickList.DpadUp, "", 31, 27);
 
-            Add(JoystickList.R3, 39, 44);
-            Add(JoystickList.L3, 51, 56);
+            // Right analog Click
+            Add(JoystickList.R3, "", 39, 44);
+
+            // Right analog Click
+            Add(JoystickList.L3, "left click", 51, 56);
 
 
             // Right analog stick:
@@ -138,10 +173,13 @@ namespace Veronenger.Game.Controller.UI.Consoles {
     public struct ConsoleButtonView {
         public readonly int Frame;
         public readonly int FramePressed;
+        public readonly string? Animation;
 
-        public ConsoleButtonView(int frame, int framePressed) {
+        public ConsoleButtonView(string? animation, int frame, int framePressed) {
+            Animation = animation;
             Frame = frame;
             FramePressed = framePressed;
         }
+
     }
 }

@@ -43,31 +43,29 @@ namespace Veronenger.Game.Controller.Menu {
 
 		public override void Ready() {
 			_launcher.WithParent(this);
-			// _controls.
-			// _jump.ActionHint.Configure("Attack", _inputManager.Attack.Name, null);
-			// _jump.Action = () => {
-				
-			// }; 
-			_fullscreenButton.OnFocusEntered(() => {
-				_scrollContainer.ScrollVertical = 0;
-				_gameManager.MainMenuBottomBarScene.ConfigureChangeBack();
-			}); 
-			_controls.GetChildrenFilter<ActionButton>().ForEach(button => button.OnFocusEntered(() => _gameManager.MainMenuBottomBarScene.ConfigureChangeBack())); 
-			_controls.GetChild<ActionButton>(_controls.GetChildCount()-1).OnFocusEntered(() => {
-				_gameManager.MainMenuBottomBarScene.ConfigureChangeBack();
-				_scrollContainer.ScrollVertical = int.MaxValue;
-			}); 
-			_fullscreenButton.OnFocusEntered(() => {
-				_gameManager.MainMenuBottomBarScene.ConfigureResolution();
+			
+			ConfigureCheckboxes();
+			ConfigureResolutionButton();
+			ConfigureControls();
+
+			_fullscreenButton.Pressed = _screenManager.Settings.Fullscreen;
+			_pixelPerfectButton.Pressed = _screenManager.Settings.PixelPerfect;
+			_vsyncButton.Pressed = _screenManager.Settings.VSync;;
+			_borderlessButton.Pressed = _screenManager.Settings.Borderless;
+
+			Disable(_resolutionButton, _screenManager.Settings.Fullscreen);
+			Disable(_borderlessButton, _screenManager.Settings.Fullscreen);
+			UpdateResolutionButton();
+
+			HideSettingsMenu();
+		}
+
+		private void ConfigureResolutionButton() {
+			_resolutionButton.OnFocusEntered(() => {
+				UpdateResolutionButton();
+				_gameManager.MainMenuBottomBarScene.ConfigureSettingsResolution();
 			});
-			_fullscreenButton.Action = isChecked => {
-				Disable(_resolutionButton, isChecked);
-				Disable(_borderlessButton, isChecked);
-				if (isChecked) {
-					_borderlessButton.Pressed = false;
-				}
-				_screenManager.SetFullscreen(isChecked);
-			};
+			_resolutionButton.OnFocusExited(UpdateResolutionButton);
 			_resolutionButton.ActionWithInputEventContext = ctx => {
 				List<ScaledResolution> resolutions = _screenManager.GetResolutions();
 				Resolution resolution = _screenManager.Settings.WindowedResolution;
@@ -95,37 +93,6 @@ namespace Veronenger.Game.Controller.Menu {
 				}
 				return false;
 			};
-			_pixelPerfectButton.Action = isChecked => {
-				_screenManager.SetPixelPerfect(isChecked);
-			};
-			_borderlessButton.Action = isChecked => {
-				_screenManager.SetBorderless(isChecked);
-			};
-			_vsyncButton.Action = isChecked => {
-				_screenManager.SetVSync(isChecked);
-			};
-			_fullscreenButton.Pressed = _screenManager.Settings.Fullscreen;
-			_pixelPerfectButton.Pressed = _screenManager.Settings.PixelPerfect;
-			_vsyncButton.Pressed = _screenManager.Settings.VSync;;
-			_borderlessButton.Pressed = _screenManager.Settings.Borderless;
-
-			Disable(_resolutionButton, _screenManager.Settings.Fullscreen);
-			Disable(_borderlessButton, _screenManager.Settings.Fullscreen);
-			UpdateResolutionButton();
-			_resolutionButton.OnFocusEntered(UpdateResolutionButton);
-			_resolutionButton.OnFocusExited(UpdateResolutionButton);
-
-			HideSettingsMenu();
-		}
-
-		public async Task ShowSettingsMenu() {
-			_panel.Show();
-			_fullscreenButton.GrabFocus();
-		}
-
-		public void HideSettingsMenu() {
-			_launcher.RemoveAll();
-			_panel.Hide();
 		}
 
 		private void UpdateResolutionButton() {
@@ -146,6 +113,65 @@ namespace Veronenger.Game.Controller.Menu {
 				}
 			}
 			_resolutionButton.Text = prefix + res + suffix;
+		}
+
+		private void ConfigureCheckboxes() {
+			_fullscreenButton.OnFocusEntered(() => {
+				_scrollContainer.ScrollVertical = 0;
+				_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+			});
+			_fullscreenButton.Action = isChecked => {
+				Disable(_resolutionButton, isChecked);
+				Disable(_borderlessButton, isChecked);
+				if (isChecked) {
+					_borderlessButton.Pressed = false;
+				}
+				_screenManager.SetFullscreen(isChecked);
+			};
+			_pixelPerfectButton.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+			_pixelPerfectButton.Action = isChecked => {
+				_screenManager.SetPixelPerfect(isChecked);
+			};
+			_borderlessButton.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+			_borderlessButton.Action = isChecked => {
+				_screenManager.SetBorderless(isChecked);
+			};
+			_vsyncButton.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+			_vsyncButton.Action = isChecked => {
+				_screenManager.SetVSync(isChecked);
+			};
+		}
+
+		private void ConfigureControls() {
+			if (_controls.GetChildCount() < _inputManager.ConfigurableActionList.Count)
+				throw new Exception("Please, clone and add more RedefineActionButton nodes in Controls container");
+			
+			while (_controls.GetChildCount() > _inputManager.ConfigurableActionList.Count) 
+				_controls.RemoveChild(_controls.GetChild(0));
+
+			var x = 0;
+			_controls.GetChildrenFilter<RedefineActionButton>().ForEach(button => {
+				var action = _inputManager.ConfigurableActionList[x]; 
+				button.OnFocusEntered(() => {
+					_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+				});
+				button.ActionHint.Labels(null, action.Name).Button(action);
+				x++;
+			});
+			_controls.GetChild<ActionButton>(_controls.GetChildCount() - 1).OnFocusEntered(() => {
+				_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+				_scrollContainer.ScrollVertical = int.MaxValue;
+			});
+		}
+
+		public async Task ShowSettingsMenu() {
+			_panel.Show();
+			_fullscreenButton.GrabFocus();
+		}
+
+		public void HideSettingsMenu() {
+			_launcher.RemoveAll();
+			_panel.Hide();
 		}
 
 		private const float MenuEffectTime = 0.10f;

@@ -62,8 +62,8 @@ follow_focus = true
 scroll_horizontal_enabled = false
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer/ScrollContainer"]
-margin_right = 360.0
-margin_bottom = 246.0
+margin_right = 348.0
+margin_bottom = 249.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/margin_right = 5
@@ -72,14 +72,14 @@ custom_constants/margin_bottom = 3
 
 [node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer"]
 margin_left = 3.0
-margin_right = 355.0
-margin_bottom = 243.0
+margin_right = 343.0
+margin_bottom = 246.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
 
 [node name="VideoTitle" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
@@ -87,45 +87,45 @@ text = "Video"
 
 [node name="Fullscreen" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 21.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 38.0
 text = " Fullscreen"
 
 [node name="Resolution" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 3 )]
 margin_top = 43.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 58.0
 text = " Resolution"
 align = 0
 
 [node name="PixelPerfect" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 63.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 80.0
 text = " Pixel perfect"
 
 [node name="Borderless" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 85.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 102.0
 text = " Borderless window"
 
 [node name="VSync" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 107.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 124.0
 text = " Vertical sync"
 
 [node name="Spacer1" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
 margin_top = 129.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 145.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 
 [node name="ControlsTitle" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
 margin_top = 150.0
-margin_right = 352.0
+margin_right = 340.0
 margin_bottom = 166.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
@@ -133,20 +133,27 @@ text = "Controls"
 
 [node name="Controls" type="VBoxContainer" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
 margin_top = 171.0
-margin_right = 352.0
-margin_bottom = 222.0
+margin_right = 340.0
+margin_bottom = 246.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
 
-[node name="Jump" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
-margin_right = 352.0
+[node name="Jump1" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+margin_right = 340.0
 margin_bottom = 15.0
 
-[node name="ControlsTitle2" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
-margin_top = 227.0
-margin_right = 352.0
-margin_bottom = 243.0
-size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 6 )
-text = "Controls"
+[node name="Jump2" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+margin_top = 20.0
+margin_right = 340.0
+margin_bottom = 35.0
+
+[node name="Jump3" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+margin_top = 40.0
+margin_right = 340.0
+margin_bottom = 55.0
+
+[node name="Jump4" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+margin_top = 60.0
+margin_right = 340.0
+margin_bottom = 75.0
