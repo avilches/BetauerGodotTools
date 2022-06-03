@@ -15,16 +15,8 @@ namespace Betauer.Input {
                 }
                 return false;
             }
-            if (InputMap.EventIsAction(e, name)) {
-                if (includeEchoEvents) {
-                    return e is InputEventKey { Pressed: true } ||
-                           e is InputEventJoypadButton { Pressed: true };
-                }
-                // No echo, removed echoed inputs
-                return (e is InputEventKey { Pressed: true } key && !key.IsEcho()) ||
-                       (e is InputEventJoypadButton { Pressed: true } button && !button.IsEcho());
-            }
-            return false;
+            if (!InputMap.EventIsAction(e, name)) return false;
+            return e.IsActionPressed(name, includeEchoEvents) || e.IsActionReleased(name);
         }
     }
 }

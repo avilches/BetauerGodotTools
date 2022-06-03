@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer;
@@ -120,7 +121,6 @@ namespace Veronenger.Game.Managers {
 
 
         public void Debug(InputEvent e, bool actionsOnly = true) {
-
             var action = FindAction(e);
             string actionName = null;
             switch (action) {
@@ -128,20 +128,27 @@ namespace Veronenger.Game.Managers {
                     actionName = state.Name;
                     break;
                 case DirectionalAction directional:
-                    actionName = directional.Strength < 0 ? directional.NegativeName : directional.PositiveName;
+                    // TODO: move this code to DirectionalAction, and create a IsPressed(e) and IsReleased(e)
+                    if (directional.Strength == 0f) {
+                        actionName = e.IsActionReleased(directional.NegativeName)
+                            ? directional.NegativeName
+                            : directional.PositiveName;
+                    } else {
+                        actionName = directional.Strength < 0 ? directional.NegativeName : directional.PositiveName;
+                    }
                     break;
             }
             if (actionName == null && actionsOnly) return;
-            var _wrapper = new EventWrapper(e);
-            if (_wrapper.IsMotion()) {
+            var wrapper = new EventWrapper(e);
+            if (wrapper.IsMotion()) {
                 Logger.Debug(
-                    $"Axis {_wrapper.Device}[{_wrapper.Axis}]:{_wrapper.GetStrength()} ({_wrapper.AxisValue}) {actionName}");
-            } else if (_wrapper.IsAnyButton()) {
+                    $"Axis {wrapper.Device}[{wrapper.Axis}]:{wrapper.GetStrength()} ({wrapper.AxisValue}) {actionName}");
+            } else if (wrapper.IsAnyButton()) {
                 Logger.Debug(
-                    $"Button {_wrapper.Device}[{_wrapper.Button}]:{_wrapper.Pressed} ({_wrapper.Pressure}) {actionName}");
-            } else if (_wrapper.IsAnyKey()) {
+                    $"Button {wrapper.Device}[{wrapper.Button}]:{wrapper.Pressed} ({wrapper.Pressure}) {actionName}");
+            } else if (wrapper.IsAnyKey()) {
                 Logger.Debug(
-                    $"Key \"{_wrapper.KeyString}\" #{_wrapper.Key} Pressed:{_wrapper.Pressed}/Echo:{_wrapper.Echo} {actionName}");
+                    $"Key \"{wrapper.KeyString}\" #{wrapper.Key} Pressed:{wrapper.Pressed}/Echo:{wrapper.Echo} {actionName}");
             }
         }
 
