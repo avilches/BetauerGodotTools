@@ -303,15 +303,13 @@ namespace Betauer {
             // New line is different
             if (LoggerFactory.Instance._lastLogTimes > 1) {
                 // Print old lines + times
-                var timestamp = LoggerFactory.Instance._includeTimestamp ? "                      " : "";
-                WriteLog(_lastLogTraceLevel, timestamp, "x" + LoggerFactory.Instance._lastLogTimes,
-                    LoggerFactory.Instance._lastLog);
+                var timestamp = LoggerFactory.Instance._includeTimestamp ? "                       " : "";
+                WriteLog("x" + LoggerFactory.Instance._lastLogTimes, timestamp, LoggerFactory.Instance._lastLog);
             }
             LoggerFactory.Instance._lastLog = message;
             LoggerFactory.Instance._lastLogTimes = 1;
             var fastDateFormat = LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "";
-            WriteLog(level, fastDateFormat, level.ToString(),
-                message);
+            WriteLog(level.ToString(),fastDateFormat, message);
         }
 
         private static string FastDateFormat() {
@@ -321,25 +319,28 @@ namespace Betauer {
             var minute = now.Minute;
             var seconds = now.Second;
             var millis = now.Millisecond;
-            StringBuilder date = new StringBuilder().Append(now.Year).Append("-").Append(now.Month).Append("-")
-                .Append(now.Day).Append(" ");
-            date.Append(
-                hour > 9 ? hour.ToString() : "0" + hour).Append(":").Append(
-                minute > 9 ? minute.ToString() : "0" + minute).Append(":").Append(
-                seconds > 9 ? seconds.ToString() : "0" + seconds).Append(".").Append(
-                millis > 99
-                    ? millis.ToString()
-                    : "0" +
-                      (millis > 9 ? millis.ToString() : "0" + millis)
+            StringBuilder date = new StringBuilder()
+                .Append(now.Year)
+                .Append("-")
+                .Append(now.Month > 9 ? now.Month.ToString() : "0" + now.Month)
+                .Append("-")
+                .Append(now.Day > 9 ? now.Day.ToString() : "0" + now.Day)
+                .Append(" ")
+                .Append(hour > 9 ? hour.ToString() : "0" + hour)
+                .Append(":")
+                .Append(minute > 9 ? minute.ToString() : "0" + minute)
+                .Append(":")
+                .Append(seconds > 9 ? seconds.ToString() : "0" + seconds)
+                .Append(".")
+                .Append(millis > 99 ? millis.ToString() : "0" + (millis > 9 ? millis.ToString() : "0" + millis)
             );
-            ;
             return date.ToString();
         }
 
-        private void WriteLog(TraceLevel level, string timestamp, string slevel, string message) {
+        private void WriteLog(string level, string timestamp, string message) {
             var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "") +
                           string.Format(TraceFormat, LoggerFactory.Frame,
-                              slevel.Length > 5 ? slevel.Substring(0, 5) : slevel, _title, message);
+                              level.Length > 5 ? level.Substring(0, 5) : level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
                 writer.Flush();
