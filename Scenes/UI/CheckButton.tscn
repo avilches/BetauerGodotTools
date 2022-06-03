@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://Game/Controller/UI/ActionCheckButton.cs" type="Script" id=1]
+[ext_resource path="res://Game/Controller/UI/ButtonWrapper.cs" type="Script" id=1]
 [ext_resource path="res://Assets/UI/Buttons/FakeButton_Normal.tres" type="StyleBox" id=2]
 [ext_resource path="res://Assets/UI/Buttons/FakeButton_Hover.tres" type="StyleBox" id=3]
 [ext_resource path="res://Assets/UI/Buttons/FakeButton_Pressed.tres" type="StyleBox" id=4]
