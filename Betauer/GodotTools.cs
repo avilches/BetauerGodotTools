@@ -54,6 +54,19 @@ namespace Betauer {
             node.SetProcessUnhandledKeyInput(enable);
             node.SetPhysicsProcess(enable);
         }
+
+        public static void FocusEnable(this BaseButton control) {
+            SetFocusDisabled(control, false);
+        }
+
+        public static void FocusDisable(this BaseButton control) {
+            SetFocusDisabled(control, true);
+        }
+
+        public static void SetFocusDisabled(this BaseButton control, bool isDisabled) {
+            control.FocusMode = isDisabled ? Control.FocusModeEnum.None : Control.FocusModeEnum.All;
+            control.Disabled = isDisabled;
+        }
     }
 
     public static class GodotTools {
