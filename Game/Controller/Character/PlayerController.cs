@@ -4,6 +4,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Bus.Topics;
 using Betauer.DI;
+
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI;
@@ -229,7 +230,7 @@ namespace Veronenger.Game.Controller.Character {
             if (_inputManager.UiStart.IsEventPressed(@event)) {
                 _gameManager.TriggerPauseMenu();
             } else if (_inputManager.PixelPerfect.IsEventPressed(@event)) {
-                _screenManager.SetPixelPerfect(!_screenManager.Settings.PixelPerfect);
+                _screenManager.SetPixelPerfect(!_screenManager.SettingsFile.PixelPerfect);
             } else if (@event is InputEventJoypadButton button) {
                 _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {

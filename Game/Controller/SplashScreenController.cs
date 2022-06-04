@@ -1,6 +1,7 @@
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+
 using Godot;
 using Veronenger.Game.Managers;
 
@@ -22,11 +23,11 @@ namespace Veronenger.Game.Controller {
 
         public override void _EnterTree() {
             _screenManager.Load();
-            _baseResolutionSize = _screenManager.Settings.WindowedResolution.Size;
-            if (_screenManager.Settings.Fullscreen) {
+            _baseResolutionSize = _screenManager.SettingsFile.WindowedResolution.Size;
+            if (_screenManager.SettingsFile.Fullscreen) {
                 OS.WindowFullscreen = true;
             } else {
-                OS.WindowSize = _screenManager.Settings.WindowedResolution.Size;
+                OS.WindowSize = _screenManager.SettingsFile.WindowedResolution.Size;
                 OS.CenterWindow();
             }
             GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,

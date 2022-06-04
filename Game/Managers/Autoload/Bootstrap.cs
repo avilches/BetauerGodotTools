@@ -6,6 +6,7 @@ using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Bus;
 using Betauer.DI;
+
 using Betauer.Memory;
 using Betauer.Screen;
 using Veronenger.Game.Controller.Stage;

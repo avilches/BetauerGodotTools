@@ -5,6 +5,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
+
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Godot;
@@ -57,13 +58,13 @@ namespace Veronenger.Game.Controller.Menu {
             ConfigureResolutionButton();
             ConfigureControls();
 
-            _fullscreenButtonWrapper.Pressed = _screenManager.Settings.Fullscreen;
-            _pixelPerfectButtonWrapper.Pressed = _screenManager.Settings.PixelPerfect;
-            _vsyncButtonWrapper.Pressed = _screenManager.Settings.VSync;
-            _borderlessButtonWrapper.Pressed = _screenManager.Settings.Borderless;
-            _borderlessButtonWrapper.SetFocusDisabled(_screenManager.Settings.Fullscreen);
+            _fullscreenButtonWrapper.Pressed = _screenManager.SettingsFile.Fullscreen;
+            _pixelPerfectButtonWrapper.Pressed = _screenManager.SettingsFile.PixelPerfect;
+            _vsyncButtonWrapper.Pressed = _screenManager.SettingsFile.VSync;
+            _borderlessButtonWrapper.Pressed = _screenManager.SettingsFile.Borderless;
+            _borderlessButtonWrapper.SetFocusDisabled(_screenManager.SettingsFile.Fullscreen);
 
-            _resolutionButton.SetFocusDisabled(_screenManager.Settings.Fullscreen);
+            _resolutionButton.SetFocusDisabled(_screenManager.SettingsFile.Fullscreen);
             UpdateResolutionButton();
 
             HideSettingsMenu();
@@ -104,7 +105,7 @@ namespace Veronenger.Game.Controller.Menu {
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
             _resolutionButton.OnInputEvent(ctx => {
                 List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-                Resolution resolution = _screenManager.Settings.WindowedResolution;
+                Resolution resolution = _screenManager.SettingsFile.WindowedResolution;
                 var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
                 pos = pos == -1 ? 0 : pos;
                 
@@ -133,7 +134,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private void UpdateResolutionButton() {
             List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-            Resolution resolution = _screenManager.Settings.WindowedResolution;
+            Resolution resolution = _screenManager.SettingsFile.WindowedResolution;
             var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
             pos = pos == -1 ? 0 : pos;
 

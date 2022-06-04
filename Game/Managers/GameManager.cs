@@ -6,6 +6,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
+
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
@@ -60,7 +61,7 @@ namespace Veronenger.Game.Managers {
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            _screenManager.Start(ApplicationConfig.Configuration);
+            _screenManager.Start(GetTree(), ApplicationConfig.Configuration);
             _launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
             MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();

@@ -1,24 +1,15 @@
+using Betauer.Managers;
 using Betauer.Screen;
 using Godot;
 
 namespace Veronenger.Game {
     public static class ApplicationConfig {
-        public class UserScreenSettings {
-            // Default UserScreenSetting when the app starts for the first time
-            public const bool DefaultPixelPerfect = true;
-            public const bool DefaultFullscreen = true;
-            public const bool DefaultVSync = true;
-            public const bool DefaultBorderless = false;
-            public static readonly Vector2 DefaultWindowedResolution = Vector2.Zero;
-
-
-            public const string Filename = "video.cfg";
-            public const string VideoSection = "Video";
-            public const string PixelPerfectProperty = "PixelPerfect";
-            public const string FullscreenProperty = "Fullscreen";
-            public const string VSyncProperty = "VSync";
-            public const string BorderlessProperty = "Borderless";
-            public const string WindowedResolutionProperty = "WindowedResolution";
+        public class DefaultsUserScreenSettings : IUserScreenSettings{
+            public bool PixelPerfect { get; } = true;
+            public bool Fullscreen { get; } = true;
+            public bool VSync { get; } = true;
+            public bool Borderless { get; } = false;
+            public Resolution WindowedResolution { get; } = Configuration.BaseResolution;
         }
 
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
