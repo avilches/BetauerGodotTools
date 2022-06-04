@@ -102,9 +102,9 @@ namespace Veronenger.Game.Managers {
 
             builder.State(State.Settings)
                 .On(Transition.Back, context => context.Pop())
-                .Enter(async () => await _settingsMenuScene.ShowSettingsMenu())
+                .Enter(_settingsMenuScene.ShowSettingsMenu)
                 .Execute(context => {
-                    if (UiCancel.JustPressed) {
+                    if (UiCancel.JustPressed && !_settingsMenuScene.IsRedefineAction()) {
                         return context.Pop();
                     }
                     return context.None();

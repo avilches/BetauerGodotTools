@@ -23,8 +23,7 @@ namespace Veronenger.Game.Controller.UI {
         }
 
         private readonly ControlRestorer _saver;
-        private Action<bool>? _onPressedAction;
-        private Action<Context>? _onPressedActionWithContext;
+        private Action<Context>? _onPressedAction;
         private Func<InputEventContext, bool>? _onInputEvent;
         private Action? _onFocusEntered;
         private Action? _onFocusExited;
@@ -40,37 +39,33 @@ namespace Veronenger.Game.Controller.UI {
 
         public override void _Input(InputEvent @event) {
             // It takes into account if the Root.GuiDisableInput = true
-            if (_onInputEvent != null && GetFocusOwner() == this && !Disabled) {
-                if (_onInputEvent(new InputEventContext(this, @event))) {
-                    GetTree().SetInputAsHandled();
-                }
+            if (_onInputEvent == null || GetFocusOwner() != this || Disabled) return;
+            if (_onInputEvent(new InputEventContext(this, @event))) {
+                GetTree().SetInputAsHandled();
             }
         }
 
-        private void _GodotPressedSignal() {
-            if (_onPressedActionWithContext != null) _onPressedActionWithContext(new Context(this));
-            else _onPressedAction?.Invoke(Pressed);
-        }
-
+        private void _GodotPressedSignal() => _onPressedAction?.Invoke(new Context(this));
         private void _GodotFocusEnteredSignal() => _onFocusEntered?.Invoke();
         private void _GodotFocusExitedSignal() => _onFocusExited?.Invoke();
 
-        public ButtonWrapper OnPressed(Action<bool>? onPressedAction) {
+        public ButtonWrapper OnPressed(Action onPressedAction) {
+            _onPressedAction = context => onPressedAction();
+            return this;
+        }
+
+        public ButtonWrapper OnPressed(Action<bool> onPressedAction) {
+            _onPressedAction = context => onPressedAction(context.Button.Pressed);
+            return this;
+        }
+
+        public ButtonWrapper OnPressed(Action<Context> onPressedAction) {
             _onPressedAction = onPressedAction;
-            _onPressedActionWithContext = null;
             return this;
         }
 
-        public ButtonWrapper OnPressed(Action<Context>? onPressedActionWithContext) {
-            _onPressedAction = null;
-            _onPressedActionWithContext = onPressedActionWithContext;
-            return this;
-        }
-
-        public ButtonWrapper OnInputEvent(Func<InputEventContext, bool>? onPressedActionWithInputEventContext) {
-            _onPressedAction = null;
-            _onPressedActionWithContext = null;
-            _onInputEvent = onPressedActionWithInputEventContext;
+        public ButtonWrapper OnInputEvent(Func<InputEventContext, bool>? onInputEvent) {
+            _onInputEvent = onInputEvent;
             return this;
         }
 

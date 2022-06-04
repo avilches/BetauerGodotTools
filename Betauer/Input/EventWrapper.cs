@@ -13,6 +13,9 @@ namespace Betauer.Input {
         public int Device => Event.Device;
         public int Button => Event is InputEventJoypadButton button ? button.ButtonIndex : -1;
         public bool Pressed => Event.IsPressed();
+        public bool Echo => Event.IsEcho();
+        public bool JustPressed => Pressed && !Event.IsEcho();
+        public bool Released => !Pressed && !Event.IsEcho();
         public float Pressure => Event is InputEventJoypadButton button ? button.Pressure : -1;
 
         public int Key => Event is InputEventKey key ? (int) key.Scancode : -1;
@@ -21,7 +24,6 @@ namespace Betauer.Input {
 
         public float Axis => Event is InputEventJoypadMotion joypadMotion ? joypadMotion.Axis : -1;
         public float AxisValue => Event is InputEventJoypadMotion joypadMotion ? joypadMotion.AxisValue : 0;
-        public bool Echo => Event is InputEventKey key && key.Echo;
 
         public bool IsMotion() {
             return Event is InputEventJoypadMotion;
@@ -39,7 +41,6 @@ namespace Betauer.Input {
                     }
                 }
             }
-
             return false;
         }
 
@@ -49,7 +50,6 @@ namespace Betauer.Input {
                 if (Mathf.Abs(motion.AxisValue) > deadZone) {
                     return motion.AxisValue;
                 }
-
                 return 0;
             } else if (Event is InputEventJoypadButton button) {
                 return button.Pressed ? 1f : 0f;

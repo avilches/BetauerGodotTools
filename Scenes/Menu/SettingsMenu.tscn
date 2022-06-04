@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Game/Controller/Menu/SettingsMenu.cs" type="Script" id=1]
 [ext_resource path="res://Assets/UI/my_theme.tres" type="Theme" id=2]
@@ -6,6 +6,8 @@
 [ext_resource path="res://Scenes/UI/CheckButton.tscn" type="PackedScene" id=4]
 [ext_resource path="res://Scenes/UI/RedefineActionButton.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Assets/Fonts/dpcomic.tres" type="DynamicFont" id=6]
+[ext_resource path="res://Assets/Fonts/UnnamedFont.tres" type="DynamicFont" id=7]
+[ext_resource path="res://Assets/Fonts/dpcomic-2x.tres" type="DynamicFont" id=8]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 layer = 101
@@ -37,22 +39,24 @@ size_flags_vertical = 2
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
+margin_top = 125.0
 margin_right = 360.0
-margin_bottom = 16.0
+margin_bottom = 141.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 text = "Settings"
 align = 1
 
 [node name="Title2" type="Label" parent="Panel/VBoxContainer"]
-margin_top = 20.0
+margin_top = 145.0
 margin_right = 360.0
-margin_bottom = 36.0
+margin_bottom = 161.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 align = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBoxContainer"]
+visible = false
 margin_top = 40.0
 margin_right = 360.0
 margin_bottom = 286.0
@@ -62,7 +66,7 @@ follow_focus = true
 scroll_horizontal_enabled = false
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer/ScrollContainer"]
-margin_right = 348.0
+margin_right = 360.0
 margin_bottom = 249.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -72,7 +76,7 @@ custom_constants/margin_bottom = 3
 
 [node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer"]
 margin_left = 3.0
-margin_right = 343.0
+margin_right = 355.0
 margin_bottom = 246.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -157,3 +161,84 @@ margin_bottom = 55.0
 margin_top = 60.0
 margin_right = 340.0
 margin_bottom = 75.0
+
+[node name="RedefineActionPanel" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -170.0
+margin_top = -100.0
+margin_right = 170.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+theme = ExtResource( 2 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RedefineActionPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_right = -10.0
+rect_min_size = Vector2( 300, 0 )
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="VBoxContainerDouble" type="VBoxContainer" parent="RedefineActionPanel/VBoxContainer"]
+margin_right = 320.0
+margin_bottom = 138.0
+grow_vertical = 2
+rect_min_size = Vector2( 0, 125 )
+size_flags_vertical = 0
+
+[node name="Spacer1" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_right = 320.0
+margin_bottom = 30.0
+rect_min_size = Vector2( 0, 30 )
+
+[node name="Message" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 34.0
+margin_right = 320.0
+margin_bottom = 48.0
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 7 )
+text = "Press key or button for"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="Spacer2" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 52.0
+margin_right = 320.0
+margin_bottom = 67.0
+rect_min_size = Vector2( 0, 15 )
+
+[node name="ActionLabel2" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 71.0
+margin_right = 320.0
+margin_bottom = 101.0
+rect_min_size = Vector2( 300, 30 )
+size_flags_horizontal = 3
+custom_fonts/font = ExtResource( 8 )
+text = "Jump"
+align = 1
+autowrap = true
+
+[node name="Spacer3" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 105.0
+margin_right = 320.0
+margin_bottom = 120.0
+rect_min_size = Vector2( 0, 15 )
+
+[node name="Message2" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
+margin_top = 124.0
+margin_right = 320.0
+margin_bottom = 138.0
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+custom_fonts/font = ExtResource( 7 )
+text = "Escape to cancel"
+align = 1
+valign = 1
+autowrap = true

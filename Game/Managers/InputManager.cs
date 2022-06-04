@@ -56,6 +56,14 @@ namespace Veronenger.Game.Managers {
             Configure();
         }
 
+        public void RedefineButton(ActionState actionState, int button) {
+            actionState.ClearConfig().AddButton((JoystickList)button);
+        }
+
+        public void RedefineKey(ActionState actionState, int key) {
+            actionState.ClearConfig().AddKey((KeyList)key);
+        }
+
         public void Configure() {
             // Game actions
             LateralMotion
@@ -159,5 +167,6 @@ namespace Veronenger.Game.Managers {
         public BaseAction FindAction(InputEvent e, bool echo = false) {
             return _actionList.FindAction(e, echo);
         }
+
     }
 }

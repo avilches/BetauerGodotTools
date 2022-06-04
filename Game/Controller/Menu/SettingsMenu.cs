@@ -37,6 +37,9 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Panel/VBoxContainer/ScrollContainer")]
         private ScrollContainer _scrollContainer;
 
+        [OnReady("RedefineActionPanel")] 
+        private Panel _redefineActionPanel;
+
         [Inject] private GameManager _gameManager;
         [Inject] private ScreenManager _screenManager;
         [Inject] private InputManager _inputManager;
@@ -158,8 +161,13 @@ namespace Veronenger.Game.Controller.Menu {
             var x = 0;
             _controls.GetChildrenFilter<RedefineActionButton>().ForEach(button => {
                 var action = _inputManager.ConfigurableActionList[x];
-                button.OnFocusEntered(() => { _gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack(); });
+                button
+                    .OnPressed(() => {
+                        ShowRedefineActionPanel(button);
+                    })
+                    .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
                 button.ActionHint.Labels(null, action.Name).Button(action);
+                button.ActionState = action;
                 x++;
             });
             _controls.GetChild<ButtonWrapper>(_controls.GetChildCount() - 1).OnFocusEntered(() => {
@@ -168,16 +176,50 @@ namespace Veronenger.Game.Controller.Menu {
             });
         }
 
-        public async Task ShowSettingsMenu() {
+        private RedefineActionButton? _redefineButtonSelected;
+
+        public bool IsRedefineAction() {
+            return _redefineButtonSelected != null;
+        }
+
+        public void ShowRedefineActionPanel(RedefineActionButton button) {
+            _redefineButtonSelected = button;
+            _scrollContainer.Hide();
+            _redefineActionPanel.Show();
+        }
+
+        public override void _Input(InputEvent @event) {
+            if (_redefineButtonSelected == null) return;
+            var e = new EventWrapper(@event);
+            if ((e.IsAnyKey() || e.IsAnyButton()) && e.Released) {
+                if (!e.IsKey(KeyList.Escape)) {
+                    if (e.IsAnyKey()) {
+                        _inputManager.RedefineKey(_redefineButtonSelected.ActionState, e.Key);
+                        Console.WriteLine("New key " + e.KeyString);
+                    } else if (e.IsAnyButton()) {
+                        _inputManager.RedefineButton(_redefineButtonSelected.ActionState, e.Button);
+                        Console.WriteLine("New button " + e.Button);
+                    }
+                }
+                _redefineButtonSelected.GrabFocus();
+                GetTree().SetInputAsHandled();
+                _scrollContainer.Show();
+                _redefineActionPanel.Hide();
+                _redefineButtonSelected = null;
+            }
+        }
+
+        public void ShowSettingsMenu() {
             _panel.Show();
+            _scrollContainer.Show();
+            _redefineActionPanel.Hide();
             _fullscreenButtonWrapper.GrabFocus();
         }
 
         public void HideSettingsMenu() {
             _launcher.RemoveAll();
             _panel.Hide();
+            _redefineActionPanel.Hide();
         }
-
-        private const float MenuEffectTime = 0.10f;
     }
 }

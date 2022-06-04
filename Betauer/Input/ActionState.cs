@@ -8,7 +8,7 @@ namespace Betauer.Input {
 
         public bool Pressed => Godot.Input.IsActionPressed(Name);
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
-        public bool JustReleased => Godot.Input.IsActionJustReleased(Name);
+        public bool Released => Godot.Input.IsActionJustReleased(Name);
 
         public override bool IsEventPressed(InputEvent e, bool echo = false) {
             return InputTools.EventIsAction(Name, e, echo);

@@ -229,7 +229,7 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckAirAttack();
 
-                    if (Jump.JustReleased && Motion.y < -MotionConfig.JumpForceMin) {
+                    if (Jump.Released && Motion.y < -MotionConfig.JumpForceMin) {
                         DebugJump("Short jump: decelerating from " + Motion.y + " to " +
                                   -MotionConfig.JumpForceMin);
                         Body.SetMotionY(-MotionConfig.JumpForceMin);
