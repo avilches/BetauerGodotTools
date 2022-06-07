@@ -25,6 +25,5 @@
         <Content Include="Docs\*" />
         <Content Include="Scenes\**" />
         <Content Include="Worlds\**" />
-        <Content Include="Worlds\**" />
     </ItemGroup>
 </Project>

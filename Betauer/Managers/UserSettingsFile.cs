@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Betauer.Input;
 using Betauer.Screen;
 using Godot;
+using File = System.IO.File;
 
 namespace Betauer.Managers {
-    public interface IUserScreenSettings  {
+    public interface IUserSettings {
         public bool PixelPerfect { get; }
         public bool Fullscreen { get; }
         public bool VSync { get; }
@@ -10,8 +15,9 @@ namespace Betauer.Managers {
         public Resolution WindowedResolution { get; }
     }
 
-    public class UserSettingsFile : IUserScreenSettings {
+    public class SettingsFile : IUserSettings {
         public const string Filename = "settings.cfg";
+
         public const string VideoSection = "Video";
         public const string PixelPerfectProperty = "PixelPerfect";
         public const string FullscreenProperty = "Fullscreen";
@@ -19,51 +25,63 @@ namespace Betauer.Managers {
         public const string BorderlessProperty = "Borderless";
         public const string WindowedResolutionProperty = "WindowedResolution";
 
+        public const string ControlsSection = "Controls";
+
         public bool PixelPerfect { get; internal set; }
         public bool Fullscreen { get; internal set; }
         public bool VSync { get; internal set; }
         public bool Borderless { get; internal set; }
         public Resolution WindowedResolution { get; internal set; }
-        public string ResourceName { get; }
+        public ICollection<ConfigurableAction> ActionList { get; internal set; }
 
-        private readonly ConfigFile _cf = new ConfigFile();
+        private readonly string _resourceName;
+        private readonly IUserSettings _defaults;
+        private readonly Properties _cf;
 
-        private readonly IUserScreenSettings _defaults;
-        public UserSettingsFile(IUserScreenSettings defaults) {
-            ResourceName = System.IO.Path.Combine(OS.GetUserDataDir(), System.IO.Path.GetFileName(Filename));
+        public SettingsFile(IUserSettings defaults, ICollection<ConfigurableAction> actionList) {
+            _resourceName = System.IO.Path.Combine(OS.GetUserDataDir(), System.IO.Path.GetFileName(Filename));
+            _cf = new Properties(_resourceName);
             _defaults = defaults;
-            PixelPerfect = defaults.PixelPerfect; 
+            PixelPerfect = defaults.PixelPerfect;
             Fullscreen = defaults.Fullscreen;
             VSync = defaults.VSync;
             Borderless = defaults.Borderless;
             WindowedResolution = defaults.WindowedResolution;
+            ActionList = actionList;
         }
 
-        public UserSettingsFile Load() {
-            var error = _cf.Load(ResourceName);
-            if (error != Error.Ok) {
-                LoggerFactory.GetLogger(typeof(UserSettingsFile)).Error($"Load \"{ResourceName}\" error: {error}");
-                return this;
-            }
-            PixelPerfect = (bool)_cf.GetValue(VideoSection, PixelPerfectProperty, _defaults.PixelPerfect);
-            Fullscreen = (bool)_cf.GetValue(VideoSection, FullscreenProperty, _defaults.Fullscreen);
-            VSync = (bool)_cf.GetValue(VideoSection, VSyncProperty, _defaults.VSync);
-            Borderless = (bool)_cf.GetValue(VideoSection, BorderlessProperty, _defaults.Borderless);
-            var sn = (Vector2)_cf.GetValue(VideoSection, WindowedResolutionProperty, _defaults.WindowedResolution.Size);
+        public SettingsFile Load() {
+            Console.WriteLine("Loading from " + _resourceName + "\n" + File.ReadAllText(_resourceName));
+            _cf.Load();
+            PixelPerfect = _cf.GetValue(VideoSection, PixelPerfectProperty, _defaults.PixelPerfect);
+            Fullscreen = _cf.GetValue(VideoSection, FullscreenProperty, _defaults.Fullscreen);
+            VSync = _cf.GetValue(VideoSection, VSyncProperty, _defaults.VSync);
+            Borderless = _cf.GetValue(VideoSection, BorderlessProperty, _defaults.Borderless);
+            var sn = _cf.GetValue(VideoSection, WindowedResolutionProperty, _defaults.WindowedResolution.Size);
             WindowedResolution = new Resolution(sn);
+            ActionList.ToList().ForEach(actionState => {
+                var keys = _cf.GetValue(ControlsSection, actionState.GetPropertyNameForKeys(),
+                    actionState.ExportKeys());
+                var buttons = _cf.GetValue(ControlsSection, actionState.GetPropertyNameForButtons(),
+                    actionState.ExportButtons());
+                actionState.ImportKeys(keys);
+                actionState.ImportButtons(buttons);
+            });
             return this;
         }
 
-        public UserSettingsFile Save() {
+        public SettingsFile Save() {
             _cf.SetValue(VideoSection, PixelPerfectProperty, PixelPerfect);
             _cf.SetValue(VideoSection, FullscreenProperty, Fullscreen);
             _cf.SetValue(VideoSection, VSyncProperty, VSync);
             _cf.SetValue(VideoSection, BorderlessProperty, Borderless);
             _cf.SetValue(VideoSection, WindowedResolutionProperty, WindowedResolution.Size);
-            var error = _cf.Save(ResourceName);
-            if (error != Error.Ok) {
-                LoggerFactory.GetLogger(typeof(UserSettingsFile)).Error($"Save \"{ResourceName}\" error: {error}");
-            }
+            ActionList.ToList().ForEach(actionState => {
+                _cf.SetValue(ControlsSection, actionState.GetPropertyNameForKeys(), actionState.ExportKeys());
+                _cf.SetValue(ControlsSection, actionState.GetPropertyNameForButtons(), actionState.ExportButtons());
+            });
+            _cf.Save();
+            Console.WriteLine("Saving to " + _resourceName + "\n" + File.ReadAllText(_resourceName));
             return this;
         }
     }

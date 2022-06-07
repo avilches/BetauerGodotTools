@@ -4,11 +4,11 @@ using Godot;
 
 namespace Veronenger.Game {
     public static class ApplicationConfig {
-        public class DefaultsUserScreenSettings : IUserScreenSettings{
-            public bool PixelPerfect { get; } = true;
-            public bool Fullscreen { get; } = true;
-            public bool VSync { get; } = true;
-            public bool Borderless { get; } = false;
+        public class UserSettings : IUserSettings {
+            public bool PixelPerfect => true;
+            public bool Fullscreen => true;
+            public bool VSync => true;
+            public bool Borderless => false;
             public Resolution WindowedResolution { get; } = Configuration.BaseResolution;
         }
 
@@ -23,9 +23,5 @@ namespace Veronenger.Game {
             SceneTree.StretchMode.Viewport,
             SceneTree.StretchAspect.Keep,
             Resolutions.All(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
-
     }
-
-
-
 }

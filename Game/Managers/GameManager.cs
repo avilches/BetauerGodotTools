@@ -48,7 +48,7 @@ namespace Veronenger.Game.Managers {
         private readonly Launcher _launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
-        [Inject] private ScreenManager _screenManager;
+        [Inject] private SettingsManager _settingsManager;
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
         [Inject] private InputManager _inputManager;
@@ -61,7 +61,7 @@ namespace Veronenger.Game.Managers {
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            _screenManager.Start(GetTree(), ApplicationConfig.Configuration);
+            _settingsManager.Start(GetTree(), ApplicationConfig.Configuration);
             _launcher.WithParent(GetTree().Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
             MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
@@ -245,9 +245,9 @@ namespace Veronenger.Game.Managers {
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
 
-            _screenManager.ChangeScreenConfiguration(ApplicationConfig.AnimaDemoConfiguration,
+            _settingsManager.ChangeScreenConfiguration(ApplicationConfig.AnimaDemoConfiguration,
                 ScreenService.Strategy.FitToScreen);
-            _screenManager.CenterWindow();
+            _settingsManager.CenterWindow();
         }
     }
 }

@@ -3,7 +3,7 @@ using Godot;
 
 namespace Betauer.Input {
     public abstract class BaseAction {
-        public abstract bool IsEventPressed(InputEvent e, bool includeEchoEvents = false);
+        public abstract bool IsEventAction(InputEvent e, bool includeEchoEvents = false);
     }
     
     public static class InputTools {  

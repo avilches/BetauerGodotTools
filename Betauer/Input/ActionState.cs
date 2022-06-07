@@ -3,24 +3,30 @@ using Godot;
 
 namespace Betauer.Input {
     public class ActionState : BaseAction {
-        public ISet<JoystickList> Buttons = new HashSet<JoystickList>();
-        public ISet<KeyList> Keys = new HashSet<KeyList>();
+        public readonly ISet<JoystickList> Buttons = new HashSet<JoystickList>();
+        public readonly ISet<KeyList> Keys = new HashSet<KeyList>();
 
         public bool Pressed => Godot.Input.IsActionPressed(Name);
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
         public bool Released => Godot.Input.IsActionJustReleased(Name);
 
-        public override bool IsEventPressed(InputEvent e, bool echo = false) {
+        public override bool IsEventAction(InputEvent e, bool echo = false) {
             return InputTools.EventIsAction(Name, e, echo);
         }
 
-        private readonly IKeyboardOrController _isKeyboardOrController;
+        public bool IsActionPressed(InputEvent e) {
+            return e.IsActionPressed(Name);
+        }
+
+        public bool IsActionReleased(InputEvent e) {
+            return e.IsActionReleased(Name);
+        }
+
         private readonly int _deviceId = -1;
         public readonly string Name;
 
-        public ActionState(string name, IKeyboardOrController isKeyboardOrController, int deviceId) {
+        public ActionState(string name, int deviceId) {
             Name = name;
-            _isKeyboardOrController = isKeyboardOrController;
             _deviceId = deviceId;
         }
 
@@ -46,9 +52,13 @@ namespace Betauer.Input {
             return events;
         }
 
-        public ActionState ClearConfig() {
-            Buttons = new HashSet<JoystickList>();
-            Keys = new HashSet<KeyList>();
+        public ActionState ClearButtons() {
+            Buttons.Clear();
+            return this;
+        }
+
+        public ActionState ClearKeys() {
+            Keys.Clear();
             return this;
         }
 

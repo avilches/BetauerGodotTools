@@ -42,7 +42,7 @@ namespace Veronenger.Game.Controller.Menu {
         private Panel _redefineActionPanel;
 
         [Inject] private GameManager _gameManager;
-        [Inject] private ScreenManager _screenManager;
+        [Inject] private SettingsManager _settingsManager;
         [Inject] private InputManager _inputManager;
 
         private ActionState UiAccept => _inputManager.UiAccept;
@@ -58,13 +58,13 @@ namespace Veronenger.Game.Controller.Menu {
             ConfigureResolutionButton();
             ConfigureControls();
 
-            _fullscreenButtonWrapper.Pressed = _screenManager.SettingsFile.Fullscreen;
-            _pixelPerfectButtonWrapper.Pressed = _screenManager.SettingsFile.PixelPerfect;
-            _vsyncButtonWrapper.Pressed = _screenManager.SettingsFile.VSync;
-            _borderlessButtonWrapper.Pressed = _screenManager.SettingsFile.Borderless;
-            _borderlessButtonWrapper.SetFocusDisabled(_screenManager.SettingsFile.Fullscreen);
+            _fullscreenButtonWrapper.Pressed = _settingsManager.SettingsFile.Fullscreen;
+            _pixelPerfectButtonWrapper.Pressed = _settingsManager.SettingsFile.PixelPerfect;
+            _vsyncButtonWrapper.Pressed = _settingsManager.SettingsFile.VSync;
+            _borderlessButtonWrapper.Pressed = _settingsManager.SettingsFile.Borderless;
+            _borderlessButtonWrapper.SetFocusDisabled(_settingsManager.SettingsFile.Fullscreen);
 
-            _resolutionButton.SetFocusDisabled(_screenManager.SettingsFile.Fullscreen);
+            _resolutionButton.SetFocusDisabled(_settingsManager.SettingsFile.Fullscreen);
             UpdateResolutionButton();
 
             HideSettingsMenu();
@@ -82,19 +82,19 @@ namespace Veronenger.Game.Controller.Menu {
                     if (isChecked) {
                         _borderlessButtonWrapper.Pressed = false;
                     }
-                    _screenManager.SetFullscreen(isChecked);
+                    _settingsManager.SetFullscreen(isChecked);
                 });
             _pixelPerfectButtonWrapper
                 .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenManager.SetPixelPerfect(isChecked));
+                .OnPressed(isChecked => _settingsManager.SetPixelPerfect(isChecked));
             
             _borderlessButtonWrapper
                 .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenManager.SetBorderless(isChecked));
+                .OnPressed(isChecked => _settingsManager.SetBorderless(isChecked));
             
             _vsyncButtonWrapper
                 .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenManager.SetVSync(isChecked));
+                .OnPressed(isChecked => _settingsManager.SetVSync(isChecked));
         }
 
         private void ConfigureResolutionButton() {
@@ -104,25 +104,25 @@ namespace Veronenger.Game.Controller.Menu {
             });
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
             _resolutionButton.OnInputEvent(ctx => {
-                List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-                Resolution resolution = _screenManager.SettingsFile.WindowedResolution;
+                List<ScaledResolution> resolutions = _settingsManager.GetResolutions();
+                Resolution resolution = _settingsManager.SettingsFile.WindowedResolution;
                 var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
                 pos = pos == -1 ? 0 : pos;
                 
-                if (_inputManager.UiLeft.IsEventPressed(ctx.InputEvent)) {
+                if (_inputManager.UiLeft.IsActionPressed(ctx.InputEvent)) {
                     if (pos > 0) {
-                        _screenManager.SetWindowed(resolutions[pos - 1]);
+                        _settingsManager.SetWindowed(resolutions[pos - 1]);
                         UpdateResolutionButton();
                         return true;
                     }
-                } else if (ctx.InputEvent.IsActionPressed("ui_right")) {
+                } else if (_inputManager.UiRight.IsActionPressed(ctx.InputEvent)) {
                     if (pos < resolutions.Count - 1) {
-                        _screenManager.SetWindowed(resolutions[pos + 1]);
+                        _settingsManager.SetWindowed(resolutions[pos + 1]);
                         UpdateResolutionButton();
                         return true;
                     }
-                } else if (ctx.InputEvent.IsActionPressed("ui_accept")) {
-                    _screenManager.SetWindowed(pos == resolutions.Count - 1
+                } else if (_inputManager.UiAccept.IsActionPressed(ctx.InputEvent)) {
+                    _settingsManager.SetWindowed(pos == resolutions.Count - 1
                         ? resolutions[0]
                         : resolutions[pos + 1]);
                     UpdateResolutionButton();
@@ -133,8 +133,8 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         private void UpdateResolutionButton() {
-            List<ScaledResolution> resolutions = _screenManager.GetResolutions();
-            Resolution resolution = _screenManager.SettingsFile.WindowedResolution;
+            List<ScaledResolution> resolutions = _settingsManager.GetResolutions();
+            Resolution resolution = _settingsManager.SettingsFile.WindowedResolution;
             var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
             pos = pos == -1 ? 0 : pos;
 
@@ -195,9 +195,12 @@ namespace Veronenger.Game.Controller.Menu {
             if ((e.IsAnyKey() || e.IsAnyButton()) && e.Released) {
                 if (!e.IsKey(KeyList.Escape)) {
                     if (e.IsAnyKey()) {
-                        _inputManager.RedefineKey(_redefineButtonSelected.ActionState, e.Key);
+                        _redefineButtonSelected.ActionState.ClearKeys().AddKey((KeyList)e.Key);
+                        _settingsManager.SaveControls();
                         Console.WriteLine("New key " + e.KeyString);
                     } else if (e.IsAnyButton()) {
+                        _redefineButtonSelected.ActionState.ClearButtons().AddButton((JoystickList)e.Button);
+                        _settingsManager.SaveControls();
                         _inputManager.RedefineButton(_redefineButtonSelected.ActionState, e.Button);
                         Console.WriteLine("New button " + e.Button);
                     }

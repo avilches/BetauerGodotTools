@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private CharacterManager _characterManager;
         [Inject] private SlopeStairsManager _slopeStairsManager;
         [Inject] private InputManager _inputManager;
-        [Inject] private ScreenManager _screenManager;
+        [Inject] private SettingsManager _settingsManager;
         [Inject] private PlayerStateMachine _stateMachine;
         [Inject] private PlayerConfig _playerConfig;
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
@@ -227,10 +227,10 @@ namespace Veronenger.Game.Controller.Character {
 
         public override void _Input(InputEvent @event) {
             // _inputManager.Debug(@event, false);
-            if (_inputManager.UiStart.IsEventPressed(@event)) {
+            if (_inputManager.UiStart.IsActionPressed(@event)) {
                 _gameManager.TriggerPauseMenu();
-            } else if (_inputManager.PixelPerfect.IsEventPressed(@event)) {
-                _screenManager.SetPixelPerfect(!_screenManager.SettingsFile.PixelPerfect);
+            } else if (_inputManager.PixelPerfect.IsActionPressed(@event)) {
+                _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
             } else if (@event is InputEventJoypadButton button) {
                 _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {

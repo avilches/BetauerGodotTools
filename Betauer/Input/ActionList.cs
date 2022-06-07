@@ -3,8 +3,7 @@ using Betauer.Collections;
 using Godot;
 
 namespace Betauer.Input {
-    public class ActionList : IKeyboardOrController {
-        public bool IsUsingKeyboard { get; set; }
+    public class ActionList {
         private readonly SimpleLinkedList<BaseAction> _actions = new SimpleLinkedList<BaseAction>();
         private readonly Dictionary<string, ActionState> _map = new Dictionary<string, ActionState>();
         private readonly int _deviceId;
@@ -14,19 +13,26 @@ namespace Betauer.Input {
         }
 
         public VerticalAction AddVerticalAction(string negativeName, string positiveName) {
-            var actionVertical = new VerticalAction(negativeName, positiveName, this, _deviceId);
+            var actionVertical = new VerticalAction(negativeName, positiveName, _deviceId);
             _actions.Add(actionVertical);
             return actionVertical;
         }
 
         public LateralAction AddLateralAction(string negativeName, string positiveName) {
-            var actionState = new LateralAction(negativeName, positiveName, this, _deviceId);
+            var actionState = new LateralAction(negativeName, positiveName, _deviceId);
             _actions.Add(actionState);
             return actionState;
         }
 
+        public ConfigurableAction AddConfigurableAction(string name) {
+            var actionState = new ConfigurableAction(name, _deviceId);
+            _actions.Add(actionState);
+            _map.Add(name, actionState);
+            return actionState;
+        }
+
         public ActionState AddAction(string name) {
-            var actionState = new ActionState(name, this, _deviceId);
+            var actionState = new ActionState(name, _deviceId);
             _actions.Add(actionState);
             _map.Add(name, actionState);
             return actionState;
@@ -37,7 +43,7 @@ namespace Betauer.Input {
         }
 
         public BaseAction? FindAction(InputEvent inputEvent, bool echo = false) {
-            return _actions.Find(action => action.IsEventPressed(inputEvent, echo));
+            return _actions.Find(action => action.IsEventAction(inputEvent, echo));
         }
     }
 }

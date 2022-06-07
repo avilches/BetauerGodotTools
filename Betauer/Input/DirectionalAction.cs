@@ -3,8 +3,8 @@ using Godot;
 
 namespace Betauer.Input {
     public class LateralAction : DirectionalAction {
-        public LateralAction(string negativeName, string positiveName, IKeyboardOrController isKeyboardOrController,
-            int deviceId) : base(negativeName, positiveName, isKeyboardOrController, deviceId) {
+        public LateralAction(string negativeName, string positiveName,
+            int deviceId) : base(negativeName, positiveName, deviceId) {
         }
 
         public bool IsActionPressed(InputEvent e, bool echo = false) {
@@ -21,8 +21,8 @@ namespace Betauer.Input {
     }
 
     public class VerticalAction : DirectionalAction {
-        public VerticalAction(string negativeName, string positiveName, IKeyboardOrController isKeyboardOrController,
-            int deviceId) : base(negativeName, positiveName, isKeyboardOrController, deviceId) {
+        public VerticalAction(string negativeName, string positiveName,
+            int deviceId) : base(negativeName, positiveName, deviceId) {
         }
         
         public bool IsDownEventPressed(InputEvent e, bool echo = false) {
@@ -58,8 +58,6 @@ namespace Betauer.Input {
         private ISet<int> _negativeButtons;
         private JoystickList _axis;
 
-        private readonly IKeyboardOrController _isKeyboardOrController;
-
         public int DeviceId = -1;
 
         public readonly string NegativeName;
@@ -69,16 +67,15 @@ namespace Betauer.Input {
 
         public float Strength => Godot.Input.GetAxis(NegativeName, PositiveName);
 
-        public DirectionalAction(string negativeName, string positiveName, IKeyboardOrController isKeyboardOrController,
+        public DirectionalAction(string negativeName, string positiveName,
             int deviceId) {
             NegativeName = negativeName;
             PositiveName = positiveName;
-            _isKeyboardOrController = isKeyboardOrController;
             DeviceId = deviceId;
             ClearConfig();
         }
 
-        public override bool IsEventPressed(InputEvent e, bool includeEchoEvents = false) {
+        public override bool IsEventAction(InputEvent e, bool includeEchoEvents = false) {
             return IsPositiveEventPressed(e, includeEchoEvents) || IsNegativeEventPressed(e, includeEchoEvents);
         }
 
@@ -100,7 +97,7 @@ namespace Betauer.Input {
             return this;
         }
 
-        public DirectionalAction ImportFrom(DirectionalAction lateralMotion) {
+        public DirectionalAction Copy(DirectionalAction lateralMotion) {
             _negativeKeys = new HashSet<uint>(lateralMotion._negativeKeys);
             _negativeButtons = new HashSet<int>(lateralMotion._negativeButtons);
             _positiveKeys = new HashSet<uint>(lateralMotion._positiveKeys);
