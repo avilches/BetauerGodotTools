@@ -1,30 +1,26 @@
-using System;
 using System.Collections.Generic;
-using Betauer.DI;
 using Betauer.Screen;
 using Godot;
 
 namespace Betauer.Managers {
-    public abstract class ScreenManager {
-        private readonly UserSettingsFile _settingsFile;
-
-        protected abstract UserSettingsFile CreateUserSettingsFile();
-
+    public class SettingsManager {
         private const bool DontSave = false;
+        private SettingsFile _settingsFile;
         private ScreenService _service;
 
-        public ScreenManager() {
-            _settingsFile = CreateUserSettingsFile();
+        public IUserSettings SettingsFile => _settingsFile;
+
+        public void Load(SettingsFile settingsFile) {
+            _settingsFile = settingsFile;
+            _settingsFile.Load();
         }
 
-        public IUserScreenSettings SettingsFile => _settingsFile;
+        public void SaveControls() {
+            _settingsFile.Save();
+        }
 
         public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.Strategy? strategy) {
             _service.SetScreenConfiguration(screenConfiguration, strategy);
-        }
-
-        public void Load() {
-            _settingsFile.Load();
         }
 
         public void Start(SceneTree tree, ScreenConfiguration initialConfiguration) {
