@@ -13,7 +13,10 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 
         [OnReady("HBoxContainer/ActionHint4")] private ActionHint _actionHint4;
         private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
-        [Inject] private InputManager _inputManager;
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
+
 
         public override void Ready() {
             _actionHintList.Add(_actionHint1);
@@ -44,26 +47,26 @@ namespace Veronenger.Game.Controller.Menu {
         // TODO: i18n
         public void ConfigureMenuAcceptBack() {
             HideAll()
-                .AddButton(null,_inputManager.UiAccept, "Accept")
-                .AddButton(null,_inputManager.UiCancel, "Back");
+                .AddButton(null,UiAccept, "Accept")
+                .AddButton(null,UiCancel, "Back");
         }
 
         public void ConfigureModalAcceptCancel() {
             HideAll()
-                .AddButton(null,_inputManager.UiAccept, "Accept")
-                .AddButton(null,_inputManager.UiCancel, "Cancel");
+                .AddButton(null,UiAccept, "Accept")
+                .AddButton(null,UiCancel, "Cancel");
         }
 
         public void ConfigureSettingsChangeBack() {
             HideAll()
-                .AddButton(null,_inputManager.UiAccept, "Change")
-                .AddButton(null,_inputManager.UiCancel, "Back");
+                .AddButton(null,UiAccept, "Change")
+                .AddButton(null,UiCancel, "Back");
         }
 
         public void ConfigureSettingsResolution() {
             HideAll()
                 .AddButton(null,"left lateral", "Change resolution")
-                .AddButton(null,_inputManager.UiCancel, "Back");
+                .AddButton(null,UiCancel, "Back");
         }
 
         public void OnEnter(GameManager.State state, GameManager.State from) {

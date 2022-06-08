@@ -27,13 +27,14 @@ namespace Veronenger.Game.Managers.Autoload {
         private const bool LogToFileEnabled = false; // TODO: enabled by a command line parameter
 
         public Bootstrap() {
+            ConfigureLoggerFactory();
+
             var builder = new ContainerBuilder(this);
             builder.Static<Func<SceneTree>>(GetTree);
             builder.Scan();
             var container = builder.Build();
             DefaultContainer.Set(container);
             container.InjectAllFields(this);
-            ConfigureLoggerFactory();
             Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
         }
 
@@ -63,6 +64,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
 
             // Tools
+            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
@@ -74,6 +76,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener<>), TraceLevel.Error);
+            
 
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);

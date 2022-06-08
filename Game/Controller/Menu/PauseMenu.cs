@@ -34,19 +34,16 @@ namespace Veronenger.Game.Controller.Menu {
         private MenuController _menuController;
 
         [Inject] private GameManager _gameManager;
-        [Inject] private InputManager _inputManager;
 
-        private ActionState UiAccept => _inputManager.UiAccept;
-        private ActionState UiCancel => _inputManager.UiCancel;
-        private ActionState UiStart => _inputManager.UiStart;
-        private ActionButton _settingsButton;
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
 
         private readonly Launcher _launcher = new Launcher();
 
         public override void Ready() {
             _launcher.WithParent(this);
             _menuController = BuildMenu();
-            _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
             HidePauseMenu();
         }
 

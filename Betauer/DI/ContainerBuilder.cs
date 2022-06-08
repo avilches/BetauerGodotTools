@@ -4,33 +4,17 @@ using System.Reflection;
 using Godot;
 
 namespace Betauer.DI {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class SingletonAttribute : Attribute {
         public string? Name { get; set; }
     }
 
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class TransientAttribute : Attribute {
         public string? Name { get; set; }
     }
 
     // TODO: add [Component] attribute: it means the class has inside services exposed as methods like:
-    /*
-
-    [Transient]
-    public Node CreatePepeBean() {
-        return new Node();
-    }
-
-    [Singleton]
-    public SaveGameManager CreateSaveGameManager() {
-        return new SaveGameManager();
-    }
-
-    // _container.Register<Node>(() => CreatePepeBean()).IsTransient()
-    // _container.Register<SaveGameManager>(() => CreateSaveGameManager()).IsSingleton()
-
-     */
 
     public class ContainerBuilder {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(ContainerBuilder));
@@ -140,19 +124,69 @@ namespace Betauer.DI {
         public ContainerBuilder Scan<T>() => Scan(typeof(T));
 
         public ContainerBuilder Scan(Type type) {
-            // TODO: include more types in the attribute
-            // Attribute[] attrib = Attribute.GetCustomAttributes(type, false);
-            // TransientAttribute tr = attrib.FirstOrDefault(attribute => attribute is TransientAttribute != null) as TransientAttribute;
             if (Attribute.GetCustomAttribute(type, typeof(SingletonAttribute), false) is
                 SingletonAttribute singletonAttribute) {
                 var aliases = singletonAttribute.Name != null ? new[] { singletonAttribute.Name } : null;
                 Register(type, Lifetime.Singleton, new[] { type }, aliases);
+
+                ScanMemberExposingServices(type);
+
             } else if (Attribute.GetCustomAttribute(type, typeof(TransientAttribute), false) is
                        TransientAttribute transientAttribute) {
                 var aliases = transientAttribute.Name != null ? new[] { transientAttribute.Name } : null;
                 Register(type, Lifetime.Transient, new[] { type }, aliases);
             }
             return this;
+        }
+
+        private const BindingFlags InjectFlags =
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+        private class ExposedService {
+            public readonly string Name;
+            public readonly Lifetime Lifetime;
+
+            private ExposedService(string name, Lifetime lifetime) {
+                Name = name;
+                Lifetime = lifetime;
+            }
+            
+            public static ExposedService? CreateFrom(MemberInfo property) {
+                if (Attribute.GetCustomAttribute(property, typeof(SingletonAttribute), false) is SingletonAttribute
+                    inject) {
+                    return new ExposedService(inject.Name ?? property.Name, Lifetime.Singleton); 
+                }
+                if (Attribute.GetCustomAttribute(property, typeof(TransientAttribute), false) is TransientAttribute
+                           transient) {
+                    return new ExposedService(transient.Name ?? property.Name, Lifetime.Transient); 
+                }
+                return null;
+            } 
+        }
+
+        private void ScanMemberExposingServices(Type type) {
+            // _logger.Debug("Exposing properties and methods " + type;
+            var properties = type.GetProperties(InjectFlags);
+            foreach (var property in properties) {
+                ExposedService? exposedService = ExposedService.CreateFrom(property);
+                if (exposedService == null) continue;
+                object Factory() {
+                    var instance = _container.Resolve(type);
+                    return property.GetValue(instance);
+                }
+                Register(property.PropertyType, Factory, exposedService.Lifetime, null, new [] { exposedService.Name });
+            }
+
+            var methods = type.GetMethods(InjectFlags);
+            foreach (var method in methods) {
+                ExposedService? exposedService = ExposedService.CreateFrom(method);
+                if (exposedService == null) continue;
+                object Factory() {
+                    var instance = _container.Resolve(type);
+                    return method.Invoke(instance, Array.Empty<object>());
+                }
+                Register(method.ReturnType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name });
+            }
         }
     }
 }

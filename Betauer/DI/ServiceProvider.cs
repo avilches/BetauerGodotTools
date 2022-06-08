@@ -47,7 +47,7 @@ namespace Betauer.DI {
                 Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
                              typeof(T) + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AfterCreate(lifetime, instance);
+            context.AfterCreate(lifetime, instance, GetAliases());
             return instance;
         }
 
@@ -67,8 +67,8 @@ namespace Betauer.DI {
         public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (_isSingletonDefined) return _singleton!;
-            if (context.Has<T>()) {
-                T singleton = context.Get<T>();
+            if (context.Has<T>(GetAliases())) {
+                T singleton = context.Get<T>(GetAliases());
                 Logger.Debug("Get from context " + GetLifetime() + " " + singleton.GetType().Name + " exposed as " +
                              typeof(T) + ": " + singleton.GetHashCode().ToString("X"));
                 return singleton;
@@ -91,8 +91,8 @@ namespace Betauer.DI {
 
         public override object Get(ResolveContext? context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (context.Has<T>()) {
-                T transient = context.Get<T>();
+            if (context.Has<T>(GetAliases())) {
+                T transient = context.Get<T>(GetAliases());
                 Logger.Debug("Get from context " + GetLifetime() + " " + transient.GetType().Name + " exposed as " +
                              typeof(T) + ": " + transient.GetHashCode().ToString("X"));
                 return transient;

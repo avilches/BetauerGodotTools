@@ -45,9 +45,11 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private SettingsManager _settingsManager;
         [Inject] private InputManager _inputManager;
 
-        private ActionState UiAccept => _inputManager.UiAccept;
-        private ActionState UiCancel => _inputManager.UiCancel;
-        private ActionState UiStart => _inputManager.UiStart;
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
+        [Inject] private ActionState UiLeft;
+        [Inject] private ActionState UiRight;
 
         private readonly Launcher _launcher = new Launcher();
 
@@ -109,19 +111,19 @@ namespace Veronenger.Game.Controller.Menu {
                 var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
                 pos = pos == -1 ? 0 : pos;
                 
-                if (_inputManager.UiLeft.IsActionPressed(ctx.InputEvent)) {
+                if (UiLeft.IsActionPressed(ctx.InputEvent)) {
                     if (pos > 0) {
                         _settingsManager.SetWindowed(resolutions[pos - 1]);
                         UpdateResolutionButton();
                         return true;
                     }
-                } else if (_inputManager.UiRight.IsActionPressed(ctx.InputEvent)) {
+                } else if (UiRight.IsActionPressed(ctx.InputEvent)) {
                     if (pos < resolutions.Count - 1) {
                         _settingsManager.SetWindowed(resolutions[pos + 1]);
                         UpdateResolutionButton();
                         return true;
                     }
-                } else if (_inputManager.UiAccept.IsActionPressed(ctx.InputEvent)) {
+                } else if (UiAccept.IsActionPressed(ctx.InputEvent)) {
                     _settingsManager.SetWindowed(pos == resolutions.Count - 1
                         ? resolutions[0]
                         : resolutions[pos + 1]);

@@ -31,12 +31,10 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuController _menuController;
 
-        [Inject] private GameManager _gameManager;
-        [Inject] private InputManager _inputManager;
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
 
-        private ActionState UiAccept => _inputManager.UiAccept;
-        private ActionState UiCancel => _inputManager.UiCancel;
-        private ActionState UiStart => _inputManager.UiStart;
         private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
 
         private string _titleText;

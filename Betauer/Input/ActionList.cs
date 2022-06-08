@@ -24,8 +24,8 @@ namespace Betauer.Input {
             return actionState;
         }
 
-        public ConfigurableAction AddConfigurableAction(string name) {
-            var actionState = new ConfigurableAction(name, _deviceId);
+        public ActionState AddConfigurableAction(string name) {
+            var actionState = new ActionState(name, _deviceId);
             _actions.Add(actionState);
             _map.Add(name, actionState);
             return actionState;

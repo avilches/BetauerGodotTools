@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Input {
@@ -71,5 +73,22 @@ namespace Betauer.Input {
             Buttons.Add(button);
             return this;
         }
+
+        public string GetPropertyNameForKeys() => Name + ".Key";
+        public string GetPropertyNameForButtons() => Name + ".Button";
+
+        public string ExportKeys() => string.Join(",", Keys);
+        public string ExportButtons() => string.Join(",", Buttons.ToList().Select(button => (int)button));
+
+        public void ImportKeys(string keys) {
+            keys.Split(",").ToList().ForEach(key => AddKey(Parse<KeyList>(key)));
+        }
+
+        public void ImportButtons(string buttons) {
+            buttons.Split(",").ToList().ForEach(button => AddButton((JoystickList)button.ToInt()));
+        }
+
+        private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
+
     }
 }

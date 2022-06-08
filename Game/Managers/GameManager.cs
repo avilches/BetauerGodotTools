@@ -51,12 +51,10 @@ namespace Veronenger.Game.Managers {
         [Inject] private SettingsManager _settingsManager;
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
-        [Inject] private InputManager _inputManager;
 
-        private ActionState UiAccept => _inputManager.UiAccept;
-        private ActionState UiCancel => _inputManager.UiCancel;
-        private ActionState UiStart => _inputManager.UiStart;
-
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
 
         private StateMachineNode<State, Transition> _stateMachineNode;
 

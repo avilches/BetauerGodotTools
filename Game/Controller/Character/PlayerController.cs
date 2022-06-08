@@ -4,7 +4,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Bus.Topics;
 using Betauer.DI;
-
+using Betauer.Input;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI;
@@ -31,7 +31,6 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private PlatformManager _platformManager;
         [Inject] private CharacterManager _characterManager;
         [Inject] private SlopeStairsManager _slopeStairsManager;
-        [Inject] private InputManager _inputManager;
         [Inject] private SettingsManager _settingsManager;
         [Inject] private PlayerStateMachine _stateMachine;
         [Inject] private PlayerConfig _playerConfig;
@@ -224,12 +223,15 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         
+        [Inject] private ActionState PixelPerfect;
+        [Inject] private ActionState UiStart;
+
 
         public override void _Input(InputEvent @event) {
             // _inputManager.Debug(@event, false);
-            if (_inputManager.UiStart.IsActionPressed(@event)) {
+            if (UiStart.IsActionPressed(@event)) {
                 _gameManager.TriggerPauseMenu();
-            } else if (_inputManager.PixelPerfect.IsActionPressed(@event)) {
+            } else if (PixelPerfect.IsActionPressed(@event)) {
                 _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
             } else if (@event is InputEventJoypadButton button) {
                 _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);

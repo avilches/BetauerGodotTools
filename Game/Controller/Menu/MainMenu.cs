@@ -20,16 +20,15 @@ namespace Veronenger.Game.Controller.Menu {
         private MenuController _menuController;
 
         [Inject] private GameManager _gameManager;
-        [Inject] private InputManager _inputManager;
         private readonly Launcher _launcher = new Launcher();
 
-        private ActionState UiCancel => _inputManager.UiCancel;
-        private ActionButton _settingsButton;
+        [Inject] private ActionState UiAccept;
+        [Inject] private ActionState UiCancel;
+        [Inject] private ActionState UiStart;
 
         public override void Ready() {
             _launcher.WithParent(this);
             _menuController = BuildMenu();
-            _settingsButton = _menuController.GetMenu("Root")!.GetButton("Settings");
         }
 
         public async Task ShowMenu() {

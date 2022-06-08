@@ -32,13 +32,13 @@ namespace Betauer.Managers {
         public bool VSync { get; internal set; }
         public bool Borderless { get; internal set; }
         public Resolution WindowedResolution { get; internal set; }
-        public ICollection<ConfigurableAction> ActionList { get; internal set; }
+        public ICollection<ActionState> ActionList { get; internal set; }
 
         private readonly string _resourceName;
         private readonly IUserSettings _defaults;
         private readonly Properties _cf;
 
-        public SettingsFile(IUserSettings defaults, ICollection<ConfigurableAction> actionList) {
+        public SettingsFile(IUserSettings defaults, ICollection<ActionState> actionList) {
             _resourceName = System.IO.Path.Combine(OS.GetUserDataDir(), System.IO.Path.GetFileName(Filename));
             _cf = new Properties(_resourceName);
             _defaults = defaults;

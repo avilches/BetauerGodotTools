@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.TestRunner;
@@ -36,7 +37,7 @@ namespace Betauer.Tests.DI {
             Assert.That(di.Contains<Container>());
             Assert.That(di.Contains<Container>(Lifetime.Singleton));
             Assert.That(!di.Contains<Container>(Lifetime.Transient));
-            Assert.That(di.Resolve(typeof(Container)), Is.EqualTo(di));
+            Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
 
             Assert.That(di.GetProvider<Container>().Get(new ResolveContext(di)), Is.EqualTo(di));
             Assert.That(di.TryGetProvider<Container>(out var provider));
@@ -56,12 +57,12 @@ namespace Betauer.Tests.DI {
             }
 
             try {
-                di.Resolve(typeof(IInterface1));
+                di.Resolve<IInterface1>();
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
             try {
-                di.Resolve("X");
+                di.Resolve<IInterface1>("X");
                 Assert.That(false, "It should fail!");
             } catch (KeyNotFoundException e) {
             }
@@ -121,12 +122,9 @@ namespace Betauer.Tests.DI {
         [Test(Description = "Register singleton instances by name")]
         public void RegisterSingletonInstanceServiceByName() {
             var di = new ContainerBuilder(this);
-            Container c;
-            IProvider s = null;
-
             var node = new Node();
-            s = di.Static(node).As("X").As("Y").CreateProvider();
-            c = di.Build();
+            IProvider s = di.Static(node).As("X").As("Y").CreateProvider();
+            Container c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Node)));
@@ -137,34 +135,54 @@ namespace Betauer.Tests.DI {
             Assert.That(c.TryGetProvider("X", out var provider1));
             Assert.That(c.TryGetProvider("Y", out var provider2));
             Assert.That(!c.TryGetProvider("W", out var notFound));
-            Assert.That(c.Resolve<Node>(), Is.EqualTo(node));
-            Assert.That(c.Resolve("X"), Is.EqualTo(node));
-            Assert.That(c.Resolve("Y"), Is.EqualTo(node));
+            Assert.That(c.Resolve<Node>("X"), Is.EqualTo(node));
+            Assert.That(c.Resolve<Node>("Y"), Is.EqualTo(node));
+
+            // Instances with name are not bound with type
+            Assert.That(c.Contains<Node>(), Is.False);
         }
 
+
+        [Test(Description = "Register different instances of the same singleton class with different name")]
+        public void RegisterMultipleSingletonInstanceServiceByName() {
+            var di = new ContainerBuilder(this);
+            var node1 = new Node();
+            var node2 = new Node();
+            di.Singleton(() => node1).As("X1").CreateProvider();
+            di.Singleton(() => node2).As("X2").CreateProvider();
+            Container c = di.Build();
+            Assert.That(c.Contains("X1"));
+            Assert.That(c.Contains("X2"));
+            Assert.That(c.GetProvider("X1").Get(new ResolveContext(c)), Is.EqualTo(node1));
+            Assert.That(c.GetProvider("X2").Get(new ResolveContext(c)), Is.EqualTo(node2));
+            Assert.That(c.Resolve<Node>("X1"), Is.EqualTo(node1));
+            Assert.That(c.Resolve<Node>("X2"), Is.EqualTo(node2));
+            
+            Assert.That(c.Contains<Node>(), Is.False);
+
+            di.Singleton(() => node2).As("X2");
+            Assert.Throws<DuplicateNameException>(() => di.Build());
+
+        }
 
         [Test(Description = "Register singleton instances")]
         public void RegisterSingletonInstanceServiceAllTypes() {
             var di = new ContainerBuilder(this);
-            Container c;
-            IProvider s = null;
 
             // Class with no interfaces
             var node = new Node();
             // Ensure IDisposable is ignored. Assert that Node implements IDisposable
-            s = di.Static(node).CreateProvider();
-            c = di.Build();
+            IProvider s = di.Static(node).CreateProvider();
+            Container c = di.Build();
             Assert.That(s.GetLifetime(), Is.EqualTo(Lifetime.Singleton));
             Assert.That(s.GetRegisterTypes().Length, Is.EqualTo(1));
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Node)));
             Assert.That(c.Resolve<Node>(), Is.EqualTo(node));
 
-            // Instances of the same Type can be overriden
+            // Instances of the same Type can't be overriden
             var instance2 = new Node();
-            s = di.Static(instance2).CreateProvider();
-            c = di.Build();
-            Assert.That(c.Resolve<Node>(), Is.EqualTo(instance2));
-            Assert.That(c.Resolve(typeof(Node)), Is.EqualTo(instance2));
+            di.Static(instance2);
+            Assert.Throws<DuplicateNameException>(() => di.Build());
 
             // Class with type and all nested interfaces by default
             di = new ContainerBuilder(this);
@@ -672,55 +690,85 @@ namespace Betauer.Tests.DI {
             var s = di.Register(() => {
                 n++;
                 return new Node();
-            }).IsTransient().As("X").As("Y").CreateProvider();
+            }, Lifetime.Transient).CreateProvider();
             Assert.That(n, Is.EqualTo(0));
             var c = di.Build();
             c.Resolve<Node>();
             c.Resolve<Node>();
+            Assert.That(n, Is.EqualTo(2));
+        }
+
+        [Test(Description = "Register a Transient factory by name, it is executed every time")]
+        public void RegisterTransientFactoryByName() {
+            var di = new ContainerBuilder(this);
+            var n = 0;
+            var s = di.Register(() => {
+                n++;
+                return new Node();
+            }).IsTransient().As("X").As("Y").CreateProvider();
+            Assert.That(n, Is.EqualTo(0));
+            var c = di.Build();
             c.Resolve("X");
             c.Resolve("X");
             c.Resolve("Y");
             c.Resolve("Y");
-            Assert.That(n, Is.EqualTo(6));
+            Assert.That(n, Is.EqualTo(4));
         }
 
         [Test(Description = "Register a Singleton auto factory by Type is executed only the first time")]
         public void RegisterSingletonAutoFactory() {
             var di = new ContainerBuilder(this);
-            var n = 0;
-            var s = di.Register(typeof(Node), Lifetime.Singleton, null, new[] { "X" }).CreateProvider();
+            di.Register(typeof(Node), Lifetime.Singleton);
             var c = di.Build();
 
             // Ensures that factory is called only the first time
             var instance1 = c.Resolve<Node>();
             var instance2 = c.Resolve<Node>();
-            var instance3 = c.Resolve("X");
-            var instance4 = c.Resolve("X");
 
             // Ensure all instances are equal
             Assert.That(instance1, Is.EqualTo(instance2));
-            Assert.That(instance1, Is.EqualTo(instance3));
-            Assert.That(instance1, Is.EqualTo(instance4));
         }
 
-        [Test(Description = "Register a Transient auto factory by Type is executed only the first time")]
-        public void RegisterTransientAutoFactory() {
+        [Test(Description = "Register a Singleton auto factory by Type and names is executed only the first time")]
+        public void RegisterSingletonAutoFactoryByName() {
             var di = new ContainerBuilder(this);
-            var n = 0;
-            var s = di.Register(typeof(Node), Lifetime.Transient, null, new[] { "X" }).CreateProvider();
+            di.Register(typeof(Node), Lifetime.Singleton, null, new[] { "X", "Y" });
             var c = di.Build();
 
             // Ensures that factory is called only the first time
+            var instance1 = c.Resolve<Node>("X");
+            var instance2 = c.Resolve<Node>("Y");
+
+            // Ensure all instances are equal
+            Assert.That(instance1, Is.EqualTo(instance2));
+        }
+
+        [Test(Description = "Register a Transient auto factory by Type is executed every time")]
+        public void RegisterTransientAutoFactory() {
+            var di = new ContainerBuilder(this);
+            di.Register(typeof(Node), Lifetime.Transient);
+            var c = di.Build();
+
+            // Ensures that factory is called every time ...
             var instance1 = c.Resolve<Node>();
             var instance2 = c.Resolve<Node>();
-            var instance3 = c.Resolve("X");
-            var instance4 = c.Resolve("X");
 
-            // Ensure all instances are different
+            // ... then all instances are different
             Assert.That(instance1, Is.Not.EqualTo(instance2));
-            Assert.That(instance2, Is.Not.EqualTo(instance3));
-            Assert.That(instance3, Is.Not.EqualTo(instance4));
-            Assert.That(instance4, Is.Not.EqualTo(instance1));
+        }
+
+        [Test(Description = "Register a Transient auto factory by Type is executed every time")]
+        public void RegisterTransientAutoFactoryByName() {
+            var di = new ContainerBuilder(this);
+            di.Register(typeof(Node), Lifetime.Transient, null, new[] { "X" });
+            var c = di.Build();
+
+            // Ensures that factory is called every time
+            var instance1 = c.Resolve("X");
+            var instance2 = c.Resolve("X");
+
+            // ... then all instances are different
+            Assert.That(instance1, Is.Not.EqualTo(instance2));
         }
 
         [Test(Description = "Container Build")]

@@ -2,6 +2,7 @@ using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.Tests.DI {
     [TestFixture]
@@ -143,7 +144,6 @@ namespace Betauer.Tests.DI {
             di.Scan<EmptyTransient>();
             di.Scan<TransientService>();
             di.Scan<SingletonWith2Transients>();
-            di.Scan<EmptyTransient>();
             var c = di.Build();
             var s1 = c.Resolve<SingletonWith2Transients>();
 
@@ -219,8 +219,8 @@ namespace Betauer.Tests.DI {
             di.Scan<ServiceWithMultipleImpl1>();
             di.Scan<ServiceWithMultipleImpl2>();
             var c = di.Build();
-            var i1 = c.Resolve<MultipleImpl1>();
-            var i2 = c.Resolve<MultipleImpl2>();
+            var i1 = c.Resolve<IMultipleImp>("M1");
+            var i2 = c.Resolve<IMultipleImp>("M2");
             Assert.That(MultipleImpl3.Created, Is.EqualTo(2));            
             var s1 = c.Resolve<ServiceWithMultipleImpl1>();
             var s2 = c.Resolve<ServiceWithMultipleImpl2>();
@@ -260,5 +260,160 @@ namespace Betauer.Tests.DI {
             
         }
 
+
+        [Singleton]
+        public class Hold {
+            public string Name;
+
+            public Hold(string name) {
+                Name = name;
+            }
+        }
+
+        [Singleton]
+        public class SingletonHolder {
+
+            // Property
+            [Singleton]
+            private Hold Hold1 => new Hold("1");
+            
+            // Property with Name
+            [Singleton(Name = "Hold2")]
+            private Hold _hold2 => new Hold("2");
+
+            // Method
+            [Singleton]
+            public Hold Hold3() {
+                return new Hold("3");
+            }
+
+            // Method with name
+            [Singleton(Name = "Hold4")]
+            public Hold Hold4() {
+                return new Hold("4");
+            }
+
+        }
+
+        [Singleton]
+        public class SingletonInjected {
+            [Inject] internal Hold Hold1;
+            [Inject(Name = "Hold1")] internal Hold h1;
+            
+            [Inject] internal Hold Hold2;
+            [Inject(Name = "Hold2")] internal Hold h2;
+            
+            [Inject] internal Hold Hold3;
+            [Inject(Name = "Hold3")] internal Hold h3;
+            
+            [Inject] internal Hold Hold4;
+            [Inject(Name = "Hold4")] internal Hold h4;
+        }
+        
+        [Test(Description = "Inject singletons by name exported in a singleton")]
+        public void ExportSingletonFrom() {
+            var di = new ContainerBuilder(this);
+            di.Scan<SingletonInjected>();
+            di.Scan<SingletonHolder>();
+            var c = di.Build();
+
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Info);
+            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Info);
+            SingletonInjected s1 = c.Resolve<SingletonInjected>();
+            SingletonInjected s2 = c.Resolve<SingletonInjected>();
+            Assert.That(s1, Is.EqualTo(s2));
+            
+            Assert.That(s1.h1.Name, Is.EqualTo("1"));
+            Assert.That(s1.Hold1.Name, Is.EqualTo("1"));
+            Assert.That(s1.Hold1, Is.EqualTo(s1.h1));
+            
+            Assert.That(s1.h2.Name, Is.EqualTo("2"));
+            Assert.That(s1.Hold2.Name, Is.EqualTo("2"));
+            Assert.That(s1.Hold2, Is.EqualTo(s1.h2));
+            
+            Assert.That(s1.h3.Name, Is.EqualTo("3"));
+            Assert.That(s1.Hold3.Name, Is.EqualTo("3"));
+            Assert.That(s1.Hold3, Is.EqualTo(s1.h3));
+            
+            Assert.That(s1.h4.Name, Is.EqualTo("4"));
+            Assert.That(s1.Hold4.Name, Is.EqualTo("4"));
+            Assert.That(s1.Hold4, Is.EqualTo(s1.h4));
+        }
+        
+        [Singleton]
+        public class TransientHolder {
+
+            // Property
+            [Transient]
+            private Hold Hold1 => new Hold("1");
+            
+            // Property with Name
+            [Transient(Name = "Hold2")]
+            private Hold _hold2 => new Hold("2");
+
+            // Method
+            [Transient]
+            public Hold Hold3() {
+                return new Hold("3");
+            }
+
+            // Method with name
+            [Transient(Name = "Hold4")]
+            public Hold Hold4() {
+                return new Hold("4");
+            }
+
+        }
+
+        [Transient]
+        public class TransientInjected {
+            [Inject] internal Hold Hold1;
+            [Inject(Name = "Hold1")] internal Hold h1;
+            
+            [Inject] internal Hold Hold2;
+            [Inject(Name = "Hold2")] internal Hold h2;
+            
+            [Inject] internal Hold Hold3;
+            [Inject(Name = "Hold3")] internal Hold h3;
+            
+            [Inject] internal Hold Hold4;
+            [Inject(Name = "Hold4")] internal Hold h4;
+        }
+        
+        [Test(Description = "Inject Transients by name exported in a Transient")]
+        public void ExportTransientFrom() {
+            var di = new ContainerBuilder(this);
+            di.Scan<TransientInjected>();
+            di.Scan<TransientHolder>();
+            var c = di.Build();
+
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Info);
+            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Info);
+            TransientInjected s1 = c.Resolve<TransientInjected>();
+            TransientInjected s2 = c.Resolve<TransientInjected>();
+            Assert.That(s1, Is.Not.EqualTo(s2));
+            
+            Assert.That(s1.h1.Name, Is.EqualTo("1"));
+            Assert.That(s1.Hold1.Name, Is.EqualTo("1"));
+            Assert.That(s1.Hold1, Is.EqualTo(s1.h1)); // Same context, so the 2 transients are the same
+            Assert.That(s2.Hold1, Is.Not.EqualTo(s1.h1)); // Different context, different transient instances
+            
+            Assert.That(s1.h2.Name, Is.EqualTo("2"));
+            Assert.That(s1.Hold2.Name, Is.EqualTo("2"));
+            Assert.That(s1.Hold2, Is.EqualTo(s1.h2));
+            Assert.That(s2.Hold2, Is.Not.EqualTo(s1.h2));
+            
+            Assert.That(s1.h3.Name, Is.EqualTo("3"));
+            Assert.That(s1.Hold3.Name, Is.EqualTo("3"));
+            Assert.That(s1.Hold3, Is.EqualTo(s1.h3));
+            Assert.That(s2.Hold3, Is.Not.EqualTo(s1.h3));
+            
+            Assert.That(s1.h4.Name, Is.EqualTo("4"));
+            Assert.That(s1.Hold4.Name, Is.EqualTo("4"));
+            Assert.That(s1.Hold4, Is.EqualTo(s1.h4));
+            Assert.That(s2.Hold4, Is.Not.EqualTo(s1.h4));
+            
+            
+        }
     }
 }

@@ -69,7 +69,7 @@ namespace Betauer.DI {
             if (name != null) {
                 if (_container.Contains(name)) {
                     // There is a provider for the alias
-                    _logger.Debug("Injecting field alias " + name + " " + setter.Name + " " + setter.Type.Name +
+                    _logger.Debug("Injecting field alias '" + name + "' " + setter.Name + " " + setter.Type.Name +
                                   " in " + target.GetType() + "(" + target.GetHashCode() + ")");
                     var service = _container.Resolve(name, context);
                     setter.SetValue(target, service);
@@ -92,6 +92,16 @@ namespace Betauer.DI {
                 return;
             }
 
+            if (_container.Contains(setter.Name)) {
+                // There is a provider for the alias
+                _logger.Debug("Injecting field alias '" + setter.Name + "' " + setter.Name + " " + setter.Type.Name +
+                              " in " + target.GetType() + "(" + target.GetHashCode() + ")");
+                var service = _container.Resolve(setter.Name, context);
+                setter.SetValue(target, service);
+                return;
+            }
+
+            
             if (!nullable) {
                 throw new InjectFieldException(setter.Name, target,
                     "Injectable property [Inject] " + setter.Type.Name + " " + setter.Name +
