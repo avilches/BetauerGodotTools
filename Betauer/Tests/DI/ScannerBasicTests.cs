@@ -415,5 +415,38 @@ namespace Betauer.Tests.DI {
             
             
         }
+
+        [Configuration]
+        public class ConfigurationService {
+            [Transient] private Hold Hold1 => new Hold("1");
+            [Singleton] private Hold Hold2 => new Hold("2");
+        }
+
+        [Test(Description = "Use configuration to export members")]
+        public void ExportFromConfiguration() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ConfigurationService>();
+            var c = di.Build();
+            
+            Assert.That(c.Contains<ConfigurationService>(), Is.False);
+            
+            Hold s11 = c.Resolve<Hold>("Hold1");
+            Hold s12 = c.Resolve<Hold>("Hold1");
+            Hold s21 = c.Resolve<Hold>("Hold2");
+            Hold s22 = c.Resolve<Hold>("Hold2");
+            
+            Assert.That(s11.Name, Is.EqualTo("1"));
+            Assert.That(s12.Name, Is.EqualTo("1"));
+            Assert.That(s21.Name, Is.EqualTo("2"));
+            Assert.That(s22.Name, Is.EqualTo("2"));
+            
+            // Transients are different
+            Assert.That(s11, Is.Not.EqualTo(s12));
+            // Singleton are the same
+            Assert.That(s21, Is.EqualTo(s22));
+            
+
+        }
+
     }
 }
