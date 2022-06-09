@@ -18,11 +18,10 @@ namespace Betauer.TestRunner {
 
     public class TestRunner {
         private readonly ICollection<TestMethod> _testMethods = new LinkedList<TestMethod>();
-
+        public readonly List<TestMethod> TestsFailedResults = new List<TestMethod>();
         public int TestsTotal;
         public int TestsExecuted;
         public int TestsFailed;
-        public List<TestMethod> TestsFailedResults;
         public int TestsPassed;
 
         public TestRunner() {
@@ -58,7 +57,7 @@ namespace Betauer.TestRunner {
 
             public Type Type { get; }
             public string Name { get; }
-            public string Description { get; }
+            public string? Description { get; }
             public Exception Exception { get; private set; }
             public Result Result { get; private set; }
             public bool Only { get; set; }
@@ -67,7 +66,7 @@ namespace Betauer.TestRunner {
             public IEnumerable<MethodInfo>? TearDown { get; set; }
             public string Id { get; set; }
 
-            public TestMethod(MethodInfo method, object instance, string description, bool only) {
+            public TestMethod(MethodInfo method, object instance, string? description, bool only) {
                 Stopwatch = new Stopwatch();
                 _instance = instance;
                 _method = method;
@@ -120,7 +119,7 @@ namespace Betauer.TestRunner {
 
         public async Task Run(SceneTree sceneTree, Action<TestMethod>? startCallback = null,
             Action<TestMethod>? resultCallback = null) {
-            TestsFailedResults = new List<TestMethod>();
+            TestsFailedResults.Clear();
             TestsFailed = 0;
             TestsPassed = 0;
             TestsExecuted = 0;
