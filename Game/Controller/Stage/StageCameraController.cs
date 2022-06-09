@@ -13,13 +13,13 @@ namespace Veronenger.Game.Controller.Stage {
      *   +- StageDetector : Area2D
      *   +- StageCameraController (this class)
      */
-    public class StageCameraController : DiCamera2D {
+    public class StageCameraController :Camera2D {
 
         [Inject] public StageManager StageManager;
 
         [OnReady("../Detector")] private Area2D stageDetector;
 
-        public override void Ready() {
+        public override void _Ready() {
             StageManager.ConfigureStageCamera(this, stageDetector);
         }
 

@@ -4,7 +4,7 @@ using Betauer.Animation;
 using Betauer.DI;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class TestPlatformController : DiNode2D {
+    public class TestPlatformController : Node2D {
         [OnReady("Body1")] private KinematicBody2D body1;
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
@@ -13,7 +13,7 @@ namespace Veronenger.Game.Controller.Animation {
         private SingleSequencePlayer _multipleSequencePlayer2;
         private MultipleSequencePlayer _multipleSequencePlayer3;
 
-        public override void Ready() {
+        public override void _Ready() {
             _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
             _multipleSequencePlayer1
                 .CreateSequence()

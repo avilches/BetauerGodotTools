@@ -66,7 +66,6 @@ namespace Veronenger.Game.Managers {
             
         }
 
-
         public void RedefineButton(ActionState actionState, int button) {
             actionState.AddButton((JoystickList)button);
         }

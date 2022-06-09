@@ -16,7 +16,7 @@ using Directory = System.IO.Directory;
 using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
+    public class Bootstrap : GodotContainer /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
@@ -28,13 +28,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public Bootstrap() {
             ConfigureLoggerFactory();
-
-            var builder = new ContainerBuilder(this);
-            builder.Static<Func<SceneTree>>(GetTree);
-            builder.Scan();
-            var container = builder.Build();
-            DefaultContainer.Set(container);
-            container.InjectAllFields(this);
+            CreateAndScan();
             Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
         }
 

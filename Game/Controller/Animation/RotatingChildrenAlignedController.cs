@@ -8,7 +8,7 @@ using Veronenger.Game.Managers;
 using static Betauer.GodotConstants;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class RotatingChildrenAlignedController : DiNode2D {
+    public class RotatingChildrenAlignedController : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public float Radius = 50;
         [Export] public float RotationDuration = 4.0f;
@@ -17,7 +17,7 @@ namespace Veronenger.Game.Controller.Animation {
         private List<PhysicsBody2D> _platforms;
         private readonly SingleSequencePlayer _sequence = new SingleSequencePlayer();
 
-        public override void Ready() {
+        public override void _Ready() {
             Configure();
         }
 

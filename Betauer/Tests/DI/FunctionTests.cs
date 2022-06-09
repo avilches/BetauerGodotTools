@@ -13,12 +13,14 @@ namespace Betauer.Tests.DI {
 
         [SetUp]
         public void SetUp() {
-            _backup ??= DefaultContainer.Container;
+            // TODO: this is because the DefaultContainer (which belongs to the game, no to the tests)
+            // is started along with the test, which is wrong
+            GetTree().Root.FindFirstChild<GodotContainer>()?.DisableInjection();
         }
 
         [TearDown]
         public void TearDown() {
-            DefaultContainer.Set(_backup!);
+            GetTree().Root.FindFirstChild<GodotContainer>()?.EnableInjection();
         }
 
         public class Base {
@@ -76,7 +78,7 @@ namespace Betauer.Tests.DI {
             Assert.That(s.myName(), Is.EqualTo("pepe"));
         }
 
-        public class MyNodeBase : DiNode {
+        public class MyNodeBase : Node {
             internal string baseName = "basePepe";
 
         }
@@ -91,9 +93,12 @@ namespace Betauer.Tests.DI {
             di.Function<MyNode, string>((s) => s.name);
             var container = di.Build();
 
+            var d = new GodotContainer();
+            d.SetContainer(container);
+            AddChild(d);
+
             var s = new MyNode();
-            DefaultContainer.Set(container);
-            s._Ready();
+            AddChild(s);
 
             Assert.That(s.myName, Is.EqualTo("pepe"));
         }
@@ -104,10 +109,13 @@ namespace Betauer.Tests.DI {
             di.Function<MyNodeBase, string>((s) => s.baseName);
             var container = di.Build();
 
-            MyNode s = new MyNode();
-            DefaultContainer.Set(container);
-            s._Ready();
+            var d = new GodotContainer();
+            d.SetContainer(container);
+            AddChild(d);
 
+            MyNode s = new MyNode();
+            AddChild(s);
+            
             Assert.That(s.myName, Is.EqualTo("basePepe"));
         }
     }

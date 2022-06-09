@@ -12,7 +12,7 @@ using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class PlayerController : DiKinematicBody2D {
+    public sealed class PlayerController : KinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
         [OnReady("Sprite")] private Sprite _mainSprite;
@@ -63,7 +63,7 @@ namespace Veronenger.Game.Controller.Character {
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
 
-        public override void Ready() {
+        public override void _Ready() {
             _sceneTree = GetTree();
             _launcher.WithParent(this);
 

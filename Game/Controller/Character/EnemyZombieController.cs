@@ -9,7 +9,7 @@ using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class EnemyZombieController : DiKinematicBody2D {
+    public sealed class EnemyZombieController : KinematicBody2D {
         private readonly string _name;
         private readonly Logger _logger;
 
@@ -40,7 +40,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private AnimationStack _animationStack;
 
-        public override void Ready() {
+        public override void _Ready() {
             _animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationStep = _animationStack.AddOnceAnimation("Step");

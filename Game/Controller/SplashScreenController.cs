@@ -8,7 +8,7 @@ using InputManager = Veronenger.Game.Managers.InputManager;
 using SettingsManager = Veronenger.Game.Managers.SettingsManager;
 
 namespace Veronenger.Game.Controller {
-    public class SplashScreenController : DiControl {
+    public class SplashScreenController : Control {
         [Inject] private GameManager _gameManager;
         [Inject] private SettingsManager _settingsManager;
         [Inject] private ResourceManager _resourceManager;
@@ -24,9 +24,8 @@ namespace Veronenger.Game.Controller {
         private bool _loadFinished = false;
         
         [Inject] private InputManager _inputManager;
-        
 
-        public override void _EnterTree() {
+        public override async void _Ready() {
             var defaults = new ApplicationConfig.UserSettings();
             var userSettingsFile = new SettingsFile(defaults, _inputManager.ConfigurableActionList);
             _settingsManager.Load(userSettingsFile);
@@ -40,9 +39,6 @@ namespace Veronenger.Game.Controller {
             }
             GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,
                 _baseResolutionSize, 1);
-        }
-
-        public override async void Ready() {
             CenterContainer.RectSize = _baseResolutionSize;
             ColorRect.RectSize = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);

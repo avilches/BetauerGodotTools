@@ -14,7 +14,7 @@ namespace Betauer.Tests.DI {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
         }
 
-        internal class MyArea2D : DiArea2D {
+        internal class MyArea2D : Area2D {
             [OnReady("myControl/mySprite")] internal Node2D prop { set; get; }
 
             [OnReady("myControl/mySprite")]
@@ -41,7 +41,7 @@ namespace Betauer.Tests.DI {
             }
             */
 
-            public override void Ready() {
+            public override void _Ready() {
                 x++;
             }
 

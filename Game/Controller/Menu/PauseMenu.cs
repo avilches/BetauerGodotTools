@@ -12,7 +12,7 @@ using Veronenger.Game.Managers;
 using Container = Godot.Container;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class PauseMenu : DiCanvasLayer {
+    public class PauseMenu : CanvasLayer {
         private static readonly SequenceTemplate PartialFadeOut = TemplateBuilder.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Property.Opacity)
@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private readonly Launcher _launcher = new Launcher();
 
-        public override void Ready() {
+        public override void _Ready() {
             _launcher.WithParent(this);
             _menuController = BuildMenu();
             HidePauseMenu();

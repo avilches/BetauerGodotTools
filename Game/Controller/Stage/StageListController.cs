@@ -16,10 +16,10 @@ namespace Veronenger.Game.Controller.Stage {
      *        +- ...
      * Non Area2D elements will be ignored. Non RectangleShape2D collision shapes will be ignored too.
      */
-    public class StageListController : DiNode {
+    public class StageListController : Node {
         [Inject] public StageManager StageManager;
 
-        public override void Ready() {
+        public override void _Ready() {
             foreach (var node in GetChildren()) {
                 if (node is Area2D area2D) {
                     ValidateStageArea2D(area2D);

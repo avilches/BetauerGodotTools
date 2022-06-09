@@ -4,7 +4,7 @@ using Godot;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.UI.Consoles {
-    public abstract class ConsoleButton : DiSprite {
+    public abstract class ConsoleButton : Sprite {
         private SpriteConfig _config;
 
         [Inject] protected Xbox360SpriteConfig Xbox360;
@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
 
         [OnReady("AnimationPlayer")] private AnimationPlayer _animation;
 
-        public override void Ready() {
+        public override void _Ready() {
             if (_config == null) {
                 // TODO: this should depends on the controller connected
                 Configure(Xbox360);

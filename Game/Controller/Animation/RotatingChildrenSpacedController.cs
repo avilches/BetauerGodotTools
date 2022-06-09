@@ -6,7 +6,7 @@ using Betauer.DI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class RotatingChildrenSpacedController : DiNode2D {
+    public class RotatingChildrenSpacedController : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
@@ -16,7 +16,7 @@ namespace Veronenger.Game.Controller.Animation {
         private List<PhysicsBody2D> _platforms;
         private readonly SingleSequencePlayer _sequence = new SingleSequencePlayer();
 
-        public override void Ready() {
+        public override void _Ready() {
             Configure();
         }
 

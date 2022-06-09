@@ -9,7 +9,7 @@ using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.UI {
-    public abstract class ActionHint : DiHBoxContainer {
+    public abstract class ActionHint : HBoxContainer {
         [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Label1")] private Label _label1;
         [OnReady("Label2")] private Label _label2;

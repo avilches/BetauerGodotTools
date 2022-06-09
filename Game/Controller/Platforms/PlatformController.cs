@@ -4,13 +4,13 @@ using Betauer.DI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Platforms {
-    public class PlatformController : DiKinematicBody2D {
+    public class PlatformController :KinematicBody2D {
 
         [Inject] public PlatformManager PlatformManager;
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool IsMovingPlatform = false;
 
-        public override void Ready() {
+        public override void _Ready() {
             Configure();
         }
 

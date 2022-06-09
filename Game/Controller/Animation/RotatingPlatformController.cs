@@ -5,7 +5,7 @@ using Veronenger.Game.Managers;
 using static Godot.Mathf;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class RotatingPlatformController : DiKinematicBody2D {
+    public class RotatingPlatformController : KinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
@@ -15,7 +15,7 @@ namespace Veronenger.Game.Controller.Animation {
         private float _angle = 0;
         private float _speed;
 
-        public override void Ready() {
+        public override void _Ready() {
             Configure();
         }
 

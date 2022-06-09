@@ -4,7 +4,7 @@ using Betauer.DI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Platforms {
-    public class SlopeStairsController : DiNode {
+    public class SlopeStairsController : Node {
         [Inject] public SlopeStairsManager SlopeStairsManager;
 
         [OnReady("SlopeStairs")] StaticBody2D slopeStairs;
@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Platforms {
         [OnReady("EnablerAndDisabler/Enabler")] Area2D enabler;
         [OnReady("EnablerAndDisabler/Disabler")] Area2D disabler;
 
-        public override void Ready() {
+        public override void _Ready() {
             SlopeStairsManager.ConfigureSlopeStairs(slopeStairs);
             SlopeStairsManager.ConfigureSlopeStairsCover(cover);
             SlopeStairsManager.ConfigureSlopeStairsUp(upHall);

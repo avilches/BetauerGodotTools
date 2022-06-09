@@ -188,13 +188,14 @@ namespace Betauer.DI {
             }
 
             public static ExposedService? CreateFrom(MemberInfo member, bool ifNoNameUseMemberName) {
-                if (Attribute.GetCustomAttribute(member, typeof(SingletonAttribute), false) is SingletonAttribute
-                    inject) {
-                    return new ExposedService(ifNoNameUseMemberName ? inject.Name ?? member.Name : inject.Name, Lifetime.Singleton);
-                }
-                if (Attribute.GetCustomAttribute(member, typeof(TransientAttribute), false) is TransientAttribute
-                    transient) {
-                    return new ExposedService(ifNoNameUseMemberName ? transient.Name ?? member.Name : transient.Name, Lifetime.Transient);
+                Attribute[] attributes = Attribute.GetCustomAttributes(member);
+                foreach (var attribute in attributes) {
+                    switch (attribute) {
+                        case SingletonAttribute singleton:
+                            return new ExposedService(ifNoNameUseMemberName ? singleton.Name ?? member.Name : singleton.Name, Lifetime.Singleton);
+                        case TransientAttribute transient:
+                            return new ExposedService(ifNoNameUseMemberName ? transient.Name ?? member.Name : transient.Name, Lifetime.Transient);
+                    }
                 }
                 return null;
             }

@@ -6,7 +6,7 @@ using Betauer.DI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class AnimatedPlatformController : DiKinematicBody2D {
+    public class AnimatedPlatformController : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
         [Inject] public PlatformManager PlatformManager;
@@ -16,7 +16,7 @@ namespace Veronenger.Game.Controller.Animation {
         public Vector2 follow;
         private MultipleSequencePlayer _sequencePlayer;
 
-        public override void Ready() {
+        public override void _Ready() {
             Configure();
         }
 

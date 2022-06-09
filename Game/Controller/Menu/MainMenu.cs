@@ -1,15 +1,15 @@
+using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 
-using Betauer.StateMachine;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenu : DiControl {
+    public class MainMenu : Control {
         private const float MenuEffectTime = 0.10f;
         private const float FadeMainMenuEffectTime = 0.75f;
 
@@ -26,7 +26,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private ActionState UiCancel;
         [Inject] private ActionState UiStart;
 
-        public override void Ready() {
+        public override void _Ready() {
             _launcher.WithParent(this);
             _menuController = BuildMenu();
         }

@@ -10,6 +10,8 @@ namespace Betauer {
         public const string GODOT_SIGNAL_body_entered = "body_entered";
         public const string GODOT_SIGNAL_body_exited = "body_exited";
 
+        public const string GODOT_SIGNAL_node_added = "node_added";
+        
         public const string GODOT_SIGNAL_area_entered = "area_entered";
         public const string GODOT_SIGNAL_area_exited = "area_exited";
         public const string GODOT_SIGNAL_area_shape_entered = "area_shape_entered";

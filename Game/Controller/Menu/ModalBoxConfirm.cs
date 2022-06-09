@@ -1,15 +1,13 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 
 using Betauer.UI;
 using Godot;
-using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class ModalBoxConfirm : DiNode {
+    public class ModalBoxConfirm : Node {
         [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 
@@ -37,15 +35,15 @@ namespace Veronenger.Game.Controller.Menu {
 
         private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
 
-        private string _titleText;
-        private string _subtitleText;
+        private string? _titleText;
+        private string? _subtitleText;
 
         public void Title(string title, string subtitle = null) {
             _titleText = title;
             _subtitleText = subtitle;
         }
 
-        public override async void Ready() {
+        public override async void _Ready() {
             // TODO i18n
             if (_subtitleText != null) {
                 doubleContainer.Visible = true;

@@ -13,7 +13,7 @@ using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class SettingsMenu : DiCanvasLayer {
+    public class SettingsMenu : CanvasLayer {
         [OnReady("Panel")] 
         private Panel _panel;
 
@@ -53,7 +53,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private readonly Launcher _launcher = new Launcher();
 
-        public override void Ready() {
+        public override void _Ready() {
             _launcher.WithParent(this);
 
             ConfigureCheckboxes();

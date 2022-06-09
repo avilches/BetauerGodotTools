@@ -41,15 +41,15 @@ namespace Betauer.DI {
         public void InjectAllFields(object target, ResolveContext context) {
             if (target is Delegate) return;
             _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
-            var fields = target.GetType().GetFields(InjectFlags);
 
+            var fields = target.GetType().GetFields(InjectFlags);
             foreach (var field in fields) {
                 if (Attribute.GetCustomAttribute(field, typeof(InjectAttribute), false) is InjectAttribute inject) {
                     InjectField(target, context, new Setter(field), inject.Nullable, inject.Name);
                 }
             }
+            
             var properties = target.GetType().GetProperties(InjectFlags);
-
             foreach (var property in properties) {
                 if (Attribute.GetCustomAttribute(property, typeof(InjectAttribute), false) is InjectAttribute inject) {
                     InjectField(target, context, new Setter(property), inject.Nullable, inject.Name);
@@ -110,13 +110,16 @@ namespace Betauer.DI {
         }
 
         public void LoadOnReadyNodes(Node target) {
-            foreach (var field in target.GetType().GetFields(OnReadyFlags)) {
+            var fields = target.GetType().GetFields(OnReadyFlags);
+            foreach (var field in fields) {
                 if (Attribute.GetCustomAttribute(field, typeof(OnReadyAttribute), false) is OnReadyAttribute
                     onReady) {
                     LoadOnReadyField(target, onReady, new Setter(field));
                 }
             }
-            foreach (var property in target.GetType().GetProperties(OnReadyFlags)) {
+
+            var properties = target.GetType().GetProperties(OnReadyFlags);
+            foreach (var property in properties) {
                 if (Attribute.GetCustomAttribute(property,
                         typeof(OnReadyAttribute), false) is OnReadyAttribute onReady) {
                     LoadOnReadyField(target, onReady, new Setter(property));

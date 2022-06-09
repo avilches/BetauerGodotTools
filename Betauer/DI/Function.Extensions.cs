@@ -6,22 +6,20 @@ using Godot;
 namespace Betauer.DI {
     public static class InjectorFunction {
         public static bool InjectField(Container container, object target, Setter field) {
-            if (IsZeroArgumentFunction(field.Type)) {
-                var outType = field.Type.GetGenericArguments()[0];
-                // [Inject] private Func<TOut> func;
-                // Find a Func<T, TResult> (callable with func(instance) => returns TResult) where T is the current
-                // instance Type (or any of its base classes) and convert it to a function where the current instance
-                // lives inside (a closure), so the user can call it later with just func()
-                try {
-                    Delegate function = container.ResolveAndCreateClosure(target, outType);
-                    field.SetValue(target, function);
-                } catch (KeyNotFoundException) {
-                    // Ignore if not found: the Injector will take care of this field later
-                    return false;
-                }
-                return true;
+            if (!IsZeroArgumentFunction(field.Type)) return false;
+            var outType = field.Type.GetGenericArguments()[0];
+            // [Inject] private Func<TOut> func;
+            // Find a Func<T, TResult> (callable with func(instance) => returns TResult) where T is the current
+            // instance Type (or any of its base classes) and convert it to a function where the current instance
+            // lives inside (a closure), so the user can call it later with just func()
+            try {
+                Delegate function = container.ResolveAndCreateClosure(target, outType);
+                field.SetValue(target, function);
+            } catch (KeyNotFoundException) {
+                // Ignore if not found: the Injector will take care of this field later
+                return false;
             }
-            return false;
+            return true;
         }
 
         private static bool IsZeroArgumentFunction(Type type) =>
@@ -32,8 +30,7 @@ namespace Betauer.DI {
         public static void OnReadyField(Container container, Node target, Setter setter) {
             // [OnReady] private TOut value
             // Find a Func<T, TResult> where T is the current instance Type
-            Delegate func =
-                container.ResolveCompatibleFunction(target.GetType(), setter.Type);
+            Delegate func = container.ResolveCompatibleFunction(target.GetType(), setter.Type);
             var value = func.DynamicInvoke(target);
             setter.SetValue(target, value);
         }

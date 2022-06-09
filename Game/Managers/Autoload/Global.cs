@@ -4,14 +4,13 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
-using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Global : DiNode /* needed because it's an autoload */ {
+    public class Global : Node /* needed because it's an autoload */ {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager;
         private readonly Launcher _launcher = new Launcher();
-        public override void Ready() {
+        public override void _Ready() {
             this.DisableAllNotifications();
             _launcher.WithParent(this);
         }

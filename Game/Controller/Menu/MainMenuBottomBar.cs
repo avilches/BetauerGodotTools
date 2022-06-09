@@ -3,11 +3,12 @@ using Betauer.DI;
 using Betauer.Input;
 
 using Betauer.StateMachine;
+using Godot;
 using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar: DiCanvasLayer, IStateMachineListener<GameManager.State> {
+    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<GameManager.State> {
         [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1; 
         [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2; 
         [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 
@@ -18,7 +19,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private ActionState UiStart;
 
 
-        public override void Ready() {
+        public override void _Ready() {
             _actionHintList.Add(_actionHint1);
             _actionHintList.Add(_actionHint2);
             _actionHintList.Add(_actionHint3);
