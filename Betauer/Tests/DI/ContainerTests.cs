@@ -50,22 +50,9 @@ namespace Betauer.Tests.DI {
             var di = new Container(this);
 
             // Not found types fail
-            try {
-                di.Resolve<IInterface1>();
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-
-            try {
-                di.Resolve<IInterface1>();
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
-            try {
-                di.Resolve<IInterface1>("X");
-                Assert.That(false, "It should fail!");
-            } catch (KeyNotFoundException e) {
-            }
+            Assert.Throws<KeyNotFoundException>(() => di.Resolve<IInterface1>());
+            Assert.Throws<KeyNotFoundException>(() => di.Resolve<IInterface1>("X"));
+            Assert.Throws<KeyNotFoundException>(() => di.Resolve("X"));
         }
 
         [Test(Description = "Types not found -> create transient automatically")]
@@ -79,18 +66,9 @@ namespace Betauer.Tests.DI {
             Assert.That(n1, Is.Not.EqualTo(n2));
 
             // Not allowed interfaces
-            try {
-                di.Resolve<IInterface1>();
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-            }
-
+            Assert.Throws<ArgumentException>(() => di.Resolve<IInterface1>());
             // Not allowed abstract classes
-            try {
-                di.Resolve(typeof(AbstractClass));
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-            }
+            Assert.Throws<ArgumentException>(() => di.Resolve(typeof(AbstractClass)));
         }
 
         /*
@@ -346,18 +324,12 @@ namespace Betauer.Tests.DI {
         public void RegisterWrong() {
             var di = new ContainerBuilder(this);
             // Can't bind a subclass creating an upper class
-            try {
-                di.Register(() => new Node2D()).As<Sprite>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register(() => new Node2D()).As<Sprite>().CreateProvider());
 
             // ClassWith2Interfaces doesn't implement IEnumerable
-            try {
-                di.Register(() => new ClassWith2Interfaces()).AsAll<IEnumerable>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register(() => new ClassWith2Interfaces()).AsAll<IEnumerable>().CreateProvider());
         }
 
         /*
@@ -485,58 +457,35 @@ namespace Betauer.Tests.DI {
             var di = new ContainerBuilder(this);
 
             // no interfaces
-            try {
-                di.Register<IInterface2_2>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
-            }
-            try {
-                di.Register(typeof(IInterface2_2)).CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
-            }
+            ArgumentException e = Assert.Throws<ArgumentException>(() =>
+                di.Register<IInterface2_2>().CreateProvider());
+            Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
+
+            e = Assert.Throws<ArgumentException>(() =>
+                di.Register(typeof(IInterface2_2)).CreateProvider());
+            Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
 
             // no abstract
-            try {
-                di.Register<AbstractClass>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
-            }
-            try {
-                di.Register(typeof(AbstractClass)).CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (ArgumentException e) {
-                Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
-            }
+            Assert.Throws<ArgumentException>(() =>
+                di.Register<AbstractClass>().CreateProvider());
+            Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
+            e = Assert.Throws<ArgumentException>(() =>
+                di.Register(typeof(AbstractClass)).CreateProvider());
+            Assert.That(e.Message, Is.EqualTo("Can't create a default factory with interface or abstract class"));
 
             // Node doesn't implement IEnumerable
-            try {
-                di.Register<Node>().As<IEnumerable>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register<Node>().As<IEnumerable>().CreateProvider());
 
-            try {
-                di.Register(typeof(Node), Lifetime.Singleton, new[] { typeof(IEnumerable) }).CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register(typeof(Node), Lifetime.Singleton, new[] { typeof(IEnumerable) }).CreateProvider());
 
             // class is in an upper level than expected
-            try {
-                di.Register<Node>().As<Sprite>().CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register<Node>().As<Sprite>().CreateProvider());
 
-            try {
-                di.Register(typeof(Node), Lifetime.Singleton, new[] { typeof(Sprite) }).CreateProvider();
-                Assert.That(false, "It should fail!");
-            } catch (InvalidCastException) {
-            }
+            Assert.Throws<InvalidCastException>(() =>
+                di.Register(typeof(Node), Lifetime.Singleton, new[] { typeof(Sprite) }).CreateProvider());
         }
 
         /*

@@ -1,5 +1,5 @@
 using System;
-using Betauer.Application;
+using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
@@ -10,18 +10,6 @@ namespace Betauer.Tests.DI {
     [TestFixture]
     public class FunctionTests : Node {
         private Container? _backup;
-
-        [SetUp]
-        public void SetUp() {
-            // TODO: this is because the DefaultContainer (which belongs to the game, no to the tests)
-            // is started along with the test, which is wrong
-            GetTree().Root.FindFirstChild<GodotContainer>()?.DisableInjection();
-        }
-
-        [TearDown]
-        public void TearDown() {
-            GetTree().Root.FindFirstChild<GodotContainer>()?.EnableInjection();
-        }
 
         public class Base {
             internal string baseName = "basePepe";
@@ -88,7 +76,7 @@ namespace Betauer.Tests.DI {
         }
 
         [Test(Description = "Test a closure function in OnReady")]
-        public void OnReadyClosureTest() {
+        public async Task OnReadyClosureTest() {
             var di = new ContainerBuilder(this);
             di.Function<MyNode, string>((s) => s.name);
             var container = di.Build();
@@ -100,11 +88,13 @@ namespace Betauer.Tests.DI {
             var s = new MyNode();
             AddChild(s);
 
+            await this.AwaitIdleFrame();
+
             Assert.That(s.myName, Is.EqualTo("pepe"));
         }
 
         [Test(Description = "Test a closure function in OnReady using a base class")]
-        public void OnReadyClosureTestBaseClass() {
+        public async Task OnReadyClosureTestBaseClass() {
             var di = new ContainerBuilder(this);
             di.Function<MyNodeBase, string>((s) => s.baseName);
             var container = di.Build();
@@ -112,9 +102,10 @@ namespace Betauer.Tests.DI {
             var d = new GodotContainer();
             d.SetContainer(container);
             AddChild(d);
-
+            
             MyNode s = new MyNode();
             AddChild(s);
+            await this.AwaitIdleFrame();
             
             Assert.That(s.myName, Is.EqualTo("basePepe"));
         }

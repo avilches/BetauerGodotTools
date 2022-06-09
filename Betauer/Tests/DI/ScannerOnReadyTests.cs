@@ -1,8 +1,5 @@
 using System;
-using System.Reflection;
-using System.Threading.Tasks;
 using Betauer.DI;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
@@ -12,6 +9,9 @@ namespace Betauer.Tests.DI {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
+            var godotContainer = new GodotContainer();
+            godotContainer.CreateAndScan();
+            AddChild(godotContainer);
         }
 
         internal class MyArea2D : Area2D {
@@ -48,19 +48,14 @@ namespace Betauer.Tests.DI {
         }
 
         [Test(Description = "Fail if not found")]
-        public async Task FailNotFound() {
+        public void FailNotFound() {
             var myArea2D = new MyArea2D();
-            try {
-                AddChild(myArea2D);
-                Assert.That(false, "It should fail!");
-            } catch (OnReadyFieldException e) {
-                GD.Print(e.Message);
-                Assert.That(e.Message.Contains("null value"));
-            }
+            OnReadyFieldException e = Assert.Throws<OnReadyFieldException>(() => AddChild(myArea2D));
+            Assert.That(e.Message.Contains("null value"));
         }
 
         [Test(Description = "OnReady working")]
-        public async Task Working() {
+        public void Working() {
             var myArea2D = new MyArea2D();
             var control = new Control();
             control.Name = "myControl";
@@ -72,8 +67,6 @@ namespace Betauer.Tests.DI {
 
             AddChild(myArea2D);
 
-            await this.AwaitIdleFrame();
-
             Assert.That(myArea2D.prop, Is.EqualTo(sprite));
             Assert.That(myArea2D.node2d, Is.EqualTo(sprite));
             Assert.That(myArea2D.sprite, Is.EqualTo(sprite));
@@ -83,11 +76,7 @@ namespace Betauer.Tests.DI {
         }
 
         [Test(Description = "OnReady fail on wrong type")]
-        public async Task OnReadyFailWrongType() {
-            var di = new ContainerBuilder(this);
-            di.Scan(typeof(ScannerOnReadyTests).GetTypeInfo().DeclaredNestedTypes);
-            var c = di.Build();
-
+        public void OnReadyFailWrongType() {
             var myArea2D = new MyArea2D();
             var control = new Control();
             control.Name = "myControl";
@@ -96,19 +85,13 @@ namespace Betauer.Tests.DI {
             var sprite = new Node2D();
             sprite.Name = "mySprite";
             control.AddChild(sprite);
-            try {
 
-                AddChild(myArea2D);
-                await this.AwaitIdleFrame();
-                Assert.That(false, "It should fail!");
-            } catch (OnReadyFieldException e) {
-                GD.Print(e.Message);
-                Assert.That(myArea2D.x, Is.EqualTo(0)); // Ready() can't be executed because the error
-                Assert.That(myArea2D.node2d, Is.EqualTo(sprite));
-                Assert.That(myArea2D.sprite, Is.Null);
-                Assert.That(myArea2D.disposable, Is.Null);  // Is null because the error happened before to 
-                Assert.That(e.Message.Contains("incompatible type"));
-            }
+            OnReadyFieldException e = Assert.Throws<OnReadyFieldException>(() => AddChild(myArea2D));
+            Assert.That(myArea2D.x, Is.EqualTo(0)); // Ready() can't be executed because the error
+            Assert.That(myArea2D.node2d, Is.EqualTo(sprite));
+            Assert.That(myArea2D.sprite, Is.Null);
+            Assert.That(myArea2D.disposable, Is.Null);  // Is null because the error happened before to 
+            Assert.That(e.Message.Contains("incompatible type"));
         }
     }
 }

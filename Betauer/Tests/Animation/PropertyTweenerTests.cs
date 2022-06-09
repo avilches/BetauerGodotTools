@@ -59,15 +59,11 @@ namespace Betauer.Tests.Animation {
         [Test(Description = "sequence empty should fail")]
         public async Task SequenceEmptyShouldFail() {
             var sprite = await CreateSprite();
-            try {
+            InvalidDataException e = Assert.Throws<InvalidDataException>(() =>
                 SequenceBuilder.Create()
                     .AnimateSteps(sprite, Property.PositionX)
-                    .EndAnimate();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("Animation without steps"));
-            }
+                    .EndAnimate());
+            Assert.That(e.Message, Is.EqualTo("Animation without steps"));
         }
 
         [Test(Description = "Callback with method name")]
@@ -138,17 +134,13 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            try {
+            InvalidDataException e = Assert.ThrowsAsync<InvalidDataException>(async () =>
                 await new MultipleSequencePlayer()
                     .WithParent(spritePlayer, true)
                     .AddSequence(sequence)
                     .Play()
-                    .Await();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
-            }
+                    .Await());
+            Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
             Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps.Count, Is.EqualTo(0));
         }
@@ -165,17 +157,13 @@ namespace Betauer.Tests.Animation {
                 .To(-90, 0.2f)
                 .EndAnimate();
 
-            try {
+            InvalidDataException e = Assert.ThrowsAsync<InvalidDataException>(async () =>
                 await new SingleSequencePlayer()
                     .WithParent(spritePlayer, true)
                     .WithSequence(sequence)
                     .Play()
-                    .Await();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
-            }
+                    .Await());
+            Assert.That(e.Message, Is.EqualTo("No target defined for the animation"));
             Assert.That(sequence.DefaultTarget, Is.Null);
             Assert.That(steps.Count, Is.EqualTo(0));
         }

@@ -30,11 +30,7 @@ namespace Betauer.Tests.DI {
             var di = new ContainerBuilder(this);
             di.Scan<INotTagged>();
             di.Scan<MyServiceWithNotScanned>();
-            try {
-                di.Build();
-                Assert.That(false, "It should fail!");
-            } catch (InjectFieldException e) {
-            }
+            Assert.Throws<InjectFieldException>(() => di.Build());
         }
 
         [Test(Description = "Nullable")]

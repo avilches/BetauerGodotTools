@@ -114,14 +114,10 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "sequence empty should fail")]
-        public async Task SequenceEmptyShouldFail() {
-            try {
-                TemplateBuilder.Create().BuildTemplate();
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidDataException)));
-                Assert.That(e.Message, Is.EqualTo("Template TweenList can not be empty"));
-            }
+        public void SequenceEmptyShouldFail() {
+            InvalidDataException e = Assert.Throws<InvalidDataException>(() =>
+            TemplateBuilder.Create().BuildTemplate());
+            Assert.That(e.Message, Is.EqualTo("Template TweenList can not be empty"));
         }
 
         public SequenceTemplate CreateTemplate() {
@@ -180,7 +176,7 @@ namespace Betauer.Tests.Animation {
         }
 
         [Test(Description = "Templates can't be added, they need to be imported")]
-        public async Task AddATemplateIsNotAllowed() {
+        public void AddATemplateIsNotAllowed() {
             Node2D node = new Sprite();
 
             var template = TemplateBuilder.Create()
@@ -189,15 +185,11 @@ namespace Betauer.Tests.Animation {
                 .EndAnimate()
                 .BuildTemplate();
 
-            try {
+            InvalidOperationException e = Assert.Throws<InvalidOperationException>(() =>
                 new MultipleSequencePlayer()
                     .WithParent(node)
-                    .AddSequence(template);
-                Assert.That(false, "It should fail!");
-            } catch (Exception e) {
-                Assert.That(e.GetType(), Is.EqualTo(typeof(InvalidOperationException)));
-                Assert.That(e.Message, Is.EqualTo("Use ImportTemplate instead"));
-            }
+                    .AddSequence(template));
+            Assert.That(e.Message, Is.EqualTo("Use ImportTemplate instead"));
         }
 
 
