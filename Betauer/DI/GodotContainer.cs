@@ -23,6 +23,10 @@ namespace Betauer.DI {
             EnableInjection();
         }
 
+        public override void _ExitTree() {
+            DisableInjection();
+        }
+
         public void EnableInjection() {
             if (!GetTree().IsConnected(GodotConstants.GODOT_SIGNAL_node_added, this, nameof(GodotExecuteNodeAdded)))
                 GetTree().Connect(GodotConstants.GODOT_SIGNAL_node_added, this, nameof(GodotExecuteNodeAdded));
