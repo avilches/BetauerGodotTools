@@ -1,9 +1,7 @@
 using System;
-using Betauer.DI;
 using Godot;
-using Container = Betauer.DI.Container;
 
-namespace Betauer.Application {
+namespace Betauer.DI {
     /**
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
