@@ -6,11 +6,16 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="**/*.cs" Exclude="Betauer/**" />
+        <Compile Include="**/*.cs"/>
         <Compile Remove=".mono/**" />
+        <Compile Remove="Betauer\**" />
+        <Compile Remove="Betauer.DI\**" />
+        <Compile Remove="Betauer.Core\**" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="Betauer/Betauer.csproj" />
+        <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Remove=".mono/**" />

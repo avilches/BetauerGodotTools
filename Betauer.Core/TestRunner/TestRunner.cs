@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Betauer.Collections;
 using Godot;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
@@ -17,7 +17,7 @@ namespace Betauer.TestRunner {
 
 
     public class TestRunner {
-        private readonly ICollection<TestMethod> _testMethods = new LinkedList<TestMethod>();
+        private readonly List<TestMethod> _testMethods = new List<TestMethod>();
         public readonly List<TestMethod> TestsFailedResults = new List<TestMethod>();
         public int TestsTotal;
         public int TestsExecuted;
@@ -50,7 +50,7 @@ namespace Betauer.TestRunner {
         public class TestMethod {
             private static readonly object[] EmptyParameters = { };
 
-            public readonly Stopwatch Stopwatch;
+            public readonly Stopwatch Stopwatch = new Stopwatch();
 
             private readonly object _instance;
             private readonly MethodInfo _method;
@@ -67,7 +67,6 @@ namespace Betauer.TestRunner {
             public string Id { get; set; }
 
             public TestMethod(MethodInfo method, object instance, string? description, bool only) {
-                Stopwatch = new Stopwatch();
                 _instance = instance;
                 _method = method;
                 Type = method.DeclaringType;
@@ -141,13 +140,16 @@ namespace Betauer.TestRunner {
         }
 
         private List<TestFixture> ScanFixturesFromAssemblies() {
+            Stopwatch st = new Stopwatch();
+            st.Start();
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var cleanNotOnly = false;
-            GD.Print("Scanning fixtures from assemblies...");
             List<TestFixture> fixtures = new List<TestFixture>();
             foreach (var assembly in assemblies) {
+                GD.Print("Scanning assembly "+assembly);
                 foreach (Type type in assembly.GetTypes()) {
                     if (IsTestFixture(type)) {
+                        GD.Print("Scanning class "+type);
                         var testFixture = CreateFixture(type);
                         fixtures.Add(testFixture);
                         cleanNotOnly = cleanNotOnly || testFixture.Only;
@@ -158,6 +160,8 @@ namespace Betauer.TestRunner {
                 fixtures.RemoveAll(t => !t.Only);
                 fixtures.ForEach(fixture => fixture.Methods.RemoveAll(m => !m.Only));
             }
+            st.Stop();
+            GD.Print($"Added {fixtures.Sum((fixture => fixture.Methods.Count))} tests in {st.ElapsedMilliseconds}ms");
             return fixtures;
         }
 
@@ -171,8 +175,8 @@ namespace Betauer.TestRunner {
         private static TestFixture CreateFixture(Type type) {
             var onlyThisType = Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute;
             List<TestMethod> testMethods = new List<TestMethod>();
-            SimpleLinkedList<MethodInfo> setup = new SimpleLinkedList<MethodInfo>();
-            SimpleLinkedList<MethodInfo> tearDown = new SimpleLinkedList<MethodInfo>();
+            List<MethodInfo> setup = new List<MethodInfo>();
+            List<MethodInfo> tearDown = new List<MethodInfo>();
             var isAnyMethodWithOnly = false;
             foreach (var method in type.GetMethods()) {
                 if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {

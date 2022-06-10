@@ -58,8 +58,8 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
 
             // Tools
-            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Info);
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Info);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);

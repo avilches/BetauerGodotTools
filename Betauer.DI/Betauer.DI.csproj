@@ -5,7 +5,7 @@
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
         <RootNamespace>Betauer</RootNamespace>
-        <AssemblyName>Betauer</AssemblyName>
+        <AssemblyName>Betauer.DI</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Betauer.DI;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 using Container = Betauer.DI.Container;

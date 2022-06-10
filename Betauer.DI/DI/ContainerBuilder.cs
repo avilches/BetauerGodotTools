@@ -117,8 +117,11 @@ namespace Betauer.DI {
             return this;
         }
 
-        public ContainerBuilder Scan(Assembly assembly, Predicate<Type>? predicate = null) =>
+        public ContainerBuilder Scan(Assembly assembly, Predicate<Type>? predicate = null) {
+            _logger.Info("Scanning "+assembly);
             Scan(assembly.GetTypes(), predicate);
+            return this;
+        }
 
         public ContainerBuilder Scan(IEnumerable<Type> types, Predicate<Type>? predicate = null) {
             foreach (Type type in types) {

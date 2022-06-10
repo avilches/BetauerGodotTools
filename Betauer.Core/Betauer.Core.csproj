@@ -5,7 +5,7 @@
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
         <RootNamespace>Betauer</RootNamespace>
-        <AssemblyName>Betauer</AssemblyName>
+        <AssemblyName>Betauer.Core</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -16,8 +16,5 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.2"/>
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj"/>
     </ItemGroup>
 </Project>
