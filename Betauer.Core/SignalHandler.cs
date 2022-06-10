@@ -21,6 +21,7 @@ namespace Betauer {
         }
     }
 
+    // TODO: this is working, but some units tests will be appreciated
     public abstract class BaseSignalHandler<T> : GodotObject {
         private readonly Object _target;
         private readonly string _signal;

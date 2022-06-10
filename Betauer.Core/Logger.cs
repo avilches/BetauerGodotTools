@@ -86,7 +86,7 @@ namespace Betauer {
         }
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
-            SetTraceLevel(ReflectionTools.GetTypeWithoutGenerics(type), "*", traceLevel);
+            SetTraceLevel(type.GetNameWithoutGenerics(), "*", traceLevel);
             return Instance;
         }
 
@@ -96,7 +96,7 @@ namespace Betauer {
         }
 
         public static LoggerFactory SetTraceLevel(Type type, string name, TraceLevel traceLevel) {
-            SetTraceLevel(ReflectionTools.GetTypeWithoutGenerics(type), name, traceLevel);
+            SetTraceLevel(type.GetNameWithoutGenerics(), name, traceLevel);
             return Instance;
         }
 
@@ -159,7 +159,7 @@ namespace Betauer {
         }
 
         public static Logger GetLogger(Type type, string name = null) {
-            return GetLogger(ReflectionTools.GetTypeWithoutGenerics(type), name);
+            return GetLogger(type.GetNameWithoutGenerics(), name);
         }
 
         public static Logger GetLogger(string type, string name = null) {

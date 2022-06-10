@@ -5,7 +5,7 @@ namespace Betauer.Bus {
         private readonly Logger _logger;
 
         public GodotTopic(string name) : base(name) {
-            _logger = LoggerFactory.GetLogger(ReflectionTools.GetTypeWithoutGenerics(typeof(GodotTopic<T>)), name);
+            _logger = LoggerFactory.GetLogger(typeof(GodotTopic<T>).GetNameWithoutGenerics(), name);
         }
 
         public override void Subscribe(GodotListener<T>? eventListener) {
