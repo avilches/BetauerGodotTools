@@ -20,7 +20,4 @@
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="StateMachine" />
-    </ItemGroup>
 </Project>

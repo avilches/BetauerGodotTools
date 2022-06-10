@@ -31,16 +31,6 @@ namespace Betauer.DI.Tests {
 
             internal int x = 0;
 
-            // TODO: allow this:
-            /*
-            [OnReady("myControl/mySprite")]
-            internal void SetMethod(Node2D val) {
-            }
-            [OnReady()]
-            internal void SetMethod() {
-            }
-            */
-
             public override void _Ready() {
                 x++;
             }

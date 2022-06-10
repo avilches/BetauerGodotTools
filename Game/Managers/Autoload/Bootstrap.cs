@@ -5,7 +5,6 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Bus;
 using Betauer.DI;
-
 using Betauer.Memory;
 using Betauer.Screen;
 using Betauer.StateMachine;
@@ -72,30 +71,30 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
-             // Screen
-             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
-             LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Error);
+            // Screen
+            LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PixelPerfectScreenResolutionService), TraceLevel.Error);
 
-             // Managers
-             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
-             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
+            // Managers
+            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
 
-             LoggerFactory.SetTraceLevel(typeof(StateMachine), "GameManager", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(StateMachine), "GameManager", TraceLevel.Error);
 
-             // Player and enemies
-             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);
-             LoggerFactory.SetTraceLevel(typeof(StateMachine), "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("Motion", "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("Collision", "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("JumpHelper", "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("CoyoteJump", "Player:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("JumpVelocity", "Player:*", TraceLevel.Error);
+            // Player and enemies
+            LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(StateMachine), "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Motion", "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Collision", "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("JumpHelper", "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("CoyoteJump", "Player:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("JumpVelocity", "Player:*", TraceLevel.Error);
 
-             LoggerFactory.SetTraceLevel(typeof(StateMachine), "Enemy.Zombie:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Enemy.Zombie:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("Motion", "Enemy.Zombie:*", TraceLevel.Error);
-             LoggerFactory.SetTraceLevel("Collision", "Enemy.Zombie:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(StateMachine), "Enemy.Zombie:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Enemy.Zombie:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Motion", "Enemy.Zombie:*", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Collision", "Enemy.Zombie:*", TraceLevel.Error);
         }
 
         /**

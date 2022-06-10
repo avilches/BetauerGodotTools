@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 

@@ -5,7 +5,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
-
+using Betauer.Memory;
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
