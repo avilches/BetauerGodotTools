@@ -5,7 +5,7 @@ using Betauer.Bus.Topics;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class TopicMapTests : NodeTest {
+    public class TopicMapTests : Node {
         Area2D Area1 = new Area2D();
         Area2D Area2 = new Area2D();
 

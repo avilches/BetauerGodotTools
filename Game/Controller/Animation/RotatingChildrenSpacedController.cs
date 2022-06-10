@@ -22,7 +22,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         // var _speed = Tau / RotationDuration;
         // _angle = Wrap(_angle + _speed * delta, 0, Tau); // Infinite rotation(in radians
-        private void RotateSpaced(float angle) => AnimationTools.RotateSpaced(_platforms, angle, Radius);
+        private void RotateSpaced(float angle) => RotateSpaced(_platforms, angle, Radius);
 
         private void Configure() {
             _platforms = this.GetChildren<PhysicsBody2D>();
@@ -36,5 +36,20 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndSequence()
                 .Play();
         }
+
+        /*
+        * Distribuye por el circulo de manera espaciado y las gira
+        */
+        public static void RotateSpaced(List<PhysicsBody2D> nodes, float angle, Vector2 radius) {
+            var count = nodes.Count;
+            var spacing = Mathf.Tau / count;
+            for (var i = 0; i < count; i++) {
+                var newX = Mathf.Sin(spacing * i + angle) * radius.x;
+                var newY = Mathf.Cos(spacing * i + angle) * radius.y;
+                var newPos = new Vector2(newX, newY);
+                nodes[i].Position = newPos;
+            }
+        }
+
     }
 }

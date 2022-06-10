@@ -5,11 +5,10 @@ using NUnit.Framework;
 using Betauer.Bus;
 using Betauer.Bus.Topics;
 using Betauer.TestRunner;
-using Betauer.Tests.Animation;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class GodotTopicTests : NodeTest {
+    public class GodotTopicTests : Node {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);

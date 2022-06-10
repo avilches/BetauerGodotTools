@@ -23,7 +23,7 @@ namespace Veronenger.Game.Controller.Animation {
             Configure();
         }
 
-        private void RotateAligned(float angle) => AnimationTools.RotateAligned(_platforms, angle, Radius);
+        private void RotateAligned(float angle) => RotateAligned(_platforms, angle, Radius);
 
         private void Configure() {
             _sequence.WithParent(this)
@@ -48,6 +48,23 @@ namespace Veronenger.Game.Controller.Animation {
 
         public void Pause() {
             _sequence.Stop();
+        }
+
+        /*
+         * Alinea las plataformas como si fueran una aguja de un reloj y la gira. La primera primera plataforma
+         * mantiene su posicion y las demás se van espaciando hasta llegar al radius
+         */
+        public static void RotateAligned(List<PhysicsBody2D> nodes, float angle, float radius,
+            float initialOffset = 20) {
+            var count = nodes.Count;
+            var spacing = radius / count;
+            for (var i = 0; i < count; i++) {
+                float offset = ((spacing * i) + initialOffset);
+                var newX = Mathf.Sin(angle) * offset;
+                var newY = Mathf.Cos(angle) * offset;
+                var newPos = new Vector2(newX, newY);
+                nodes[i].Position = newPos;
+            }
         }
     }
 }

@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.TestRunner;
 using Betauer.StateMachine;
+using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class StateMachineTests : NodeTest {
+    public class StateMachineTests : Node {
         enum State {
             A, B                        
         }
