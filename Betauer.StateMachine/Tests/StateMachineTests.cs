@@ -7,7 +7,7 @@ using Betauer.StateMachine;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.StateMachine.Tests {
     [TestFixture]
     public class StateMachineTests : Node {
         enum State {

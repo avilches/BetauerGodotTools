@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
+using Betauer.Animation.Tests;
 using Betauer.TestRunner;
 using Vector2 = Godot.Vector2;
 
-namespace Betauer.Tests.Animation {
+namespace Betauer.Animation.Tests {
     [TestFixture]
     public class PropertyTweenerTests : NodeTest {
         [SetUp]

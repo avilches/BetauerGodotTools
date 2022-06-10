@@ -6,7 +6,7 @@ using Godot;
 using NUnit.Framework;
 using Container = Betauer.DI.Container;
 
-namespace Betauer.Tests.DI {
+namespace Betauer.DI.Tests {
     [TestFixture]
     public class FunctionTests : Node {
         private Container? _backup;

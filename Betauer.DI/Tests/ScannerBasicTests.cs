@@ -1,10 +1,7 @@
-using Betauer.DI;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
 
-namespace Betauer.Tests.DI {
+namespace Betauer.DI.Tests {
     [TestFixture]
     public class ScannerBasicTests : Node {
         [SetUp]
@@ -271,20 +268,20 @@ namespace Betauer.Tests.DI {
 
             // Property
             [Singleton]
-            private Hold Hold1 => new Hold("1");
+            private Hold SingletonHold1 => new Hold("1");
             
             // Property with Name
-            [Singleton(Name = "Hold2")]
+            [Singleton(Name = "SingletonHold2")]
             private Hold _hold2 => new Hold("2");
 
             // Method
             [Singleton]
-            public Hold Hold3() {
+            public Hold SingletonHold3() {
                 return new Hold("3");
             }
 
             // Method with name
-            [Singleton(Name = "Hold4")]
+            [Singleton(Name = "SingletonHold4")]
             public Hold Hold4() {
                 return new Hold("4");
             }
@@ -294,16 +291,16 @@ namespace Betauer.Tests.DI {
         [Singleton]
         public class SingletonInjected {
             [Inject] internal Hold Hold1;
-            [Inject(Name = "Hold1")] internal Hold h1;
+            [Inject(Name = "SingletonHold1")] internal Hold h1;
             
             [Inject] internal Hold Hold2;
-            [Inject(Name = "Hold2")] internal Hold h2;
+            [Inject(Name = "SingletonHold2")] internal Hold h2;
             
             [Inject] internal Hold Hold3;
-            [Inject(Name = "Hold3")] internal Hold h3;
+            [Inject(Name = "SingletonHold3")] internal Hold h3;
             
             [Inject] internal Hold Hold4;
-            [Inject(Name = "Hold4")] internal Hold h4;
+            [Inject(Name = "SingletonHold4")] internal Hold h4;
         }
         
         [Test(Description = "Inject singletons by name exported in a singleton")]
@@ -414,8 +411,8 @@ namespace Betauer.Tests.DI {
 
         [Configuration]
         public class ConfigurationService {
-            [Transient] private Hold Hold1 => new Hold("1");
-            [Singleton] private Hold Hold2 => new Hold("2");
+            [Transient] private Hold ConfHold1 => new Hold("1");
+            [Singleton] private Hold ConfHold2 => new Hold("2");
         }
 
         [Test(Description = "Use configuration to export members")]
@@ -426,10 +423,10 @@ namespace Betauer.Tests.DI {
             
             Assert.That(c.Contains<ConfigurationService>(), Is.False);
             
-            Hold s11 = c.Resolve<Hold>("Hold1");
-            Hold s12 = c.Resolve<Hold>("Hold1");
-            Hold s21 = c.Resolve<Hold>("Hold2");
-            Hold s22 = c.Resolve<Hold>("Hold2");
+            Hold s11 = c.Resolve<Hold>("ConfHold1");
+            Hold s12 = c.Resolve<Hold>("ConfHold1");
+            Hold s21 = c.Resolve<Hold>("ConfHold2");
+            Hold s22 = c.Resolve<Hold>("ConfHold2");
             
             Assert.That(s11.Name, Is.EqualTo("1"));
             Assert.That(s12.Name, Is.EqualTo("1"));

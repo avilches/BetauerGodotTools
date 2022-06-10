@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using Betauer.Animation;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Animation.Tests {
     public class NodeTest : Node {
         [SetUp]
         public void RemoveWarning() {

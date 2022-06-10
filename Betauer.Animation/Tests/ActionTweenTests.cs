@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using Betauer.Animation;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests.Animation {
+namespace Betauer.Animation.Tests {
     [TestFixture]
     public class ActionTweenTests : NodeTest {
         [SetUp]

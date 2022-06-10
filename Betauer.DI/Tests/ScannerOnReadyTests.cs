@@ -3,7 +3,7 @@ using Betauer.DI;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests.DI {
+namespace Betauer.DI.Tests {
     [TestFixture]
     public class ScannerOnReadyTests : Node {
         [SetUp]

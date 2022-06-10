@@ -1,8 +1,6 @@
-using Godot;
 using NUnit.Framework;
-using Betauer.Animation;
 
-namespace Betauer.Tests.Animation {
+namespace Betauer.Animation.Tests {
     [TestFixture]
     public class BezierCurveTests : NodeTest {
         [Test]

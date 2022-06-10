@@ -3,7 +3,7 @@ using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests.DI {
+namespace Betauer.DI.Tests {
     [TestFixture]
     public class ScannerCircularTests : Node {
         [Singleton]

@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
+using Betauer.Animation.Tests;
 using Betauer.TestRunner;
 
-namespace Betauer.Tests.Animation {
+namespace Betauer.Animation.Tests {
     [TestFixture]
     public class TemplateTests : NodeTest {
         [SetUp]

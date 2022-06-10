@@ -4,7 +4,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
-        <RootNamespace>Betauer</RootNamespace>
+        <RootNamespace>Betauer.StateMachine</RootNamespace>
         <AssemblyName>Betauer.StateMachine</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
@@ -15,9 +15,12 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NUnit" Version="3.13.2"/>
+        <PackageReference Include="NUnit" Version="3.13.2" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj"/>
+        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="StateMachine" />
     </ItemGroup>
 </Project>
