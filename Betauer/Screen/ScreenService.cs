@@ -198,15 +198,19 @@ namespace Betauer.Screen {
      */
     public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private OnResizeWindowHandler _onResizeWindowHandler = null!;
+        private readonly SignalHandler _signalHandler;
         private bool _enabled = false;
 
         public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
-            _onResizeWindowHandler = Tree.OnResizeWindow(OnResizeWindowHandler);
+            _signalHandler = Tree.OnScreenResized(SignalHandler);
         }
 
-        public void OnResizeWindowHandler() {
+        public void SignalHandler() {
             if (_enabled) ScaleResolutionViewport();
+        }
+        
+        protected override void OnDispose(bool disposing) {
+            _signalHandler.Dispose();
         }
 
         public void Enable(ScreenConfiguration screenConfiguration) {

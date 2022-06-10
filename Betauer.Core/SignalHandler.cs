@@ -3,7 +3,7 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer {
-    public static partial class GodotExtension {
+    public static partial class SignalExtensions {
         public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
             return AwaitPhysicsFrame(node.GetTree());
         }
@@ -13,21 +13,11 @@ namespace Betauer {
         }
 
         public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, GodotConstants.GODOT_SIGNAL_physics_frame);
+            return sceneTree.ToSignal(sceneTree, SceneTree_PhysicsFrameSignal);
         }
 
         public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, GodotConstants.GODOT_SIGNAL_idle_frame);
-        }
-
-        public static OnResizeWindowHandler OnResizeWindow(this SceneTree sceneTree, Action action) {
-            return new OnResizeWindowHandler(sceneTree, action);
-        }
-    }
-
-    public class OnResizeWindowHandler : SignalHandler {
-        public OnResizeWindowHandler(Object target, Action action) : base(target,
-            GodotConstants.GODOT_SIGNAL_screen_resized, action) {
+            return sceneTree.ToSignal(sceneTree, SceneTree_IdleFrameSignal);
         }
     }
 

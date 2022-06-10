@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="**/*.cs"/>
+        <Compile Include="**/*.cs" />
         <Compile Remove=".mono/**" />
         <Compile Remove="Betauer\**" />
         <Compile Remove="Betauer.DI\**" />

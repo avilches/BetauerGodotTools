@@ -30,7 +30,7 @@ namespace Veronenger.Game.Controller.UI {
         // TODO: i18n
         internal ButtonWrapper() {
             _saver = new ControlRestorer(this);
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(_GodotPressedSignal));
+            Connect(SignalExtensions.BaseButton_PressedSignal, this, nameof(_GodotPressedSignal));
         }
 
         public void Save() => _saver.Save();
@@ -70,14 +70,14 @@ namespace Veronenger.Game.Controller.UI {
 
         public ButtonWrapper OnFocusEntered(Action onFocus) {
             if (_onFocusEntered == null) 
-                Connect(GodotConstants.GODOT_SIGNAL_focus_entered, this, nameof(_GodotFocusEnteredSignal));
+                Connect(SignalExtensions.Control_FocusEnteredSignal, this, nameof(_GodotFocusEnteredSignal));
             _onFocusEntered = onFocus;
             return this;
         }
 
         public ButtonWrapper OnFocusExited(Action onFocus) {
             if (_onFocusExited == null) 
-                Connect(GodotConstants.GODOT_SIGNAL_focus_exited, this, nameof(_GodotFocusExitedSignal));
+                Connect(SignalExtensions.Control_FocusExitedSignal, this, nameof(_GodotFocusExitedSignal));
             _onFocusExited = onFocus;
             return this;
         }

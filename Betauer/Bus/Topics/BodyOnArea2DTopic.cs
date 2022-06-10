@@ -78,8 +78,8 @@ namespace Betauer.Bus.Topics {
 
         public void ListenSignalsOf(Area2D area2DToListen) {
             var binds = new Array { area2DToListen };
-            area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_entered, this, nameof(_BodyEntered), binds);
-            area2DToListen.Connect(GodotConstants.GODOT_SIGNAL_body_exited, this, nameof(_BodyExited), binds);
+            area2DToListen.Connect(SignalExtensions.Area2D_BodyEnteredSignal, this, nameof(_BodyEntered), binds);
+            area2DToListen.Connect(SignalExtensions.Area2D_BodyExitedSignal, this, nameof(_BodyExited), binds);
         }
 
         /*
@@ -92,10 +92,10 @@ namespace Betauer.Bus.Topics {
         public static void ListenArea2DCollisionsWithBodies(Area2D area2D, BodyOnArea2DSignalMethod enter,
             BodyOnArea2DSignalMethod exit = null) {
             if (enter.Filter is Object nodeEnter) {
-                area2D.Connect(GodotConstants.GODOT_SIGNAL_body_entered, nodeEnter, enter.Method.Name,
+                area2D.Connect(GodotExtension._body_entered, nodeEnter, enter.Method.Name,
                     new Array { area2D });
                 if (exit != null && enter.Filter is Object nodeExit) {
-                    area2D.Connect(GodotConstants.GODOT_SIGNAL_body_exited, nodeExit, exit.Method.Name,
+                    area2D.Connect(GodotExtension._body_exited, nodeExit, exit.Method.Name,
                         new Array { area2D });
                 }
             }

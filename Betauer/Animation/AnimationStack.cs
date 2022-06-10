@@ -226,7 +226,7 @@ namespace Betauer.Animation {
             _logger = LoggerFactory.GetLogger(name, "AnimationStack");
 
             AnimationPlayer = animationPlayer;
-            AnimationPlayer?.Connect(GodotConstants.GODOT_SIGNAL_animation_finished, this,
+            AnimationPlayer?.Connect(SignalExtensions.AnimationPlayer_AnimationFinishedSignal, this,
                 nameof(OnceAnimationFinished));
 
             SequencePlayer = sequencePlayer;

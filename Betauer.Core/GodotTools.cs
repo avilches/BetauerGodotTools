@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer {
 
-    public static partial class GodotExtension {
+    public static partial class SignalExtensions {
         public static object? FindFirstChild(this Node parent, Type type) {
             foreach (var child in parent.GetChildren()) {
                 if (child.GetType() == type) return child;

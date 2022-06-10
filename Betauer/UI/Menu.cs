@@ -394,11 +394,13 @@ namespace Betauer.UI {
         public Action<Context>? ActionWithContext;
         public Func<InputEventContext, bool>? ActionWithInputEventContext;
 
+        // TODO: this class should extends ButtonWrapper
+
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
+            Connect(SignalExtensions.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
         public override void _Input(InputEvent @event) {
@@ -420,14 +422,14 @@ namespace Betauer.UI {
         private Action _onFocusEntered;
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_entered, this, nameof(ExecuteOnFocusEntered));
+            Connect(SignalExtensions.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
             _onFocusEntered = onFocus;
         }
 
         private Action _onFocusExited;
         private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
         public void OnFocusExited(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_exited, this, nameof(ExecuteOnFocusExited));
+            Connect(SignalExtensions.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
             _onFocusExited = onFocus;
         }
     }
@@ -457,12 +459,16 @@ namespace Betauer.UI {
         public Action<bool>? Action;
         public Action<Context>? ActionWithContext;
         public Func<InputEventContext, bool>? ActionWithInputEventContext;
+        private Action _onFocusEntered;
+        private Action _onFocusExited;
+        
+        // TODO: this class should extends ButtonWrapper
 
         // TODO: i18n
         internal ActionCheckButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(GodotConstants.GODOT_SIGNAL_pressed, this, nameof(Execute));
+            Connect(SignalExtensions.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
         public override void _Input(InputEvent @event) {
@@ -482,17 +488,15 @@ namespace Betauer.UI {
         public void Save() =>_saver.Save();
         public void Restore() => _saver.Restore();
 
-        private Action _onFocusEntered;
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_entered, this, nameof(ExecuteOnFocusEntered));
+            Connect(SignalExtensions.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
             _onFocusEntered = onFocus;
         }
 
-        private Action _onFocusExited;
         private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
         public void OnFocusExited(Action onFocus) {
-            Connect(GodotConstants.GODOT_SIGNAL_focus_exited, this, nameof(ExecuteOnFocusExited));
+            Connect(SignalExtensions.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
             _onFocusExited = onFocus;
         }
     }

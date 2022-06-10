@@ -88,8 +88,8 @@ namespace Betauer.Bus.Topics {
 
         public void ListenSignalsOf(Area2D areaToListen) {
             var binds = new Array { areaToListen };
-            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(_AreaEntered), binds);
-            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_exited, this, nameof(_AreaExited), binds);
+            areaToListen.Connect(SignalExtensions.Area2D_AreaEnteredSignal, this, nameof(_AreaEntered), binds);
+            areaToListen.Connect(SignalExtensions.Area2D_AreaExitedSignal, this, nameof(_AreaExited), binds);
         }
 
         public void Subscribe(string name, Node owner, Area2D filter,

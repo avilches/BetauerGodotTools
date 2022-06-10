@@ -80,7 +80,7 @@ namespace Veronenger.Game.Managers {
             deathArea2D.CollisionMask = 0;
             // TODO: this should be a topic, so other places can subscribe like remove all bullets
             deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
-            deathArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this, nameof(PlayerEnteredDeathZone),
+            deathArea2D.Connect(SignalExtensions.Area2D_AreaEnteredSignal, this, nameof(PlayerEnteredDeathZone),
                 new Array { deathArea2D });
         }
 
@@ -91,7 +91,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
-            sceneChangeArea2D.Connect(GodotConstants.GODOT_SIGNAL_area_entered, this,
+            sceneChangeArea2D.Connect(SignalExtensions.Area2D_AreaEnteredSignal, this,
                 nameof(_on_player_entered_scene_change),
                 new Array { sceneChangeArea2D, scene });
             sceneChangeArea2D.CollisionLayer = 0;

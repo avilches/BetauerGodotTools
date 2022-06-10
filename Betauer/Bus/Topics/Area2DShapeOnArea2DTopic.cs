@@ -61,9 +61,9 @@ namespace Betauer.Bus.Topics {
         }
 
         public void ListenSignalsOf(Area2D areaToListen) {
-            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_shape_entered, this, nameof(_AreaEntered),
+            areaToListen.Connect(SignalExtensions.Area2D_AreaShapeEnteredSignal, this, nameof(_AreaEntered),
                 new Array { areaToListen });
-            areaToListen.Connect(GodotConstants.GODOT_SIGNAL_area_shape_exited, this, nameof(_AreaExited),
+            areaToListen.Connect(SignalExtensions.Area2D_AreaShapeExitedSignal, this, nameof(_AreaExited),
                 new Array { areaToListen });
         }
 
