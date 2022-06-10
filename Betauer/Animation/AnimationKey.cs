@@ -47,7 +47,7 @@ namespace Betauer.Animation {
         }
 
         public override TProperty GetTo(Node target, TProperty from) {
-            return GodotTools.SumVariant(from, Offset(target));
+            return VariantHelper.SumVariant(from, Offset(target));
         }
     }
 
@@ -84,7 +84,7 @@ namespace Betauer.Animation {
         }
 
         public override TProperty GetTo(Node target, TProperty from) {
-            return GodotTools.SumVariant(from, Offset(target));
+            return VariantHelper.SumVariant(from, Offset(target));
         }
     }
 }

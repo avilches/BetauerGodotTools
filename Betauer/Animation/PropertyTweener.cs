@@ -182,7 +182,7 @@ namespace Betauer.Animation {
             tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
                 (float linearY) => {
                     var curveY = bezierCurve.GetY(linearY);
-                    var value = (TProperty)GodotTools.LerpVariant(@from, to, curveY);
+                    var value = (TProperty)VariantHelper.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
                     // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
                     context.Value = value;
@@ -210,7 +210,7 @@ namespace Betauer.Animation {
 
     public class PropertyKeyStepTweener<TProperty> : PropertyTweener<TProperty> {
         protected readonly ICollection<AnimationKeyStep<TProperty>> _steps =
-            new SimpleLinkedList<AnimationKeyStep<TProperty>>();
+            new FastUnsafeLinkedList<AnimationKeyStep<TProperty>>();
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
@@ -249,7 +249,7 @@ namespace Betauer.Animation {
 
     public class PropertyKeyPercentTweener<TProperty> : PropertyTweener<TProperty> {
         protected readonly ICollection<AnimationKeyPercent<TProperty>> Steps =
-            new SimpleLinkedList<AnimationKeyPercent<TProperty>>();
+            new FastUnsafeLinkedList<AnimationKeyPercent<TProperty>>();
 
         public List<AnimationKeyPercent<TProperty>> CreateStepList() =>
             new List<AnimationKeyPercent<TProperty>>(Steps);

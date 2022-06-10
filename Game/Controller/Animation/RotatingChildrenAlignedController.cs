@@ -5,10 +5,12 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Veronenger.Game.Managers;
-using static Betauer.GodotConstants;
 
 namespace Veronenger.Game.Controller.Animation {
     public class RotatingChildrenAlignedController : Node2D {
+        public const float CLOCK_THREE = Mathf.Pi / 2;
+        public const float CLOCK_NINE = -Mathf.Pi / 2;
+
         [Export] public bool IsFallingPlatform = false;
         [Export] public float Radius = 50;
         [Export] public float RotationDuration = 4.0f;
@@ -36,7 +38,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndSequence()
                 .Play();
 
-            _platforms = this.GetChildrenFilter<PhysicsBody2D>();
+            _platforms = this.GetChildren<PhysicsBody2D>();
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 

@@ -162,7 +162,7 @@ namespace Veronenger.Game.Controller.Menu {
                 _controls.RemoveChild(_controls.GetChild(0));
 
             var x = 0;
-            _controls.GetChildrenFilter<RedefineActionButton>().ForEach(button => {
+            _controls.GetChildren<RedefineActionButton>().ForEach(button => {
                 var action = _inputManager.ConfigurableActionList[x];
                 button
                     .OnPressed(() => {

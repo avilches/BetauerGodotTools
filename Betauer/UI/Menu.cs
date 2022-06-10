@@ -322,7 +322,7 @@ namespace Betauer.UI {
         }
 
         public T? GetControl<T>(string name) where T : Control {
-            return Container.FindChild<T>(name) ?? throw new NullReferenceException();
+            return Container.GetNode<T>(name) ?? throw new NullReferenceException();
         }
     }
 

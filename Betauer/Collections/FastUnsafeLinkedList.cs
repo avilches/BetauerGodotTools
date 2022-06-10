@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Betauer.Collections {
-    public class SimpleLinkedList<T> : ICollection<T> {
-        private Node _head;
-        private Node _last;
+    public class FastUnsafeLinkedList<T> : ICollection<T> {
+        private Node? _head;
+        private Node? _last;
 
-        public SimpleLinkedList() {
+        public FastUnsafeLinkedList() {
         }
 
-        public SimpleLinkedList(IEnumerable<T> collection) {
+        public FastUnsafeLinkedList(IEnumerable<T> collection) {
             foreach (var o in collection) {
                 Add(o);
             }
@@ -44,18 +44,20 @@ namespace Betauer.Collections {
         }
 
         public void AddStart(T data) {
-            if (_head == null) _head = new Node();
-            Node newHead = new Node();
-            newHead.Next = _head.Next;
-            newHead.Data = data;
+            _head ??= new Node();
+            Node newHead = new Node {
+                Next = _head.Next,
+                Data = data
+            };
             _head.Next = newHead;
             Count++;
         }
 
         public void Add(T data) {
-            if (_head == null) _head = new Node();
-            Node newEnd = new Node();
-            newEnd.Data = data;
+            _head ??= new Node();
+            Node newEnd = new Node {
+                Data = data
+            };
             if (Count == 0) {
                 _head.Next = newEnd;
             } else {
@@ -131,10 +133,10 @@ namespace Betauer.Collections {
         }
 
         private class Enumerator : IEnumerator<T> {
-            private readonly SimpleLinkedList<T> _list;
+            private readonly FastUnsafeLinkedList<T> _list;
             private Node _current;
 
-            internal Enumerator(SimpleLinkedList<T> list) {
+            internal Enumerator(FastUnsafeLinkedList<T> list) {
                 _list = list;
                 Reset();
             }

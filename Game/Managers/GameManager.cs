@@ -225,7 +225,7 @@ namespace Veronenger.Game.Managers {
         private void AddPlayerToScene(Node nextScene) {
             _playerScene = _resourceManager.CreatePlayer();
             nextScene.AddChild(_playerScene);
-            var position2D = nextScene.FindChild<Node2D>("PositionPlayer");
+            var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
             if (position2D == null) {
                 throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.Filename);
             }

@@ -6,7 +6,7 @@ namespace Veronenger.Game.Controller.Platforms {
 	public class PlatformFollowPathController : PlatformController {
 
 		[Export] public float Speed = 10;
-		[Export] public PathFollow2D PathFollow2D;
+		[Export] public PathFollow2D? PathFollow2D;
 		[Export] public bool Enabled = true;
 
 		private Vector2 _original;
@@ -24,9 +24,9 @@ namespace Veronenger.Game.Controller.Platforms {
 			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
-				var path2D = this.FindFirstChild<Path2D>();
+				var path2D = this.GetNode<Path2D>();
 				if (path2D != null) {
-					PathFollow2D = path2D.FindFirstChild<PathFollow2D>();
+					PathFollow2D = path2D.GetNode<PathFollow2D>();
 				}
 			}
 

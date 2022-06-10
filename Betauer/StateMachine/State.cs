@@ -95,7 +95,7 @@ namespace Betauer.StateMachine {
         private Func<TStateKey, Task>? _exit;
         private Func<TStateKey, Task>? _suspend;
         private Func<TStateKey, Task>? _awake;
-        private SimpleLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _events;
+        private FastUnsafeLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>? _events;
         private readonly TStateKey _key;
         private readonly TParent _parent;
         private readonly T _stateMachine;
@@ -109,7 +109,7 @@ namespace Betauer.StateMachine {
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> On(
             TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new SimpleLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
+            _events ??= new FastUnsafeLinkedList<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
             _events.Add(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey, transition));
             return this;
         }

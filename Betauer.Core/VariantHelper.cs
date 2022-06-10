@@ -1,75 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer {
-
-    public static partial class SignalExtensions {
-        public static object? FindFirstChild(this Node parent, Type type) {
-            foreach (var child in parent.GetChildren()) {
-                if (child.GetType() == type) return child;
-            }
-            return null;
-        }
-
-        public static T? FindFirstChild<T>(this Node parent) where T : class {
-            foreach (var child in parent.GetChildren()) {
-                if (child is T result) return result;
-            }
-            return null;
-        }
-
-        public static T? FindChild<T>(this Node parent, string name) where T : class {
-            foreach (var child in parent.GetChildren()) {
-                if (child is T result && child is Node node && node.Name == name) return result;
-            }
-            return null;
-        }
-
-        public static List<T> GetChildrenFilter<T>(this Node parent) where T : class {
-            return FilterByType<T>(parent.GetChildren());
-        }
-
-        public static List<T> FilterByType<T>(this IList nodes) where T : class {
-            var children = new List<T>();
-            foreach (var node in nodes) {
-                if (node is T nodeTyped) children.Add(nodeTyped);
-            }
-            return children;
-        }
-
-        public static void DisableAllNotifications(this Node node) {
-            SetAllNotifications(node, false);
-        }
-
-        public static void EnableAllNotifications(this Node node) {
-            SetAllNotifications(node, true);
-        }
-
-        public static void SetAllNotifications(this Node node, bool enable) {
-            node.SetProcess(enable);
-            node.SetProcessInput(enable);
-            node.SetProcessUnhandledInput(enable);
-            node.SetProcessUnhandledKeyInput(enable);
-            node.SetPhysicsProcess(enable);
-        }
-
-        public static void FocusEnable(this BaseButton control) {
-            SetFocusDisabled(control, false);
-        }
-
-        public static void FocusDisable(this BaseButton control) {
-            SetFocusDisabled(control, true);
-        }
-
-        public static void SetFocusDisabled(this BaseButton control, bool isDisabled) {
-            control.FocusMode = isDisabled ? Control.FocusModeEnum.None : Control.FocusModeEnum.All;
-            control.Disabled = isDisabled;
-        }
-    }
-
-    public static class GodotTools {
+    public static class VariantHelper {
         public static T SumVariant<T>(T op1, T op2) {
             if (op1 is float fromFloat && op2 is float toFloat)
                 return (T)(object)(fromFloat + toFloat);

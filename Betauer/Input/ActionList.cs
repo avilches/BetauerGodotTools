@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Input {
     public class ActionList {
-        private readonly SimpleLinkedList<BaseAction> _actions = new SimpleLinkedList<BaseAction>();
+        private readonly FastUnsafeLinkedList<BaseAction> _actions = new FastUnsafeLinkedList<BaseAction>();
         private readonly Dictionary<string, ActionState> _map = new Dictionary<string, ActionState>();
         private readonly int _deviceId;
 

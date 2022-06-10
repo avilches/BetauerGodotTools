@@ -199,7 +199,7 @@ namespace Betauer.Animation {
 
         internal AbstractSequenceBuilder(bool createEmptyTweenList) {
             if (createEmptyTweenList) {
-                TweenList = new SimpleLinkedList<ICollection<ITweener>>();
+                TweenList = new FastUnsafeLinkedList<ICollection<ITweener>>();
             }
         }
 
@@ -249,15 +249,15 @@ namespace Betauer.Animation {
                 TweenList.Last().Add(tweener);
                 _parallel = false;
             } else {
-                TweenList.Add(new SimpleLinkedList<ITweener> { tweener });
+                TweenList.Add(new FastUnsafeLinkedList<ITweener> { tweener });
             }
         }
 
         protected void CloneTweenListIfNeeded() {
             if (ImportedFromTemplate) {
-                var tweenListCloned = new SimpleLinkedList<ICollection<ITweener>>(TweenList);
+                var tweenListCloned = new FastUnsafeLinkedList<ICollection<ITweener>>(TweenList);
                 if (_parallel) {
-                    var lastParallelCloned = new SimpleLinkedList<ITweener>(tweenListCloned.Last());
+                    var lastParallelCloned = new FastUnsafeLinkedList<ITweener>(tweenListCloned.Last());
                     tweenListCloned.RemoveEnd();
                     tweenListCloned.Add(lastParallelCloned);
                 }

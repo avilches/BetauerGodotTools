@@ -19,7 +19,7 @@ namespace Betauer.Animation {
         protected bool Started = false;
         protected bool Running = false;
         protected bool DisposeOnFinish = false;
-        protected SimpleLinkedList<Action>? OnFinishAll;
+        protected FastUnsafeLinkedList<Action>? OnFinishAll;
         protected bool Disposed = false;
 
         public RepeatablePlayer() {
@@ -33,7 +33,7 @@ namespace Betauer.Animation {
 
         public TBuilder AddOnFinishAll(Action onFinishAll) {
             if (OnFinishAll == null) {
-                OnFinishAll = new SimpleLinkedList<Action>
+                OnFinishAll = new FastUnsafeLinkedList<Action>
                     { onFinishAll };
             } else {
                 OnFinishAll.Add(onFinishAll);

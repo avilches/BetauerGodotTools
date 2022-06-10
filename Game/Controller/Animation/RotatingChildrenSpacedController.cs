@@ -25,7 +25,8 @@ namespace Veronenger.Game.Controller.Animation {
         private void RotateSpaced(float angle) => AnimationTools.RotateSpaced(_platforms, angle, Radius);
 
         private void Configure() {
-            _platforms = PlatformManager.ConfigurePlatformList(GetChildren(), IsFallingPlatform, true);
+            _platforms = this.GetChildren<PhysicsBody2D>();
+            PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence.WithParent(this)
                 .CreateSequence(this)
                 .AnimateSteps<float>(RotateSpaced)

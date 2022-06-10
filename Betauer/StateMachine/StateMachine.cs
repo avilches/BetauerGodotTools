@@ -106,7 +106,7 @@ namespace Betauer.StateMachine {
         private readonly TriggerContext<TStateKey> _triggerContext = new TriggerContext<TStateKey>();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
-        private SimpleLinkedList<IStateMachineListener<TStateKey>>? _listeners;
+        private FastUnsafeLinkedList<IStateMachineListener<TStateKey>>? _listeners;
         private Change _nextChange;
         private readonly TStateKey _initialState;
         private bool _disposed = false;
@@ -142,7 +142,7 @@ namespace Betauer.StateMachine {
         }
 
         public void AddListener(IStateMachineListener<TStateKey> machineListener) {
-            _listeners ??= new SimpleLinkedList<IStateMachineListener<TStateKey>>();
+            _listeners ??= new FastUnsafeLinkedList<IStateMachineListener<TStateKey>>();
             _listeners.Add(machineListener);
         }
 
