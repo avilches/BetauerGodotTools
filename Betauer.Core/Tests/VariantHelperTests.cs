@@ -5,7 +5,7 @@ using Vector3 = Godot.Vector3;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class GodotToolsTests {
+    public class VariantHelperTests {
         [Test]
         public void SumVariantInt() {
             Assert.That(VariantHelper.SumVariant(1, 2), Is.EqualTo(3));

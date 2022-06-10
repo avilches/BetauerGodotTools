@@ -14,13 +14,13 @@ namespace Betauer.Tests {
         [Test]
         public void Empty() {
             int x = 0;
-            new SimpleLinkedList<int>().ForEach(i => x++);
+            new FastUnsafeLinkedList<int>().ForEach(i => x++);
             Assert.That(x, Is.EqualTo(0));
 
-            Assert.That(new SimpleLinkedList<int>().Count, Is.EqualTo(0));
-            Assert.That(new SimpleLinkedList<string>().Find(i => true), Is.Null);
+            Assert.That(new FastUnsafeLinkedList<int>().Count, Is.EqualTo(0));
+            Assert.That(new FastUnsafeLinkedList<string>().Find(i => true), Is.Null);
 
-            SimpleLinkedList<int> p = new SimpleLinkedList<int>();
+            FastUnsafeLinkedList<int> p = new FastUnsafeLinkedList<int>();
             p.AddStart(1);
             p.AddStart(2);
             AssertLoop(p, new int[] { 2, 1 });
@@ -28,8 +28,8 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        public void SimpleLinkedListForEach() {
-            SimpleLinkedList<int> p = new SimpleLinkedList<int>();
+        public void FastUnsafeLinkedListForEach() {
+            FastUnsafeLinkedList<int> p = new FastUnsafeLinkedList<int>();
             Assert.That(p.ToArray(), Is.EqualTo(new int[] { }));
             Assert.That(p.Count, Is.EqualTo(0));
 
@@ -51,7 +51,7 @@ namespace Betauer.Tests {
             AssertLoop(p, new int[] { });
         }
 
-        private void AssertLoop(SimpleLinkedList<int> p, int[] to) {
+        private void AssertLoop(FastUnsafeLinkedList<int> p, int[] to) {
             Assert.That(p.ToArray(), Is.EqualTo(to));
             Assert.That(p.Count, Is.EqualTo(to.Length));
             List<int> list1 = new List<int>();
@@ -61,12 +61,12 @@ namespace Betauer.Tests {
             Assert.That(list1.ToArray(), Is.EqualTo(to));
 
 
-            Assert.That(new SimpleLinkedList<int>(new List<int>(to)).ToArray(), Is.EqualTo(to));
+            Assert.That(new FastUnsafeLinkedList<int>(new List<int>(to)).ToArray(), Is.EqualTo(to));
         }
 
         [Test]
-        public void SimpleLinkedList() {
-            SimpleLinkedList<int> p = new SimpleLinkedList<int>();
+        public void FastUnsafeLinkedList() {
+            FastUnsafeLinkedList<int> p = new FastUnsafeLinkedList<int>();
             AssertLoop(p, new int[] { });
 
             p.Add(1);
