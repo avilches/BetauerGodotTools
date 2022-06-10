@@ -20,7 +20,7 @@ namespace Betauer.Bus {
 
         public void OnSubscribed(GodotTopic<T> godotTopic) {
             TopicName = godotTopic.Name;
-            _logger = LoggerFactory.GetLogger(typeof(GodotListener<T>).GetNameWithoutGenerics(),
+            _logger = LoggerFactory.GetLogger(typeof(GodotListener<T>),
                 TopicName);
         }
 

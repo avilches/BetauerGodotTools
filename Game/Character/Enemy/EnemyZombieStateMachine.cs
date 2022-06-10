@@ -30,9 +30,9 @@ namespace Veronenger.Game.Character.Enemy {
         private Timer _patrolTimer;
         private Timer _stateTimer;
 
-        public void Configure(EnemyZombieController enemyZombie) {
+        public void Configure(EnemyZombieController enemyZombie, string name) {
             _enemyZombieController = enemyZombie;
-            _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, "Zombie", ProcessMode.Idle);
+            _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, name, ProcessMode.Idle);
             _patrolTimer = new AutoTimer(enemyZombie);
             _stateTimer = new AutoTimer(enemyZombie);
             enemyZombie.AddChild(_stateMachineNode);

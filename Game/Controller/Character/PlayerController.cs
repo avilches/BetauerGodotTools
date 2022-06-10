@@ -84,7 +84,7 @@ namespace Veronenger.Game.Controller.Character {
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             KinematicPlatformMotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
 
-            _stateMachine.Configure(this);
+            _stateMachine.Configure(this, _name);
 
             _characterManager.RegisterPlayerController(this);
             _characterManager.ConfigurePlayerCollisions(this);
@@ -221,11 +221,9 @@ namespace Veronenger.Game.Controller.Character {
                               "Falling: " + IsOnFallingPlatform();
                 */
         }
-
         
         [Inject] private ActionState PixelPerfect;
         [Inject] private ActionState UiStart;
-
 
         public override void _Input(InputEvent @event) {
             // _inputManager.Debug(@event, false);

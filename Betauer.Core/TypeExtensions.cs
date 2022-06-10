@@ -4,7 +4,6 @@ using System.Reflection;
 
 namespace Betauer {
     public static class TypeExtensions {
-        // TODO: create some unit tests
         public static string GetNameWithoutGenerics(this Type type) {
             var name = type.Name;
             var index = name.IndexOf('`');

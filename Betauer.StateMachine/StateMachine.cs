@@ -81,7 +81,11 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class StateMachine<TStateKey, TTransitionKey> : IStateMachine<TStateKey, TTransitionKey> {
+    public abstract class StateMachine {
+        protected static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(StateMachine));
+    }
+
+    public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> {
         internal readonly struct Change {
             internal readonly IState<TStateKey, TTransitionKey>? State;
             internal readonly TransitionType Type;
@@ -120,9 +124,7 @@ namespace Betauer.StateMachine {
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
             Name = name;
-            Logger = name != null ?
-                LoggerFactory.GetLogger(name, "StateMachine") : 
-                LoggerFactory.GetLogger("StateMachine");
+            Logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
         }
 
         public StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {

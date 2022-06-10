@@ -158,24 +158,32 @@ namespace Betauer {
             _frame = (_frame + 1) % 10000; // D4 format: 0000-9999 (10000/60/60, up to 2.7)
         }
 
-        public static Logger GetLogger(Type type, string name = null) {
+        public static Logger GetLogger(Type type) {
+            return GetLogger(type, null);
+        }
+
+        public static Logger GetLogger(Type type, string? name) {
             return GetLogger(type.GetNameWithoutGenerics(), name);
         }
 
-        public static Logger GetLogger(string type, string name = null) {
-            var nameKey = _CreateLoggerKey(type, name);
-            Instance.Loggers.TryGetValue(nameKey, out Logger logger);
-            return logger ?? _CreateNewLogger(type, name, nameKey);
+        public static Logger GetLogger(string type) {
+            return GetLogger(type, null);
         }
 
-        private static Logger _CreateNewLogger(string type, string name, string nameKey) {
+        public static Logger GetLogger(string type, string? name) {
+            var key = _CreateLoggerKey(type, name);
+            Instance.Loggers.TryGetValue(key, out Logger logger);
+            return logger ?? _CreateNewLogger(key, type, name);
+        }
+
+        private static Logger _CreateNewLogger(string key, string type, string? name) {
             TraceLevelConfig traceLevelConfig = FindTraceLevelConfig(type, name) ?? Instance._defaultTraceLevelConfig;
             Logger logger = new Logger(type, name, traceLevelConfig);
-            Instance.Loggers.Add(nameKey, logger);
+            Instance.Loggers.Add(key, logger);
             return logger;
         }
 
-        private static string _CreateLoggerKey(string type, string name) {
+        private static string _CreateLoggerKey(string type, string? name) {
             string result = type;
             if (name != null) {
                 result += $".{name}";

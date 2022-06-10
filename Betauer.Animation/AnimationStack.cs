@@ -214,6 +214,7 @@ namespace Betauer.Animation {
 
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
+        private static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(AnimationStack));
         private readonly Logger _logger;
 
         public AnimationStack(string name, SingleSequencePlayer sequencePlayer,
@@ -223,7 +224,7 @@ namespace Betauer.Animation {
 
         public AnimationStack(string name, AnimationPlayer animationPlayer,
             SingleSequencePlayer sequencePlayer = null) {
-            _logger = LoggerFactory.GetLogger(name, "AnimationStack");
+            _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
 
             AnimationPlayer = animationPlayer;
             AnimationPlayer?.Connect(SignalExtensions.AnimationPlayer_AnimationFinishedSignal, this,

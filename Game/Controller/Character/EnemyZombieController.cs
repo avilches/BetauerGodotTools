@@ -50,7 +50,7 @@ namespace Veronenger.Game.Controller.Character {
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             KinematicPlatformMotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
 
-            _stateMachine.Configure(this);
+            _stateMachine.Configure(this, _name);
 
             _characterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);

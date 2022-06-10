@@ -113,9 +113,11 @@ namespace Betauer.Animation {
         }
     }
 
-    public abstract class PropertyTweener<TProperty> : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
-
+    public abstract class PropertyTweener {
+        protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener));
+    }
+    
+    public abstract class PropertyTweener<TProperty> : PropertyTweener, ITweener {
         public Node? Target { get; }
         protected readonly IProperty<TProperty> Property;
         protected readonly Easing? DefaultEasing;

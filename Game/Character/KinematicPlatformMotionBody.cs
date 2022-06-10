@@ -31,8 +31,8 @@ namespace Veronenger.Game.Character {
             _name = name;
             _flippers = flippers;
             _motionConfig = motionConfig;
-            _loggerCollision = LoggerFactory.GetLogger(_name, "Collision");
-            _loggerMotion = LoggerFactory.GetLogger(_name, "Motion");
+            _loggerCollision = LoggerFactory.GetLogger("Collision", _name);
+            _loggerMotion = LoggerFactory.GetLogger("Motion", _name);
             _floorDetector = _body.GetNode<RayCast2D>("RayCasts/SlopeDetector");
         }
 

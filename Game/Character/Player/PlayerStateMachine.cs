@@ -11,9 +11,9 @@ using Timer = Betauer.Timer;
 namespace Veronenger.Game.Character.Player {
     [Transient]
     public class PlayerStateMachine {
-        private readonly Logger _loggerJumpHelper = LoggerFactory.GetLogger("Player", "JumpHelper");
-        private readonly Logger _loggerCoyoteJump = LoggerFactory.GetLogger("Player", "CoyoteJump");
-        private readonly Logger _loggerJumpVelocity = LoggerFactory.GetLogger("Player", "JumpVelocity");
+        private Logger _loggerJumpHelper;
+        private Logger _loggerCoyoteJump;
+        private Logger _loggerJumpVelocity;
         private void DebugJumpHelper(string message) => _loggerJumpHelper.Debug(message);
         private void DebugCoyoteJump(string message) => _loggerCoyoteJump.Debug(message);
         private void DebugJump(string message) => _loggerJumpVelocity.Debug(message);
@@ -57,12 +57,15 @@ namespace Veronenger.Game.Character.Player {
         private Timer _fallingTimer;
 
 
-        public void Configure(PlayerController playerController) {
+        public void Configure(PlayerController playerController, string name) {
+            _loggerJumpHelper = LoggerFactory.GetLogger("JumpHelper", name);
+            _loggerCoyoteJump = LoggerFactory.GetLogger("CoyoteJump", name);
+            _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity", name);
             _player = playerController;
             _fallingJumpTimer = new AutoTimer(playerController).Stop();
             _fallingTimer = new AutoTimer(playerController).Stop();
 
-            _stateMachineNode = new StateMachineNode<State, Transition>(State.StateIdle, "Player", ProcessMode.Physics);
+            _stateMachineNode = new StateMachineNode<State, Transition>(State.StateIdle, name, ProcessMode.Physics);
             playerController.AddChild(_stateMachineNode);
 
             _stateMachineNode.BeforeExecute((delta) => { Body.StartFrame(delta); });

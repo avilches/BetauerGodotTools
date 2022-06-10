@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer;
 using Godot;
 using Godot.Collections;
 using Array = Godot.Collections.Array;
@@ -31,7 +30,7 @@ namespace Veronenger.SourceGenerator {
             new System.Collections.Generic.Dictionary<string, string> {
                 { "_VisualScriptEditor", "VisualScriptEditor" },
             };
-        
+
         private static readonly List<string> ClassStatic = new List<string> {
             "AudioServer",
             "ARVRServer",
@@ -106,9 +105,7 @@ namespace Veronenger.SourceGenerator {
             public readonly bool IsStatic;
             public List<SignalArg> Args = new List<SignalArg>();
 
-            public string MethodName => IsStatic ?
-                $"{ClassName}{CamelCase(Name)}" :
-                $"{CamelCase(Name)}";
+            public string MethodName => IsStatic ? $"{ClassName}{CamelCase(Name)}" : $"{CamelCase(Name)}";
 
             public string Generics() {
                 return Args.Count == 0
@@ -151,9 +148,11 @@ namespace Veronenger.SourceGenerator {
         }
 
         private string CreateSignalMethod(Signal signal) {
-            var targetParam = signal.IsStatic ? "" : $"this {(signal.ClassName == "Animation" ? "Godot.Animation": signal.ClassName)} target, "; 
+            var targetParam = signal.IsStatic
+                ? ""
+                : $"this {(signal.ClassName == "Animation" ? "Godot.Animation" : signal.ClassName)} target, ";
             var target = signal.IsStatic ? $"{signal.ClassName}.Singleton" : "target";
-            var signalConst = $"{signal.ClassName}_{signal.MethodName}Signal"; 
+            var signalConst = $"{signal.ClassName}_{signal.MethodName}Signal";
             return $@"
         public const string {signalConst} = ""{signal.Name}""; 
         public static SignalHandler{signal.Generics()} On{signal.MethodName}({targetParam}Action{signal.Generics()} action) {{
@@ -173,6 +172,7 @@ namespace Betauer {{
     }}
 }}";
         }
+
         public static string CamelCase(string name) =>
             name.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
