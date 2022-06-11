@@ -29,25 +29,24 @@ namespace Betauer {
         internal string Name { get; }
         internal TraceLevel TraceLevel;
 
-        public TraceLevelConfig(string type, string name, TraceLevel traceLevel) {
+        public TraceLevelConfig(string type, string? name, TraceLevel traceLevel) {
             Type = type.ToLower();
             Name = name != null ? name.ToLower() : "";
             TraceLevel = traceLevel;
         }
 
-        public bool Equals(string type, string name) {
+        public bool Equals(string type, string? name) {
             return type.ToLower().Equals(Type) && (name != null ? name.ToLower() : "").Equals(Name);
         }
     }
 
-    public class LoggerFactory : Node {
+    public class LoggerFactory {
         public static LoggerFactory Instance { get; } = new LoggerFactory();
         internal static IEnumerable<ITextWriter> Writers => Instance._writers;
 
         public Dictionary<string, Logger> Loggers { get; } = new Dictionary<string, Logger>();
         private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
         private ITextWriter[] _writers = { };
-        private int _frame = -1;
         internal bool _includeTimestamp = false;
 
         public bool RemoveDuplicates { get; set; } = true;
@@ -60,14 +59,11 @@ namespace Betauer {
         private LoggerFactory() {
         }
 
-        public static int Frame => Instance._frame;
-
         public ConsoleOutput ConsoleOutput;
 
         public static void Reset() {
             Instance.Loggers.Clear();
             Instance._traceLevelConfig.Clear();
-            Instance._frame = -1;
             Instance._writers = Array.Empty<ITextWriter>();
             Instance._defaultTraceLevelConfig = new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
         }
@@ -154,10 +150,6 @@ namespace Betauer {
             return this;
         }
 
-        public sealed override void _PhysicsProcess(float delta) {
-            _frame = (_frame + 1) % 10000; // D4 format: 0000-9999 (10000/60/60, up to 2.7)
-        }
-
         public static Logger GetLogger(Type type) {
             return GetLogger(type, null);
         }
@@ -184,14 +176,14 @@ namespace Betauer {
         }
 
         private static string _CreateLoggerKey(string type, string? name) {
-            string result = type;
+            var result = type;
             if (name != null) {
                 result += $".{name}";
             }
             return result.ToLower();
         }
 
-        private static TraceLevelConfig FindTraceLevelConfig(string type, string name) {
+        private static TraceLevelConfig? FindTraceLevelConfig(string type, string? name) {
             type = type.ToLower();
             name = name == null ? "" : name.ToLower();
 
@@ -221,15 +213,19 @@ namespace Betauer {
             return result;
         }
 
-        public new static void Dispose() {
+        public static void Dispose() {
             foreach (ITextWriter writer in Instance._writers) writer.Dispose();
         }
 
+        private Func<SceneTree> _getTree;
+        private SceneTree? _tree;
+        public static long GetFrame() {
+            Instance._tree ??= Instance._getTree();
+            return Instance._tree?.GetFrame() ?? -1;
+        }
+
         public static void Start(Node node) {
-            Instance.Name = nameof(Logger);
-            Instance.DisableAllNotifications();
-            Instance.SetPhysicsProcess(true);
-            node.AddChild(Instance);
+            Instance._getTree = node.GetTree;
         }
     }
 
@@ -237,14 +233,13 @@ namespace Betauer {
         public TraceLevel MaxTraceLevel => TraceLevelConfig.TraceLevel;
         public bool Enabled { get; set; } = true;
         public readonly string Type;
-        public readonly string Name;
+        public readonly string? Name;
         public readonly string TraceFormat;
 
         internal TraceLevelConfig TraceLevelConfig { get; set; }
         private readonly string _title;
-        private TraceLevel _lastLogTraceLevel;
 
-        internal Logger(string type, string name, TraceLevelConfig traceLevelConfig,
+        internal Logger(string type, string? name, TraceLevelConfig traceLevelConfig,
             string traceFormat = "[{0,4}] {1,5} {2} {3}") {
             Type = type;
             Name = name;
@@ -253,9 +248,8 @@ namespace Betauer {
             TraceFormat = traceFormat;
         }
 
-        private static string _CreateLoggerString(string type, string name) {
-            string result = $"[{type}]";
-            ;
+        private static string _CreateLoggerString(string type, string? name) {
+            var result = $"[{type}]";
             if (name != null) {
                 result += $" [{name}";
                 result += "]";
@@ -347,7 +341,7 @@ namespace Betauer {
 
         private void WriteLog(string level, string timestamp, string message) {
             var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "") +
-                          string.Format(TraceFormat, LoggerFactory.Frame,
+                          string.Format(TraceFormat, LoggerFactory.GetFrame().ToString(),
                               level.Length > 5 ? level.Substring(0, 5) : level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
