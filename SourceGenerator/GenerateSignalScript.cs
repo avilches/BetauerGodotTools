@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Godot.Collections;
-using Array = Godot.Collections.Array;
 using File = System.IO.File;
 
 namespace Veronenger.SourceGenerator {
@@ -15,156 +13,101 @@ namespace Veronenger.SourceGenerator {
     public class GenerateSignalScript : SceneTree {
         public override void _Initialize() {
             while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
-            List<string> allMethods = new List<string>();
-            ClassDB.GetClassList().ToList()
-                .ForEach(s => {
-                    var classMethods = GetSignalsFromClass(s).Select(CreateSignalMethod);
-                    allMethods.AddRange(classMethods);
-                });
-            var bodyClass = CreateBodyClass(allMethods);
-            File.WriteAllText("./Betauer.Core/SignalExtensions.cs", bodyClass);
+            var classes = LoadGodotClasses();
+            WriteAllActionClasses(classes);
+            WriteSignalExtensionsClass(classes);
             Quit(0);
         }
 
-        private static readonly System.Collections.Generic.Dictionary<string, string> ClassMap =
-            new System.Collections.Generic.Dictionary<string, string> {
-                { "_VisualScriptEditor", "VisualScriptEditor" },
-            };
-
-        private static readonly List<string> ClassStatic = new List<string> {
-            "AudioServer",
-            "ARVRServer",
-            "CameraServer",
-            "Input",
-            "VisualServer",
-            "VisualScriptEditor"
-        };
-
-        private static readonly List<string> EditorClasses = new List<string> {
-            "EditorFileDialog",
-            "EditorFileSystem",
-            "EditorInspector",
-            "EditorSelection",
-            "EditorSettings",
-            "EditorPlugin",
-            "EditorProperty",
-            "EditorResourcePreview",
-            "EditorResourcePicker",
-            "FileSystemDock",
-            "ScriptEditor",
-            "ScriptCreateDialog",
-            "VisualScriptEditor"
-        };
-
-        private static readonly System.Collections.Generic.Dictionary<int, string> TypeMap =
-            new System.Collections.Generic.Dictionary<int, string> {
-                { 0, "object" },
-                { 1, "bool" },
-                { 2, "int" },
-                { 3, "float" },
-                { 4, "string" },
-                { 5, "Vector2" },
-                { 6, "Rect2" },
-                { 7, "Vector3" },
-                { 8, "Transform2D" },
-                { 9, "Plane" },
-                { 10, "Quat" },
-                { 11, "AABB" },
-                { 12, "Basis" },
-                { 13, "Transform" },
-                { 14, "Color" },
-                { 15, "NodePath" },
-                { 16, "RID" },
-                { 17, "Godot.Object" },
-                { 18, "Godot.Collections.Dictionary" },
-                { 19, "Godot.Collections.Array" },
-                { 20, "byte[]" },
-                { 21, "int[]" },
-                { 22, "float[]" },
-                { 23, "string[]" },
-                { 24, "Vector2[]" },
-                { 25, "Vector3[]" },
-                { 26, "Color[]" }
-            };
-
-        public class SignalArg {
-            public readonly string Type;
-            public readonly string Name;
-            public readonly string ClassName;
-
-            public SignalArg(string type, string name, string? argClassName) {
-                Type = type;
-                Name = name;
-                ClassName = argClassName;
-            }
+        private void WriteSignalExtensionsClass(List<GodotClass> classes) {
+            List<string> allMethods = classes
+                .Where(godotClass => godotClass.Signals.Count > 0 &&
+                                     !godotClass.IsEditor)
+                .SelectMany(godotClass => godotClass.Signals)
+                .Select(CreateSignalExtensionMethod)
+                .ToList();
+            var bodyClass = CreateSignalExtensionsClass(allMethods);
+            File.WriteAllText("./Betauer.Core/SignalExtensions.cs", bodyClass);
         }
 
-        public class Signal {
-            public readonly string ClassName;
-            public readonly string Name;
-            public readonly bool IsStatic;
-            public List<SignalArg> Args = new List<SignalArg>();
-
-            public string MethodName => IsStatic ? $"{ClassName}{CamelCase(Name)}" : $"{CamelCase(Name)}";
-
-            public string Generics() {
-                return Args.Count == 0
-                    ? ""
-                    : $@"<{string.Join(", ", Args.Select(arg => arg.ClassName?.Length > 0 ? arg.ClassName : arg.Type))}>";
-            }
-
-            public Signal(string className, string name, bool isStatic) {
-                ClassName = className;
-                Name = name;
-                IsStatic = isStatic;
-            }
-
-            public void AddArgs(string argName, string type, string argClassName) {
-                Args.Add(new SignalArg(type, argName, argClassName));
-            }
+        private void WriteAllActionClasses(List<GodotClass> classes) {
+            classes.Where(godotClass => godotClass.AllSignals.Count > 0 &&
+                                        !godotClass.IsEditor &&
+                                        !godotClass.IsStatic &&
+                                        !godotClass.IsAbstract)
+                .ToList()
+                .ForEach(WriteClass);
         }
 
-        public List<Signal> GetSignalsFromClass(string className) {
-            List<Signal> signals = new List<Signal>();
-            foreach (Dictionary signalData in ClassDB.ClassGetSignalList(className, true)) {
-                var signalName = (string)signalData["name"];
-                var signalArgs = (Array)signalData["args"];
-                className = ClassMap.ContainsKey(className) ? ClassMap[className] : className;
-                if (EditorClasses.Contains(className)) continue;
-                var isStatic = ClassStatic.Contains(className);
-                if (signalName.StartsWith("on")) {
-                    signalName = signalName.Substring(2);
-                }
-                var signal = new Signal(className, signalName, isStatic);
-                foreach (Dictionary arg in signalArgs) {
-                    var argClassName = (string)arg["class_name"];
-                    var argName = (string)arg["name"];
-                    var argType = TypeMap[(int)arg["type"]];
-                    signal.AddArgs(argName, argType, argClassName);
-                }
-                signals.Add(signal);
-            }
-            return signals;
+        private static List<GodotClass> LoadGodotClasses() {
+            var classes = ClassDB.GetClassList()
+                .Select(className => new GodotClass(className))
+                .Where(godotClass => godotClass.IsValid)
+                .OrderBy(godotClass => godotClass.class_name)
+                .ToList();
+            return classes;
         }
 
-        private string CreateSignalMethod(Signal signal) {
-            var targetParam = signal.IsStatic
+        private void WriteClass(GodotClass godotClass) {
+            var classMethods = godotClass.AllSignals.Select(CreateActionMethod);
+            var bodyClass = CreateActionClass(godotClass.GeneratedClassName, godotClass.FullClassName, classMethods);
+            File.WriteAllText("./Betauer.Core/Classes/" + godotClass.GeneratedClassName + ".cs", bodyClass);
+        }
+
+        private string CreateSignalExtensionMethod(Signal signal) {
+            var targetParam = signal.GodotClass.IsStatic
                 ? ""
-                : $"this {(signal.ClassName == "Animation" ? "Godot.Animation" : signal.ClassName)} target, ";
-            var target = signal.IsStatic ? $"{signal.ClassName}.Singleton" : "target";
-            var signalConst = $"{signal.ClassName}_{signal.MethodName}Signal";
+                : $"this {signal.GodotClass.FullClassName} target, ";
+            var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
+            var signalConst = $"{signal.GodotClass.ClassName}_{signal.MethodName}Signal";
             return $@"
-        public const string {signalConst} = ""{signal.Name}""; 
+        public const string {signalConst} = ""{signal.signal_name}""; 
         public static SignalHandler{signal.Generics()} On{signal.MethodName}({targetParam}Action{signal.Generics()} action) {{
             return new SignalHandler{signal.Generics()}({target}, {signalConst}, action);
         }}";
         }
 
+        private string CreateActionMethod(Signal signal) {
+            var actionVarName = $"_on{signal.MethodName}Action";
+            var godotExecuteActionMethodName = $"Execute{signal.MethodName}";
+            return $@"
+        private Action{signal.Generics()}? {actionVarName}; 
+        public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action) {{
+            if ({actionVarName} == null) 
+                Connect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
+            {actionVarName} = action;
+            return this;
+        }}
+        public {signal.GodotClass.GeneratedClassName} RemoveOn{signal.MethodName}() {{
+            if ({actionVarName} == null) return this; 
+            Disconnect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
+            {actionVarName} = null;
+            return this;
+        }}
+        private void {godotExecuteActionMethodName}({signal.GetParamNamesWithType()}) =>
+            {actionVarName}?.Invoke({signal.GetParamNames()});
+        ";
+        }
 
-        private string CreateBodyClass(IEnumerable<string> methods) {
+        private string CreateActionClass(string className, string extends, IEnumerable<string> methods) {
+            return $@"using System;
+using Godot;
+using Environment = Godot.Environment;
+using Animation = Godot.Animation;
+using Object = Godot.Object;
+
+namespace Betauer.Classes {{
+    public class {className} : {extends} {{
+{string.Join("\n", methods)}
+    }}
+}}";
+        }
+
+        private string CreateSignalExtensionsClass(IEnumerable<string> methods) {
             return $@"using System;
 using Godot;
 using Object = Godot.Object;
+using Animation = Godot.Animation;
 
 namespace Betauer {{
     public static partial class SignalExtensions {{
@@ -172,7 +115,9 @@ namespace Betauer {{
     }}
 }}";
         }
+    }
 
+    public static class Tools {
         public static string CamelCase(string name) =>
             name.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
