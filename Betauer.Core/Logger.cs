@@ -217,15 +217,13 @@ namespace Betauer {
             foreach (ITextWriter writer in Instance._writers) writer.Dispose();
         }
 
-        private Func<SceneTree> _getTree;
-        private SceneTree? _tree;
+        private Func<long>? _getFrame;
         public static long GetFrame() {
-            Instance._tree ??= Instance._getTree();
-            return Instance._tree?.GetFrame() ?? -1;
+            return Instance._getFrame?.Invoke() ?? -1;
         }
 
-        public static void Start(Node node) {
-            Instance._getTree = node.GetTree;
+        public static void LoadFrames(Func<long> getFrame) {
+            Instance._getFrame = getFrame;
         }
     }
 
@@ -299,7 +297,6 @@ namespace Betauer {
             if (!IsEnabled(level)) return;
             if (LoggerFactory.Instance.RemoveDuplicates && LoggerFactory.Instance._lastLog.Equals(message)) {
                 LoggerFactory.Instance._lastLogTimes++;
-                _lastLogTraceLevel = level;
                 return;
             }
             // New line is different
@@ -314,6 +311,7 @@ namespace Betauer {
             WriteLog(level.ToString(),fastDateFormat, message);
         }
 
+        // TODO: Use https://github.com/Cysharp/ZString to improve performance
         private static string FastDateFormat() {
             // return ""; //DateTime.Now.ToString(TimeFormat);
             var now = DateTime.Now;

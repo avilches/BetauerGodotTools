@@ -33,14 +33,13 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
+            LoggerFactory.LoadFrames(GetTree().GetFrame);
             DevTools.CheckErrorPolicy(GetTree(), UnhandledExceptionPolicyConfig);
             // MicroBenchmarks();
             this.DisableAllNotifications();
         }
 
         private void ConfigureLoggerFactory() {
-            LoggerFactory.Start(this);
-
             if (LogToFileEnabled) {
                 var folder = Directory.GetCurrentDirectory();
                 var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
