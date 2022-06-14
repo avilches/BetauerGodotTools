@@ -79,8 +79,8 @@ namespace Betauer.Bus.Topics {
 
         public void ListenSignalsOf(Area2D area2DToListen) {
             var binds = new Array { area2DToListen };
-            area2DToListen.Connect(SignalExtensions.Area2D_BodyEnteredSignal, this, nameof(_BodyEntered), binds);
-            area2DToListen.Connect(SignalExtensions.Area2D_BodyExitedSignal, this, nameof(_BodyExited), binds);
+            area2DToListen.Connect(SignalConstants.Area2D_BodyEnteredSignal, this, nameof(_BodyEntered), binds);
+            area2DToListen.Connect(SignalConstants.Area2D_BodyExitedSignal, this, nameof(_BodyExited), binds);
         }
 
         /*

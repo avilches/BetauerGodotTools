@@ -400,7 +400,7 @@ namespace Betauer.UI {
         internal ActionButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(SignalExtensions.BaseButton_PressedSignal, this, nameof(Execute));
+            Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
         public override void _Input(InputEvent @event) {
@@ -422,14 +422,14 @@ namespace Betauer.UI {
         private Action _onFocusEntered;
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
-            Connect(SignalExtensions.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
+            Connect(SignalConstants.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
             _onFocusEntered = onFocus;
         }
 
         private Action _onFocusExited;
         private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
         public void OnFocusExited(Action onFocus) {
-            Connect(SignalExtensions.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
+            Connect(SignalConstants.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
             _onFocusExited = onFocus;
         }
     }
@@ -468,7 +468,7 @@ namespace Betauer.UI {
         internal ActionCheckButton(ActionMenu menu) {
             Menu = menu;
             _saver = new ControlRestorer(this);
-            Connect(SignalExtensions.BaseButton_PressedSignal, this, nameof(Execute));
+            Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
         public override void _Input(InputEvent @event) {
@@ -490,13 +490,13 @@ namespace Betauer.UI {
 
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
-            Connect(SignalExtensions.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
+            Connect(SignalConstants.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
             _onFocusEntered = onFocus;
         }
 
         private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
         public void OnFocusExited(Action onFocus) {
-            Connect(SignalExtensions.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
+            Connect(SignalConstants.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
             _onFocusExited = onFocus;
         }
     }

@@ -14,11 +14,11 @@ namespace Betauer {
         }
 
         public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, SceneTree_PhysicsFrameSignal);
+            return sceneTree.ToSignal(sceneTree, SignalConstants.SceneTree_PhysicsFrameSignal);
         }
 
         public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, SceneTree_IdleFrameSignal);
+            return sceneTree.ToSignal(sceneTree, SignalConstants.SceneTree_IdleFrameSignal);
         }
     }
 

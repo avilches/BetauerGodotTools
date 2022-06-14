@@ -28,13 +28,13 @@ namespace Betauer.DI {
         }
 
         public void EnableInjection() {
-            if (!GetTree().IsConnected(SignalExtensions.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded)))
-                GetTree().Connect(SignalExtensions.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded));
+            if (!GetTree().IsConnected(SignalConstants.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded)))
+                GetTree().Connect(SignalConstants.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded));
         }
 
         public void DisableInjection() {
-            if (GetTree().IsConnected(SignalExtensions.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded)))
-                GetTree().Disconnect(SignalExtensions.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded));
+            if (GetTree().IsConnected(SignalConstants.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded)))
+                GetTree().Disconnect(SignalConstants.SceneTree_NodeAddedSignal, this, nameof(GodotExecuteNodeAdded));
         }
 
         private const string MetaInjected = "__injected";

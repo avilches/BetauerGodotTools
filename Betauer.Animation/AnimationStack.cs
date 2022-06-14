@@ -228,7 +228,7 @@ namespace Betauer.Animation {
             _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
 
             AnimationPlayer = animationPlayer;
-            AnimationPlayer?.Connect(SignalExtensions.AnimationPlayer_AnimationFinishedSignal, this,
+            AnimationPlayer?.Connect(SignalConstants.AnimationPlayer_AnimationFinishedSignal, this,
                 nameof(OnceAnimationFinished));
 
             SequencePlayer = sequencePlayer;
