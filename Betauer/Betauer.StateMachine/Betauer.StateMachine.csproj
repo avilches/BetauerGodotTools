@@ -5,13 +5,14 @@
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
         <RootNamespace>Betauer.StateMachine</RootNamespace>
+        <PackageId>Betauer.StateMachine</PackageId>
         <AssemblyName>Betauer.StateMachine</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
+            <HintPath>..\..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>

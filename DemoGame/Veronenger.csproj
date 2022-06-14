@@ -8,23 +8,14 @@
     <ItemGroup>
         <Compile Include="**/*.cs" />
         <Compile Remove=".mono/**" />
-        <Compile Remove="Betauer.Animation\**" />
-        <Compile Remove="Betauer.Core\**" />
-        <Compile Remove="Betauer.DI\**" />
-        <Compile Remove="Betauer.GameTools\**" />
-        <Compile Remove="Betauer.GodotAction\**" />
-        <Compile Remove="Betauer.StateMachine\**" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="Betauer.Generator\**" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="Betauer.Animation\Betauer.Animation.csproj" />
-        <ProjectReference Include="Betauer.Core\Betauer.Core.csproj" />
-        <ProjectReference Include="Betauer.DI\Betauer.DI.csproj" />
-        <ProjectReference Include="Betauer.GameTools\Betauer.GameTools.csproj" />
-        <ProjectReference Include="Betauer.GodotAction\Betauer.GodotAction.csproj" />
-        <ProjectReference Include="Betauer.StateMachine\Betauer.StateMachine.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.Animation\Betauer.Animation.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.Core\Betauer.Core.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.DI\Betauer.DI.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.GameTools\Betauer.GameTools.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Remove=".mono/**" />

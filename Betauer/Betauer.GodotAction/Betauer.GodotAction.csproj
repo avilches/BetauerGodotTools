@@ -4,21 +4,15 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
-        <RootNamespace>Betauer</RootNamespace>
-        <AssemblyName>Betauer</AssemblyName>
+        <RootNamespace>Betauer.GodotAction</RootNamespace>
+        <PackageId>Betauer.GodotAction</PackageId>
+        <AssemblyName>Betauer.GodotAction</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
-        <PackageId>Betauer.GameTools</PackageId>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
+            <HintPath>..\..\.mono\assemblies\Debug\GodotSharp.dll</HintPath>
         </Reference>
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="NUnit" Version="3.13.2" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
     </ItemGroup>
 </Project>
