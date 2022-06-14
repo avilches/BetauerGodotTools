@@ -12,13 +12,18 @@
         <Compile Remove="Betauer.Animation\**" />
         <Compile Remove="Betauer.Core\**" />
         <Compile Remove="Betauer.DI\**" />
+        <Compile Remove="Betauer.GodotAction\**" />
         <Compile Remove="Betauer.StateMachine\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Betauer.Generator\**" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="Betauer/Betauer.csproj" />
         <ProjectReference Include="Betauer.Animation/Betauer.Animation.csproj" />
         <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
         <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="Betauer.GodotAction/Betauer.GodotAction.csproj" />
         <ProjectReference Include="Betauer.StateMachine/Betauer.StateMachine.csproj" />
     </ItemGroup>
     <ItemGroup>
