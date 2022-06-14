@@ -2,7 +2,7 @@
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Veronenger", "Veronenger.csproj", "{F54B0D80-6608-405D-96D9-852BC80FA92E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer", "Betauer\Betauer.csproj", "{9A1E792A-6555-4E7A-B3CA-5F7842ED4C97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "Betauer.GameTools\Betauer.GameTools.csproj", "{9A1E792A-6555-4E7A-B3CA-5F7842ED4C97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI", "Betauer.DI\Betauer.DI.csproj", "{8A2BDA10-7F1E-401F-BD36-5868FDC59D69}"
 EndProject

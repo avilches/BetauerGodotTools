@@ -8,6 +8,7 @@
         <AssemblyName>Betauer</AssemblyName>
         <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
+        <PackageId>Betauer.GameTools</PackageId>
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
