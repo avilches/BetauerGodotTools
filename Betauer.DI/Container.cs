@@ -50,17 +50,19 @@ namespace Betauer.DI {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Dictionary<string, IProvider> _registryNames = new Dictionary<string, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
-        public readonly Node Owner;
+        public readonly Node NodeSingletonOwner;
         public readonly Injector Injector;
         public Action<object>? OnInstanceCreated { get; set; }
         public bool CreateIfNotFound { get; set; }
 
-        public Container(Node owner) {
-            Owner = owner;
+        public Container(Node nodeSingletonOwner) {
+            NodeSingletonOwner = nodeSingletonOwner;
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
             Add(new StaticProvider<Container>(new [] { typeof(Container) },this));
         }
+
+        public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
 
         public IProvider Add(IProvider provider) {
             if (provider.GetRegisterTypes().Length == 0) {
@@ -192,7 +194,7 @@ namespace Betauer.DI {
             OnInstanceCreated?.Invoke(instance);
             InjectAllFields(instance, context);
             if (lifetime == Lifetime.Singleton && instance is Node node) {
-                Owner.AddChild(node);
+                NodeSingletonOwner?.AddChild(node);
             }
         }
     }

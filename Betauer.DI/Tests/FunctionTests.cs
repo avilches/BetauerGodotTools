@@ -81,8 +81,7 @@ namespace Betauer.DI.Tests {
             di.Function<MyNode, string>((s) => s.name);
             var container = di.Build();
 
-            var d = new GodotContainer();
-            d.SetContainer(container);
+            var d = new GodotContainer(container);
             AddChild(d);
 
             var s = new MyNode();
@@ -99,8 +98,7 @@ namespace Betauer.DI.Tests {
             di.Function<MyNodeBase, string>((s) => s.baseName);
             var container = di.Build();
 
-            var d = new GodotContainer();
-            d.SetContainer(container);
+            var d = new GodotContainer(container);
             AddChild(d);
             
             MyNode s = new MyNode();

@@ -1,3 +1,4 @@
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
@@ -290,16 +291,16 @@ namespace Betauer.DI.Tests {
 
         [Singleton]
         public class SingletonInjected {
-            [Inject] internal Hold Hold1;
+            [Inject] internal Hold SingletonHold1;
             [Inject(Name = "SingletonHold1")] internal Hold h1;
             
-            [Inject] internal Hold Hold2;
+            [Inject] internal Hold SingletonHold2;
             [Inject(Name = "SingletonHold2")] internal Hold h2;
             
-            [Inject] internal Hold Hold3;
+            [Inject] internal Hold SingletonHold3;
             [Inject(Name = "SingletonHold3")] internal Hold h3;
             
-            [Inject] internal Hold Hold4;
+            [Inject] internal Hold SingletonHold4;
             [Inject(Name = "SingletonHold4")] internal Hold h4;
         }
         
@@ -317,20 +318,20 @@ namespace Betauer.DI.Tests {
             Assert.That(s1, Is.EqualTo(s2));
             
             Assert.That(s1.h1.Name, Is.EqualTo("1"));
-            Assert.That(s1.Hold1.Name, Is.EqualTo("1"));
-            Assert.That(s1.Hold1, Is.EqualTo(s1.h1));
+            Assert.That(s1.SingletonHold1.Name, Is.EqualTo("1"));
+            Assert.That(s1.SingletonHold1, Is.EqualTo(s1.h1));
             
             Assert.That(s1.h2.Name, Is.EqualTo("2"));
-            Assert.That(s1.Hold2.Name, Is.EqualTo("2"));
-            Assert.That(s1.Hold2, Is.EqualTo(s1.h2));
+            Assert.That(s1.SingletonHold2.Name, Is.EqualTo("2"));
+            Assert.That(s1.SingletonHold2, Is.EqualTo(s1.h2));
             
             Assert.That(s1.h3.Name, Is.EqualTo("3"));
-            Assert.That(s1.Hold3.Name, Is.EqualTo("3"));
-            Assert.That(s1.Hold3, Is.EqualTo(s1.h3));
+            Assert.That(s1.SingletonHold3.Name, Is.EqualTo("3"));
+            Assert.That(s1.SingletonHold3, Is.EqualTo(s1.h3));
             
             Assert.That(s1.h4.Name, Is.EqualTo("4"));
-            Assert.That(s1.Hold4.Name, Is.EqualTo("4"));
-            Assert.That(s1.Hold4, Is.EqualTo(s1.h4));
+            Assert.That(s1.SingletonHold4.Name, Is.EqualTo("4"));
+            Assert.That(s1.SingletonHold4, Is.EqualTo(s1.h4));
         }
         
         [Singleton]

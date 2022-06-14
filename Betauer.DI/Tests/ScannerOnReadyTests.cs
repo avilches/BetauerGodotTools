@@ -9,8 +9,7 @@ namespace Betauer.DI.Tests {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
-            var godotContainer = new GodotContainer();
-            godotContainer.CreateAndScan();
+            var godotContainer = new GodotContainer(new Container(this));
             AddChild(godotContainer);
         }
 

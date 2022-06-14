@@ -24,6 +24,10 @@ namespace Betauer.DI {
         private readonly Queue<IProviderBuilder> _pendingToBuild = new Queue<IProviderBuilder>();
         private readonly Container _container;
 
+        public ContainerBuilder(Container container) {
+            _container = container;
+        }
+
         public ContainerBuilder(Node owner) {
             _container = new Container(owner);
         }
@@ -105,7 +109,7 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Scan(Predicate<Type>? predicate = null) {
-            return Scan(_container.Owner.GetType().Assembly, predicate);
+            return Scan(_container.NodeSingletonOwner.GetType().Assembly, predicate);
         }
 
         public ContainerBuilder Scan(IEnumerable<Assembly> assemblies, Predicate<Type>? predicate = null) {

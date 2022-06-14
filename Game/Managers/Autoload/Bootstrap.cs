@@ -27,7 +27,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public Bootstrap() {
             ConfigureLoggerFactory();
-            CreateAndScan();
+            AutoConfigure();
             Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
         }
 
