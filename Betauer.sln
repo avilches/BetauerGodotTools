@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "Bet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GodotAction", "Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj", "{D04F65DB-E1AA-4454-B609-1B88BCE966F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "Betauer\Betauer.Generator\Generator.csproj", "{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -63,5 +65,11 @@ Global
 		{D04F65DB-E1AA-4454-B609-1B88BCE966F3}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{D04F65DB-E1AA-4454-B609-1B88BCE966F3}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{D04F65DB-E1AA-4454-B609-1B88BCE966F3}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal

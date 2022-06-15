@@ -6,20 +6,21 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Remove=".mono/**" />
-        <Compile Remove="DemoGame\**" />
-        <Compile Remove="Betauer\**" />
+        <Compile Include="TestRunner.cs" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="Betauer.Generator\**" />
+        <Compile Remove="Betauer.Generator/**" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="Betauer\Betauer.Animation\Betauer.Animation.csproj" />
-        <ProjectReference Include="Betauer\Betauer.Core\Betauer.Core.csproj" />
-        <ProjectReference Include="Betauer\Betauer.DI\Betauer.DI.csproj" />
-        <ProjectReference Include="Betauer\Betauer.GameTools\Betauer.GameTools.csproj" />
-        <ProjectReference Include="Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj" />
-        <ProjectReference Include="Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj" />
+        <ProjectReference Include="Betauer/Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="Betauer/Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="Betauer/Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="Betauer/Betauer.GameTools/Betauer.GameTools.csproj" />
+        <ProjectReference Include="Betauer/Betauer.GodotAction/Betauer.GodotAction.csproj" />
+        <ProjectReference Include="Betauer/Betauer.StateMachine/Betauer.StateMachine.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="Betauer/Betauer.Generator/Betauer.Generator.csproj" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Remove=".mono/**" />
@@ -29,5 +30,7 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="DemoGame"/>
+        <Content Include="Betauer"/>
     </ItemGroup>
 </Project>
