@@ -46,14 +46,12 @@ jobs:
       # build the solution
       - name: Build
         run: |
-          dotnet build
-          cd DemoGame
-          dotnet build
+          dotnet build Betauer.sln
+          dotnet build DemoGame/Betauer.sln
 
       # run dotnet unit tests
       - name: Test
         run: |
           godot -s TestRunner.cs --no-window
-          cd DemoGame
-          godot -s Tests/TestRunner.cs --no-window
+          godot --path DemoGame -s Tests/TestRunner.cs --no-window
 
