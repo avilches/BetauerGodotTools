@@ -34,6 +34,7 @@ public class GeneratorScript : SceneTree {
             .Select(CreateSignalExtensionMethod)
             .ToList();
         var bodySignalExtensionsClass = CreateSignalExtensionsClass(allMethods);
+        Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalExtensionsFile)}");
         File.WriteAllText(SignalExtensionsFile, bodySignalExtensionsClass);
     }
 
@@ -45,16 +46,22 @@ public class GeneratorScript : SceneTree {
             .Select(CreateSignalConstantField)
             .ToList();
         var bodySignalConstantsClass = CreateSignalConstantsClass(allMethods);
+        Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalConstantsFile)}");
         File.WriteAllText(SignalConstantsFile, bodySignalConstantsClass);
     }
 
     private void WriteAllActionClasses(List<GodotClass> classes) {
+        var n = 0;
         classes.Where(godotClass => godotClass.AllSignals.Count > 0 &&
                                     !godotClass.IsEditor &&
                                     !godotClass.IsStatic &&
                                     !godotClass.IsAbstract)
             .ToList()
-            .ForEach(WriteClass);
+            .ForEach(godotClass=> {
+                WriteClass(godotClass);
+                n++;
+            });
+        Console.WriteLine($"Generated {n} Action classes in {System.IO.Path.GetFullPath(ActionClassesPath)}");
     }
 
     private static List<GodotClass> LoadGodotClasses() {

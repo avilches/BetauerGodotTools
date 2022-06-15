@@ -6,8 +6,9 @@
         <LangVersion>8</LangVersion>
         <RootNamespace>Betauer</RootNamespace>
         <PackageId>Betauer.GameTools</PackageId>
-        <AssemblyName>Betauer</AssemblyName>
-        <OutputPath>..\.mono\bin\$(Configuration)\</OutputPath>
+        <AssemblyName>Betauer.GameTools</AssemblyName>
+        <!--OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath-->        
+        <OutputPath>$(SolutionDir)\dlls\$(Configuration)\</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
