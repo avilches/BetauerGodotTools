@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <IsPackable>false</IsPackable>
+        <LangVersion>8</LangVersion>
+        <RootNamespace>Betauer.Animation.Tests</RootNamespace>
+        <PackageId>Betauer.Animation.Tests</PackageId>
+        <AssemblyName>Betauer.Animation.Tests</AssemblyName>
+        <OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath>        
+<!--                <OutputPath>$(SolutionDir)/dlls/$(Configuration)/</OutputPath> -->
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(SolutionDir)/.mono/assemblies/Debug/GodotSharp.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
+        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+        <ProjectReference Include="..\Betauer.Animation\Betauer.Animation.csproj" />
+    </ItemGroup>
+</Project>
