@@ -24,11 +24,14 @@ clean:
 	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	
+generate:
+	make -f ${ROOT_FOLDER}/SourceGenerator/Makefile clean build run
+
 build:
 	msbuild ${ROOT_FOLDER}/Betauer.sln /restore /t:Build "/p:Configuration=${CONFIGURATION}" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "TestRunner.cs" --no-window --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "TestRunner.cs" --no-window --verbose 
 
 run:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"

@@ -16,7 +16,7 @@ dlls/
 bin/
 obj/
 data_*/
-/mono_crash.*
+mono_crash.*
 
 # End of https://www.toptal.com/developers/gitignore/api/godot
 

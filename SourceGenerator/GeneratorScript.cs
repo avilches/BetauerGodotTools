@@ -11,8 +11,8 @@ using File = System.IO.File;
      */
 public class GeneratorScript : SceneTree {
 
-    private const string SignalExtensionsFile = "../Betauer.Core/SignalExtensions.cs";
-    private const string SignalConstantsFile = "../Betauer.Core/SignalConstants.cs";
+    private const string SignalExtensionsFile = "../Betauer/Betauer.Core/SignalExtensions.cs";
+    private const string SignalConstantsFile = "../Betauer/Betauer.Core/SignalConstants.cs";
     private const string ActionClassesPath = "../Betauer.GodotAction/GodotAction";
     
     private const string ActionClassNamespace = "Betauer.GodotAction";

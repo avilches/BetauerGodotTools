@@ -16,16 +16,16 @@ help:
 	@echo "    make clean: remove all temporal and final dlls."
 
 clean:
-	cd ${ROOT_FOLDER}
-	rm -rf .mono
+	rm -rf ${ROOT_FOLDER}/.mono
 
 
-	mkdir -p .mono/assemblies/${CONFIGURATION}
-	cp -pr ${GODOT_SHARP_FOLDER}/* .mono/assemblies/${CONFIGURATION}
+
+
+	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
+	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	
 build:
-	cd ${ROOT_FOLDER}
-	msbuild /restore /t:Build "/p:Configuration=${CONFIGURATION}" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	msbuild ${ROOT_FOLDER}/Generator.sln /restore /t:Build "/p:Configuration=${CONFIGURATION}" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 run:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "GeneratorScript.cs" --no-window --verbose
