@@ -7,8 +7,6 @@
         <RootNamespace>Betauer.TestRunner</RootNamespace>
         <PackageId>Betauer.TestRunner</PackageId>
         <AssemblyName>Betauer.TestRunner</AssemblyName>
-<!--        <OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath>        -->
-        <OutputPath>$(SolutionDir)/dlls/$(Configuration)/</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>

@@ -7,8 +7,6 @@
         <RootNamespace>Betauer.Animation</RootNamespace>
         <PackageId>Betauer.Animation</PackageId>
         <AssemblyName>Betauer.Animation</AssemblyName>
-        <!--OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath-->        
-        <OutputPath>$(SolutionDir)/dlls/$(Configuration)/</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>

@@ -7,8 +7,6 @@
         <RootNamespace>Betauer.StateMachine</RootNamespace>
         <PackageId>Betauer.StateMachine</PackageId>
         <AssemblyName>Betauer.StateMachine</AssemblyName>
-        <!--OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath-->        
-        <!--        <OutputPath></OutputPath> -->
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>

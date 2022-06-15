@@ -27,13 +27,11 @@ build:
 	cd ${ROOT_FOLDER}
 	msbuild /restore /t:Build "/p:Configuration=${CONFIGURATION}" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
-test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "Tests/TestRunner.cs" --no-window --verbose
-
 run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "GeneratorScript.cs" --no-window --verbose
 
 editor:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor
+
 
 

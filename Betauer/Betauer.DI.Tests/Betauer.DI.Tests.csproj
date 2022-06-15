@@ -7,8 +7,6 @@
         <RootNamespace>Betauer.DI.Tests</RootNamespace>
         <PackageId>Betauer.DI.Tests</PackageId>
         <AssemblyName>Betauer.DI.Tests</AssemblyName>
-        <OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath>        
-<!--                <OutputPath>$(SolutionDir)/dlls/$(Configuration)/</OutputPath> -->
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>

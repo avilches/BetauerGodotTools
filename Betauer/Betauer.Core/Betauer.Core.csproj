@@ -7,8 +7,6 @@
         <RootNamespace>Betauer</RootNamespace>
         <PackageId>Betauer.Core</PackageId>
         <AssemblyName>Betauer.Core</AssemblyName>
-        <!--OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath-->        
-        <OutputPath>$(SolutionDir)/dlls/$(Configuration)/</OutputPath>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
