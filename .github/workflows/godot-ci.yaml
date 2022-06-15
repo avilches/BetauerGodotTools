@@ -27,10 +27,8 @@ jobs:
         with:
           lfs: true
 
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.0.x
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1.1
 
       # ======================================================
       # pull deps and build
@@ -46,8 +44,8 @@ jobs:
       # build the solution
       - name: Build
         run: |
-          dotnet build Betauer.sln
-          dotnet build DemoGame/Betauer.sln
+          msbuild Betauer.sln /restore /t:Build "/p:Configuration=Debug" /v:normal
+          msbuild DemoGame/Betauer.sln /restore /t:Build "/p:Configuration=Debug" /v:normal
 
       # run dotnet unit tests
       - name: Test
