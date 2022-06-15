@@ -47,5 +47,5 @@ jobs:
 
       # run dotnet unit tests
       - name: Test
-        run: godot -s Tests/Runner/SceneTreeTestRunner.cs --no-window
+        run: godot -s TestRunner.cs --no-window
 
