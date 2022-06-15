@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.Collections;
 using Godot;
 
 namespace Betauer {
@@ -38,7 +37,7 @@ namespace Betauer {
 
         public static async Task<Dictionary<string, Resource>> Load(IEnumerable<string> resourcesToLoad,
             Action<LoadingContext>? progress = null, Func<Task>? awaiter = null) {
-            var queue = new FastUnsafeLinkedList<ResourceToLoad>();
+            var queue = new List<ResourceToLoad>();
             var totalSize = CreateQueue(resourcesToLoad, queue);
             var totalLoadedSize = 0;
             var resources = new Dictionary<string, Resource>();

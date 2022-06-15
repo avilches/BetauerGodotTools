@@ -2,7 +2,6 @@ using System;
 using Godot;
 using Betauer;
 using Betauer.Bus;
-using Betauer.Bus.Topics;
 using Betauer.DI;
 using Betauer.Memory;
 using Veronenger.Game.Controller.Character;

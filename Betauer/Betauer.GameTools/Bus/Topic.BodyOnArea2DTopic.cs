@@ -4,7 +4,7 @@ using Godot;
 using Array = Godot.Collections.Array;
 using Object = Godot.Object;
 
-namespace Betauer.Bus.Topics {
+namespace Betauer.Bus {
     public class BodyOnArea2D : IGodotFilterEvent {
         public readonly Node Detected;
         public Node Origin { get; }

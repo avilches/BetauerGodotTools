@@ -1,10 +1,9 @@
 using Betauer.Application;
 using Betauer.Memory;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.GameTools.Tests {
     public class R : Recyclable {
         public static int Created = 0;
         public string Name;

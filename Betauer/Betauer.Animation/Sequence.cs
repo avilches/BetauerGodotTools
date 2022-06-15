@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Collections;
 using Godot;
 
 namespace Betauer.Animation {
@@ -199,7 +198,7 @@ namespace Betauer.Animation {
 
         internal AbstractSequenceBuilder(bool createEmptyTweenList) {
             if (createEmptyTweenList) {
-                TweenList = new FastUnsafeLinkedList<ICollection<ITweener>>();
+                TweenList = new List<ICollection<ITweener>>();
             }
         }
 
@@ -249,17 +248,17 @@ namespace Betauer.Animation {
                 TweenList.Last().Add(tweener);
                 _parallel = false;
             } else {
-                TweenList.Add(new FastUnsafeLinkedList<ITweener> { tweener });
+                TweenList.Add(new List<ITweener> { tweener });
             }
         }
 
         protected void CloneTweenListIfNeeded() {
             if (ImportedFromTemplate) {
-                var tweenListCloned = new FastUnsafeLinkedList<ICollection<ITweener>>(TweenList);
+                var tweenListCloned = new LinkedList<ICollection<ITweener>>(TweenList);
                 if (_parallel) {
-                    var lastParallelCloned = new FastUnsafeLinkedList<ITweener>(tweenListCloned.Last());
-                    tweenListCloned.RemoveEnd();
-                    tweenListCloned.Add(lastParallelCloned);
+                    var lastParallelCloned = new List<ITweener>(tweenListCloned.Last());
+                    tweenListCloned.RemoveLast();
+                    tweenListCloned.AddLast(lastParallelCloned);
                 }
                 TweenList = tweenListCloned;
                 ImportedFromTemplate = false;

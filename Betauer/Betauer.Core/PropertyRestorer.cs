@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer {
     public abstract class Restorer {
         public bool HasSavedState { get; private set; } = false;
 

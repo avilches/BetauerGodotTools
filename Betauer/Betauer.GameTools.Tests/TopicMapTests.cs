@@ -1,9 +1,8 @@
+using Betauer.Bus;
 using Godot;
 using NUnit.Framework;
-using Betauer.Bus;
-using Betauer.Bus.Topics;
 
-namespace Betauer.Tests {
+namespace Betauer.GameTools.Tests {
     [TestFixture]
     public class TopicMapTests : Node {
         Area2D Area1 = new Area2D();

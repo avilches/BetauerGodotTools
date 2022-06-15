@@ -14,9 +14,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation", "Betaue
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj", "{6A539F22-EDEE-4F3F-954E-64D92B9BDE08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GodotAction", "Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj", "{D04F65DB-E1AA-4454-B609-1B88BCE966F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GodotAction", "Betauer.GodotAction\Betauer.GodotAction.csproj", "{D04F65DB-E1AA-4454-B609-1B88BCE966F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "Betauer\Betauer.Generator\Generator.csproj", "{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerator", "SourceGenerator\Generator.csproj", "{F1A7792E-47FE-4B90-BB70-E61CF470CE4A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation.Tests", "Betauer\Betauer.Animation.Tests\Betauer.Animation.Tests.csproj", "{B8DE355A-FEC3-41D5-937F-62641C5E0C63}"
 EndProject

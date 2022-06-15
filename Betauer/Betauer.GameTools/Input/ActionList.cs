@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Betauer.Collections;
 using Godot;
 
 namespace Betauer.Input {
     public class ActionList {
-        private readonly FastUnsafeLinkedList<BaseAction> _actions = new FastUnsafeLinkedList<BaseAction>();
+        private readonly List<BaseAction> _actions = new List<BaseAction>();
         private readonly Dictionary<string, ActionState> _map = new Dictionary<string, ActionState>();
         private readonly int _deviceId;
 

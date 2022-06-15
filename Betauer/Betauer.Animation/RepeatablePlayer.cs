@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.Collections;
 using Godot;
 
 namespace Betauer.Animation {
@@ -19,7 +19,7 @@ namespace Betauer.Animation {
         protected bool Started = false;
         protected bool Running = false;
         protected bool DisposeOnFinish = false;
-        protected FastUnsafeLinkedList<Action>? OnFinishAll;
+        protected List<Action>? OnFinishAll;
         protected bool Disposed = false;
 
         public RepeatablePlayer() {
@@ -33,7 +33,7 @@ namespace Betauer.Animation {
 
         public TBuilder AddOnFinishAll(Action onFinishAll) {
             if (OnFinishAll == null) {
-                OnFinishAll = new FastUnsafeLinkedList<Action>
+                OnFinishAll = new List<Action>
                     { onFinishAll };
             } else {
                 OnFinishAll.Add(onFinishAll);

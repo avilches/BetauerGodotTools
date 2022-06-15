@@ -3,7 +3,7 @@ using Betauer.Memory;
 using Godot;
 using Array = Godot.Collections.Array;
 
-namespace Betauer.Bus.Topics {
+namespace Betauer.Bus {
     public class Area2DShapeOnArea2D : IGodotFilterEvent {
         public readonly RID Area2dRid;
         public readonly Area2D Detected;

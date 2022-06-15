@@ -38,12 +38,9 @@
         <ProjectReference Include="..\Betauer\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.DI\Betauer.DI.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.GameTools\Betauer.GameTools.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj" />
+        <ProjectReference Include="..\Betauer.GodotAction\Betauer.GodotAction.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.TestRunner\Betauer.TestRunner.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Remove=".mono/**" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />

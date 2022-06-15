@@ -4,7 +4,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
-        <RootNamespace>Betauer.Core.Tests</RootNamespace>
+        <RootNamespace>Betauer.Tests</RootNamespace>
         <PackageId>Betauer.Core.Tests</PackageId>
         <AssemblyName>Betauer.Core.Tests</AssemblyName>
         <Nullable>enable</Nullable>

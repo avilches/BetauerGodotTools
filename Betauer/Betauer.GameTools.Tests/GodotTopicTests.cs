@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Godot;
 using NUnit.Framework;
 using Betauer.Bus;
-using Betauer.Bus.Topics;
 using Betauer.TestRunner;
 
 namespace Betauer.Tests {

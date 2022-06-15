@@ -1,8 +1,5 @@
-using System;
 using Betauer;
-using Betauer.Animation;
 using Betauer.Animation.Tests;
-using Betauer.DI;
 using Betauer.DI.Tests;
 using Betauer.StateMachine.Tests;
 using Betauer.TestRunner;

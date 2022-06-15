@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Betauer.Collections;
 using Godot;
 using Object = Godot.Object;
 
@@ -212,7 +211,7 @@ namespace Betauer.Animation {
 
     public class PropertyKeyStepTweener<TProperty> : PropertyTweener<TProperty> {
         protected readonly ICollection<AnimationKeyStep<TProperty>> _steps =
-            new FastUnsafeLinkedList<AnimationKeyStep<TProperty>>();
+            new List<AnimationKeyStep<TProperty>>();
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
@@ -251,7 +250,7 @@ namespace Betauer.Animation {
 
     public class PropertyKeyPercentTweener<TProperty> : PropertyTweener<TProperty> {
         protected readonly ICollection<AnimationKeyPercent<TProperty>> Steps =
-            new FastUnsafeLinkedList<AnimationKeyPercent<TProperty>>();
+            new List<AnimationKeyPercent<TProperty>>();
 
         public List<AnimationKeyPercent<TProperty>> CreateStepList() =>
             new List<AnimationKeyPercent<TProperty>>(Steps);
