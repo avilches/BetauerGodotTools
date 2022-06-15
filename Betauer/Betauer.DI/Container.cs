@@ -10,7 +10,7 @@ namespace Betauer.DI {
         internal readonly Dictionary<string, object> _objectsAlias = new Dictionary<string, object>();
         internal readonly Container Container;
 
-        internal ResolveContext(Container container) {
+        public ResolveContext(Container container) {
             Container = container;
         }
 

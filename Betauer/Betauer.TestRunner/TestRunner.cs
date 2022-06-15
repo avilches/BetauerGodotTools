@@ -15,6 +15,22 @@ namespace Betauer.TestRunner {
     public class OnlyAttribute : Attribute {
     }
 
+    public static class TestExtensions {
+        public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
+            return AwaitPhysicsFrame(node.GetTree());
+        }
+
+        public static SignalAwaiter AwaitIdleFrame(this Node node) {
+            return AwaitIdleFrame(node.GetTree());
+        }
+        public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
+            return sceneTree.ToSignal(sceneTree, "physics_frame");
+        }
+
+        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
+            return sceneTree.ToSignal(sceneTree, "idle_frame");
+        }
+    }
 
     public class TestRunner {
         private readonly List<TestMethod> _testMethods = new List<TestMethod>();

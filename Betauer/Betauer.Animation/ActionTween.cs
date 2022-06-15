@@ -23,7 +23,7 @@ namespace Betauer.Animation {
             action.Invoke();
         }
 
-        internal void InterpolateAction<T>(T @from, T to, float duration, TransitionType transitionType,
+        public void InterpolateAction<T>(T @from, T to, float duration, TransitionType transitionType,
             EaseType easeType, float delay, Action<T> action) {
             var actionWrapper = new ActionWrapper<T>(action, _objects);
             _objects[actionWrapper] = actionWrapper;

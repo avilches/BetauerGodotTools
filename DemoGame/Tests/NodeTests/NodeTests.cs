@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Veronenger.Tests.NodeTests {
     [TestFixture]
-    [Ignore("")]
+    // [Ignore("")]
     public class NodeTests : Node {
         [Test]
         public void SpawnAndFreeManyObjectsInLessThanFiveSeconds() {

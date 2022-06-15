@@ -3,6 +3,8 @@
 
 ### Godot ###
 
+dlls/
+
 # Godot-specific ignores
 .import/
 

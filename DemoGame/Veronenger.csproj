@@ -7,6 +7,7 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Game/**" />
+        <Compile Include="Tests/**" />
 <!--        <Compile Remove=".mono/**" />-->
     </ItemGroup>
 <!--    <ItemGroup>-->
@@ -30,21 +31,27 @@
 <!--        </Reference>-->
 <!--    </ItemGroup>-->
     <ItemGroup>
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\Betauer\Betauer.Animation\Betauer.Animation.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.DI\Betauer.DI.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.GameTools\Betauer.GameTools.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.GodotAction\Betauer.GodotAction.csproj" />
         <ProjectReference Include="..\Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj" />
+        <ProjectReference Include="..\Betauer\Betauer.TestRunner\Betauer.TestRunner.csproj" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Remove=".mono/**" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NUnit" Version="3.13.2" />
-    </ItemGroup>
-    <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
+        <!-- From anima -->
+        <Content Include="addons/**" />
+        <Content Include="demos/**" />
+        <Content Include="resources/**" />
+
         <Content Include="Assets/**" />
         <Content Include="Characters/**" />
         <Content Include="Docs/*" />

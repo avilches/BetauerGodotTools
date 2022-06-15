@@ -2,6 +2,8 @@
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Veronenger", "Veronenger.csproj", "{15D10F92-7398-4D76-AFD5-840AB34047C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.TestRunner", "..\Betauer\Betauer.TestRunner\Betauer.TestRunner.csproj", "{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation", "..\Betauer\Betauer.Animation\Betauer.Animation.csproj", "{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI", "..\Betauer\Betauer.DI\Betauer.DI.csproj", "{5A084EBF-D63B-4DE5-99B2-60140A455CE4}"
@@ -27,6 +29,12 @@ Global
 		{15D10F92-7398-4D76-AFD5-840AB34047C8}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
 		{15D10F92-7398-4D76-AFD5-840AB34047C8}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
 		{15D10F92-7398-4D76-AFD5-840AB34047C8}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 		{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
