@@ -38,10 +38,10 @@ jobs:
       # copy the godot DLLs where they are expected
       - name: Setup Godot dlls
         run: |
-          mkdir -p .mono/assemblies/Release
-          mkdir -p DemoGame/.mono/assemblies/Release
-          cp /usr/local/bin/GodotSharp/Api/Release/* .mono/assemblies/Release
-          cp /usr/local/bin/GodotSharp/Api/Release/* DemoGame/.mono/assemblies/Release
+          mkdir -p .mono/assemblies/Debug
+          mkdir -p DemoGame/.mono/assemblies/Debug
+          cp /usr/local/bin/GodotSharp/Api/Debug/* .mono/assemblies/Debug
+          cp /usr/local/bin/GodotSharp/Api/Debug/* DemoGame/.mono/assemblies/Debug
 
       # build the solution
       - name: Build
