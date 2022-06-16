@@ -1,15 +1,16 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.TestRunner {
     public class ConsoleTestRunner {
-        public static async Task RunTests(SceneTree tree) {
+        public static async Task RunTests(SceneTree tree, Assembly[]? assemblies = null) {
             var stopwatch = Stopwatch.StartNew();
 
-            TestRunner testRunner = new TestRunner();
+            TestRunner testRunner = new TestRunner(assemblies);
             await testRunner.Run(tree,
                 testMethod => PrintConsoleStart(testRunner, testMethod),
                 testMethod => PrintConsoleResult(testRunner, testMethod));

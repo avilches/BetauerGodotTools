@@ -40,8 +40,8 @@ namespace Betauer.TestRunner {
         public int TestsFailed;
         public int TestsPassed;
 
-        public TestRunner() {
-            ScanFixturesFromAssemblies()
+        public TestRunner(Assembly[]? assemblies = null) {
+            ScanFixturesFromAssemblies(assemblies)
                 .ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
             GD.Print("Loaded " + _testMethods.Count + " tests");
         }
@@ -155,10 +155,10 @@ namespace Betauer.TestRunner {
             }
         }
 
-        private List<TestFixture> ScanFixturesFromAssemblies() {
+        private List<TestFixture> ScanFixturesFromAssemblies(Assembly[]? assemblies = null) {
             Stopwatch st = new Stopwatch();
             st.Start();
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            assemblies ??= AppDomain.CurrentDomain.GetAssemblies();
             var cleanNotOnly = false;
             List<TestFixture> fixtures = new List<TestFixture>();
             foreach (var assembly in assemblies) {
