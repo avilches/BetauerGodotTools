@@ -8,28 +8,7 @@
     <ItemGroup>
         <Compile Include="Game/**" />
         <Compile Include="Tests/**" />
-<!--        <Compile Remove=".mono/**" />-->
     </ItemGroup>
-<!--    <ItemGroup>-->
-<!--        <Reference Include="Betauer.Animation">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.Animation.dll</HintPath>-->
-<!--        </Reference>-->
-<!--        <Reference Include="Betauer.Core">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.Core.dll</HintPath>-->
-<!--        </Reference>-->
-<!--        <Reference Include="Betauer.DI">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.DI.dll</HintPath>-->
-<!--        </Reference>-->
-<!--        <Reference Include="Betauer.GameTools">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.GameTools.dll</HintPath>-->
-<!--        </Reference>-->
-<!--        <Reference Include="Betauer.GodotAction">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.GodotAction.dll</HintPath>-->
-<!--        </Reference>-->
-<!--        <Reference Include="Betauer.StateMachine">-->
-<!--            <HintPath>../dlls/Debug/net472/Betauer.StateMachine.dll</HintPath>-->
-<!--        </Reference>-->
-<!--    </ItemGroup>-->
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>

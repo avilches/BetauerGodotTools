@@ -21,8 +21,8 @@ help:
 
 clean:
 	rm -rf ${ROOT_FOLDER}/.mono
-	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/bin" | xargs rm -rf
-	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/obj" | xargs rm -rf
+	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/bin" #| xargs rm -rf
+	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/obj" #| xargs rm -rf
 	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	
@@ -34,9 +34,6 @@ build:
 
 test:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "TestRunner.cs" --no-window --verbose 
-
-run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"
 
 editor:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor
