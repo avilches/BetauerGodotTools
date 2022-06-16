@@ -12,35 +12,35 @@
     </ItemGroup>
 <!--    <ItemGroup>-->
 <!--        <Reference Include="Betauer.Animation">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.Animation.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.Animation.dll</HintPath>-->
 <!--        </Reference>-->
 <!--        <Reference Include="Betauer.Core">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.Core.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.Core.dll</HintPath>-->
 <!--        </Reference>-->
 <!--        <Reference Include="Betauer.DI">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.DI.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.DI.dll</HintPath>-->
 <!--        </Reference>-->
 <!--        <Reference Include="Betauer.GameTools">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.GameTools.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.GameTools.dll</HintPath>-->
 <!--        </Reference>-->
 <!--        <Reference Include="Betauer.GodotAction">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.GodotAction.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.GodotAction.dll</HintPath>-->
 <!--        </Reference>-->
 <!--        <Reference Include="Betauer.StateMachine">-->
-<!--            <HintPath>..\dlls\Debug\net472\Betauer.StateMachine.dll</HintPath>-->
+<!--            <HintPath>../dlls/Debug/net472/Betauer.StateMachine.dll</HintPath>-->
 <!--        </Reference>-->
 <!--    </ItemGroup>-->
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer\Betauer.Animation\Betauer.Animation.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.Core\Betauer.Core.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.DI\Betauer.DI.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.GameTools\Betauer.GameTools.csproj" />
-        <ProjectReference Include="..\Betauer.GodotAction\Betauer.GodotAction.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj" />
-        <ProjectReference Include="..\Betauer\Betauer.TestRunner\Betauer.TestRunner.csproj" />
+        <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj" />
+        <ProjectReference Include="../Betauer.GodotAction/Betauer.GodotAction.csproj" />
+        <ProjectReference Include="../Betauer.StateMachine/Betauer.StateMachine.csproj" />
+        <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />

@@ -14,13 +14,15 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 help:
 	@echo "Usage:"
 	@echo "    make clean: remove all temporal and final dlls."
+	@echo "    make generate: execute Generator project which creates all *.cs classes for GodotAction"
+	@echo "    make build: build all projects"
+	@echo "    make test: run tests from all projects"
+	@echo "    make editor: open the Godot editor with the Betauer project"
 
 clean:
 	rm -rf ${ROOT_FOLDER}/.mono
 	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/bin" | xargs rm -rf
-	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer/Betauer\.[A-Za-z\.]*/bin" | xargs rm -rf
 	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/obj" | xargs rm -rf
-	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer/Betauer\.[A-Za-z\.]*/obj" | xargs rm -rf
 	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
 	

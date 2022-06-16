@@ -2,19 +2,19 @@
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Veronenger", "Veronenger.csproj", "{15D10F92-7398-4D76-AFD5-840AB34047C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.TestRunner", "..\Betauer\Betauer.TestRunner\Betauer.TestRunner.csproj", "{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.TestRunner", "..\Betauer.TestRunner\Betauer.TestRunner.csproj", "{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation", "..\Betauer\Betauer.Animation\Betauer.Animation.csproj", "{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation", "..\Betauer.Animation\Betauer.Animation.csproj", "{D0C3449E-A3F2-4E9C-AFF9-35883ACEDA48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI", "..\Betauer\Betauer.DI\Betauer.DI.csproj", "{5A084EBF-D63B-4DE5-99B2-60140A455CE4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI", "..\Betauer.DI\Betauer.DI.csproj", "{5A084EBF-D63B-4DE5-99B2-60140A455CE4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "..\Betauer\Betauer.Core\Betauer.Core.csproj", "{9868FF34-6C2A-460A-A481-608EF48B4E76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "..\Betauer.Core\Betauer.Core.csproj", "{9868FF34-6C2A-460A-A481-608EF48B4E76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Betauer\Betauer.GameTools\Betauer.GameTools.csproj", "{003326B0-6B7D-447D-A503-5A2542EF3CEC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Betauer.GameTools\Betauer.GameTools.csproj", "{003326B0-6B7D-447D-A503-5A2542EF3CEC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GodotAction", "..\Betauer.GodotAction\Betauer.GodotAction.csproj", "{666B87A7-DC58-43D8-94A7-81E43093FE75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
