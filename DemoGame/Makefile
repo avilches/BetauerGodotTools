@@ -13,7 +13,11 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 .PHONY:
 help:
 	@echo "Usage:"
-	@echo "    make clean: remove all temporal and final dlls."
+	@echo "    make clean: remove all temporal and final dlls"
+	@echo "    make build: build all projects"
+	@echo "    make test: run tests from all projects"
+	@echo "    make run: run the game"
+	@echo "    make editor: open the Godot editor with the Betauer project"
 
 clean:
 	rm -rf ${ROOT_FOLDER}/.mono
