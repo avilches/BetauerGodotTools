@@ -95,7 +95,6 @@ namespace Betauer.TestRunner {
                 try {
                     Stopwatch.Start();
                     if (_instance is Node node) {
-                        await sceneTree.AwaitIdleFrame();
                         sceneTree.Root.AddChild(node);
                     }
                     if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(_instance, EmptyParameters);
@@ -143,7 +142,6 @@ namespace Betauer.TestRunner {
                 TestsExecuted++;
                 testMethod.Id = TestsExecuted.ToString();
                 startCallback?.Invoke(testMethod);
-                await sceneTree.ToSignal(sceneTree, "idle_frame");
                 await testMethod.Execute(sceneTree);
                 if (testMethod.Result == Result.Passed) {
                     TestsPassed++;
@@ -160,7 +158,7 @@ namespace Betauer.TestRunner {
             st.Start();
             assemblies ??= AppDomain.CurrentDomain.GetAssemblies();
             var cleanNotOnly = false;
-            List<TestFixture> fixtures = new List<TestFixture>();
+            var fixtures = new List<TestFixture>();
             foreach (var assembly in assemblies) {
                 GD.Print("Scanning assembly "+assembly);
                 foreach (Type type in assembly.GetTypes()) {
