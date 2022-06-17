@@ -52,7 +52,7 @@ boot_splash/fullsize=false
 boot_splash/use_filter=false
 boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
 config/icon="res://icon.png"
-config/version="0.1.0"
+config/version="1.0"
 
 [autoload]
 

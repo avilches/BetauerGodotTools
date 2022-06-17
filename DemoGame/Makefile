@@ -1,11 +1,11 @@
 #!/usr/bin/env make
 
+
 .DEFAULT_SHELL ?= /bin/bash
 .DEFAULT_GOAL  := help
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-VERSION        := $(shell cat ${ROOT_FOLDER}/export/app-version.txt)
+include ${ROOT_FOLDER}/export/release.properties
 TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
-NAME           := Veronenger
 EXPORT_OSX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
 EXPORT_WIN     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
 EXPORT_LINUX   := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
@@ -17,6 +17,9 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 
 .PHONY: help
 help:
+	echo ${NAME}
+	echo ${AUTHOR}
+	echo ${VERSION}
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
 	@echo "    clean        remove all temporal and final dlls"
