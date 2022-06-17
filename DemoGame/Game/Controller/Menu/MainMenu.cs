@@ -7,6 +7,7 @@ using Betauer.Input;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
+using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Menu {
     public class MainMenu : Control {
@@ -16,6 +17,9 @@ namespace Veronenger.Game.Controller.Menu {
 
         [OnReady("GridContainer/MarginContainer/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
+
+        [OnReady("GridContainer/MarginContainer/VBoxContainer/VBoxContainer/ver")]
+        private Label _version;
 
         private MenuController _menuController;
 
@@ -27,6 +31,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private ActionState UiStart;
 
         public override void _Ready() {
+            _version.Text = Bootstrap.AppVersion+ " - Betauer 2022";
             _launcher.WithParent(this);
             _menuController = BuildMenu();
         }

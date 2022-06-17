@@ -43,6 +43,7 @@ namespace Veronenger.Game.Controller {
             CenterContainer.RectSize = _baseResolutionSize;
             ColorRect.RectSize = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
+            Visible = true;
             _launcher.WithParent(this)
                 .Play(SequenceBuilder
                         .Create(_sprite)

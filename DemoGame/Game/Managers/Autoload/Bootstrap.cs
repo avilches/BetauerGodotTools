@@ -1,57 +1,98 @@
 using System;
-using System.Diagnostics;
+using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Bus;
 using Betauer.DI;
+using Betauer.Managers;
 using Betauer.Memory;
 using Betauer.Screen;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Stage;
 using Container = Betauer.DI.Container;
 using TraceLevel = Betauer.TraceLevel;
-using Directory = System.IO.Directory;
-using Path = System.IO.Path;
 
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : GodotContainer /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
+        public static string AppVersion;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
-        private const UnhandledExceptionPolicy UnhandledExceptionPolicyConfig =
-            UnhandledExceptionPolicy.TerminateApplication;
-
-        private const bool LogToFileEnabled = false; // TODO: enabled by a command line parameter
-
         public Bootstrap() {
-            ConfigureLoggerFactory();
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+            if (ApplicationConfig.IsExported()) {
+                ExportConfiguration();
+            } else {
+                DevelopmentConfig();
+            }
+            AppVersion = ApplicationConfig.GetVersion();
+            ShowConfig();
             AutoConfigure();
             Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
+        }
+
+        private static void ShowConfig() {
+            Logger.Info("cmd line args: " + string.Join(" ", OS.GetCmdlineArgs()));
+            Logger.Info("app version  : " + AppVersion);
+            Logger.Info("features     : " + string.Join(", ", FeatureFlags.GetActiveList()));
+            Logger.Info("name host    : " + OS.GetName());
+            Logger.Info("data dir     : " + OS.GetDataDir());
+            Logger.Info("user data dir: " + OS.GetUserDataDir());
+            Logger.Info("config dir   : " + OS.GetConfigDir());
+            Logger.Info("cache dir    : " + OS.GetCacheDir());
+            new[] {
+                "logging/file_logging/enable_file_logging",
+                "logging/file_logging/enable_file_logging.pc",
+                "logging/file_logging/log_path",
+                "logging/file_logging/log_path.standalone",
+                "application/run/disable_stdout",
+                "application/run/disable_stderr",
+                "application/run/flush_stdout_on_print",
+                "application/run/flush_stdout_on_print.debug",
+                "application/config/use_custom_user_dir",
+                "application/config/project_settings_override",
+                "mono/unhandled_exception_policy",
+                "mono/unhandled_exception_policy.standalone",
+                "application/config/version"
+            }.ToList()
+                .ForEach(property => Logger.Info(property + ": " + ProjectSettings.GetSetting(property)));
         }
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             LoggerFactory.LoadFrames(GetTree().GetFrame);
-            DevTools.CheckErrorPolicy(GetTree(), UnhandledExceptionPolicyConfig);
-            // MicroBenchmarks();
-            this.DisableAllNotifications();
         }
 
-        private void ConfigureLoggerFactory() {
-            if (LogToFileEnabled) {
-                var folder = Directory.GetCurrentDirectory();
-                var logPath = Path.Combine(folder, $"Veronenger.{DateTime.Now:yyyy-dd-M--HH-mm-ss}.log");
-                LoggerFactory.AddFileWriter(logPath);
-            }
+        private void ExportConfiguration() {
+            DisposeTools.ShowShutdownWarning = false; 
+            DisposeTools.ShowMessageOnCreate = false;
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.GodotPrint); // GD.Print means it appears in the user data logs
+            LoggerFactory.IncludeTimestamp(true);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Warning);
+            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(SettingsFile), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
+    }
+        
+        private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e) {
+            Logger.Error($"Got unhandled exception: {e.ExceptionObject}");
+            // LoggerFactory.Dispose();
+            // GetTree().Quit();
+        }        
 
+        private void DevelopmentConfig() {
             DisposeTools.ShowShutdownWarning = true;
             DisposeTools.ShowMessageOnCreate = false;
-
-            LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine);
             LoggerFactory.IncludeTimestamp(true);
+
+            // All enabled, then disabled one by one, so developers can enable just one 
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
+
+            // Bootstrap logs, all always :)
+            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
@@ -59,11 +100,14 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
+            // GameTools
+            LoggerFactory.SetTraceLevel(typeof(SettingsFile), TraceLevel.Debug);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
 
+            // Animation
             LoggerFactory.SetTraceLevel(typeof(Launcher), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Error);
@@ -110,19 +154,6 @@ namespace Veronenger.Game.Managers.Autoload {
             var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
             Logger.Info("User requested exit the application. Uptime: " + elapsed);
             LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
-        }
-
-        private void MicroBenchmarks() {
-            var x = Stopwatch.StartNew();
-            LoggerFactory.GetLogger("x");
-            int calls = 100000;
-            for (int i = 0; i < calls; i++) {
-                LoggerFactory.GetLogger("x").Info("aaa " + i);
-            }
-            x.Stop();
-            GD.Print(
-                $"{calls} calls in {x.Elapsed.ToString()}: {x.ElapsedMilliseconds / (float)calls} calls/ms. {(x.ElapsedMilliseconds * 1000) / (float)calls} calls/s.");
-            // Quit();
         }
     }
 }
