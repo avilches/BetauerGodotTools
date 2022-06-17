@@ -13,10 +13,10 @@ namespace Betauer.Managers {
         public bool VSync { get; }
         public bool Borderless { get; }
         public Resolution WindowedResolution { get; }
+        public string SettingsPathFile { get;  }
     }
 
     public class SettingsFile : IUserSettings {
-        public const string Filename = "settings.cfg";
 
         public const string VideoSection = "Video";
         public const string PixelPerfectProperty = "PixelPerfect";
@@ -32,15 +32,16 @@ namespace Betauer.Managers {
         public bool VSync { get; internal set; }
         public bool Borderless { get; internal set; }
         public Resolution WindowedResolution { get; internal set; }
-        public ICollection<ActionState> ActionList { get; internal set; }
+        public ICollection<ActionState> ActionList { get; }
+        public string SettingsPathFile { get; }
 
-        private readonly string _resourceName;
         private readonly IUserSettings _defaults;
         private readonly Properties _cf;
-
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SettingsFile));
+        
         public SettingsFile(IUserSettings defaults, ICollection<ActionState> actionList) {
-            _resourceName = System.IO.Path.Combine(OS.GetUserDataDir(), System.IO.Path.GetFileName(Filename));
-            _cf = new Properties(_resourceName);
+            SettingsPathFile = defaults.SettingsPathFile;
+            _cf = new Properties(SettingsPathFile);
             _defaults = defaults;
             PixelPerfect = defaults.PixelPerfect;
             Fullscreen = defaults.Fullscreen;
@@ -51,7 +52,10 @@ namespace Betauer.Managers {
         }
 
         public SettingsFile Load() {
-            Console.WriteLine("Loading from " + _resourceName + "\n" + File.ReadAllText(_resourceName));
+            if (Logger.IsEnabled(TraceLevel.Debug)) {
+                var content = File.Exists(SettingsPathFile) ? File.ReadAllText(SettingsPathFile) : "(file not found)";
+                Logger.Debug("Loading from " + SettingsPathFile + "\n" + content);
+            }
             _cf.Load();
             PixelPerfect = _cf.GetValue(VideoSection, PixelPerfectProperty, _defaults.PixelPerfect);
             Fullscreen = _cf.GetValue(VideoSection, FullscreenProperty, _defaults.Fullscreen);
@@ -81,7 +85,9 @@ namespace Betauer.Managers {
                 _cf.SetValue(ControlsSection, actionState.GetPropertyNameForButtons(), actionState.ExportButtons());
             });
             _cf.Save();
-            Console.WriteLine("Saving to " + _resourceName + "\n" + File.ReadAllText(_resourceName));
+            if (Logger.IsEnabled(TraceLevel.Debug)) {
+                Logger.Debug("Saving to " + SettingsPathFile + "\n" + File.ReadAllText(SettingsPathFile));
+            }
             return this;
         }
     }

@@ -46,10 +46,13 @@ _global_script_class_icons={
 
 config/name="Veronenger"
 run/main_scene="res://Scenes/SplashScreen.tscn"
+config/use_custom_user_dir=true
+config/project_settings_override="user://override.cfg"
 boot_splash/fullsize=false
 boot_splash/use_filter=false
 boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
 config/icon="res://icon.png"
+config/version="0.1.0"
 
 [autoload]
 
@@ -108,14 +111,14 @@ ui_right={
 "events": null
 }
 
-[layer_names]
+[logging]
 
-2d_physics/layer_1="block"
-2d_physics/layer_2="slope_stairs"
-2d_physics/layer_3="slope_stairs_cover"
-2d_physics/layer_4="falling_platform"
-2d_physics/layer_11="player"
-2d_physics/layer_12="enemy"
+file_logging/log_path="user://logs/dev.log"
+file_logging/log_path.standalone="user://logs/game.log"
+
+[mono]
+
+unhandled_exception_policy.standalone=1
 
 [rendering]
 

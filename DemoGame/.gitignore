@@ -23,3 +23,5 @@ data_*/
 /packages/
 /*.sln.DotSettings.*
 
+/export/releases
+/settings.ini

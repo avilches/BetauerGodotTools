@@ -15,12 +15,13 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 
 .PHONY: help
 help:
-	@echo "Usage:"
-	@echo "    make clean: remove all temporal and final dlls"
-	@echo "    make generate: execute Generator project which creates all *.cs classes for GodotAction"
-	@echo "    make build: build all projects"
-	@echo "    make test: run tests from all projects"
-	@echo "    make editor: open the Godot editor with the Betauer project"
+	@echo "Usage: make [target] [target2] [target...]"
+	@echo "Goals:"
+	@echo "    clean      remove all temporal and final dlls"
+	@echo "    generate   execute Generator project which creates all *.cs classes for GodotAction"
+	@echo "    build      build all projects"
+	@echo "    test       run tests from all projects"
+	@echo "    editor     open the Godot editor"
 
 .PHONY: clean
 clean:

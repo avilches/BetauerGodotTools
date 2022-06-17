@@ -15,11 +15,12 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 
 .PHONY: help
 help:
-	@echo "Usage:"
-	@echo "    make clean: remove all temporal and final dlls"
-	@echo "    make build: build the project"
-	@echo "    make run: run the generator"
-	@echo "    make editor: open the Godot editor with the Generator project"
+	@echo "Usage: make [target] [target2] [target...]"
+	@echo "Goals:"
+	@echo "    clean     remove all temporal and final dlls"
+	@echo "    build     build the project"
+	@echo "    run       run the generator"
+	@echo "    editor    open the Godot editor"
 
 
 .PHONY: clean

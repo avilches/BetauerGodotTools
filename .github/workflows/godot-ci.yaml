@@ -19,7 +19,7 @@ jobs:
 
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:mono-3.4.2
+      image: barichello/godot-ci:mono-3.4.4
 
     steps:
 

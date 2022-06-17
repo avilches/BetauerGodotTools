@@ -19,8 +19,8 @@ namespace Betauer {
     }
 
     public enum ConsoleOutput {
-        Godot,
-        Standard,
+        GodotPrint,
+        ConsoleWriteLine,
         Off
     }
 
@@ -346,8 +346,8 @@ namespace Betauer {
                 writer.Flush();
             }
 
-            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.Godot) GD.Print(logLine);
-            else if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.Standard) Console.WriteLine(logLine);
+            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.GodotPrint) GD.Print(logLine);
+            else if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.ConsoleWriteLine) Console.WriteLine(logLine);
         }
     }
 
