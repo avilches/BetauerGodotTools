@@ -9,7 +9,7 @@
         <Compile Include="TestRunner.cs" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="Betauer.Generator/**" />
+        <Compile Remove="SourceGenerator/**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.3" />
@@ -46,5 +46,6 @@
         <Content Remove=".mono" />
         <Content Include="DemoGame" />
         <Content Include="Betauer" />
+        <Content Include="SourceGenerator/*" />
     </ItemGroup>
 </Project>

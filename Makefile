@@ -7,10 +7,9 @@ ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 
 
-CONFIGURATION      ?= Debug
 TARGET_PLATFORM    ?= osx
 GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api/${CONFIGURATION}
+GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api/Debug
 
 
 .PHONY: help
@@ -28,12 +27,12 @@ clean:
 	rm -rf ${ROOT_FOLDER}/.mono
 	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/bin" -type d | xargs rm -rf
 	find ${ROOT_FOLDER} -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/obj" -type d  | xargs rm -rf
-	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
-	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/${CONFIGURATION}
+	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/Debug
+	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/Debug
 	
 .PHONY: build
 build:
-	msbuild ${ROOT_FOLDER}/Betauer.sln /restore /t:Build "/p:Configuration=${CONFIGURATION}" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	msbuild ${ROOT_FOLDER}/Betauer.sln /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: generate
 generate:
