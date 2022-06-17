@@ -10,14 +10,15 @@ namespace Veronenger.export {
         public override void _Initialize() {
             var release = ReadProperties("./export/release.properties");
             
-            // TODO: add these to project.godot so it can be loaded inside the game
             var version = release["VERSION"];
             var author = release["AUTHOR"];
             var name = release["NAME"];
+            var id = release["ID"];
+            var description = release["DESCRIPTION"];
             
             FixProjectGodot();
             SetAppVersionProjectGodot(version);
-            FixPresetsVersion(name, author, version);
+            FixPresetsVersion(name, author, version, id, description);
             FixPresetsExcludeFilter();
         }
 
@@ -58,7 +59,7 @@ namespace Veronenger.export {
             cf.Save("res://export_presets.cfg");
         }
 
-        private static void FixPresetsVersion(string name, string author, string version) {
+        private static void FixPresetsVersion(string name, string author, string version, string id, string description) {
             var cf = new ConfigFile();
             cf.Load("res://export_presets.cfg");
             
@@ -78,28 +79,24 @@ namespace Veronenger.export {
                     .First(section => (string)cf.GetValue(section, "name") == name);
 
             var osx = FindPreset("Mac OSX");
-            // TODO: add a unique id to release.properties
-            cf.SetValue(osx + ".options", "application/identifier", author + "." + name);
+            cf.SetValue(osx + ".options", "application/identifier", id);
             cf.SetValue(osx + ".options", "application/name", name);
-            // TODO: add a description to release.properties
-            cf.SetValue(osx + ".options", "application/info", name);
+            cf.SetValue(osx + ".options", "application/info", description);
             cf.SetValue(osx + ".options", "application/short_version", version);
             cf.SetValue(osx + ".options", "application/copyright", author);
             cf.SetValue(osx + ".options", "application/version", version);
 
             var win = FindPreset("Windows Desktop");
             cf.SetValue(win + ".options", "application/product_name", name);
-            // TODO: add a description to release.properties
-            cf.SetValue(win + ".options", "application/file_description", name);
+            cf.SetValue(win + ".options", "application/file_description", description);
             cf.SetValue(win + ".options", "application/company_name", author);
             cf.SetValue(win + ".options", "application/copyright", author);
             cf.SetValue(win + ".options", "application/file_version", version);
             cf.SetValue(win + ".options", "application/product_version", version);
             
-            var linux = FindPreset("Linux/X11");
+            // var linux = FindPreset("Linux/X11");
             // cf.SetValue(linux + ".options", "application/file_version", version);
             // cf.SetValue(linux + ".options", "application/product_version", version);
-            
             
             cf.Save("res://export_presets.cfg");
         }
@@ -122,7 +119,9 @@ namespace Veronenger.export {
         Dictionary<string, string> ReadProperties(string propertiesFile) {
             var data = new Dictionary<string, string>();
             var lines = System.IO.File.ReadAllLines(propertiesFile)
-                .Where(filter => !string.IsNullOrEmpty(filter));
+                .Where(line => !string.IsNullOrEmpty(line))
+                .Select(line => line.Trim())
+                .Where(line => !line.StartsWith("#"));
             foreach (var row in lines) {
                 var key = row.Split('=')[0].Trim();
                 var value = row.Split('=')[1].Trim();
