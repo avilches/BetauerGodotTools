@@ -27,23 +27,12 @@
         <Content Include="Worlds/**" />
     </ItemGroup>
     <ItemGroup>
-      <Reference Include="Betauer.Animation">
-        <HintPath>..\export\Betauer.Animation.dll</HintPath>
-      </Reference>
-      <Reference Include="Betauer.Core">
-        <HintPath>..\export\Betauer.Core.dll</HintPath>
-      </Reference>
-      <Reference Include="Betauer.DI">
-        <HintPath>..\export\Betauer.DI.dll</HintPath>
-      </Reference>
-      <Reference Include="Betauer.GameTools">
-        <HintPath>..\export\Betauer.GameTools.dll</HintPath>
-      </Reference>
-      <Reference Include="Betauer.StateMachine">
-        <HintPath>..\export\Betauer.StateMachine.dll</HintPath>
-      </Reference>
-      <Reference Include="Betauer.TestRunner">
-        <HintPath>..\export\Betauer.TestRunner.dll</HintPath>
-      </Reference>
+        <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj" />
+        <ProjectReference Include="../Betauer.GodotAction/Betauer.GodotAction.csproj" />
+        <ProjectReference Include="../Betauer.StateMachine/Betauer.StateMachine.csproj" />
+        <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
     </ItemGroup>
 </Project>
