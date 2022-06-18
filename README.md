@@ -28,7 +28,7 @@ And use the singletons later in your scene objects like this:
 public class Player: KinematicBody2D {
     [OnReady("Body/AttackArea") Area2D _attackArea;
     [Inject] ScoreManager _scoreManager;
-    [Inject(Name="Easy"] ISceneManager _scoreManager;
+    [Inject(Name="Easy"] ISceneManager _sceneManager;
 }
 ```
 As an extra feature, you will have a `GetTree()` method available in any class just injecting `Func<SceneTree>` as an attribute:
@@ -45,7 +45,7 @@ public class YourClass {
 With just adding the container as Autoload. Dependency injection is well tested, you can check the tests in the [Betauer.DI.Tests](Betauer.DI.Tests) project.
 - [Betauer.StateMachine](Betauer.StateMachine): yet, a StateMachine implementation with a stack, compatible with `async`/`await`. Ready to be used in your menus (like this [example](DemoGame/Game/Managers/GameManager.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerStateMachine.cs)).
 The state machine code is well tested, you can check the tests in the [Betauer.StateMachine.Tests](Betauer.StateMachine.Tests) project.
-- [Betauer.Animation](Betauer.Animation): a port to C# of the well known [Anima library](https://github.com/ceceppa/anima). It include up to 77 different animations from https://animate.style. This is a better way to use Tween to create complex and reusable animation your scene elements. It can be used to create effects or to move and schedule rotations or translation in your platforms or characters.
+- [Betauer.Animation](Betauer.Animation): a port to C# of the well known [Anima library](https://github.com/ceceppa/anima). It include up to 77 different animations from https://animate.style. This is a lot better way to use Tween to create complex and reusable animations for your scene elements. It can be used to create effects or to move and schedule rotations or translation in your platforms or characters.
 ```C#
 // This one of the 77 animations called `RollOutLeft`
 return TemplateBuilder.Create()
@@ -76,8 +76,8 @@ You can check out or start to use any of the [animations](Betauer.Animation/Temp
   - More stuff like a flipper, a loader or a timer.
 - [Betauer.GodotAction](Betauer.GodotAction): Godot doesn't allow (yet) to 
 subscribe easily to signals using C# lambdas. And it also forces to extend
-Godot classes and override `_Process`,`_PhysicsProcess`,`_Input`,`_UnhandledInput`,`_UnhandledKeyInput` methods, which can be cumbersome to create a new class just to implement one method.
-This project extends all the 524 Godot C# classes and allows to use all the signals and method with lambdas:
+Godot classes and override `_Process`, `_PhysicsProcess`, `_Input`, `_UnhandledInput` and `_UnhandledKeyInput` methods, which can be cumbersome to create a new class just to implement one method.
+This project extends all the 524 Godot C# classes and allows you to use all the signals and method with lambdas:
 ```C#
 var button = new ButtonAction();
 // Lambdas instead of signals
