@@ -8,109 +8,109 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction {
     public class VisibilityEnablerAction : VisibilityEnabler {
 
-        private List<Action<float>>? _onProcessAction; 
-        private List<Action<float>>? _onPhysicsProcess; 
-        private List<Action<InputEvent>>? _onInput; 
-        private List<Action<InputEvent>>? _onUnhandledInput; 
-        private List<Action<InputEventKey>>? _onUnhandledKeyInput;
+        private List<Action<float>>? _onProcessActions; 
+        private List<Action<float>>? _onPhysicsProcessActions; 
+        private List<Action<InputEvent>>? _onInputActions; 
+        private List<Action<InputEvent>>? _onUnhandledInputActions; 
+        private List<Action<InputEventKey>>? _onUnhandledKeyInputActions;
 
-        public VisibilityEnablerAction OnProcessAction(Action<float> action) {
-            _onProcessAction ??= new List<Action<float>>(1);
-            _onProcessAction.Add(action);
+        public VisibilityEnablerAction OnProcess(Action<float> action) {
+            _onProcessActions ??= new List<Action<float>>(1);
+            _onProcessActions.Add(action);
             SetProcess(true);
             return this;
         }
         public VisibilityEnablerAction OnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcess ??= new List<Action<float>>(1);
-            _onPhysicsProcess.Add(action);
+            _onPhysicsProcessActions ??= new List<Action<float>>(1);
+            _onPhysicsProcessActions.Add(action);
             SetPhysicsProcess(true);
             return this;
         }
 
         public VisibilityEnablerAction OnInput(Action<InputEvent> action) {
-            _onInput ??= new List<Action<InputEvent>>(1);
-            _onInput.Add(action);
+            _onInputActions ??= new List<Action<InputEvent>>(1);
+            _onInputActions.Add(action);
             SetProcessInput(true);
             return this;
         }
 
         public VisibilityEnablerAction OnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInput ??= new List<Action<InputEvent>>(1);
-            _onUnhandledInput.Add(action);
+            _onUnhandledInputActions ??= new List<Action<InputEvent>>(1);
+            _onUnhandledInputActions.Add(action);
             SetProcessUnhandledInput(true);
             return this;
         }
 
         public VisibilityEnablerAction OnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInput ??= new List<Action<InputEventKey>>(1);
-            _onUnhandledKeyInput.Add(action);
+            _onUnhandledKeyInputActions ??= new List<Action<InputEventKey>>(1);
+            _onUnhandledKeyInputActions.Add(action);
             SetProcessUnhandledKeyInput(true);
             return this;
         }
 
-        public VisibilityEnablerAction RemoveOnProcessAction(Action<float> action) {
-            _onProcessAction?.Remove(action);
+        public VisibilityEnablerAction RemoveOnProcess(Action<float> action) {
+            _onProcessActions?.Remove(action);
             return this;
         }
 
         public VisibilityEnablerAction RemoveOnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcess?.Remove(action);
+            _onPhysicsProcessActions?.Remove(action);
             return this;
         }
 
         public VisibilityEnablerAction RemoveOnInput(Action<InputEvent> action) {
-            _onInput?.Remove(action);
+            _onInputActions?.Remove(action);
             return this;
         }
 
         public VisibilityEnablerAction RemoveOnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInput?.Remove(action);
+            _onUnhandledInputActions?.Remove(action);
             return this;
         }
 
         public VisibilityEnablerAction RemoveOnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInput?.Remove(action);
+            _onUnhandledKeyInputActions?.Remove(action);
             return this;
         }
 
         public override void _Process(float delta) {
-            if (_onProcessAction == null) {
+            if (_onProcessActions == null) {
                 SetProcess(false);
                 return;
             }
-            for (var i = 0; i < _onProcessAction.Count; i++) _onProcessAction[i].Invoke(delta);
+            for (var i = 0; i < _onProcessActions.Count; i++) _onProcessActions[i].Invoke(delta);
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcess == null) {
+            if (_onPhysicsProcessActions == null) {
                 SetPhysicsProcess(true);
                 return;
             }
-            for (var i = 0; i < _onPhysicsProcess.Count; i++) _onPhysicsProcess[i].Invoke(delta);
+            for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInput == null) {
+            if (_onInputActions == null) {
                 SetProcessInput(true);
                 return;
             }
-            for (var i = 0; i < _onInput.Count; i++) _onInput[i].Invoke(@event);
+            for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInput == null) {
+            if (_onUnhandledInputActions == null) {
                 SetProcessUnhandledInput(true);
                 return;
             }
-            for (var i = 0; i < _onUnhandledInput.Count; i++) _onUnhandledInput[i].Invoke(@event);
+            for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInput == null) {
+            if (_onUnhandledKeyInputActions == null) {
                 SetProcessUnhandledKeyInput(true);
                 return;
             }
-            for (var i = 0; i < _onUnhandledKeyInput.Count; i++) _onUnhandledKeyInput[i].Invoke(@event);
+            for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
         private Action<Camera>? _onCameraEnteredAction; 
