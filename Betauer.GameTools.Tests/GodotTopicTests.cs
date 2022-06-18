@@ -1,17 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Betauer.Bus;
 using Godot;
 using NUnit.Framework;
-using Betauer.Bus;
-using Betauer.TestRunner;
 
-namespace Betauer.Tests {
+namespace Betauer.GameTools.Tests {
     [TestFixture]
     public class GodotTopicTests : Node {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
-            LoggerFactory.SetConsoleOutput(ConsoleOutput.Standard);
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine);
         }
 
         [Test]

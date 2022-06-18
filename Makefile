@@ -3,6 +3,8 @@
 .DEFAULT_SHELL ?= /bin/bash
 .DEFAULT_GOAL  := help
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+BUILD_FOLDER   := ${ROOT_FOLDER}/.mono/temp/bin/Debug
+EXPORT_FOLDER  := ${ROOT_FOLDER}/export
 
 
 
@@ -33,6 +35,18 @@ clean:
 .PHONY: build
 build:
 	msbuild ${ROOT_FOLDER}/Betauer.sln /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	cp "${BUILD_FOLDER}/Betauer.Animation.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.Animation.pdb" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.Core.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.Core.pdb" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.DI.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.DI.pdb" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.GameTools.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.GameTools.pdb" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.StateMachine.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.TestRunner.dll" "${EXPORT_FOLDER}"  
+	cp "${BUILD_FOLDER}/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}"  
 
 .PHONY: generate
 generate:

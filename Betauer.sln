@@ -28,8 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests", "Betauer.StateMachine.Tests\Betauer.StateMachine.Tests.csproj", "{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoGame", "DemoGame\DemoGame.csproj", "{B3951C85-1BD1-4642-AB73-643EB9E31482}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -121,11 +119,5 @@ Global
 		{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{B3951C85-1BD1-4642-AB73-643EB9E31482}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal
