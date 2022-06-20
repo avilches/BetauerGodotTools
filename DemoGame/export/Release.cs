@@ -9,7 +9,7 @@ namespace Veronenger.export {
         private static readonly string[] ExcludeFilter = { "export/*", "Tests/*" };
         
         public override void _Initialize() {
-            var release = ReadProperties("release.properties");
+            var release = ReadProperties("application.properties");
             
             var version = release["VERSION"];
             var author = release["AUTHOR"];

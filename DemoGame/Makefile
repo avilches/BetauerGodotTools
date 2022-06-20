@@ -1,10 +1,9 @@
 #!/usr/bin/env make
 
-
 .DEFAULT_SHELL ?= /bin/bash
 .DEFAULT_GOAL  := help
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-include ${ROOT_FOLDER}/release.properties
+include ${ROOT_FOLDER}/application.properties
 TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
 EXPORT_OSX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
 EXPORT_WIN     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
@@ -12,7 +11,7 @@ EXPORT_LINUX   := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
 
 TARGET_PLATFORM    ?= osx
 GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api/Debug
+GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
 
@@ -25,7 +24,7 @@ help:
 	@echo "    test         run tests from all projects"
 	@echo "    run          run the game"
 	@echo "    editor       open the Godot editor"
-	@echo "    release      upgrade the application to version $(VERSION)"
+	@echo "    release      use the [application.properties] file to upgrade the project"
 	@echo "    export/osx   create binary for osx"
 	@echo "    export/win   create binary for Windows"
 	@echo "    export/linux create binary for Linux"
@@ -34,7 +33,7 @@ help:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "release.properties:"
+	@echo "application.properties:"
 	@echo "    NAME            ${NAME}"
 	@echo "    ID              ${ID}"
 	@echo "    DESCRIPTION     ${DESCRIPTION}"
@@ -44,15 +43,17 @@ help:
 
 .PHONY: clean
 clean:
-	rm -rf ${ROOT_FOLDER}/.mono
+	rm -rf "${ROOT_FOLDER}/.mono"
 
 
-	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/Debug
-	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/Debug
+	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
+	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
+	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
+	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
 	
 .PHONY: build
 build:
-	msbuild ${ROOT_FOLDER}/Veronenger.sln /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	msbuild "${ROOT_FOLDER}/Veronenger.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: run
 run:
@@ -88,14 +89,14 @@ check-version:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "release.properties:"
+	@echo "application.properties:"
 	@echo "    VERSION         ${VERSION}"
 	@echo ""
 ifneq ($(CURRENT_VERSION), $(VERSION))
 	@echo ""
 	@echo "Current project.godot version != new version"
 	@echo ""
-	make -f ${ROOT_FOLDER}/Makefile build release
+	make -f "${ROOT_FOLDER}/Makefile" build release
 else
 	@echo "Version matches, exporting..."
 	@echo ""
@@ -108,7 +109,7 @@ release:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "release.properties:"
+	@echo "application.properties:"
 	@echo "    NAME            ${NAME}"
 	@echo "    ID              ${ID}"
 	@echo "    DESCRIPTION     ${DESCRIPTION}"

@@ -14,7 +14,7 @@
         <PackageReference Include="NUnit" Version="3.13.3" />
         <Compile Include="Tests/**" />
         <Reference Include="Betauer.TestRunner">
-            <HintPath>..\export\Betauer.TestRunner.dll</HintPath>
+            <HintPath>..\export\releases\0.1.0\Betauer.TestRunner.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
@@ -32,19 +32,19 @@
     </ItemGroup>
     <ItemGroup>
       <Reference Include="Betauer.Animation">
-        <HintPath>..\export\Betauer.Animation.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\Betauer.Animation.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.Core">
-        <HintPath>..\export\Betauer.Core.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\Betauer.Core.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.DI">
-        <HintPath>..\export\Betauer.DI.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\Betauer.DI.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.GameTools">
-        <HintPath>..\export\Betauer.GameTools.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\Betauer.GameTools.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.StateMachine">
-        <HintPath>..\export\Betauer.StateMachine.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\Betauer.StateMachine.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>

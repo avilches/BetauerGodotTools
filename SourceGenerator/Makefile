@@ -9,7 +9,7 @@ ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 TARGET_PLATFORM    ?= osx
 GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api/Debug
+GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
 
 
 .PHONY: help
@@ -24,15 +24,15 @@ help:
 
 .PHONY: clean
 clean:
-	rm -rf ${ROOT_FOLDER}/.mono
+	rm -rf "${ROOT_FOLDER}/.mono"
 
 
-	mkdir -p ${ROOT_FOLDER}/.mono/assemblies/Debug
-	cp -pr ${GODOT_SHARP_FOLDER}/* ${ROOT_FOLDER}/.mono/assemblies/Debug
+	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
+	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
 	
 .PHONY: build
 build:
-	msbuild ${ROOT_FOLDER}/Generator.sln /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	msbuild "${ROOT_FOLDER}/Generator.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: run
 run:
