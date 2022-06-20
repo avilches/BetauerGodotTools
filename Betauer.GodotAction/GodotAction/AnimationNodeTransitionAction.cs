@@ -9,72 +9,96 @@ namespace Betauer.GodotAction {
     public class AnimationNodeTransitionAction : AnimationNodeTransition {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public AnimationNodeTransitionAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public AnimationNodeTransitionAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public AnimationNodeTransitionAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onRemovedFromGraphAction; 
+        private List<Action>? _onRemovedFromGraphAction; 
         public AnimationNodeTransitionAction OnRemovedFromGraph(Action action) {
-            if (_onRemovedFromGraphAction == null) 
+            if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) {
+                _onRemovedFromGraphAction ??= new List<Action>(); 
                 Connect("removed_from_graph", this, nameof(ExecuteRemovedFromGraph));
-            _onRemovedFromGraphAction = action;
+            }
+            _onRemovedFromGraphAction.Add(action);
             return this;
         }
-        public AnimationNodeTransitionAction RemoveOnRemovedFromGraph() {
-            if (_onRemovedFromGraphAction == null) return this; 
-            Disconnect("removed_from_graph", this, nameof(ExecuteRemovedFromGraph));
-            _onRemovedFromGraphAction = null;
+        public AnimationNodeTransitionAction RemoveOnRemovedFromGraph(Action action) {
+            if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) return this;
+            _onRemovedFromGraphAction.Remove(action); 
+            if (_onRemovedFromGraphAction.Count == 0) {
+                Disconnect("removed_from_graph", this, nameof(ExecuteRemovedFromGraph));
+            }
             return this;
         }
-        private void ExecuteRemovedFromGraph() =>
-            _onRemovedFromGraphAction?.Invoke();
+        private void ExecuteRemovedFromGraph() {
+            if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) return;
+            for (var i = 0; i < _onRemovedFromGraphAction.Count; i++) _onRemovedFromGraphAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public AnimationNodeTransitionAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public AnimationNodeTransitionAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public AnimationNodeTransitionAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeChangedAction; 
+        private List<Action>? _onTreeChangedAction; 
         public AnimationNodeTransitionAction OnTreeChanged(Action action) {
-            if (_onTreeChangedAction == null) 
+            if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) {
+                _onTreeChangedAction ??= new List<Action>(); 
                 Connect("tree_changed", this, nameof(ExecuteTreeChanged));
-            _onTreeChangedAction = action;
+            }
+            _onTreeChangedAction.Add(action);
             return this;
         }
-        public AnimationNodeTransitionAction RemoveOnTreeChanged() {
-            if (_onTreeChangedAction == null) return this; 
-            Disconnect("tree_changed", this, nameof(ExecuteTreeChanged));
-            _onTreeChangedAction = null;
+        public AnimationNodeTransitionAction RemoveOnTreeChanged(Action action) {
+            if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return this;
+            _onTreeChangedAction.Remove(action); 
+            if (_onTreeChangedAction.Count == 0) {
+                Disconnect("tree_changed", this, nameof(ExecuteTreeChanged));
+            }
             return this;
         }
-        private void ExecuteTreeChanged() =>
-            _onTreeChangedAction?.Invoke();
+        private void ExecuteTreeChanged() {
+            if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeChangedAction.Count; i++) _onTreeChangedAction[i].Invoke();
+        }
         
     }
 }

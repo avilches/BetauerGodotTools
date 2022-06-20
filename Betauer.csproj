@@ -33,6 +33,7 @@
         <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
         <ProjectReference Include="Betauer.DI.Tests/Betauer.DI.Tests.csproj" />
         <ProjectReference Include="Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj" />
+        <ProjectReference Include="Betauer.GodotAction.Tests/Betauer.GodotAction.Tests.csproj" />
         <ProjectReference Include="Betauer.StateMachine.Tests/Betauer.StateMachine.Tests.csproj" />
     </ItemGroup>
 <!--    <ItemGroup>-->

@@ -96,21 +96,27 @@ public class GeneratorScript : SceneTree {
         var actionVarName = $"_on{signal.MethodName}Action";
         var godotExecuteActionMethodName = $"Execute{signal.MethodName}";
         return $@"
-        private Action{signal.Generics()}? {actionVarName}; 
+        private List<Action{signal.Generics()}>? {actionVarName}; 
         public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action) {{
-            if ({actionVarName} == null) 
+            if ({actionVarName} == null || {actionVarName}.Count == 0) {{
+                {actionVarName} ??= new List<Action{signal.Generics()}>(); 
                 Connect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
-            {actionVarName} = action;
+            }}
+            {actionVarName}.Add(action);
             return this;
         }}
-        public {signal.GodotClass.GeneratedClassName} RemoveOn{signal.MethodName}() {{
-            if ({actionVarName} == null) return this; 
-            Disconnect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
-            {actionVarName} = null;
+        public {signal.GodotClass.GeneratedClassName} RemoveOn{signal.MethodName}(Action{signal.Generics()} action) {{
+            if ({actionVarName} == null || {actionVarName}.Count == 0) return this;
+            {actionVarName}.Remove(action); 
+            if ({actionVarName}.Count == 0) {{
+                Disconnect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
+            }}
             return this;
         }}
-        private void {godotExecuteActionMethodName}({signal.GetParamNamesWithType()}) =>
-            {actionVarName}?.Invoke({signal.GetParamNames()});
+        private void {godotExecuteActionMethodName}({signal.GetParamNamesWithType()}) {{
+            if ({actionVarName} == null || {actionVarName}.Count == 0) return;
+            for (var i = 0; i < {actionVarName}.Count; i++) {actionVarName}[i].Invoke({signal.GetParamNames()});
+        }}
         ";
     }
 
@@ -224,7 +230,7 @@ namespace Betauer {{
         }}
 
         public override void _Process(float delta) {{
-            if (_onProcessActions == null) {{
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {{
                 SetProcess(false);
                 return;
             }}
@@ -232,32 +238,32 @@ namespace Betauer {{
         }}
 
         public override void _PhysicsProcess(float delta) {{
-            if (_onPhysicsProcessActions == null) {{
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {{
+                SetPhysicsProcess(false);
                 return;
             }}
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }}
 
         public override void _Input(InputEvent @event) {{
-            if (_onInputActions == null) {{
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {{
+                SetProcessInput(false);
                 return;
             }}
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }}
 
         public override void _UnhandledInput(InputEvent @event) {{
-            if (_onUnhandledInputActions == null) {{
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {{
+                SetProcessUnhandledInput(false);
                 return;
             }}
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }}
 
         public override void _UnhandledKeyInput(InputEventKey @event) {{
-            if (_onUnhandledKeyInputActions == null) {{
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {{
+                SetProcessUnhandledKeyInput(false);
                 return;
             }}
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);

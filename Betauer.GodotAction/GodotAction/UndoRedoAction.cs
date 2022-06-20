@@ -9,38 +9,50 @@ namespace Betauer.GodotAction {
     public class UndoRedoAction : UndoRedo {
 
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public UndoRedoAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public UndoRedoAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public UndoRedoAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onVersionChangedAction; 
+        private List<Action>? _onVersionChangedAction; 
         public UndoRedoAction OnVersionChanged(Action action) {
-            if (_onVersionChangedAction == null) 
+            if (_onVersionChangedAction == null || _onVersionChangedAction.Count == 0) {
+                _onVersionChangedAction ??= new List<Action>(); 
                 Connect("version_changed", this, nameof(ExecuteVersionChanged));
-            _onVersionChangedAction = action;
+            }
+            _onVersionChangedAction.Add(action);
             return this;
         }
-        public UndoRedoAction RemoveOnVersionChanged() {
-            if (_onVersionChangedAction == null) return this; 
-            Disconnect("version_changed", this, nameof(ExecuteVersionChanged));
-            _onVersionChangedAction = null;
+        public UndoRedoAction RemoveOnVersionChanged(Action action) {
+            if (_onVersionChangedAction == null || _onVersionChangedAction.Count == 0) return this;
+            _onVersionChangedAction.Remove(action); 
+            if (_onVersionChangedAction.Count == 0) {
+                Disconnect("version_changed", this, nameof(ExecuteVersionChanged));
+            }
             return this;
         }
-        private void ExecuteVersionChanged() =>
-            _onVersionChangedAction?.Invoke();
+        private void ExecuteVersionChanged() {
+            if (_onVersionChangedAction == null || _onVersionChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVersionChangedAction.Count; i++) _onVersionChangedAction[i].Invoke();
+        }
         
     }
 }

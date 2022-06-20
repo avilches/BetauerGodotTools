@@ -9,123 +9,165 @@ namespace Betauer.GodotAction {
     public class MultiplayerAPIAction : MultiplayerAPI {
 
 
-        private Action? _onConnectedToServerAction; 
+        private List<Action>? _onConnectedToServerAction; 
         public MultiplayerAPIAction OnConnectedToServer(Action action) {
-            if (_onConnectedToServerAction == null) 
+            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) {
+                _onConnectedToServerAction ??= new List<Action>(); 
                 Connect("connected_to_server", this, nameof(ExecuteConnectedToServer));
-            _onConnectedToServerAction = action;
+            }
+            _onConnectedToServerAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnConnectedToServer() {
-            if (_onConnectedToServerAction == null) return this; 
-            Disconnect("connected_to_server", this, nameof(ExecuteConnectedToServer));
-            _onConnectedToServerAction = null;
+        public MultiplayerAPIAction RemoveOnConnectedToServer(Action action) {
+            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return this;
+            _onConnectedToServerAction.Remove(action); 
+            if (_onConnectedToServerAction.Count == 0) {
+                Disconnect("connected_to_server", this, nameof(ExecuteConnectedToServer));
+            }
             return this;
         }
-        private void ExecuteConnectedToServer() =>
-            _onConnectedToServerAction?.Invoke();
+        private void ExecuteConnectedToServer() {
+            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return;
+            for (var i = 0; i < _onConnectedToServerAction.Count; i++) _onConnectedToServerAction[i].Invoke();
+        }
         
 
-        private Action? _onConnectionFailedAction; 
+        private List<Action>? _onConnectionFailedAction; 
         public MultiplayerAPIAction OnConnectionFailed(Action action) {
-            if (_onConnectionFailedAction == null) 
+            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) {
+                _onConnectionFailedAction ??= new List<Action>(); 
                 Connect("connection_failed", this, nameof(ExecuteConnectionFailed));
-            _onConnectionFailedAction = action;
+            }
+            _onConnectionFailedAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnConnectionFailed() {
-            if (_onConnectionFailedAction == null) return this; 
-            Disconnect("connection_failed", this, nameof(ExecuteConnectionFailed));
-            _onConnectionFailedAction = null;
+        public MultiplayerAPIAction RemoveOnConnectionFailed(Action action) {
+            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return this;
+            _onConnectionFailedAction.Remove(action); 
+            if (_onConnectionFailedAction.Count == 0) {
+                Disconnect("connection_failed", this, nameof(ExecuteConnectionFailed));
+            }
             return this;
         }
-        private void ExecuteConnectionFailed() =>
-            _onConnectionFailedAction?.Invoke();
+        private void ExecuteConnectionFailed() {
+            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return;
+            for (var i = 0; i < _onConnectionFailedAction.Count; i++) _onConnectionFailedAction[i].Invoke();
+        }
         
 
-        private Action<int>? _onNetworkPeerConnectedAction; 
+        private List<Action<int>>? _onNetworkPeerConnectedAction; 
         public MultiplayerAPIAction OnNetworkPeerConnected(Action<int> action) {
-            if (_onNetworkPeerConnectedAction == null) 
+            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) {
+                _onNetworkPeerConnectedAction ??= new List<Action<int>>(); 
                 Connect("network_peer_connected", this, nameof(ExecuteNetworkPeerConnected));
-            _onNetworkPeerConnectedAction = action;
+            }
+            _onNetworkPeerConnectedAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnNetworkPeerConnected() {
-            if (_onNetworkPeerConnectedAction == null) return this; 
-            Disconnect("network_peer_connected", this, nameof(ExecuteNetworkPeerConnected));
-            _onNetworkPeerConnectedAction = null;
+        public MultiplayerAPIAction RemoveOnNetworkPeerConnected(Action<int> action) {
+            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return this;
+            _onNetworkPeerConnectedAction.Remove(action); 
+            if (_onNetworkPeerConnectedAction.Count == 0) {
+                Disconnect("network_peer_connected", this, nameof(ExecuteNetworkPeerConnected));
+            }
             return this;
         }
-        private void ExecuteNetworkPeerConnected(int id) =>
-            _onNetworkPeerConnectedAction?.Invoke(id);
+        private void ExecuteNetworkPeerConnected(int id) {
+            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return;
+            for (var i = 0; i < _onNetworkPeerConnectedAction.Count; i++) _onNetworkPeerConnectedAction[i].Invoke(id);
+        }
         
 
-        private Action<int>? _onNetworkPeerDisconnectedAction; 
+        private List<Action<int>>? _onNetworkPeerDisconnectedAction; 
         public MultiplayerAPIAction OnNetworkPeerDisconnected(Action<int> action) {
-            if (_onNetworkPeerDisconnectedAction == null) 
+            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) {
+                _onNetworkPeerDisconnectedAction ??= new List<Action<int>>(); 
                 Connect("network_peer_disconnected", this, nameof(ExecuteNetworkPeerDisconnected));
-            _onNetworkPeerDisconnectedAction = action;
+            }
+            _onNetworkPeerDisconnectedAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnNetworkPeerDisconnected() {
-            if (_onNetworkPeerDisconnectedAction == null) return this; 
-            Disconnect("network_peer_disconnected", this, nameof(ExecuteNetworkPeerDisconnected));
-            _onNetworkPeerDisconnectedAction = null;
+        public MultiplayerAPIAction RemoveOnNetworkPeerDisconnected(Action<int> action) {
+            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return this;
+            _onNetworkPeerDisconnectedAction.Remove(action); 
+            if (_onNetworkPeerDisconnectedAction.Count == 0) {
+                Disconnect("network_peer_disconnected", this, nameof(ExecuteNetworkPeerDisconnected));
+            }
             return this;
         }
-        private void ExecuteNetworkPeerDisconnected(int id) =>
-            _onNetworkPeerDisconnectedAction?.Invoke(id);
+        private void ExecuteNetworkPeerDisconnected(int id) {
+            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return;
+            for (var i = 0; i < _onNetworkPeerDisconnectedAction.Count; i++) _onNetworkPeerDisconnectedAction[i].Invoke(id);
+        }
         
 
-        private Action<int, byte[]>? _onNetworkPeerPacketAction; 
+        private List<Action<int, byte[]>>? _onNetworkPeerPacketAction; 
         public MultiplayerAPIAction OnNetworkPeerPacket(Action<int, byte[]> action) {
-            if (_onNetworkPeerPacketAction == null) 
+            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) {
+                _onNetworkPeerPacketAction ??= new List<Action<int, byte[]>>(); 
                 Connect("network_peer_packet", this, nameof(ExecuteNetworkPeerPacket));
-            _onNetworkPeerPacketAction = action;
+            }
+            _onNetworkPeerPacketAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnNetworkPeerPacket() {
-            if (_onNetworkPeerPacketAction == null) return this; 
-            Disconnect("network_peer_packet", this, nameof(ExecuteNetworkPeerPacket));
-            _onNetworkPeerPacketAction = null;
+        public MultiplayerAPIAction RemoveOnNetworkPeerPacket(Action<int, byte[]> action) {
+            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) return this;
+            _onNetworkPeerPacketAction.Remove(action); 
+            if (_onNetworkPeerPacketAction.Count == 0) {
+                Disconnect("network_peer_packet", this, nameof(ExecuteNetworkPeerPacket));
+            }
             return this;
         }
-        private void ExecuteNetworkPeerPacket(int id, byte[] packet) =>
-            _onNetworkPeerPacketAction?.Invoke(id, packet);
+        private void ExecuteNetworkPeerPacket(int id, byte[] packet) {
+            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) return;
+            for (var i = 0; i < _onNetworkPeerPacketAction.Count; i++) _onNetworkPeerPacketAction[i].Invoke(id, packet);
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public MultiplayerAPIAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public MultiplayerAPIAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onServerDisconnectedAction; 
+        private List<Action>? _onServerDisconnectedAction; 
         public MultiplayerAPIAction OnServerDisconnected(Action action) {
-            if (_onServerDisconnectedAction == null) 
+            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) {
+                _onServerDisconnectedAction ??= new List<Action>(); 
                 Connect("server_disconnected", this, nameof(ExecuteServerDisconnected));
-            _onServerDisconnectedAction = action;
+            }
+            _onServerDisconnectedAction.Add(action);
             return this;
         }
-        public MultiplayerAPIAction RemoveOnServerDisconnected() {
-            if (_onServerDisconnectedAction == null) return this; 
-            Disconnect("server_disconnected", this, nameof(ExecuteServerDisconnected));
-            _onServerDisconnectedAction = null;
+        public MultiplayerAPIAction RemoveOnServerDisconnected(Action action) {
+            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return this;
+            _onServerDisconnectedAction.Remove(action); 
+            if (_onServerDisconnectedAction.Count == 0) {
+                Disconnect("server_disconnected", this, nameof(ExecuteServerDisconnected));
+            }
             return this;
         }
-        private void ExecuteServerDisconnected() =>
-            _onServerDisconnectedAction?.Invoke();
+        private void ExecuteServerDisconnected() {
+            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return;
+            for (var i = 0; i < _onServerDisconnectedAction.Count; i++) _onServerDisconnectedAction[i].Invoke();
+        }
         
     }
 }

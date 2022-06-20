@@ -9,55 +9,73 @@ namespace Betauer.GodotAction {
     public class AnimationAction : Animation {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public AnimationAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public AnimationAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public AnimationAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public AnimationAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public AnimationAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public AnimationAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTracksChangedAction; 
+        private List<Action>? _onTracksChangedAction; 
         public AnimationAction OnTracksChanged(Action action) {
-            if (_onTracksChangedAction == null) 
+            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) {
+                _onTracksChangedAction ??= new List<Action>(); 
                 Connect("tracks_changed", this, nameof(ExecuteTracksChanged));
-            _onTracksChangedAction = action;
+            }
+            _onTracksChangedAction.Add(action);
             return this;
         }
-        public AnimationAction RemoveOnTracksChanged() {
-            if (_onTracksChangedAction == null) return this; 
-            Disconnect("tracks_changed", this, nameof(ExecuteTracksChanged));
-            _onTracksChangedAction = null;
+        public AnimationAction RemoveOnTracksChanged(Action action) {
+            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) return this;
+            _onTracksChangedAction.Remove(action); 
+            if (_onTracksChangedAction.Count == 0) {
+                Disconnect("tracks_changed", this, nameof(ExecuteTracksChanged));
+            }
             return this;
         }
-        private void ExecuteTracksChanged() =>
-            _onTracksChangedAction?.Invoke();
+        private void ExecuteTracksChanged() {
+            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) return;
+            for (var i = 0; i < _onTracksChangedAction.Count; i++) _onTracksChangedAction[i].Invoke();
+        }
         
     }
 }

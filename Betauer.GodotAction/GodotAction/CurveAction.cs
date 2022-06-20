@@ -9,55 +9,73 @@ namespace Betauer.GodotAction {
     public class CurveAction : Curve {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public CurveAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public CurveAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public CurveAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onRangeChangedAction; 
+        private List<Action>? _onRangeChangedAction; 
         public CurveAction OnRangeChanged(Action action) {
-            if (_onRangeChangedAction == null) 
+            if (_onRangeChangedAction == null || _onRangeChangedAction.Count == 0) {
+                _onRangeChangedAction ??= new List<Action>(); 
                 Connect("range_changed", this, nameof(ExecuteRangeChanged));
-            _onRangeChangedAction = action;
+            }
+            _onRangeChangedAction.Add(action);
             return this;
         }
-        public CurveAction RemoveOnRangeChanged() {
-            if (_onRangeChangedAction == null) return this; 
-            Disconnect("range_changed", this, nameof(ExecuteRangeChanged));
-            _onRangeChangedAction = null;
+        public CurveAction RemoveOnRangeChanged(Action action) {
+            if (_onRangeChangedAction == null || _onRangeChangedAction.Count == 0) return this;
+            _onRangeChangedAction.Remove(action); 
+            if (_onRangeChangedAction.Count == 0) {
+                Disconnect("range_changed", this, nameof(ExecuteRangeChanged));
+            }
             return this;
         }
-        private void ExecuteRangeChanged() =>
-            _onRangeChangedAction?.Invoke();
+        private void ExecuteRangeChanged() {
+            if (_onRangeChangedAction == null || _onRangeChangedAction.Count == 0) return;
+            for (var i = 0; i < _onRangeChangedAction.Count; i++) _onRangeChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public CurveAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public CurveAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public CurveAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
     }
 }

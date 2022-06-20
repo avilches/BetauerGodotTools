@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,392 +82,518 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action<Area2D>? _onAreaEnteredAction; 
+        private List<Action<Area2D>>? _onAreaEnteredAction; 
         public Area2DAction OnAreaEntered(Action<Area2D> action) {
-            if (_onAreaEnteredAction == null) 
+            if (_onAreaEnteredAction == null || _onAreaEnteredAction.Count == 0) {
+                _onAreaEnteredAction ??= new List<Action<Area2D>>(); 
                 Connect("area_entered", this, nameof(ExecuteAreaEntered));
-            _onAreaEnteredAction = action;
+            }
+            _onAreaEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnAreaEntered() {
-            if (_onAreaEnteredAction == null) return this; 
-            Disconnect("area_entered", this, nameof(ExecuteAreaEntered));
-            _onAreaEnteredAction = null;
+        public Area2DAction RemoveOnAreaEntered(Action<Area2D> action) {
+            if (_onAreaEnteredAction == null || _onAreaEnteredAction.Count == 0) return this;
+            _onAreaEnteredAction.Remove(action); 
+            if (_onAreaEnteredAction.Count == 0) {
+                Disconnect("area_entered", this, nameof(ExecuteAreaEntered));
+            }
             return this;
         }
-        private void ExecuteAreaEntered(Area2D area) =>
-            _onAreaEnteredAction?.Invoke(area);
+        private void ExecuteAreaEntered(Area2D area) {
+            if (_onAreaEnteredAction == null || _onAreaEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onAreaEnteredAction.Count; i++) _onAreaEnteredAction[i].Invoke(area);
+        }
         
 
-        private Action<Area2D>? _onAreaExitedAction; 
+        private List<Action<Area2D>>? _onAreaExitedAction; 
         public Area2DAction OnAreaExited(Action<Area2D> action) {
-            if (_onAreaExitedAction == null) 
+            if (_onAreaExitedAction == null || _onAreaExitedAction.Count == 0) {
+                _onAreaExitedAction ??= new List<Action<Area2D>>(); 
                 Connect("area_exited", this, nameof(ExecuteAreaExited));
-            _onAreaExitedAction = action;
+            }
+            _onAreaExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnAreaExited() {
-            if (_onAreaExitedAction == null) return this; 
-            Disconnect("area_exited", this, nameof(ExecuteAreaExited));
-            _onAreaExitedAction = null;
+        public Area2DAction RemoveOnAreaExited(Action<Area2D> action) {
+            if (_onAreaExitedAction == null || _onAreaExitedAction.Count == 0) return this;
+            _onAreaExitedAction.Remove(action); 
+            if (_onAreaExitedAction.Count == 0) {
+                Disconnect("area_exited", this, nameof(ExecuteAreaExited));
+            }
             return this;
         }
-        private void ExecuteAreaExited(Area2D area) =>
-            _onAreaExitedAction?.Invoke(area);
+        private void ExecuteAreaExited(Area2D area) {
+            if (_onAreaExitedAction == null || _onAreaExitedAction.Count == 0) return;
+            for (var i = 0; i < _onAreaExitedAction.Count; i++) _onAreaExitedAction[i].Invoke(area);
+        }
         
 
-        private Action<Area2D, RID, int, int>? _onAreaShapeEnteredAction; 
+        private List<Action<Area2D, RID, int, int>>? _onAreaShapeEnteredAction; 
         public Area2DAction OnAreaShapeEntered(Action<Area2D, RID, int, int> action) {
-            if (_onAreaShapeEnteredAction == null) 
+            if (_onAreaShapeEnteredAction == null || _onAreaShapeEnteredAction.Count == 0) {
+                _onAreaShapeEnteredAction ??= new List<Action<Area2D, RID, int, int>>(); 
                 Connect("area_shape_entered", this, nameof(ExecuteAreaShapeEntered));
-            _onAreaShapeEnteredAction = action;
+            }
+            _onAreaShapeEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnAreaShapeEntered() {
-            if (_onAreaShapeEnteredAction == null) return this; 
-            Disconnect("area_shape_entered", this, nameof(ExecuteAreaShapeEntered));
-            _onAreaShapeEnteredAction = null;
+        public Area2DAction RemoveOnAreaShapeEntered(Action<Area2D, RID, int, int> action) {
+            if (_onAreaShapeEnteredAction == null || _onAreaShapeEnteredAction.Count == 0) return this;
+            _onAreaShapeEnteredAction.Remove(action); 
+            if (_onAreaShapeEnteredAction.Count == 0) {
+                Disconnect("area_shape_entered", this, nameof(ExecuteAreaShapeEntered));
+            }
             return this;
         }
-        private void ExecuteAreaShapeEntered(Area2D area, RID area_rid, int area_shape_index, int local_shape_index) =>
-            _onAreaShapeEnteredAction?.Invoke(area, area_rid, area_shape_index, local_shape_index);
+        private void ExecuteAreaShapeEntered(Area2D area, RID area_rid, int area_shape_index, int local_shape_index) {
+            if (_onAreaShapeEnteredAction == null || _onAreaShapeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onAreaShapeEnteredAction.Count; i++) _onAreaShapeEnteredAction[i].Invoke(area, area_rid, area_shape_index, local_shape_index);
+        }
         
 
-        private Action<Area2D, RID, int, int>? _onAreaShapeExitedAction; 
+        private List<Action<Area2D, RID, int, int>>? _onAreaShapeExitedAction; 
         public Area2DAction OnAreaShapeExited(Action<Area2D, RID, int, int> action) {
-            if (_onAreaShapeExitedAction == null) 
+            if (_onAreaShapeExitedAction == null || _onAreaShapeExitedAction.Count == 0) {
+                _onAreaShapeExitedAction ??= new List<Action<Area2D, RID, int, int>>(); 
                 Connect("area_shape_exited", this, nameof(ExecuteAreaShapeExited));
-            _onAreaShapeExitedAction = action;
+            }
+            _onAreaShapeExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnAreaShapeExited() {
-            if (_onAreaShapeExitedAction == null) return this; 
-            Disconnect("area_shape_exited", this, nameof(ExecuteAreaShapeExited));
-            _onAreaShapeExitedAction = null;
+        public Area2DAction RemoveOnAreaShapeExited(Action<Area2D, RID, int, int> action) {
+            if (_onAreaShapeExitedAction == null || _onAreaShapeExitedAction.Count == 0) return this;
+            _onAreaShapeExitedAction.Remove(action); 
+            if (_onAreaShapeExitedAction.Count == 0) {
+                Disconnect("area_shape_exited", this, nameof(ExecuteAreaShapeExited));
+            }
             return this;
         }
-        private void ExecuteAreaShapeExited(Area2D area, RID area_rid, int area_shape_index, int local_shape_index) =>
-            _onAreaShapeExitedAction?.Invoke(area, area_rid, area_shape_index, local_shape_index);
+        private void ExecuteAreaShapeExited(Area2D area, RID area_rid, int area_shape_index, int local_shape_index) {
+            if (_onAreaShapeExitedAction == null || _onAreaShapeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onAreaShapeExitedAction.Count; i++) _onAreaShapeExitedAction[i].Invoke(area, area_rid, area_shape_index, local_shape_index);
+        }
         
 
-        private Action<Node>? _onBodyEnteredAction; 
+        private List<Action<Node>>? _onBodyEnteredAction; 
         public Area2DAction OnBodyEntered(Action<Node> action) {
-            if (_onBodyEnteredAction == null) 
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) {
+                _onBodyEnteredAction ??= new List<Action<Node>>(); 
                 Connect("body_entered", this, nameof(ExecuteBodyEntered));
-            _onBodyEnteredAction = action;
+            }
+            _onBodyEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnBodyEntered() {
-            if (_onBodyEnteredAction == null) return this; 
-            Disconnect("body_entered", this, nameof(ExecuteBodyEntered));
-            _onBodyEnteredAction = null;
+        public Area2DAction RemoveOnBodyEntered(Action<Node> action) {
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) return this;
+            _onBodyEnteredAction.Remove(action); 
+            if (_onBodyEnteredAction.Count == 0) {
+                Disconnect("body_entered", this, nameof(ExecuteBodyEntered));
+            }
             return this;
         }
-        private void ExecuteBodyEntered(Node body) =>
-            _onBodyEnteredAction?.Invoke(body);
+        private void ExecuteBodyEntered(Node body) {
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onBodyEnteredAction.Count; i++) _onBodyEnteredAction[i].Invoke(body);
+        }
         
 
-        private Action<Node>? _onBodyExitedAction; 
+        private List<Action<Node>>? _onBodyExitedAction; 
         public Area2DAction OnBodyExited(Action<Node> action) {
-            if (_onBodyExitedAction == null) 
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) {
+                _onBodyExitedAction ??= new List<Action<Node>>(); 
                 Connect("body_exited", this, nameof(ExecuteBodyExited));
-            _onBodyExitedAction = action;
+            }
+            _onBodyExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnBodyExited() {
-            if (_onBodyExitedAction == null) return this; 
-            Disconnect("body_exited", this, nameof(ExecuteBodyExited));
-            _onBodyExitedAction = null;
+        public Area2DAction RemoveOnBodyExited(Action<Node> action) {
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) return this;
+            _onBodyExitedAction.Remove(action); 
+            if (_onBodyExitedAction.Count == 0) {
+                Disconnect("body_exited", this, nameof(ExecuteBodyExited));
+            }
             return this;
         }
-        private void ExecuteBodyExited(Node body) =>
-            _onBodyExitedAction?.Invoke(body);
+        private void ExecuteBodyExited(Node body) {
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) return;
+            for (var i = 0; i < _onBodyExitedAction.Count; i++) _onBodyExitedAction[i].Invoke(body);
+        }
         
 
-        private Action<Node, RID, int, int>? _onBodyShapeEnteredAction; 
+        private List<Action<Node, RID, int, int>>? _onBodyShapeEnteredAction; 
         public Area2DAction OnBodyShapeEntered(Action<Node, RID, int, int> action) {
-            if (_onBodyShapeEnteredAction == null) 
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) {
+                _onBodyShapeEnteredAction ??= new List<Action<Node, RID, int, int>>(); 
                 Connect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
-            _onBodyShapeEnteredAction = action;
+            }
+            _onBodyShapeEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnBodyShapeEntered() {
-            if (_onBodyShapeEnteredAction == null) return this; 
-            Disconnect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
-            _onBodyShapeEnteredAction = null;
+        public Area2DAction RemoveOnBodyShapeEntered(Action<Node, RID, int, int> action) {
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) return this;
+            _onBodyShapeEnteredAction.Remove(action); 
+            if (_onBodyShapeEnteredAction.Count == 0) {
+                Disconnect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
+            }
             return this;
         }
-        private void ExecuteBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
-            _onBodyShapeEnteredAction?.Invoke(body, body_rid, body_shape_index, local_shape_index);
+        private void ExecuteBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onBodyShapeEnteredAction.Count; i++) _onBodyShapeEnteredAction[i].Invoke(body, body_rid, body_shape_index, local_shape_index);
+        }
         
 
-        private Action<Node, RID, int, int>? _onBodyShapeExitedAction; 
+        private List<Action<Node, RID, int, int>>? _onBodyShapeExitedAction; 
         public Area2DAction OnBodyShapeExited(Action<Node, RID, int, int> action) {
-            if (_onBodyShapeExitedAction == null) 
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) {
+                _onBodyShapeExitedAction ??= new List<Action<Node, RID, int, int>>(); 
                 Connect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
-            _onBodyShapeExitedAction = action;
+            }
+            _onBodyShapeExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnBodyShapeExited() {
-            if (_onBodyShapeExitedAction == null) return this; 
-            Disconnect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
-            _onBodyShapeExitedAction = null;
+        public Area2DAction RemoveOnBodyShapeExited(Action<Node, RID, int, int> action) {
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) return this;
+            _onBodyShapeExitedAction.Remove(action); 
+            if (_onBodyShapeExitedAction.Count == 0) {
+                Disconnect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
+            }
             return this;
         }
-        private void ExecuteBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
-            _onBodyShapeExitedAction?.Invoke(body, body_rid, body_shape_index, local_shape_index);
+        private void ExecuteBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onBodyShapeExitedAction.Count; i++) _onBodyShapeExitedAction[i].Invoke(body, body_rid, body_shape_index, local_shape_index);
+        }
         
 
-        private Action? _onDrawAction; 
+        private List<Action>? _onDrawAction; 
         public Area2DAction OnDraw(Action action) {
-            if (_onDrawAction == null) 
+            if (_onDrawAction == null || _onDrawAction.Count == 0) {
+                _onDrawAction ??= new List<Action>(); 
                 Connect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = action;
+            }
+            _onDrawAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnDraw() {
-            if (_onDrawAction == null) return this; 
-            Disconnect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = null;
+        public Area2DAction RemoveOnDraw(Action action) {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
+            _onDrawAction.Remove(action); 
+            if (_onDrawAction.Count == 0) {
+                Disconnect("draw", this, nameof(ExecuteDraw));
+            }
             return this;
         }
-        private void ExecuteDraw() =>
-            _onDrawAction?.Invoke();
+        private void ExecuteDraw() {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return;
+            for (var i = 0; i < _onDrawAction.Count; i++) _onDrawAction[i].Invoke();
+        }
         
 
-        private Action? _onHideAction; 
+        private List<Action>? _onHideAction; 
         public Area2DAction OnHide(Action action) {
-            if (_onHideAction == null) 
+            if (_onHideAction == null || _onHideAction.Count == 0) {
+                _onHideAction ??= new List<Action>(); 
                 Connect("hide", this, nameof(ExecuteHide));
-            _onHideAction = action;
+            }
+            _onHideAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnHide() {
-            if (_onHideAction == null) return this; 
-            Disconnect("hide", this, nameof(ExecuteHide));
-            _onHideAction = null;
+        public Area2DAction RemoveOnHide(Action action) {
+            if (_onHideAction == null || _onHideAction.Count == 0) return this;
+            _onHideAction.Remove(action); 
+            if (_onHideAction.Count == 0) {
+                Disconnect("hide", this, nameof(ExecuteHide));
+            }
             return this;
         }
-        private void ExecuteHide() =>
-            _onHideAction?.Invoke();
+        private void ExecuteHide() {
+            if (_onHideAction == null || _onHideAction.Count == 0) return;
+            for (var i = 0; i < _onHideAction.Count; i++) _onHideAction[i].Invoke();
+        }
         
 
-        private Action<InputEvent, int, Node>? _onInputEventAction; 
+        private List<Action<InputEvent, int, Node>>? _onInputEventAction; 
         public Area2DAction OnInputEvent(Action<InputEvent, int, Node> action) {
-            if (_onInputEventAction == null) 
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) {
+                _onInputEventAction ??= new List<Action<InputEvent, int, Node>>(); 
                 Connect("input_event", this, nameof(ExecuteInputEvent));
-            _onInputEventAction = action;
+            }
+            _onInputEventAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnInputEvent() {
-            if (_onInputEventAction == null) return this; 
-            Disconnect("input_event", this, nameof(ExecuteInputEvent));
-            _onInputEventAction = null;
+        public Area2DAction RemoveOnInputEvent(Action<InputEvent, int, Node> action) {
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) return this;
+            _onInputEventAction.Remove(action); 
+            if (_onInputEventAction.Count == 0) {
+                Disconnect("input_event", this, nameof(ExecuteInputEvent));
+            }
             return this;
         }
-        private void ExecuteInputEvent(InputEvent @event, int shape_idx, Node viewport) =>
-            _onInputEventAction?.Invoke(@event, shape_idx, viewport);
+        private void ExecuteInputEvent(InputEvent @event, int shape_idx, Node viewport) {
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) return;
+            for (var i = 0; i < _onInputEventAction.Count; i++) _onInputEventAction[i].Invoke(@event, shape_idx, viewport);
+        }
         
 
-        private Action? _onItemRectChangedAction; 
+        private List<Action>? _onItemRectChangedAction; 
         public Area2DAction OnItemRectChanged(Action action) {
-            if (_onItemRectChangedAction == null) 
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
+                _onItemRectChangedAction ??= new List<Action>(); 
                 Connect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = action;
+            }
+            _onItemRectChangedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnItemRectChanged() {
-            if (_onItemRectChangedAction == null) return this; 
-            Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = null;
+        public Area2DAction RemoveOnItemRectChanged(Action action) {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
+            _onItemRectChangedAction.Remove(action); 
+            if (_onItemRectChangedAction.Count == 0) {
+                Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
+            }
             return this;
         }
-        private void ExecuteItemRectChanged() =>
-            _onItemRectChangedAction?.Invoke();
+        private void ExecuteItemRectChanged() {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return;
+            for (var i = 0; i < _onItemRectChangedAction.Count; i++) _onItemRectChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseEnteredAction; 
+        private List<Action>? _onMouseEnteredAction; 
         public Area2DAction OnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null) 
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
+                _onMouseEnteredAction ??= new List<Action>(); 
                 Connect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = action;
+            }
+            _onMouseEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnMouseEntered() {
-            if (_onMouseEnteredAction == null) return this; 
-            Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = null;
+        public Area2DAction RemoveOnMouseEntered(Action action) {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
+            _onMouseEnteredAction.Remove(action); 
+            if (_onMouseEnteredAction.Count == 0) {
+                Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
+            }
             return this;
         }
-        private void ExecuteMouseEntered() =>
-            _onMouseEnteredAction?.Invoke();
+        private void ExecuteMouseEntered() {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseExitedAction; 
+        private List<Action>? _onMouseExitedAction; 
         public Area2DAction OnMouseExited(Action action) {
-            if (_onMouseExitedAction == null) 
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
+                _onMouseExitedAction ??= new List<Action>(); 
                 Connect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = action;
+            }
+            _onMouseExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnMouseExited() {
-            if (_onMouseExitedAction == null) return this; 
-            Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = null;
+        public Area2DAction RemoveOnMouseExited(Action action) {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
+            _onMouseExitedAction.Remove(action); 
+            if (_onMouseExitedAction.Count == 0) {
+                Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
+            }
             return this;
         }
-        private void ExecuteMouseExited() =>
-            _onMouseExitedAction?.Invoke();
+        private void ExecuteMouseExited() {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
+            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public Area2DAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public Area2DAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public Area2DAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public Area2DAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public Area2DAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public Area2DAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public Area2DAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public Area2DAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public Area2DAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public Area2DAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public Area2DAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public Area2DAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public Area2DAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public Area2DAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public Area2DAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }

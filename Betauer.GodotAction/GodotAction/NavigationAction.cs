@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,188 +82,242 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action? _onGameplayEnteredAction; 
+        private List<Action>? _onGameplayEnteredAction; 
         public NavigationAction OnGameplayEntered(Action action) {
-            if (_onGameplayEnteredAction == null) 
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) {
+                _onGameplayEnteredAction ??= new List<Action>(); 
                 Connect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
-            _onGameplayEnteredAction = action;
+            }
+            _onGameplayEnteredAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnGameplayEntered() {
-            if (_onGameplayEnteredAction == null) return this; 
-            Disconnect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
-            _onGameplayEnteredAction = null;
+        public NavigationAction RemoveOnGameplayEntered(Action action) {
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return this;
+            _onGameplayEnteredAction.Remove(action); 
+            if (_onGameplayEnteredAction.Count == 0) {
+                Disconnect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
+            }
             return this;
         }
-        private void ExecuteGameplayEntered() =>
-            _onGameplayEnteredAction?.Invoke();
+        private void ExecuteGameplayEntered() {
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onGameplayEnteredAction.Count; i++) _onGameplayEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onGameplayExitedAction; 
+        private List<Action>? _onGameplayExitedAction; 
         public NavigationAction OnGameplayExited(Action action) {
-            if (_onGameplayExitedAction == null) 
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) {
+                _onGameplayExitedAction ??= new List<Action>(); 
                 Connect("gameplay_exited", this, nameof(ExecuteGameplayExited));
-            _onGameplayExitedAction = action;
+            }
+            _onGameplayExitedAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnGameplayExited() {
-            if (_onGameplayExitedAction == null) return this; 
-            Disconnect("gameplay_exited", this, nameof(ExecuteGameplayExited));
-            _onGameplayExitedAction = null;
+        public NavigationAction RemoveOnGameplayExited(Action action) {
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return this;
+            _onGameplayExitedAction.Remove(action); 
+            if (_onGameplayExitedAction.Count == 0) {
+                Disconnect("gameplay_exited", this, nameof(ExecuteGameplayExited));
+            }
             return this;
         }
-        private void ExecuteGameplayExited() =>
-            _onGameplayExitedAction?.Invoke();
+        private void ExecuteGameplayExited() {
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return;
+            for (var i = 0; i < _onGameplayExitedAction.Count; i++) _onGameplayExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public NavigationAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public NavigationAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public NavigationAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public NavigationAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public NavigationAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public NavigationAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public NavigationAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public NavigationAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public NavigationAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public NavigationAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public NavigationAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public NavigationAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public NavigationAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public NavigationAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public NavigationAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }

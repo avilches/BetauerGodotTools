@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,205 +82,265 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public TweenAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public TweenAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public TweenAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public TweenAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public TweenAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public TweenAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public TweenAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public TweenAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public TweenAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public TweenAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public TweenAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public TweenAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onTweenAllCompletedAction; 
+        private List<Action>? _onTweenAllCompletedAction; 
         public TweenAction OnTweenAllCompleted(Action action) {
-            if (_onTweenAllCompletedAction == null) 
+            if (_onTweenAllCompletedAction == null || _onTweenAllCompletedAction.Count == 0) {
+                _onTweenAllCompletedAction ??= new List<Action>(); 
                 Connect("tween_all_completed", this, nameof(ExecuteTweenAllCompleted));
-            _onTweenAllCompletedAction = action;
+            }
+            _onTweenAllCompletedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTweenAllCompleted() {
-            if (_onTweenAllCompletedAction == null) return this; 
-            Disconnect("tween_all_completed", this, nameof(ExecuteTweenAllCompleted));
-            _onTweenAllCompletedAction = null;
+        public TweenAction RemoveOnTweenAllCompleted(Action action) {
+            if (_onTweenAllCompletedAction == null || _onTweenAllCompletedAction.Count == 0) return this;
+            _onTweenAllCompletedAction.Remove(action); 
+            if (_onTweenAllCompletedAction.Count == 0) {
+                Disconnect("tween_all_completed", this, nameof(ExecuteTweenAllCompleted));
+            }
             return this;
         }
-        private void ExecuteTweenAllCompleted() =>
-            _onTweenAllCompletedAction?.Invoke();
+        private void ExecuteTweenAllCompleted() {
+            if (_onTweenAllCompletedAction == null || _onTweenAllCompletedAction.Count == 0) return;
+            for (var i = 0; i < _onTweenAllCompletedAction.Count; i++) _onTweenAllCompletedAction[i].Invoke();
+        }
         
 
-        private Action<Object, NodePath>? _onTweenCompletedAction; 
+        private List<Action<Object, NodePath>>? _onTweenCompletedAction; 
         public TweenAction OnTweenCompleted(Action<Object, NodePath> action) {
-            if (_onTweenCompletedAction == null) 
+            if (_onTweenCompletedAction == null || _onTweenCompletedAction.Count == 0) {
+                _onTweenCompletedAction ??= new List<Action<Object, NodePath>>(); 
                 Connect("tween_completed", this, nameof(ExecuteTweenCompleted));
-            _onTweenCompletedAction = action;
+            }
+            _onTweenCompletedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTweenCompleted() {
-            if (_onTweenCompletedAction == null) return this; 
-            Disconnect("tween_completed", this, nameof(ExecuteTweenCompleted));
-            _onTweenCompletedAction = null;
+        public TweenAction RemoveOnTweenCompleted(Action<Object, NodePath> action) {
+            if (_onTweenCompletedAction == null || _onTweenCompletedAction.Count == 0) return this;
+            _onTweenCompletedAction.Remove(action); 
+            if (_onTweenCompletedAction.Count == 0) {
+                Disconnect("tween_completed", this, nameof(ExecuteTweenCompleted));
+            }
             return this;
         }
-        private void ExecuteTweenCompleted(Object @object, NodePath key) =>
-            _onTweenCompletedAction?.Invoke(@object, key);
+        private void ExecuteTweenCompleted(Object @object, NodePath key) {
+            if (_onTweenCompletedAction == null || _onTweenCompletedAction.Count == 0) return;
+            for (var i = 0; i < _onTweenCompletedAction.Count; i++) _onTweenCompletedAction[i].Invoke(@object, key);
+        }
         
 
-        private Action<Object, NodePath>? _onTweenStartedAction; 
+        private List<Action<Object, NodePath>>? _onTweenStartedAction; 
         public TweenAction OnTweenStarted(Action<Object, NodePath> action) {
-            if (_onTweenStartedAction == null) 
+            if (_onTweenStartedAction == null || _onTweenStartedAction.Count == 0) {
+                _onTweenStartedAction ??= new List<Action<Object, NodePath>>(); 
                 Connect("tween_started", this, nameof(ExecuteTweenStarted));
-            _onTweenStartedAction = action;
+            }
+            _onTweenStartedAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTweenStarted() {
-            if (_onTweenStartedAction == null) return this; 
-            Disconnect("tween_started", this, nameof(ExecuteTweenStarted));
-            _onTweenStartedAction = null;
+        public TweenAction RemoveOnTweenStarted(Action<Object, NodePath> action) {
+            if (_onTweenStartedAction == null || _onTweenStartedAction.Count == 0) return this;
+            _onTweenStartedAction.Remove(action); 
+            if (_onTweenStartedAction.Count == 0) {
+                Disconnect("tween_started", this, nameof(ExecuteTweenStarted));
+            }
             return this;
         }
-        private void ExecuteTweenStarted(Object @object, NodePath key) =>
-            _onTweenStartedAction?.Invoke(@object, key);
+        private void ExecuteTweenStarted(Object @object, NodePath key) {
+            if (_onTweenStartedAction == null || _onTweenStartedAction.Count == 0) return;
+            for (var i = 0; i < _onTweenStartedAction.Count; i++) _onTweenStartedAction[i].Invoke(@object, key);
+        }
         
 
-        private Action<Object, float, NodePath, Object>? _onTweenStepAction; 
+        private List<Action<Object, float, NodePath, Object>>? _onTweenStepAction; 
         public TweenAction OnTweenStep(Action<Object, float, NodePath, Object> action) {
-            if (_onTweenStepAction == null) 
+            if (_onTweenStepAction == null || _onTweenStepAction.Count == 0) {
+                _onTweenStepAction ??= new List<Action<Object, float, NodePath, Object>>(); 
                 Connect("tween_step", this, nameof(ExecuteTweenStep));
-            _onTweenStepAction = action;
+            }
+            _onTweenStepAction.Add(action);
             return this;
         }
-        public TweenAction RemoveOnTweenStep() {
-            if (_onTweenStepAction == null) return this; 
-            Disconnect("tween_step", this, nameof(ExecuteTweenStep));
-            _onTweenStepAction = null;
+        public TweenAction RemoveOnTweenStep(Action<Object, float, NodePath, Object> action) {
+            if (_onTweenStepAction == null || _onTweenStepAction.Count == 0) return this;
+            _onTweenStepAction.Remove(action); 
+            if (_onTweenStepAction.Count == 0) {
+                Disconnect("tween_step", this, nameof(ExecuteTweenStep));
+            }
             return this;
         }
-        private void ExecuteTweenStep(Object @object, float elapsed, NodePath key, Object value) =>
-            _onTweenStepAction?.Invoke(@object, elapsed, key, value);
+        private void ExecuteTweenStep(Object @object, float elapsed, NodePath key, Object value) {
+            if (_onTweenStepAction == null || _onTweenStepAction.Count == 0) return;
+            for (var i = 0; i < _onTweenStepAction.Count; i++) _onTweenStepAction[i].Invoke(@object, elapsed, key, value);
+        }
         
     }
 }

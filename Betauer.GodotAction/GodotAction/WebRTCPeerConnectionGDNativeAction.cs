@@ -9,72 +9,96 @@ namespace Betauer.GodotAction {
     public class WebRTCPeerConnectionGDNativeAction : WebRTCPeerConnectionGDNative {
 
 
-        private Action<Object>? _onDataChannelReceivedAction; 
+        private List<Action<Object>>? _onDataChannelReceivedAction; 
         public WebRTCPeerConnectionGDNativeAction OnDataChannelReceived(Action<Object> action) {
-            if (_onDataChannelReceivedAction == null) 
+            if (_onDataChannelReceivedAction == null || _onDataChannelReceivedAction.Count == 0) {
+                _onDataChannelReceivedAction ??= new List<Action<Object>>(); 
                 Connect("data_channel_received", this, nameof(ExecuteDataChannelReceived));
-            _onDataChannelReceivedAction = action;
+            }
+            _onDataChannelReceivedAction.Add(action);
             return this;
         }
-        public WebRTCPeerConnectionGDNativeAction RemoveOnDataChannelReceived() {
-            if (_onDataChannelReceivedAction == null) return this; 
-            Disconnect("data_channel_received", this, nameof(ExecuteDataChannelReceived));
-            _onDataChannelReceivedAction = null;
+        public WebRTCPeerConnectionGDNativeAction RemoveOnDataChannelReceived(Action<Object> action) {
+            if (_onDataChannelReceivedAction == null || _onDataChannelReceivedAction.Count == 0) return this;
+            _onDataChannelReceivedAction.Remove(action); 
+            if (_onDataChannelReceivedAction.Count == 0) {
+                Disconnect("data_channel_received", this, nameof(ExecuteDataChannelReceived));
+            }
             return this;
         }
-        private void ExecuteDataChannelReceived(Object channel) =>
-            _onDataChannelReceivedAction?.Invoke(channel);
+        private void ExecuteDataChannelReceived(Object channel) {
+            if (_onDataChannelReceivedAction == null || _onDataChannelReceivedAction.Count == 0) return;
+            for (var i = 0; i < _onDataChannelReceivedAction.Count; i++) _onDataChannelReceivedAction[i].Invoke(channel);
+        }
         
 
-        private Action<int, string, string>? _onIceCandidateCreatedAction; 
+        private List<Action<int, string, string>>? _onIceCandidateCreatedAction; 
         public WebRTCPeerConnectionGDNativeAction OnIceCandidateCreated(Action<int, string, string> action) {
-            if (_onIceCandidateCreatedAction == null) 
+            if (_onIceCandidateCreatedAction == null || _onIceCandidateCreatedAction.Count == 0) {
+                _onIceCandidateCreatedAction ??= new List<Action<int, string, string>>(); 
                 Connect("ice_candidate_created", this, nameof(ExecuteIceCandidateCreated));
-            _onIceCandidateCreatedAction = action;
+            }
+            _onIceCandidateCreatedAction.Add(action);
             return this;
         }
-        public WebRTCPeerConnectionGDNativeAction RemoveOnIceCandidateCreated() {
-            if (_onIceCandidateCreatedAction == null) return this; 
-            Disconnect("ice_candidate_created", this, nameof(ExecuteIceCandidateCreated));
-            _onIceCandidateCreatedAction = null;
+        public WebRTCPeerConnectionGDNativeAction RemoveOnIceCandidateCreated(Action<int, string, string> action) {
+            if (_onIceCandidateCreatedAction == null || _onIceCandidateCreatedAction.Count == 0) return this;
+            _onIceCandidateCreatedAction.Remove(action); 
+            if (_onIceCandidateCreatedAction.Count == 0) {
+                Disconnect("ice_candidate_created", this, nameof(ExecuteIceCandidateCreated));
+            }
             return this;
         }
-        private void ExecuteIceCandidateCreated(int index, string media, string name) =>
-            _onIceCandidateCreatedAction?.Invoke(index, media, name);
+        private void ExecuteIceCandidateCreated(int index, string media, string name) {
+            if (_onIceCandidateCreatedAction == null || _onIceCandidateCreatedAction.Count == 0) return;
+            for (var i = 0; i < _onIceCandidateCreatedAction.Count; i++) _onIceCandidateCreatedAction[i].Invoke(index, media, name);
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public WebRTCPeerConnectionGDNativeAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public WebRTCPeerConnectionGDNativeAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public WebRTCPeerConnectionGDNativeAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action<string, string>? _onSessionDescriptionCreatedAction; 
+        private List<Action<string, string>>? _onSessionDescriptionCreatedAction; 
         public WebRTCPeerConnectionGDNativeAction OnSessionDescriptionCreated(Action<string, string> action) {
-            if (_onSessionDescriptionCreatedAction == null) 
+            if (_onSessionDescriptionCreatedAction == null || _onSessionDescriptionCreatedAction.Count == 0) {
+                _onSessionDescriptionCreatedAction ??= new List<Action<string, string>>(); 
                 Connect("session_description_created", this, nameof(ExecuteSessionDescriptionCreated));
-            _onSessionDescriptionCreatedAction = action;
+            }
+            _onSessionDescriptionCreatedAction.Add(action);
             return this;
         }
-        public WebRTCPeerConnectionGDNativeAction RemoveOnSessionDescriptionCreated() {
-            if (_onSessionDescriptionCreatedAction == null) return this; 
-            Disconnect("session_description_created", this, nameof(ExecuteSessionDescriptionCreated));
-            _onSessionDescriptionCreatedAction = null;
+        public WebRTCPeerConnectionGDNativeAction RemoveOnSessionDescriptionCreated(Action<string, string> action) {
+            if (_onSessionDescriptionCreatedAction == null || _onSessionDescriptionCreatedAction.Count == 0) return this;
+            _onSessionDescriptionCreatedAction.Remove(action); 
+            if (_onSessionDescriptionCreatedAction.Count == 0) {
+                Disconnect("session_description_created", this, nameof(ExecuteSessionDescriptionCreated));
+            }
             return this;
         }
-        private void ExecuteSessionDescriptionCreated(string sdp, string type) =>
-            _onSessionDescriptionCreatedAction?.Invoke(sdp, type);
+        private void ExecuteSessionDescriptionCreated(string sdp, string type) {
+            if (_onSessionDescriptionCreatedAction == null || _onSessionDescriptionCreatedAction.Count == 0) return;
+            for (var i = 0; i < _onSessionDescriptionCreatedAction.Count; i++) _onSessionDescriptionCreatedAction[i].Invoke(sdp, type);
+        }
         
     }
 }

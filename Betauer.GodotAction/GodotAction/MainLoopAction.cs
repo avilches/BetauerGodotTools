@@ -9,38 +9,50 @@ namespace Betauer.GodotAction {
     public class MainLoopAction : MainLoop {
 
 
-        private Action<bool, string>? _onRequestPermissionsResultAction; 
+        private List<Action<bool, string>>? _onRequestPermissionsResultAction; 
         public MainLoopAction OnRequestPermissionsResult(Action<bool, string> action) {
-            if (_onRequestPermissionsResultAction == null) 
+            if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) {
+                _onRequestPermissionsResultAction ??= new List<Action<bool, string>>(); 
                 Connect("on_request_permissions_result", this, nameof(ExecuteRequestPermissionsResult));
-            _onRequestPermissionsResultAction = action;
+            }
+            _onRequestPermissionsResultAction.Add(action);
             return this;
         }
-        public MainLoopAction RemoveOnRequestPermissionsResult() {
-            if (_onRequestPermissionsResultAction == null) return this; 
-            Disconnect("on_request_permissions_result", this, nameof(ExecuteRequestPermissionsResult));
-            _onRequestPermissionsResultAction = null;
+        public MainLoopAction RemoveOnRequestPermissionsResult(Action<bool, string> action) {
+            if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) return this;
+            _onRequestPermissionsResultAction.Remove(action); 
+            if (_onRequestPermissionsResultAction.Count == 0) {
+                Disconnect("on_request_permissions_result", this, nameof(ExecuteRequestPermissionsResult));
+            }
             return this;
         }
-        private void ExecuteRequestPermissionsResult(bool granted, string permission) =>
-            _onRequestPermissionsResultAction?.Invoke(granted, permission);
+        private void ExecuteRequestPermissionsResult(bool granted, string permission) {
+            if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) return;
+            for (var i = 0; i < _onRequestPermissionsResultAction.Count; i++) _onRequestPermissionsResultAction[i].Invoke(granted, permission);
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public MainLoopAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public MainLoopAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public MainLoopAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
     }
 }

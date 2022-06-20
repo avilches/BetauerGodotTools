@@ -9,55 +9,73 @@ namespace Betauer.GodotAction {
     public class ButtonGroupAction : ButtonGroup {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public ButtonGroupAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public ButtonGroupAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public ButtonGroupAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action<Object>? _onPressedAction; 
+        private List<Action<Object>>? _onPressedAction; 
         public ButtonGroupAction OnPressed(Action<Object> action) {
-            if (_onPressedAction == null) 
+            if (_onPressedAction == null || _onPressedAction.Count == 0) {
+                _onPressedAction ??= new List<Action<Object>>(); 
                 Connect("pressed", this, nameof(ExecutePressed));
-            _onPressedAction = action;
+            }
+            _onPressedAction.Add(action);
             return this;
         }
-        public ButtonGroupAction RemoveOnPressed() {
-            if (_onPressedAction == null) return this; 
-            Disconnect("pressed", this, nameof(ExecutePressed));
-            _onPressedAction = null;
+        public ButtonGroupAction RemoveOnPressed(Action<Object> action) {
+            if (_onPressedAction == null || _onPressedAction.Count == 0) return this;
+            _onPressedAction.Remove(action); 
+            if (_onPressedAction.Count == 0) {
+                Disconnect("pressed", this, nameof(ExecutePressed));
+            }
             return this;
         }
-        private void ExecutePressed(Object button) =>
-            _onPressedAction?.Invoke(button);
+        private void ExecutePressed(Object button) {
+            if (_onPressedAction == null || _onPressedAction.Count == 0) return;
+            for (var i = 0; i < _onPressedAction.Count; i++) _onPressedAction[i].Invoke(button);
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public ButtonGroupAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public ButtonGroupAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public ButtonGroupAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
     }
 }

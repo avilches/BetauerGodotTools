@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,409 +82,541 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public HScrollBarAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public HScrollBarAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onDrawAction; 
+        private List<Action>? _onDrawAction; 
         public HScrollBarAction OnDraw(Action action) {
-            if (_onDrawAction == null) 
+            if (_onDrawAction == null || _onDrawAction.Count == 0) {
+                _onDrawAction ??= new List<Action>(); 
                 Connect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = action;
+            }
+            _onDrawAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnDraw() {
-            if (_onDrawAction == null) return this; 
-            Disconnect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = null;
+        public HScrollBarAction RemoveOnDraw(Action action) {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
+            _onDrawAction.Remove(action); 
+            if (_onDrawAction.Count == 0) {
+                Disconnect("draw", this, nameof(ExecuteDraw));
+            }
             return this;
         }
-        private void ExecuteDraw() =>
-            _onDrawAction?.Invoke();
+        private void ExecuteDraw() {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return;
+            for (var i = 0; i < _onDrawAction.Count; i++) _onDrawAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusEnteredAction; 
+        private List<Action>? _onFocusEnteredAction; 
         public HScrollBarAction OnFocusEntered(Action action) {
-            if (_onFocusEnteredAction == null) 
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) {
+                _onFocusEnteredAction ??= new List<Action>(); 
                 Connect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = action;
+            }
+            _onFocusEnteredAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnFocusEntered() {
-            if (_onFocusEnteredAction == null) return this; 
-            Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = null;
+        public HScrollBarAction RemoveOnFocusEntered(Action action) {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return this;
+            _onFocusEnteredAction.Remove(action); 
+            if (_onFocusEnteredAction.Count == 0) {
+                Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
+            }
             return this;
         }
-        private void ExecuteFocusEntered() =>
-            _onFocusEnteredAction?.Invoke();
+        private void ExecuteFocusEntered() {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onFocusEnteredAction.Count; i++) _onFocusEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusExitedAction; 
+        private List<Action>? _onFocusExitedAction; 
         public HScrollBarAction OnFocusExited(Action action) {
-            if (_onFocusExitedAction == null) 
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) {
+                _onFocusExitedAction ??= new List<Action>(); 
                 Connect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = action;
+            }
+            _onFocusExitedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnFocusExited() {
-            if (_onFocusExitedAction == null) return this; 
-            Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = null;
+        public HScrollBarAction RemoveOnFocusExited(Action action) {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return this;
+            _onFocusExitedAction.Remove(action); 
+            if (_onFocusExitedAction.Count == 0) {
+                Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
+            }
             return this;
         }
-        private void ExecuteFocusExited() =>
-            _onFocusExitedAction?.Invoke();
+        private void ExecuteFocusExited() {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return;
+            for (var i = 0; i < _onFocusExitedAction.Count; i++) _onFocusExitedAction[i].Invoke();
+        }
         
 
-        private Action<InputEvent>? _onGuiInputAction; 
+        private List<Action<InputEvent>>? _onGuiInputAction; 
         public HScrollBarAction OnGuiInput(Action<InputEvent> action) {
-            if (_onGuiInputAction == null) 
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) {
+                _onGuiInputAction ??= new List<Action<InputEvent>>(); 
                 Connect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = action;
+            }
+            _onGuiInputAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnGuiInput() {
-            if (_onGuiInputAction == null) return this; 
-            Disconnect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = null;
+        public HScrollBarAction RemoveOnGuiInput(Action<InputEvent> action) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return this;
+            _onGuiInputAction.Remove(action); 
+            if (_onGuiInputAction.Count == 0) {
+                Disconnect("gui_input", this, nameof(ExecuteGuiInput));
+            }
             return this;
         }
-        private void ExecuteGuiInput(InputEvent @event) =>
-            _onGuiInputAction?.Invoke(@event);
+        private void ExecuteGuiInput(InputEvent @event) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return;
+            for (var i = 0; i < _onGuiInputAction.Count; i++) _onGuiInputAction[i].Invoke(@event);
+        }
         
 
-        private Action? _onHideAction; 
+        private List<Action>? _onHideAction; 
         public HScrollBarAction OnHide(Action action) {
-            if (_onHideAction == null) 
+            if (_onHideAction == null || _onHideAction.Count == 0) {
+                _onHideAction ??= new List<Action>(); 
                 Connect("hide", this, nameof(ExecuteHide));
-            _onHideAction = action;
+            }
+            _onHideAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnHide() {
-            if (_onHideAction == null) return this; 
-            Disconnect("hide", this, nameof(ExecuteHide));
-            _onHideAction = null;
+        public HScrollBarAction RemoveOnHide(Action action) {
+            if (_onHideAction == null || _onHideAction.Count == 0) return this;
+            _onHideAction.Remove(action); 
+            if (_onHideAction.Count == 0) {
+                Disconnect("hide", this, nameof(ExecuteHide));
+            }
             return this;
         }
-        private void ExecuteHide() =>
-            _onHideAction?.Invoke();
+        private void ExecuteHide() {
+            if (_onHideAction == null || _onHideAction.Count == 0) return;
+            for (var i = 0; i < _onHideAction.Count; i++) _onHideAction[i].Invoke();
+        }
         
 
-        private Action? _onItemRectChangedAction; 
+        private List<Action>? _onItemRectChangedAction; 
         public HScrollBarAction OnItemRectChanged(Action action) {
-            if (_onItemRectChangedAction == null) 
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
+                _onItemRectChangedAction ??= new List<Action>(); 
                 Connect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = action;
+            }
+            _onItemRectChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnItemRectChanged() {
-            if (_onItemRectChangedAction == null) return this; 
-            Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = null;
+        public HScrollBarAction RemoveOnItemRectChanged(Action action) {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
+            _onItemRectChangedAction.Remove(action); 
+            if (_onItemRectChangedAction.Count == 0) {
+                Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
+            }
             return this;
         }
-        private void ExecuteItemRectChanged() =>
-            _onItemRectChangedAction?.Invoke();
+        private void ExecuteItemRectChanged() {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return;
+            for (var i = 0; i < _onItemRectChangedAction.Count; i++) _onItemRectChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onMinimumSizeChangedAction; 
+        private List<Action>? _onMinimumSizeChangedAction; 
         public HScrollBarAction OnMinimumSizeChanged(Action action) {
-            if (_onMinimumSizeChangedAction == null) 
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) {
+                _onMinimumSizeChangedAction ??= new List<Action>(); 
                 Connect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = action;
+            }
+            _onMinimumSizeChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnMinimumSizeChanged() {
-            if (_onMinimumSizeChangedAction == null) return this; 
-            Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = null;
+        public HScrollBarAction RemoveOnMinimumSizeChanged(Action action) {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return this;
+            _onMinimumSizeChangedAction.Remove(action); 
+            if (_onMinimumSizeChangedAction.Count == 0) {
+                Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
+            }
             return this;
         }
-        private void ExecuteMinimumSizeChanged() =>
-            _onMinimumSizeChangedAction?.Invoke();
+        private void ExecuteMinimumSizeChanged() {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return;
+            for (var i = 0; i < _onMinimumSizeChangedAction.Count; i++) _onMinimumSizeChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onModalClosedAction; 
+        private List<Action>? _onModalClosedAction; 
         public HScrollBarAction OnModalClosed(Action action) {
-            if (_onModalClosedAction == null) 
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) {
+                _onModalClosedAction ??= new List<Action>(); 
                 Connect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = action;
+            }
+            _onModalClosedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnModalClosed() {
-            if (_onModalClosedAction == null) return this; 
-            Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = null;
+        public HScrollBarAction RemoveOnModalClosed(Action action) {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return this;
+            _onModalClosedAction.Remove(action); 
+            if (_onModalClosedAction.Count == 0) {
+                Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
+            }
             return this;
         }
-        private void ExecuteModalClosed() =>
-            _onModalClosedAction?.Invoke();
+        private void ExecuteModalClosed() {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return;
+            for (var i = 0; i < _onModalClosedAction.Count; i++) _onModalClosedAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseEnteredAction; 
+        private List<Action>? _onMouseEnteredAction; 
         public HScrollBarAction OnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null) 
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
+                _onMouseEnteredAction ??= new List<Action>(); 
                 Connect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = action;
+            }
+            _onMouseEnteredAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnMouseEntered() {
-            if (_onMouseEnteredAction == null) return this; 
-            Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = null;
+        public HScrollBarAction RemoveOnMouseEntered(Action action) {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
+            _onMouseEnteredAction.Remove(action); 
+            if (_onMouseEnteredAction.Count == 0) {
+                Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
+            }
             return this;
         }
-        private void ExecuteMouseEntered() =>
-            _onMouseEnteredAction?.Invoke();
+        private void ExecuteMouseEntered() {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseExitedAction; 
+        private List<Action>? _onMouseExitedAction; 
         public HScrollBarAction OnMouseExited(Action action) {
-            if (_onMouseExitedAction == null) 
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
+                _onMouseExitedAction ??= new List<Action>(); 
                 Connect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = action;
+            }
+            _onMouseExitedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnMouseExited() {
-            if (_onMouseExitedAction == null) return this; 
-            Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = null;
+        public HScrollBarAction RemoveOnMouseExited(Action action) {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
+            _onMouseExitedAction.Remove(action); 
+            if (_onMouseExitedAction.Count == 0) {
+                Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
+            }
             return this;
         }
-        private void ExecuteMouseExited() =>
-            _onMouseExitedAction?.Invoke();
+        private void ExecuteMouseExited() {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
+            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public HScrollBarAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public HScrollBarAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public HScrollBarAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public HScrollBarAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onResizedAction; 
+        private List<Action>? _onResizedAction; 
         public HScrollBarAction OnResized(Action action) {
-            if (_onResizedAction == null) 
+            if (_onResizedAction == null || _onResizedAction.Count == 0) {
+                _onResizedAction ??= new List<Action>(); 
                 Connect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = action;
+            }
+            _onResizedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnResized() {
-            if (_onResizedAction == null) return this; 
-            Disconnect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = null;
+        public HScrollBarAction RemoveOnResized(Action action) {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return this;
+            _onResizedAction.Remove(action); 
+            if (_onResizedAction.Count == 0) {
+                Disconnect("resized", this, nameof(ExecuteResized));
+            }
             return this;
         }
-        private void ExecuteResized() =>
-            _onResizedAction?.Invoke();
+        private void ExecuteResized() {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return;
+            for (var i = 0; i < _onResizedAction.Count; i++) _onResizedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public HScrollBarAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public HScrollBarAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onScrollingAction; 
+        private List<Action>? _onScrollingAction; 
         public HScrollBarAction OnScrolling(Action action) {
-            if (_onScrollingAction == null) 
+            if (_onScrollingAction == null || _onScrollingAction.Count == 0) {
+                _onScrollingAction ??= new List<Action>(); 
                 Connect("scrolling", this, nameof(ExecuteScrolling));
-            _onScrollingAction = action;
+            }
+            _onScrollingAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnScrolling() {
-            if (_onScrollingAction == null) return this; 
-            Disconnect("scrolling", this, nameof(ExecuteScrolling));
-            _onScrollingAction = null;
+        public HScrollBarAction RemoveOnScrolling(Action action) {
+            if (_onScrollingAction == null || _onScrollingAction.Count == 0) return this;
+            _onScrollingAction.Remove(action); 
+            if (_onScrollingAction.Count == 0) {
+                Disconnect("scrolling", this, nameof(ExecuteScrolling));
+            }
             return this;
         }
-        private void ExecuteScrolling() =>
-            _onScrollingAction?.Invoke();
+        private void ExecuteScrolling() {
+            if (_onScrollingAction == null || _onScrollingAction.Count == 0) return;
+            for (var i = 0; i < _onScrollingAction.Count; i++) _onScrollingAction[i].Invoke();
+        }
         
 
-        private Action? _onSizeFlagsChangedAction; 
+        private List<Action>? _onSizeFlagsChangedAction; 
         public HScrollBarAction OnSizeFlagsChanged(Action action) {
-            if (_onSizeFlagsChangedAction == null) 
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) {
+                _onSizeFlagsChangedAction ??= new List<Action>(); 
                 Connect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = action;
+            }
+            _onSizeFlagsChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnSizeFlagsChanged() {
-            if (_onSizeFlagsChangedAction == null) return this; 
-            Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = null;
+        public HScrollBarAction RemoveOnSizeFlagsChanged(Action action) {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return this;
+            _onSizeFlagsChangedAction.Remove(action); 
+            if (_onSizeFlagsChangedAction.Count == 0) {
+                Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
+            }
             return this;
         }
-        private void ExecuteSizeFlagsChanged() =>
-            _onSizeFlagsChangedAction?.Invoke();
+        private void ExecuteSizeFlagsChanged() {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return;
+            for (var i = 0; i < _onSizeFlagsChangedAction.Count; i++) _onSizeFlagsChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public HScrollBarAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public HScrollBarAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public HScrollBarAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public HScrollBarAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public HScrollBarAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public HScrollBarAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action<float>? _onValueChangedAction; 
+        private List<Action<float>>? _onValueChangedAction; 
         public HScrollBarAction OnValueChanged(Action<float> action) {
-            if (_onValueChangedAction == null) 
+            if (_onValueChangedAction == null || _onValueChangedAction.Count == 0) {
+                _onValueChangedAction ??= new List<Action<float>>(); 
                 Connect("value_changed", this, nameof(ExecuteValueChanged));
-            _onValueChangedAction = action;
+            }
+            _onValueChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnValueChanged() {
-            if (_onValueChangedAction == null) return this; 
-            Disconnect("value_changed", this, nameof(ExecuteValueChanged));
-            _onValueChangedAction = null;
+        public HScrollBarAction RemoveOnValueChanged(Action<float> action) {
+            if (_onValueChangedAction == null || _onValueChangedAction.Count == 0) return this;
+            _onValueChangedAction.Remove(action); 
+            if (_onValueChangedAction.Count == 0) {
+                Disconnect("value_changed", this, nameof(ExecuteValueChanged));
+            }
             return this;
         }
-        private void ExecuteValueChanged(float value) =>
-            _onValueChangedAction?.Invoke(value);
+        private void ExecuteValueChanged(float value) {
+            if (_onValueChangedAction == null || _onValueChangedAction.Count == 0) return;
+            for (var i = 0; i < _onValueChangedAction.Count; i++) _onValueChangedAction[i].Invoke(value);
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public HScrollBarAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public HScrollBarAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public HScrollBarAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }

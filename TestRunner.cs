@@ -13,6 +13,7 @@ public class TestRunner : SceneTree {
             "Betauer.Core.Tests",
             "Betauer.DI.Tests",
             "Betauer.GameTools.Tests",
+            "Betauer.GodotAction.Tests",
             "Betauer.StateMachine.Tests",
         }.Select(Assembly.Load).ToArray();
         await ConsoleTestRunner.RunTests(this, assemblies);

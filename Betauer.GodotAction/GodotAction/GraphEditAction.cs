@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,596 +82,794 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action? _onBeginNodeMoveAction; 
+        private List<Action>? _onBeginNodeMoveAction; 
         public GraphEditAction OnBeginNodeMove(Action action) {
-            if (_onBeginNodeMoveAction == null) 
+            if (_onBeginNodeMoveAction == null || _onBeginNodeMoveAction.Count == 0) {
+                _onBeginNodeMoveAction ??= new List<Action>(); 
                 Connect("_begin_node_move", this, nameof(ExecuteBeginNodeMove));
-            _onBeginNodeMoveAction = action;
+            }
+            _onBeginNodeMoveAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnBeginNodeMove() {
-            if (_onBeginNodeMoveAction == null) return this; 
-            Disconnect("_begin_node_move", this, nameof(ExecuteBeginNodeMove));
-            _onBeginNodeMoveAction = null;
+        public GraphEditAction RemoveOnBeginNodeMove(Action action) {
+            if (_onBeginNodeMoveAction == null || _onBeginNodeMoveAction.Count == 0) return this;
+            _onBeginNodeMoveAction.Remove(action); 
+            if (_onBeginNodeMoveAction.Count == 0) {
+                Disconnect("_begin_node_move", this, nameof(ExecuteBeginNodeMove));
+            }
             return this;
         }
-        private void ExecuteBeginNodeMove() =>
-            _onBeginNodeMoveAction?.Invoke();
+        private void ExecuteBeginNodeMove() {
+            if (_onBeginNodeMoveAction == null || _onBeginNodeMoveAction.Count == 0) return;
+            for (var i = 0; i < _onBeginNodeMoveAction.Count; i++) _onBeginNodeMoveAction[i].Invoke();
+        }
         
 
-        private Action<Vector2, string, int>? _onConnectionFromEmptyAction; 
+        private List<Action<Vector2, string, int>>? _onConnectionFromEmptyAction; 
         public GraphEditAction OnConnectionFromEmpty(Action<Vector2, string, int> action) {
-            if (_onConnectionFromEmptyAction == null) 
+            if (_onConnectionFromEmptyAction == null || _onConnectionFromEmptyAction.Count == 0) {
+                _onConnectionFromEmptyAction ??= new List<Action<Vector2, string, int>>(); 
                 Connect("connection_from_empty", this, nameof(ExecuteConnectionFromEmpty));
-            _onConnectionFromEmptyAction = action;
+            }
+            _onConnectionFromEmptyAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnConnectionFromEmpty() {
-            if (_onConnectionFromEmptyAction == null) return this; 
-            Disconnect("connection_from_empty", this, nameof(ExecuteConnectionFromEmpty));
-            _onConnectionFromEmptyAction = null;
+        public GraphEditAction RemoveOnConnectionFromEmpty(Action<Vector2, string, int> action) {
+            if (_onConnectionFromEmptyAction == null || _onConnectionFromEmptyAction.Count == 0) return this;
+            _onConnectionFromEmptyAction.Remove(action); 
+            if (_onConnectionFromEmptyAction.Count == 0) {
+                Disconnect("connection_from_empty", this, nameof(ExecuteConnectionFromEmpty));
+            }
             return this;
         }
-        private void ExecuteConnectionFromEmpty(Vector2 release_position, string to, int to_slot) =>
-            _onConnectionFromEmptyAction?.Invoke(release_position, to, to_slot);
+        private void ExecuteConnectionFromEmpty(Vector2 release_position, string to, int to_slot) {
+            if (_onConnectionFromEmptyAction == null || _onConnectionFromEmptyAction.Count == 0) return;
+            for (var i = 0; i < _onConnectionFromEmptyAction.Count; i++) _onConnectionFromEmptyAction[i].Invoke(release_position, to, to_slot);
+        }
         
 
-        private Action<string, int, string, int>? _onConnectionRequestAction; 
+        private List<Action<string, int, string, int>>? _onConnectionRequestAction; 
         public GraphEditAction OnConnectionRequest(Action<string, int, string, int> action) {
-            if (_onConnectionRequestAction == null) 
+            if (_onConnectionRequestAction == null || _onConnectionRequestAction.Count == 0) {
+                _onConnectionRequestAction ??= new List<Action<string, int, string, int>>(); 
                 Connect("connection_request", this, nameof(ExecuteConnectionRequest));
-            _onConnectionRequestAction = action;
+            }
+            _onConnectionRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnConnectionRequest() {
-            if (_onConnectionRequestAction == null) return this; 
-            Disconnect("connection_request", this, nameof(ExecuteConnectionRequest));
-            _onConnectionRequestAction = null;
+        public GraphEditAction RemoveOnConnectionRequest(Action<string, int, string, int> action) {
+            if (_onConnectionRequestAction == null || _onConnectionRequestAction.Count == 0) return this;
+            _onConnectionRequestAction.Remove(action); 
+            if (_onConnectionRequestAction.Count == 0) {
+                Disconnect("connection_request", this, nameof(ExecuteConnectionRequest));
+            }
             return this;
         }
-        private void ExecuteConnectionRequest(string from, int from_slot, string to, int to_slot) =>
-            _onConnectionRequestAction?.Invoke(from, from_slot, to, to_slot);
+        private void ExecuteConnectionRequest(string from, int from_slot, string to, int to_slot) {
+            if (_onConnectionRequestAction == null || _onConnectionRequestAction.Count == 0) return;
+            for (var i = 0; i < _onConnectionRequestAction.Count; i++) _onConnectionRequestAction[i].Invoke(from, from_slot, to, to_slot);
+        }
         
 
-        private Action<string, int, Vector2>? _onConnectionToEmptyAction; 
+        private List<Action<string, int, Vector2>>? _onConnectionToEmptyAction; 
         public GraphEditAction OnConnectionToEmpty(Action<string, int, Vector2> action) {
-            if (_onConnectionToEmptyAction == null) 
+            if (_onConnectionToEmptyAction == null || _onConnectionToEmptyAction.Count == 0) {
+                _onConnectionToEmptyAction ??= new List<Action<string, int, Vector2>>(); 
                 Connect("connection_to_empty", this, nameof(ExecuteConnectionToEmpty));
-            _onConnectionToEmptyAction = action;
+            }
+            _onConnectionToEmptyAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnConnectionToEmpty() {
-            if (_onConnectionToEmptyAction == null) return this; 
-            Disconnect("connection_to_empty", this, nameof(ExecuteConnectionToEmpty));
-            _onConnectionToEmptyAction = null;
+        public GraphEditAction RemoveOnConnectionToEmpty(Action<string, int, Vector2> action) {
+            if (_onConnectionToEmptyAction == null || _onConnectionToEmptyAction.Count == 0) return this;
+            _onConnectionToEmptyAction.Remove(action); 
+            if (_onConnectionToEmptyAction.Count == 0) {
+                Disconnect("connection_to_empty", this, nameof(ExecuteConnectionToEmpty));
+            }
             return this;
         }
-        private void ExecuteConnectionToEmpty(string from, int from_slot, Vector2 release_position) =>
-            _onConnectionToEmptyAction?.Invoke(from, from_slot, release_position);
+        private void ExecuteConnectionToEmpty(string from, int from_slot, Vector2 release_position) {
+            if (_onConnectionToEmptyAction == null || _onConnectionToEmptyAction.Count == 0) return;
+            for (var i = 0; i < _onConnectionToEmptyAction.Count; i++) _onConnectionToEmptyAction[i].Invoke(from, from_slot, release_position);
+        }
         
 
-        private Action? _onCopyNodesRequestAction; 
+        private List<Action>? _onCopyNodesRequestAction; 
         public GraphEditAction OnCopyNodesRequest(Action action) {
-            if (_onCopyNodesRequestAction == null) 
+            if (_onCopyNodesRequestAction == null || _onCopyNodesRequestAction.Count == 0) {
+                _onCopyNodesRequestAction ??= new List<Action>(); 
                 Connect("copy_nodes_request", this, nameof(ExecuteCopyNodesRequest));
-            _onCopyNodesRequestAction = action;
+            }
+            _onCopyNodesRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnCopyNodesRequest() {
-            if (_onCopyNodesRequestAction == null) return this; 
-            Disconnect("copy_nodes_request", this, nameof(ExecuteCopyNodesRequest));
-            _onCopyNodesRequestAction = null;
+        public GraphEditAction RemoveOnCopyNodesRequest(Action action) {
+            if (_onCopyNodesRequestAction == null || _onCopyNodesRequestAction.Count == 0) return this;
+            _onCopyNodesRequestAction.Remove(action); 
+            if (_onCopyNodesRequestAction.Count == 0) {
+                Disconnect("copy_nodes_request", this, nameof(ExecuteCopyNodesRequest));
+            }
             return this;
         }
-        private void ExecuteCopyNodesRequest() =>
-            _onCopyNodesRequestAction?.Invoke();
+        private void ExecuteCopyNodesRequest() {
+            if (_onCopyNodesRequestAction == null || _onCopyNodesRequestAction.Count == 0) return;
+            for (var i = 0; i < _onCopyNodesRequestAction.Count; i++) _onCopyNodesRequestAction[i].Invoke();
+        }
         
 
-        private Action? _onDeleteNodesRequestAction; 
+        private List<Action>? _onDeleteNodesRequestAction; 
         public GraphEditAction OnDeleteNodesRequest(Action action) {
-            if (_onDeleteNodesRequestAction == null) 
+            if (_onDeleteNodesRequestAction == null || _onDeleteNodesRequestAction.Count == 0) {
+                _onDeleteNodesRequestAction ??= new List<Action>(); 
                 Connect("delete_nodes_request", this, nameof(ExecuteDeleteNodesRequest));
-            _onDeleteNodesRequestAction = action;
+            }
+            _onDeleteNodesRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnDeleteNodesRequest() {
-            if (_onDeleteNodesRequestAction == null) return this; 
-            Disconnect("delete_nodes_request", this, nameof(ExecuteDeleteNodesRequest));
-            _onDeleteNodesRequestAction = null;
+        public GraphEditAction RemoveOnDeleteNodesRequest(Action action) {
+            if (_onDeleteNodesRequestAction == null || _onDeleteNodesRequestAction.Count == 0) return this;
+            _onDeleteNodesRequestAction.Remove(action); 
+            if (_onDeleteNodesRequestAction.Count == 0) {
+                Disconnect("delete_nodes_request", this, nameof(ExecuteDeleteNodesRequest));
+            }
             return this;
         }
-        private void ExecuteDeleteNodesRequest() =>
-            _onDeleteNodesRequestAction?.Invoke();
+        private void ExecuteDeleteNodesRequest() {
+            if (_onDeleteNodesRequestAction == null || _onDeleteNodesRequestAction.Count == 0) return;
+            for (var i = 0; i < _onDeleteNodesRequestAction.Count; i++) _onDeleteNodesRequestAction[i].Invoke();
+        }
         
 
-        private Action<string, int, string, int>? _onDisconnectionRequestAction; 
+        private List<Action<string, int, string, int>>? _onDisconnectionRequestAction; 
         public GraphEditAction OnDisconnectionRequest(Action<string, int, string, int> action) {
-            if (_onDisconnectionRequestAction == null) 
+            if (_onDisconnectionRequestAction == null || _onDisconnectionRequestAction.Count == 0) {
+                _onDisconnectionRequestAction ??= new List<Action<string, int, string, int>>(); 
                 Connect("disconnection_request", this, nameof(ExecuteDisconnectionRequest));
-            _onDisconnectionRequestAction = action;
+            }
+            _onDisconnectionRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnDisconnectionRequest() {
-            if (_onDisconnectionRequestAction == null) return this; 
-            Disconnect("disconnection_request", this, nameof(ExecuteDisconnectionRequest));
-            _onDisconnectionRequestAction = null;
+        public GraphEditAction RemoveOnDisconnectionRequest(Action<string, int, string, int> action) {
+            if (_onDisconnectionRequestAction == null || _onDisconnectionRequestAction.Count == 0) return this;
+            _onDisconnectionRequestAction.Remove(action); 
+            if (_onDisconnectionRequestAction.Count == 0) {
+                Disconnect("disconnection_request", this, nameof(ExecuteDisconnectionRequest));
+            }
             return this;
         }
-        private void ExecuteDisconnectionRequest(string from, int from_slot, string to, int to_slot) =>
-            _onDisconnectionRequestAction?.Invoke(from, from_slot, to, to_slot);
+        private void ExecuteDisconnectionRequest(string from, int from_slot, string to, int to_slot) {
+            if (_onDisconnectionRequestAction == null || _onDisconnectionRequestAction.Count == 0) return;
+            for (var i = 0; i < _onDisconnectionRequestAction.Count; i++) _onDisconnectionRequestAction[i].Invoke(from, from_slot, to, to_slot);
+        }
         
 
-        private Action? _onDrawAction; 
+        private List<Action>? _onDrawAction; 
         public GraphEditAction OnDraw(Action action) {
-            if (_onDrawAction == null) 
+            if (_onDrawAction == null || _onDrawAction.Count == 0) {
+                _onDrawAction ??= new List<Action>(); 
                 Connect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = action;
+            }
+            _onDrawAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnDraw() {
-            if (_onDrawAction == null) return this; 
-            Disconnect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = null;
+        public GraphEditAction RemoveOnDraw(Action action) {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
+            _onDrawAction.Remove(action); 
+            if (_onDrawAction.Count == 0) {
+                Disconnect("draw", this, nameof(ExecuteDraw));
+            }
             return this;
         }
-        private void ExecuteDraw() =>
-            _onDrawAction?.Invoke();
+        private void ExecuteDraw() {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return;
+            for (var i = 0; i < _onDrawAction.Count; i++) _onDrawAction[i].Invoke();
+        }
         
 
-        private Action? _onDuplicateNodesRequestAction; 
+        private List<Action>? _onDuplicateNodesRequestAction; 
         public GraphEditAction OnDuplicateNodesRequest(Action action) {
-            if (_onDuplicateNodesRequestAction == null) 
+            if (_onDuplicateNodesRequestAction == null || _onDuplicateNodesRequestAction.Count == 0) {
+                _onDuplicateNodesRequestAction ??= new List<Action>(); 
                 Connect("duplicate_nodes_request", this, nameof(ExecuteDuplicateNodesRequest));
-            _onDuplicateNodesRequestAction = action;
+            }
+            _onDuplicateNodesRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnDuplicateNodesRequest() {
-            if (_onDuplicateNodesRequestAction == null) return this; 
-            Disconnect("duplicate_nodes_request", this, nameof(ExecuteDuplicateNodesRequest));
-            _onDuplicateNodesRequestAction = null;
+        public GraphEditAction RemoveOnDuplicateNodesRequest(Action action) {
+            if (_onDuplicateNodesRequestAction == null || _onDuplicateNodesRequestAction.Count == 0) return this;
+            _onDuplicateNodesRequestAction.Remove(action); 
+            if (_onDuplicateNodesRequestAction.Count == 0) {
+                Disconnect("duplicate_nodes_request", this, nameof(ExecuteDuplicateNodesRequest));
+            }
             return this;
         }
-        private void ExecuteDuplicateNodesRequest() =>
-            _onDuplicateNodesRequestAction?.Invoke();
+        private void ExecuteDuplicateNodesRequest() {
+            if (_onDuplicateNodesRequestAction == null || _onDuplicateNodesRequestAction.Count == 0) return;
+            for (var i = 0; i < _onDuplicateNodesRequestAction.Count; i++) _onDuplicateNodesRequestAction[i].Invoke();
+        }
         
 
-        private Action? _onEndNodeMoveAction; 
+        private List<Action>? _onEndNodeMoveAction; 
         public GraphEditAction OnEndNodeMove(Action action) {
-            if (_onEndNodeMoveAction == null) 
+            if (_onEndNodeMoveAction == null || _onEndNodeMoveAction.Count == 0) {
+                _onEndNodeMoveAction ??= new List<Action>(); 
                 Connect("_end_node_move", this, nameof(ExecuteEndNodeMove));
-            _onEndNodeMoveAction = action;
+            }
+            _onEndNodeMoveAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnEndNodeMove() {
-            if (_onEndNodeMoveAction == null) return this; 
-            Disconnect("_end_node_move", this, nameof(ExecuteEndNodeMove));
-            _onEndNodeMoveAction = null;
+        public GraphEditAction RemoveOnEndNodeMove(Action action) {
+            if (_onEndNodeMoveAction == null || _onEndNodeMoveAction.Count == 0) return this;
+            _onEndNodeMoveAction.Remove(action); 
+            if (_onEndNodeMoveAction.Count == 0) {
+                Disconnect("_end_node_move", this, nameof(ExecuteEndNodeMove));
+            }
             return this;
         }
-        private void ExecuteEndNodeMove() =>
-            _onEndNodeMoveAction?.Invoke();
+        private void ExecuteEndNodeMove() {
+            if (_onEndNodeMoveAction == null || _onEndNodeMoveAction.Count == 0) return;
+            for (var i = 0; i < _onEndNodeMoveAction.Count; i++) _onEndNodeMoveAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusEnteredAction; 
+        private List<Action>? _onFocusEnteredAction; 
         public GraphEditAction OnFocusEntered(Action action) {
-            if (_onFocusEnteredAction == null) 
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) {
+                _onFocusEnteredAction ??= new List<Action>(); 
                 Connect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = action;
+            }
+            _onFocusEnteredAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnFocusEntered() {
-            if (_onFocusEnteredAction == null) return this; 
-            Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = null;
+        public GraphEditAction RemoveOnFocusEntered(Action action) {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return this;
+            _onFocusEnteredAction.Remove(action); 
+            if (_onFocusEnteredAction.Count == 0) {
+                Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
+            }
             return this;
         }
-        private void ExecuteFocusEntered() =>
-            _onFocusEnteredAction?.Invoke();
+        private void ExecuteFocusEntered() {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onFocusEnteredAction.Count; i++) _onFocusEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusExitedAction; 
+        private List<Action>? _onFocusExitedAction; 
         public GraphEditAction OnFocusExited(Action action) {
-            if (_onFocusExitedAction == null) 
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) {
+                _onFocusExitedAction ??= new List<Action>(); 
                 Connect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = action;
+            }
+            _onFocusExitedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnFocusExited() {
-            if (_onFocusExitedAction == null) return this; 
-            Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = null;
+        public GraphEditAction RemoveOnFocusExited(Action action) {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return this;
+            _onFocusExitedAction.Remove(action); 
+            if (_onFocusExitedAction.Count == 0) {
+                Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
+            }
             return this;
         }
-        private void ExecuteFocusExited() =>
-            _onFocusExitedAction?.Invoke();
+        private void ExecuteFocusExited() {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return;
+            for (var i = 0; i < _onFocusExitedAction.Count; i++) _onFocusExitedAction[i].Invoke();
+        }
         
 
-        private Action<InputEvent>? _onGuiInputAction; 
+        private List<Action<InputEvent>>? _onGuiInputAction; 
         public GraphEditAction OnGuiInput(Action<InputEvent> action) {
-            if (_onGuiInputAction == null) 
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) {
+                _onGuiInputAction ??= new List<Action<InputEvent>>(); 
                 Connect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = action;
+            }
+            _onGuiInputAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnGuiInput() {
-            if (_onGuiInputAction == null) return this; 
-            Disconnect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = null;
+        public GraphEditAction RemoveOnGuiInput(Action<InputEvent> action) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return this;
+            _onGuiInputAction.Remove(action); 
+            if (_onGuiInputAction.Count == 0) {
+                Disconnect("gui_input", this, nameof(ExecuteGuiInput));
+            }
             return this;
         }
-        private void ExecuteGuiInput(InputEvent @event) =>
-            _onGuiInputAction?.Invoke(@event);
+        private void ExecuteGuiInput(InputEvent @event) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return;
+            for (var i = 0; i < _onGuiInputAction.Count; i++) _onGuiInputAction[i].Invoke(@event);
+        }
         
 
-        private Action? _onHideAction; 
+        private List<Action>? _onHideAction; 
         public GraphEditAction OnHide(Action action) {
-            if (_onHideAction == null) 
+            if (_onHideAction == null || _onHideAction.Count == 0) {
+                _onHideAction ??= new List<Action>(); 
                 Connect("hide", this, nameof(ExecuteHide));
-            _onHideAction = action;
+            }
+            _onHideAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnHide() {
-            if (_onHideAction == null) return this; 
-            Disconnect("hide", this, nameof(ExecuteHide));
-            _onHideAction = null;
+        public GraphEditAction RemoveOnHide(Action action) {
+            if (_onHideAction == null || _onHideAction.Count == 0) return this;
+            _onHideAction.Remove(action); 
+            if (_onHideAction.Count == 0) {
+                Disconnect("hide", this, nameof(ExecuteHide));
+            }
             return this;
         }
-        private void ExecuteHide() =>
-            _onHideAction?.Invoke();
+        private void ExecuteHide() {
+            if (_onHideAction == null || _onHideAction.Count == 0) return;
+            for (var i = 0; i < _onHideAction.Count; i++) _onHideAction[i].Invoke();
+        }
         
 
-        private Action? _onItemRectChangedAction; 
+        private List<Action>? _onItemRectChangedAction; 
         public GraphEditAction OnItemRectChanged(Action action) {
-            if (_onItemRectChangedAction == null) 
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
+                _onItemRectChangedAction ??= new List<Action>(); 
                 Connect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = action;
+            }
+            _onItemRectChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnItemRectChanged() {
-            if (_onItemRectChangedAction == null) return this; 
-            Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = null;
+        public GraphEditAction RemoveOnItemRectChanged(Action action) {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
+            _onItemRectChangedAction.Remove(action); 
+            if (_onItemRectChangedAction.Count == 0) {
+                Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
+            }
             return this;
         }
-        private void ExecuteItemRectChanged() =>
-            _onItemRectChangedAction?.Invoke();
+        private void ExecuteItemRectChanged() {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return;
+            for (var i = 0; i < _onItemRectChangedAction.Count; i++) _onItemRectChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onMinimumSizeChangedAction; 
+        private List<Action>? _onMinimumSizeChangedAction; 
         public GraphEditAction OnMinimumSizeChanged(Action action) {
-            if (_onMinimumSizeChangedAction == null) 
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) {
+                _onMinimumSizeChangedAction ??= new List<Action>(); 
                 Connect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = action;
+            }
+            _onMinimumSizeChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnMinimumSizeChanged() {
-            if (_onMinimumSizeChangedAction == null) return this; 
-            Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = null;
+        public GraphEditAction RemoveOnMinimumSizeChanged(Action action) {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return this;
+            _onMinimumSizeChangedAction.Remove(action); 
+            if (_onMinimumSizeChangedAction.Count == 0) {
+                Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
+            }
             return this;
         }
-        private void ExecuteMinimumSizeChanged() =>
-            _onMinimumSizeChangedAction?.Invoke();
+        private void ExecuteMinimumSizeChanged() {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return;
+            for (var i = 0; i < _onMinimumSizeChangedAction.Count; i++) _onMinimumSizeChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onModalClosedAction; 
+        private List<Action>? _onModalClosedAction; 
         public GraphEditAction OnModalClosed(Action action) {
-            if (_onModalClosedAction == null) 
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) {
+                _onModalClosedAction ??= new List<Action>(); 
                 Connect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = action;
+            }
+            _onModalClosedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnModalClosed() {
-            if (_onModalClosedAction == null) return this; 
-            Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = null;
+        public GraphEditAction RemoveOnModalClosed(Action action) {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return this;
+            _onModalClosedAction.Remove(action); 
+            if (_onModalClosedAction.Count == 0) {
+                Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
+            }
             return this;
         }
-        private void ExecuteModalClosed() =>
-            _onModalClosedAction?.Invoke();
+        private void ExecuteModalClosed() {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return;
+            for (var i = 0; i < _onModalClosedAction.Count; i++) _onModalClosedAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseEnteredAction; 
+        private List<Action>? _onMouseEnteredAction; 
         public GraphEditAction OnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null) 
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
+                _onMouseEnteredAction ??= new List<Action>(); 
                 Connect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = action;
+            }
+            _onMouseEnteredAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnMouseEntered() {
-            if (_onMouseEnteredAction == null) return this; 
-            Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = null;
+        public GraphEditAction RemoveOnMouseEntered(Action action) {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
+            _onMouseEnteredAction.Remove(action); 
+            if (_onMouseEnteredAction.Count == 0) {
+                Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
+            }
             return this;
         }
-        private void ExecuteMouseEntered() =>
-            _onMouseEnteredAction?.Invoke();
+        private void ExecuteMouseEntered() {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseExitedAction; 
+        private List<Action>? _onMouseExitedAction; 
         public GraphEditAction OnMouseExited(Action action) {
-            if (_onMouseExitedAction == null) 
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
+                _onMouseExitedAction ??= new List<Action>(); 
                 Connect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = action;
+            }
+            _onMouseExitedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnMouseExited() {
-            if (_onMouseExitedAction == null) return this; 
-            Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = null;
+        public GraphEditAction RemoveOnMouseExited(Action action) {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
+            _onMouseExitedAction.Remove(action); 
+            if (_onMouseExitedAction.Count == 0) {
+                Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
+            }
             return this;
         }
-        private void ExecuteMouseExited() =>
-            _onMouseExitedAction?.Invoke();
+        private void ExecuteMouseExited() {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
+            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
+        }
         
 
-        private Action<Node>? _onNodeSelectedAction; 
+        private List<Action<Node>>? _onNodeSelectedAction; 
         public GraphEditAction OnNodeSelected(Action<Node> action) {
-            if (_onNodeSelectedAction == null) 
+            if (_onNodeSelectedAction == null || _onNodeSelectedAction.Count == 0) {
+                _onNodeSelectedAction ??= new List<Action<Node>>(); 
                 Connect("node_selected", this, nameof(ExecuteNodeSelected));
-            _onNodeSelectedAction = action;
+            }
+            _onNodeSelectedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnNodeSelected() {
-            if (_onNodeSelectedAction == null) return this; 
-            Disconnect("node_selected", this, nameof(ExecuteNodeSelected));
-            _onNodeSelectedAction = null;
+        public GraphEditAction RemoveOnNodeSelected(Action<Node> action) {
+            if (_onNodeSelectedAction == null || _onNodeSelectedAction.Count == 0) return this;
+            _onNodeSelectedAction.Remove(action); 
+            if (_onNodeSelectedAction.Count == 0) {
+                Disconnect("node_selected", this, nameof(ExecuteNodeSelected));
+            }
             return this;
         }
-        private void ExecuteNodeSelected(Node node) =>
-            _onNodeSelectedAction?.Invoke(node);
+        private void ExecuteNodeSelected(Node node) {
+            if (_onNodeSelectedAction == null || _onNodeSelectedAction.Count == 0) return;
+            for (var i = 0; i < _onNodeSelectedAction.Count; i++) _onNodeSelectedAction[i].Invoke(node);
+        }
         
 
-        private Action<Node>? _onNodeUnselectedAction; 
+        private List<Action<Node>>? _onNodeUnselectedAction; 
         public GraphEditAction OnNodeUnselected(Action<Node> action) {
-            if (_onNodeUnselectedAction == null) 
+            if (_onNodeUnselectedAction == null || _onNodeUnselectedAction.Count == 0) {
+                _onNodeUnselectedAction ??= new List<Action<Node>>(); 
                 Connect("node_unselected", this, nameof(ExecuteNodeUnselected));
-            _onNodeUnselectedAction = action;
+            }
+            _onNodeUnselectedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnNodeUnselected() {
-            if (_onNodeUnselectedAction == null) return this; 
-            Disconnect("node_unselected", this, nameof(ExecuteNodeUnselected));
-            _onNodeUnselectedAction = null;
+        public GraphEditAction RemoveOnNodeUnselected(Action<Node> action) {
+            if (_onNodeUnselectedAction == null || _onNodeUnselectedAction.Count == 0) return this;
+            _onNodeUnselectedAction.Remove(action); 
+            if (_onNodeUnselectedAction.Count == 0) {
+                Disconnect("node_unselected", this, nameof(ExecuteNodeUnselected));
+            }
             return this;
         }
-        private void ExecuteNodeUnselected(Node node) =>
-            _onNodeUnselectedAction?.Invoke(node);
+        private void ExecuteNodeUnselected(Node node) {
+            if (_onNodeUnselectedAction == null || _onNodeUnselectedAction.Count == 0) return;
+            for (var i = 0; i < _onNodeUnselectedAction.Count; i++) _onNodeUnselectedAction[i].Invoke(node);
+        }
         
 
-        private Action? _onPasteNodesRequestAction; 
+        private List<Action>? _onPasteNodesRequestAction; 
         public GraphEditAction OnPasteNodesRequest(Action action) {
-            if (_onPasteNodesRequestAction == null) 
+            if (_onPasteNodesRequestAction == null || _onPasteNodesRequestAction.Count == 0) {
+                _onPasteNodesRequestAction ??= new List<Action>(); 
                 Connect("paste_nodes_request", this, nameof(ExecutePasteNodesRequest));
-            _onPasteNodesRequestAction = action;
+            }
+            _onPasteNodesRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnPasteNodesRequest() {
-            if (_onPasteNodesRequestAction == null) return this; 
-            Disconnect("paste_nodes_request", this, nameof(ExecutePasteNodesRequest));
-            _onPasteNodesRequestAction = null;
+        public GraphEditAction RemoveOnPasteNodesRequest(Action action) {
+            if (_onPasteNodesRequestAction == null || _onPasteNodesRequestAction.Count == 0) return this;
+            _onPasteNodesRequestAction.Remove(action); 
+            if (_onPasteNodesRequestAction.Count == 0) {
+                Disconnect("paste_nodes_request", this, nameof(ExecutePasteNodesRequest));
+            }
             return this;
         }
-        private void ExecutePasteNodesRequest() =>
-            _onPasteNodesRequestAction?.Invoke();
+        private void ExecutePasteNodesRequest() {
+            if (_onPasteNodesRequestAction == null || _onPasteNodesRequestAction.Count == 0) return;
+            for (var i = 0; i < _onPasteNodesRequestAction.Count; i++) _onPasteNodesRequestAction[i].Invoke();
+        }
         
 
-        private Action<Vector2>? _onPopupRequestAction; 
+        private List<Action<Vector2>>? _onPopupRequestAction; 
         public GraphEditAction OnPopupRequest(Action<Vector2> action) {
-            if (_onPopupRequestAction == null) 
+            if (_onPopupRequestAction == null || _onPopupRequestAction.Count == 0) {
+                _onPopupRequestAction ??= new List<Action<Vector2>>(); 
                 Connect("popup_request", this, nameof(ExecutePopupRequest));
-            _onPopupRequestAction = action;
+            }
+            _onPopupRequestAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnPopupRequest() {
-            if (_onPopupRequestAction == null) return this; 
-            Disconnect("popup_request", this, nameof(ExecutePopupRequest));
-            _onPopupRequestAction = null;
+        public GraphEditAction RemoveOnPopupRequest(Action<Vector2> action) {
+            if (_onPopupRequestAction == null || _onPopupRequestAction.Count == 0) return this;
+            _onPopupRequestAction.Remove(action); 
+            if (_onPopupRequestAction.Count == 0) {
+                Disconnect("popup_request", this, nameof(ExecutePopupRequest));
+            }
             return this;
         }
-        private void ExecutePopupRequest(Vector2 position) =>
-            _onPopupRequestAction?.Invoke(position);
+        private void ExecutePopupRequest(Vector2 position) {
+            if (_onPopupRequestAction == null || _onPopupRequestAction.Count == 0) return;
+            for (var i = 0; i < _onPopupRequestAction.Count; i++) _onPopupRequestAction[i].Invoke(position);
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public GraphEditAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public GraphEditAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public GraphEditAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public GraphEditAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onResizedAction; 
+        private List<Action>? _onResizedAction; 
         public GraphEditAction OnResized(Action action) {
-            if (_onResizedAction == null) 
+            if (_onResizedAction == null || _onResizedAction.Count == 0) {
+                _onResizedAction ??= new List<Action>(); 
                 Connect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = action;
+            }
+            _onResizedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnResized() {
-            if (_onResizedAction == null) return this; 
-            Disconnect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = null;
+        public GraphEditAction RemoveOnResized(Action action) {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return this;
+            _onResizedAction.Remove(action); 
+            if (_onResizedAction.Count == 0) {
+                Disconnect("resized", this, nameof(ExecuteResized));
+            }
             return this;
         }
-        private void ExecuteResized() =>
-            _onResizedAction?.Invoke();
+        private void ExecuteResized() {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return;
+            for (var i = 0; i < _onResizedAction.Count; i++) _onResizedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public GraphEditAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public GraphEditAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action<Vector2>? _onScrollOffsetChangedAction; 
+        private List<Action<Vector2>>? _onScrollOffsetChangedAction; 
         public GraphEditAction OnScrollOffsetChanged(Action<Vector2> action) {
-            if (_onScrollOffsetChangedAction == null) 
+            if (_onScrollOffsetChangedAction == null || _onScrollOffsetChangedAction.Count == 0) {
+                _onScrollOffsetChangedAction ??= new List<Action<Vector2>>(); 
                 Connect("scroll_offset_changed", this, nameof(ExecuteScrollOffsetChanged));
-            _onScrollOffsetChangedAction = action;
+            }
+            _onScrollOffsetChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnScrollOffsetChanged() {
-            if (_onScrollOffsetChangedAction == null) return this; 
-            Disconnect("scroll_offset_changed", this, nameof(ExecuteScrollOffsetChanged));
-            _onScrollOffsetChangedAction = null;
+        public GraphEditAction RemoveOnScrollOffsetChanged(Action<Vector2> action) {
+            if (_onScrollOffsetChangedAction == null || _onScrollOffsetChangedAction.Count == 0) return this;
+            _onScrollOffsetChangedAction.Remove(action); 
+            if (_onScrollOffsetChangedAction.Count == 0) {
+                Disconnect("scroll_offset_changed", this, nameof(ExecuteScrollOffsetChanged));
+            }
             return this;
         }
-        private void ExecuteScrollOffsetChanged(Vector2 ofs) =>
-            _onScrollOffsetChangedAction?.Invoke(ofs);
+        private void ExecuteScrollOffsetChanged(Vector2 ofs) {
+            if (_onScrollOffsetChangedAction == null || _onScrollOffsetChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScrollOffsetChangedAction.Count; i++) _onScrollOffsetChangedAction[i].Invoke(ofs);
+        }
         
 
-        private Action? _onSizeFlagsChangedAction; 
+        private List<Action>? _onSizeFlagsChangedAction; 
         public GraphEditAction OnSizeFlagsChanged(Action action) {
-            if (_onSizeFlagsChangedAction == null) 
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) {
+                _onSizeFlagsChangedAction ??= new List<Action>(); 
                 Connect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = action;
+            }
+            _onSizeFlagsChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnSizeFlagsChanged() {
-            if (_onSizeFlagsChangedAction == null) return this; 
-            Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = null;
+        public GraphEditAction RemoveOnSizeFlagsChanged(Action action) {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return this;
+            _onSizeFlagsChangedAction.Remove(action); 
+            if (_onSizeFlagsChangedAction.Count == 0) {
+                Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
+            }
             return this;
         }
-        private void ExecuteSizeFlagsChanged() =>
-            _onSizeFlagsChangedAction?.Invoke();
+        private void ExecuteSizeFlagsChanged() {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return;
+            for (var i = 0; i < _onSizeFlagsChangedAction.Count; i++) _onSizeFlagsChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public GraphEditAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public GraphEditAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public GraphEditAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public GraphEditAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public GraphEditAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public GraphEditAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public GraphEditAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public GraphEditAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public GraphEditAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }

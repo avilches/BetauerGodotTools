@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,460 +82,610 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action? _onDrawAction; 
+        private List<Action>? _onDrawAction; 
         public TabsAction OnDraw(Action action) {
-            if (_onDrawAction == null) 
+            if (_onDrawAction == null || _onDrawAction.Count == 0) {
+                _onDrawAction ??= new List<Action>(); 
                 Connect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = action;
+            }
+            _onDrawAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnDraw() {
-            if (_onDrawAction == null) return this; 
-            Disconnect("draw", this, nameof(ExecuteDraw));
-            _onDrawAction = null;
+        public TabsAction RemoveOnDraw(Action action) {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
+            _onDrawAction.Remove(action); 
+            if (_onDrawAction.Count == 0) {
+                Disconnect("draw", this, nameof(ExecuteDraw));
+            }
             return this;
         }
-        private void ExecuteDraw() =>
-            _onDrawAction?.Invoke();
+        private void ExecuteDraw() {
+            if (_onDrawAction == null || _onDrawAction.Count == 0) return;
+            for (var i = 0; i < _onDrawAction.Count; i++) _onDrawAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusEnteredAction; 
+        private List<Action>? _onFocusEnteredAction; 
         public TabsAction OnFocusEntered(Action action) {
-            if (_onFocusEnteredAction == null) 
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) {
+                _onFocusEnteredAction ??= new List<Action>(); 
                 Connect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = action;
+            }
+            _onFocusEnteredAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnFocusEntered() {
-            if (_onFocusEnteredAction == null) return this; 
-            Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
-            _onFocusEnteredAction = null;
+        public TabsAction RemoveOnFocusEntered(Action action) {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return this;
+            _onFocusEnteredAction.Remove(action); 
+            if (_onFocusEnteredAction.Count == 0) {
+                Disconnect("focus_entered", this, nameof(ExecuteFocusEntered));
+            }
             return this;
         }
-        private void ExecuteFocusEntered() =>
-            _onFocusEnteredAction?.Invoke();
+        private void ExecuteFocusEntered() {
+            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onFocusEnteredAction.Count; i++) _onFocusEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onFocusExitedAction; 
+        private List<Action>? _onFocusExitedAction; 
         public TabsAction OnFocusExited(Action action) {
-            if (_onFocusExitedAction == null) 
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) {
+                _onFocusExitedAction ??= new List<Action>(); 
                 Connect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = action;
+            }
+            _onFocusExitedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnFocusExited() {
-            if (_onFocusExitedAction == null) return this; 
-            Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
-            _onFocusExitedAction = null;
+        public TabsAction RemoveOnFocusExited(Action action) {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return this;
+            _onFocusExitedAction.Remove(action); 
+            if (_onFocusExitedAction.Count == 0) {
+                Disconnect("focus_exited", this, nameof(ExecuteFocusExited));
+            }
             return this;
         }
-        private void ExecuteFocusExited() =>
-            _onFocusExitedAction?.Invoke();
+        private void ExecuteFocusExited() {
+            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return;
+            for (var i = 0; i < _onFocusExitedAction.Count; i++) _onFocusExitedAction[i].Invoke();
+        }
         
 
-        private Action<InputEvent>? _onGuiInputAction; 
+        private List<Action<InputEvent>>? _onGuiInputAction; 
         public TabsAction OnGuiInput(Action<InputEvent> action) {
-            if (_onGuiInputAction == null) 
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) {
+                _onGuiInputAction ??= new List<Action<InputEvent>>(); 
                 Connect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = action;
+            }
+            _onGuiInputAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnGuiInput() {
-            if (_onGuiInputAction == null) return this; 
-            Disconnect("gui_input", this, nameof(ExecuteGuiInput));
-            _onGuiInputAction = null;
+        public TabsAction RemoveOnGuiInput(Action<InputEvent> action) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return this;
+            _onGuiInputAction.Remove(action); 
+            if (_onGuiInputAction.Count == 0) {
+                Disconnect("gui_input", this, nameof(ExecuteGuiInput));
+            }
             return this;
         }
-        private void ExecuteGuiInput(InputEvent @event) =>
-            _onGuiInputAction?.Invoke(@event);
+        private void ExecuteGuiInput(InputEvent @event) {
+            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return;
+            for (var i = 0; i < _onGuiInputAction.Count; i++) _onGuiInputAction[i].Invoke(@event);
+        }
         
 
-        private Action? _onHideAction; 
+        private List<Action>? _onHideAction; 
         public TabsAction OnHide(Action action) {
-            if (_onHideAction == null) 
+            if (_onHideAction == null || _onHideAction.Count == 0) {
+                _onHideAction ??= new List<Action>(); 
                 Connect("hide", this, nameof(ExecuteHide));
-            _onHideAction = action;
+            }
+            _onHideAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnHide() {
-            if (_onHideAction == null) return this; 
-            Disconnect("hide", this, nameof(ExecuteHide));
-            _onHideAction = null;
+        public TabsAction RemoveOnHide(Action action) {
+            if (_onHideAction == null || _onHideAction.Count == 0) return this;
+            _onHideAction.Remove(action); 
+            if (_onHideAction.Count == 0) {
+                Disconnect("hide", this, nameof(ExecuteHide));
+            }
             return this;
         }
-        private void ExecuteHide() =>
-            _onHideAction?.Invoke();
+        private void ExecuteHide() {
+            if (_onHideAction == null || _onHideAction.Count == 0) return;
+            for (var i = 0; i < _onHideAction.Count; i++) _onHideAction[i].Invoke();
+        }
         
 
-        private Action? _onItemRectChangedAction; 
+        private List<Action>? _onItemRectChangedAction; 
         public TabsAction OnItemRectChanged(Action action) {
-            if (_onItemRectChangedAction == null) 
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
+                _onItemRectChangedAction ??= new List<Action>(); 
                 Connect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = action;
+            }
+            _onItemRectChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnItemRectChanged() {
-            if (_onItemRectChangedAction == null) return this; 
-            Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
-            _onItemRectChangedAction = null;
+        public TabsAction RemoveOnItemRectChanged(Action action) {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
+            _onItemRectChangedAction.Remove(action); 
+            if (_onItemRectChangedAction.Count == 0) {
+                Disconnect("item_rect_changed", this, nameof(ExecuteItemRectChanged));
+            }
             return this;
         }
-        private void ExecuteItemRectChanged() =>
-            _onItemRectChangedAction?.Invoke();
+        private void ExecuteItemRectChanged() {
+            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return;
+            for (var i = 0; i < _onItemRectChangedAction.Count; i++) _onItemRectChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onMinimumSizeChangedAction; 
+        private List<Action>? _onMinimumSizeChangedAction; 
         public TabsAction OnMinimumSizeChanged(Action action) {
-            if (_onMinimumSizeChangedAction == null) 
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) {
+                _onMinimumSizeChangedAction ??= new List<Action>(); 
                 Connect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = action;
+            }
+            _onMinimumSizeChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnMinimumSizeChanged() {
-            if (_onMinimumSizeChangedAction == null) return this; 
-            Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
-            _onMinimumSizeChangedAction = null;
+        public TabsAction RemoveOnMinimumSizeChanged(Action action) {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return this;
+            _onMinimumSizeChangedAction.Remove(action); 
+            if (_onMinimumSizeChangedAction.Count == 0) {
+                Disconnect("minimum_size_changed", this, nameof(ExecuteMinimumSizeChanged));
+            }
             return this;
         }
-        private void ExecuteMinimumSizeChanged() =>
-            _onMinimumSizeChangedAction?.Invoke();
+        private void ExecuteMinimumSizeChanged() {
+            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return;
+            for (var i = 0; i < _onMinimumSizeChangedAction.Count; i++) _onMinimumSizeChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onModalClosedAction; 
+        private List<Action>? _onModalClosedAction; 
         public TabsAction OnModalClosed(Action action) {
-            if (_onModalClosedAction == null) 
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) {
+                _onModalClosedAction ??= new List<Action>(); 
                 Connect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = action;
+            }
+            _onModalClosedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnModalClosed() {
-            if (_onModalClosedAction == null) return this; 
-            Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
-            _onModalClosedAction = null;
+        public TabsAction RemoveOnModalClosed(Action action) {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return this;
+            _onModalClosedAction.Remove(action); 
+            if (_onModalClosedAction.Count == 0) {
+                Disconnect("modal_closed", this, nameof(ExecuteModalClosed));
+            }
             return this;
         }
-        private void ExecuteModalClosed() =>
-            _onModalClosedAction?.Invoke();
+        private void ExecuteModalClosed() {
+            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return;
+            for (var i = 0; i < _onModalClosedAction.Count; i++) _onModalClosedAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseEnteredAction; 
+        private List<Action>? _onMouseEnteredAction; 
         public TabsAction OnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null) 
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
+                _onMouseEnteredAction ??= new List<Action>(); 
                 Connect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = action;
+            }
+            _onMouseEnteredAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnMouseEntered() {
-            if (_onMouseEnteredAction == null) return this; 
-            Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = null;
+        public TabsAction RemoveOnMouseEntered(Action action) {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
+            _onMouseEnteredAction.Remove(action); 
+            if (_onMouseEnteredAction.Count == 0) {
+                Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
+            }
             return this;
         }
-        private void ExecuteMouseEntered() =>
-            _onMouseEnteredAction?.Invoke();
+        private void ExecuteMouseEntered() {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseExitedAction; 
+        private List<Action>? _onMouseExitedAction; 
         public TabsAction OnMouseExited(Action action) {
-            if (_onMouseExitedAction == null) 
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
+                _onMouseExitedAction ??= new List<Action>(); 
                 Connect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = action;
+            }
+            _onMouseExitedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnMouseExited() {
-            if (_onMouseExitedAction == null) return this; 
-            Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = null;
+        public TabsAction RemoveOnMouseExited(Action action) {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
+            _onMouseExitedAction.Remove(action); 
+            if (_onMouseExitedAction.Count == 0) {
+                Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
+            }
             return this;
         }
-        private void ExecuteMouseExited() =>
-            _onMouseExitedAction?.Invoke();
+        private void ExecuteMouseExited() {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
+            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public TabsAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public TabsAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public TabsAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public TabsAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action<int>? _onRepositionActiveTabRequestAction; 
+        private List<Action<int>>? _onRepositionActiveTabRequestAction; 
         public TabsAction OnRepositionActiveTabRequest(Action<int> action) {
-            if (_onRepositionActiveTabRequestAction == null) 
+            if (_onRepositionActiveTabRequestAction == null || _onRepositionActiveTabRequestAction.Count == 0) {
+                _onRepositionActiveTabRequestAction ??= new List<Action<int>>(); 
                 Connect("reposition_active_tab_request", this, nameof(ExecuteRepositionActiveTabRequest));
-            _onRepositionActiveTabRequestAction = action;
+            }
+            _onRepositionActiveTabRequestAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnRepositionActiveTabRequest() {
-            if (_onRepositionActiveTabRequestAction == null) return this; 
-            Disconnect("reposition_active_tab_request", this, nameof(ExecuteRepositionActiveTabRequest));
-            _onRepositionActiveTabRequestAction = null;
+        public TabsAction RemoveOnRepositionActiveTabRequest(Action<int> action) {
+            if (_onRepositionActiveTabRequestAction == null || _onRepositionActiveTabRequestAction.Count == 0) return this;
+            _onRepositionActiveTabRequestAction.Remove(action); 
+            if (_onRepositionActiveTabRequestAction.Count == 0) {
+                Disconnect("reposition_active_tab_request", this, nameof(ExecuteRepositionActiveTabRequest));
+            }
             return this;
         }
-        private void ExecuteRepositionActiveTabRequest(int idx_to) =>
-            _onRepositionActiveTabRequestAction?.Invoke(idx_to);
+        private void ExecuteRepositionActiveTabRequest(int idx_to) {
+            if (_onRepositionActiveTabRequestAction == null || _onRepositionActiveTabRequestAction.Count == 0) return;
+            for (var i = 0; i < _onRepositionActiveTabRequestAction.Count; i++) _onRepositionActiveTabRequestAction[i].Invoke(idx_to);
+        }
         
 
-        private Action? _onResizedAction; 
+        private List<Action>? _onResizedAction; 
         public TabsAction OnResized(Action action) {
-            if (_onResizedAction == null) 
+            if (_onResizedAction == null || _onResizedAction.Count == 0) {
+                _onResizedAction ??= new List<Action>(); 
                 Connect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = action;
+            }
+            _onResizedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnResized() {
-            if (_onResizedAction == null) return this; 
-            Disconnect("resized", this, nameof(ExecuteResized));
-            _onResizedAction = null;
+        public TabsAction RemoveOnResized(Action action) {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return this;
+            _onResizedAction.Remove(action); 
+            if (_onResizedAction.Count == 0) {
+                Disconnect("resized", this, nameof(ExecuteResized));
+            }
             return this;
         }
-        private void ExecuteResized() =>
-            _onResizedAction?.Invoke();
+        private void ExecuteResized() {
+            if (_onResizedAction == null || _onResizedAction.Count == 0) return;
+            for (var i = 0; i < _onResizedAction.Count; i++) _onResizedAction[i].Invoke();
+        }
         
 
-        private Action<int>? _onRightButtonPressedAction; 
+        private List<Action<int>>? _onRightButtonPressedAction; 
         public TabsAction OnRightButtonPressed(Action<int> action) {
-            if (_onRightButtonPressedAction == null) 
+            if (_onRightButtonPressedAction == null || _onRightButtonPressedAction.Count == 0) {
+                _onRightButtonPressedAction ??= new List<Action<int>>(); 
                 Connect("right_button_pressed", this, nameof(ExecuteRightButtonPressed));
-            _onRightButtonPressedAction = action;
+            }
+            _onRightButtonPressedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnRightButtonPressed() {
-            if (_onRightButtonPressedAction == null) return this; 
-            Disconnect("right_button_pressed", this, nameof(ExecuteRightButtonPressed));
-            _onRightButtonPressedAction = null;
+        public TabsAction RemoveOnRightButtonPressed(Action<int> action) {
+            if (_onRightButtonPressedAction == null || _onRightButtonPressedAction.Count == 0) return this;
+            _onRightButtonPressedAction.Remove(action); 
+            if (_onRightButtonPressedAction.Count == 0) {
+                Disconnect("right_button_pressed", this, nameof(ExecuteRightButtonPressed));
+            }
             return this;
         }
-        private void ExecuteRightButtonPressed(int tab) =>
-            _onRightButtonPressedAction?.Invoke(tab);
+        private void ExecuteRightButtonPressed(int tab) {
+            if (_onRightButtonPressedAction == null || _onRightButtonPressedAction.Count == 0) return;
+            for (var i = 0; i < _onRightButtonPressedAction.Count; i++) _onRightButtonPressedAction[i].Invoke(tab);
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public TabsAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public TabsAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onSizeFlagsChangedAction; 
+        private List<Action>? _onSizeFlagsChangedAction; 
         public TabsAction OnSizeFlagsChanged(Action action) {
-            if (_onSizeFlagsChangedAction == null) 
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) {
+                _onSizeFlagsChangedAction ??= new List<Action>(); 
                 Connect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = action;
+            }
+            _onSizeFlagsChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnSizeFlagsChanged() {
-            if (_onSizeFlagsChangedAction == null) return this; 
-            Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
-            _onSizeFlagsChangedAction = null;
+        public TabsAction RemoveOnSizeFlagsChanged(Action action) {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return this;
+            _onSizeFlagsChangedAction.Remove(action); 
+            if (_onSizeFlagsChangedAction.Count == 0) {
+                Disconnect("size_flags_changed", this, nameof(ExecuteSizeFlagsChanged));
+            }
             return this;
         }
-        private void ExecuteSizeFlagsChanged() =>
-            _onSizeFlagsChangedAction?.Invoke();
+        private void ExecuteSizeFlagsChanged() {
+            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return;
+            for (var i = 0; i < _onSizeFlagsChangedAction.Count; i++) _onSizeFlagsChangedAction[i].Invoke();
+        }
         
 
-        private Action<int>? _onTabChangedAction; 
+        private List<Action<int>>? _onTabChangedAction; 
         public TabsAction OnTabChanged(Action<int> action) {
-            if (_onTabChangedAction == null) 
+            if (_onTabChangedAction == null || _onTabChangedAction.Count == 0) {
+                _onTabChangedAction ??= new List<Action<int>>(); 
                 Connect("tab_changed", this, nameof(ExecuteTabChanged));
-            _onTabChangedAction = action;
+            }
+            _onTabChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTabChanged() {
-            if (_onTabChangedAction == null) return this; 
-            Disconnect("tab_changed", this, nameof(ExecuteTabChanged));
-            _onTabChangedAction = null;
+        public TabsAction RemoveOnTabChanged(Action<int> action) {
+            if (_onTabChangedAction == null || _onTabChangedAction.Count == 0) return this;
+            _onTabChangedAction.Remove(action); 
+            if (_onTabChangedAction.Count == 0) {
+                Disconnect("tab_changed", this, nameof(ExecuteTabChanged));
+            }
             return this;
         }
-        private void ExecuteTabChanged(int tab) =>
-            _onTabChangedAction?.Invoke(tab);
+        private void ExecuteTabChanged(int tab) {
+            if (_onTabChangedAction == null || _onTabChangedAction.Count == 0) return;
+            for (var i = 0; i < _onTabChangedAction.Count; i++) _onTabChangedAction[i].Invoke(tab);
+        }
         
 
-        private Action<int>? _onTabClickedAction; 
+        private List<Action<int>>? _onTabClickedAction; 
         public TabsAction OnTabClicked(Action<int> action) {
-            if (_onTabClickedAction == null) 
+            if (_onTabClickedAction == null || _onTabClickedAction.Count == 0) {
+                _onTabClickedAction ??= new List<Action<int>>(); 
                 Connect("tab_clicked", this, nameof(ExecuteTabClicked));
-            _onTabClickedAction = action;
+            }
+            _onTabClickedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTabClicked() {
-            if (_onTabClickedAction == null) return this; 
-            Disconnect("tab_clicked", this, nameof(ExecuteTabClicked));
-            _onTabClickedAction = null;
+        public TabsAction RemoveOnTabClicked(Action<int> action) {
+            if (_onTabClickedAction == null || _onTabClickedAction.Count == 0) return this;
+            _onTabClickedAction.Remove(action); 
+            if (_onTabClickedAction.Count == 0) {
+                Disconnect("tab_clicked", this, nameof(ExecuteTabClicked));
+            }
             return this;
         }
-        private void ExecuteTabClicked(int tab) =>
-            _onTabClickedAction?.Invoke(tab);
+        private void ExecuteTabClicked(int tab) {
+            if (_onTabClickedAction == null || _onTabClickedAction.Count == 0) return;
+            for (var i = 0; i < _onTabClickedAction.Count; i++) _onTabClickedAction[i].Invoke(tab);
+        }
         
 
-        private Action<int>? _onTabCloseAction; 
+        private List<Action<int>>? _onTabCloseAction; 
         public TabsAction OnTabClose(Action<int> action) {
-            if (_onTabCloseAction == null) 
+            if (_onTabCloseAction == null || _onTabCloseAction.Count == 0) {
+                _onTabCloseAction ??= new List<Action<int>>(); 
                 Connect("tab_close", this, nameof(ExecuteTabClose));
-            _onTabCloseAction = action;
+            }
+            _onTabCloseAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTabClose() {
-            if (_onTabCloseAction == null) return this; 
-            Disconnect("tab_close", this, nameof(ExecuteTabClose));
-            _onTabCloseAction = null;
+        public TabsAction RemoveOnTabClose(Action<int> action) {
+            if (_onTabCloseAction == null || _onTabCloseAction.Count == 0) return this;
+            _onTabCloseAction.Remove(action); 
+            if (_onTabCloseAction.Count == 0) {
+                Disconnect("tab_close", this, nameof(ExecuteTabClose));
+            }
             return this;
         }
-        private void ExecuteTabClose(int tab) =>
-            _onTabCloseAction?.Invoke(tab);
+        private void ExecuteTabClose(int tab) {
+            if (_onTabCloseAction == null || _onTabCloseAction.Count == 0) return;
+            for (var i = 0; i < _onTabCloseAction.Count; i++) _onTabCloseAction[i].Invoke(tab);
+        }
         
 
-        private Action<int>? _onTabHoverAction; 
+        private List<Action<int>>? _onTabHoverAction; 
         public TabsAction OnTabHover(Action<int> action) {
-            if (_onTabHoverAction == null) 
+            if (_onTabHoverAction == null || _onTabHoverAction.Count == 0) {
+                _onTabHoverAction ??= new List<Action<int>>(); 
                 Connect("tab_hover", this, nameof(ExecuteTabHover));
-            _onTabHoverAction = action;
+            }
+            _onTabHoverAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTabHover() {
-            if (_onTabHoverAction == null) return this; 
-            Disconnect("tab_hover", this, nameof(ExecuteTabHover));
-            _onTabHoverAction = null;
+        public TabsAction RemoveOnTabHover(Action<int> action) {
+            if (_onTabHoverAction == null || _onTabHoverAction.Count == 0) return this;
+            _onTabHoverAction.Remove(action); 
+            if (_onTabHoverAction.Count == 0) {
+                Disconnect("tab_hover", this, nameof(ExecuteTabHover));
+            }
             return this;
         }
-        private void ExecuteTabHover(int tab) =>
-            _onTabHoverAction?.Invoke(tab);
+        private void ExecuteTabHover(int tab) {
+            if (_onTabHoverAction == null || _onTabHoverAction.Count == 0) return;
+            for (var i = 0; i < _onTabHoverAction.Count; i++) _onTabHoverAction[i].Invoke(tab);
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public TabsAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public TabsAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public TabsAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public TabsAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public TabsAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public TabsAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public TabsAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public TabsAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public TabsAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }

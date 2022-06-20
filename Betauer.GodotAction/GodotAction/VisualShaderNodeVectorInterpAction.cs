@@ -9,55 +9,73 @@ namespace Betauer.GodotAction {
     public class VisualShaderNodeVectorInterpAction : VisualShaderNodeVectorInterp {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public VisualShaderNodeVectorInterpAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public VisualShaderNodeVectorInterpAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public VisualShaderNodeVectorInterpAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onEditorRefreshRequestAction; 
+        private List<Action>? _onEditorRefreshRequestAction; 
         public VisualShaderNodeVectorInterpAction OnEditorRefreshRequest(Action action) {
-            if (_onEditorRefreshRequestAction == null) 
+            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) {
+                _onEditorRefreshRequestAction ??= new List<Action>(); 
                 Connect("editor_refresh_request", this, nameof(ExecuteEditorRefreshRequest));
-            _onEditorRefreshRequestAction = action;
+            }
+            _onEditorRefreshRequestAction.Add(action);
             return this;
         }
-        public VisualShaderNodeVectorInterpAction RemoveOnEditorRefreshRequest() {
-            if (_onEditorRefreshRequestAction == null) return this; 
-            Disconnect("editor_refresh_request", this, nameof(ExecuteEditorRefreshRequest));
-            _onEditorRefreshRequestAction = null;
+        public VisualShaderNodeVectorInterpAction RemoveOnEditorRefreshRequest(Action action) {
+            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) return this;
+            _onEditorRefreshRequestAction.Remove(action); 
+            if (_onEditorRefreshRequestAction.Count == 0) {
+                Disconnect("editor_refresh_request", this, nameof(ExecuteEditorRefreshRequest));
+            }
             return this;
         }
-        private void ExecuteEditorRefreshRequest() =>
-            _onEditorRefreshRequestAction?.Invoke();
+        private void ExecuteEditorRefreshRequest() {
+            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) return;
+            for (var i = 0; i < _onEditorRefreshRequestAction.Count; i++) _onEditorRefreshRequestAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public VisualShaderNodeVectorInterpAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public VisualShaderNodeVectorInterpAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public VisualShaderNodeVectorInterpAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
     }
 }

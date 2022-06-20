@@ -9,55 +9,73 @@ namespace Betauer.GodotAction {
     public class StyleBoxTextureAction : StyleBoxTexture {
 
 
-        private Action? _onChangedAction; 
+        private List<Action>? _onChangedAction; 
         public StyleBoxTextureAction OnChanged(Action action) {
-            if (_onChangedAction == null) 
+            if (_onChangedAction == null || _onChangedAction.Count == 0) {
+                _onChangedAction ??= new List<Action>(); 
                 Connect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = action;
+            }
+            _onChangedAction.Add(action);
             return this;
         }
-        public StyleBoxTextureAction RemoveOnChanged() {
-            if (_onChangedAction == null) return this; 
-            Disconnect("changed", this, nameof(ExecuteChanged));
-            _onChangedAction = null;
+        public StyleBoxTextureAction RemoveOnChanged(Action action) {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
+            _onChangedAction.Remove(action); 
+            if (_onChangedAction.Count == 0) {
+                Disconnect("changed", this, nameof(ExecuteChanged));
+            }
             return this;
         }
-        private void ExecuteChanged() =>
-            _onChangedAction?.Invoke();
+        private void ExecuteChanged() {
+            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
+            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public StyleBoxTextureAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public StyleBoxTextureAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public StyleBoxTextureAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTextureChangedAction; 
+        private List<Action>? _onTextureChangedAction; 
         public StyleBoxTextureAction OnTextureChanged(Action action) {
-            if (_onTextureChangedAction == null) 
+            if (_onTextureChangedAction == null || _onTextureChangedAction.Count == 0) {
+                _onTextureChangedAction ??= new List<Action>(); 
                 Connect("texture_changed", this, nameof(ExecuteTextureChanged));
-            _onTextureChangedAction = action;
+            }
+            _onTextureChangedAction.Add(action);
             return this;
         }
-        public StyleBoxTextureAction RemoveOnTextureChanged() {
-            if (_onTextureChangedAction == null) return this; 
-            Disconnect("texture_changed", this, nameof(ExecuteTextureChanged));
-            _onTextureChangedAction = null;
+        public StyleBoxTextureAction RemoveOnTextureChanged(Action action) {
+            if (_onTextureChangedAction == null || _onTextureChangedAction.Count == 0) return this;
+            _onTextureChangedAction.Remove(action); 
+            if (_onTextureChangedAction.Count == 0) {
+                Disconnect("texture_changed", this, nameof(ExecuteTextureChanged));
+            }
             return this;
         }
-        private void ExecuteTextureChanged() =>
-            _onTextureChangedAction?.Invoke();
+        private void ExecuteTextureChanged() {
+            if (_onTextureChangedAction == null || _onTextureChangedAction.Count == 0) return;
+            for (var i = 0; i < _onTextureChangedAction.Count; i++) _onTextureChangedAction[i].Invoke();
+        }
         
     }
 }

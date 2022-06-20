@@ -74,7 +74,7 @@ namespace Betauer.GodotAction {
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null) {
+            if (_onProcessActions == null || _onProcessActions.Count == 0) {
                 SetProcess(false);
                 return;
             }
@@ -82,324 +82,426 @@ namespace Betauer.GodotAction {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null) {
-                SetPhysicsProcess(true);
+            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+                SetPhysicsProcess(false);
                 return;
             }
             for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null) {
-                SetProcessInput(true);
+            if (_onInputActions == null || _onInputActions?.Count == 0) {
+                SetProcessInput(false);
                 return;
             }
             for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null) {
-                SetProcessUnhandledInput(true);
+            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+                SetProcessUnhandledInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null) {
-                SetProcessUnhandledKeyInput(true);
+            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+                SetProcessUnhandledKeyInput(false);
                 return;
             }
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }
 
-        private Action<Node>? _onBodyEnteredAction; 
+        private List<Action<Node>>? _onBodyEnteredAction; 
         public VehicleBodyAction OnBodyEntered(Action<Node> action) {
-            if (_onBodyEnteredAction == null) 
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) {
+                _onBodyEnteredAction ??= new List<Action<Node>>(); 
                 Connect("body_entered", this, nameof(ExecuteBodyEntered));
-            _onBodyEnteredAction = action;
+            }
+            _onBodyEnteredAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnBodyEntered() {
-            if (_onBodyEnteredAction == null) return this; 
-            Disconnect("body_entered", this, nameof(ExecuteBodyEntered));
-            _onBodyEnteredAction = null;
+        public VehicleBodyAction RemoveOnBodyEntered(Action<Node> action) {
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) return this;
+            _onBodyEnteredAction.Remove(action); 
+            if (_onBodyEnteredAction.Count == 0) {
+                Disconnect("body_entered", this, nameof(ExecuteBodyEntered));
+            }
             return this;
         }
-        private void ExecuteBodyEntered(Node body) =>
-            _onBodyEnteredAction?.Invoke(body);
+        private void ExecuteBodyEntered(Node body) {
+            if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onBodyEnteredAction.Count; i++) _onBodyEnteredAction[i].Invoke(body);
+        }
         
 
-        private Action<Node>? _onBodyExitedAction; 
+        private List<Action<Node>>? _onBodyExitedAction; 
         public VehicleBodyAction OnBodyExited(Action<Node> action) {
-            if (_onBodyExitedAction == null) 
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) {
+                _onBodyExitedAction ??= new List<Action<Node>>(); 
                 Connect("body_exited", this, nameof(ExecuteBodyExited));
-            _onBodyExitedAction = action;
+            }
+            _onBodyExitedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnBodyExited() {
-            if (_onBodyExitedAction == null) return this; 
-            Disconnect("body_exited", this, nameof(ExecuteBodyExited));
-            _onBodyExitedAction = null;
+        public VehicleBodyAction RemoveOnBodyExited(Action<Node> action) {
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) return this;
+            _onBodyExitedAction.Remove(action); 
+            if (_onBodyExitedAction.Count == 0) {
+                Disconnect("body_exited", this, nameof(ExecuteBodyExited));
+            }
             return this;
         }
-        private void ExecuteBodyExited(Node body) =>
-            _onBodyExitedAction?.Invoke(body);
+        private void ExecuteBodyExited(Node body) {
+            if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) return;
+            for (var i = 0; i < _onBodyExitedAction.Count; i++) _onBodyExitedAction[i].Invoke(body);
+        }
         
 
-        private Action<Node, RID, int, int>? _onBodyShapeEnteredAction; 
+        private List<Action<Node, RID, int, int>>? _onBodyShapeEnteredAction; 
         public VehicleBodyAction OnBodyShapeEntered(Action<Node, RID, int, int> action) {
-            if (_onBodyShapeEnteredAction == null) 
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) {
+                _onBodyShapeEnteredAction ??= new List<Action<Node, RID, int, int>>(); 
                 Connect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
-            _onBodyShapeEnteredAction = action;
+            }
+            _onBodyShapeEnteredAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnBodyShapeEntered() {
-            if (_onBodyShapeEnteredAction == null) return this; 
-            Disconnect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
-            _onBodyShapeEnteredAction = null;
+        public VehicleBodyAction RemoveOnBodyShapeEntered(Action<Node, RID, int, int> action) {
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) return this;
+            _onBodyShapeEnteredAction.Remove(action); 
+            if (_onBodyShapeEnteredAction.Count == 0) {
+                Disconnect("body_shape_entered", this, nameof(ExecuteBodyShapeEntered));
+            }
             return this;
         }
-        private void ExecuteBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
-            _onBodyShapeEnteredAction?.Invoke(body, body_rid, body_shape_index, local_shape_index);
+        private void ExecuteBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
+            if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onBodyShapeEnteredAction.Count; i++) _onBodyShapeEnteredAction[i].Invoke(body, body_rid, body_shape_index, local_shape_index);
+        }
         
 
-        private Action<Node, RID, int, int>? _onBodyShapeExitedAction; 
+        private List<Action<Node, RID, int, int>>? _onBodyShapeExitedAction; 
         public VehicleBodyAction OnBodyShapeExited(Action<Node, RID, int, int> action) {
-            if (_onBodyShapeExitedAction == null) 
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) {
+                _onBodyShapeExitedAction ??= new List<Action<Node, RID, int, int>>(); 
                 Connect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
-            _onBodyShapeExitedAction = action;
+            }
+            _onBodyShapeExitedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnBodyShapeExited() {
-            if (_onBodyShapeExitedAction == null) return this; 
-            Disconnect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
-            _onBodyShapeExitedAction = null;
+        public VehicleBodyAction RemoveOnBodyShapeExited(Action<Node, RID, int, int> action) {
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) return this;
+            _onBodyShapeExitedAction.Remove(action); 
+            if (_onBodyShapeExitedAction.Count == 0) {
+                Disconnect("body_shape_exited", this, nameof(ExecuteBodyShapeExited));
+            }
             return this;
         }
-        private void ExecuteBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
-            _onBodyShapeExitedAction?.Invoke(body, body_rid, body_shape_index, local_shape_index);
+        private void ExecuteBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
+            if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onBodyShapeExitedAction.Count; i++) _onBodyShapeExitedAction[i].Invoke(body, body_rid, body_shape_index, local_shape_index);
+        }
         
 
-        private Action? _onGameplayEnteredAction; 
+        private List<Action>? _onGameplayEnteredAction; 
         public VehicleBodyAction OnGameplayEntered(Action action) {
-            if (_onGameplayEnteredAction == null) 
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) {
+                _onGameplayEnteredAction ??= new List<Action>(); 
                 Connect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
-            _onGameplayEnteredAction = action;
+            }
+            _onGameplayEnteredAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnGameplayEntered() {
-            if (_onGameplayEnteredAction == null) return this; 
-            Disconnect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
-            _onGameplayEnteredAction = null;
+        public VehicleBodyAction RemoveOnGameplayEntered(Action action) {
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return this;
+            _onGameplayEnteredAction.Remove(action); 
+            if (_onGameplayEnteredAction.Count == 0) {
+                Disconnect("gameplay_entered", this, nameof(ExecuteGameplayEntered));
+            }
             return this;
         }
-        private void ExecuteGameplayEntered() =>
-            _onGameplayEnteredAction?.Invoke();
+        private void ExecuteGameplayEntered() {
+            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onGameplayEnteredAction.Count; i++) _onGameplayEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onGameplayExitedAction; 
+        private List<Action>? _onGameplayExitedAction; 
         public VehicleBodyAction OnGameplayExited(Action action) {
-            if (_onGameplayExitedAction == null) 
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) {
+                _onGameplayExitedAction ??= new List<Action>(); 
                 Connect("gameplay_exited", this, nameof(ExecuteGameplayExited));
-            _onGameplayExitedAction = action;
+            }
+            _onGameplayExitedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnGameplayExited() {
-            if (_onGameplayExitedAction == null) return this; 
-            Disconnect("gameplay_exited", this, nameof(ExecuteGameplayExited));
-            _onGameplayExitedAction = null;
+        public VehicleBodyAction RemoveOnGameplayExited(Action action) {
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return this;
+            _onGameplayExitedAction.Remove(action); 
+            if (_onGameplayExitedAction.Count == 0) {
+                Disconnect("gameplay_exited", this, nameof(ExecuteGameplayExited));
+            }
             return this;
         }
-        private void ExecuteGameplayExited() =>
-            _onGameplayExitedAction?.Invoke();
+        private void ExecuteGameplayExited() {
+            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return;
+            for (var i = 0; i < _onGameplayExitedAction.Count; i++) _onGameplayExitedAction[i].Invoke();
+        }
         
 
-        private Action<InputEvent, Node, Vector3, Vector3, int>? _onInputEventAction; 
+        private List<Action<InputEvent, Node, Vector3, Vector3, int>>? _onInputEventAction; 
         public VehicleBodyAction OnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action) {
-            if (_onInputEventAction == null) 
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) {
+                _onInputEventAction ??= new List<Action<InputEvent, Node, Vector3, Vector3, int>>(); 
                 Connect("input_event", this, nameof(ExecuteInputEvent));
-            _onInputEventAction = action;
+            }
+            _onInputEventAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnInputEvent() {
-            if (_onInputEventAction == null) return this; 
-            Disconnect("input_event", this, nameof(ExecuteInputEvent));
-            _onInputEventAction = null;
+        public VehicleBodyAction RemoveOnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action) {
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) return this;
+            _onInputEventAction.Remove(action); 
+            if (_onInputEventAction.Count == 0) {
+                Disconnect("input_event", this, nameof(ExecuteInputEvent));
+            }
             return this;
         }
-        private void ExecuteInputEvent(InputEvent @event, Node camera, Vector3 normal, Vector3 position, int shape_idx) =>
-            _onInputEventAction?.Invoke(@event, camera, normal, position, shape_idx);
+        private void ExecuteInputEvent(InputEvent @event, Node camera, Vector3 normal, Vector3 position, int shape_idx) {
+            if (_onInputEventAction == null || _onInputEventAction.Count == 0) return;
+            for (var i = 0; i < _onInputEventAction.Count; i++) _onInputEventAction[i].Invoke(@event, camera, normal, position, shape_idx);
+        }
         
 
-        private Action? _onMouseEnteredAction; 
+        private List<Action>? _onMouseEnteredAction; 
         public VehicleBodyAction OnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null) 
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
+                _onMouseEnteredAction ??= new List<Action>(); 
                 Connect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = action;
+            }
+            _onMouseEnteredAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnMouseEntered() {
-            if (_onMouseEnteredAction == null) return this; 
-            Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
-            _onMouseEnteredAction = null;
+        public VehicleBodyAction RemoveOnMouseEntered(Action action) {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
+            _onMouseEnteredAction.Remove(action); 
+            if (_onMouseEnteredAction.Count == 0) {
+                Disconnect("mouse_entered", this, nameof(ExecuteMouseEntered));
+            }
             return this;
         }
-        private void ExecuteMouseEntered() =>
-            _onMouseEnteredAction?.Invoke();
+        private void ExecuteMouseEntered() {
+            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onMouseExitedAction; 
+        private List<Action>? _onMouseExitedAction; 
         public VehicleBodyAction OnMouseExited(Action action) {
-            if (_onMouseExitedAction == null) 
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
+                _onMouseExitedAction ??= new List<Action>(); 
                 Connect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = action;
+            }
+            _onMouseExitedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnMouseExited() {
-            if (_onMouseExitedAction == null) return this; 
-            Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
-            _onMouseExitedAction = null;
+        public VehicleBodyAction RemoveOnMouseExited(Action action) {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
+            _onMouseExitedAction.Remove(action); 
+            if (_onMouseExitedAction.Count == 0) {
+                Disconnect("mouse_exited", this, nameof(ExecuteMouseExited));
+            }
             return this;
         }
-        private void ExecuteMouseExited() =>
-            _onMouseExitedAction?.Invoke();
+        private void ExecuteMouseExited() {
+            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
+            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onReadyAction; 
+        private List<Action>? _onReadyAction; 
         public VehicleBodyAction OnReady(Action action) {
-            if (_onReadyAction == null) 
+            if (_onReadyAction == null || _onReadyAction.Count == 0) {
+                _onReadyAction ??= new List<Action>(); 
                 Connect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = action;
+            }
+            _onReadyAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnReady() {
-            if (_onReadyAction == null) return this; 
-            Disconnect("ready", this, nameof(ExecuteReady));
-            _onReadyAction = null;
+        public VehicleBodyAction RemoveOnReady(Action action) {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
+            _onReadyAction.Remove(action); 
+            if (_onReadyAction.Count == 0) {
+                Disconnect("ready", this, nameof(ExecuteReady));
+            }
             return this;
         }
-        private void ExecuteReady() =>
-            _onReadyAction?.Invoke();
+        private void ExecuteReady() {
+            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
+            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
+        }
         
 
-        private Action? _onRenamedAction; 
+        private List<Action>? _onRenamedAction; 
         public VehicleBodyAction OnRenamed(Action action) {
-            if (_onRenamedAction == null) 
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
+                _onRenamedAction ??= new List<Action>(); 
                 Connect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = action;
+            }
+            _onRenamedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnRenamed() {
-            if (_onRenamedAction == null) return this; 
-            Disconnect("renamed", this, nameof(ExecuteRenamed));
-            _onRenamedAction = null;
+        public VehicleBodyAction RemoveOnRenamed(Action action) {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
+            _onRenamedAction.Remove(action); 
+            if (_onRenamedAction.Count == 0) {
+                Disconnect("renamed", this, nameof(ExecuteRenamed));
+            }
             return this;
         }
-        private void ExecuteRenamed() =>
-            _onRenamedAction?.Invoke();
+        private void ExecuteRenamed() {
+            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
+            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
+        }
         
 
-        private Action? _onScriptChangedAction; 
+        private List<Action>? _onScriptChangedAction; 
         public VehicleBodyAction OnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null) 
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
+                _onScriptChangedAction ??= new List<Action>(); 
                 Connect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = action;
+            }
+            _onScriptChangedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnScriptChanged() {
-            if (_onScriptChangedAction == null) return this; 
-            Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
-            _onScriptChangedAction = null;
+        public VehicleBodyAction RemoveOnScriptChanged(Action action) {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
+            _onScriptChangedAction.Remove(action); 
+            if (_onScriptChangedAction.Count == 0) {
+                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+            }
             return this;
         }
-        private void ExecuteScriptChanged() =>
-            _onScriptChangedAction?.Invoke();
+        private void ExecuteScriptChanged() {
+            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
+            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onSleepingStateChangedAction; 
+        private List<Action>? _onSleepingStateChangedAction; 
         public VehicleBodyAction OnSleepingStateChanged(Action action) {
-            if (_onSleepingStateChangedAction == null) 
+            if (_onSleepingStateChangedAction == null || _onSleepingStateChangedAction.Count == 0) {
+                _onSleepingStateChangedAction ??= new List<Action>(); 
                 Connect("sleeping_state_changed", this, nameof(ExecuteSleepingStateChanged));
-            _onSleepingStateChangedAction = action;
+            }
+            _onSleepingStateChangedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnSleepingStateChanged() {
-            if (_onSleepingStateChangedAction == null) return this; 
-            Disconnect("sleeping_state_changed", this, nameof(ExecuteSleepingStateChanged));
-            _onSleepingStateChangedAction = null;
+        public VehicleBodyAction RemoveOnSleepingStateChanged(Action action) {
+            if (_onSleepingStateChangedAction == null || _onSleepingStateChangedAction.Count == 0) return this;
+            _onSleepingStateChangedAction.Remove(action); 
+            if (_onSleepingStateChangedAction.Count == 0) {
+                Disconnect("sleeping_state_changed", this, nameof(ExecuteSleepingStateChanged));
+            }
             return this;
         }
-        private void ExecuteSleepingStateChanged() =>
-            _onSleepingStateChangedAction?.Invoke();
+        private void ExecuteSleepingStateChanged() {
+            if (_onSleepingStateChangedAction == null || _onSleepingStateChangedAction.Count == 0) return;
+            for (var i = 0; i < _onSleepingStateChangedAction.Count; i++) _onSleepingStateChangedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeEnteredAction; 
+        private List<Action>? _onTreeEnteredAction; 
         public VehicleBodyAction OnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null) 
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
+                _onTreeEnteredAction ??= new List<Action>(); 
                 Connect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = action;
+            }
+            _onTreeEnteredAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnTreeEntered() {
-            if (_onTreeEnteredAction == null) return this; 
-            Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
-            _onTreeEnteredAction = null;
+        public VehicleBodyAction RemoveOnTreeEntered(Action action) {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
+            _onTreeEnteredAction.Remove(action); 
+            if (_onTreeEnteredAction.Count == 0) {
+                Disconnect("tree_entered", this, nameof(ExecuteTreeEntered));
+            }
             return this;
         }
-        private void ExecuteTreeEntered() =>
-            _onTreeEnteredAction?.Invoke();
+        private void ExecuteTreeEntered() {
+            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
+            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitedAction; 
+        private List<Action>? _onTreeExitedAction; 
         public VehicleBodyAction OnTreeExited(Action action) {
-            if (_onTreeExitedAction == null) 
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
+                _onTreeExitedAction ??= new List<Action>(); 
                 Connect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = action;
+            }
+            _onTreeExitedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnTreeExited() {
-            if (_onTreeExitedAction == null) return this; 
-            Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
-            _onTreeExitedAction = null;
+        public VehicleBodyAction RemoveOnTreeExited(Action action) {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
+            _onTreeExitedAction.Remove(action); 
+            if (_onTreeExitedAction.Count == 0) {
+                Disconnect("tree_exited", this, nameof(ExecuteTreeExited));
+            }
             return this;
         }
-        private void ExecuteTreeExited() =>
-            _onTreeExitedAction?.Invoke();
+        private void ExecuteTreeExited() {
+            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
+        }
         
 
-        private Action? _onTreeExitingAction; 
+        private List<Action>? _onTreeExitingAction; 
         public VehicleBodyAction OnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null) 
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
+                _onTreeExitingAction ??= new List<Action>(); 
                 Connect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = action;
+            }
+            _onTreeExitingAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnTreeExiting() {
-            if (_onTreeExitingAction == null) return this; 
-            Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
-            _onTreeExitingAction = null;
+        public VehicleBodyAction RemoveOnTreeExiting(Action action) {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
+            _onTreeExitingAction.Remove(action); 
+            if (_onTreeExitingAction.Count == 0) {
+                Disconnect("tree_exiting", this, nameof(ExecuteTreeExiting));
+            }
             return this;
         }
-        private void ExecuteTreeExiting() =>
-            _onTreeExitingAction?.Invoke();
+        private void ExecuteTreeExiting() {
+            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
+            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
+        }
         
 
-        private Action? _onVisibilityChangedAction; 
+        private List<Action>? _onVisibilityChangedAction; 
         public VehicleBodyAction OnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null) 
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
+                _onVisibilityChangedAction ??= new List<Action>(); 
                 Connect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = action;
+            }
+            _onVisibilityChangedAction.Add(action);
             return this;
         }
-        public VehicleBodyAction RemoveOnVisibilityChanged() {
-            if (_onVisibilityChangedAction == null) return this; 
-            Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
-            _onVisibilityChangedAction = null;
+        public VehicleBodyAction RemoveOnVisibilityChanged(Action action) {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
+            _onVisibilityChangedAction.Remove(action); 
+            if (_onVisibilityChangedAction.Count == 0) {
+                Disconnect("visibility_changed", this, nameof(ExecuteVisibilityChanged));
+            }
             return this;
         }
-        private void ExecuteVisibilityChanged() =>
-            _onVisibilityChangedAction?.Invoke();
+        private void ExecuteVisibilityChanged() {
+            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
+            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
+        }
         
     }
 }
