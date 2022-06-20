@@ -31,7 +31,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private ActionState UiStart;
 
         public override void _Ready() {
-            _version.Text = Bootstrap.AppVersion+ " - Betauer 2022";
+            _version.Text = AppInfo.Version + " - Betauer 2022";
             _launcher.WithParent(this);
             _menuController = BuildMenu();
         }

@@ -6,47 +6,30 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="TestRunner.cs" />
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Remove="SourceGenerator/**" />
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="NUnit" Version="3.13.3" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="Betauer.TestRunner/Betauer.TestRunner.csproj" />
-        <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
         <ProjectReference Include="Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
         <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
         <ProjectReference Include="Betauer.GameTools/Betauer.GameTools.csproj" />
-        <ProjectReference Include="Betauer.StateMachine/Betauer.StateMachine.csproj" />
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="Betauer.GodotAction/Betauer.GodotAction.csproj" />
+        <ProjectReference Include="Betauer.StateMachine/Betauer.StateMachine.csproj" />
+        <ProjectReference Include="Betauer.TestRunner/Betauer.TestRunner.csproj" />
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Label="Generator">
         <ProjectReference Include="SourceGenerator/Generator.csproj" />
     </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="Betauer.Core.Tests/Betauer.Core.Tests.csproj" />
+    <ItemGroup Label="Tests">
+        <Compile Include="TestRunner.cs" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
         <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
+        <ProjectReference Include="Betauer.Core.Tests/Betauer.Core.Tests.csproj" />
         <ProjectReference Include="Betauer.DI.Tests/Betauer.DI.Tests.csproj" />
         <ProjectReference Include="Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj" />
         <ProjectReference Include="Betauer.GodotAction.Tests/Betauer.GodotAction.Tests.csproj" />
         <ProjectReference Include="Betauer.StateMachine.Tests/Betauer.StateMachine.Tests.csproj" />
     </ItemGroup>
-<!--    <ItemGroup>-->
-<!--        <ProjectReference Include="DemoGame/Veronenger.csproj" />-->
-<!--    </ItemGroup>-->
-<!--    <ItemGroup>-->
-<!--        <EmbeddedResource Remove=".mono/**" />-->
-<!--    </ItemGroup>-->
     <ItemGroup>
-        <Content Include="*" Exclude="mono_crash*;.mono" />
-        <Content Remove=".mono" />
-        <Content Include="DemoGame" />
-        <Content Include="Betauer" />
-        <Content Include="SourceGenerator/*" />
+        <Content Include="*" Exclude="mono_crash*;.mono/**" />
+        <Content Include="DemoGame/**" Exclude="DemoGame/.mono/**;DemoGame/.import/**" />
+        <Content Include="SourceGenerator/**" Exclude="SourceGenerator/.mono/**;SourceGenerator/.import/**" />
     </ItemGroup>
 </Project>

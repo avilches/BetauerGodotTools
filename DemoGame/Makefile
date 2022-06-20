@@ -4,7 +4,7 @@
 .DEFAULT_SHELL ?= /bin/bash
 .DEFAULT_GOAL  := help
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-include ${ROOT_FOLDER}/export/release.properties
+include ${ROOT_FOLDER}/release.properties
 TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
 EXPORT_OSX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
 EXPORT_WIN     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
@@ -25,7 +25,7 @@ help:
 	@echo "    test         run tests from all projects"
 	@echo "    run          run the game"
 	@echo "    editor       open the Godot editor"
-	@echo "    app-version  upgrade the application to version $(VERSION)"
+	@echo "    release      upgrade the application to version $(VERSION)"
 	@echo "    export/osx   create binary for osx"
 	@echo "    export/win   create binary for Windows"
 	@echo "    export/linux create binary for Linux"
@@ -34,7 +34,7 @@ help:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "export/release.properties:"
+	@echo "release.properties:"
 	@echo "    NAME            ${NAME}"
 	@echo "    ID              ${ID}"
 	@echo "    DESCRIPTION     ${DESCRIPTION}"
@@ -88,14 +88,14 @@ check-version:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "export/release.properties:"
+	@echo "release.properties:"
 	@echo "    VERSION         ${VERSION}"
 	@echo ""
 ifneq ($(CURRENT_VERSION), $(VERSION))
 	@echo ""
 	@echo "Current project.godot version != new version"
 	@echo ""
-	make -f ${ROOT_FOLDER}/Makefile build app-version
+	make -f ${ROOT_FOLDER}/Makefile build release
 else
 	@echo "Version matches, exporting..."
 	@echo ""
@@ -103,12 +103,12 @@ else
 endif
 
 
-.PHONY: app-version
-app-version:
+.PHONY: release
+release:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo ""
-	@echo "export/release.properties:"
+	@echo "release.properties:"
 	@echo "    NAME            ${NAME}"
 	@echo "    ID              ${ID}"
 	@echo "    DESCRIPTION     ${DESCRIPTION}"
@@ -118,7 +118,7 @@ app-version:
 	@echo "Update project.godot and exports_presets.cfg?"
 	@echo "(CTRL+C to stop)"
 	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "export/AppVersion.cs" --no-window
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "export/Release.cs" --no-window
 
 
 .PHONY: export/all
