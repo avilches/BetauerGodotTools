@@ -1,6 +1,8 @@
 <Project Sdk="Godot.NET.Sdk/3.3.0">
     <PropertyGroup>
         <TargetFramework>net472</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <IsPackable>false</IsPackable>
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
         <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
