@@ -85,9 +85,9 @@ namespace Betauer.Memory {
     }
 
     public static class DisposeTools {
-        public static bool ShowShutdownWarning = true;
-        public static bool ShowMessageOnCreate = true;
-        public static bool ShowMessageOnDispose = true;
+        public static bool ShowShutdownWarning = false;
+        public static bool ShowMessageOnCreate = false;
+        public static bool ShowMessageOnDispose = false;
 
         public static void ShowDisposeException(Exception e) {
             if (ShowShutdownWarning) {

@@ -47,7 +47,7 @@ namespace Betauer {
         public Dictionary<string, Logger> Loggers { get; } = new Dictionary<string, Logger>();
         private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
         private ITextWriter[] _writers = { };
-        internal bool _includeTimestamp = false;
+        internal bool IncludeTimestamp = true;
 
         public bool RemoveDuplicates { get; set; } = true;
         internal string _lastLog = "";
@@ -86,8 +86,8 @@ namespace Betauer {
             return Instance;
         }
 
-        public static LoggerFactory IncludeTimestamp(bool includeTimestamp) {
-            Instance._includeTimestamp = includeTimestamp;
+        public static LoggerFactory SetIncludeTimestamp(bool includeTimestamp) {
+            Instance.IncludeTimestamp = includeTimestamp;
             return Instance;
         }
 
@@ -302,12 +302,12 @@ namespace Betauer {
             // New line is different
             if (LoggerFactory.Instance._lastLogTimes > 1) {
                 // Print old lines + times
-                var timestamp = LoggerFactory.Instance._includeTimestamp ? "                       " : "";
+                var timestamp = LoggerFactory.Instance.IncludeTimestamp ? "                       " : "";
                 WriteLog("x" + LoggerFactory.Instance._lastLogTimes, timestamp, LoggerFactory.Instance._lastLog);
             }
             LoggerFactory.Instance._lastLog = message;
             LoggerFactory.Instance._lastLogTimes = 1;
-            var fastDateFormat = LoggerFactory.Instance._includeTimestamp ? FastDateFormat() : "";
+            var fastDateFormat = LoggerFactory.Instance.IncludeTimestamp ? FastDateFormat() : "";
             WriteLog(level.ToString(),fastDateFormat, message);
         }
 
@@ -338,7 +338,7 @@ namespace Betauer {
         }
 
         private void WriteLog(string level, string timestamp, string message) {
-            var logLine = timestamp + (LoggerFactory.Instance._includeTimestamp ? " " : "") +
+            var logLine = timestamp + (LoggerFactory.Instance.IncludeTimestamp ? " " : "") +
                           string.Format(TraceFormat, LoggerFactory.GetFrame().ToString(),
                               level.Length > 5 ? level.Substring(0, 5) : level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {

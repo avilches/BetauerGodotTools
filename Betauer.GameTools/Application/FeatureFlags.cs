@@ -3,7 +3,7 @@ using System.Linq;
 using Godot;
 
 namespace Betauer.Application {
-    public partial class FeatureFlags {
+    public static partial class FeatureFlags {
         public static readonly Dictionary<string, string> Description = new Dictionary<string, string> {
             { "Android", "Running on Android" },
             { "HTML5", "Running on HTML5" },

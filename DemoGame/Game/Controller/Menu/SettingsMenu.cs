@@ -194,6 +194,7 @@ namespace Veronenger.Game.Controller.Menu {
             if ((e.IsAnyKey() || e.IsAnyButton()) && e.Released) {
                 if (!e.IsKey(KeyList.Escape)) {
                     if (e.IsAnyKey()) {
+                        // TODO use redefine key? 
                         _redefineButtonSelected.ActionState.ClearKeys().AddKey((KeyList)e.Key);
                         _settingsManager.SaveControls();
                         Console.WriteLine("New key " + e.KeyString);

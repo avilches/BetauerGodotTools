@@ -20,15 +20,20 @@ namespace Veronenger.Game.Managers.Autoload {
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
         public Bootstrap() {
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
             if (ApplicationConfig.IsExported()) {
-                ExportConfiguration();
+                AppDomain.CurrentDomain.UnhandledException += (o, args) => {
+                    Logger.Error($"Got unhandled exception: {args.ExceptionObject}");
+                    // TODO: test this!
+                    // LoggerFactory.Dispose();
+                    // GetTree().Quit();
+                };
+                ExportConfig();
             } else {
                 DevelopmentConfig();
             }
             ShowConfig();
             AutoConfigure();
-            Logger.Info($"Container time: {Uptime.TotalMilliseconds} ms");
+            Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
         }
 
         private static void ShowConfig() {
@@ -63,28 +68,19 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.LoadFrames(GetTree().GetFrame);
         }
 
-        private void ExportConfiguration() {
-            DisposeTools.ShowShutdownWarning = false; 
-            DisposeTools.ShowMessageOnCreate = false;
+        private static void ExportConfig() {
             LoggerFactory.SetConsoleOutput(ConsoleOutput.GodotPrint); // GD.Print means it appears in the user data logs
-            LoggerFactory.IncludeTimestamp(true);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Warning);
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(SettingsFile), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
     }
         
-        private void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e) {
-            Logger.Error($"Got unhandled exception: {e.ExceptionObject}");
-            // LoggerFactory.Dispose();
-            // GetTree().Quit();
-        }        
-
-        private void DevelopmentConfig() {
+        private static void DevelopmentConfig() {
             DisposeTools.ShowShutdownWarning = true;
             DisposeTools.ShowMessageOnCreate = false;
-            LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine);
-            LoggerFactory.IncludeTimestamp(true);
+            DisposeTools.ShowMessageOnDispose = true;
+            LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine); // No GD.Print means no logs
 
             // All enabled, then disabled one by one, so developers can enable just one 
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
