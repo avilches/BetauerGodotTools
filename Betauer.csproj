@@ -15,9 +15,6 @@
         <ProjectReference Include="Betauer.TestRunner/Betauer.TestRunner.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="SourceGenerator/Generator.csproj" />
-    </ItemGroup>
-    <ItemGroup>
         <Compile Include="TestRunner.cs" />
         <PackageReference Include="NUnit" Version="3.13.3" />
         <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
