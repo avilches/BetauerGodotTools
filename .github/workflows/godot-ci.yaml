@@ -43,8 +43,9 @@ jobs:
 
       # build the solution
       - name: Build
-        run: dotnet build
-
+        run: dotnet build --configuration Debug
+      
+      
       # run dotnet unit tests
       - name: Test
         run: godot -s TestRunner.cs --no-window
