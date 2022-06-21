@@ -1,0 +1,65 @@
+º[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends Node2D
+
+onready var P0 = $Position2D1
+onready var P1 = $Position2D2
+onready var P2 = $Position2D3
+onready var P3 = $Position2D4
+
+func _ready():
+	print(\"ready\")
+	pass
+	
+func _process(delta):
+	update()
+	
+func _draw():
+	if (P0 == null):
+		return
+	
+	var p0_in = Vector2.ZERO # This isn't used for the first curve
+	var p0_vertex = P0.position # First point of first line segment
+	var p0_out = P1.position - P0.position # Second point of first line segment
+	var p1_in = P2.position - P3.position # First point of second line segment
+	var p1_vertex = P3.position # Second point of second line segment
+	var p1_out = Vector2.ZERO # Not used unless another curve is added
+
+	var curve = Curve2D.new()
+	curve.add_point(p0_vertex, p0_in, p0_out)
+	curve.add_point(p1_vertex, p1_in, p1_out)
+
+	draw_circle(p0_vertex,2.0,Color.white) 
+	draw_circle(p1_vertex,2.0,Color.white)
+	
+	draw_circle(p0_in, 3.0,Color.gray)
+	draw_circle(p0_out, 3.0,Color.gray)
+	draw_circle(p1_in, 3.0,Color.gray)
+	draw_circle(p1_out, 3.0,Color.gray)
+
+	draw_circle(P0.position,4.0,Color.red) 
+	draw_circle(P1.position,4.0,Color.green) 
+	draw_circle(P2.position,4.0,Color.green) 
+	draw_circle(P3.position,4.0,Color.red) 
+	var curve_pts = curve.tessellate()
+	for idx in len(curve_pts)-1:
+		draw_line(curve_pts[idx], curve_pts[idx+1], Color(.4,.4,.4), 1.0, true)
+
+"
+
+[node name="Node2D" type="Node2D"]
+position = Vector2( 100, 100 )
+script = SubResource( 1 )
+
+[node name="Position2D1" type="Position2D" parent="."]
+position = Vector2( 0, 100.377 )
+
+[node name="Position2D2" type="Position2D" parent="."]
+position = Vector2( 75.5, 50 )
+
+[node name="Position2D3" type="Position2D" parent="."]
+position = Vector2( 85.6, 6 )
+
+[node name="Position2D4" type="Position2D" parent="."]
+position = Vector2( 100, 100 )
