@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace Betauer.GodotAction.Tests {
     [TestFixture]
-    [Only]
     public class GodotActionTests : Node {
         [Test(Description = "Test multiple actions per signal or process")]
         public async Task ConnectAndDisconnect() {

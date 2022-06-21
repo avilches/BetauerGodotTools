@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Screen {
+namespace Betauer.Application.Screen {
     public static class AspectRatios {
         public static List<AspectRatio> All = new List<AspectRatio>();
         public static List<AspectRatio> Landscapes = new List<AspectRatio>();

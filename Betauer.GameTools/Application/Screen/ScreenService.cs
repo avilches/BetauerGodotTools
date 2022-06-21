@@ -4,7 +4,7 @@ using System.Linq;
 using Betauer.Memory;
 using Godot;
 
-namespace Betauer.Screen {
+namespace Betauer.Application.Screen {
     public class ScreenConfiguration {
         public Resolution BaseResolution { get; }
         public List<Resolution> Resolutions { get; }
@@ -21,7 +21,7 @@ namespace Betauer.Screen {
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
             StretchAspect = stretchAspect;
-            Resolutions = resolutions ?? Betauer.Screen.Resolutions.All(AspectRatios.Ratio16_9);
+            Resolutions = resolutions ?? Application.Screen.Resolutions.All(AspectRatios.Ratio16_9);
             Zoom = zoom;
         }
     }
@@ -169,7 +169,7 @@ namespace Betauer.Screen {
 
         public List<ScaledResolution> GetResolutions() {
             var screenSize = OS.GetScreenSize();
-            return (from resolution in Resolutions ?? Betauer.Screen.Resolutions.All()
+            return (from resolution in Resolutions ?? Application.Screen.Resolutions.All()
                 where resolution.x <= screenSize.x && resolution.y <= screenSize.y &&
                       resolution.x >= BaseResolution.x && resolution.y >= BaseResolution.y
                 select new ScaledResolution(BaseResolution.Size, resolution.Size)).ToList();

@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
-
-using Betauer.Screen;
-using Betauer.StateMachine;
 using Godot;
 using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;

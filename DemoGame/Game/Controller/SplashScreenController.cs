@@ -1,8 +1,7 @@
-using System;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.DI;
-using Betauer.Managers;
 using Godot;
 using Veronenger.Game.Managers;
 using InputManager = Veronenger.Game.Managers.InputManager;

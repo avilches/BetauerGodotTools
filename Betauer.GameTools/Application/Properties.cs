@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Managers {
+namespace Betauer.Application {
     public class Properties {
         private readonly string _resourceName;
         private readonly ConfigFile _cf;

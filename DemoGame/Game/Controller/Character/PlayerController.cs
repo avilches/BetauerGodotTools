@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using Betauer;
 using Betauer.Animation;
@@ -7,7 +6,6 @@ using Betauer.DI;
 using Betauer.Input;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
 
@@ -226,7 +224,37 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private ActionState UiStart;
 
         public override void _Input(InputEvent @event) {
-            // _inputManager.Debug(@event, false);
+                /*
+                var action = new ActionState("a"); // FindAction(e);
+                string actionName = null;
+                switch (action) {
+                    case ActionState state:
+                        actionName = state.Name;
+                        break;
+                    case DirectionalAction directional:
+                        // TODO: move this code to DirectionalAction, and create a IsPressed(e) and IsReleased(e)
+                        if (directional.Strength == 0f) {
+                            actionName = e.IsActionReleased(directional.NegativeName)
+                                ? directional.NegativeName
+                                : directional.PositiveName;
+                        } else {
+                            actionName = directional.Strength < 0 ? directional.NegativeName : directional.PositiveName;
+                        }
+                        break;
+                }
+                if (actionName == null && actionsOnly) return;
+                var wrapper = new EventWrapper(e);
+                if (wrapper.IsMotion()) {
+                    Logger.Debug(
+                        $"Axis {wrapper.Device}[{wrapper.Axis}]:{wrapper.GetStrength()} ({wrapper.AxisValue}) {actionName}");
+                } else if (wrapper.IsAnyButton()) {
+                    Logger.Debug(
+                        $"Button {wrapper.Device}[{wrapper.Button}]:{wrapper.Pressed} ({wrapper.Pressure}) {actionName}");
+                } else if (wrapper.IsAnyKey()) {
+                    Logger.Debug(
+                        $"Key \"{wrapper.KeyString}\" #{wrapper.Key} Pressed:{wrapper.Pressed}/Echo:{wrapper.Echo} {actionName}");
+                }
+            */
             if (UiStart.IsActionPressed(@event)) {
                 _gameManager.TriggerPauseMenu();
             } else if (PixelPerfect.IsActionPressed(@event)) {
@@ -241,6 +269,8 @@ namespace Veronenger.Game.Controller.Character {
                 }
             }
         }
+        
+        
 
         public override void _Draw() {
             // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);

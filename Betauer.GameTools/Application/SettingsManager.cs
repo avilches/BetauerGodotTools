@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Betauer.Screen;
+using Betauer.Application.Screen;
 using Godot;
 
-namespace Betauer.Managers {
+namespace Betauer.Application {
     public class SettingsManager {
         private const bool DontSave = false;
         private SettingsFile _settingsFile;

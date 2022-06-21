@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Application.Screen;
 using Betauer.Input;
-using Betauer.Screen;
-using Godot;
 using File = System.IO.File;
 
-namespace Betauer.Managers {
+namespace Betauer.Application {
     public interface IUserSettings {
         public bool PixelPerfect { get; }
         public bool Fullscreen { get; }

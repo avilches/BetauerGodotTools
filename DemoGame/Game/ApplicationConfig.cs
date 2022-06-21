@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Managers;
-using Betauer.Screen;
+using Betauer.Application;
+using Betauer.Application.Screen;
 using Godot;
 
 namespace Veronenger.Game {
