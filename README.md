@@ -1,14 +1,20 @@
 # Betauer Godot Tools
-The Betauer Godot Tools is a modular framework to develop Godot games. It's divided in different and independent 
-projects that can be imported in your games easily.
+The Betauer Godot Tools is a modular framework to develop Godot games. It's divided in different and independent projects that can be imported in your games easily.
+                     
+![Integration tests](https://github.com/avilches/BetauerGodotTools/actions/workflows/godot-ci.yaml/badge.svg)
 
-It include examples 
-with different (and working!) ways to include the Betauer Godot Tools using relative paths to the source code (slower to build, but it can be debugged) or reference to dlls (faster to build, can't be debugged). It also resolved a very common problem: how to exclude unit tests from the game build. Finally, it include a set of Makefiles and scripts to build the games from command line. 
-                            
 ## Projects
-- [Betauer.Core](Betauer.Core): common Godot extensions and other small tools needed by all of the Betauer projects. 
-The most important one is the Logger: a fast and configurable logger for Godot.
+- [Betauer.Core](Betauer.Core): common Godot extensions and other small tools needed by all of the Betauer projects. The most important one is the Logger: a fast and configurable logger for Godot.
 - [Betauer.TestRunner](Betauer.TestRunner): a tool to run [NUnit](https://nunit.org/) tests inside Godot, so you can test your nodes and your code easily.
+- [Betauer.StateMachine](Betauer.StateMachine): yet another StateMachine implementation for C#. With a stack, compatible with `async`/`await` and compatible with Godot. Ready to be used in a game menu (like this [example](DemoGame/Game/Managers/GameManager.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerStateMachine.cs)).
+The state machine code is well tested, you can check the tests in the [Betauer.StateMachine.Tests](Betauer.StateMachine.Tests) project.
+- [Betauer.GameTools](Betauer.GameTools): this a set of small tools to create Godot games:
+  - Bus: it's hard to handle collisions with signals. With the Bus, enemies, player and other objects can use a shared bus to subscribe and receive events with only the collision that affect to them. No more check and filter if the body shape of the collision is you or another object.
+  - InputManager: handle with the Godot `InputMap` or the events is hard. This set of tools help you to create one class per action that can be injected in your
+  nodes using dependency injection.
+  - SettingsManager: a helper to load and save settings
+  - ScreeService: a helper to change resolution with pixel perfect scale.
+  - More stuff like a flipper, a loader or a timer.
 - [Betauer.DI](Betauer.DI): yet, another Dependency Injection Container for C#.
 This is a very simple implementation integrated with Godot, so you can do this kind of stuff;
 ```C#
@@ -43,8 +49,6 @@ public class YourClass {
 }
 ```
 With just adding the container as Autoload. Dependency injection is well tested, you can check the tests in the [Betauer.DI.Tests](Betauer.DI.Tests) project.
-- [Betauer.StateMachine](Betauer.StateMachine): yet, a StateMachine implementation with a stack, compatible with `async`/`await`. Ready to be used in your menus (like this [example](DemoGame/Game/Managers/GameManager.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerStateMachine.cs)).
-The state machine code is well tested, you can check the tests in the [Betauer.StateMachine.Tests](Betauer.StateMachine.Tests) project.
 - [Betauer.Animation](Betauer.Animation): a port to C# of the well known [Anima library](https://github.com/ceceppa/anima). It include up to 77 different animations from https://animate.style. This is a lot better way to use Tween to create complex and reusable animations for your scene elements. It can be used to create effects or to move and schedule rotations or translation in your platforms or characters.
 ```C#
 // This one of the 77 animations called `RollOutLeft`
@@ -67,13 +71,7 @@ return TemplateBuilder.Create()
     .BuildTemplate();
 ```
 You can check out or start to use any of the [animations](Betauer.Animation/Template.cs), or create your own ones. 
-- [Betauer.GameTools](Betauer.GameTools): this a set of small tools to create Godot games:
-  - Bus: it's hard to handle collisions with signals. With the Bus, enemies, player and other objects can use a shared bus to subscribe and receive events with only the collision that affect to them. No more check and filter if the body shape of the collision is you or another object.
-  - InputManager: handle with the Godot `InputMap` or the events is hard. This set of tools help you to create one class per action that can be injected in your
-  nodes using dependency injection.
-  - SettingsManager: a helper to load and save settings
-  - ScreeService: a helper to change resolution with pixel perfect scale.
-  - More stuff like a flipper, a loader or a timer.
+
 - [Betauer.GodotAction](Betauer.GodotAction): Godot doesn't allow (yet) to 
 subscribe easily to signals using C# lambdas. And it also forces to extend
 Godot classes and override `_Process`, `_PhysicsProcess`, `_Input`, `_UnhandledInput` and `_UnhandledKeyInput` methods, which can be cumbersome to create a new class just to implement one method.
@@ -91,6 +89,7 @@ button.OnInput((InputEvent inputEvent) => GD.Print("_Input(inputEvent)"));
 ```
 - [SourceGenerator](SourceGenerator): a standalone Godot project with a single script to write all the classes and signal extensions from the [Betauer.GodotAction](Betauer.GodotAction) project.
 
+It also includes examples with different (and working) ways to include the Betauer Godot Tools using relative paths to the source code (slower to build, but it can be debugged) or reference to dlls (faster to build, can't be debugged). It also resolved a very common problem: how to exclude unit tests from the game build. Finally, it include a set of Makefiles and scripts to build the games from command line. 
 
 ## Build
 
@@ -98,10 +97,11 @@ There is a Makefile script to clean, build (from scratch), run tests and generat
 ```bash
 make clean 
 make generate 
-make build
 make test
+make build/debug
+make build/release
 ```
-Or you can just do everything with just `make clean generate test build`.
+Or you can do everything with just `make export/dll`. All dlls will be copied into the `./export/releases/<version>/Debug` and `.../ExporRelease` folders.
 
 Warning: it expects to have a Osx Godot located in the folder `/Applications/Godot_mono.app`. Maybe you need to update the Makefile to change that.
 
