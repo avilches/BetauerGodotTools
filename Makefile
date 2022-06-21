@@ -42,11 +42,13 @@ clean:
 	
 .PHONY: build/debug
 build/debug:
-	msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	#msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	dotnet build "${ROOT_FOLDER}/Betauer.sln" --configuration Debug 
 
 .PHONY: build/release
 build/release:
-	msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+#	msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	dotnet build "${ROOT_FOLDER}/Betauer.sln" --configuration ExportRelease 
 
 .PHONY: export/dll
 export/dll: clean bump build/debug build/release 
