@@ -78,16 +78,6 @@ namespace Veronenger.Game.Controller.Menu {
                     // continueButton.Save();
                     // ctx.Refresh();
                 })
-                // .AddButton("Continue", "Continue", async (ctx) => {
-                //     // GD.Print("Continue");
-                //     // ctx.ActionButton.Disabled = true;
-                //     // ctx.Refresh();
-                //     // await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
-                //     //         MenuEffectTime)
-                //     //     .Await();
-                //     // ctx.ActionButton.Save();
-                //     _gameManager.LoadAnimaDemo();
-                // })
                 .AddButton("Settings", "Settings", async (ctx) => {
                     _gameManager.TriggerSettings();
                 })

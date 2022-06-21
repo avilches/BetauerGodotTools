@@ -17,11 +17,6 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
-        <!-- From anima -->
-        <Content Include="addons/**" />
-        <Content Include="demos/**" />
-        <Content Include="resources/**" />
-
         <Content Include="Assets/**" />
         <Content Include="Characters/**" />
         <Content Include="Docs/*" />

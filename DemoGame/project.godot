@@ -8,40 +8,6 @@
 
 config_version=4
 
-_global_script_classes=[ {
-"base": "Reference",
-"class": "AnimaEasing",
-"language": "GDScript",
-"path": "res://addons/anima/core/easings.gd"
-}, {
-"base": "Node",
-"class": "AnimaNode",
-"language": "GDScript",
-"path": "res://addons/anima/core/node.gd"
-}, {
-"base": "Reference",
-"class": "AnimaNodesProperties",
-"language": "GDScript",
-"path": "res://addons/anima/utils/node_properties.gd"
-}, {
-"base": "Reference",
-"class": "AnimaStrings",
-"language": "GDScript",
-"path": "res://addons/anima/utils/strings.gd"
-}, {
-"base": "Tween",
-"class": "AnimaTween",
-"language": "GDScript",
-"path": "res://addons/anima/core/tween.gd"
-} ]
-_global_script_class_icons={
-"AnimaEasing": "",
-"AnimaNode": "",
-"AnimaNodesProperties": "",
-"AnimaStrings": "",
-"AnimaTween": ""
-}
-
 [application]
 
 config/name="Veronenger"
@@ -93,23 +59,7 @@ texture={
 }
 
 [input]
-
-ui_accept={
-"deadzone": null,
-"events": null
-}
-ui_select={
-"deadzone": null,
-"events": null
-}
-ui_left={
-"deadzone": null,
-"events": null
-}
-ui_right={
-"deadzone": null,
-"events": null
-}
+º
 
 [logging]
 

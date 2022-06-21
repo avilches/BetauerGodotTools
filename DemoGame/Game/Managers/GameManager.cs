@@ -236,15 +236,5 @@ namespace Veronenger.Game.Managers {
             await GetTree().AwaitIdleFrame();
             GetTree().Root.AddChild(scene);
         }
-
-        public async Task LoadAnimaDemo() {
-            var nextScene = ResourceLoader.Load<PackedScene>("demos/AnimationsPreview.tscn").Instance();
-            _currentGameScene = nextScene;
-            await AddSceneDeferred(_currentGameScene);
-
-            _settingsManager.ChangeScreenConfiguration(ApplicationConfig.AnimaDemoConfiguration,
-                ScreenService.Strategy.FitToScreen);
-            _settingsManager.CenterWindow();
-        }
     }
 }
