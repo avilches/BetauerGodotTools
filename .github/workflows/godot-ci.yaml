@@ -19,16 +19,16 @@ jobs:
 
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:mono-3.3.4
+      image: barichello/godot-ci:mono-3.4.4
 
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           lfs: true
 
       - name: Setup .NET 6
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 6.0.x
 
@@ -39,7 +39,7 @@ jobs:
       - name: Setup Godot dlls
         run: |
           mkdir -p .mono/assemblies/Debug
-          cp /usr/local/bin/GodotSharp/Api/Release/* .mono/assemblies/Debug
+          cp /usr/local/bin/GodotSharp/Api/Debug/* .mono/assemblies/Debug
 
       # build the solution
       - name: Build
