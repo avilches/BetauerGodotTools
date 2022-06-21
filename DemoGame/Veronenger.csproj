@@ -4,18 +4,16 @@
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
         <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
+        <RootNamespace>Veronenger</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Game/**" />
         <Compile Include="AppVersion.cs" />
-        <Compile Include="export\Release.cs" />
+        <Compile Include="export/Release.cs" />
     </ItemGroup>
-    <ItemGroup Condition=" '$(Configuration)' == 'Debug'">
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
         <PackageReference Include="NUnit" Version="3.13.3" />
         <Compile Include="Tests/**" />
-        <Reference Include="Betauer.TestRunner">
-            <HintPath>..\export\releases\0.1.0\Betauer.TestRunner.dll</HintPath>
-        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
@@ -32,19 +30,22 @@
     </ItemGroup>
     <ItemGroup>
       <Reference Include="Betauer.Animation">
-        <HintPath>..\export\releases\0.1.0\Betauer.Animation.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.Animation.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.Core">
-        <HintPath>..\export\releases\0.1.0\Betauer.Core.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.Core.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.DI">
-        <HintPath>..\export\releases\0.1.0\Betauer.DI.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.DI.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.GameTools">
-        <HintPath>..\export\releases\0.1.0\Betauer.GameTools.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.GameTools.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.StateMachine">
-        <HintPath>..\export\releases\0.1.0\Betauer.StateMachine.dll</HintPath>
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.StateMachine.dll</HintPath>
+      </Reference>
+      <Reference Condition="'$(Configuration)' == 'Debug'" Include="Betauer.TestRunner">
+        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.TestRunner.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>

@@ -19,16 +19,16 @@ CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/versio
 help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
-	@echo "    clean        remove all temporal and final dlls"
-	@echo "    build        build all projects"
-	@echo "    test         run tests from all projects"
-	@echo "    run          run the game"
-	@echo "    editor       open the Godot editor"
-	@echo "    release      use the [application.properties] file to upgrade the project"
-	@echo "    export/osx   create binary for osx"
-	@echo "    export/win   create binary for Windows"
-	@echo "    export/linux create binary for Linux"
-	@echo "    export/all   create binary for all"
+	@echo "    clean          remove all .mono folders"
+	@echo "    test           run tests"
+	@echo "    run            run the game"
+	@echo "    editor         open the Godot editor"
+	@echo "    build/debug    build project"
+	@echo "    release        run Release.cs, it uses the [application.properties] file to bump version and fixes the project"
+	@echo "    export/osx     create binary for osx"
+	@echo "    export/win     create binary for Windows"
+	@echo "    export/linux   create binary for Linux"
+	@echo "    export/all     create binary for all"
 	@echo ""
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
@@ -47,11 +47,11 @@ clean:
 
 
 	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
+#	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
 	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
+#	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
 	
-.PHONY: build
+.PHONY: build/debug
 build:
 	msbuild "${ROOT_FOLDER}/Veronenger.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
@@ -83,6 +83,26 @@ export/linux: check-version
 	mkdir -p ${EXPORT_LINUX} 
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Linux/X11" "${EXPORT_LINUX}/${NAME}.x86_64" 2>&1 | tee "${EXPORT_LINUX}/../linux.log"
 
+.PHONY: release
+release:
+	@echo "project.godot:"  
+	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo ""
+	@echo "application.properties:"
+	@echo "    NAME            ${NAME}"
+	@echo "    ID              ${ID}"
+	@echo "    DESCRIPTION     ${DESCRIPTION}"
+	@echo "    AUTHOR          ${AUTHOR}"
+	@echo "    VERSION         ${VERSION}"
+	@echo ""
+	@echo "Update project.godot and exports_presets.cfg?"
+	@echo "(CTRL+C to stop)"
+	@read -p ""
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "export/Release.cs" --no-window
+
+.PHONY: export/all
+export/all: clean build release export/win export/osx export/linux
+
 check-version:
 	@echo "Checking version..."
 	@echo ""
@@ -102,26 +122,3 @@ else
 	@echo ""
 	@echo ""
 endif
-
-
-.PHONY: release
-release:
-	@echo "project.godot:"  
-	@echo "    config/version=\"${CURRENT_VERSION}\""
-	@echo ""
-	@echo "application.properties:"
-	@echo "    NAME            ${NAME}"
-	@echo "    ID              ${ID}"
-	@echo "    DESCRIPTION     ${DESCRIPTION}"
-	@echo "    AUTHOR          ${AUTHOR}"
-	@echo "    VERSION         ${VERSION}"
-	@echo ""
-	@echo "Update project.godot and exports_presets.cfg?"
-	@echo "(CTRL+C to stop)"
-	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "export/Release.cs" --no-window
-
-
-.PHONY: export/all
-export/all: export/win export/osx export/linux
-
