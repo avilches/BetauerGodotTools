@@ -7,7 +7,7 @@ on: push
 
 
 env:
-  GODOT_VERSION: 3.4.2
+  GODOT_VERSION: 3.3.4
   GODOT_VERSION_MODIFIER: "stable.mono"
   EXPORT_NAME: veronenger
   GAME_SUBDIRECTORY: project.godot
@@ -19,7 +19,7 @@ jobs:
 
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:mono-3.4.4
+      image: barichello/godot-ci:mono-3.3.4
 
     steps:
 
@@ -39,17 +39,13 @@ jobs:
       - name: Setup Godot dlls
         run: |
           mkdir -p .mono/assemblies/Debug
-          mkdir -p DemoGame/.mono/assemblies/Debug
-          cp /usr/local/bin/GodotSharp/Api/Debug/* .mono/assemblies/Debug
-          cp /usr/local/bin/GodotSharp/Api/Debug/* DemoGame/.mono/assemblies/Debug
+          cp /usr/local/bin/GodotSharp/Api/Release/* .mono/assemblies/Debug
 
       # build the solution
       - name: Build
-        run: |
-          dotnet build Betauer.sln
+        run: dotnet build
 
       # run dotnet unit tests
       - name: Test
-        run: |
-          godot -s TestRunner.cs --no-window
+        run: godot -s TestRunner.cs --no-window
 
