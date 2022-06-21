@@ -24,7 +24,6 @@ config/version="1.0.0"
 
 Bootstrap="*res://Game/Managers/Autoload/Bootstrap.cs"
 Global="*res://Game/Managers/Autoload/Global.cs"
-Anima="*res://addons/anima/core/anima.gd"
 
 [display]
 
