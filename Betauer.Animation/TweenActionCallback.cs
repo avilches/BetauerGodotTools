@@ -5,19 +5,20 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-    public class ActionTween : Tween {
-        private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
+    public class TweenActionCallback : Tween {
+        private readonly Dictionary<long, Action> _actions = new Dictionary<long, Action>();
         private readonly Dictionary<Object, Object> _objects = new Dictionary<Object, Object>();
         public const float ExtraDelayToFinish = 0.01f;
 
+        private static readonly long StartTick = DateTime.UtcNow.Ticks;
+
         public void ScheduleCallback(float delay, Action callback) {
-            var actionHashCode = callback.GetHashCode();
-            _actions[actionHashCode] = callback;
-            InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionHashCode);
-            Start();
+            var actionId = DateTime.MaxValue.Ticks - StartTick;
+            _actions[actionId] = callback;
+            InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
         }
 
-        public void ActionTweenCallback(int actionHashCode) {
+        private void ActionTweenCallback(int actionHashCode) {
             Action action = _actions[actionHashCode];
             _actions.Remove(actionHashCode);
             action.Invoke();
