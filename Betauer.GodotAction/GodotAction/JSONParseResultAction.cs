@@ -13,7 +13,7 @@ namespace Betauer.GodotAction {
         public JSONParseResultAction OnScriptChanged(Action action) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(ExecuteScriptChanged));
+                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -22,11 +22,11 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
-        private void ExecuteScriptChanged() {
+        private void _GodotSignalScriptChanged() {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
             for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
         }

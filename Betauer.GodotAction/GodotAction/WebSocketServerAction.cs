@@ -13,7 +13,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnClientCloseRequest(Action<int, int, string> action) {
             if (_onClientCloseRequestAction == null || _onClientCloseRequestAction.Count == 0) {
                 _onClientCloseRequestAction ??= new List<Action<int, int, string>>(); 
-                Connect("client_close_request", this, nameof(ExecuteClientCloseRequest));
+                Connect("client_close_request", this, nameof(_GodotSignalClientCloseRequest));
             }
             _onClientCloseRequestAction.Add(action);
             return this;
@@ -22,11 +22,11 @@ namespace Betauer.GodotAction {
             if (_onClientCloseRequestAction == null || _onClientCloseRequestAction.Count == 0) return this;
             _onClientCloseRequestAction.Remove(action); 
             if (_onClientCloseRequestAction.Count == 0) {
-                Disconnect("client_close_request", this, nameof(ExecuteClientCloseRequest));
+                Disconnect("client_close_request", this, nameof(_GodotSignalClientCloseRequest));
             }
             return this;
         }
-        private void ExecuteClientCloseRequest(int code, int id, string reason) {
+        private void _GodotSignalClientCloseRequest(int code, int id, string reason) {
             if (_onClientCloseRequestAction == null || _onClientCloseRequestAction.Count == 0) return;
             for (var i = 0; i < _onClientCloseRequestAction.Count; i++) _onClientCloseRequestAction[i].Invoke(code, id, reason);
         }
@@ -36,7 +36,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnClientConnected(Action<int, string> action) {
             if (_onClientConnectedAction == null || _onClientConnectedAction.Count == 0) {
                 _onClientConnectedAction ??= new List<Action<int, string>>(); 
-                Connect("client_connected", this, nameof(ExecuteClientConnected));
+                Connect("client_connected", this, nameof(_GodotSignalClientConnected));
             }
             _onClientConnectedAction.Add(action);
             return this;
@@ -45,11 +45,11 @@ namespace Betauer.GodotAction {
             if (_onClientConnectedAction == null || _onClientConnectedAction.Count == 0) return this;
             _onClientConnectedAction.Remove(action); 
             if (_onClientConnectedAction.Count == 0) {
-                Disconnect("client_connected", this, nameof(ExecuteClientConnected));
+                Disconnect("client_connected", this, nameof(_GodotSignalClientConnected));
             }
             return this;
         }
-        private void ExecuteClientConnected(int id, string protocol) {
+        private void _GodotSignalClientConnected(int id, string protocol) {
             if (_onClientConnectedAction == null || _onClientConnectedAction.Count == 0) return;
             for (var i = 0; i < _onClientConnectedAction.Count; i++) _onClientConnectedAction[i].Invoke(id, protocol);
         }
@@ -59,7 +59,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnClientDisconnected(Action<int, bool> action) {
             if (_onClientDisconnectedAction == null || _onClientDisconnectedAction.Count == 0) {
                 _onClientDisconnectedAction ??= new List<Action<int, bool>>(); 
-                Connect("client_disconnected", this, nameof(ExecuteClientDisconnected));
+                Connect("client_disconnected", this, nameof(_GodotSignalClientDisconnected));
             }
             _onClientDisconnectedAction.Add(action);
             return this;
@@ -68,11 +68,11 @@ namespace Betauer.GodotAction {
             if (_onClientDisconnectedAction == null || _onClientDisconnectedAction.Count == 0) return this;
             _onClientDisconnectedAction.Remove(action); 
             if (_onClientDisconnectedAction.Count == 0) {
-                Disconnect("client_disconnected", this, nameof(ExecuteClientDisconnected));
+                Disconnect("client_disconnected", this, nameof(_GodotSignalClientDisconnected));
             }
             return this;
         }
-        private void ExecuteClientDisconnected(int id, bool was_clean_close) {
+        private void _GodotSignalClientDisconnected(int id, bool was_clean_close) {
             if (_onClientDisconnectedAction == null || _onClientDisconnectedAction.Count == 0) return;
             for (var i = 0; i < _onClientDisconnectedAction.Count; i++) _onClientDisconnectedAction[i].Invoke(id, was_clean_close);
         }
@@ -82,7 +82,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnConnectionFailed(Action action) {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) {
                 _onConnectionFailedAction ??= new List<Action>(); 
-                Connect("connection_failed", this, nameof(ExecuteConnectionFailed));
+                Connect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
             }
             _onConnectionFailedAction.Add(action);
             return this;
@@ -91,11 +91,11 @@ namespace Betauer.GodotAction {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return this;
             _onConnectionFailedAction.Remove(action); 
             if (_onConnectionFailedAction.Count == 0) {
-                Disconnect("connection_failed", this, nameof(ExecuteConnectionFailed));
+                Disconnect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
             }
             return this;
         }
-        private void ExecuteConnectionFailed() {
+        private void _GodotSignalConnectionFailed() {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return;
             for (var i = 0; i < _onConnectionFailedAction.Count; i++) _onConnectionFailedAction[i].Invoke();
         }
@@ -105,7 +105,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnConnectionSucceeded(Action action) {
             if (_onConnectionSucceededAction == null || _onConnectionSucceededAction.Count == 0) {
                 _onConnectionSucceededAction ??= new List<Action>(); 
-                Connect("connection_succeeded", this, nameof(ExecuteConnectionSucceeded));
+                Connect("connection_succeeded", this, nameof(_GodotSignalConnectionSucceeded));
             }
             _onConnectionSucceededAction.Add(action);
             return this;
@@ -114,11 +114,11 @@ namespace Betauer.GodotAction {
             if (_onConnectionSucceededAction == null || _onConnectionSucceededAction.Count == 0) return this;
             _onConnectionSucceededAction.Remove(action); 
             if (_onConnectionSucceededAction.Count == 0) {
-                Disconnect("connection_succeeded", this, nameof(ExecuteConnectionSucceeded));
+                Disconnect("connection_succeeded", this, nameof(_GodotSignalConnectionSucceeded));
             }
             return this;
         }
-        private void ExecuteConnectionSucceeded() {
+        private void _GodotSignalConnectionSucceeded() {
             if (_onConnectionSucceededAction == null || _onConnectionSucceededAction.Count == 0) return;
             for (var i = 0; i < _onConnectionSucceededAction.Count; i++) _onConnectionSucceededAction[i].Invoke();
         }
@@ -128,7 +128,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnDataReceived(Action<int> action) {
             if (_onDataReceivedAction == null || _onDataReceivedAction.Count == 0) {
                 _onDataReceivedAction ??= new List<Action<int>>(); 
-                Connect("data_received", this, nameof(ExecuteDataReceived));
+                Connect("data_received", this, nameof(_GodotSignalDataReceived));
             }
             _onDataReceivedAction.Add(action);
             return this;
@@ -137,11 +137,11 @@ namespace Betauer.GodotAction {
             if (_onDataReceivedAction == null || _onDataReceivedAction.Count == 0) return this;
             _onDataReceivedAction.Remove(action); 
             if (_onDataReceivedAction.Count == 0) {
-                Disconnect("data_received", this, nameof(ExecuteDataReceived));
+                Disconnect("data_received", this, nameof(_GodotSignalDataReceived));
             }
             return this;
         }
-        private void ExecuteDataReceived(int id) {
+        private void _GodotSignalDataReceived(int id) {
             if (_onDataReceivedAction == null || _onDataReceivedAction.Count == 0) return;
             for (var i = 0; i < _onDataReceivedAction.Count; i++) _onDataReceivedAction[i].Invoke(id);
         }
@@ -151,7 +151,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnPeerConnected(Action<int> action) {
             if (_onPeerConnectedAction == null || _onPeerConnectedAction.Count == 0) {
                 _onPeerConnectedAction ??= new List<Action<int>>(); 
-                Connect("peer_connected", this, nameof(ExecutePeerConnected));
+                Connect("peer_connected", this, nameof(_GodotSignalPeerConnected));
             }
             _onPeerConnectedAction.Add(action);
             return this;
@@ -160,11 +160,11 @@ namespace Betauer.GodotAction {
             if (_onPeerConnectedAction == null || _onPeerConnectedAction.Count == 0) return this;
             _onPeerConnectedAction.Remove(action); 
             if (_onPeerConnectedAction.Count == 0) {
-                Disconnect("peer_connected", this, nameof(ExecutePeerConnected));
+                Disconnect("peer_connected", this, nameof(_GodotSignalPeerConnected));
             }
             return this;
         }
-        private void ExecutePeerConnected(int id) {
+        private void _GodotSignalPeerConnected(int id) {
             if (_onPeerConnectedAction == null || _onPeerConnectedAction.Count == 0) return;
             for (var i = 0; i < _onPeerConnectedAction.Count; i++) _onPeerConnectedAction[i].Invoke(id);
         }
@@ -174,7 +174,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnPeerDisconnected(Action<int> action) {
             if (_onPeerDisconnectedAction == null || _onPeerDisconnectedAction.Count == 0) {
                 _onPeerDisconnectedAction ??= new List<Action<int>>(); 
-                Connect("peer_disconnected", this, nameof(ExecutePeerDisconnected));
+                Connect("peer_disconnected", this, nameof(_GodotSignalPeerDisconnected));
             }
             _onPeerDisconnectedAction.Add(action);
             return this;
@@ -183,11 +183,11 @@ namespace Betauer.GodotAction {
             if (_onPeerDisconnectedAction == null || _onPeerDisconnectedAction.Count == 0) return this;
             _onPeerDisconnectedAction.Remove(action); 
             if (_onPeerDisconnectedAction.Count == 0) {
-                Disconnect("peer_disconnected", this, nameof(ExecutePeerDisconnected));
+                Disconnect("peer_disconnected", this, nameof(_GodotSignalPeerDisconnected));
             }
             return this;
         }
-        private void ExecutePeerDisconnected(int id) {
+        private void _GodotSignalPeerDisconnected(int id) {
             if (_onPeerDisconnectedAction == null || _onPeerDisconnectedAction.Count == 0) return;
             for (var i = 0; i < _onPeerDisconnectedAction.Count; i++) _onPeerDisconnectedAction[i].Invoke(id);
         }
@@ -197,7 +197,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnPeerPacket(Action<int> action) {
             if (_onPeerPacketAction == null || _onPeerPacketAction.Count == 0) {
                 _onPeerPacketAction ??= new List<Action<int>>(); 
-                Connect("peer_packet", this, nameof(ExecutePeerPacket));
+                Connect("peer_packet", this, nameof(_GodotSignalPeerPacket));
             }
             _onPeerPacketAction.Add(action);
             return this;
@@ -206,11 +206,11 @@ namespace Betauer.GodotAction {
             if (_onPeerPacketAction == null || _onPeerPacketAction.Count == 0) return this;
             _onPeerPacketAction.Remove(action); 
             if (_onPeerPacketAction.Count == 0) {
-                Disconnect("peer_packet", this, nameof(ExecutePeerPacket));
+                Disconnect("peer_packet", this, nameof(_GodotSignalPeerPacket));
             }
             return this;
         }
-        private void ExecutePeerPacket(int peer_source) {
+        private void _GodotSignalPeerPacket(int peer_source) {
             if (_onPeerPacketAction == null || _onPeerPacketAction.Count == 0) return;
             for (var i = 0; i < _onPeerPacketAction.Count; i++) _onPeerPacketAction[i].Invoke(peer_source);
         }
@@ -220,7 +220,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnScriptChanged(Action action) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(ExecuteScriptChanged));
+                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -229,11 +229,11 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
-        private void ExecuteScriptChanged() {
+        private void _GodotSignalScriptChanged() {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
             for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
         }
@@ -243,7 +243,7 @@ namespace Betauer.GodotAction {
         public WebSocketServerAction OnServerDisconnected(Action action) {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) {
                 _onServerDisconnectedAction ??= new List<Action>(); 
-                Connect("server_disconnected", this, nameof(ExecuteServerDisconnected));
+                Connect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
             }
             _onServerDisconnectedAction.Add(action);
             return this;
@@ -252,11 +252,11 @@ namespace Betauer.GodotAction {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return this;
             _onServerDisconnectedAction.Remove(action); 
             if (_onServerDisconnectedAction.Count == 0) {
-                Disconnect("server_disconnected", this, nameof(ExecuteServerDisconnected));
+                Disconnect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
             }
             return this;
         }
-        private void ExecuteServerDisconnected() {
+        private void _GodotSignalServerDisconnected() {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return;
             for (var i = 0; i < _onServerDisconnectedAction.Count; i++) _onServerDisconnectedAction[i].Invoke();
         }

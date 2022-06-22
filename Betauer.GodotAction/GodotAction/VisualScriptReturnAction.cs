@@ -13,7 +13,7 @@ namespace Betauer.GodotAction {
         public VisualScriptReturnAction OnChanged(Action action) {
             if (_onChangedAction == null || _onChangedAction.Count == 0) {
                 _onChangedAction ??= new List<Action>(); 
-                Connect("changed", this, nameof(ExecuteChanged));
+                Connect("changed", this, nameof(_GodotSignalChanged));
             }
             _onChangedAction.Add(action);
             return this;
@@ -22,11 +22,11 @@ namespace Betauer.GodotAction {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
             _onChangedAction.Remove(action); 
             if (_onChangedAction.Count == 0) {
-                Disconnect("changed", this, nameof(ExecuteChanged));
+                Disconnect("changed", this, nameof(_GodotSignalChanged));
             }
             return this;
         }
-        private void ExecuteChanged() {
+        private void _GodotSignalChanged() {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return;
             for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
         }
@@ -36,7 +36,7 @@ namespace Betauer.GodotAction {
         public VisualScriptReturnAction OnPortsChanged(Action action) {
             if (_onPortsChangedAction == null || _onPortsChangedAction.Count == 0) {
                 _onPortsChangedAction ??= new List<Action>(); 
-                Connect("ports_changed", this, nameof(ExecutePortsChanged));
+                Connect("ports_changed", this, nameof(_GodotSignalPortsChanged));
             }
             _onPortsChangedAction.Add(action);
             return this;
@@ -45,11 +45,11 @@ namespace Betauer.GodotAction {
             if (_onPortsChangedAction == null || _onPortsChangedAction.Count == 0) return this;
             _onPortsChangedAction.Remove(action); 
             if (_onPortsChangedAction.Count == 0) {
-                Disconnect("ports_changed", this, nameof(ExecutePortsChanged));
+                Disconnect("ports_changed", this, nameof(_GodotSignalPortsChanged));
             }
             return this;
         }
-        private void ExecutePortsChanged() {
+        private void _GodotSignalPortsChanged() {
             if (_onPortsChangedAction == null || _onPortsChangedAction.Count == 0) return;
             for (var i = 0; i < _onPortsChangedAction.Count; i++) _onPortsChangedAction[i].Invoke();
         }
@@ -59,7 +59,7 @@ namespace Betauer.GodotAction {
         public VisualScriptReturnAction OnScriptChanged(Action action) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(ExecuteScriptChanged));
+                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -68,11 +68,11 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
-        private void ExecuteScriptChanged() {
+        private void _GodotSignalScriptChanged() {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
             for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
         }

@@ -13,7 +13,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnConnectedToServer(Action action) {
             if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) {
                 _onConnectedToServerAction ??= new List<Action>(); 
-                Connect("connected_to_server", this, nameof(ExecuteConnectedToServer));
+                Connect("connected_to_server", this, nameof(_GodotSignalConnectedToServer));
             }
             _onConnectedToServerAction.Add(action);
             return this;
@@ -22,11 +22,11 @@ namespace Betauer.GodotAction {
             if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return this;
             _onConnectedToServerAction.Remove(action); 
             if (_onConnectedToServerAction.Count == 0) {
-                Disconnect("connected_to_server", this, nameof(ExecuteConnectedToServer));
+                Disconnect("connected_to_server", this, nameof(_GodotSignalConnectedToServer));
             }
             return this;
         }
-        private void ExecuteConnectedToServer() {
+        private void _GodotSignalConnectedToServer() {
             if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return;
             for (var i = 0; i < _onConnectedToServerAction.Count; i++) _onConnectedToServerAction[i].Invoke();
         }
@@ -36,7 +36,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnConnectionFailed(Action action) {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) {
                 _onConnectionFailedAction ??= new List<Action>(); 
-                Connect("connection_failed", this, nameof(ExecuteConnectionFailed));
+                Connect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
             }
             _onConnectionFailedAction.Add(action);
             return this;
@@ -45,11 +45,11 @@ namespace Betauer.GodotAction {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return this;
             _onConnectionFailedAction.Remove(action); 
             if (_onConnectionFailedAction.Count == 0) {
-                Disconnect("connection_failed", this, nameof(ExecuteConnectionFailed));
+                Disconnect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
             }
             return this;
         }
-        private void ExecuteConnectionFailed() {
+        private void _GodotSignalConnectionFailed() {
             if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return;
             for (var i = 0; i < _onConnectionFailedAction.Count; i++) _onConnectionFailedAction[i].Invoke();
         }
@@ -59,7 +59,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnFilesDropped(Action<string[], int> action) {
             if (_onFilesDroppedAction == null || _onFilesDroppedAction.Count == 0) {
                 _onFilesDroppedAction ??= new List<Action<string[], int>>(); 
-                Connect("files_dropped", this, nameof(ExecuteFilesDropped));
+                Connect("files_dropped", this, nameof(_GodotSignalFilesDropped));
             }
             _onFilesDroppedAction.Add(action);
             return this;
@@ -68,11 +68,11 @@ namespace Betauer.GodotAction {
             if (_onFilesDroppedAction == null || _onFilesDroppedAction.Count == 0) return this;
             _onFilesDroppedAction.Remove(action); 
             if (_onFilesDroppedAction.Count == 0) {
-                Disconnect("files_dropped", this, nameof(ExecuteFilesDropped));
+                Disconnect("files_dropped", this, nameof(_GodotSignalFilesDropped));
             }
             return this;
         }
-        private void ExecuteFilesDropped(string[] files, int screen) {
+        private void _GodotSignalFilesDropped(string[] files, int screen) {
             if (_onFilesDroppedAction == null || _onFilesDroppedAction.Count == 0) return;
             for (var i = 0; i < _onFilesDroppedAction.Count; i++) _onFilesDroppedAction[i].Invoke(files, screen);
         }
@@ -82,7 +82,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnGlobalMenuAction(Action<object, object> action) {
             if (_onGlobalMenuActionAction == null || _onGlobalMenuActionAction.Count == 0) {
                 _onGlobalMenuActionAction ??= new List<Action<object, object>>(); 
-                Connect("global_menu_action", this, nameof(ExecuteGlobalMenuAction));
+                Connect("global_menu_action", this, nameof(_GodotSignalGlobalMenuAction));
             }
             _onGlobalMenuActionAction.Add(action);
             return this;
@@ -91,11 +91,11 @@ namespace Betauer.GodotAction {
             if (_onGlobalMenuActionAction == null || _onGlobalMenuActionAction.Count == 0) return this;
             _onGlobalMenuActionAction.Remove(action); 
             if (_onGlobalMenuActionAction.Count == 0) {
-                Disconnect("global_menu_action", this, nameof(ExecuteGlobalMenuAction));
+                Disconnect("global_menu_action", this, nameof(_GodotSignalGlobalMenuAction));
             }
             return this;
         }
-        private void ExecuteGlobalMenuAction(object id, object meta) {
+        private void _GodotSignalGlobalMenuAction(object id, object meta) {
             if (_onGlobalMenuActionAction == null || _onGlobalMenuActionAction.Count == 0) return;
             for (var i = 0; i < _onGlobalMenuActionAction.Count; i++) _onGlobalMenuActionAction[i].Invoke(id, meta);
         }
@@ -105,7 +105,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnIdleFrame(Action action) {
             if (_onIdleFrameAction == null || _onIdleFrameAction.Count == 0) {
                 _onIdleFrameAction ??= new List<Action>(); 
-                Connect("idle_frame", this, nameof(ExecuteIdleFrame));
+                Connect("idle_frame", this, nameof(_GodotSignalIdleFrame));
             }
             _onIdleFrameAction.Add(action);
             return this;
@@ -114,11 +114,11 @@ namespace Betauer.GodotAction {
             if (_onIdleFrameAction == null || _onIdleFrameAction.Count == 0) return this;
             _onIdleFrameAction.Remove(action); 
             if (_onIdleFrameAction.Count == 0) {
-                Disconnect("idle_frame", this, nameof(ExecuteIdleFrame));
+                Disconnect("idle_frame", this, nameof(_GodotSignalIdleFrame));
             }
             return this;
         }
-        private void ExecuteIdleFrame() {
+        private void _GodotSignalIdleFrame() {
             if (_onIdleFrameAction == null || _onIdleFrameAction.Count == 0) return;
             for (var i = 0; i < _onIdleFrameAction.Count; i++) _onIdleFrameAction[i].Invoke();
         }
@@ -128,7 +128,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNetworkPeerConnected(Action<int> action) {
             if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) {
                 _onNetworkPeerConnectedAction ??= new List<Action<int>>(); 
-                Connect("network_peer_connected", this, nameof(ExecuteNetworkPeerConnected));
+                Connect("network_peer_connected", this, nameof(_GodotSignalNetworkPeerConnected));
             }
             _onNetworkPeerConnectedAction.Add(action);
             return this;
@@ -137,11 +137,11 @@ namespace Betauer.GodotAction {
             if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return this;
             _onNetworkPeerConnectedAction.Remove(action); 
             if (_onNetworkPeerConnectedAction.Count == 0) {
-                Disconnect("network_peer_connected", this, nameof(ExecuteNetworkPeerConnected));
+                Disconnect("network_peer_connected", this, nameof(_GodotSignalNetworkPeerConnected));
             }
             return this;
         }
-        private void ExecuteNetworkPeerConnected(int id) {
+        private void _GodotSignalNetworkPeerConnected(int id) {
             if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return;
             for (var i = 0; i < _onNetworkPeerConnectedAction.Count; i++) _onNetworkPeerConnectedAction[i].Invoke(id);
         }
@@ -151,7 +151,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNetworkPeerDisconnected(Action<int> action) {
             if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) {
                 _onNetworkPeerDisconnectedAction ??= new List<Action<int>>(); 
-                Connect("network_peer_disconnected", this, nameof(ExecuteNetworkPeerDisconnected));
+                Connect("network_peer_disconnected", this, nameof(_GodotSignalNetworkPeerDisconnected));
             }
             _onNetworkPeerDisconnectedAction.Add(action);
             return this;
@@ -160,11 +160,11 @@ namespace Betauer.GodotAction {
             if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return this;
             _onNetworkPeerDisconnectedAction.Remove(action); 
             if (_onNetworkPeerDisconnectedAction.Count == 0) {
-                Disconnect("network_peer_disconnected", this, nameof(ExecuteNetworkPeerDisconnected));
+                Disconnect("network_peer_disconnected", this, nameof(_GodotSignalNetworkPeerDisconnected));
             }
             return this;
         }
-        private void ExecuteNetworkPeerDisconnected(int id) {
+        private void _GodotSignalNetworkPeerDisconnected(int id) {
             if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return;
             for (var i = 0; i < _onNetworkPeerDisconnectedAction.Count; i++) _onNetworkPeerDisconnectedAction[i].Invoke(id);
         }
@@ -174,7 +174,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNodeAdded(Action<Node> action) {
             if (_onNodeAddedAction == null || _onNodeAddedAction.Count == 0) {
                 _onNodeAddedAction ??= new List<Action<Node>>(); 
-                Connect("node_added", this, nameof(ExecuteNodeAdded));
+                Connect("node_added", this, nameof(_GodotSignalNodeAdded));
             }
             _onNodeAddedAction.Add(action);
             return this;
@@ -183,11 +183,11 @@ namespace Betauer.GodotAction {
             if (_onNodeAddedAction == null || _onNodeAddedAction.Count == 0) return this;
             _onNodeAddedAction.Remove(action); 
             if (_onNodeAddedAction.Count == 0) {
-                Disconnect("node_added", this, nameof(ExecuteNodeAdded));
+                Disconnect("node_added", this, nameof(_GodotSignalNodeAdded));
             }
             return this;
         }
-        private void ExecuteNodeAdded(Node node) {
+        private void _GodotSignalNodeAdded(Node node) {
             if (_onNodeAddedAction == null || _onNodeAddedAction.Count == 0) return;
             for (var i = 0; i < _onNodeAddedAction.Count; i++) _onNodeAddedAction[i].Invoke(node);
         }
@@ -197,7 +197,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNodeConfigurationWarningChanged(Action<Node> action) {
             if (_onNodeConfigurationWarningChangedAction == null || _onNodeConfigurationWarningChangedAction.Count == 0) {
                 _onNodeConfigurationWarningChangedAction ??= new List<Action<Node>>(); 
-                Connect("node_configuration_warning_changed", this, nameof(ExecuteNodeConfigurationWarningChanged));
+                Connect("node_configuration_warning_changed", this, nameof(_GodotSignalNodeConfigurationWarningChanged));
             }
             _onNodeConfigurationWarningChangedAction.Add(action);
             return this;
@@ -206,11 +206,11 @@ namespace Betauer.GodotAction {
             if (_onNodeConfigurationWarningChangedAction == null || _onNodeConfigurationWarningChangedAction.Count == 0) return this;
             _onNodeConfigurationWarningChangedAction.Remove(action); 
             if (_onNodeConfigurationWarningChangedAction.Count == 0) {
-                Disconnect("node_configuration_warning_changed", this, nameof(ExecuteNodeConfigurationWarningChanged));
+                Disconnect("node_configuration_warning_changed", this, nameof(_GodotSignalNodeConfigurationWarningChanged));
             }
             return this;
         }
-        private void ExecuteNodeConfigurationWarningChanged(Node node) {
+        private void _GodotSignalNodeConfigurationWarningChanged(Node node) {
             if (_onNodeConfigurationWarningChangedAction == null || _onNodeConfigurationWarningChangedAction.Count == 0) return;
             for (var i = 0; i < _onNodeConfigurationWarningChangedAction.Count; i++) _onNodeConfigurationWarningChangedAction[i].Invoke(node);
         }
@@ -220,7 +220,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNodeRemoved(Action<Node> action) {
             if (_onNodeRemovedAction == null || _onNodeRemovedAction.Count == 0) {
                 _onNodeRemovedAction ??= new List<Action<Node>>(); 
-                Connect("node_removed", this, nameof(ExecuteNodeRemoved));
+                Connect("node_removed", this, nameof(_GodotSignalNodeRemoved));
             }
             _onNodeRemovedAction.Add(action);
             return this;
@@ -229,11 +229,11 @@ namespace Betauer.GodotAction {
             if (_onNodeRemovedAction == null || _onNodeRemovedAction.Count == 0) return this;
             _onNodeRemovedAction.Remove(action); 
             if (_onNodeRemovedAction.Count == 0) {
-                Disconnect("node_removed", this, nameof(ExecuteNodeRemoved));
+                Disconnect("node_removed", this, nameof(_GodotSignalNodeRemoved));
             }
             return this;
         }
-        private void ExecuteNodeRemoved(Node node) {
+        private void _GodotSignalNodeRemoved(Node node) {
             if (_onNodeRemovedAction == null || _onNodeRemovedAction.Count == 0) return;
             for (var i = 0; i < _onNodeRemovedAction.Count; i++) _onNodeRemovedAction[i].Invoke(node);
         }
@@ -243,7 +243,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnNodeRenamed(Action<Node> action) {
             if (_onNodeRenamedAction == null || _onNodeRenamedAction.Count == 0) {
                 _onNodeRenamedAction ??= new List<Action<Node>>(); 
-                Connect("node_renamed", this, nameof(ExecuteNodeRenamed));
+                Connect("node_renamed", this, nameof(_GodotSignalNodeRenamed));
             }
             _onNodeRenamedAction.Add(action);
             return this;
@@ -252,11 +252,11 @@ namespace Betauer.GodotAction {
             if (_onNodeRenamedAction == null || _onNodeRenamedAction.Count == 0) return this;
             _onNodeRenamedAction.Remove(action); 
             if (_onNodeRenamedAction.Count == 0) {
-                Disconnect("node_renamed", this, nameof(ExecuteNodeRenamed));
+                Disconnect("node_renamed", this, nameof(_GodotSignalNodeRenamed));
             }
             return this;
         }
-        private void ExecuteNodeRenamed(Node node) {
+        private void _GodotSignalNodeRenamed(Node node) {
             if (_onNodeRenamedAction == null || _onNodeRenamedAction.Count == 0) return;
             for (var i = 0; i < _onNodeRenamedAction.Count; i++) _onNodeRenamedAction[i].Invoke(node);
         }
@@ -266,7 +266,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnPhysicsFrame(Action action) {
             if (_onPhysicsFrameAction == null || _onPhysicsFrameAction.Count == 0) {
                 _onPhysicsFrameAction ??= new List<Action>(); 
-                Connect("physics_frame", this, nameof(ExecutePhysicsFrame));
+                Connect("physics_frame", this, nameof(_GodotSignalPhysicsFrame));
             }
             _onPhysicsFrameAction.Add(action);
             return this;
@@ -275,11 +275,11 @@ namespace Betauer.GodotAction {
             if (_onPhysicsFrameAction == null || _onPhysicsFrameAction.Count == 0) return this;
             _onPhysicsFrameAction.Remove(action); 
             if (_onPhysicsFrameAction.Count == 0) {
-                Disconnect("physics_frame", this, nameof(ExecutePhysicsFrame));
+                Disconnect("physics_frame", this, nameof(_GodotSignalPhysicsFrame));
             }
             return this;
         }
-        private void ExecutePhysicsFrame() {
+        private void _GodotSignalPhysicsFrame() {
             if (_onPhysicsFrameAction == null || _onPhysicsFrameAction.Count == 0) return;
             for (var i = 0; i < _onPhysicsFrameAction.Count; i++) _onPhysicsFrameAction[i].Invoke();
         }
@@ -289,7 +289,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnRequestPermissionsResult(Action<bool, string> action) {
             if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) {
                 _onRequestPermissionsResultAction ??= new List<Action<bool, string>>(); 
-                Connect("on_request_permissions_result", this, nameof(ExecuteRequestPermissionsResult));
+                Connect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
             }
             _onRequestPermissionsResultAction.Add(action);
             return this;
@@ -298,11 +298,11 @@ namespace Betauer.GodotAction {
             if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) return this;
             _onRequestPermissionsResultAction.Remove(action); 
             if (_onRequestPermissionsResultAction.Count == 0) {
-                Disconnect("on_request_permissions_result", this, nameof(ExecuteRequestPermissionsResult));
+                Disconnect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
             }
             return this;
         }
-        private void ExecuteRequestPermissionsResult(bool granted, string permission) {
+        private void _GodotSignalRequestPermissionsResult(bool granted, string permission) {
             if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) return;
             for (var i = 0; i < _onRequestPermissionsResultAction.Count; i++) _onRequestPermissionsResultAction[i].Invoke(granted, permission);
         }
@@ -312,7 +312,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnScreenResized(Action action) {
             if (_onScreenResizedAction == null || _onScreenResizedAction.Count == 0) {
                 _onScreenResizedAction ??= new List<Action>(); 
-                Connect("screen_resized", this, nameof(ExecuteScreenResized));
+                Connect("screen_resized", this, nameof(_GodotSignalScreenResized));
             }
             _onScreenResizedAction.Add(action);
             return this;
@@ -321,11 +321,11 @@ namespace Betauer.GodotAction {
             if (_onScreenResizedAction == null || _onScreenResizedAction.Count == 0) return this;
             _onScreenResizedAction.Remove(action); 
             if (_onScreenResizedAction.Count == 0) {
-                Disconnect("screen_resized", this, nameof(ExecuteScreenResized));
+                Disconnect("screen_resized", this, nameof(_GodotSignalScreenResized));
             }
             return this;
         }
-        private void ExecuteScreenResized() {
+        private void _GodotSignalScreenResized() {
             if (_onScreenResizedAction == null || _onScreenResizedAction.Count == 0) return;
             for (var i = 0; i < _onScreenResizedAction.Count; i++) _onScreenResizedAction[i].Invoke();
         }
@@ -335,7 +335,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnScriptChanged(Action action) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(ExecuteScriptChanged));
+                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -344,11 +344,11 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
-        private void ExecuteScriptChanged() {
+        private void _GodotSignalScriptChanged() {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
             for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
         }
@@ -358,7 +358,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnServerDisconnected(Action action) {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) {
                 _onServerDisconnectedAction ??= new List<Action>(); 
-                Connect("server_disconnected", this, nameof(ExecuteServerDisconnected));
+                Connect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
             }
             _onServerDisconnectedAction.Add(action);
             return this;
@@ -367,11 +367,11 @@ namespace Betauer.GodotAction {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return this;
             _onServerDisconnectedAction.Remove(action); 
             if (_onServerDisconnectedAction.Count == 0) {
-                Disconnect("server_disconnected", this, nameof(ExecuteServerDisconnected));
+                Disconnect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
             }
             return this;
         }
-        private void ExecuteServerDisconnected() {
+        private void _GodotSignalServerDisconnected() {
             if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return;
             for (var i = 0; i < _onServerDisconnectedAction.Count; i++) _onServerDisconnectedAction[i].Invoke();
         }
@@ -381,7 +381,7 @@ namespace Betauer.GodotAction {
         public SceneTreeAction OnTreeChanged(Action action) {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) {
                 _onTreeChangedAction ??= new List<Action>(); 
-                Connect("tree_changed", this, nameof(ExecuteTreeChanged));
+                Connect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             _onTreeChangedAction.Add(action);
             return this;
@@ -390,11 +390,11 @@ namespace Betauer.GodotAction {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return this;
             _onTreeChangedAction.Remove(action); 
             if (_onTreeChangedAction.Count == 0) {
-                Disconnect("tree_changed", this, nameof(ExecuteTreeChanged));
+                Disconnect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             return this;
         }
-        private void ExecuteTreeChanged() {
+        private void _GodotSignalTreeChanged() {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return;
             for (var i = 0; i < _onTreeChangedAction.Count; i++) _onTreeChangedAction[i].Invoke();
         }

@@ -13,7 +13,7 @@ namespace Betauer.GodotAction {
         public AnimationNodeTimeSeekAction OnChanged(Action action) {
             if (_onChangedAction == null || _onChangedAction.Count == 0) {
                 _onChangedAction ??= new List<Action>(); 
-                Connect("changed", this, nameof(ExecuteChanged));
+                Connect("changed", this, nameof(_GodotSignalChanged));
             }
             _onChangedAction.Add(action);
             return this;
@@ -22,11 +22,11 @@ namespace Betauer.GodotAction {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
             _onChangedAction.Remove(action); 
             if (_onChangedAction.Count == 0) {
-                Disconnect("changed", this, nameof(ExecuteChanged));
+                Disconnect("changed", this, nameof(_GodotSignalChanged));
             }
             return this;
         }
-        private void ExecuteChanged() {
+        private void _GodotSignalChanged() {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return;
             for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
         }
@@ -36,7 +36,7 @@ namespace Betauer.GodotAction {
         public AnimationNodeTimeSeekAction OnRemovedFromGraph(Action action) {
             if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) {
                 _onRemovedFromGraphAction ??= new List<Action>(); 
-                Connect("removed_from_graph", this, nameof(ExecuteRemovedFromGraph));
+                Connect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
             }
             _onRemovedFromGraphAction.Add(action);
             return this;
@@ -45,11 +45,11 @@ namespace Betauer.GodotAction {
             if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) return this;
             _onRemovedFromGraphAction.Remove(action); 
             if (_onRemovedFromGraphAction.Count == 0) {
-                Disconnect("removed_from_graph", this, nameof(ExecuteRemovedFromGraph));
+                Disconnect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
             }
             return this;
         }
-        private void ExecuteRemovedFromGraph() {
+        private void _GodotSignalRemovedFromGraph() {
             if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) return;
             for (var i = 0; i < _onRemovedFromGraphAction.Count; i++) _onRemovedFromGraphAction[i].Invoke();
         }
@@ -59,7 +59,7 @@ namespace Betauer.GodotAction {
         public AnimationNodeTimeSeekAction OnScriptChanged(Action action) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(ExecuteScriptChanged));
+                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -68,11 +68,11 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(ExecuteScriptChanged));
+                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
-        private void ExecuteScriptChanged() {
+        private void _GodotSignalScriptChanged() {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
             for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
         }
@@ -82,7 +82,7 @@ namespace Betauer.GodotAction {
         public AnimationNodeTimeSeekAction OnTreeChanged(Action action) {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) {
                 _onTreeChangedAction ??= new List<Action>(); 
-                Connect("tree_changed", this, nameof(ExecuteTreeChanged));
+                Connect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             _onTreeChangedAction.Add(action);
             return this;
@@ -91,11 +91,11 @@ namespace Betauer.GodotAction {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return this;
             _onTreeChangedAction.Remove(action); 
             if (_onTreeChangedAction.Count == 0) {
-                Disconnect("tree_changed", this, nameof(ExecuteTreeChanged));
+                Disconnect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             return this;
         }
-        private void ExecuteTreeChanged() {
+        private void _GodotSignalTreeChanged() {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return;
             for (var i = 0; i < _onTreeChangedAction.Count; i++) _onTreeChangedAction[i].Invoke();
         }
