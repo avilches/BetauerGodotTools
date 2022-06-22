@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
+    [Only]
     public class ActionTweenTests : NodeTest {
         [SetUp]
         public void SetUp() {
@@ -22,6 +24,7 @@ namespace Betauer.Animation.Tests {
             tween.ScheduleCallback(0.00f, () => x++);
             tween.ScheduleCallback(0.01f, () => x++);
             tween.ScheduleCallback(0.02f, () => x++);
+            tween.Start();
             Assert.That(tween.GetPendingActions().Count, Is.EqualTo(3));
             await Task.Delay(50);
             Assert.That(x, Is.EqualTo(3));
@@ -31,11 +34,12 @@ namespace Betauer.Animation.Tests {
         [Test]
         public async Task InterpolateAction() {
             var tween = await CreateTween();
+            tween.Start();
             int x = 0;
             tween.InterpolateAction<int>(0, 1, 0.01f, Tween.TransitionType.Linear, Tween.EaseType.InOut, 0f,
                 (p) => x = x + p);
             Assert.That(tween.GetPendingObjects().Count, Is.EqualTo(1));
-            await Task.Delay((int)(ActionTween.ExtraDelayToFinish * 2 * 1000));
+            await Task.Delay((int)(TweenActionCallback.ExtraDelayToFinish * 2 * 1000));
             Assert.That(x, Is.EqualTo(2));
             Assert.That(tween.GetPendingObjects().Count, Is.EqualTo(0));
         }

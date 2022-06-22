@@ -22,8 +22,8 @@ namespace Betauer.Animation.Tests {
             return sprite;
         }
 
-        public async Task<ActionTween> CreateTween() {
-            ActionTween tween = new ActionTween();
+        public async Task<TweenActionCallback> CreateTween() {
+            var tween = new TweenActionCallback();
             AddChild(tween);
             await this.AwaitIdleFrame();
             return tween;

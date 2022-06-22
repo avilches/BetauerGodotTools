@@ -74,7 +74,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(values1k.Last(), Is.EqualTo(400));
             Assert.That(values1kb.Last(), Is.EqualTo(412));
             Assert.That(values1rk.Last(), Is.EqualTo(413));
-            await Task.Delay((int)(ActionTween.ExtraDelayToFinish * 2 * 1000));
+            await Task.Delay((int)(TweenActionCallback.ExtraDelayToFinish * 2 * 1000));
             Assert.That(actionTween.GetPendingObjects().Count, Is.EqualTo(0));
         }
 

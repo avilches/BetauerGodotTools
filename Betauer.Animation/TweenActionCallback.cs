@@ -6,21 +6,21 @@ using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public class TweenActionCallback : Tween {
-        private readonly Dictionary<long, Action> _actions = new Dictionary<long, Action>();
+        private readonly Dictionary<string, Action> _actions = new Dictionary<string, Action>();
         private readonly Dictionary<Object, Object> _objects = new Dictionary<Object, Object>();
         public const float ExtraDelayToFinish = 0.01f;
 
         private static readonly long StartTick = DateTime.UtcNow.Ticks;
 
         public void ScheduleCallback(float delay, Action callback) {
-            var actionId = DateTime.MaxValue.Ticks - StartTick;
+            var actionId = (DateTime.Now.Ticks - StartTick).ToString();
             _actions[actionId] = callback;
             InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
         }
 
-        private void ActionTweenCallback(int actionHashCode) {
-            Action action = _actions[actionHashCode];
-            _actions.Remove(actionHashCode);
+        private void ActionTweenCallback(string actionId) {
+            Action action = _actions[actionId];
+            _actions.Remove(actionId);
             action.Invoke();
         }
 
