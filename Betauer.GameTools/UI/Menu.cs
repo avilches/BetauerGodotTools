@@ -251,50 +251,8 @@ namespace Betauer.UI {
             }
         }
 
-        public ActionMenu Refresh(Control? focused = null) {
-            Control? first = null;
-            Control? last = null;
-            Control? previous = null;
-            var takeNextFocus = false;
-            foreach (var child in Container.GetChildren()) {
-                if (child is Control control) {
-                    if (control is VSeparator || control is HSeparator) continue;
-                    var isDisabled = control is BaseButton { Disabled: true };
-
-                    if (focused == null && (control.HasFocus() || takeNextFocus)) {
-                        // Try to find the first not disabled focused control
-                        if (isDisabled) takeNextFocus = true;
-                        else focused = control;
-                    }
-
-                    control.FocusMode = isDisabled ? Control.FocusModeEnum.None : Control.FocusModeEnum.All;
-
-                    if (previous != null) {
-                        if (Container is VBoxContainer) {
-                            previous.FocusNeighbourBottom = "../" + control.Name;
-                            control.FocusNeighbourTop = "../" + previous.Name;
-                        } else if (Container is HBoxContainer) {
-                            previous.FocusNeighbourRight = "../" + control.Name;
-                            control.FocusNeighbourLeft = "../" + previous.Name;
-                        }
-                    }
-                    first ??= control;
-                    previous = control;
-                }
-            }
-            last = previous;
-
-            if (WrapButtons && first != null && last != null && first != last) {
-                if (Container is VBoxContainer) {
-                    first.FocusNeighbourTop = "../" + last.Name;
-                    last.FocusNeighbourBottom = "../" + first.Name;
-                } else if (Container is HBoxContainer) {
-                    first.FocusNeighbourLeft = "../" + last.Name;
-                    last.FocusNeighbourRight = "../" + first.Name;
-                }
-            }
-            focused ??= first;
-            focused?.GrabFocus();
+        public ActionMenu Refresh(BaseButton? focused = null) {
+            Container.RefreshNeighbours(focused, WrapButtons)?.GrabFocus();
             return this;
         }
 
