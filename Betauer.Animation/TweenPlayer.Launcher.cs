@@ -2,7 +2,7 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
-    public class Launcher : ActionTween, ITweenPlayer<Launcher> {
+    public class Launcher : TweenActionCallback, ITweenPlayer<Launcher> {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Launcher));
 
         public Launcher WithParent(Node parent) {

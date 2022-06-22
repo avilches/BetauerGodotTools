@@ -6,7 +6,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ITweener {
-        float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration);
+        float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration);
         public Node Target { get; }
     }
 
@@ -21,7 +21,7 @@ namespace Betauer.Animation {
             _callback = callback;
         }
 
-        public float Start(ActionTween tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(TweenActionCallback tween, float initialDelay, Node ignoredDefaultTarget,
             float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
@@ -58,7 +58,7 @@ namespace Betauer.Animation {
             _p5 = p5;
         }
 
-        public float Start(ActionTween tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
+        public float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
                 return 0;
@@ -85,7 +85,7 @@ namespace Betauer.Animation {
             _delay = delay;
         }
 
-        public float Start(ActionTween tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(TweenActionCallback tween, float initialDelay, Node ignoredDefaultTarget,
             float ignoredDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
@@ -133,7 +133,7 @@ namespace Betauer.Animation {
             DefaultEasing = defaultEasing;
         }
 
-        public abstract float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration);
+        public abstract float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration);
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
@@ -155,7 +155,7 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(AnimationContext<TProperty> context, ActionTween tween,
+        protected void RunStep(AnimationContext<TProperty> context, TweenActionCallback tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing? easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
@@ -177,7 +177,7 @@ namespace Betauer.Animation {
             }
         }
 
-        private static void RunCurveBezierStep(AnimationContext<TProperty> context, ActionTween tween,
+        private static void RunCurveBezierStep(AnimationContext<TProperty> context, TweenActionCallback tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
             tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
@@ -191,7 +191,7 @@ namespace Betauer.Animation {
                 });
         }
 
-        private static void RunEasingStep(AnimationContext<TProperty> context, ActionTween tween,
+        private static void RunEasingStep(AnimationContext<TProperty> context, TweenActionCallback tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             var target = context.Target;
@@ -219,7 +219,7 @@ namespace Betauer.Animation {
             base(target, property, defaultEasing) {
         }
 
-        public override float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration) {
+        public override float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration) {
             var target = Target ?? defaultTarget;
             if (!Validate(_steps.Count, target, Property)) return 0;
             // TODO: duration is ignored. It should be % or absolute or nothing
@@ -261,7 +261,7 @@ namespace Betauer.Animation {
             base(target, property, defaultEasing) {
         }
 
-        public override float Start(ActionTween tween, float initialDelay, Node defaultTarget, float duration) {
+        public override float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration) {
             var target = Target ?? defaultTarget;
             var allStepsDuration = duration > 0 ? duration : AllStepsDuration;
             if (allStepsDuration <= 0)

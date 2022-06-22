@@ -12,7 +12,7 @@ namespace Betauer.Animation {
     }
 
 
-    public abstract class RepeatablePlayer<TBuilder> : ActionTween,
+    public abstract class RepeatablePlayer<TBuilder> : TweenActionCallback,
         ITweenPlayer<TBuilder> where TBuilder : class {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(RepeatablePlayer<>));
 
