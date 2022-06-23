@@ -9,6 +9,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -32,6 +34,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate BackInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
             return TemplateBuilder.Create()
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
@@ -57,6 +61,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -81,6 +87,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.7f, 0.7f), null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.80f, new Vector2(0.7f, 0.7f))
@@ -105,6 +113,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -129,6 +139,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -153,6 +165,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
@@ -177,6 +191,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BackInOutDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(0.7f, 0.7f))
