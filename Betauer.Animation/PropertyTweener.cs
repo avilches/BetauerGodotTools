@@ -6,7 +6,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ITweener {
-        float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration);
+        float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float duration);
         public Node Target { get; }
     }
 
@@ -21,7 +21,7 @@ namespace Betauer.Animation {
             _callback = callback;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(TweenActionCallback tween, float initialDelay, Node? ignoredDefaultTarget,
             float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
@@ -44,9 +44,9 @@ namespace Betauer.Animation {
         private readonly object? _p4;
         private readonly object? _p5;
 
-        public Node Target { get; }
+        public Node? Target { get; }
 
-        public MethodCallbackTweener(float delay, Node target, string methodName, object? p1 = null, object? p2 = null,
+        public MethodCallbackTweener(float delay, Node? target, string methodName, object? p1 = null, object? p2 = null,
             object? p3 = null, object? p4 = null, object? p5 = null) {
             Target = target;
             _methodName = methodName;
@@ -58,7 +58,7 @@ namespace Betauer.Animation {
             _p5 = p5;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float ignoredDuration) {
+        public float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float ignoredDuration) {
             if (!Object.IsInstanceValid(tween)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
                 return 0;
@@ -85,7 +85,7 @@ namespace Betauer.Animation {
             _delay = delay;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node ignoredDefaultTarget,
+        public float Start(TweenActionCallback tween, float initialDelay, Node? ignoredDefaultTarget,
             float ignoredDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
@@ -133,7 +133,7 @@ namespace Betauer.Animation {
             DefaultEasing = defaultEasing;
         }
 
-        public abstract float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration);
+        public abstract float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float duration);
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
@@ -196,7 +196,7 @@ namespace Betauer.Animation {
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             var target = context.Target;
             if (property is IIndexedProperty<TProperty> basicProperty) {
-                tween.InterpolateProperty(target, basicProperty.GetIndexedProperty(target), @from, to, duration,
+                tween.InterpolateProperty(target, basicProperty.GetIndexedPropertyName(target), @from, to, duration,
                     godotEasing.TransitionType, godotEasing.EaseType, start);
             } else {
                 tween.InterpolateAction(@from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start,

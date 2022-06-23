@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using Object = Godot.Object;
 
@@ -60,20 +61,37 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public LoopStatus Play(ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
-            float duration = -1) {
+        public LoopStatus Play(ISequence sequence, Node? defaultTarget = null,
+            float initialDelay = 0, float duration = -1) {
             var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
             return Play(loops, sequence, defaultTarget, initialDelay, duration);
         }
 
-        public LoopStatus PlayForever(ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
-            float duration = -1) {
+        public LoopStatus PlayForever(ISequence sequence, Node? defaultTarget = null, 
+            float initialDelay = 0, float duration = -1) {
             return Play(-1, sequence, defaultTarget, initialDelay, duration);
         }
 
-        public LoopStatus Play(int loops, ISequence sequence, Node? defaultTarget = null, float initialDelay = 0,
-            float duration = -1) {
+        public LoopStatus Play(int loops, ISequence sequence, Node? defaultTarget = null, 
+            float initialDelay = 0, float duration = -1) {
             LoopStatus loopStatus = new LoopStatus(this, loops, sequence, defaultTarget, duration);
+            return loopStatus.Start(initialDelay);
+        }
+
+        public LoopStatus MultiPlay(ISequence sequence, IEnumerable<Node>? targets,
+            float delayBetweenTargets = 0, float initialDelay = 0, float duration = -1) {
+            var loops = sequence is ILoopedSequence loopedSequence ? loopedSequence.Loops : 1;
+            return MultiPlay(loops, sequence, targets, delayBetweenTargets, initialDelay, duration);
+        }
+
+        public LoopStatus MultiPlayForever(ISequence sequence, IEnumerable<Node>? targets, 
+            float delayBetweenTargets = 0, float initialDelay = 0, float duration = -1) {
+            return MultiPlay(-1, sequence, targets, delayBetweenTargets, initialDelay, duration);
+        }
+
+        public LoopStatus MultiPlay(int loops, ISequence sequence, IEnumerable<Node>? targets,
+            float delayBetweenTargets = 0, float initialDelay = 0, float duration = -1) {
+            LoopStatus loopStatus = new LoopStatus(this, loops, sequence, targets, delayBetweenTargets, duration);
             return loopStatus.Start(initialDelay);
         }
     }

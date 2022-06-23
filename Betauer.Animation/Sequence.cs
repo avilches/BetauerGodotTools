@@ -9,11 +9,12 @@ using Godot;
 namespace Betauer.Animation {
     public interface ISequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
-        public Node DefaultTarget { get; }
+        public Node? DefaultTarget { get; }
         public float Speed { get; }
         public float Duration { get; }
         public Tween.TweenProcessMode ProcessMode { get; }
-        public float Execute(TweenActionCallback tween, float initialDelay = 0, Node target = null, float duration = -1);
+        public float Execute(TweenActionCallback tween, float initialDelay = 0, Node? target = null, float duration = -1);
+        public Action<Node>? StartAction { get; }
     }
 
     public interface ILoopedSequence : ISequence {
@@ -22,11 +23,13 @@ namespace Betauer.Animation {
 
     public abstract class Sequence {
         public abstract ICollection<ICollection<ITweener>> TweenList { get; protected set; }
-        public abstract Node DefaultTarget { get; protected set; }
+        public Node? DefaultTarget { get; protected set; }
         public abstract float Duration { get; protected set; }
+        public abstract Action<Node> StartAction { get; protected set; }
 
-        public float Execute(TweenActionCallback tween, float initialDelay = 0, Node target = null, float duration = -1) {
+        public float Execute(TweenActionCallback tween, float initialDelay = 0, Node? target = null, float duration = -1) {
             float accumulatedDelay = 0;
+            StartAction?.Invoke(DefaultTarget ?? target);
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
@@ -60,17 +63,24 @@ namespace Betauer.Animation {
         public int LoopCounter { get; private set; }
 
         private readonly TweenActionCallback _tween;
-        private readonly Node _defaultTarget = null;
-        private readonly float _duration = -1;
+        private readonly IEnumerable<Node>? _targets = null;
+        private readonly float _delayBetweenTargets = 0f;
+        private readonly float _duration = -1f;
         private readonly TaskCompletionSource<LoopStatus> _promise = new TaskCompletionSource<LoopStatus>();
         private Action _onFinish;
         private bool _done = false;
 
-        public LoopStatus(TweenActionCallback tween, int loops, ISequence sequence, Node defaultTarget, float duration) {
+        public LoopStatus(TweenActionCallback tween, int loops, ISequence sequence, Node? defaultTarget, float duration)
+            : this(tween, loops, sequence,
+                defaultTarget == null ? null : new[] { defaultTarget }, 0f, duration) {
+        }
+
+        public LoopStatus(TweenActionCallback tween, int loops, ISequence sequence, IEnumerable<Node>? targets, float delayBetweenTargets, float duration) {
             _tween = tween;
             Loops = loops;
             Sequence = sequence;
-            _defaultTarget = defaultTarget;
+            _targets = targets;
+            _delayBetweenTargets = delayBetweenTargets;
             _duration = duration;
         }
 
@@ -93,8 +103,18 @@ namespace Betauer.Animation {
         }
 
         private void ExecuteLoop(float delay) {
-            var elapsed = Sequence.Execute(_tween, delay, _defaultTarget, _duration);
-            _tween.ScheduleCallback(delay + elapsed, _FinishedLoop);
+            if (_targets == null) {
+                var elapsed = Sequence.Execute(_tween, delay, null, _duration);
+                _tween.ScheduleCallback(delay + elapsed, _FinishedLoop);
+            } else {
+                float elapsed = 0;
+                float accumulatedDelay = 0;
+                foreach (var target in _targets) {
+                    elapsed = Sequence.Execute(_tween, delay + accumulatedDelay, target, _duration);
+                    accumulatedDelay += _delayBetweenTargets;
+                }
+                _tween.ScheduleCallback(delay + accumulatedDelay + elapsed, _FinishedLoop);
+            }
         }
 
         private void _FinishedLoop() {
@@ -124,6 +144,7 @@ namespace Betauer.Animation {
      * so any future call to the AddTweener() will make a new copy of the internal collection.
      */
     public class SequenceTemplate : Sequence, ISequence {
+        public override Action<Node>? StartAction { get; protected set; }
         private readonly ICollection<ICollection<ITweener>> _tweenList;
 
         public override ICollection<ICollection<ITweener>> TweenList {
@@ -131,7 +152,6 @@ namespace Betauer.Animation {
             protected set => throw new ReadOnlyException();
         }
 
-        public override Node DefaultTarget { get; protected set; } // NO Target for templates
         public float Speed { get; }
 
         private readonly float _duration;
@@ -144,11 +164,12 @@ namespace Betauer.Animation {
         public Tween.TweenProcessMode ProcessMode { get; }
 
         public SequenceTemplate(ICollection<ICollection<ITweener>> tweenList,
-            float duration, float speed, Tween.TweenProcessMode processMode) {
+            float duration, float speed, Tween.TweenProcessMode processMode, Action<Node>? onStart) {
             _tweenList = tweenList;
             _duration = duration;
             Speed = speed;
             ProcessMode = processMode;
+            StartAction = onStart;
         }
 
         public static SequenceTemplate Create(ISequence from) {
@@ -160,7 +181,7 @@ namespace Betauer.Animation {
                 // Target has private set and the mutator SetTarget() is defined in the RegularBuilder only
                 throw new InvalidDataException("Templates shouldn't have a target defined");
             }
-            return new SequenceTemplate(from.TweenList, from.Duration, from.Speed, from.ProcessMode);
+            return new SequenceTemplate(from.TweenList, from.Duration, from.Speed, from.ProcessMode, from.StartAction);
         }
 
         public SingleSequencePlayer CreatePlayer(Node node) {
@@ -183,11 +204,11 @@ namespace Betauer.Animation {
 
     public class MutableSequence : Sequence, ISequence {
         public override ICollection<ICollection<ITweener>> TweenList { get; protected set; }
-        public override Node DefaultTarget { get; protected set; }
-        public override float Duration { get; protected set; } = -1.0f;
+        public override float Duration { get; protected set; }
         public float Speed { get; protected set; } = 1.0f;
         protected bool ImportedFromTemplate = false;
         public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
+        public override Action<Node> StartAction { get; protected set; }
     }
 
     /**
@@ -234,6 +255,13 @@ namespace Betauer.Animation {
         public TBuilder SetDuration(float duration) {
             // TODO: id duration is defined, every single duration should be fit on it
             Duration = duration;
+            return this as TBuilder;
+        }
+
+        public override Action<Node> StartAction { get; protected set; }
+
+        public TBuilder OnStart(Action<Node> onStart) {
+            StartAction = onStart;
             return this as TBuilder;
         }
 
