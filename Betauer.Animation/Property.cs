@@ -3,68 +3,68 @@ using Godot;
 
 namespace Betauer.Animation {
     public static class Property {
-        public static readonly IProperty<Color> Modulate =
+        public static readonly ControlOrNode2DIndexedProperty<Color> Modulate =
             new ControlOrNode2DIndexedProperty<Color>("modulate", "modulate");
 
-        public static readonly IProperty<float> ModulateR =
+        public static readonly ControlOrNode2DIndexedProperty<float> ModulateR =
             new ControlOrNode2DIndexedProperty<float>("modulate:r", "modulate:r");
 
-        public static readonly IProperty<float> ModulateG =
+        public static readonly ControlOrNode2DIndexedProperty<float> ModulateG =
             new ControlOrNode2DIndexedProperty<float>("modulate:g", "modulate:g");
 
-        public static readonly IProperty<float> ModulateB =
+        public static readonly ControlOrNode2DIndexedProperty<float> ModulateB =
             new ControlOrNode2DIndexedProperty<float>("modulate:b", "modulate:b");
 
-        public static readonly IProperty<float> Opacity =
+        public static readonly IIndexedProperty<float> Opacity =
             new ControlOrNode2DIndexedProperty<float>("modulate:a", "modulate:a");
 
         /*
          * "transform.origin" matrix is used to change the position instead of "position:x" because it's safe to use
          * along with the SkewX/SkewY properties, which they use the transform.origin too.
          */
-        public static readonly IProperty<Vector2> Position2D =
+        public static readonly ControlOrNode2DIndexedProperty<Vector2> Position2D =
             new ControlOrNode2DIndexedProperty<Vector2>("transform:origin", "rect_position");
 
-        public static readonly IProperty<float> PositionX =
+        public static readonly ControlOrNode2DIndexedProperty<float> PositionX =
             new ControlOrNode2DIndexedProperty<float>("transform:origin:x", "rect_position:x");
 
-        public static readonly IProperty<float> PositionY =
+        public static readonly ControlOrNode2DIndexedProperty<float> PositionY =
             new ControlOrNode2DIndexedProperty<float>("transform:origin:y", "rect_position:y");
 
         // These PercentPositionX and PercentPositionY constructors need to be located after the PositionX and PositionY
-        public static readonly IProperty<float> PositionBySizeX = new PositionBySizeX();
+        public static readonly PositionBySizeX PositionBySizeX = new PositionBySizeX();
 
-        public static readonly IProperty<float> PositionBySizeY = new PositionBySizeY();
+        public static readonly PositionBySizeY PositionBySizeY = new PositionBySizeY();
 
-        public static readonly IProperty<Vector2> PositionBySize2D = new PositionBySize2D();
+        public static readonly PositionBySize2D PositionBySize2D = new PositionBySize2D();
 
-        public static readonly IProperty<Vector2> Scale2D =
+        public static readonly ControlOrNode2DIndexedProperty<Vector2> Scale2D =
             new ControlOrNode2DIndexedProperty<Vector2>("scale", "rect_scale");
 
-        public static readonly IProperty<float> Scale2DX =
+        public static readonly ControlOrNode2DIndexedProperty<float> Scale2DX =
             new ControlOrNode2DIndexedProperty<float>("scale:x", "rect_scale:x");
 
-        public static readonly IProperty<float> Scale2DY =
+        public static readonly ControlOrNode2DIndexedProperty<float> Scale2DY =
             new ControlOrNode2DIndexedProperty<float>("scale:y", "rect_scale:y");
 
-        public static readonly IProperty<Vector2> Scale2DByCallback = new Scale2DProperty();
-        public static readonly IProperty<float> Scale2DXByCallback = new ScaleXProperty();
-        public static readonly IProperty<float> Scale2DYByCallback = new ScaleYProperty();
+        public static readonly Scale2DProperty Scale2DByCallback = new Scale2DProperty();
+        public static readonly ScaleXProperty Scale2DXByCallback = new ScaleXProperty();
+        public static readonly ScaleYProperty Scale2DYByCallback = new ScaleYProperty();
 
-        public static readonly IProperty<float> Scale3DZByCallback = new ScaleZProperty();
+        public static readonly ScaleZProperty Scale3DZByCallback = new ScaleZProperty();
 
         /**
          * It doesn't work combined with Scale or Position (with transform)
          */
-        public static readonly IProperty<float> Rotate2D =
+        public static readonly ControlOrNode2DIndexedProperty<float> Rotate2D =
             new ControlOrNode2DIndexedProperty<float>("rotation_degrees", "rect_rotation");
 
-        public static readonly IProperty<float> Rotate2DByCallback = new Rotate2DProperty();
+        public static readonly Rotate2DProperty Rotate2DByCallback = new Rotate2DProperty();
 
-        public static readonly IProperty<float> Skew2DX =
+        public static readonly ControlOrNode2DIndexedProperty<float> Skew2DX =
             new ControlOrNode2DIndexedProperty<float>("transform:y:x", null);
 
-        public static readonly IProperty<float> Skew2DY =
+        public static readonly ControlOrNode2DIndexedProperty<float> Skew2DY =
             new ControlOrNode2DIndexedProperty<float>("transform:x:y", null);
     }
 
@@ -78,7 +78,8 @@ namespace Betauer.Animation {
     }
 
     public interface IIndexedProperty<TProperty> : IProperty<TProperty> {
-        public string GetIndexedProperty(Node node);
+        public string GetIndexedPropertyName(Node node);
+        public void SetValue(Node target, TProperty value);
     }
 
 
@@ -266,14 +267,18 @@ namespace Betauer.Animation {
         public virtual bool IsCompatibleWith(Node node) => true;
 
         public virtual TProperty GetValue(Node node) {
-            return (TProperty)node.GetIndexed(GetIndexedProperty(node));
+            return (TProperty)node.GetIndexed(GetIndexedPropertyName(node));
         }
 
         public virtual void SetValue(AnimationContext<TProperty> context) {
-            context.Target.SetIndexed(GetIndexedProperty(context.Target), context.Value);
+            context.Target.SetIndexed(GetIndexedPropertyName(context.Target), context.Value);
         }
 
-        public virtual string GetIndexedProperty(Node node) {
+        public virtual void SetValue(Node target, TProperty value) {
+            target.SetIndexed(GetIndexedPropertyName(target), value);
+        }
+
+        public virtual string GetIndexedPropertyName(Node node) {
             return _propertyName;
         }
 
@@ -292,23 +297,28 @@ namespace Betauer.Animation {
         }
 
         public TProperty GetValue(Node node) {
-            return (TProperty)node.GetIndexed(GetIndexedProperty(node));
+            return (TProperty)node.GetIndexed(GetIndexedPropertyName(node));
         }
 
-        public virtual void SetValue(AnimationContext<TProperty> context) {
-            context.Target.SetIndexed(GetIndexedProperty(context.Target), context.Value);
+        public void SetValue(AnimationContext<TProperty> context) {
+            context.Target.SetIndexed(GetIndexedPropertyName(context.Target), context.Value);
         }
 
-        public virtual bool IsCompatibleWith(Node node) {
+        public void SetValue(Node target, TProperty value) {
+            target.SetIndexed(GetIndexedPropertyName(target), value);
+        }
+
+        public bool IsCompatibleWith(Node node) {
             if (node is Control && _controlProperty != null) return true;
             if (node is Node2D && _node2DProperty != null) return true;
             return false;
         }
 
-        public string GetIndexedProperty(Node node) {
+        public string GetIndexedPropertyName(Node node) {
             return node switch {
                 Control control => _controlProperty,
                 Node2D node2D => _node2DProperty,
+                _ => throw new ArgumentOutOfRangeException(nameof(node), node, "Only Node2D or Control nodes accepts opacity")
             };
         }
 
