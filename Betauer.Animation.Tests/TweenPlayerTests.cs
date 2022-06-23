@@ -22,6 +22,24 @@ namespace Betauer.Animation.Tests {
             Engine.TimeScale = 1;
         }
 
+        [Test(Description = "Test OnAction method")]
+        public async Task OnStart() {
+
+            var sprite = await CreateSprite();
+            Property.Opacity.SetValue(sprite, 1f);
+            Assert.That(sprite.Modulate.a, Is.EqualTo(1f));
+            
+            // when created, it's not running
+            var t = new SingleSequencePlayer()
+                .WithParent(this, false)
+                .CreateSequence(sprite)
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
+                .EndSequence()
+                .Play();
+            
+            Assert.That(sprite.Modulate.a, Is.EqualTo(0f));
+        }
+
         [Test(Description = "SingleSequencePlayer await works, multiple executions, no disposed")]
         public async Task SingleSequencePlayerAwait() {
             var l1 = 0;

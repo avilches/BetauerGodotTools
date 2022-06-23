@@ -5,7 +5,6 @@ using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    [Only]
     public class ActionTweenTests : NodeTest {
         [SetUp]
         public void SetUp() {

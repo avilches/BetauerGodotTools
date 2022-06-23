@@ -350,7 +350,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
-            foreach (var property in new[] { Property.Rotate2D, Property.Rotate2DByCallback }) {
+            foreach (var property in new IProperty<float>[] { Property.Rotate2D, Property.Rotate2DByCallback }) {
                 const float from = 1f;
                 const float to = 3f;
                 var node2D = await CreateNode2D();
@@ -482,7 +482,7 @@ namespace Betauer.Animation.Tests {
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
             const float to = 1.2f;
-            foreach (var property in new[] { Property.Scale2DX, Property.Scale2DXByCallback }) {
+            foreach (var property in new IProperty<float>[] { Property.Scale2DX, Property.Scale2DXByCallback }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -493,7 +493,7 @@ namespace Betauer.Animation.Tests {
                 await CreateEmptyTweenPropertyVariants(node, property, from, to);
             }
 
-            foreach (var property in new[] { Property.Scale2DY, Property.Scale2DYByCallback }) {
+            foreach (var property in new IProperty<float>[] { Property.Scale2DY, Property.Scale2DYByCallback }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -541,7 +541,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Property Scale2D")]
         public async Task TweenPropertyScale2d() {
-            foreach (var property in new[] { Property.Scale2D, Property.Scale2DByCallback }) {
+            foreach (var property in new IProperty<Vector2>[] { Property.Scale2D, Property.Scale2DByCallback }) {
                 var from = Vector2.One;
                 var to = new Vector2(23f, -12f);
 
