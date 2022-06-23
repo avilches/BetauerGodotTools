@@ -5,9 +5,18 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
+    /// <summary>
+    /// A Tween compatible with C# lambdas, aka, Actions.
+    /// Instead of Tween.InterpolateCallback(object, 0f, "method") you can use:
+    /// ScheduleCallback(0f, () => {})
+    ///
+    /// Instead of Tween.InterpolateMethod(object, "method", 0, 12, ...) you can use:
+    /// InterpolateAction(0, 12, ..., (val) => { })
+    /// 
+    /// </summary>
     public class TweenActionCallback : Tween {
         private readonly Dictionary<string, Action> _actions = new Dictionary<string, Action>();
-        private readonly Dictionary<Object, Object> _objects = new Dictionary<Object, Object>();
+        private readonly HashSet<Object> _interpolateMethodActionSet = new HashSet<Object>();
         public const float ExtraDelayToFinish = 0.01f;
 
         private static readonly long StartTick = DateTime.UtcNow.Ticks;
@@ -15,7 +24,7 @@ namespace Betauer.Animation {
         public void ScheduleCallback(float delay, Action callback) {
             var actionId = (DateTime.Now.Ticks - StartTick).ToString();
             _actions[actionId] = callback;
-            InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
+            base.InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
         }
 
         private void ActionTweenCallback(string actionId) {
@@ -26,15 +35,15 @@ namespace Betauer.Animation {
 
         public void InterpolateAction<T>(T @from, T to, float duration, TransitionType transitionType,
             EaseType easeType, float delay, Action<T> action) {
-            var actionWrapper = new ActionWrapper<T>(action, _objects);
-            _objects[actionWrapper] = actionWrapper;
-            InterpolateMethod(actionWrapper, nameof(ActionWrapper<T>.CallFromGodot), @from, to, duration,
+            var actionWrapper = new InterpolateMethodAction<T>(action, _interpolateMethodActionSet);
+            _interpolateMethodActionSet.Add(actionWrapper);
+            base.InterpolateMethod(actionWrapper, nameof(InterpolateMethodAction<T>.CallFromGodot), @from, to, duration,
                 transitionType, easeType, delay);
             ScheduleCallback(delay + duration + ExtraDelayToFinish, actionWrapper.Finish);
         }
 
-        public List<Object> GetPendingObjects() {
-            return _objects.Values.ToList();
+        public HashSet<Object> GetPendingObjects() {
+            return _interpolateMethodActionSet;
         }
 
         public List<Action> GetPendingActions() {
@@ -44,7 +53,7 @@ namespace Betauer.Animation {
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
             if (disposing) {
-                foreach (var @object in _objects.Values) {
+                foreach (var @object in _interpolateMethodActionSet) {
                     try {
                         @object.Free();
                     } catch (Exception e) {
@@ -54,13 +63,18 @@ namespace Betauer.Animation {
             }
         }
 
-        public class ActionWrapper<T> : Object {
+        /// <summary>
+        /// Temporal Godot object to allow be called with Tween.InterpolateMethod() which accepts only
+        /// godot objects and the method name as string.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        private class InterpolateMethodAction<T> : Object {
             private readonly Action<T> _action;
-            private readonly Dictionary<Object, Object> _objects;
+            private readonly HashSet<Object> _interpolateMethodActionSet;
 
-            public ActionWrapper(Action<T> action, Dictionary<Object, Object> objects) {
+            public InterpolateMethodAction(Action<T> action, HashSet<Object> interpolateMethodActionSet) {
                 _action = action;
-                _objects = objects;
+                _interpolateMethodActionSet = interpolateMethodActionSet;
             }
 
             public void CallFromGodot(T value) {
@@ -68,7 +82,7 @@ namespace Betauer.Animation {
             }
 
             public void Finish() {
-                _objects.Remove(this);
+                _interpolateMethodActionSet.Remove(this);
                 Free();
             }
         }
