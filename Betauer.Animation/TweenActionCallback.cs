@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Godot;
 using Object = Godot.Object;
 
@@ -15,19 +16,18 @@ namespace Betauer.Animation {
     /// 
     /// </summary>
     public class TweenActionCallback : Tween {
-        private readonly Dictionary<string, Action> _actions = new Dictionary<string, Action>();
+        private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
         private readonly HashSet<Object> _interpolateMethodActionSet = new HashSet<Object>();
         public const float ExtraDelayToFinish = 0.01f;
-
-        private static readonly long StartTick = DateTime.UtcNow.Ticks;
+        private int _counter = 0; 
 
         public void ScheduleCallback(float delay, Action callback) {
-            var actionId = (DateTime.Now.Ticks - StartTick).ToString();
+            var actionId = Interlocked.Increment(ref _counter);
             _actions[actionId] = callback;
             base.InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
         }
 
-        private void ActionTweenCallback(string actionId) {
+        private void ActionTweenCallback(int actionId) {
             Action action = _actions[actionId];
             _actions.Remove(actionId);
             action.Invoke();
