@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer {
@@ -10,6 +12,14 @@ namespace Betauer {
             return this;
         }
 
+        /// <summary>
+        /// Warning: always all to Restore() in a idle_frame, not in a tween/signal callback
+        /// <code>
+        /// await this.AwaitIdleFrame();
+        /// restorer.Restore();
+        /// </code>
+        /// </summary>
+        /// <returns></returns>
         public Restorer Restore() {
             if (!HasSavedState) {
                 // GD.PushWarning("Restoring without saving before");
@@ -33,12 +43,37 @@ namespace Betauer {
         }
     }
 
+    public class MultiRestorer : Restorer {
+        private readonly List<Restorer> _restorers;
+
+        public MultiRestorer(IEnumerable<Node> nodes) {
+            _restorers = nodes.Select(node => node.CreateRestorer()).ToList();
+        }
+
+        public MultiRestorer(params Node[] nodes) {
+            _restorers = nodes.Select(node => node.CreateRestorer()).ToList();
+        }
+
+        protected override void DoSave() {
+            foreach (var restorer in _restorers) {
+                restorer.Save();
+            }
+        }
+
+        protected override void DoRestore() {
+            foreach (var restorer in _restorers) {
+                restorer.Restore();
+            }
+        }
+    }
+
     public class Node2DRestorer : Restorer {
         private readonly Node2D _node2D;
-        private readonly Restorer? _pivotOffsetRestorer;
+        private readonly SpritePivotOffsetRestorer? _pivotOffsetRestorer;
         private Color _modulate;
         private Color _selfModulate;
         private Transform2D _transform;
+        private float _rotation; // TODO: this field doesn't have tests
 
         public Node2DRestorer(Node2D node2D) {
             _node2D = node2D;
@@ -50,6 +85,7 @@ namespace Betauer {
             _modulate = _node2D.Modulate;
             _selfModulate = _node2D.SelfModulate;
             _transform = _node2D.Transform;
+            _rotation = _node2D.Rotation;
         }
 
         protected override void DoRestore() {
@@ -57,6 +93,7 @@ namespace Betauer {
             _node2D.Modulate = _modulate;
             _node2D.SelfModulate = _selfModulate;
             _node2D.Transform = _transform;
+            _node2D.Rotation = _rotation;
         }
     }
 
@@ -67,7 +104,6 @@ namespace Betauer {
         private Vector2 _position;
         private Vector2 _scale;
         private float _rotation;
-        private bool _disabled; // TODO: this flag doesn't have tests
         private Vector2 _rectPivotOffset;
 
         public ControlRestorer(Control control) {
@@ -81,7 +117,6 @@ namespace Betauer {
             _scale = _control.RectScale;
             _rotation = _control.RectRotation;
             _rectPivotOffset = _control.RectPivotOffset;
-            _disabled = _control is BaseButton { Disabled: true };
             // GD.Print("Save _modulate:" + _modulate);
             // GD.Print("Save _selfModulate:" + _selfModulate);
             // GD.Print("Save _position:" + _position);
@@ -103,9 +138,6 @@ namespace Betauer {
             _control.RectScale = _scale;
             _control.RectRotation = _rotation;
             _control.RectPivotOffset = _rectPivotOffset;
-            if (_control is BaseButton button) {
-                button.Disabled = _disabled;
-            }
         }
     }
 
