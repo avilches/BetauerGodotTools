@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Memory;
@@ -14,14 +13,11 @@ using Veronenger.Game.Controller.Menu;
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class GameManager : GodotObject {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
-
         private MainMenu _mainMenuScene;
         private Node _currentGameScene;
 
         public enum Transition {
             Back,
-            Pause,
             Settings,
             StartGame,
             ModalBoxConfirmExitDesktop,
@@ -91,22 +87,6 @@ namespace Veronenger.Game.Managers {
                 .Enter(() => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
 
             return builder.Build();
-        }
-
-        public void TriggerStartGame() {
-            _stateMachineNode.Trigger(Transition.StartGame);
-        }
-
-        public void TriggerPauseMenu() {
-            _stateMachineNode.Trigger(Transition.Pause);
-        }
-
-        public void TriggerSettings() {
-            _stateMachineNode.Trigger(Transition.Settings);
-        }
-
-        public void TriggerBack() {
-            _stateMachineNode.Trigger(Transition.Back);
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {

@@ -11,7 +11,7 @@ namespace Veronenger.Game.Managers.Autoload {
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             LoggerFactory.LoadFrames(GetTree().GetFrame);
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
         }
 
     }
