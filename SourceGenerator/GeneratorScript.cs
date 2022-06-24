@@ -94,7 +94,7 @@ public class GeneratorScript : SceneTree {
 
     private string CreateActionMethod(Signal signal) {
         var actionVarName = $"_on{signal.MethodName}Action";
-        var godotExecuteActionMethodName = $"Execute{signal.MethodName}";
+        var godotExecuteActionMethodName = $"_GodotSignal{signal.MethodName}";
         return $@"
         private List<Action{signal.Generics()}>? {actionVarName}; 
         public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action) {{
