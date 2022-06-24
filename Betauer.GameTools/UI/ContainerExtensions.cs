@@ -22,7 +22,7 @@ namespace Betauer.UI {
             BaseButton? last = null;
             BaseButton? previous = null;
             var takeNextFocus = false;
-            foreach (var button in container.GetChildren().OfType<Button>()) {
+            foreach (var button in container.GetChildren<Button>()) {
                 var isDisabled = button.Disabled;
 
                 if (focused == null && (button.HasFocus() || takeNextFocus)) {
