@@ -7,6 +7,7 @@ using Godot;
 namespace Betauer.UI {
     public class MenuController {
         private readonly Container _baseHolder;
+        private readonly Node _baseParent;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
         private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
@@ -15,27 +16,23 @@ namespace Betauer.UI {
         public bool Available { get; private set; } = false;
 
         public MenuController(Container baseHolder) {
+            _baseParent = baseHolder.GetParent();
             _baseHolder = baseHolder;
+            _baseParent.RemoveChild(_baseHolder);
             _baseHolder.DisableAllNotifications();
             _baseHolder.Hide();
         }
 
         public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {
-            var menu = new ActionMenu(this, name, _baseHolder, onShow);
+            var menu = new ActionMenu(this, name, _baseHolder, _baseParent, onShow);
             _menus.Add(menu);
             return menu;
         }
 
-        public async Task Start(string name) {
-            foreach (var menu in _menus) {
-                if (menu.Name == name) {
-                    ActiveMenu = menu;
-                    menu.Show();
-                } else {
-                    menu.Hide();
-                }
-            }
-            await _baseHolder.GetTree().AwaitIdleFrame();
+        public async Task Start(string? name = null) {
+            ActiveMenu = name != null ? _menus.Find(menu => menu.Name == name) : _menus.First();
+            ActiveMenu.Show();
+            await _baseParent.GetTree().AwaitIdleFrame();
             Save();
             Available = true;
         }
@@ -118,7 +115,8 @@ namespace Betauer.UI {
 
     public class ActionMenu {
         private readonly Action<ActionMenu> _onShow;
-        private readonly Restorer _saver;
+        private Restorer _saver;
+        private readonly Node _baseParent;
         internal readonly MenuController MenuController;
 
         public readonly string Name;
@@ -126,20 +124,18 @@ namespace Betauer.UI {
         public bool WrapButtons { get; set; } = true;
 
         internal ActionMenu(MenuController menuController, string name, Container baseHolder,
-            Action<ActionMenu> onShow) {
+            Node baseParent, Action<ActionMenu> onShow) {
             MenuController = menuController;
             Name = name;
             Container = (Container)baseHolder.Duplicate();
+            _baseParent = baseParent;
             _saver = Container.CreateRestorer();
             _onShow = onShow;
-            baseHolder.GetParent().AddChildBelowNode(baseHolder, Container);
         }
 
         private Control? _savedFocus;
         public ActionMenu Save() {
-            _saver.Save();
-            foreach (var button in Container.GetChildren())
-                if (button is IActionControl control) control.Save();
+            _saver = new MultiRestorer(Container.GetChildren<Node>()).Save();
             return this;
         }
         
@@ -150,8 +146,6 @@ namespace Betauer.UI {
 
         public ActionMenu Restore() {
             _saver.Restore();
-            foreach (var button in Container.GetChildren())
-                if (button is IActionControl control) control.Restore();
             return this;
         }
         
@@ -268,11 +262,12 @@ namespace Betauer.UI {
         }
 
         public void Hide() {
-            Container.Hide();
+            _baseParent.RemoveChild(Container);
         }
 
         public void Show(ActionButton? focused = null) {
             _onShow?.Invoke(this);
+            _baseParent.AddChild(Container);
             Refresh(focused);
             Container.Show();
         }
@@ -292,8 +287,6 @@ namespace Betauer.UI {
 
 
     public interface IActionControl {
-        public void Save();
-        void Restore();
     }
 
     public class BaseContext {
@@ -303,17 +296,9 @@ namespace Betauer.UI {
     }
 
     public class ActionHSeparator : HSeparator, IActionControl {
-        private readonly ControlRestorer _saver;
-        public ActionHSeparator() => _saver = new ControlRestorer(this);
-        public void Save() => _saver.Save();
-        public void Restore() => _saver.Restore();
     }
 
     public class ActionVSeparator : VSeparator, IActionControl {
-        private readonly ControlRestorer _saver;
-        public ActionVSeparator() => _saver = new ControlRestorer(this);
-        public void Save() => _saver.Save();
-        public void Restore() => _saver.Restore();
     }
 
     public class ActionButton : Button, IActionControl {
@@ -352,7 +337,6 @@ namespace Betauer.UI {
             }
         }
 
-        private readonly ControlRestorer _saver;
         public ActionMenu Menu { get; }
         public Action? Action;
         public Action<Context>? ActionWithContext;
@@ -363,7 +347,6 @@ namespace Betauer.UI {
         // TODO: i18n
         internal ActionButton(ActionMenu menu) {
             Menu = menu;
-            _saver = new ControlRestorer(this);
             Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
@@ -380,8 +363,6 @@ namespace Betauer.UI {
             if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
             else Action?.Invoke();
         }
-        public void Save() =>_saver.Save();
-        public void Restore() => _saver.Restore();
 
         private Action _onFocusEntered;
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
@@ -418,7 +399,6 @@ namespace Betauer.UI {
         }
 
 
-        private readonly ControlRestorer _saver;
         public ActionMenu Menu { get; }
         public Action<bool>? Action;
         public Action<Context>? ActionWithContext;
@@ -431,7 +411,6 @@ namespace Betauer.UI {
         // TODO: i18n
         internal ActionCheckButton(ActionMenu menu) {
             Menu = menu;
-            _saver = new ControlRestorer(this);
             Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
         }
 
@@ -448,9 +427,6 @@ namespace Betauer.UI {
             if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
             else Action?.Invoke(Pressed);
         }
-
-        public void Save() =>_saver.Save();
-        public void Restore() => _saver.Restore();
 
         private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
         public void OnFocusEntered(Action onFocus) {
