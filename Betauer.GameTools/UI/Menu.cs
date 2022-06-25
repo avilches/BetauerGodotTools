@@ -257,8 +257,21 @@ namespace Betauer.UI {
             return this;
         }
 
-        public Godot.Collections.Array GetChildren() {
-            return Container.GetChildren();
+        public List<Control> GetChildren() {
+            return Container.GetChildren<Control>().ToList();
+        }
+
+        public List<Control> GetVisibleControl() {
+            if (_baseParent is ScrollContainer scrollContainer) {
+                var topVisible = scrollContainer.ScrollVertical;
+                var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
+                return Container.GetChildren<Control>()
+                    .Where(control =>
+                        control.RectPosition.y >= topVisible &&
+                        control.RectPosition.y + control.RectSize.y <= bottomVisible)
+                    .ToList();
+            }
+            return GetChildren();
         }
 
         public void Hide() {
