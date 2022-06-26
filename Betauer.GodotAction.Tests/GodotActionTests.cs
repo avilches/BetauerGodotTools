@@ -14,39 +14,39 @@ namespace Betauer.GodotAction.Tests {
             var entered2 = 0;
             Action action1 = () => entered1++;
             Action action2 = () => entered2++;
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Remove one when there wasn't listeners (count is 0), it shouldn't appear an error
             l.RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Adding 2 listeners
             l.OnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
             l.OnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
 
             // Remove 2 listeners
             l.RemoveOnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
             l.RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Remove one when there wasn't listeners (count is 0), it shouldn't appear an error
             l.RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Add one again
             l.OnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
 
             // Remove one that wasn't added
             l.RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
 
             // Remove one
             l.RemoveOnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "ExecuteTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
         }
         
