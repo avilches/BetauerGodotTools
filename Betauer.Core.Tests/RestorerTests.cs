@@ -8,7 +8,6 @@ namespace Betauer.Tests {
     public class RestorerTests : Node {
 
         [Test]
-        [Only]
         public void PivotControlRestoreTests() {
             var control = new Control();
             var original = new Vector2(2f, 3f);
@@ -39,7 +38,6 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        [Only]
         public async Task PivotSpriteRestoreTests() {
             var sprite = await CreateSprite();
             var original = new Vector2(2f, 3f);
@@ -74,7 +72,6 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        [Only]
         public async Task Node2DRestoreTests() {
             var sprite = new Node2D();
             AddChild(sprite);

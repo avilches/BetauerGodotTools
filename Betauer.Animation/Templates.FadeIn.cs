@@ -10,6 +10,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate FadeIn() {
             return TemplateBuilder.Create()
                 .SetDuration(FadeInDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
