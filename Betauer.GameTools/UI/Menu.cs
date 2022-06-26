@@ -20,7 +20,11 @@ namespace Betauer.UI {
             _baseHolder = baseHolder;
             _baseParent.RemoveChild(_baseHolder);
             _baseHolder.DisableAllNotifications();
-            _baseHolder.Hide();
+        }
+
+        public void QueueFree() {
+            _baseParent.AddChild(_baseHolder);
+            _menus.ToList().ForEach(c => c.Container.QueueFree());
         }
 
         public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {
@@ -32,13 +36,7 @@ namespace Betauer.UI {
         public async Task Start(string? name = null) {
             ActiveMenu = name != null ? _menus.Find(menu => menu.Name == name) : _menus.First();
             ActiveMenu.Show();
-            await _baseParent.GetTree().AwaitIdleFrame();
-            Save();
             Available = true;
-        }
-
-        public void Save() {
-            foreach (var menu in _menus) menu.Save();
         }
 
         public ActionMenu GetMenu(string toMenuName) {
@@ -87,23 +85,49 @@ namespace Betauer.UI {
             }
         }
 
-
+        private static readonly Color Invisible = new Color(0, 0, 0, 0);
         private async Task PlayTransition(MenuTransition transition, 
             Func<MenuTransition, Task>? goodbyeAnimation,
             Func<MenuTransition, Task>? newMenuAnimation) {
             var viewport = transition.FromMenu.Container.GetTree().Root;
             try {
                 viewport.GuiDisableInput = true;
+                
                 if (goodbyeAnimation != null) {
+                    var saver = new MultiRestorer(transition.FromMenu.GetChildren()).Save();
                     await goodbyeAnimation(transition);
+                    saver.Restore();
                 }
-                transition.FromMenu.Hide();
-                transition.FromMenu.Restore();
+                transition.FromMenu.Remove();
 
-                transition.ToMenu.Restore();
                 transition.ToMenu.Show(transition.ToButton);
                 if (newMenuAnimation != null) {
+                    /* Hack time:
+                     * HBox/VBoxContainers need at least one frame with non-visible children to arrange their positions.
+                     * The problem is we want the container arrange the children without showing them before the animation
+                     * starts. So:
+                     * 
+                     * 1) show the children with their modulates to Color(0,0,0,0) so they will be invisible for
+                     * human eye, but "visible" for the container and it can arrange them.
+                     */
+                    var saver = new MultiRestorer(transition.ToMenu.GetChildren(), "modulate").Save();
+                    transition.ToMenu.GetChildren().ForEach(e => e.Modulate = Invisible);
+                    /*
+                     * 2) Wait one frame, so the container can arrange the children positions safely.
+                     */ 
+                    await _baseParent.AwaitIdleFrame();
+                    /*
+                     * 3) Restore the old modulates and start the animation.
+                     */
+                    saver.Restore();
                     await newMenuAnimation(transition);
+                    /*
+                     * Done! How to test if this is working? With the Bounce animation and a VBoxContainer. The animation
+                     * changes the vertical position, so, without this trick, all the children appear overlapped in
+                     * the (0,0) position.
+                     * Without the modulate, the elements will appear one frame. This could be ok in animation like
+                     * Bounce, but using any FadeIn* animation will cause a weird effect. 
+                     */
                 }
                 ActiveMenu = transition.ToMenu;
             } finally {
@@ -115,7 +139,6 @@ namespace Betauer.UI {
 
     public class ActionMenu {
         private readonly Action<ActionMenu> _onShow;
-        private Restorer _saver;
         private readonly Node _baseParent;
         internal readonly MenuController MenuController;
 
@@ -129,26 +152,16 @@ namespace Betauer.UI {
             Name = name;
             Container = (Container)baseHolder.Duplicate();
             _baseParent = baseParent;
-            _saver = Container.CreateRestorer();
             _onShow = onShow;
         }
 
         private Control? _savedFocus;
-        public ActionMenu Save() {
-            _saver = new MultiRestorer(Container.GetChildren<Node>()).Save();
-            return this;
-        }
         
         public ActionMenu SaveFocus() {
             _savedFocus = GetFocusOwner();
             return this;
         }
 
-        public ActionMenu Restore() {
-            _saver.Restore();
-            return this;
-        }
-        
         public ActionMenu RestoreFocus() {
             _savedFocus?.GrabFocus();
             _savedFocus = null;
@@ -274,7 +287,7 @@ namespace Betauer.UI {
             return GetChildren();
         }
 
-        public void Hide() {
+        public void Remove() {
             _baseParent.RemoveChild(Container);
         }
 
@@ -282,7 +295,6 @@ namespace Betauer.UI {
             _onShow?.Invoke(this);
             _baseParent.AddChild(Container);
             Refresh(focused);
-            Container.Show();
         }
 
         public ActionButton? GetButton(string name) {

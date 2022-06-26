@@ -10,6 +10,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RotateIn() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 200, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(1.00f, 0.0f)
@@ -24,6 +26,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RotateInDownLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
@@ -38,6 +42,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RotateInDownRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)
@@ -52,6 +58,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RotateInUpLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
@@ -66,6 +74,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RotateInUpRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RotateDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)

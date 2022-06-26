@@ -38,6 +38,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate JackInTheBox() {
             return TemplateBuilder.Create()
                 .SetDuration(JackInTheBoxDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 30, null, node => node.SetRotateOriginToBottomCenter())
                 .KeyframeTo(0.50f, -10)
@@ -60,6 +62,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RollInLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, -1.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, 0.0f)
@@ -80,6 +84,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RollInRight() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, 1.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, 0.0f)
@@ -100,6 +106,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate RollOutLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(RollDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, -1.0f)

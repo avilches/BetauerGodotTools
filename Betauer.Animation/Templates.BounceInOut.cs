@@ -10,6 +10,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceInNoDirectionDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -31,6 +33,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -59,6 +63,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2DY)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -87,6 +93,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -115,6 +123,8 @@ namespace Betauer.Animation {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
             return TemplateBuilder.Create()
                 .SetDuration(BounceEntranceDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Scale2DX)
                 .KeyframeTo(0.00f, 3.000f, null,node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))

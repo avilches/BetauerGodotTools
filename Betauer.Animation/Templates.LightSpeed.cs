@@ -10,6 +10,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate LightSpeedInLeft() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.PositionBySizeX)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(0.60f, 0.0f)
@@ -32,6 +34,8 @@ namespace Betauer.Animation {
         internal static SequenceTemplate LightSpeedInRight() {
             return TemplateBuilder.Create()
                 .SetDuration(LightSpeedDuration)
+                // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
+                .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(0.60f, 0.0f)
@@ -60,8 +64,8 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(Property.Opacity)
-                .KeyframeTo(0f, 0f)
-                .KeyframeTo(1f, 1f)
+                .KeyframeTo(0f, 1f)
+                .KeyframeTo(1f, 0f)
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(Property.Skew2DX)
@@ -80,8 +84,8 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(Property.Opacity)
-                .KeyframeTo(0f, 0f)
-                .KeyframeTo(1f, 1f)
+                .KeyframeTo(0f, 1f)
+                .KeyframeTo(1f, 0f)
                 .EndAnimate()
                 .Parallel()
                 .AnimateKeys(Property.Skew2DX)
