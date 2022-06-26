@@ -78,7 +78,8 @@ namespace Betauer {
                     return Lerp(fromVector3, toVector3, t);
 
                 case Color fromColor when op2 is Color toColor:
-                    return Lerp(fromColor, toColor, t);
+                    return fromColor.LinearInterpolate(toColor, t);
+                    // return Lerp(fromColor, toColor, t);
 
                 case AABB fromAabb when op2 is AABB toAabb:
                     return Lerp(fromAabb, toAabb, t);

@@ -10,8 +10,8 @@ namespace Betauer {
             return parent.GetChildren().OfType<T>().First();
         }
 
-        public static IEnumerable<T> GetChildren<T>(this Node parent) where T : class {
-            return parent.GetChildren().OfType<T>();
+        public static List<T> GetChildren<T>(this Node parent) where T : class {
+            return parent.GetChildren().OfType<T>().ToList();
         }
 
         public static void DisableAllNotifications(this Node node) {
