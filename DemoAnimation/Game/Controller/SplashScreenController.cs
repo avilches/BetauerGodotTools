@@ -17,7 +17,6 @@ namespace Veronenger.Game.Controller {
             _settingsManager.Load(userSettingsFile);
             await this.AwaitIdleFrame();
             _gameManager.OnFinishLoad(this);
-            
         }
     }
 }

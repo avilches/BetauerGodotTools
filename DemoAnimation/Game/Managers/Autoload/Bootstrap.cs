@@ -1,4 +1,5 @@
 using Betauer;
+using Betauer.Animation;
 using Betauer.DI;
 using TraceLevel = Betauer.TraceLevel;
 
@@ -12,6 +13,7 @@ namespace Veronenger.Game.Managers.Autoload {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             LoggerFactory.LoadFrames(GetTree().GetFrame);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.All);
         }
 
     }

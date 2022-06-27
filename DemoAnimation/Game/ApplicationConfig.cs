@@ -16,7 +16,7 @@ namespace Veronenger.Game {
         }
 
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
-            Resolutions.FULLHD,
+            Resolutions.FULLHD_DIV1_875,
             SceneTree.StretchMode.Viewport,
             SceneTree.StretchAspect.Keep,
             Resolutions.All(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));

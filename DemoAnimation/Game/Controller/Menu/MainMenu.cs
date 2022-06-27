@@ -1,27 +1,50 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
-
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenu : Control {
-        private const float MenuEffectTime = 0.10f;
+    public class MainMenu : Node2D {
+        private const float MenuEffectTime = 1f;
         private const float FadeMainMenuEffectTime = 0.75f;
 
-
-        [OnReady("GridContainer/MarginContainer/VBoxContainer/Menu")]
+        [OnReady("MainMenu/VBoxContainer/ScrollContainer/Menu")]
         private Godot.Container _menuBase;
 
-        [OnReady("GridContainer/MarginContainer/VBoxContainer/VBoxContainer/ver")]
-        private Label _version;
+        [OnReady("HBoxContainer/DemoMenu")] private Control _demoMenuContainer;
+        [OnReady("HBoxContainer/DemoMenu/HBox/Menu")] private Godot.Container _menuDemoBase;
+
+        [OnReady("HBoxContainer/Animator")] private Control _animatorContainer;
+        [OnReady("HBoxContainer/Animator/LabelToAnimate")] private Label _labelToAnimate;
+
+        [OnReady("HBoxContainer/Animator/SpriteToAnimate")] private Sprite _logo;
+        [OnReady("HBoxContainer/Animator/TextureRectToAnimate")] private TextureRect _texture;
+
+        [OnReady("HBoxContainer/Animator/HBoxContainer/LineEdit")]
+        private LineEdit _labelToAnimateTextField;
+
+        [OnReady("HBoxContainer/DemoMenu/HBoxOptions/OptionButtonExit")]
+        private OptionButton _optionButtonExit;
+
+        [OnReady("HBoxContainer/DemoMenu/HBoxOptions/OptionButtonEnter")]
+        private OptionButton _optionButtonEnter;
+
+        [OnReady("HBoxContainer/DemoMenu/HBoxOptions2/Button")]
+        private Button _resetMenu;
+
+        [OnReady("HBoxContainer/DemoMenu/MenuLabel")]
+        private Label _menuLabel;
+
 
         private MenuController _menuController;
+        private MenuController _demoMenu;
 
         [Inject] private GameManager _gameManager;
         private readonly Launcher _launcher = new Launcher();
@@ -30,10 +53,64 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private ActionState UiCancel;
         [Inject] private ActionState UiStart;
 
+        private Restorer _animationsRestorer;
+        private Restorer _menuRestorer;
+
+
+        private readonly List<TemplateFactory> _templateFactories = Template.GetAllTemplates()
+            .OrderBy(factory => (factory.Category ?? "0") + "-" + factory.Category + "-" + factory.Name)
+            .ToList();
+
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            if (disposing) {
+                _resetMenuOnPressedHandler?.Free();
+            }
+        }
+
+        private SignalHandler _resetMenuOnPressedHandler;
+
         public override void _Ready() {
-            _version.Text = "DemoAnimation - Betauer 2022";
             _launcher.WithParent(this);
+            _animationsRestorer = new MultiRestorer(_labelToAnimate, _logo, _texture).Save();
             _menuController = BuildMenu();
+            _demoMenu = BuildDemoMenu();
+            _menuLabel.Text = "Click the options to see animations";
+            _resetMenuOnPressedHandler = _resetMenu.OnPressed(() => {
+                _demoMenu.QueueFree();
+                _demoMenu = BuildDemoMenu();
+                _demoMenu.Start();
+
+            });
+            string oldCategory = null;
+            const string animationForExit = nameof(Template.BackOutDown);
+            const string animationForEnter = nameof(Template.BounceInRight);
+            var idx = 0;
+            foreach (var templateFactory in _templateFactories) {
+                var name = templateFactory.Name;
+                if (templateFactory.Category != oldCategory && templateFactory.Category != null &&
+                    oldCategory != null) {
+                    _optionButtonEnter.AddSeparator();
+                    _optionButtonExit.AddSeparator();
+                    oldCategory = templateFactory.Category;
+                }
+                _optionButtonEnter.AddItem(name, idx);
+                _optionButtonExit.AddItem(name, idx);
+                if (name == animationForExit) {
+                    _optionButtonExit.Select(idx);
+                } else if (name == animationForEnter) {
+                    _optionButtonEnter.Select(idx);
+                }
+                idx++;
+            }
+            _demoMenuContainer.Visible = false;
+            _animatorContainer.Visible = false;
+        }
+
+        public override void _Input(InputEvent @event) {
+            if (@event is InputEventKey) {
+                _labelToAnimate.Text = _labelToAnimateTextField.Text;
+            }
         }
 
         public async Task ShowMenu() {
@@ -42,7 +119,8 @@ namespace Veronenger.Game.Controller.Menu {
             var modulate = Colors.White;
             modulate.a = 0;
             Modulate = modulate;
-            await _menuController.Start("Root");
+            await _demoMenu.Start();
+            await _menuController.Start();
             await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
@@ -55,47 +133,85 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public void DisableMenus() {
-            _menuController.ActiveMenu!.Save();
-            _menuController.ActiveMenu!.DisableButtons();
+            _menuRestorer = _menuController.ActiveMenu!.DisableButtons().AddFocusRestorer(_menuLabel);
         }
 
         public void EnableMenus() {
-            _menuController.ActiveMenu!.Restore();
+            _menuRestorer?.Restore();
         }
 
         public MenuController BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
-            mainMenu.AddMenu("Root")
-                .AddButton("Start", "Start", (ctx) => {
-                    _gameManager.TriggerStartGame();
-                    // var continueButton = ctx.Menu.GetButton("Continue");
-                    // continueButton!.Disabled = !continueButton.Disabled;
-                    // await _launcher.Play(Template.FadeIn, continueButton, 0f,
-                    //         MenuEffectTime)
-                    //     .Await();
-                    // continueButton.Save();
-                    // ctx.Refresh();
+            mainMenu
+                .AddMenu("Root", (c) => {
+                    _demoMenuContainer.Visible = false;
+                    _animatorContainer.Visible = false;
                 })
-                // .AddButton("Continue", "Continue", async (ctx) => {
-                //     // GD.Print("Continue");
-                //     // ctx.ActionButton.Disabled = true;
-                //     // ctx.Refresh();
-                //     // await _launcher.Play(Template.FadeOut, ctx.ActionButton, 0f,
-                //     //         MenuEffectTime)
-                //     //     .Await();
-                //     // ctx.ActionButton.Save();
-                //     _gameManager.LoadAnimaDemo();
-                // })
-                .AddButton("Settings", "Settings", async (ctx) => {
-                    _gameManager.TriggerSettings();
+                .AddButton("Start", "Anima comparision", (ctx) => { _gameManager.LoadAnimaDemo(); })
+                .AddButton("Effects", "Show all animations", async (ctx) => {
+                    _demoMenuContainer.Visible = false;
+                    _animatorContainer.Visible = true;
+                    await ctx.Go("Effects");
                 })
-                .AddButton("Exit", "Exit", async (ctx) => {
-                    _gameManager.TriggerModalBoxConfirmExitDesktop();
-                });
+                .AddButton("Menus", "Demo with menus", async (ctx) => {
+                    _demoMenuContainer.Visible = true;
+                    _animatorContainer.Visible = false;
+                })
+                .AddButton("Exit", "Exit", async (ctx) => { _gameManager.TriggerModalBoxConfirmExitDesktop(); });
 
+            var effectsMenu = mainMenu.AddMenu("Effects");
+            CreateEffectsMenu(effectsMenu);
             return mainMenu;
+        }
+
+        public MenuController BuildDemoMenu() {
+            foreach (var child in _menuDemoBase.GetChildren()) (child as Node)?.Free();
+
+            var mainMenu = new MenuController(_menuDemoBase);
+            mainMenu.AddMenu("Root")
+                .AddButton("x", "Start new game", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); })
+                .AddButton("x", "Continue", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); })
+                .AddButton("x", "Settings", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); })
+                .AddButton("x", "Online", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); })
+                .AddButton("x", "Credits", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); })
+                .AddButton("x", "Exit game", (ctx) => { ctx.Go("1", GoGoodbyeAnimation, GoNewMenuAnimation); });
+
+            mainMenu.AddMenu("1")
+                .AddButton("x", "Come back", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); })
+                .AddButton("x", "Exit to main menu", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); })
+                .AddButton("x", "Back", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); })
+                .AddButton("x", "Open main menu", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); })
+                .AddButton("x", "Return", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); })
+                .AddButton("x", "Quit", (ctx) => { ctx.Back(BackGoodbyeAnimation, BackNewMenuAnimation); });
+            return mainMenu;
+        }
+
+        private void CreateEffectsMenu(ActionMenu effectsMenu) {
+            var oldCategory = "@";
+            foreach (var templateFactory in _templateFactories) {
+                var name = templateFactory.Name;
+                if (templateFactory.Category != oldCategory && templateFactory.Category != null) {
+                    effectsMenu.AddHSeparator();
+                    effectsMenu.AddNode(new Label {
+                        Text = templateFactory.Category
+                    });
+                    oldCategory = templateFactory.Category;
+                }
+
+                effectsMenu.AddButton(name, name, async (ctx) => {
+                    var buttonRestorer = ctx.ActionButton.CreateRestorer().Save();
+                    ctx.ActionButton.Disabled = true;
+                    var targets = new Node[] { ctx.ActionButton, _labelToAnimate, _texture, _logo };
+                    await _launcher.MultiPlay(Template.Get(name), targets, 0.5f, 0f, MenuEffectTime).Await();
+                    await this.AwaitIdleFrame();
+                    ctx.ActionButton.Disabled = false;
+                    buttonRestorer.Restore();
+                    _animationsRestorer.Restore();
+                });
+            }
+            effectsMenu.AddButton("Back", "Back", async (ctx) => { await ctx.Back(); });
         }
 
         public void DimOut() {
@@ -112,73 +228,59 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public async Task BackMenu() {
-            await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
+            await _menuController.Back();
         }
+
+        private const float AllMenuEffectTime = 0.5f;
+        private const float DelayPerTarget = 0.05f;
+
         private async Task GoGoodbyeAnimation(MenuTransition transition) {
-            // await _launcher.Play(Template.BackOutLeftFactory.Get(150), transition.FromMenu.Control, 0f, MenuEffectTime).Await();
-            // await _launcher.Play(Template.FadeOut, transition.FromButton, 0f, MenuEffectTime*2).Await();
-            GD.Print("Go1");
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.FromMenu.GetChildren()) {
-                if (child is Control control) {
-                    // actionButton.Modulate =
-                    // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
-            // GD.Print("Go2");
-            // await _launcher.Play(Template.FadeOutDown, transition.FromMenu.CanvasItem, 0f, 0.25f).Await();
+            var effect = _optionButtonExit.GetItemText(_optionButtonExit.GetSelectedId());
+            if (effect == null) return;
+            _menuLabel.Text = "Exit menu: playing "+effect+"...";
+            var children = transition.FromMenu.GetVisibleControl();
+            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
+                ? AllMenuEffectTime / children.Count
+                : DelayPerTarget;
+            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            _menuLabel.Text = "";
         }
 
         private async Task GoNewMenuAnimation(MenuTransition transition) {
-            int x = 0;
-            GD.Print("Go3");
-            LoopStatus lastToWaitFor = null;
-            foreach (var child in transition.ToMenu.GetChildren()) {
-                if (child is Control control) {
-                    control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
-            // await _launcher.Play(Template.BackInRightFactory.Get(200), _menuHolder, 0f, MenuEffectTime).Await();
+            var effect = _optionButtonEnter.GetItemText(_optionButtonEnter.GetSelectedId());
+            if (effect == null) return;
+            _menuLabel.Text = "Enter menu: playing "+effect+"...";
+            var children = transition.ToMenu.GetChildren();
+            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
+                ? AllMenuEffectTime / children.Count
+                : DelayPerTarget;
+            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            _menuLabel.Text = "";
         }
 
 
         private async Task BackGoodbyeAnimation(MenuTransition transition) {
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.FromMenu.GetChildren()) {
-                if (child is Control control) {
-                    // control.Modulate = new Color(1f,1f,1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
-            // await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.CanvasItem, 0f,
-            // MenuEffectTime)
-            // .Await();
+            var effect = _optionButtonExit.GetItemText(_optionButtonExit.GetSelectedId());
+            if (effect == null) return;
+            _menuLabel.Text = "Exit menu: playing "+effect+"...";
+            var children = transition.FromMenu.GetVisibleControl();
+            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
+                ? AllMenuEffectTime / children.Count
+                : DelayPerTarget;
+            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            _menuLabel.Text = "";
         }
 
         private async Task BackNewMenuAnimation(MenuTransition transition) {
-            // await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.CanvasItem, 0f,
-            // MenuEffectTime)
-            // .Await();
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.ToMenu.GetChildren()) {
-                if (child is Control control) {
-                    control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
+            var effect = _optionButtonEnter.GetItemText(_optionButtonEnter.GetSelectedId());
+            if (effect == null) return;
+            _menuLabel.Text = "Enter menu: playing "+effect+"...";
+            var children = transition.ToMenu.GetChildren();
+            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
+                ? AllMenuEffectTime / children.Count
+                : DelayPerTarget;
+            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            _menuLabel.Text = "";
         }
     }
 }

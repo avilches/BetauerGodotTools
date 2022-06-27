@@ -62,8 +62,8 @@ Anima="*res://addons/anima/core/anima.gd"
 
 [display]
 
-window/size/width=640
-window/size/height=360
+window/size/width=960
+window/size/height=540
 window/size/test_width=960
 window/size/test_height=540
 window/stretch/mode="viewport"
