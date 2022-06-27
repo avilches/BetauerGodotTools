@@ -67,6 +67,7 @@ namespace Betauer.DI {
             if (InjectorFunction.InjectField(_container, target, setter)) return;
 
             if (name != null) {
+                name = name.Trim();
                 if (_container.Contains(name)) {
                     // There is a provider for the alias
                     _logger.Debug("Injecting field alias '" + name + "' " + setter.Name + " " + setter.Type.Name +
@@ -129,10 +130,11 @@ namespace Betauer.DI {
 
         private void LoadOnReadyField(Node target, OnReadyAttribute onReady, Setter setter) {
             if (onReady.Path != null) {
+                var path = onReady.Path.Trim();
                 // [OnReady("path/to/node")
                 // private Sprite sprite = this.GetNode<Sprite>("path/to/node");
-                var node = target.GetNode(onReady.Path);
-                var fieldInfo = "[OnReady(\"" + onReady.Path + "\")] " + setter.Type.Name + " " +
+                var node = target.GetNode(path);
+                var fieldInfo = "[OnReady(\"" + path + "\")] " + setter.Type.Name + " " +
                                 setter.Name;
 
                 if (node == null) {
