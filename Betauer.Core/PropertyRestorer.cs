@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -26,7 +27,11 @@ namespace Betauer {
             "rect_rotation",
             "rect_pivot_offset",
         }).ToArray();
-        
+
+
+        public static Restorer CreateFocusRestorer(this Control control) {
+            return new FocusRestorer(control);
+        }
 
         public static Restorer CreateRestorer(this Node node, params string[] property) {
             if (property.Length > 0) {
@@ -34,8 +39,8 @@ namespace Betauer {
             }
             return node switch {
                 Sprite sprite => new PropertyRestorer(node, SpriteProperties),
-                Node2D node2D => new PropertyRestorer(node,Node2DProperties),
-                Control control => new PropertyRestorer(node,ControlProperties),
+                Node2D node2D => new PropertyRestorer(node, Node2DProperties),
+                Control control => new PropertyRestorer(node, ControlProperties),
                 _ => DummyRestorer.Instance
             };
         }
@@ -51,7 +56,7 @@ namespace Betauer {
         }
 
         /// <summary>
-        /// Warning: always all to Restore() in a idle_frame, not in a tween/signal callback
+        /// Warning: always call to Restore() in a idle_frame, not in a tween/signal callback
         /// <code>
         /// await this.AwaitIdleFrame();
         /// restorer.Restore();
@@ -72,26 +77,68 @@ namespace Betauer {
     }
 
     public class MultiRestorer : Restorer {
-        private readonly List<Restorer> _restorers;
+        public readonly List<Restorer> Restorers;
 
         public MultiRestorer(IEnumerable<Node> nodes, params string[] property) {
-            _restorers = nodes.Select(node => node.CreateRestorer(property)).ToList();
+            Restorers = nodes.Select(node => node.CreateRestorer(property)).ToList();
         }
 
         public MultiRestorer(params Node[] nodes) {
-            _restorers = nodes.Select(node => node.CreateRestorer()).ToList();
+            Restorers = nodes.Select(node => node.CreateRestorer()).ToList();
+        }
+
+        public MultiRestorer(params Restorer[] restorers) {
+            Restorers = restorers.ToList();
+        }
+
+        public MultiRestorer Add(IEnumerable<Node> nodes, params string[] property) {
+            foreach (var r in nodes.Select(node => node.CreateRestorer(property))) Restorers.Add(r);
+            return this;
+        }
+
+        public MultiRestorer Add(params Node[] nodes) {
+            foreach (var r in nodes.Select(node => node.CreateRestorer())) Restorers.Add(r);
+            return this;
+        }
+
+        public MultiRestorer Add(params Restorer[] restorer) {
+            foreach (var r in restorer) Restorers.Add(r);
+            return this;
+        }
+
+        public MultiRestorer Add(IEnumerable<Restorer> toList) {
+            Restorers.AddRange(toList);
+            return this;
+        }
+
+        public MultiRestorer AddFocusRestorer(Control control) {
+            Restorers.Add(control.CreateFocusRestorer());
+            return this;
         }
 
         protected override void DoSave() {
-            foreach (var restorer in _restorers) {
-                restorer.Save();
-            }
+            foreach (var restorer in Restorers) restorer.Save();
         }
 
         protected override void DoRestore() {
-            foreach (var restorer in _restorers) {
-                restorer.Restore();
-            }
+            foreach (var restorer in Restorers) restorer.Restore();
+        }
+    }
+
+    public class FocusRestorer : Restorer {
+        private Control _focused;
+        private readonly Control _control;
+
+        public FocusRestorer(Control control) {
+            _control = control;
+        }
+
+        protected override void DoSave() {
+            _focused = _control.GetFocusOwner();
+        }
+
+        protected override void DoRestore() {
+            _focused.GrabFocus();
         }
     }
 
@@ -106,7 +153,7 @@ namespace Betauer {
         }
 
         protected override void DoSave() {
-            _values = _properties.Select(p => _node.GetIndexed(p)).ToArray();
+            _values = _properties.Select(property => _node.GetIndexed(property)).ToArray();
         }
 
         protected override void DoRestore() {

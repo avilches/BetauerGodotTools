@@ -8,8 +8,10 @@ namespace Betauer.Tests {
     public class RestorerTests : Node {
 
         [Test]
-        public void PivotControlRestoreTests() {
+        public async Task ControlRestoreTests() {
             var control = new Control();
+            AddChild(control);
+            await this.AwaitIdleFrame();
             var original = new Vector2(2f, 3f);
 
             control.RectPivotOffset = original;
@@ -38,10 +40,35 @@ namespace Betauer.Tests {
         }
 
         [Test]
+        public async Task ControlFocusRestoreTests() {
+            var container = new HBoxContainer();
+            var b1 = new Button();
+            var b2 = new Button();
+            container.AddChild(b1);
+            container.AddChild(b2);
+            AddChild(container);
+            await this.AwaitIdleFrame();
+            b1.GrabFocus();
+            await this.AwaitIdleFrame();
+            Assert.That(container.GetFocusOwner(), Is.EqualTo(b1));
+
+            var r = container.CreateFocusRestorer().Save();
+            b2.GrabFocus();
+            await this.AwaitIdleFrame();
+            Assert.That(container.GetFocusOwner(), Is.EqualTo(b2));
+
+            r.Restore();
+            await this.AwaitIdleFrame();
+            Assert.That(container.GetFocusOwner(), Is.EqualTo(b1));
+        }
+
+        [Test]
         public async Task PivotSpriteRestoreTests() {
             var sprite = await CreateSprite();
             var original = new Vector2(2f, 3f);
 
+            sprite.Hframes = 2;
+            sprite.Vframes = 2;
             sprite.Offset = original;
             sprite.GlobalPosition = original;
 
@@ -50,6 +77,9 @@ namespace Betauer.Tests {
             sprite.Scale = Vector2.One;
             sprite.Position = original;
             sprite.Rotation = 3f;
+            sprite.Frame = 2;
+            sprite.FlipH = true;
+            sprite.FlipV = true;
 
             var status = sprite.CreateRestorer().Save();
             sprite.Offset = Vector2.Zero;
@@ -59,6 +89,9 @@ namespace Betauer.Tests {
             sprite.Scale *= 0.2f;
             sprite.Position += Vector2.One;
             sprite.Rotation *= 3f;
+            sprite.Frame = 0;
+            sprite.FlipH = !sprite.FlipH;
+            sprite.FlipV = !sprite.FlipV;
 
             status.Restore();
 
@@ -69,6 +102,9 @@ namespace Betauer.Tests {
             Assert.That(sprite.Scale, Is.EqualTo(Vector2.One));
             Assert.That(sprite.Position, Is.EqualTo(original));
             Assert.That(sprite.Rotation, Is.EqualTo(3f));
+            Assert.That(sprite.Frame, Is.EqualTo(2));
+            Assert.That(sprite.FlipH, Is.True);
+            Assert.That(sprite.FlipV, Is.True);
         }
 
         [Test]
