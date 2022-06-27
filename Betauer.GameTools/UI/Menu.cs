@@ -6,8 +6,8 @@ using Godot;
 
 namespace Betauer.UI {
     public class MenuController {
-        private readonly Container _baseHolder;
-        private readonly Node _baseParent;
+        private readonly Container _originalContainer;
+        private readonly Node _parent;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
         private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
@@ -15,20 +15,21 @@ namespace Betauer.UI {
 
         public bool Available { get; private set; } = false;
 
-        public MenuController(Container baseHolder) {
-            _baseParent = baseHolder.GetParent();
-            _baseHolder = baseHolder;
-            _baseParent.RemoveChild(_baseHolder);
-            _baseHolder.DisableAllNotifications();
+        public bool DisableGuiInAnimations = true;
+
+        public MenuController(Container originalContainer) {
+            _parent = originalContainer.GetParent();
+            _originalContainer = originalContainer;
+            _originalContainer.DisableAllNotifications();
+            _originalContainer.Visible = false;
         }
 
         public void QueueFree() {
-            _baseParent.AddChild(_baseHolder);
             _menus.ToList().ForEach(c => c.Container.QueueFree());
         }
 
         public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {
-            var menu = new ActionMenu(this, name, _baseHolder, _baseParent, onShow);
+            var menu = new ActionMenu(this, name, _originalContainer, _parent, onShow);
             _menus.Add(menu);
             return menu;
         }
@@ -91,7 +92,7 @@ namespace Betauer.UI {
             Func<MenuTransition, Task>? newMenuAnimation) {
             var viewport = transition.FromMenu.Container.GetTree().Root;
             try {
-                viewport.GuiDisableInput = true;
+                if (DisableGuiInAnimations) viewport.GuiDisableInput = true;
                 
                 if (goodbyeAnimation != null) {
                     var saver = new MultiRestorer(transition.FromMenu.GetChildren()).Save();
@@ -115,7 +116,7 @@ namespace Betauer.UI {
                     /*
                      * 2) Wait one frame, so the container can arrange the children positions safely.
                      */ 
-                    await _baseParent.AwaitIdleFrame();
+                    await _parent.AwaitIdleFrame();
                     /*
                      * 3) Restore the old modulates and start the animation.
                      */
@@ -131,7 +132,7 @@ namespace Betauer.UI {
                 }
                 ActiveMenu = transition.ToMenu;
             } finally {
-                viewport.GuiDisableInput = false;
+                if (DisableGuiInAnimations) viewport.GuiDisableInput = false;
             }
         }
     }
@@ -139,33 +140,23 @@ namespace Betauer.UI {
 
     public class ActionMenu {
         private readonly Action<ActionMenu> _onShow;
-        private readonly Node _baseParent;
+        private readonly Node _parent;
+        private readonly Node _originalContainer;
         internal readonly MenuController MenuController;
 
         public readonly string Name;
         public Container Container { get; }
         public bool WrapButtons { get; set; } = true;
 
-        internal ActionMenu(MenuController menuController, string name, Container baseHolder,
-            Node baseParent, Action<ActionMenu> onShow) {
+        internal ActionMenu(MenuController menuController, string name, Container originalContainer,
+            Node parent, Action<ActionMenu> onShow) {
+            _originalContainer = originalContainer;
+            _parent = parent;
             MenuController = menuController;
             Name = name;
-            Container = (Container)baseHolder.Duplicate();
-            _baseParent = baseParent;
+            Container = (Container)originalContainer.Duplicate();
+            Container.Visible = true;
             _onShow = onShow;
-        }
-
-        private Control? _savedFocus;
-        
-        public ActionMenu SaveFocus() {
-            _savedFocus = GetFocusOwner();
-            return this;
-        }
-
-        public ActionMenu RestoreFocus() {
-            _savedFocus?.GrabFocus();
-            _savedFocus = null;
-            return this;
         }
 
         public ActionButton CreateButton(string name, string title) {
@@ -247,10 +238,6 @@ namespace Betauer.UI {
             return this;
         }
 
-        public Control? GetFocusOwner() {
-            return Container.GetFocusOwner();
-        }
-
         public bool IsFocusedAndDisabled() {
             foreach (var child in Container.GetChildren()) {
                 if (child is BaseButton { Disabled: true } disabledButton && disabledButton.HasFocus()) return true;
@@ -258,10 +245,13 @@ namespace Betauer.UI {
             return false;
         }
 
-        public void DisableButtons() {
+        public MultiRestorer DisableButtons() {
+            var buttons = Container.GetChildren<BaseButton>();
+            var restorer = new MultiRestorer(buttons, "disabled");
             foreach (var child in Container.GetChildren()) {
                 if (child is BaseButton button) button.Disabled = true;
             }
+            return restorer;
         }
 
         public ActionMenu Refresh(BaseButton? focused = null) {
@@ -275,7 +265,7 @@ namespace Betauer.UI {
         }
 
         public List<Control> GetVisibleControl() {
-            if (_baseParent is ScrollContainer scrollContainer) {
+            if (_parent is ScrollContainer scrollContainer) {
                 var topVisible = scrollContainer.ScrollVertical;
                 var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
                 return Container.GetChildren<Control>()
@@ -287,13 +277,13 @@ namespace Betauer.UI {
             return GetChildren();
         }
 
-        public void Remove() {
-            _baseParent.RemoveChild(Container);
+        internal void Remove() {
+            _parent.RemoveChild(Container);
         }
 
-        public void Show(ActionButton? focused = null) {
+        internal void Show(ActionButton? focused = null) {
             _onShow?.Invoke(this);
-            _baseParent.AddChild(Container);
+            _parent.AddChildBelowNode(_originalContainer, Container);
             Refresh(focused);
         }
 
