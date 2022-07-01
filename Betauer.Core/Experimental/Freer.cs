@@ -2,13 +2,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Memory {
+namespace Betauer.Experimental {
 
-    // TODO: Not used and not tested
-               /*
     public class GodotObjectOnDemandFreer : OnDemandConsumer<Object> {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GodotObjectOnDemandFreer));
 
@@ -132,5 +131,5 @@ namespace Betauer.Memory {
             _cq.CompleteAdding();
         }
     }
-    */
+    
 }

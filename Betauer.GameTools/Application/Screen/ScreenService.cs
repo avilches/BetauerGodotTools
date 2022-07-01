@@ -199,11 +199,11 @@ namespace Betauer.Application.Screen {
      */
     public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private readonly SignalHandler _signalHandler;
+        private readonly SignalHandlerAction _signalHandlerAction;
         private bool _enabled = false;
 
         public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
-            _signalHandler = Tree.OnScreenResized(SignalHandler);
+            _signalHandlerAction = Tree.OnScreenResized(SignalHandler);
         }
 
         public void SignalHandler() {
@@ -211,7 +211,7 @@ namespace Betauer.Application.Screen {
         }
         
         protected override void OnDispose(bool disposing) {
-            _signalHandler.Dispose();
+            _signalHandlerAction.Free();
         }
 
         public void Enable(ScreenConfiguration screenConfiguration) {
