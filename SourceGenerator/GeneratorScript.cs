@@ -109,7 +109,7 @@ namespace Generator {
         private string CreateGodotActionExtensionsMethod(Signal signal) {
             return $@"
         public static {signal.GodotClass.FullClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
-            NodeAction.GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);
+            GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);
             return target;
         }}";
         }
@@ -197,6 +197,19 @@ using {GodotActionClassesNamespace};
 
 namespace Betauer {{
     public static partial class GodotActionExtensions {{
+
+        private const string ProxyName = ""__ProxyNodeAction__"";
+
+        public static T GetProxy<T>(this Node owner) where T : Node {{
+            T proxy = owner.GetNodeOrNull<T>(ProxyName);
+            if (proxy == null) {{
+                proxy = Activator.CreateInstance<T>();
+                proxy.Name = ProxyName;
+                owner.AddChild(proxy);
+            }}
+            return proxy;
+        }}
+
 {string.Join("\n", methods)}
     }}
 }}";
