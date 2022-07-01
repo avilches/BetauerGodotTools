@@ -19,10 +19,9 @@ namespace Betauer.Animation {
         private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
         private readonly HashSet<Object> _interpolateMethodActionSet = new HashSet<Object>();
         public const float ExtraDelayToFinish = 0.01f;
-        private int _counter = 0; 
 
         public void ScheduleCallback(float delay, Action callback) {
-            var actionId = Interlocked.Increment(ref _counter);
+            var actionId = callback.GetHashCode();
             _actions[actionId] = callback;
             base.InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
         }
