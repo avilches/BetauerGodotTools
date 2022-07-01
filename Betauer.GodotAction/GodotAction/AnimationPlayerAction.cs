@@ -6,348 +6,116 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class AnimationPlayerAction : Node {
-        public AnimationPlayerAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
-        private List<Action<float>>? _onProcessActions; 
-        private List<Action<float>>? _onPhysicsProcessActions; 
-        private List<Action<InputEvent>>? _onInputActions; 
-        private List<Action<InputEvent>>? _onUnhandledInputActions; 
-        private List<Action<InputEventKey>>? _onUnhandledKeyInputActions;
-
-        public AnimationPlayerAction OnProcess(Action<float> action) {
-            _onProcessActions ??= new List<Action<float>>(1);
-            _onProcessActions.Add(action);
-            SetProcess(true);
-            return this;
-        }
-        public AnimationPlayerAction OnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions ??= new List<Action<float>>(1);
-            _onPhysicsProcessActions.Add(action);
-            SetPhysicsProcess(true);
-            return this;
-        }
-
-        public AnimationPlayerAction OnInput(Action<InputEvent> action) {
-            _onInputActions ??= new List<Action<InputEvent>>(1);
-            _onInputActions.Add(action);
-            SetProcessInput(true);
-            return this;
-        }
-
-        public AnimationPlayerAction OnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions ??= new List<Action<InputEvent>>(1);
-            _onUnhandledInputActions.Add(action);
-            SetProcessUnhandledInput(true);
-            return this;
-        }
-
-        public AnimationPlayerAction OnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions ??= new List<Action<InputEventKey>>(1);
-            _onUnhandledKeyInputActions.Add(action);
-            SetProcessUnhandledKeyInput(true);
-            return this;
-        }
-
-        public AnimationPlayerAction RemoveOnProcess(Action<float> action) {
-            _onProcessActions?.Remove(action);
-            return this;
-        }
-
-        public AnimationPlayerAction RemoveOnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions?.Remove(action);
-            return this;
-        }
-
-        public AnimationPlayerAction RemoveOnInput(Action<InputEvent> action) {
-            _onInputActions?.Remove(action);
-            return this;
-        }
-
-        public AnimationPlayerAction RemoveOnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions?.Remove(action);
-            return this;
-        }
-
-        public AnimationPlayerAction RemoveOnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions?.Remove(action);
-            return this;
-        }
-
-        public override void _Process(float delta) {
-            if (_onProcessActions == null || _onProcessActions.Count == 0) {
-                SetProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onProcessActions.Count; i++) _onProcessActions[i].Invoke(delta);
-        }
-
-        public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
-                SetPhysicsProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
-        }
-
-        public override void _Input(InputEvent @event) {
-            if (_onInputActions == null || _onInputActions?.Count == 0) {
-                SetProcessInput(false);
-                return;
-            }
-            for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
-                SetProcessUnhandledInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
-                SetProcessUnhandledKeyInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
-        }
+    public class AnimationPlayerAction : ProxyNode {
 
         private List<Action<string, string>>? _onAnimationChangedAction; 
-        public AnimationPlayerAction OnAnimationChanged(Action<string, string> action, bool oneShot = false, bool deferred = false) {
-            if (_onAnimationChangedAction == null || _onAnimationChangedAction.Count == 0) {
-                _onAnimationChangedAction ??= new List<Action<string, string>>(); 
-                GetParent().Connect("animation_changed", this, nameof(_GodotSignalAnimationChanged));
-            }
-            _onAnimationChangedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnAnimationChanged(Action<string, string> action) {
-            if (_onAnimationChangedAction == null || _onAnimationChangedAction.Count == 0) return this;
-            _onAnimationChangedAction.Remove(action); 
-            if (_onAnimationChangedAction.Count == 0) {
-                GetParent().Disconnect("animation_changed", this, nameof(_GodotSignalAnimationChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalAnimationChanged(string new_name, string old_name) {
-            if (_onAnimationChangedAction == null || _onAnimationChangedAction.Count == 0) return;
-            for (var i = 0; i < _onAnimationChangedAction.Count; i++) _onAnimationChangedAction[i].Invoke(new_name, old_name);
-        }
+        public void OnAnimationChanged(Action<string, string> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onAnimationChangedAction, "animation_changed", nameof(_GodotSignalAnimationChanged), action, oneShot, deferred);
+
+        public void RemoveOnAnimationChanged(Action<string, string> action) =>
+            RemoveSignal(_onAnimationChangedAction, "animation_changed", nameof(_GodotSignalAnimationChanged), action);
+
+        private void _GodotSignalAnimationChanged(string new_name, string old_name) =>
+            ExecuteSignal(_onAnimationChangedAction, new_name, old_name);
         
 
         private List<Action<string>>? _onAnimationFinishedAction; 
-        public AnimationPlayerAction OnAnimationFinished(Action<string> action, bool oneShot = false, bool deferred = false) {
-            if (_onAnimationFinishedAction == null || _onAnimationFinishedAction.Count == 0) {
-                _onAnimationFinishedAction ??= new List<Action<string>>(); 
-                GetParent().Connect("animation_finished", this, nameof(_GodotSignalAnimationFinished));
-            }
-            _onAnimationFinishedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnAnimationFinished(Action<string> action) {
-            if (_onAnimationFinishedAction == null || _onAnimationFinishedAction.Count == 0) return this;
-            _onAnimationFinishedAction.Remove(action); 
-            if (_onAnimationFinishedAction.Count == 0) {
-                GetParent().Disconnect("animation_finished", this, nameof(_GodotSignalAnimationFinished));
-            }
-            return this;
-        }
-        private void _GodotSignalAnimationFinished(string anim_name) {
-            if (_onAnimationFinishedAction == null || _onAnimationFinishedAction.Count == 0) return;
-            for (var i = 0; i < _onAnimationFinishedAction.Count; i++) _onAnimationFinishedAction[i].Invoke(anim_name);
-        }
+        public void OnAnimationFinished(Action<string> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onAnimationFinishedAction, "animation_finished", nameof(_GodotSignalAnimationFinished), action, oneShot, deferred);
+
+        public void RemoveOnAnimationFinished(Action<string> action) =>
+            RemoveSignal(_onAnimationFinishedAction, "animation_finished", nameof(_GodotSignalAnimationFinished), action);
+
+        private void _GodotSignalAnimationFinished(string anim_name) =>
+            ExecuteSignal(_onAnimationFinishedAction, anim_name);
         
 
         private List<Action<string>>? _onAnimationStartedAction; 
-        public AnimationPlayerAction OnAnimationStarted(Action<string> action, bool oneShot = false, bool deferred = false) {
-            if (_onAnimationStartedAction == null || _onAnimationStartedAction.Count == 0) {
-                _onAnimationStartedAction ??= new List<Action<string>>(); 
-                GetParent().Connect("animation_started", this, nameof(_GodotSignalAnimationStarted));
-            }
-            _onAnimationStartedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnAnimationStarted(Action<string> action) {
-            if (_onAnimationStartedAction == null || _onAnimationStartedAction.Count == 0) return this;
-            _onAnimationStartedAction.Remove(action); 
-            if (_onAnimationStartedAction.Count == 0) {
-                GetParent().Disconnect("animation_started", this, nameof(_GodotSignalAnimationStarted));
-            }
-            return this;
-        }
-        private void _GodotSignalAnimationStarted(string anim_name) {
-            if (_onAnimationStartedAction == null || _onAnimationStartedAction.Count == 0) return;
-            for (var i = 0; i < _onAnimationStartedAction.Count; i++) _onAnimationStartedAction[i].Invoke(anim_name);
-        }
+        public void OnAnimationStarted(Action<string> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onAnimationStartedAction, "animation_started", nameof(_GodotSignalAnimationStarted), action, oneShot, deferred);
+
+        public void RemoveOnAnimationStarted(Action<string> action) =>
+            RemoveSignal(_onAnimationStartedAction, "animation_started", nameof(_GodotSignalAnimationStarted), action);
+
+        private void _GodotSignalAnimationStarted(string anim_name) =>
+            ExecuteSignal(_onAnimationStartedAction, anim_name);
         
 
         private List<Action>? _onCachesClearedAction; 
-        public AnimationPlayerAction OnCachesCleared(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onCachesClearedAction == null || _onCachesClearedAction.Count == 0) {
-                _onCachesClearedAction ??= new List<Action>(); 
-                GetParent().Connect("caches_cleared", this, nameof(_GodotSignalCachesCleared));
-            }
-            _onCachesClearedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnCachesCleared(Action action) {
-            if (_onCachesClearedAction == null || _onCachesClearedAction.Count == 0) return this;
-            _onCachesClearedAction.Remove(action); 
-            if (_onCachesClearedAction.Count == 0) {
-                GetParent().Disconnect("caches_cleared", this, nameof(_GodotSignalCachesCleared));
-            }
-            return this;
-        }
-        private void _GodotSignalCachesCleared() {
-            if (_onCachesClearedAction == null || _onCachesClearedAction.Count == 0) return;
-            for (var i = 0; i < _onCachesClearedAction.Count; i++) _onCachesClearedAction[i].Invoke();
-        }
+        public void OnCachesCleared(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onCachesClearedAction, "caches_cleared", nameof(_GodotSignalCachesCleared), action, oneShot, deferred);
+
+        public void RemoveOnCachesCleared(Action action) =>
+            RemoveSignal(_onCachesClearedAction, "caches_cleared", nameof(_GodotSignalCachesCleared), action);
+
+        private void _GodotSignalCachesCleared() =>
+            ExecuteSignal(_onCachesClearedAction);
         
 
         private List<Action>? _onReadyAction; 
-        public AnimationPlayerAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) {
-                _onReadyAction ??= new List<Action>(); 
-                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
-            }
-            _onReadyAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnReady(Action action) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
-            _onReadyAction.Remove(action); 
-            if (_onReadyAction.Count == 0) {
-                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
-            }
-            return this;
-        }
-        private void _GodotSignalReady() {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
-            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
-        }
+        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+
+        public void RemoveOnReady(Action action) =>
+            RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+
+        private void _GodotSignalReady() =>
+            ExecuteSignal(_onReadyAction);
         
 
         private List<Action>? _onRenamedAction; 
-        public AnimationPlayerAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
-                _onRenamedAction ??= new List<Action>(); 
-                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            _onRenamedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnRenamed(Action action) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
-            _onRenamedAction.Remove(action); 
-            if (_onRenamedAction.Count == 0) {
-                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            return this;
-        }
-        private void _GodotSignalRenamed() {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
-            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
-        }
+        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+
+        public void RemoveOnRenamed(Action action) =>
+            RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+
+        private void _GodotSignalRenamed() =>
+            ExecuteSignal(_onRenamedAction);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public AnimationPlayerAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public AnimationPlayerAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
-                _onTreeEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            _onTreeEnteredAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
-            _onTreeEnteredAction.Remove(action); 
-            if (_onTreeEnteredAction.Count == 0) {
-                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeEntered() {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
-        }
+        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+
+        public void RemoveOnTreeEntered(Action action) =>
+            RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+
+        private void _GodotSignalTreeEntered() =>
+            ExecuteSignal(_onTreeEnteredAction);
         
 
         private List<Action>? _onTreeExitedAction; 
-        public AnimationPlayerAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
-                _onTreeExitedAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            _onTreeExitedAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnTreeExited(Action action) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
-            _onTreeExitedAction.Remove(action); 
-            if (_onTreeExitedAction.Count == 0) {
-                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExited() {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
-        }
+        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+
+        public void RemoveOnTreeExited(Action action) =>
+            RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+
+        private void _GodotSignalTreeExited() =>
+            ExecuteSignal(_onTreeExitedAction);
         
 
         private List<Action>? _onTreeExitingAction; 
-        public AnimationPlayerAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
-                _onTreeExitingAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            _onTreeExitingAction.Add(action);
-            return this;
-        }
-        public AnimationPlayerAction RemoveOnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
-            _onTreeExitingAction.Remove(action); 
-            if (_onTreeExitingAction.Count == 0) {
-                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExiting() {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
-        }
+        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+
+        public void RemoveOnTreeExiting(Action action) =>
+            RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+
+        private void _GodotSignalTreeExiting() =>
+            ExecuteSignal(_onTreeExitingAction);
         
     }
 }

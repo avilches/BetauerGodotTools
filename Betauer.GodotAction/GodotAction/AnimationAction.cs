@@ -6,83 +6,39 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class AnimationAction : Node {
-        public AnimationAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
+    public class AnimationAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public AnimationAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) {
-                _onChangedAction ??= new List<Action>(); 
-                GetParent().Connect("changed", this, nameof(_GodotSignalChanged));
-            }
-            _onChangedAction.Add(action);
-            return this;
-        }
-        public AnimationAction RemoveOnChanged(Action action) {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
-            _onChangedAction.Remove(action); 
-            if (_onChangedAction.Count == 0) {
-                GetParent().Disconnect("changed", this, nameof(_GodotSignalChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalChanged() {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
-            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
-        }
+        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+
+        public void RemoveOnChanged(Action action) =>
+            RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+
+        private void _GodotSignalChanged() =>
+            ExecuteSignal(_onChangedAction);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public AnimationAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public AnimationAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
 
         private List<Action>? _onTracksChangedAction; 
-        public AnimationAction OnTracksChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) {
-                _onTracksChangedAction ??= new List<Action>(); 
-                GetParent().Connect("tracks_changed", this, nameof(_GodotSignalTracksChanged));
-            }
-            _onTracksChangedAction.Add(action);
-            return this;
-        }
-        public AnimationAction RemoveOnTracksChanged(Action action) {
-            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) return this;
-            _onTracksChangedAction.Remove(action); 
-            if (_onTracksChangedAction.Count == 0) {
-                GetParent().Disconnect("tracks_changed", this, nameof(_GodotSignalTracksChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalTracksChanged() {
-            if (_onTracksChangedAction == null || _onTracksChangedAction.Count == 0) return;
-            for (var i = 0; i < _onTracksChangedAction.Count; i++) _onTracksChangedAction[i].Invoke();
-        }
+        public void OnTracksChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTracksChangedAction, "tracks_changed", nameof(_GodotSignalTracksChanged), action, oneShot, deferred);
+
+        public void RemoveOnTracksChanged(Action action) =>
+            RemoveSignal(_onTracksChangedAction, "tracks_changed", nameof(_GodotSignalTracksChanged), action);
+
+        private void _GodotSignalTracksChanged() =>
+            ExecuteSignal(_onTracksChangedAction);
         
     }
 }

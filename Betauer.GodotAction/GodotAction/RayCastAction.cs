@@ -6,325 +6,105 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class RayCastAction : Node {
-        public RayCastAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
-        private List<Action<float>>? _onProcessActions; 
-        private List<Action<float>>? _onPhysicsProcessActions; 
-        private List<Action<InputEvent>>? _onInputActions; 
-        private List<Action<InputEvent>>? _onUnhandledInputActions; 
-        private List<Action<InputEventKey>>? _onUnhandledKeyInputActions;
-
-        public RayCastAction OnProcess(Action<float> action) {
-            _onProcessActions ??= new List<Action<float>>(1);
-            _onProcessActions.Add(action);
-            SetProcess(true);
-            return this;
-        }
-        public RayCastAction OnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions ??= new List<Action<float>>(1);
-            _onPhysicsProcessActions.Add(action);
-            SetPhysicsProcess(true);
-            return this;
-        }
-
-        public RayCastAction OnInput(Action<InputEvent> action) {
-            _onInputActions ??= new List<Action<InputEvent>>(1);
-            _onInputActions.Add(action);
-            SetProcessInput(true);
-            return this;
-        }
-
-        public RayCastAction OnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions ??= new List<Action<InputEvent>>(1);
-            _onUnhandledInputActions.Add(action);
-            SetProcessUnhandledInput(true);
-            return this;
-        }
-
-        public RayCastAction OnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions ??= new List<Action<InputEventKey>>(1);
-            _onUnhandledKeyInputActions.Add(action);
-            SetProcessUnhandledKeyInput(true);
-            return this;
-        }
-
-        public RayCastAction RemoveOnProcess(Action<float> action) {
-            _onProcessActions?.Remove(action);
-            return this;
-        }
-
-        public RayCastAction RemoveOnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions?.Remove(action);
-            return this;
-        }
-
-        public RayCastAction RemoveOnInput(Action<InputEvent> action) {
-            _onInputActions?.Remove(action);
-            return this;
-        }
-
-        public RayCastAction RemoveOnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions?.Remove(action);
-            return this;
-        }
-
-        public RayCastAction RemoveOnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions?.Remove(action);
-            return this;
-        }
-
-        public override void _Process(float delta) {
-            if (_onProcessActions == null || _onProcessActions.Count == 0) {
-                SetProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onProcessActions.Count; i++) _onProcessActions[i].Invoke(delta);
-        }
-
-        public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
-                SetPhysicsProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
-        }
-
-        public override void _Input(InputEvent @event) {
-            if (_onInputActions == null || _onInputActions?.Count == 0) {
-                SetProcessInput(false);
-                return;
-            }
-            for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
-                SetProcessUnhandledInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
-                SetProcessUnhandledKeyInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
-        }
+    public class RayCastAction : ProxyNode {
 
         private List<Action>? _onGameplayEnteredAction; 
-        public RayCastAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) {
-                _onGameplayEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
-            }
-            _onGameplayEnteredAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnGameplayEntered(Action action) {
-            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return this;
-            _onGameplayEnteredAction.Remove(action); 
-            if (_onGameplayEnteredAction.Count == 0) {
-                GetParent().Disconnect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalGameplayEntered() {
-            if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onGameplayEnteredAction.Count; i++) _onGameplayEnteredAction[i].Invoke();
-        }
+        public void OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
+
+        public void RemoveOnGameplayEntered(Action action) =>
+            RemoveSignal(_onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action);
+
+        private void _GodotSignalGameplayEntered() =>
+            ExecuteSignal(_onGameplayEnteredAction);
         
 
         private List<Action>? _onGameplayExitedAction; 
-        public RayCastAction OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) {
-                _onGameplayExitedAction ??= new List<Action>(); 
-                GetParent().Connect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
-            }
-            _onGameplayExitedAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnGameplayExited(Action action) {
-            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return this;
-            _onGameplayExitedAction.Remove(action); 
-            if (_onGameplayExitedAction.Count == 0) {
-                GetParent().Disconnect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
-            }
-            return this;
-        }
-        private void _GodotSignalGameplayExited() {
-            if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return;
-            for (var i = 0; i < _onGameplayExitedAction.Count; i++) _onGameplayExitedAction[i].Invoke();
-        }
+        public void OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action, oneShot, deferred);
+
+        public void RemoveOnGameplayExited(Action action) =>
+            RemoveSignal(_onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action);
+
+        private void _GodotSignalGameplayExited() =>
+            ExecuteSignal(_onGameplayExitedAction);
         
 
         private List<Action>? _onReadyAction; 
-        public RayCastAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) {
-                _onReadyAction ??= new List<Action>(); 
-                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
-            }
-            _onReadyAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnReady(Action action) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
-            _onReadyAction.Remove(action); 
-            if (_onReadyAction.Count == 0) {
-                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
-            }
-            return this;
-        }
-        private void _GodotSignalReady() {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
-            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
-        }
+        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+
+        public void RemoveOnReady(Action action) =>
+            RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+
+        private void _GodotSignalReady() =>
+            ExecuteSignal(_onReadyAction);
         
 
         private List<Action>? _onRenamedAction; 
-        public RayCastAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
-                _onRenamedAction ??= new List<Action>(); 
-                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            _onRenamedAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnRenamed(Action action) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
-            _onRenamedAction.Remove(action); 
-            if (_onRenamedAction.Count == 0) {
-                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            return this;
-        }
-        private void _GodotSignalRenamed() {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
-            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
-        }
+        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+
+        public void RemoveOnRenamed(Action action) =>
+            RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+
+        private void _GodotSignalRenamed() =>
+            ExecuteSignal(_onRenamedAction);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public RayCastAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public RayCastAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
-                _onTreeEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            _onTreeEnteredAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
-            _onTreeEnteredAction.Remove(action); 
-            if (_onTreeEnteredAction.Count == 0) {
-                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeEntered() {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
-        }
+        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+
+        public void RemoveOnTreeEntered(Action action) =>
+            RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+
+        private void _GodotSignalTreeEntered() =>
+            ExecuteSignal(_onTreeEnteredAction);
         
 
         private List<Action>? _onTreeExitedAction; 
-        public RayCastAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
-                _onTreeExitedAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            _onTreeExitedAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnTreeExited(Action action) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
-            _onTreeExitedAction.Remove(action); 
-            if (_onTreeExitedAction.Count == 0) {
-                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExited() {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
-        }
+        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+
+        public void RemoveOnTreeExited(Action action) =>
+            RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+
+        private void _GodotSignalTreeExited() =>
+            ExecuteSignal(_onTreeExitedAction);
         
 
         private List<Action>? _onTreeExitingAction; 
-        public RayCastAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
-                _onTreeExitingAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            _onTreeExitingAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
-            _onTreeExitingAction.Remove(action); 
-            if (_onTreeExitingAction.Count == 0) {
-                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExiting() {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
-        }
+        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+
+        public void RemoveOnTreeExiting(Action action) =>
+            RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+
+        private void _GodotSignalTreeExiting() =>
+            ExecuteSignal(_onTreeExitingAction);
         
 
         private List<Action>? _onVisibilityChangedAction; 
-        public RayCastAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
-                _onVisibilityChangedAction ??= new List<Action>(); 
-                GetParent().Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
-            }
-            _onVisibilityChangedAction.Add(action);
-            return this;
-        }
-        public RayCastAction RemoveOnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
-            _onVisibilityChangedAction.Remove(action); 
-            if (_onVisibilityChangedAction.Count == 0) {
-                GetParent().Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalVisibilityChanged() {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
-            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
-        }
+        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+
+        public void RemoveOnVisibilityChanged(Action action) =>
+            RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+
+        private void _GodotSignalVisibilityChanged() =>
+            ExecuteSignal(_onVisibilityChangedAction);
         
     }
 }

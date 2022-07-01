@@ -6,716 +6,292 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class GraphNodeAction : Node {
-        public GraphNodeAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
-        private List<Action<float>>? _onProcessActions; 
-        private List<Action<float>>? _onPhysicsProcessActions; 
-        private List<Action<InputEvent>>? _onInputActions; 
-        private List<Action<InputEvent>>? _onUnhandledInputActions; 
-        private List<Action<InputEventKey>>? _onUnhandledKeyInputActions;
-
-        public GraphNodeAction OnProcess(Action<float> action) {
-            _onProcessActions ??= new List<Action<float>>(1);
-            _onProcessActions.Add(action);
-            SetProcess(true);
-            return this;
-        }
-        public GraphNodeAction OnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions ??= new List<Action<float>>(1);
-            _onPhysicsProcessActions.Add(action);
-            SetPhysicsProcess(true);
-            return this;
-        }
-
-        public GraphNodeAction OnInput(Action<InputEvent> action) {
-            _onInputActions ??= new List<Action<InputEvent>>(1);
-            _onInputActions.Add(action);
-            SetProcessInput(true);
-            return this;
-        }
-
-        public GraphNodeAction OnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions ??= new List<Action<InputEvent>>(1);
-            _onUnhandledInputActions.Add(action);
-            SetProcessUnhandledInput(true);
-            return this;
-        }
-
-        public GraphNodeAction OnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions ??= new List<Action<InputEventKey>>(1);
-            _onUnhandledKeyInputActions.Add(action);
-            SetProcessUnhandledKeyInput(true);
-            return this;
-        }
-
-        public GraphNodeAction RemoveOnProcess(Action<float> action) {
-            _onProcessActions?.Remove(action);
-            return this;
-        }
-
-        public GraphNodeAction RemoveOnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions?.Remove(action);
-            return this;
-        }
-
-        public GraphNodeAction RemoveOnInput(Action<InputEvent> action) {
-            _onInputActions?.Remove(action);
-            return this;
-        }
-
-        public GraphNodeAction RemoveOnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions?.Remove(action);
-            return this;
-        }
-
-        public GraphNodeAction RemoveOnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions?.Remove(action);
-            return this;
-        }
-
-        public override void _Process(float delta) {
-            if (_onProcessActions == null || _onProcessActions.Count == 0) {
-                SetProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onProcessActions.Count; i++) _onProcessActions[i].Invoke(delta);
-        }
-
-        public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
-                SetPhysicsProcess(false);
-                return;
-            }
-            for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
-        }
-
-        public override void _Input(InputEvent @event) {
-            if (_onInputActions == null || _onInputActions?.Count == 0) {
-                SetProcessInput(false);
-                return;
-            }
-            for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
-                SetProcessUnhandledInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
-        }
-
-        public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
-                SetProcessUnhandledKeyInput(false);
-                return;
-            }
-            for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
-        }
+    public class GraphNodeAction : ProxyNode {
 
         private List<Action>? _onCloseRequestAction; 
-        public GraphNodeAction OnCloseRequest(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onCloseRequestAction == null || _onCloseRequestAction.Count == 0) {
-                _onCloseRequestAction ??= new List<Action>(); 
-                GetParent().Connect("close_request", this, nameof(_GodotSignalCloseRequest));
-            }
-            _onCloseRequestAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnCloseRequest(Action action) {
-            if (_onCloseRequestAction == null || _onCloseRequestAction.Count == 0) return this;
-            _onCloseRequestAction.Remove(action); 
-            if (_onCloseRequestAction.Count == 0) {
-                GetParent().Disconnect("close_request", this, nameof(_GodotSignalCloseRequest));
-            }
-            return this;
-        }
-        private void _GodotSignalCloseRequest() {
-            if (_onCloseRequestAction == null || _onCloseRequestAction.Count == 0) return;
-            for (var i = 0; i < _onCloseRequestAction.Count; i++) _onCloseRequestAction[i].Invoke();
-        }
+        public void OnCloseRequest(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onCloseRequestAction, "close_request", nameof(_GodotSignalCloseRequest), action, oneShot, deferred);
+
+        public void RemoveOnCloseRequest(Action action) =>
+            RemoveSignal(_onCloseRequestAction, "close_request", nameof(_GodotSignalCloseRequest), action);
+
+        private void _GodotSignalCloseRequest() =>
+            ExecuteSignal(_onCloseRequestAction);
         
 
         private List<Action<Vector2, Vector2>>? _onDraggedAction; 
-        public GraphNodeAction OnDragged(Action<Vector2, Vector2> action, bool oneShot = false, bool deferred = false) {
-            if (_onDraggedAction == null || _onDraggedAction.Count == 0) {
-                _onDraggedAction ??= new List<Action<Vector2, Vector2>>(); 
-                GetParent().Connect("dragged", this, nameof(_GodotSignalDragged));
-            }
-            _onDraggedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnDragged(Action<Vector2, Vector2> action) {
-            if (_onDraggedAction == null || _onDraggedAction.Count == 0) return this;
-            _onDraggedAction.Remove(action); 
-            if (_onDraggedAction.Count == 0) {
-                GetParent().Disconnect("dragged", this, nameof(_GodotSignalDragged));
-            }
-            return this;
-        }
-        private void _GodotSignalDragged(Vector2 from, Vector2 to) {
-            if (_onDraggedAction == null || _onDraggedAction.Count == 0) return;
-            for (var i = 0; i < _onDraggedAction.Count; i++) _onDraggedAction[i].Invoke(from, to);
-        }
+        public void OnDragged(Action<Vector2, Vector2> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onDraggedAction, "dragged", nameof(_GodotSignalDragged), action, oneShot, deferred);
+
+        public void RemoveOnDragged(Action<Vector2, Vector2> action) =>
+            RemoveSignal(_onDraggedAction, "dragged", nameof(_GodotSignalDragged), action);
+
+        private void _GodotSignalDragged(Vector2 from, Vector2 to) =>
+            ExecuteSignal(_onDraggedAction, from, to);
         
 
         private List<Action>? _onDrawAction; 
-        public GraphNodeAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onDrawAction == null || _onDrawAction.Count == 0) {
-                _onDrawAction ??= new List<Action>(); 
-                GetParent().Connect("draw", this, nameof(_GodotSignalDraw));
-            }
-            _onDrawAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnDraw(Action action) {
-            if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
-            _onDrawAction.Remove(action); 
-            if (_onDrawAction.Count == 0) {
-                GetParent().Disconnect("draw", this, nameof(_GodotSignalDraw));
-            }
-            return this;
-        }
-        private void _GodotSignalDraw() {
-            if (_onDrawAction == null || _onDrawAction.Count == 0) return;
-            for (var i = 0; i < _onDrawAction.Count; i++) _onDrawAction[i].Invoke();
-        }
+        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+
+        public void RemoveOnDraw(Action action) =>
+            RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+
+        private void _GodotSignalDraw() =>
+            ExecuteSignal(_onDrawAction);
         
 
         private List<Action>? _onFocusEnteredAction; 
-        public GraphNodeAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) {
-                _onFocusEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("focus_entered", this, nameof(_GodotSignalFocusEntered));
-            }
-            _onFocusEnteredAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnFocusEntered(Action action) {
-            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return this;
-            _onFocusEnteredAction.Remove(action); 
-            if (_onFocusEnteredAction.Count == 0) {
-                GetParent().Disconnect("focus_entered", this, nameof(_GodotSignalFocusEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalFocusEntered() {
-            if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onFocusEnteredAction.Count; i++) _onFocusEnteredAction[i].Invoke();
-        }
+        public void OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action, oneShot, deferred);
+
+        public void RemoveOnFocusEntered(Action action) =>
+            RemoveSignal(_onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action);
+
+        private void _GodotSignalFocusEntered() =>
+            ExecuteSignal(_onFocusEnteredAction);
         
 
         private List<Action>? _onFocusExitedAction; 
-        public GraphNodeAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) {
-                _onFocusExitedAction ??= new List<Action>(); 
-                GetParent().Connect("focus_exited", this, nameof(_GodotSignalFocusExited));
-            }
-            _onFocusExitedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnFocusExited(Action action) {
-            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return this;
-            _onFocusExitedAction.Remove(action); 
-            if (_onFocusExitedAction.Count == 0) {
-                GetParent().Disconnect("focus_exited", this, nameof(_GodotSignalFocusExited));
-            }
-            return this;
-        }
-        private void _GodotSignalFocusExited() {
-            if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return;
-            for (var i = 0; i < _onFocusExitedAction.Count; i++) _onFocusExitedAction[i].Invoke();
-        }
+        public void OnFocusExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action, oneShot, deferred);
+
+        public void RemoveOnFocusExited(Action action) =>
+            RemoveSignal(_onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action);
+
+        private void _GodotSignalFocusExited() =>
+            ExecuteSignal(_onFocusExitedAction);
         
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public GraphNodeAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
-            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) {
-                _onGuiInputAction ??= new List<Action<InputEvent>>(); 
-                GetParent().Connect("gui_input", this, nameof(_GodotSignalGuiInput));
-            }
-            _onGuiInputAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnGuiInput(Action<InputEvent> action) {
-            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return this;
-            _onGuiInputAction.Remove(action); 
-            if (_onGuiInputAction.Count == 0) {
-                GetParent().Disconnect("gui_input", this, nameof(_GodotSignalGuiInput));
-            }
-            return this;
-        }
-        private void _GodotSignalGuiInput(InputEvent @event) {
-            if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return;
-            for (var i = 0; i < _onGuiInputAction.Count; i++) _onGuiInputAction[i].Invoke(@event);
-        }
+        public void OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action, oneShot, deferred);
+
+        public void RemoveOnGuiInput(Action<InputEvent> action) =>
+            RemoveSignal(_onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action);
+
+        private void _GodotSignalGuiInput(InputEvent @event) =>
+            ExecuteSignal(_onGuiInputAction, @event);
         
 
         private List<Action>? _onHideAction; 
-        public GraphNodeAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onHideAction == null || _onHideAction.Count == 0) {
-                _onHideAction ??= new List<Action>(); 
-                GetParent().Connect("hide", this, nameof(_GodotSignalHide));
-            }
-            _onHideAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnHide(Action action) {
-            if (_onHideAction == null || _onHideAction.Count == 0) return this;
-            _onHideAction.Remove(action); 
-            if (_onHideAction.Count == 0) {
-                GetParent().Disconnect("hide", this, nameof(_GodotSignalHide));
-            }
-            return this;
-        }
-        private void _GodotSignalHide() {
-            if (_onHideAction == null || _onHideAction.Count == 0) return;
-            for (var i = 0; i < _onHideAction.Count; i++) _onHideAction[i].Invoke();
-        }
+        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+
+        public void RemoveOnHide(Action action) =>
+            RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+
+        private void _GodotSignalHide() =>
+            ExecuteSignal(_onHideAction);
         
 
         private List<Action>? _onItemRectChangedAction; 
-        public GraphNodeAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
-                _onItemRectChangedAction ??= new List<Action>(); 
-                GetParent().Connect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
-            }
-            _onItemRectChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnItemRectChanged(Action action) {
-            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
-            _onItemRectChangedAction.Remove(action); 
-            if (_onItemRectChangedAction.Count == 0) {
-                GetParent().Disconnect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalItemRectChanged() {
-            if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return;
-            for (var i = 0; i < _onItemRectChangedAction.Count; i++) _onItemRectChangedAction[i].Invoke();
-        }
+        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+
+        public void RemoveOnItemRectChanged(Action action) =>
+            RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+
+        private void _GodotSignalItemRectChanged() =>
+            ExecuteSignal(_onItemRectChangedAction);
         
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public GraphNodeAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) {
-                _onMinimumSizeChangedAction ??= new List<Action>(); 
-                GetParent().Connect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
-            }
-            _onMinimumSizeChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnMinimumSizeChanged(Action action) {
-            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return this;
-            _onMinimumSizeChangedAction.Remove(action); 
-            if (_onMinimumSizeChangedAction.Count == 0) {
-                GetParent().Disconnect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalMinimumSizeChanged() {
-            if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return;
-            for (var i = 0; i < _onMinimumSizeChangedAction.Count; i++) _onMinimumSizeChangedAction[i].Invoke();
-        }
+        public void OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action, oneShot, deferred);
+
+        public void RemoveOnMinimumSizeChanged(Action action) =>
+            RemoveSignal(_onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action);
+
+        private void _GodotSignalMinimumSizeChanged() =>
+            ExecuteSignal(_onMinimumSizeChangedAction);
         
 
         private List<Action>? _onModalClosedAction; 
-        public GraphNodeAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) {
-                _onModalClosedAction ??= new List<Action>(); 
-                GetParent().Connect("modal_closed", this, nameof(_GodotSignalModalClosed));
-            }
-            _onModalClosedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnModalClosed(Action action) {
-            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return this;
-            _onModalClosedAction.Remove(action); 
-            if (_onModalClosedAction.Count == 0) {
-                GetParent().Disconnect("modal_closed", this, nameof(_GodotSignalModalClosed));
-            }
-            return this;
-        }
-        private void _GodotSignalModalClosed() {
-            if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return;
-            for (var i = 0; i < _onModalClosedAction.Count; i++) _onModalClosedAction[i].Invoke();
-        }
+        public void OnModalClosed(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action, oneShot, deferred);
+
+        public void RemoveOnModalClosed(Action action) =>
+            RemoveSignal(_onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action);
+
+        private void _GodotSignalModalClosed() =>
+            ExecuteSignal(_onModalClosedAction);
         
 
         private List<Action>? _onMouseEnteredAction; 
-        public GraphNodeAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
-                _onMouseEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
-            }
-            _onMouseEnteredAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnMouseEntered(Action action) {
-            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
-            _onMouseEnteredAction.Remove(action); 
-            if (_onMouseEnteredAction.Count == 0) {
-                GetParent().Disconnect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalMouseEntered() {
-            if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onMouseEnteredAction.Count; i++) _onMouseEnteredAction[i].Invoke();
-        }
+        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+
+        public void RemoveOnMouseEntered(Action action) =>
+            RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+
+        private void _GodotSignalMouseEntered() =>
+            ExecuteSignal(_onMouseEnteredAction);
         
 
         private List<Action>? _onMouseExitedAction; 
-        public GraphNodeAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
-                _onMouseExitedAction ??= new List<Action>(); 
-                GetParent().Connect("mouse_exited", this, nameof(_GodotSignalMouseExited));
-            }
-            _onMouseExitedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnMouseExited(Action action) {
-            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
-            _onMouseExitedAction.Remove(action); 
-            if (_onMouseExitedAction.Count == 0) {
-                GetParent().Disconnect("mouse_exited", this, nameof(_GodotSignalMouseExited));
-            }
-            return this;
-        }
-        private void _GodotSignalMouseExited() {
-            if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return;
-            for (var i = 0; i < _onMouseExitedAction.Count; i++) _onMouseExitedAction[i].Invoke();
-        }
+        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+
+        public void RemoveOnMouseExited(Action action) =>
+            RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+
+        private void _GodotSignalMouseExited() =>
+            ExecuteSignal(_onMouseExitedAction);
         
 
         private List<Action>? _onOffsetChangedAction; 
-        public GraphNodeAction OnOffsetChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onOffsetChangedAction == null || _onOffsetChangedAction.Count == 0) {
-                _onOffsetChangedAction ??= new List<Action>(); 
-                GetParent().Connect("offset_changed", this, nameof(_GodotSignalOffsetChanged));
-            }
-            _onOffsetChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnOffsetChanged(Action action) {
-            if (_onOffsetChangedAction == null || _onOffsetChangedAction.Count == 0) return this;
-            _onOffsetChangedAction.Remove(action); 
-            if (_onOffsetChangedAction.Count == 0) {
-                GetParent().Disconnect("offset_changed", this, nameof(_GodotSignalOffsetChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalOffsetChanged() {
-            if (_onOffsetChangedAction == null || _onOffsetChangedAction.Count == 0) return;
-            for (var i = 0; i < _onOffsetChangedAction.Count; i++) _onOffsetChangedAction[i].Invoke();
-        }
+        public void OnOffsetChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onOffsetChangedAction, "offset_changed", nameof(_GodotSignalOffsetChanged), action, oneShot, deferred);
+
+        public void RemoveOnOffsetChanged(Action action) =>
+            RemoveSignal(_onOffsetChangedAction, "offset_changed", nameof(_GodotSignalOffsetChanged), action);
+
+        private void _GodotSignalOffsetChanged() =>
+            ExecuteSignal(_onOffsetChangedAction);
         
 
         private List<Action>? _onRaiseRequestAction; 
-        public GraphNodeAction OnRaiseRequest(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onRaiseRequestAction == null || _onRaiseRequestAction.Count == 0) {
-                _onRaiseRequestAction ??= new List<Action>(); 
-                GetParent().Connect("raise_request", this, nameof(_GodotSignalRaiseRequest));
-            }
-            _onRaiseRequestAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnRaiseRequest(Action action) {
-            if (_onRaiseRequestAction == null || _onRaiseRequestAction.Count == 0) return this;
-            _onRaiseRequestAction.Remove(action); 
-            if (_onRaiseRequestAction.Count == 0) {
-                GetParent().Disconnect("raise_request", this, nameof(_GodotSignalRaiseRequest));
-            }
-            return this;
-        }
-        private void _GodotSignalRaiseRequest() {
-            if (_onRaiseRequestAction == null || _onRaiseRequestAction.Count == 0) return;
-            for (var i = 0; i < _onRaiseRequestAction.Count; i++) _onRaiseRequestAction[i].Invoke();
-        }
+        public void OnRaiseRequest(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onRaiseRequestAction, "raise_request", nameof(_GodotSignalRaiseRequest), action, oneShot, deferred);
+
+        public void RemoveOnRaiseRequest(Action action) =>
+            RemoveSignal(_onRaiseRequestAction, "raise_request", nameof(_GodotSignalRaiseRequest), action);
+
+        private void _GodotSignalRaiseRequest() =>
+            ExecuteSignal(_onRaiseRequestAction);
         
 
         private List<Action>? _onReadyAction; 
-        public GraphNodeAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) {
-                _onReadyAction ??= new List<Action>(); 
-                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
-            }
-            _onReadyAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnReady(Action action) {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
-            _onReadyAction.Remove(action); 
-            if (_onReadyAction.Count == 0) {
-                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
-            }
-            return this;
-        }
-        private void _GodotSignalReady() {
-            if (_onReadyAction == null || _onReadyAction.Count == 0) return;
-            for (var i = 0; i < _onReadyAction.Count; i++) _onReadyAction[i].Invoke();
-        }
+        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+
+        public void RemoveOnReady(Action action) =>
+            RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+
+        private void _GodotSignalReady() =>
+            ExecuteSignal(_onReadyAction);
         
 
         private List<Action>? _onRenamedAction; 
-        public GraphNodeAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
-                _onRenamedAction ??= new List<Action>(); 
-                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            _onRenamedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnRenamed(Action action) {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
-            _onRenamedAction.Remove(action); 
-            if (_onRenamedAction.Count == 0) {
-                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
-            }
-            return this;
-        }
-        private void _GodotSignalRenamed() {
-            if (_onRenamedAction == null || _onRenamedAction.Count == 0) return;
-            for (var i = 0; i < _onRenamedAction.Count; i++) _onRenamedAction[i].Invoke();
-        }
+        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+
+        public void RemoveOnRenamed(Action action) =>
+            RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+
+        private void _GodotSignalRenamed() =>
+            ExecuteSignal(_onRenamedAction);
         
 
         private List<Action>? _onResizedAction; 
-        public GraphNodeAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onResizedAction == null || _onResizedAction.Count == 0) {
-                _onResizedAction ??= new List<Action>(); 
-                GetParent().Connect("resized", this, nameof(_GodotSignalResized));
-            }
-            _onResizedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnResized(Action action) {
-            if (_onResizedAction == null || _onResizedAction.Count == 0) return this;
-            _onResizedAction.Remove(action); 
-            if (_onResizedAction.Count == 0) {
-                GetParent().Disconnect("resized", this, nameof(_GodotSignalResized));
-            }
-            return this;
-        }
-        private void _GodotSignalResized() {
-            if (_onResizedAction == null || _onResizedAction.Count == 0) return;
-            for (var i = 0; i < _onResizedAction.Count; i++) _onResizedAction[i].Invoke();
-        }
+        public void OnResized(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onResizedAction, "resized", nameof(_GodotSignalResized), action, oneShot, deferred);
+
+        public void RemoveOnResized(Action action) =>
+            RemoveSignal(_onResizedAction, "resized", nameof(_GodotSignalResized), action);
+
+        private void _GodotSignalResized() =>
+            ExecuteSignal(_onResizedAction);
         
 
         private List<Action<Vector2>>? _onResizeRequestAction; 
-        public GraphNodeAction OnResizeRequest(Action<Vector2> action, bool oneShot = false, bool deferred = false) {
-            if (_onResizeRequestAction == null || _onResizeRequestAction.Count == 0) {
-                _onResizeRequestAction ??= new List<Action<Vector2>>(); 
-                GetParent().Connect("resize_request", this, nameof(_GodotSignalResizeRequest));
-            }
-            _onResizeRequestAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnResizeRequest(Action<Vector2> action) {
-            if (_onResizeRequestAction == null || _onResizeRequestAction.Count == 0) return this;
-            _onResizeRequestAction.Remove(action); 
-            if (_onResizeRequestAction.Count == 0) {
-                GetParent().Disconnect("resize_request", this, nameof(_GodotSignalResizeRequest));
-            }
-            return this;
-        }
-        private void _GodotSignalResizeRequest(Vector2 new_minsize) {
-            if (_onResizeRequestAction == null || _onResizeRequestAction.Count == 0) return;
-            for (var i = 0; i < _onResizeRequestAction.Count; i++) _onResizeRequestAction[i].Invoke(new_minsize);
-        }
+        public void OnResizeRequest(Action<Vector2> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onResizeRequestAction, "resize_request", nameof(_GodotSignalResizeRequest), action, oneShot, deferred);
+
+        public void RemoveOnResizeRequest(Action<Vector2> action) =>
+            RemoveSignal(_onResizeRequestAction, "resize_request", nameof(_GodotSignalResizeRequest), action);
+
+        private void _GodotSignalResizeRequest(Vector2 new_minsize) =>
+            ExecuteSignal(_onResizeRequestAction, new_minsize);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public GraphNodeAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public GraphNodeAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) {
-                _onSizeFlagsChangedAction ??= new List<Action>(); 
-                GetParent().Connect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
-            }
-            _onSizeFlagsChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnSizeFlagsChanged(Action action) {
-            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return this;
-            _onSizeFlagsChangedAction.Remove(action); 
-            if (_onSizeFlagsChangedAction.Count == 0) {
-                GetParent().Disconnect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalSizeFlagsChanged() {
-            if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return;
-            for (var i = 0; i < _onSizeFlagsChangedAction.Count; i++) _onSizeFlagsChangedAction[i].Invoke();
-        }
+        public void OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action, oneShot, deferred);
+
+        public void RemoveOnSizeFlagsChanged(Action action) =>
+            RemoveSignal(_onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action);
+
+        private void _GodotSignalSizeFlagsChanged() =>
+            ExecuteSignal(_onSizeFlagsChangedAction);
         
 
         private List<Action<int>>? _onSlotUpdatedAction; 
-        public GraphNodeAction OnSlotUpdated(Action<int> action, bool oneShot = false, bool deferred = false) {
-            if (_onSlotUpdatedAction == null || _onSlotUpdatedAction.Count == 0) {
-                _onSlotUpdatedAction ??= new List<Action<int>>(); 
-                GetParent().Connect("slot_updated", this, nameof(_GodotSignalSlotUpdated));
-            }
-            _onSlotUpdatedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnSlotUpdated(Action<int> action) {
-            if (_onSlotUpdatedAction == null || _onSlotUpdatedAction.Count == 0) return this;
-            _onSlotUpdatedAction.Remove(action); 
-            if (_onSlotUpdatedAction.Count == 0) {
-                GetParent().Disconnect("slot_updated", this, nameof(_GodotSignalSlotUpdated));
-            }
-            return this;
-        }
-        private void _GodotSignalSlotUpdated(int idx) {
-            if (_onSlotUpdatedAction == null || _onSlotUpdatedAction.Count == 0) return;
-            for (var i = 0; i < _onSlotUpdatedAction.Count; i++) _onSlotUpdatedAction[i].Invoke(idx);
-        }
+        public void OnSlotUpdated(Action<int> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onSlotUpdatedAction, "slot_updated", nameof(_GodotSignalSlotUpdated), action, oneShot, deferred);
+
+        public void RemoveOnSlotUpdated(Action<int> action) =>
+            RemoveSignal(_onSlotUpdatedAction, "slot_updated", nameof(_GodotSignalSlotUpdated), action);
+
+        private void _GodotSignalSlotUpdated(int idx) =>
+            ExecuteSignal(_onSlotUpdatedAction, idx);
         
 
         private List<Action>? _onSortChildrenAction; 
-        public GraphNodeAction OnSortChildren(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onSortChildrenAction == null || _onSortChildrenAction.Count == 0) {
-                _onSortChildrenAction ??= new List<Action>(); 
-                GetParent().Connect("sort_children", this, nameof(_GodotSignalSortChildren));
-            }
-            _onSortChildrenAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnSortChildren(Action action) {
-            if (_onSortChildrenAction == null || _onSortChildrenAction.Count == 0) return this;
-            _onSortChildrenAction.Remove(action); 
-            if (_onSortChildrenAction.Count == 0) {
-                GetParent().Disconnect("sort_children", this, nameof(_GodotSignalSortChildren));
-            }
-            return this;
-        }
-        private void _GodotSignalSortChildren() {
-            if (_onSortChildrenAction == null || _onSortChildrenAction.Count == 0) return;
-            for (var i = 0; i < _onSortChildrenAction.Count; i++) _onSortChildrenAction[i].Invoke();
-        }
+        public void OnSortChildren(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onSortChildrenAction, "sort_children", nameof(_GodotSignalSortChildren), action, oneShot, deferred);
+
+        public void RemoveOnSortChildren(Action action) =>
+            RemoveSignal(_onSortChildrenAction, "sort_children", nameof(_GodotSignalSortChildren), action);
+
+        private void _GodotSignalSortChildren() =>
+            ExecuteSignal(_onSortChildrenAction);
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public GraphNodeAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
-                _onTreeEnteredAction ??= new List<Action>(); 
-                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            _onTreeEnteredAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnTreeEntered(Action action) {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
-            _onTreeEnteredAction.Remove(action); 
-            if (_onTreeEnteredAction.Count == 0) {
-                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeEntered() {
-            if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return;
-            for (var i = 0; i < _onTreeEnteredAction.Count; i++) _onTreeEnteredAction[i].Invoke();
-        }
+        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+
+        public void RemoveOnTreeEntered(Action action) =>
+            RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+
+        private void _GodotSignalTreeEntered() =>
+            ExecuteSignal(_onTreeEnteredAction);
         
 
         private List<Action>? _onTreeExitedAction; 
-        public GraphNodeAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
-                _onTreeExitedAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            _onTreeExitedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnTreeExited(Action action) {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
-            _onTreeExitedAction.Remove(action); 
-            if (_onTreeExitedAction.Count == 0) {
-                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExited() {
-            if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitedAction.Count; i++) _onTreeExitedAction[i].Invoke();
-        }
+        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+
+        public void RemoveOnTreeExited(Action action) =>
+            RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+
+        private void _GodotSignalTreeExited() =>
+            ExecuteSignal(_onTreeExitedAction);
         
 
         private List<Action>? _onTreeExitingAction; 
-        public GraphNodeAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
-                _onTreeExitingAction ??= new List<Action>(); 
-                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            _onTreeExitingAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnTreeExiting(Action action) {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
-            _onTreeExitingAction.Remove(action); 
-            if (_onTreeExitingAction.Count == 0) {
-                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
-            }
-            return this;
-        }
-        private void _GodotSignalTreeExiting() {
-            if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return;
-            for (var i = 0; i < _onTreeExitingAction.Count; i++) _onTreeExitingAction[i].Invoke();
-        }
+        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+
+        public void RemoveOnTreeExiting(Action action) =>
+            RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+
+        private void _GodotSignalTreeExiting() =>
+            ExecuteSignal(_onTreeExitingAction);
         
 
         private List<Action>? _onVisibilityChangedAction; 
-        public GraphNodeAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
-                _onVisibilityChangedAction ??= new List<Action>(); 
-                GetParent().Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
-            }
-            _onVisibilityChangedAction.Add(action);
-            return this;
-        }
-        public GraphNodeAction RemoveOnVisibilityChanged(Action action) {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
-            _onVisibilityChangedAction.Remove(action); 
-            if (_onVisibilityChangedAction.Count == 0) {
-                GetParent().Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalVisibilityChanged() {
-            if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return;
-            for (var i = 0; i < _onVisibilityChangedAction.Count; i++) _onVisibilityChangedAction[i].Invoke();
-        }
+        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+
+        public void RemoveOnVisibilityChanged(Action action) =>
+            RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+
+        private void _GodotSignalVisibilityChanged() =>
+            ExecuteSignal(_onVisibilityChangedAction);
         
     }
 }

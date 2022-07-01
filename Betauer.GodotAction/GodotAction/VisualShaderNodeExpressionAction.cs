@@ -6,83 +6,39 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class VisualShaderNodeExpressionAction : Node {
-        public VisualShaderNodeExpressionAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
+    public class VisualShaderNodeExpressionAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public VisualShaderNodeExpressionAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) {
-                _onChangedAction ??= new List<Action>(); 
-                GetParent().Connect("changed", this, nameof(_GodotSignalChanged));
-            }
-            _onChangedAction.Add(action);
-            return this;
-        }
-        public VisualShaderNodeExpressionAction RemoveOnChanged(Action action) {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
-            _onChangedAction.Remove(action); 
-            if (_onChangedAction.Count == 0) {
-                GetParent().Disconnect("changed", this, nameof(_GodotSignalChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalChanged() {
-            if (_onChangedAction == null || _onChangedAction.Count == 0) return;
-            for (var i = 0; i < _onChangedAction.Count; i++) _onChangedAction[i].Invoke();
-        }
+        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+
+        public void RemoveOnChanged(Action action) =>
+            RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+
+        private void _GodotSignalChanged() =>
+            ExecuteSignal(_onChangedAction);
         
 
         private List<Action>? _onEditorRefreshRequestAction; 
-        public VisualShaderNodeExpressionAction OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) {
-                _onEditorRefreshRequestAction ??= new List<Action>(); 
-                GetParent().Connect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
-            }
-            _onEditorRefreshRequestAction.Add(action);
-            return this;
-        }
-        public VisualShaderNodeExpressionAction RemoveOnEditorRefreshRequest(Action action) {
-            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) return this;
-            _onEditorRefreshRequestAction.Remove(action); 
-            if (_onEditorRefreshRequestAction.Count == 0) {
-                GetParent().Disconnect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
-            }
-            return this;
-        }
-        private void _GodotSignalEditorRefreshRequest() {
-            if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) return;
-            for (var i = 0; i < _onEditorRefreshRequestAction.Count; i++) _onEditorRefreshRequestAction[i].Invoke();
-        }
+        public void OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action, oneShot, deferred);
+
+        public void RemoveOnEditorRefreshRequest(Action action) =>
+            RemoveSignal(_onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action);
+
+        private void _GodotSignalEditorRefreshRequest() =>
+            ExecuteSignal(_onEditorRefreshRequestAction);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public VisualShaderNodeExpressionAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public VisualShaderNodeExpressionAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
     }
 }

@@ -6,175 +6,83 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class MultiplayerAPIAction : Node {
-        public MultiplayerAPIAction() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
+    public class MultiplayerAPIAction : ProxyNode {
 
         private List<Action>? _onConnectedToServerAction; 
-        public MultiplayerAPIAction OnConnectedToServer(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) {
-                _onConnectedToServerAction ??= new List<Action>(); 
-                GetParent().Connect("connected_to_server", this, nameof(_GodotSignalConnectedToServer));
-            }
-            _onConnectedToServerAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnConnectedToServer(Action action) {
-            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return this;
-            _onConnectedToServerAction.Remove(action); 
-            if (_onConnectedToServerAction.Count == 0) {
-                GetParent().Disconnect("connected_to_server", this, nameof(_GodotSignalConnectedToServer));
-            }
-            return this;
-        }
-        private void _GodotSignalConnectedToServer() {
-            if (_onConnectedToServerAction == null || _onConnectedToServerAction.Count == 0) return;
-            for (var i = 0; i < _onConnectedToServerAction.Count; i++) _onConnectedToServerAction[i].Invoke();
-        }
+        public void OnConnectedToServer(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onConnectedToServerAction, "connected_to_server", nameof(_GodotSignalConnectedToServer), action, oneShot, deferred);
+
+        public void RemoveOnConnectedToServer(Action action) =>
+            RemoveSignal(_onConnectedToServerAction, "connected_to_server", nameof(_GodotSignalConnectedToServer), action);
+
+        private void _GodotSignalConnectedToServer() =>
+            ExecuteSignal(_onConnectedToServerAction);
         
 
         private List<Action>? _onConnectionFailedAction; 
-        public MultiplayerAPIAction OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) {
-                _onConnectionFailedAction ??= new List<Action>(); 
-                GetParent().Connect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
-            }
-            _onConnectionFailedAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnConnectionFailed(Action action) {
-            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return this;
-            _onConnectionFailedAction.Remove(action); 
-            if (_onConnectionFailedAction.Count == 0) {
-                GetParent().Disconnect("connection_failed", this, nameof(_GodotSignalConnectionFailed));
-            }
-            return this;
-        }
-        private void _GodotSignalConnectionFailed() {
-            if (_onConnectionFailedAction == null || _onConnectionFailedAction.Count == 0) return;
-            for (var i = 0; i < _onConnectionFailedAction.Count; i++) _onConnectionFailedAction[i].Invoke();
-        }
+        public void OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action, oneShot, deferred);
+
+        public void RemoveOnConnectionFailed(Action action) =>
+            RemoveSignal(_onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action);
+
+        private void _GodotSignalConnectionFailed() =>
+            ExecuteSignal(_onConnectionFailedAction);
         
 
         private List<Action<int>>? _onNetworkPeerConnectedAction; 
-        public MultiplayerAPIAction OnNetworkPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) {
-            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) {
-                _onNetworkPeerConnectedAction ??= new List<Action<int>>(); 
-                GetParent().Connect("network_peer_connected", this, nameof(_GodotSignalNetworkPeerConnected));
-            }
-            _onNetworkPeerConnectedAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnNetworkPeerConnected(Action<int> action) {
-            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return this;
-            _onNetworkPeerConnectedAction.Remove(action); 
-            if (_onNetworkPeerConnectedAction.Count == 0) {
-                GetParent().Disconnect("network_peer_connected", this, nameof(_GodotSignalNetworkPeerConnected));
-            }
-            return this;
-        }
-        private void _GodotSignalNetworkPeerConnected(int id) {
-            if (_onNetworkPeerConnectedAction == null || _onNetworkPeerConnectedAction.Count == 0) return;
-            for (var i = 0; i < _onNetworkPeerConnectedAction.Count; i++) _onNetworkPeerConnectedAction[i].Invoke(id);
-        }
+        public void OnNetworkPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onNetworkPeerConnectedAction, "network_peer_connected", nameof(_GodotSignalNetworkPeerConnected), action, oneShot, deferred);
+
+        public void RemoveOnNetworkPeerConnected(Action<int> action) =>
+            RemoveSignal(_onNetworkPeerConnectedAction, "network_peer_connected", nameof(_GodotSignalNetworkPeerConnected), action);
+
+        private void _GodotSignalNetworkPeerConnected(int id) =>
+            ExecuteSignal(_onNetworkPeerConnectedAction, id);
         
 
         private List<Action<int>>? _onNetworkPeerDisconnectedAction; 
-        public MultiplayerAPIAction OnNetworkPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) {
-            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) {
-                _onNetworkPeerDisconnectedAction ??= new List<Action<int>>(); 
-                GetParent().Connect("network_peer_disconnected", this, nameof(_GodotSignalNetworkPeerDisconnected));
-            }
-            _onNetworkPeerDisconnectedAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnNetworkPeerDisconnected(Action<int> action) {
-            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return this;
-            _onNetworkPeerDisconnectedAction.Remove(action); 
-            if (_onNetworkPeerDisconnectedAction.Count == 0) {
-                GetParent().Disconnect("network_peer_disconnected", this, nameof(_GodotSignalNetworkPeerDisconnected));
-            }
-            return this;
-        }
-        private void _GodotSignalNetworkPeerDisconnected(int id) {
-            if (_onNetworkPeerDisconnectedAction == null || _onNetworkPeerDisconnectedAction.Count == 0) return;
-            for (var i = 0; i < _onNetworkPeerDisconnectedAction.Count; i++) _onNetworkPeerDisconnectedAction[i].Invoke(id);
-        }
+        public void OnNetworkPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onNetworkPeerDisconnectedAction, "network_peer_disconnected", nameof(_GodotSignalNetworkPeerDisconnected), action, oneShot, deferred);
+
+        public void RemoveOnNetworkPeerDisconnected(Action<int> action) =>
+            RemoveSignal(_onNetworkPeerDisconnectedAction, "network_peer_disconnected", nameof(_GodotSignalNetworkPeerDisconnected), action);
+
+        private void _GodotSignalNetworkPeerDisconnected(int id) =>
+            ExecuteSignal(_onNetworkPeerDisconnectedAction, id);
         
 
         private List<Action<int, byte[]>>? _onNetworkPeerPacketAction; 
-        public MultiplayerAPIAction OnNetworkPeerPacket(Action<int, byte[]> action, bool oneShot = false, bool deferred = false) {
-            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) {
-                _onNetworkPeerPacketAction ??= new List<Action<int, byte[]>>(); 
-                GetParent().Connect("network_peer_packet", this, nameof(_GodotSignalNetworkPeerPacket));
-            }
-            _onNetworkPeerPacketAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnNetworkPeerPacket(Action<int, byte[]> action) {
-            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) return this;
-            _onNetworkPeerPacketAction.Remove(action); 
-            if (_onNetworkPeerPacketAction.Count == 0) {
-                GetParent().Disconnect("network_peer_packet", this, nameof(_GodotSignalNetworkPeerPacket));
-            }
-            return this;
-        }
-        private void _GodotSignalNetworkPeerPacket(int id, byte[] packet) {
-            if (_onNetworkPeerPacketAction == null || _onNetworkPeerPacketAction.Count == 0) return;
-            for (var i = 0; i < _onNetworkPeerPacketAction.Count; i++) _onNetworkPeerPacketAction[i].Invoke(id, packet);
-        }
+        public void OnNetworkPeerPacket(Action<int, byte[]> action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onNetworkPeerPacketAction, "network_peer_packet", nameof(_GodotSignalNetworkPeerPacket), action, oneShot, deferred);
+
+        public void RemoveOnNetworkPeerPacket(Action<int, byte[]> action) =>
+            RemoveSignal(_onNetworkPeerPacketAction, "network_peer_packet", nameof(_GodotSignalNetworkPeerPacket), action);
+
+        private void _GodotSignalNetworkPeerPacket(int id, byte[] packet) =>
+            ExecuteSignal(_onNetworkPeerPacketAction, id, packet);
         
 
         private List<Action>? _onScriptChangedAction; 
-        public MultiplayerAPIAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
-                _onScriptChangedAction ??= new List<Action>(); 
-                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            _onScriptChangedAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnScriptChanged(Action action) {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
-            _onScriptChangedAction.Remove(action); 
-            if (_onScriptChangedAction.Count == 0) {
-                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
-            }
-            return this;
-        }
-        private void _GodotSignalScriptChanged() {
-            if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return;
-            for (var i = 0; i < _onScriptChangedAction.Count; i++) _onScriptChangedAction[i].Invoke();
-        }
+        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+
+        public void RemoveOnScriptChanged(Action action) =>
+            RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+
+        private void _GodotSignalScriptChanged() =>
+            ExecuteSignal(_onScriptChangedAction);
         
 
         private List<Action>? _onServerDisconnectedAction; 
-        public MultiplayerAPIAction OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) {
-            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) {
-                _onServerDisconnectedAction ??= new List<Action>(); 
-                GetParent().Connect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
-            }
-            _onServerDisconnectedAction.Add(action);
-            return this;
-        }
-        public MultiplayerAPIAction RemoveOnServerDisconnected(Action action) {
-            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return this;
-            _onServerDisconnectedAction.Remove(action); 
-            if (_onServerDisconnectedAction.Count == 0) {
-                GetParent().Disconnect("server_disconnected", this, nameof(_GodotSignalServerDisconnected));
-            }
-            return this;
-        }
-        private void _GodotSignalServerDisconnected() {
-            if (_onServerDisconnectedAction == null || _onServerDisconnectedAction.Count == 0) return;
-            for (var i = 0; i < _onServerDisconnectedAction.Count; i++) _onServerDisconnectedAction[i].Invoke();
-        }
+        public void OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) =>
+            AddSignal(ref _onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action, oneShot, deferred);
+
+        public void RemoveOnServerDisconnected(Action action) =>
+            RemoveSignal(_onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action);
+
+        private void _GodotSignalServerDisconnected() =>
+            ExecuteSignal(_onServerDisconnectedAction);
         
     }
 }
