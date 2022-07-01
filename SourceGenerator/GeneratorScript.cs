@@ -4,103 +4,127 @@ using System.Linq;
 using Godot;
 using File = System.IO.File;
 
-/**
+namespace Generator {
+    /**
      * Based on: https://github.com/semickolon/GodotRx/blob/6bf1a1ba9ffbe939e888d8d545c8d448a1f07bce/addons/godotrx/codegen.js
      * 
      * call with -s GeneratorScript.cs --no-window
      */
-public class GeneratorScript : SceneTree {
+    public class GeneratorScript : SceneTree {
 
-    private const string SignalExtensionsFile = "../Betauer.Core/SignalExtensions.cs";
-    private const string SignalConstantsFile = "../Betauer.Core/SignalConstants.cs";
-    private const string ActionClassesPath = "../Betauer.GodotAction/GodotAction";
+        private const string SignalHandlerExtensionsFile = "../Betauer.Core/SignalHandlerExtensions.cs";
+        private const string GodotActionsExtensionsFile = "../Betauer.GodotAction/GodotActionExtensions.cs";
+        private const string SignalConstantsFile = "../Betauer.Core/SignalConstants.cs";
+        private const string ActionClassesPath = "../Betauer.GodotAction/GodotAction";
     
-    private const string ActionClassNamespace = "Betauer.GodotAction";
+        private const string GodotActionClassesNamespace = "Betauer.GodotAction";
     
-    public override void _Initialize() {
-        while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
-        var classes = LoadGodotClasses();
-        WriteAllActionClasses(classes);
-        WriteSignalExtensionsClass(classes);
-        WriteSignalConstantsClass(classes);
-        Quit(0);
-    }
+        public override void _Initialize() {
+            while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
+            var classes = LoadGodotClasses();
+            WriteAllActionClasses(classes);
+            WriteSignalHandlerExtensionsClass(classes);
+            WriteGodotActionExtensionsClass(classes);
+            WriteSignalConstantsClass(classes);
+            Quit(0);
+        }
 
-    private void WriteSignalExtensionsClass(List<GodotClass> classes) {
-        List<string> allMethods = classes
-            .Where(godotClass => godotClass.Signals.Count > 0 &&
-                                 !godotClass.IsEditor)
-            .SelectMany(godotClass => godotClass.Signals)
-            .Select(CreateSignalExtensionMethod)
-            .ToList();
-        var bodySignalExtensionsClass = CreateSignalExtensionsClass(allMethods);
-        Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalExtensionsFile)}");
-        File.WriteAllText(SignalExtensionsFile, bodySignalExtensionsClass);
-    }
+        private void WriteSignalHandlerExtensionsClass(List<GodotClass> classes) {
+            List<string> allMethods = classes
+                .Where(godotClass => godotClass.Signals.Count > 0 &&
+                                     !godotClass.IsEditor)
+                .SelectMany(godotClass => godotClass.Signals)
+                .Select(CreateSignalHandlerExtensionsMethod)
+                .ToList();
+            var bodySignalExtensionsClass = CreateSignalHandlerExtensionsClass(allMethods);
+            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalHandlerExtensionsFile)}");
+            File.WriteAllText(SignalHandlerExtensionsFile, bodySignalExtensionsClass);
+        }
 
-    private void WriteSignalConstantsClass(List<GodotClass> classes) {
-        List<string> allMethods = classes
-            .Where(godotClass => godotClass.Signals.Count > 0 &&
-                                 !godotClass.IsEditor)
-            .SelectMany(godotClass => godotClass.Signals)
-            .Select(CreateSignalConstantField)
-            .ToList();
-        var bodySignalConstantsClass = CreateSignalConstantsClass(allMethods);
-        Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalConstantsFile)}");
-        File.WriteAllText(SignalConstantsFile, bodySignalConstantsClass);
-    }
+        private void WriteGodotActionExtensionsClass(List<GodotClass> classes) {
+            List<string> allMethods = classes
+                .Where(godotClass => godotClass.AllSignals.Count > 0 &&
+                                     godotClass.IsNode &&
+                                     !godotClass.IsEditor &&
+                                     !godotClass.IsStatic &&
+                                     !godotClass.IsAbstract)
+                .SelectMany(godotClass => godotClass.AllSignals)
+                .Select(CreateGodotActionExtensionsMethod)
+                .ToList();
+            var bodySignalExtensionsClass = CreateGodotActionExtensionsClass(allMethods);
+            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(GodotActionsExtensionsFile)}");
+            File.WriteAllText(GodotActionsExtensionsFile, bodySignalExtensionsClass);
+        }
 
-    private void WriteAllActionClasses(List<GodotClass> classes) {
-        var n = 0;
-        classes.Where(godotClass => godotClass.AllSignals.Count > 0 &&
-                                    !godotClass.IsEditor &&
-                                    !godotClass.IsStatic &&
-                                    !godotClass.IsAbstract)
-            .ToList()
-            .ForEach(godotClass=> {
-                WriteClass(godotClass);
-                n++;
-            });
-        Console.WriteLine($"Generated {n} Action classes in {System.IO.Path.GetFullPath(ActionClassesPath)}");
-    }
+        private void WriteSignalConstantsClass(List<GodotClass> classes) {
+            List<string> allMethods = classes
+                .Where(godotClass => godotClass.Signals.Count > 0 &&
+                                     !godotClass.IsEditor)
+                .SelectMany(godotClass => godotClass.Signals)
+                .Select(CreateSignalConstantField)
+                .ToList();
+            var bodySignalConstantsClass = CreateSignalConstantsClass(allMethods);
+            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalConstantsFile)}");
+            File.WriteAllText(SignalConstantsFile, bodySignalConstantsClass);
+        }
 
-    private static List<GodotClass> LoadGodotClasses() {
-        var classes = ClassDB.GetClassList()
-            .Select(className => new GodotClass(className))
-            .Where(godotClass => godotClass.IsValid)
-            .OrderBy(godotClass => godotClass.class_name)
-            .ToList();
-        return classes;
-    }
+        private void WriteAllActionClasses(List<GodotClass> classes) {
+            var n = 0;
+            classes.Where(godotClass => godotClass.AllSignals.Count > 0 &&
+                                        !godotClass.IsEditor &&
+                                        !godotClass.IsStatic &&
+                                        !godotClass.IsAbstract)
+                .ToList()
+                .ForEach(godotClass=> {
+                    WriteClass(godotClass);
+                    n++;
+                });
+            Console.WriteLine($"Generated {n} Action classes in {System.IO.Path.GetFullPath(ActionClassesPath)}");
+        }
 
-    private void WriteClass(GodotClass godotClass) {
-        var bodyClass = CreateActionClass(godotClass);
-        File.WriteAllText(ActionClassesPath + "/" + godotClass.GeneratedClassName + ".cs", bodyClass);
-    }
+        private static List<GodotClass> LoadGodotClasses() {
+            var classes = ClassDB.GetClassList()
+                .Select(className => new GodotClass(className))
+                .Where(godotClass => godotClass.IsValid)
+                .OrderBy(godotClass => godotClass.class_name)
+                .ToList();
+            return classes;
+        }
 
-    private string CreateSignalExtensionMethod(Signal signal) {
-        var targetParam = signal.GodotClass.IsStatic
-            ? ""
-            : $"this {signal.GodotClass.FullClassName} target, ";
-        var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
-        return $@"
-        public static SignalHandler{signal.Generics()} On{signal.MethodName}({targetParam}Action{signal.Generics()} action) =>
-            new SignalHandler{signal.Generics()}({target}, SignalConstants.{signal.SignalCsharpConstantName}, action);";
-    }
+        private void WriteClass(GodotClass godotClass) {
+            var bodyClass = CreateActionClass(godotClass);
+            File.WriteAllText(ActionClassesPath + "/" + godotClass.GeneratedClassName + ".cs", bodyClass);
+        }
 
-    private string CreateSignalConstantField(Signal signal) {
-        return $@"        public const string {signal.SignalCsharpConstantName} = ""{signal.signal_name}"";";
-    }
+        private string CreateSignalHandlerExtensionsMethod(Signal signal) {
+            var targetParam = signal.GodotClass.IsStatic
+                ? ""
+                : $"this {signal.GodotClass.FullClassName} target, ";
+            var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
+            return $@"
+        public static SignalHandlerAction{signal.Generics()} On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
+            new SignalHandlerAction{signal.Generics()}({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
+        }
 
-    private string CreateActionMethod(Signal signal) {
-        var actionVarName = $"_on{signal.MethodName}Action";
-        var godotExecuteActionMethodName = $"_GodotSignal{signal.MethodName}";
-        return $@"
+        private string CreateGodotActionExtensionsMethod(Signal signal) {
+            return $@"
+        public static {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
+            NodeAction.GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);";
+        }
+
+        private string CreateSignalConstantField(Signal signal) {
+            return $@"        public const string {signal.SignalCsharpConstantName} = ""{signal.signal_name}"";";
+        }
+
+        private string CreateSignalMethod(Signal signal) {
+            var actionVarName = $"_on{signal.MethodName}Action";
+            var godotExecuteActionMethodName = $"_GodotSignal{signal.MethodName}";
+            return $@"
         private List<Action{signal.Generics()}>? {actionVarName}; 
-        public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action) {{
+        public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
             if ({actionVarName} == null || {actionVarName}.Count == 0) {{
                 {actionVarName} ??= new List<Action{signal.Generics()}>(); 
-                Connect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
+                GetParent().Connect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
             }}
             {actionVarName}.Add(action);
             return this;
@@ -109,7 +133,7 @@ public class GeneratorScript : SceneTree {
             if ({actionVarName} == null || {actionVarName}.Count == 0) return this;
             {actionVarName}.Remove(action); 
             if ({actionVarName}.Count == 0) {{
-                Disconnect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
+                GetParent().Disconnect(""{signal.signal_name}"", this, nameof({godotExecuteActionMethodName}));
             }}
             return this;
         }}
@@ -118,52 +142,75 @@ public class GeneratorScript : SceneTree {
             for (var i = 0; i < {actionVarName}.Count; i++) {actionVarName}[i].Invoke({signal.GetParamNames()});
         }}
         ";
-    }
+        }
 
-    private string CreateActionClass(GodotClass godotClass) {
-        var methods = godotClass.AllSignals.Select(CreateActionMethod);
-        var className = godotClass.GeneratedClassName;
-        var extends = godotClass.FullClassName;
-        var nodeMethods = godotClass.IsNode ? CreateNodeMethods(className) : "";
-        return $@"using System;
+        private string CreateActionClass(GodotClass godotClass) {
+            var methods = godotClass.AllSignals.Where(signal=>!signal.GodotClass.IsAbstract).Select(CreateSignalMethod);
+            var className = godotClass.GeneratedClassName;
+            var extends = godotClass.FullClassName;
+            var nodeMethods = godotClass.IsNode ? CreateNodeMethods(className) : "";
+            return $@"using System;
 using Godot;
 using System.Collections.Generic;
 using Environment = Godot.Environment;
 using Animation = Godot.Animation;
 using Object = Godot.Object;
 
-namespace {ActionClassNamespace} {{
-    public class {className} : {extends} {{
+namespace {GodotActionClassesNamespace} {{
+    public class {className} : Node {{
+        public {className}() {{
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }}
 {nodeMethods}
 {string.Join("\n", methods)}
     }}
 }}";
-    }
+        }
 
-    private string CreateSignalExtensionsClass(IEnumerable<string> methods) {
-        return $@"using System;
+        private string CreateSignalHandlerExtensionsClass(IEnumerable<string> methods) {
+            return $@"using System;
 using Godot;
 using Object = Godot.Object;
 using Animation = Godot.Animation;
+using Environment = Godot.Environment;
 
 namespace Betauer {{
     public static partial class SignalExtensions {{
 {string.Join("\n", methods)}
     }}
 }}";
-    }
+        }
 
-    private string CreateSignalConstantsClass(IEnumerable<string> methods) {
-        return $@"using System;
+        private string CreateGodotActionExtensionsClass(IEnumerable<string> methods) {
+            return $@"using System;
+using Godot;
+using Object = Godot.Object;
+using Animation = Godot.Animation;
+using Environment = Godot.Environment;
+using {GodotActionClassesNamespace};
+
+namespace Betauer {{
+    public static partial class GodotActionExtensions {{
+{string.Join("\n", methods)}
+    }}
+}}";
+        }
+
+        private string CreateSignalConstantsClass(IEnumerable<string> methods) {
+            return $@"using System;
 namespace Betauer {{
     public static partial class SignalConstants {{
 {string.Join("\n", methods)}
     }}
 }}";
-    }
+        }
 
-    private string CreateNodeMethods(string className) {
-        return $@"
+        private string CreateNodeMethods(string className) {
+            return $@"
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
         private List<Action<InputEvent>>? _onInputActions; 
@@ -268,12 +315,13 @@ namespace Betauer {{
             }}
             for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
         }}";
+        }
     }
-}
 
-public static class Tools {
-    public static string CamelCase(string name) =>
-        name.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
-            .Aggregate(string.Empty, (s1, s2) => s1 + s2);
+    public static class Tools {
+        public static string CamelCase(string name) =>
+            name.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
+                .Aggregate(string.Empty, (s1, s2) => s1 + s2);
+    }
 }
