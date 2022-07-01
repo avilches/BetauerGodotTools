@@ -108,8 +108,10 @@ namespace Generator {
 
         private string CreateGodotActionExtensionsMethod(Signal signal) {
             return $@"
-        public static {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
-            NodeAction.GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);";
+        public static {signal.GodotClass.FullClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
+            NodeAction.GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);
+            return target;
+        }}";
         }
 
         private string CreateSignalConstantField(Signal signal) {
