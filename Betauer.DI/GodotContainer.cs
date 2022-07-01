@@ -11,6 +11,7 @@ namespace Betauer.DI {
         private Container? _container;
 
         public GodotContainer() {
+            PauseMode = PauseModeEnum.Process;
         }
 
         public GodotContainer(Container container) {
