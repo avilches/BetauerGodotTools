@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class AnimationNodeBlendSpace2DAction : AnimationNodeBlendSpace2D {
+    public class AnimationNodeBlendSpace2DAction : Node {
+        public AnimationNodeBlendSpace2DAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action>? _onChangedAction; 
-        public AnimationNodeBlendSpace2DAction OnChanged(Action action) {
+        public AnimationNodeBlendSpace2DAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onChangedAction == null || _onChangedAction.Count == 0) {
                 _onChangedAction ??= new List<Action>(); 
-                Connect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Connect("changed", this, nameof(_GodotSignalChanged));
             }
             _onChangedAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
             _onChangedAction.Remove(action); 
             if (_onChangedAction.Count == 0) {
-                Disconnect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Disconnect("changed", this, nameof(_GodotSignalChanged));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRemovedFromGraphAction; 
-        public AnimationNodeBlendSpace2DAction OnRemovedFromGraph(Action action) {
+        public AnimationNodeBlendSpace2DAction OnRemovedFromGraph(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) {
                 _onRemovedFromGraphAction ??= new List<Action>(); 
-                Connect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
+                GetParent().Connect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
             }
             _onRemovedFromGraphAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onRemovedFromGraphAction == null || _onRemovedFromGraphAction.Count == 0) return this;
             _onRemovedFromGraphAction.Remove(action); 
             if (_onRemovedFromGraphAction.Count == 0) {
-                Disconnect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
+                GetParent().Disconnect("removed_from_graph", this, nameof(_GodotSignalRemovedFromGraph));
             }
             return this;
         }
@@ -56,10 +63,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public AnimationNodeBlendSpace2DAction OnScriptChanged(Action action) {
+        public AnimationNodeBlendSpace2DAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -68,7 +75,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -79,10 +86,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeChangedAction; 
-        public AnimationNodeBlendSpace2DAction OnTreeChanged(Action action) {
+        public AnimationNodeBlendSpace2DAction OnTreeChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) {
                 _onTreeChangedAction ??= new List<Action>(); 
-                Connect("tree_changed", this, nameof(_GodotSignalTreeChanged));
+                GetParent().Connect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             _onTreeChangedAction.Add(action);
             return this;
@@ -91,7 +98,7 @@ namespace Betauer.GodotAction {
             if (_onTreeChangedAction == null || _onTreeChangedAction.Count == 0) return this;
             _onTreeChangedAction.Remove(action); 
             if (_onTreeChangedAction.Count == 0) {
-                Disconnect("tree_changed", this, nameof(_GodotSignalTreeChanged));
+                GetParent().Disconnect("tree_changed", this, nameof(_GodotSignalTreeChanged));
             }
             return this;
         }
@@ -102,10 +109,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTrianglesUpdatedAction; 
-        public AnimationNodeBlendSpace2DAction OnTrianglesUpdated(Action action) {
+        public AnimationNodeBlendSpace2DAction OnTrianglesUpdated(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTrianglesUpdatedAction == null || _onTrianglesUpdatedAction.Count == 0) {
                 _onTrianglesUpdatedAction ??= new List<Action>(); 
-                Connect("triangles_updated", this, nameof(_GodotSignalTrianglesUpdated));
+                GetParent().Connect("triangles_updated", this, nameof(_GodotSignalTrianglesUpdated));
             }
             _onTrianglesUpdatedAction.Add(action);
             return this;
@@ -114,7 +121,7 @@ namespace Betauer.GodotAction {
             if (_onTrianglesUpdatedAction == null || _onTrianglesUpdatedAction.Count == 0) return this;
             _onTrianglesUpdatedAction.Remove(action); 
             if (_onTrianglesUpdatedAction.Count == 0) {
-                Disconnect("triangles_updated", this, nameof(_GodotSignalTrianglesUpdated));
+                GetParent().Disconnect("triangles_updated", this, nameof(_GodotSignalTrianglesUpdated));
             }
             return this;
         }

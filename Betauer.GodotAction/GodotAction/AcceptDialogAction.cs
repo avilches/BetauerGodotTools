@@ -6,7 +6,14 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class AcceptDialogAction : AcceptDialog {
+    public class AcceptDialogAction : Node {
+        public AcceptDialogAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
@@ -114,10 +121,10 @@ namespace Betauer.GodotAction {
         }
 
         private List<Action>? _onAboutToShowAction; 
-        public AcceptDialogAction OnAboutToShow(Action action) {
+        public AcceptDialogAction OnAboutToShow(Action action, bool oneShot = false, bool deferred = false) {
             if (_onAboutToShowAction == null || _onAboutToShowAction.Count == 0) {
                 _onAboutToShowAction ??= new List<Action>(); 
-                Connect("about_to_show", this, nameof(_GodotSignalAboutToShow));
+                GetParent().Connect("about_to_show", this, nameof(_GodotSignalAboutToShow));
             }
             _onAboutToShowAction.Add(action);
             return this;
@@ -126,7 +133,7 @@ namespace Betauer.GodotAction {
             if (_onAboutToShowAction == null || _onAboutToShowAction.Count == 0) return this;
             _onAboutToShowAction.Remove(action); 
             if (_onAboutToShowAction.Count == 0) {
-                Disconnect("about_to_show", this, nameof(_GodotSignalAboutToShow));
+                GetParent().Disconnect("about_to_show", this, nameof(_GodotSignalAboutToShow));
             }
             return this;
         }
@@ -137,10 +144,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onConfirmedAction; 
-        public AcceptDialogAction OnConfirmed(Action action) {
+        public AcceptDialogAction OnConfirmed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onConfirmedAction == null || _onConfirmedAction.Count == 0) {
                 _onConfirmedAction ??= new List<Action>(); 
-                Connect("confirmed", this, nameof(_GodotSignalConfirmed));
+                GetParent().Connect("confirmed", this, nameof(_GodotSignalConfirmed));
             }
             _onConfirmedAction.Add(action);
             return this;
@@ -149,7 +156,7 @@ namespace Betauer.GodotAction {
             if (_onConfirmedAction == null || _onConfirmedAction.Count == 0) return this;
             _onConfirmedAction.Remove(action); 
             if (_onConfirmedAction.Count == 0) {
-                Disconnect("confirmed", this, nameof(_GodotSignalConfirmed));
+                GetParent().Disconnect("confirmed", this, nameof(_GodotSignalConfirmed));
             }
             return this;
         }
@@ -160,10 +167,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<string>>? _onCustomActionAction; 
-        public AcceptDialogAction OnCustomAction(Action<string> action) {
+        public AcceptDialogAction OnCustomAction(Action<string> action, bool oneShot = false, bool deferred = false) {
             if (_onCustomActionAction == null || _onCustomActionAction.Count == 0) {
                 _onCustomActionAction ??= new List<Action<string>>(); 
-                Connect("custom_action", this, nameof(_GodotSignalCustomAction));
+                GetParent().Connect("custom_action", this, nameof(_GodotSignalCustomAction));
             }
             _onCustomActionAction.Add(action);
             return this;
@@ -172,7 +179,7 @@ namespace Betauer.GodotAction {
             if (_onCustomActionAction == null || _onCustomActionAction.Count == 0) return this;
             _onCustomActionAction.Remove(action); 
             if (_onCustomActionAction.Count == 0) {
-                Disconnect("custom_action", this, nameof(_GodotSignalCustomAction));
+                GetParent().Disconnect("custom_action", this, nameof(_GodotSignalCustomAction));
             }
             return this;
         }
@@ -183,10 +190,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onDrawAction; 
-        public AcceptDialogAction OnDraw(Action action) {
+        public AcceptDialogAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             if (_onDrawAction == null || _onDrawAction.Count == 0) {
                 _onDrawAction ??= new List<Action>(); 
-                Connect("draw", this, nameof(_GodotSignalDraw));
+                GetParent().Connect("draw", this, nameof(_GodotSignalDraw));
             }
             _onDrawAction.Add(action);
             return this;
@@ -195,7 +202,7 @@ namespace Betauer.GodotAction {
             if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
             _onDrawAction.Remove(action); 
             if (_onDrawAction.Count == 0) {
-                Disconnect("draw", this, nameof(_GodotSignalDraw));
+                GetParent().Disconnect("draw", this, nameof(_GodotSignalDraw));
             }
             return this;
         }
@@ -206,10 +213,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onFocusEnteredAction; 
-        public AcceptDialogAction OnFocusEntered(Action action) {
+        public AcceptDialogAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) {
                 _onFocusEnteredAction ??= new List<Action>(); 
-                Connect("focus_entered", this, nameof(_GodotSignalFocusEntered));
+                GetParent().Connect("focus_entered", this, nameof(_GodotSignalFocusEntered));
             }
             _onFocusEnteredAction.Add(action);
             return this;
@@ -218,7 +225,7 @@ namespace Betauer.GodotAction {
             if (_onFocusEnteredAction == null || _onFocusEnteredAction.Count == 0) return this;
             _onFocusEnteredAction.Remove(action); 
             if (_onFocusEnteredAction.Count == 0) {
-                Disconnect("focus_entered", this, nameof(_GodotSignalFocusEntered));
+                GetParent().Disconnect("focus_entered", this, nameof(_GodotSignalFocusEntered));
             }
             return this;
         }
@@ -229,10 +236,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onFocusExitedAction; 
-        public AcceptDialogAction OnFocusExited(Action action) {
+        public AcceptDialogAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) {
                 _onFocusExitedAction ??= new List<Action>(); 
-                Connect("focus_exited", this, nameof(_GodotSignalFocusExited));
+                GetParent().Connect("focus_exited", this, nameof(_GodotSignalFocusExited));
             }
             _onFocusExitedAction.Add(action);
             return this;
@@ -241,7 +248,7 @@ namespace Betauer.GodotAction {
             if (_onFocusExitedAction == null || _onFocusExitedAction.Count == 0) return this;
             _onFocusExitedAction.Remove(action); 
             if (_onFocusExitedAction.Count == 0) {
-                Disconnect("focus_exited", this, nameof(_GodotSignalFocusExited));
+                GetParent().Disconnect("focus_exited", this, nameof(_GodotSignalFocusExited));
             }
             return this;
         }
@@ -252,10 +259,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public AcceptDialogAction OnGuiInput(Action<InputEvent> action) {
+        public AcceptDialogAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
             if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) {
                 _onGuiInputAction ??= new List<Action<InputEvent>>(); 
-                Connect("gui_input", this, nameof(_GodotSignalGuiInput));
+                GetParent().Connect("gui_input", this, nameof(_GodotSignalGuiInput));
             }
             _onGuiInputAction.Add(action);
             return this;
@@ -264,7 +271,7 @@ namespace Betauer.GodotAction {
             if (_onGuiInputAction == null || _onGuiInputAction.Count == 0) return this;
             _onGuiInputAction.Remove(action); 
             if (_onGuiInputAction.Count == 0) {
-                Disconnect("gui_input", this, nameof(_GodotSignalGuiInput));
+                GetParent().Disconnect("gui_input", this, nameof(_GodotSignalGuiInput));
             }
             return this;
         }
@@ -275,10 +282,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onHideAction; 
-        public AcceptDialogAction OnHide(Action action) {
+        public AcceptDialogAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             if (_onHideAction == null || _onHideAction.Count == 0) {
                 _onHideAction ??= new List<Action>(); 
-                Connect("hide", this, nameof(_GodotSignalHide));
+                GetParent().Connect("hide", this, nameof(_GodotSignalHide));
             }
             _onHideAction.Add(action);
             return this;
@@ -287,7 +294,7 @@ namespace Betauer.GodotAction {
             if (_onHideAction == null || _onHideAction.Count == 0) return this;
             _onHideAction.Remove(action); 
             if (_onHideAction.Count == 0) {
-                Disconnect("hide", this, nameof(_GodotSignalHide));
+                GetParent().Disconnect("hide", this, nameof(_GodotSignalHide));
             }
             return this;
         }
@@ -298,10 +305,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onItemRectChangedAction; 
-        public AcceptDialogAction OnItemRectChanged(Action action) {
+        public AcceptDialogAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
                 _onItemRectChangedAction ??= new List<Action>(); 
-                Connect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
+                GetParent().Connect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
             }
             _onItemRectChangedAction.Add(action);
             return this;
@@ -310,7 +317,7 @@ namespace Betauer.GodotAction {
             if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
             _onItemRectChangedAction.Remove(action); 
             if (_onItemRectChangedAction.Count == 0) {
-                Disconnect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
+                GetParent().Disconnect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
             }
             return this;
         }
@@ -321,10 +328,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public AcceptDialogAction OnMinimumSizeChanged(Action action) {
+        public AcceptDialogAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) {
                 _onMinimumSizeChangedAction ??= new List<Action>(); 
-                Connect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
+                GetParent().Connect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
             }
             _onMinimumSizeChangedAction.Add(action);
             return this;
@@ -333,7 +340,7 @@ namespace Betauer.GodotAction {
             if (_onMinimumSizeChangedAction == null || _onMinimumSizeChangedAction.Count == 0) return this;
             _onMinimumSizeChangedAction.Remove(action); 
             if (_onMinimumSizeChangedAction.Count == 0) {
-                Disconnect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
+                GetParent().Disconnect("minimum_size_changed", this, nameof(_GodotSignalMinimumSizeChanged));
             }
             return this;
         }
@@ -344,10 +351,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onModalClosedAction; 
-        public AcceptDialogAction OnModalClosed(Action action) {
+        public AcceptDialogAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) {
                 _onModalClosedAction ??= new List<Action>(); 
-                Connect("modal_closed", this, nameof(_GodotSignalModalClosed));
+                GetParent().Connect("modal_closed", this, nameof(_GodotSignalModalClosed));
             }
             _onModalClosedAction.Add(action);
             return this;
@@ -356,7 +363,7 @@ namespace Betauer.GodotAction {
             if (_onModalClosedAction == null || _onModalClosedAction.Count == 0) return this;
             _onModalClosedAction.Remove(action); 
             if (_onModalClosedAction.Count == 0) {
-                Disconnect("modal_closed", this, nameof(_GodotSignalModalClosed));
+                GetParent().Disconnect("modal_closed", this, nameof(_GodotSignalModalClosed));
             }
             return this;
         }
@@ -367,10 +374,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onMouseEnteredAction; 
-        public AcceptDialogAction OnMouseEntered(Action action) {
+        public AcceptDialogAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
                 _onMouseEnteredAction ??= new List<Action>(); 
-                Connect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
+                GetParent().Connect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
             }
             _onMouseEnteredAction.Add(action);
             return this;
@@ -379,7 +386,7 @@ namespace Betauer.GodotAction {
             if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
             _onMouseEnteredAction.Remove(action); 
             if (_onMouseEnteredAction.Count == 0) {
-                Disconnect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
+                GetParent().Disconnect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
             }
             return this;
         }
@@ -390,10 +397,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onMouseExitedAction; 
-        public AcceptDialogAction OnMouseExited(Action action) {
+        public AcceptDialogAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
                 _onMouseExitedAction ??= new List<Action>(); 
-                Connect("mouse_exited", this, nameof(_GodotSignalMouseExited));
+                GetParent().Connect("mouse_exited", this, nameof(_GodotSignalMouseExited));
             }
             _onMouseExitedAction.Add(action);
             return this;
@@ -402,7 +409,7 @@ namespace Betauer.GodotAction {
             if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
             _onMouseExitedAction.Remove(action); 
             if (_onMouseExitedAction.Count == 0) {
-                Disconnect("mouse_exited", this, nameof(_GodotSignalMouseExited));
+                GetParent().Disconnect("mouse_exited", this, nameof(_GodotSignalMouseExited));
             }
             return this;
         }
@@ -413,10 +420,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onPopupHideAction; 
-        public AcceptDialogAction OnPopupHide(Action action) {
+        public AcceptDialogAction OnPopupHide(Action action, bool oneShot = false, bool deferred = false) {
             if (_onPopupHideAction == null || _onPopupHideAction.Count == 0) {
                 _onPopupHideAction ??= new List<Action>(); 
-                Connect("popup_hide", this, nameof(_GodotSignalPopupHide));
+                GetParent().Connect("popup_hide", this, nameof(_GodotSignalPopupHide));
             }
             _onPopupHideAction.Add(action);
             return this;
@@ -425,7 +432,7 @@ namespace Betauer.GodotAction {
             if (_onPopupHideAction == null || _onPopupHideAction.Count == 0) return this;
             _onPopupHideAction.Remove(action); 
             if (_onPopupHideAction.Count == 0) {
-                Disconnect("popup_hide", this, nameof(_GodotSignalPopupHide));
+                GetParent().Disconnect("popup_hide", this, nameof(_GodotSignalPopupHide));
             }
             return this;
         }
@@ -436,10 +443,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onReadyAction; 
-        public AcceptDialogAction OnReady(Action action) {
+        public AcceptDialogAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             if (_onReadyAction == null || _onReadyAction.Count == 0) {
                 _onReadyAction ??= new List<Action>(); 
-                Connect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
             }
             _onReadyAction.Add(action);
             return this;
@@ -448,7 +455,7 @@ namespace Betauer.GodotAction {
             if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
             _onReadyAction.Remove(action); 
             if (_onReadyAction.Count == 0) {
-                Disconnect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
             }
             return this;
         }
@@ -459,10 +466,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRenamedAction; 
-        public AcceptDialogAction OnRenamed(Action action) {
+        public AcceptDialogAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
                 _onRenamedAction ??= new List<Action>(); 
-                Connect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
             }
             _onRenamedAction.Add(action);
             return this;
@@ -471,7 +478,7 @@ namespace Betauer.GodotAction {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
             _onRenamedAction.Remove(action); 
             if (_onRenamedAction.Count == 0) {
-                Disconnect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
             }
             return this;
         }
@@ -482,10 +489,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onResizedAction; 
-        public AcceptDialogAction OnResized(Action action) {
+        public AcceptDialogAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
             if (_onResizedAction == null || _onResizedAction.Count == 0) {
                 _onResizedAction ??= new List<Action>(); 
-                Connect("resized", this, nameof(_GodotSignalResized));
+                GetParent().Connect("resized", this, nameof(_GodotSignalResized));
             }
             _onResizedAction.Add(action);
             return this;
@@ -494,7 +501,7 @@ namespace Betauer.GodotAction {
             if (_onResizedAction == null || _onResizedAction.Count == 0) return this;
             _onResizedAction.Remove(action); 
             if (_onResizedAction.Count == 0) {
-                Disconnect("resized", this, nameof(_GodotSignalResized));
+                GetParent().Disconnect("resized", this, nameof(_GodotSignalResized));
             }
             return this;
         }
@@ -505,10 +512,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public AcceptDialogAction OnScriptChanged(Action action) {
+        public AcceptDialogAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -517,7 +524,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -528,10 +535,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public AcceptDialogAction OnSizeFlagsChanged(Action action) {
+        public AcceptDialogAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) {
                 _onSizeFlagsChangedAction ??= new List<Action>(); 
-                Connect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
+                GetParent().Connect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
             }
             _onSizeFlagsChangedAction.Add(action);
             return this;
@@ -540,7 +547,7 @@ namespace Betauer.GodotAction {
             if (_onSizeFlagsChangedAction == null || _onSizeFlagsChangedAction.Count == 0) return this;
             _onSizeFlagsChangedAction.Remove(action); 
             if (_onSizeFlagsChangedAction.Count == 0) {
-                Disconnect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
+                GetParent().Disconnect("size_flags_changed", this, nameof(_GodotSignalSizeFlagsChanged));
             }
             return this;
         }
@@ -551,10 +558,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public AcceptDialogAction OnTreeEntered(Action action) {
+        public AcceptDialogAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
                 _onTreeEnteredAction ??= new List<Action>(); 
-                Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             _onTreeEnteredAction.Add(action);
             return this;
@@ -563,7 +570,7 @@ namespace Betauer.GodotAction {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
             _onTreeEnteredAction.Remove(action); 
             if (_onTreeEnteredAction.Count == 0) {
-                Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             return this;
         }
@@ -574,10 +581,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitedAction; 
-        public AcceptDialogAction OnTreeExited(Action action) {
+        public AcceptDialogAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
                 _onTreeExitedAction ??= new List<Action>(); 
-                Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             _onTreeExitedAction.Add(action);
             return this;
@@ -586,7 +593,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
             _onTreeExitedAction.Remove(action); 
             if (_onTreeExitedAction.Count == 0) {
-                Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             return this;
         }
@@ -597,10 +604,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitingAction; 
-        public AcceptDialogAction OnTreeExiting(Action action) {
+        public AcceptDialogAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
                 _onTreeExitingAction ??= new List<Action>(); 
-                Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             _onTreeExitingAction.Add(action);
             return this;
@@ -609,7 +616,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
             _onTreeExitingAction.Remove(action); 
             if (_onTreeExitingAction.Count == 0) {
-                Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             return this;
         }
@@ -620,10 +627,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onVisibilityChangedAction; 
-        public AcceptDialogAction OnVisibilityChanged(Action action) {
+        public AcceptDialogAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
                 _onVisibilityChangedAction ??= new List<Action>(); 
-                Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             _onVisibilityChangedAction.Add(action);
             return this;
@@ -632,7 +639,7 @@ namespace Betauer.GodotAction {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
             _onVisibilityChangedAction.Remove(action); 
             if (_onVisibilityChangedAction.Count == 0) {
-                Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             return this;
         }

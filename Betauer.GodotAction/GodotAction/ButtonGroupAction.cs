@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class ButtonGroupAction : ButtonGroup {
+    public class ButtonGroupAction : Node {
+        public ButtonGroupAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action>? _onChangedAction; 
-        public ButtonGroupAction OnChanged(Action action) {
+        public ButtonGroupAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onChangedAction == null || _onChangedAction.Count == 0) {
                 _onChangedAction ??= new List<Action>(); 
-                Connect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Connect("changed", this, nameof(_GodotSignalChanged));
             }
             _onChangedAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
             _onChangedAction.Remove(action); 
             if (_onChangedAction.Count == 0) {
-                Disconnect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Disconnect("changed", this, nameof(_GodotSignalChanged));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Object>>? _onPressedAction; 
-        public ButtonGroupAction OnPressed(Action<Object> action) {
+        public ButtonGroupAction OnPressed(Action<Object> action, bool oneShot = false, bool deferred = false) {
             if (_onPressedAction == null || _onPressedAction.Count == 0) {
                 _onPressedAction ??= new List<Action<Object>>(); 
-                Connect("pressed", this, nameof(_GodotSignalPressed));
+                GetParent().Connect("pressed", this, nameof(_GodotSignalPressed));
             }
             _onPressedAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onPressedAction == null || _onPressedAction.Count == 0) return this;
             _onPressedAction.Remove(action); 
             if (_onPressedAction.Count == 0) {
-                Disconnect("pressed", this, nameof(_GodotSignalPressed));
+                GetParent().Disconnect("pressed", this, nameof(_GodotSignalPressed));
             }
             return this;
         }
@@ -56,10 +63,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public ButtonGroupAction OnScriptChanged(Action action) {
+        public ButtonGroupAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -68,7 +75,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }

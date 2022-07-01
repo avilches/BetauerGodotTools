@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class UndoRedoAction : UndoRedo {
+    public class UndoRedoAction : Node {
+        public UndoRedoAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action>? _onScriptChangedAction; 
-        public UndoRedoAction OnScriptChanged(Action action) {
+        public UndoRedoAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onVersionChangedAction; 
-        public UndoRedoAction OnVersionChanged(Action action) {
+        public UndoRedoAction OnVersionChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onVersionChangedAction == null || _onVersionChangedAction.Count == 0) {
                 _onVersionChangedAction ??= new List<Action>(); 
-                Connect("version_changed", this, nameof(_GodotSignalVersionChanged));
+                GetParent().Connect("version_changed", this, nameof(_GodotSignalVersionChanged));
             }
             _onVersionChangedAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onVersionChangedAction == null || _onVersionChangedAction.Count == 0) return this;
             _onVersionChangedAction.Remove(action); 
             if (_onVersionChangedAction.Count == 0) {
-                Disconnect("version_changed", this, nameof(_GodotSignalVersionChanged));
+                GetParent().Disconnect("version_changed", this, nameof(_GodotSignalVersionChanged));
             }
             return this;
         }

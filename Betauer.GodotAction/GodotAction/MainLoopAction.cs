@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class MainLoopAction : MainLoop {
+    public class MainLoopAction : Node {
+        public MainLoopAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action<bool, string>>? _onRequestPermissionsResultAction; 
-        public MainLoopAction OnRequestPermissionsResult(Action<bool, string> action) {
+        public MainLoopAction OnRequestPermissionsResult(Action<bool, string> action, bool oneShot = false, bool deferred = false) {
             if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) {
                 _onRequestPermissionsResultAction ??= new List<Action<bool, string>>(); 
-                Connect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
+                GetParent().Connect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
             }
             _onRequestPermissionsResultAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onRequestPermissionsResultAction == null || _onRequestPermissionsResultAction.Count == 0) return this;
             _onRequestPermissionsResultAction.Remove(action); 
             if (_onRequestPermissionsResultAction.Count == 0) {
-                Disconnect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
+                GetParent().Disconnect("on_request_permissions_result", this, nameof(_GodotSignalRequestPermissionsResult));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public MainLoopAction OnScriptChanged(Action action) {
+        public MainLoopAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }

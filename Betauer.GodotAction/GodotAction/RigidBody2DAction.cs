@@ -6,7 +6,14 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class RigidBody2DAction : RigidBody2D {
+    public class RigidBody2DAction : Node {
+        public RigidBody2DAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
@@ -114,10 +121,10 @@ namespace Betauer.GodotAction {
         }
 
         private List<Action<Node>>? _onBodyEnteredAction; 
-        public RigidBody2DAction OnBodyEntered(Action<Node> action) {
+        public RigidBody2DAction OnBodyEntered(Action<Node> action, bool oneShot = false, bool deferred = false) {
             if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) {
                 _onBodyEnteredAction ??= new List<Action<Node>>(); 
-                Connect("body_entered", this, nameof(_GodotSignalBodyEntered));
+                GetParent().Connect("body_entered", this, nameof(_GodotSignalBodyEntered));
             }
             _onBodyEnteredAction.Add(action);
             return this;
@@ -126,7 +133,7 @@ namespace Betauer.GodotAction {
             if (_onBodyEnteredAction == null || _onBodyEnteredAction.Count == 0) return this;
             _onBodyEnteredAction.Remove(action); 
             if (_onBodyEnteredAction.Count == 0) {
-                Disconnect("body_entered", this, nameof(_GodotSignalBodyEntered));
+                GetParent().Disconnect("body_entered", this, nameof(_GodotSignalBodyEntered));
             }
             return this;
         }
@@ -137,10 +144,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Node>>? _onBodyExitedAction; 
-        public RigidBody2DAction OnBodyExited(Action<Node> action) {
+        public RigidBody2DAction OnBodyExited(Action<Node> action, bool oneShot = false, bool deferred = false) {
             if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) {
                 _onBodyExitedAction ??= new List<Action<Node>>(); 
-                Connect("body_exited", this, nameof(_GodotSignalBodyExited));
+                GetParent().Connect("body_exited", this, nameof(_GodotSignalBodyExited));
             }
             _onBodyExitedAction.Add(action);
             return this;
@@ -149,7 +156,7 @@ namespace Betauer.GodotAction {
             if (_onBodyExitedAction == null || _onBodyExitedAction.Count == 0) return this;
             _onBodyExitedAction.Remove(action); 
             if (_onBodyExitedAction.Count == 0) {
-                Disconnect("body_exited", this, nameof(_GodotSignalBodyExited));
+                GetParent().Disconnect("body_exited", this, nameof(_GodotSignalBodyExited));
             }
             return this;
         }
@@ -160,10 +167,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Node, RID, int, int>>? _onBodyShapeEnteredAction; 
-        public RigidBody2DAction OnBodyShapeEntered(Action<Node, RID, int, int> action) {
+        public RigidBody2DAction OnBodyShapeEntered(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) {
                 _onBodyShapeEnteredAction ??= new List<Action<Node, RID, int, int>>(); 
-                Connect("body_shape_entered", this, nameof(_GodotSignalBodyShapeEntered));
+                GetParent().Connect("body_shape_entered", this, nameof(_GodotSignalBodyShapeEntered));
             }
             _onBodyShapeEnteredAction.Add(action);
             return this;
@@ -172,7 +179,7 @@ namespace Betauer.GodotAction {
             if (_onBodyShapeEnteredAction == null || _onBodyShapeEnteredAction.Count == 0) return this;
             _onBodyShapeEnteredAction.Remove(action); 
             if (_onBodyShapeEnteredAction.Count == 0) {
-                Disconnect("body_shape_entered", this, nameof(_GodotSignalBodyShapeEntered));
+                GetParent().Disconnect("body_shape_entered", this, nameof(_GodotSignalBodyShapeEntered));
             }
             return this;
         }
@@ -183,10 +190,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Node, RID, int, int>>? _onBodyShapeExitedAction; 
-        public RigidBody2DAction OnBodyShapeExited(Action<Node, RID, int, int> action) {
+        public RigidBody2DAction OnBodyShapeExited(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) {
                 _onBodyShapeExitedAction ??= new List<Action<Node, RID, int, int>>(); 
-                Connect("body_shape_exited", this, nameof(_GodotSignalBodyShapeExited));
+                GetParent().Connect("body_shape_exited", this, nameof(_GodotSignalBodyShapeExited));
             }
             _onBodyShapeExitedAction.Add(action);
             return this;
@@ -195,7 +202,7 @@ namespace Betauer.GodotAction {
             if (_onBodyShapeExitedAction == null || _onBodyShapeExitedAction.Count == 0) return this;
             _onBodyShapeExitedAction.Remove(action); 
             if (_onBodyShapeExitedAction.Count == 0) {
-                Disconnect("body_shape_exited", this, nameof(_GodotSignalBodyShapeExited));
+                GetParent().Disconnect("body_shape_exited", this, nameof(_GodotSignalBodyShapeExited));
             }
             return this;
         }
@@ -206,10 +213,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onDrawAction; 
-        public RigidBody2DAction OnDraw(Action action) {
+        public RigidBody2DAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             if (_onDrawAction == null || _onDrawAction.Count == 0) {
                 _onDrawAction ??= new List<Action>(); 
-                Connect("draw", this, nameof(_GodotSignalDraw));
+                GetParent().Connect("draw", this, nameof(_GodotSignalDraw));
             }
             _onDrawAction.Add(action);
             return this;
@@ -218,7 +225,7 @@ namespace Betauer.GodotAction {
             if (_onDrawAction == null || _onDrawAction.Count == 0) return this;
             _onDrawAction.Remove(action); 
             if (_onDrawAction.Count == 0) {
-                Disconnect("draw", this, nameof(_GodotSignalDraw));
+                GetParent().Disconnect("draw", this, nameof(_GodotSignalDraw));
             }
             return this;
         }
@@ -229,10 +236,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onHideAction; 
-        public RigidBody2DAction OnHide(Action action) {
+        public RigidBody2DAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             if (_onHideAction == null || _onHideAction.Count == 0) {
                 _onHideAction ??= new List<Action>(); 
-                Connect("hide", this, nameof(_GodotSignalHide));
+                GetParent().Connect("hide", this, nameof(_GodotSignalHide));
             }
             _onHideAction.Add(action);
             return this;
@@ -241,7 +248,7 @@ namespace Betauer.GodotAction {
             if (_onHideAction == null || _onHideAction.Count == 0) return this;
             _onHideAction.Remove(action); 
             if (_onHideAction.Count == 0) {
-                Disconnect("hide", this, nameof(_GodotSignalHide));
+                GetParent().Disconnect("hide", this, nameof(_GodotSignalHide));
             }
             return this;
         }
@@ -252,10 +259,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<InputEvent, int, Node>>? _onInputEventAction; 
-        public RigidBody2DAction OnInputEvent(Action<InputEvent, int, Node> action) {
+        public RigidBody2DAction OnInputEvent(Action<InputEvent, int, Node> action, bool oneShot = false, bool deferred = false) {
             if (_onInputEventAction == null || _onInputEventAction.Count == 0) {
                 _onInputEventAction ??= new List<Action<InputEvent, int, Node>>(); 
-                Connect("input_event", this, nameof(_GodotSignalInputEvent));
+                GetParent().Connect("input_event", this, nameof(_GodotSignalInputEvent));
             }
             _onInputEventAction.Add(action);
             return this;
@@ -264,7 +271,7 @@ namespace Betauer.GodotAction {
             if (_onInputEventAction == null || _onInputEventAction.Count == 0) return this;
             _onInputEventAction.Remove(action); 
             if (_onInputEventAction.Count == 0) {
-                Disconnect("input_event", this, nameof(_GodotSignalInputEvent));
+                GetParent().Disconnect("input_event", this, nameof(_GodotSignalInputEvent));
             }
             return this;
         }
@@ -275,10 +282,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onItemRectChangedAction; 
-        public RigidBody2DAction OnItemRectChanged(Action action) {
+        public RigidBody2DAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) {
                 _onItemRectChangedAction ??= new List<Action>(); 
-                Connect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
+                GetParent().Connect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
             }
             _onItemRectChangedAction.Add(action);
             return this;
@@ -287,7 +294,7 @@ namespace Betauer.GodotAction {
             if (_onItemRectChangedAction == null || _onItemRectChangedAction.Count == 0) return this;
             _onItemRectChangedAction.Remove(action); 
             if (_onItemRectChangedAction.Count == 0) {
-                Disconnect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
+                GetParent().Disconnect("item_rect_changed", this, nameof(_GodotSignalItemRectChanged));
             }
             return this;
         }
@@ -298,10 +305,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onMouseEnteredAction; 
-        public RigidBody2DAction OnMouseEntered(Action action) {
+        public RigidBody2DAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) {
                 _onMouseEnteredAction ??= new List<Action>(); 
-                Connect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
+                GetParent().Connect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
             }
             _onMouseEnteredAction.Add(action);
             return this;
@@ -310,7 +317,7 @@ namespace Betauer.GodotAction {
             if (_onMouseEnteredAction == null || _onMouseEnteredAction.Count == 0) return this;
             _onMouseEnteredAction.Remove(action); 
             if (_onMouseEnteredAction.Count == 0) {
-                Disconnect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
+                GetParent().Disconnect("mouse_entered", this, nameof(_GodotSignalMouseEntered));
             }
             return this;
         }
@@ -321,10 +328,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onMouseExitedAction; 
-        public RigidBody2DAction OnMouseExited(Action action) {
+        public RigidBody2DAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) {
                 _onMouseExitedAction ??= new List<Action>(); 
-                Connect("mouse_exited", this, nameof(_GodotSignalMouseExited));
+                GetParent().Connect("mouse_exited", this, nameof(_GodotSignalMouseExited));
             }
             _onMouseExitedAction.Add(action);
             return this;
@@ -333,7 +340,7 @@ namespace Betauer.GodotAction {
             if (_onMouseExitedAction == null || _onMouseExitedAction.Count == 0) return this;
             _onMouseExitedAction.Remove(action); 
             if (_onMouseExitedAction.Count == 0) {
-                Disconnect("mouse_exited", this, nameof(_GodotSignalMouseExited));
+                GetParent().Disconnect("mouse_exited", this, nameof(_GodotSignalMouseExited));
             }
             return this;
         }
@@ -344,10 +351,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onReadyAction; 
-        public RigidBody2DAction OnReady(Action action) {
+        public RigidBody2DAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             if (_onReadyAction == null || _onReadyAction.Count == 0) {
                 _onReadyAction ??= new List<Action>(); 
-                Connect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
             }
             _onReadyAction.Add(action);
             return this;
@@ -356,7 +363,7 @@ namespace Betauer.GodotAction {
             if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
             _onReadyAction.Remove(action); 
             if (_onReadyAction.Count == 0) {
-                Disconnect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
             }
             return this;
         }
@@ -367,10 +374,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRenamedAction; 
-        public RigidBody2DAction OnRenamed(Action action) {
+        public RigidBody2DAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
                 _onRenamedAction ??= new List<Action>(); 
-                Connect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
             }
             _onRenamedAction.Add(action);
             return this;
@@ -379,7 +386,7 @@ namespace Betauer.GodotAction {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
             _onRenamedAction.Remove(action); 
             if (_onRenamedAction.Count == 0) {
-                Disconnect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
             }
             return this;
         }
@@ -390,10 +397,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public RigidBody2DAction OnScriptChanged(Action action) {
+        public RigidBody2DAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -402,7 +409,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -413,10 +420,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onSleepingStateChangedAction; 
-        public RigidBody2DAction OnSleepingStateChanged(Action action) {
+        public RigidBody2DAction OnSleepingStateChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onSleepingStateChangedAction == null || _onSleepingStateChangedAction.Count == 0) {
                 _onSleepingStateChangedAction ??= new List<Action>(); 
-                Connect("sleeping_state_changed", this, nameof(_GodotSignalSleepingStateChanged));
+                GetParent().Connect("sleeping_state_changed", this, nameof(_GodotSignalSleepingStateChanged));
             }
             _onSleepingStateChangedAction.Add(action);
             return this;
@@ -425,7 +432,7 @@ namespace Betauer.GodotAction {
             if (_onSleepingStateChangedAction == null || _onSleepingStateChangedAction.Count == 0) return this;
             _onSleepingStateChangedAction.Remove(action); 
             if (_onSleepingStateChangedAction.Count == 0) {
-                Disconnect("sleeping_state_changed", this, nameof(_GodotSignalSleepingStateChanged));
+                GetParent().Disconnect("sleeping_state_changed", this, nameof(_GodotSignalSleepingStateChanged));
             }
             return this;
         }
@@ -436,10 +443,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public RigidBody2DAction OnTreeEntered(Action action) {
+        public RigidBody2DAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
                 _onTreeEnteredAction ??= new List<Action>(); 
-                Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             _onTreeEnteredAction.Add(action);
             return this;
@@ -448,7 +455,7 @@ namespace Betauer.GodotAction {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
             _onTreeEnteredAction.Remove(action); 
             if (_onTreeEnteredAction.Count == 0) {
-                Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             return this;
         }
@@ -459,10 +466,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitedAction; 
-        public RigidBody2DAction OnTreeExited(Action action) {
+        public RigidBody2DAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
                 _onTreeExitedAction ??= new List<Action>(); 
-                Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             _onTreeExitedAction.Add(action);
             return this;
@@ -471,7 +478,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
             _onTreeExitedAction.Remove(action); 
             if (_onTreeExitedAction.Count == 0) {
-                Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             return this;
         }
@@ -482,10 +489,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitingAction; 
-        public RigidBody2DAction OnTreeExiting(Action action) {
+        public RigidBody2DAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
                 _onTreeExitingAction ??= new List<Action>(); 
-                Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             _onTreeExitingAction.Add(action);
             return this;
@@ -494,7 +501,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
             _onTreeExitingAction.Remove(action); 
             if (_onTreeExitingAction.Count == 0) {
-                Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             return this;
         }
@@ -505,10 +512,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onVisibilityChangedAction; 
-        public RigidBody2DAction OnVisibilityChanged(Action action) {
+        public RigidBody2DAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
                 _onVisibilityChangedAction ??= new List<Action>(); 
-                Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             _onVisibilityChangedAction.Add(action);
             return this;
@@ -517,7 +524,7 @@ namespace Betauer.GodotAction {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
             _onVisibilityChangedAction.Remove(action); 
             if (_onVisibilityChangedAction.Count == 0) {
-                Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             return this;
         }

@@ -6,7 +6,14 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class ViewportAction : Viewport {
+    public class ViewportAction : Node {
+        public ViewportAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
@@ -114,10 +121,10 @@ namespace Betauer.GodotAction {
         }
 
         private List<Action<Control>>? _onGuiFocusChangedAction; 
-        public ViewportAction OnGuiFocusChanged(Action<Control> action) {
+        public ViewportAction OnGuiFocusChanged(Action<Control> action, bool oneShot = false, bool deferred = false) {
             if (_onGuiFocusChangedAction == null || _onGuiFocusChangedAction.Count == 0) {
                 _onGuiFocusChangedAction ??= new List<Action<Control>>(); 
-                Connect("gui_focus_changed", this, nameof(_GodotSignalGuiFocusChanged));
+                GetParent().Connect("gui_focus_changed", this, nameof(_GodotSignalGuiFocusChanged));
             }
             _onGuiFocusChangedAction.Add(action);
             return this;
@@ -126,7 +133,7 @@ namespace Betauer.GodotAction {
             if (_onGuiFocusChangedAction == null || _onGuiFocusChangedAction.Count == 0) return this;
             _onGuiFocusChangedAction.Remove(action); 
             if (_onGuiFocusChangedAction.Count == 0) {
-                Disconnect("gui_focus_changed", this, nameof(_GodotSignalGuiFocusChanged));
+                GetParent().Disconnect("gui_focus_changed", this, nameof(_GodotSignalGuiFocusChanged));
             }
             return this;
         }
@@ -137,10 +144,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onReadyAction; 
-        public ViewportAction OnReady(Action action) {
+        public ViewportAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             if (_onReadyAction == null || _onReadyAction.Count == 0) {
                 _onReadyAction ??= new List<Action>(); 
-                Connect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
             }
             _onReadyAction.Add(action);
             return this;
@@ -149,7 +156,7 @@ namespace Betauer.GodotAction {
             if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
             _onReadyAction.Remove(action); 
             if (_onReadyAction.Count == 0) {
-                Disconnect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
             }
             return this;
         }
@@ -160,10 +167,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRenamedAction; 
-        public ViewportAction OnRenamed(Action action) {
+        public ViewportAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
                 _onRenamedAction ??= new List<Action>(); 
-                Connect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
             }
             _onRenamedAction.Add(action);
             return this;
@@ -172,7 +179,7 @@ namespace Betauer.GodotAction {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
             _onRenamedAction.Remove(action); 
             if (_onRenamedAction.Count == 0) {
-                Disconnect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
             }
             return this;
         }
@@ -183,10 +190,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public ViewportAction OnScriptChanged(Action action) {
+        public ViewportAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -195,7 +202,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -206,10 +213,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onSizeChangedAction; 
-        public ViewportAction OnSizeChanged(Action action) {
+        public ViewportAction OnSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onSizeChangedAction == null || _onSizeChangedAction.Count == 0) {
                 _onSizeChangedAction ??= new List<Action>(); 
-                Connect("size_changed", this, nameof(_GodotSignalSizeChanged));
+                GetParent().Connect("size_changed", this, nameof(_GodotSignalSizeChanged));
             }
             _onSizeChangedAction.Add(action);
             return this;
@@ -218,7 +225,7 @@ namespace Betauer.GodotAction {
             if (_onSizeChangedAction == null || _onSizeChangedAction.Count == 0) return this;
             _onSizeChangedAction.Remove(action); 
             if (_onSizeChangedAction.Count == 0) {
-                Disconnect("size_changed", this, nameof(_GodotSignalSizeChanged));
+                GetParent().Disconnect("size_changed", this, nameof(_GodotSignalSizeChanged));
             }
             return this;
         }
@@ -229,10 +236,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public ViewportAction OnTreeEntered(Action action) {
+        public ViewportAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
                 _onTreeEnteredAction ??= new List<Action>(); 
-                Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             _onTreeEnteredAction.Add(action);
             return this;
@@ -241,7 +248,7 @@ namespace Betauer.GodotAction {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
             _onTreeEnteredAction.Remove(action); 
             if (_onTreeEnteredAction.Count == 0) {
-                Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             return this;
         }
@@ -252,10 +259,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitedAction; 
-        public ViewportAction OnTreeExited(Action action) {
+        public ViewportAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
                 _onTreeExitedAction ??= new List<Action>(); 
-                Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             _onTreeExitedAction.Add(action);
             return this;
@@ -264,7 +271,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
             _onTreeExitedAction.Remove(action); 
             if (_onTreeExitedAction.Count == 0) {
-                Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             return this;
         }
@@ -275,10 +282,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitingAction; 
-        public ViewportAction OnTreeExiting(Action action) {
+        public ViewportAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
                 _onTreeExitingAction ??= new List<Action>(); 
-                Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             _onTreeExitingAction.Add(action);
             return this;
@@ -287,7 +294,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
             _onTreeExitingAction.Remove(action); 
             if (_onTreeExitingAction.Count == 0) {
-                Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             return this;
         }

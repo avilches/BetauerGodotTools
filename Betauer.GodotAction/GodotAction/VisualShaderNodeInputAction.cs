@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class VisualShaderNodeInputAction : VisualShaderNodeInput {
+    public class VisualShaderNodeInputAction : Node {
+        public VisualShaderNodeInputAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action>? _onChangedAction; 
-        public VisualShaderNodeInputAction OnChanged(Action action) {
+        public VisualShaderNodeInputAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onChangedAction == null || _onChangedAction.Count == 0) {
                 _onChangedAction ??= new List<Action>(); 
-                Connect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Connect("changed", this, nameof(_GodotSignalChanged));
             }
             _onChangedAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onChangedAction == null || _onChangedAction.Count == 0) return this;
             _onChangedAction.Remove(action); 
             if (_onChangedAction.Count == 0) {
-                Disconnect("changed", this, nameof(_GodotSignalChanged));
+                GetParent().Disconnect("changed", this, nameof(_GodotSignalChanged));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onEditorRefreshRequestAction; 
-        public VisualShaderNodeInputAction OnEditorRefreshRequest(Action action) {
+        public VisualShaderNodeInputAction OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) {
             if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) {
                 _onEditorRefreshRequestAction ??= new List<Action>(); 
-                Connect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
+                GetParent().Connect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
             }
             _onEditorRefreshRequestAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onEditorRefreshRequestAction == null || _onEditorRefreshRequestAction.Count == 0) return this;
             _onEditorRefreshRequestAction.Remove(action); 
             if (_onEditorRefreshRequestAction.Count == 0) {
-                Disconnect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
+                GetParent().Disconnect("editor_refresh_request", this, nameof(_GodotSignalEditorRefreshRequest));
             }
             return this;
         }
@@ -56,10 +63,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onInputTypeChangedAction; 
-        public VisualShaderNodeInputAction OnInputTypeChanged(Action action) {
+        public VisualShaderNodeInputAction OnInputTypeChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onInputTypeChangedAction == null || _onInputTypeChangedAction.Count == 0) {
                 _onInputTypeChangedAction ??= new List<Action>(); 
-                Connect("input_type_changed", this, nameof(_GodotSignalInputTypeChanged));
+                GetParent().Connect("input_type_changed", this, nameof(_GodotSignalInputTypeChanged));
             }
             _onInputTypeChangedAction.Add(action);
             return this;
@@ -68,7 +75,7 @@ namespace Betauer.GodotAction {
             if (_onInputTypeChangedAction == null || _onInputTypeChangedAction.Count == 0) return this;
             _onInputTypeChangedAction.Remove(action); 
             if (_onInputTypeChangedAction.Count == 0) {
-                Disconnect("input_type_changed", this, nameof(_GodotSignalInputTypeChanged));
+                GetParent().Disconnect("input_type_changed", this, nameof(_GodotSignalInputTypeChanged));
             }
             return this;
         }
@@ -79,10 +86,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public VisualShaderNodeInputAction OnScriptChanged(Action action) {
+        public VisualShaderNodeInputAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -91,7 +98,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }

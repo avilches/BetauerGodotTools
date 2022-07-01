@@ -6,14 +6,21 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class WebRTCPeerConnectionAction : WebRTCPeerConnection {
+    public class WebRTCPeerConnectionAction : Node {
+        public WebRTCPeerConnectionAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
 
         private List<Action<Object>>? _onDataChannelReceivedAction; 
-        public WebRTCPeerConnectionAction OnDataChannelReceived(Action<Object> action) {
+        public WebRTCPeerConnectionAction OnDataChannelReceived(Action<Object> action, bool oneShot = false, bool deferred = false) {
             if (_onDataChannelReceivedAction == null || _onDataChannelReceivedAction.Count == 0) {
                 _onDataChannelReceivedAction ??= new List<Action<Object>>(); 
-                Connect("data_channel_received", this, nameof(_GodotSignalDataChannelReceived));
+                GetParent().Connect("data_channel_received", this, nameof(_GodotSignalDataChannelReceived));
             }
             _onDataChannelReceivedAction.Add(action);
             return this;
@@ -22,7 +29,7 @@ namespace Betauer.GodotAction {
             if (_onDataChannelReceivedAction == null || _onDataChannelReceivedAction.Count == 0) return this;
             _onDataChannelReceivedAction.Remove(action); 
             if (_onDataChannelReceivedAction.Count == 0) {
-                Disconnect("data_channel_received", this, nameof(_GodotSignalDataChannelReceived));
+                GetParent().Disconnect("data_channel_received", this, nameof(_GodotSignalDataChannelReceived));
             }
             return this;
         }
@@ -33,10 +40,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<int, string, string>>? _onIceCandidateCreatedAction; 
-        public WebRTCPeerConnectionAction OnIceCandidateCreated(Action<int, string, string> action) {
+        public WebRTCPeerConnectionAction OnIceCandidateCreated(Action<int, string, string> action, bool oneShot = false, bool deferred = false) {
             if (_onIceCandidateCreatedAction == null || _onIceCandidateCreatedAction.Count == 0) {
                 _onIceCandidateCreatedAction ??= new List<Action<int, string, string>>(); 
-                Connect("ice_candidate_created", this, nameof(_GodotSignalIceCandidateCreated));
+                GetParent().Connect("ice_candidate_created", this, nameof(_GodotSignalIceCandidateCreated));
             }
             _onIceCandidateCreatedAction.Add(action);
             return this;
@@ -45,7 +52,7 @@ namespace Betauer.GodotAction {
             if (_onIceCandidateCreatedAction == null || _onIceCandidateCreatedAction.Count == 0) return this;
             _onIceCandidateCreatedAction.Remove(action); 
             if (_onIceCandidateCreatedAction.Count == 0) {
-                Disconnect("ice_candidate_created", this, nameof(_GodotSignalIceCandidateCreated));
+                GetParent().Disconnect("ice_candidate_created", this, nameof(_GodotSignalIceCandidateCreated));
             }
             return this;
         }
@@ -56,10 +63,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public WebRTCPeerConnectionAction OnScriptChanged(Action action) {
+        public WebRTCPeerConnectionAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -68,7 +75,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -79,10 +86,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<string, string>>? _onSessionDescriptionCreatedAction; 
-        public WebRTCPeerConnectionAction OnSessionDescriptionCreated(Action<string, string> action) {
+        public WebRTCPeerConnectionAction OnSessionDescriptionCreated(Action<string, string> action, bool oneShot = false, bool deferred = false) {
             if (_onSessionDescriptionCreatedAction == null || _onSessionDescriptionCreatedAction.Count == 0) {
                 _onSessionDescriptionCreatedAction ??= new List<Action<string, string>>(); 
-                Connect("session_description_created", this, nameof(_GodotSignalSessionDescriptionCreated));
+                GetParent().Connect("session_description_created", this, nameof(_GodotSignalSessionDescriptionCreated));
             }
             _onSessionDescriptionCreatedAction.Add(action);
             return this;
@@ -91,7 +98,7 @@ namespace Betauer.GodotAction {
             if (_onSessionDescriptionCreatedAction == null || _onSessionDescriptionCreatedAction.Count == 0) return this;
             _onSessionDescriptionCreatedAction.Remove(action); 
             if (_onSessionDescriptionCreatedAction.Count == 0) {
-                Disconnect("session_description_created", this, nameof(_GodotSignalSessionDescriptionCreated));
+                GetParent().Disconnect("session_description_created", this, nameof(_GodotSignalSessionDescriptionCreated));
             }
             return this;
         }

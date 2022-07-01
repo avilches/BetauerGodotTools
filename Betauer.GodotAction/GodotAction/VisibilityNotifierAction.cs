@@ -6,7 +6,14 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class VisibilityNotifierAction : VisibilityNotifier {
+    public class VisibilityNotifierAction : Node {
+        public VisibilityNotifierAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
@@ -114,10 +121,10 @@ namespace Betauer.GodotAction {
         }
 
         private List<Action<Camera>>? _onCameraEnteredAction; 
-        public VisibilityNotifierAction OnCameraEntered(Action<Camera> action) {
+        public VisibilityNotifierAction OnCameraEntered(Action<Camera> action, bool oneShot = false, bool deferred = false) {
             if (_onCameraEnteredAction == null || _onCameraEnteredAction.Count == 0) {
                 _onCameraEnteredAction ??= new List<Action<Camera>>(); 
-                Connect("camera_entered", this, nameof(_GodotSignalCameraEntered));
+                GetParent().Connect("camera_entered", this, nameof(_GodotSignalCameraEntered));
             }
             _onCameraEnteredAction.Add(action);
             return this;
@@ -126,7 +133,7 @@ namespace Betauer.GodotAction {
             if (_onCameraEnteredAction == null || _onCameraEnteredAction.Count == 0) return this;
             _onCameraEnteredAction.Remove(action); 
             if (_onCameraEnteredAction.Count == 0) {
-                Disconnect("camera_entered", this, nameof(_GodotSignalCameraEntered));
+                GetParent().Disconnect("camera_entered", this, nameof(_GodotSignalCameraEntered));
             }
             return this;
         }
@@ -137,10 +144,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Camera>>? _onCameraExitedAction; 
-        public VisibilityNotifierAction OnCameraExited(Action<Camera> action) {
+        public VisibilityNotifierAction OnCameraExited(Action<Camera> action, bool oneShot = false, bool deferred = false) {
             if (_onCameraExitedAction == null || _onCameraExitedAction.Count == 0) {
                 _onCameraExitedAction ??= new List<Action<Camera>>(); 
-                Connect("camera_exited", this, nameof(_GodotSignalCameraExited));
+                GetParent().Connect("camera_exited", this, nameof(_GodotSignalCameraExited));
             }
             _onCameraExitedAction.Add(action);
             return this;
@@ -149,7 +156,7 @@ namespace Betauer.GodotAction {
             if (_onCameraExitedAction == null || _onCameraExitedAction.Count == 0) return this;
             _onCameraExitedAction.Remove(action); 
             if (_onCameraExitedAction.Count == 0) {
-                Disconnect("camera_exited", this, nameof(_GodotSignalCameraExited));
+                GetParent().Disconnect("camera_exited", this, nameof(_GodotSignalCameraExited));
             }
             return this;
         }
@@ -160,10 +167,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onGameplayEnteredAction; 
-        public VisibilityNotifierAction OnGameplayEntered(Action action) {
+        public VisibilityNotifierAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) {
                 _onGameplayEnteredAction ??= new List<Action>(); 
-                Connect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
+                GetParent().Connect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
             }
             _onGameplayEnteredAction.Add(action);
             return this;
@@ -172,7 +179,7 @@ namespace Betauer.GodotAction {
             if (_onGameplayEnteredAction == null || _onGameplayEnteredAction.Count == 0) return this;
             _onGameplayEnteredAction.Remove(action); 
             if (_onGameplayEnteredAction.Count == 0) {
-                Disconnect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
+                GetParent().Disconnect("gameplay_entered", this, nameof(_GodotSignalGameplayEntered));
             }
             return this;
         }
@@ -183,10 +190,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onGameplayExitedAction; 
-        public VisibilityNotifierAction OnGameplayExited(Action action) {
+        public VisibilityNotifierAction OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) {
                 _onGameplayExitedAction ??= new List<Action>(); 
-                Connect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
+                GetParent().Connect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
             }
             _onGameplayExitedAction.Add(action);
             return this;
@@ -195,7 +202,7 @@ namespace Betauer.GodotAction {
             if (_onGameplayExitedAction == null || _onGameplayExitedAction.Count == 0) return this;
             _onGameplayExitedAction.Remove(action); 
             if (_onGameplayExitedAction.Count == 0) {
-                Disconnect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
+                GetParent().Disconnect("gameplay_exited", this, nameof(_GodotSignalGameplayExited));
             }
             return this;
         }
@@ -206,10 +213,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onReadyAction; 
-        public VisibilityNotifierAction OnReady(Action action) {
+        public VisibilityNotifierAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             if (_onReadyAction == null || _onReadyAction.Count == 0) {
                 _onReadyAction ??= new List<Action>(); 
-                Connect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
             }
             _onReadyAction.Add(action);
             return this;
@@ -218,7 +225,7 @@ namespace Betauer.GodotAction {
             if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
             _onReadyAction.Remove(action); 
             if (_onReadyAction.Count == 0) {
-                Disconnect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
             }
             return this;
         }
@@ -229,10 +236,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRenamedAction; 
-        public VisibilityNotifierAction OnRenamed(Action action) {
+        public VisibilityNotifierAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
                 _onRenamedAction ??= new List<Action>(); 
-                Connect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
             }
             _onRenamedAction.Add(action);
             return this;
@@ -241,7 +248,7 @@ namespace Betauer.GodotAction {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
             _onRenamedAction.Remove(action); 
             if (_onRenamedAction.Count == 0) {
-                Disconnect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
             }
             return this;
         }
@@ -252,10 +259,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScreenEnteredAction; 
-        public VisibilityNotifierAction OnScreenEntered(Action action) {
+        public VisibilityNotifierAction OnScreenEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScreenEnteredAction == null || _onScreenEnteredAction.Count == 0) {
                 _onScreenEnteredAction ??= new List<Action>(); 
-                Connect("screen_entered", this, nameof(_GodotSignalScreenEntered));
+                GetParent().Connect("screen_entered", this, nameof(_GodotSignalScreenEntered));
             }
             _onScreenEnteredAction.Add(action);
             return this;
@@ -264,7 +271,7 @@ namespace Betauer.GodotAction {
             if (_onScreenEnteredAction == null || _onScreenEnteredAction.Count == 0) return this;
             _onScreenEnteredAction.Remove(action); 
             if (_onScreenEnteredAction.Count == 0) {
-                Disconnect("screen_entered", this, nameof(_GodotSignalScreenEntered));
+                GetParent().Disconnect("screen_entered", this, nameof(_GodotSignalScreenEntered));
             }
             return this;
         }
@@ -275,10 +282,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScreenExitedAction; 
-        public VisibilityNotifierAction OnScreenExited(Action action) {
+        public VisibilityNotifierAction OnScreenExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScreenExitedAction == null || _onScreenExitedAction.Count == 0) {
                 _onScreenExitedAction ??= new List<Action>(); 
-                Connect("screen_exited", this, nameof(_GodotSignalScreenExited));
+                GetParent().Connect("screen_exited", this, nameof(_GodotSignalScreenExited));
             }
             _onScreenExitedAction.Add(action);
             return this;
@@ -287,7 +294,7 @@ namespace Betauer.GodotAction {
             if (_onScreenExitedAction == null || _onScreenExitedAction.Count == 0) return this;
             _onScreenExitedAction.Remove(action); 
             if (_onScreenExitedAction.Count == 0) {
-                Disconnect("screen_exited", this, nameof(_GodotSignalScreenExited));
+                GetParent().Disconnect("screen_exited", this, nameof(_GodotSignalScreenExited));
             }
             return this;
         }
@@ -298,10 +305,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public VisibilityNotifierAction OnScriptChanged(Action action) {
+        public VisibilityNotifierAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -310,7 +317,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -321,10 +328,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public VisibilityNotifierAction OnTreeEntered(Action action) {
+        public VisibilityNotifierAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
                 _onTreeEnteredAction ??= new List<Action>(); 
-                Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             _onTreeEnteredAction.Add(action);
             return this;
@@ -333,7 +340,7 @@ namespace Betauer.GodotAction {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
             _onTreeEnteredAction.Remove(action); 
             if (_onTreeEnteredAction.Count == 0) {
-                Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             return this;
         }
@@ -344,10 +351,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitedAction; 
-        public VisibilityNotifierAction OnTreeExited(Action action) {
+        public VisibilityNotifierAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
                 _onTreeExitedAction ??= new List<Action>(); 
-                Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             _onTreeExitedAction.Add(action);
             return this;
@@ -356,7 +363,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
             _onTreeExitedAction.Remove(action); 
             if (_onTreeExitedAction.Count == 0) {
-                Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             return this;
         }
@@ -367,10 +374,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitingAction; 
-        public VisibilityNotifierAction OnTreeExiting(Action action) {
+        public VisibilityNotifierAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
                 _onTreeExitingAction ??= new List<Action>(); 
-                Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             _onTreeExitingAction.Add(action);
             return this;
@@ -379,7 +386,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
             _onTreeExitingAction.Remove(action); 
             if (_onTreeExitingAction.Count == 0) {
-                Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             return this;
         }
@@ -390,10 +397,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onVisibilityChangedAction; 
-        public VisibilityNotifierAction OnVisibilityChanged(Action action) {
+        public VisibilityNotifierAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) {
                 _onVisibilityChangedAction ??= new List<Action>(); 
-                Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Connect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             _onVisibilityChangedAction.Add(action);
             return this;
@@ -402,7 +409,7 @@ namespace Betauer.GodotAction {
             if (_onVisibilityChangedAction == null || _onVisibilityChangedAction.Count == 0) return this;
             _onVisibilityChangedAction.Remove(action); 
             if (_onVisibilityChangedAction.Count == 0) {
-                Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
+                GetParent().Disconnect("visibility_changed", this, nameof(_GodotSignalVisibilityChanged));
             }
             return this;
         }

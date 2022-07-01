@@ -6,7 +6,14 @@ using Animation = Godot.Animation;
 using Object = Godot.Object;
 
 namespace Betauer.GodotAction {
-    public class TweenAction : Tween {
+    public class TweenAction : Node {
+        public TweenAction() {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            SetProcessInput(false);
+            SetProcessUnhandledInput(false);
+            SetProcessUnhandledKeyInput(false);
+        }
 
         private List<Action<float>>? _onProcessActions; 
         private List<Action<float>>? _onPhysicsProcessActions; 
@@ -114,10 +121,10 @@ namespace Betauer.GodotAction {
         }
 
         private List<Action>? _onReadyAction; 
-        public TweenAction OnReady(Action action) {
+        public TweenAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             if (_onReadyAction == null || _onReadyAction.Count == 0) {
                 _onReadyAction ??= new List<Action>(); 
-                Connect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Connect("ready", this, nameof(_GodotSignalReady));
             }
             _onReadyAction.Add(action);
             return this;
@@ -126,7 +133,7 @@ namespace Betauer.GodotAction {
             if (_onReadyAction == null || _onReadyAction.Count == 0) return this;
             _onReadyAction.Remove(action); 
             if (_onReadyAction.Count == 0) {
-                Disconnect("ready", this, nameof(_GodotSignalReady));
+                GetParent().Disconnect("ready", this, nameof(_GodotSignalReady));
             }
             return this;
         }
@@ -137,10 +144,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onRenamedAction; 
-        public TweenAction OnRenamed(Action action) {
+        public TweenAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) {
                 _onRenamedAction ??= new List<Action>(); 
-                Connect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Connect("renamed", this, nameof(_GodotSignalRenamed));
             }
             _onRenamedAction.Add(action);
             return this;
@@ -149,7 +156,7 @@ namespace Betauer.GodotAction {
             if (_onRenamedAction == null || _onRenamedAction.Count == 0) return this;
             _onRenamedAction.Remove(action); 
             if (_onRenamedAction.Count == 0) {
-                Disconnect("renamed", this, nameof(_GodotSignalRenamed));
+                GetParent().Disconnect("renamed", this, nameof(_GodotSignalRenamed));
             }
             return this;
         }
@@ -160,10 +167,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onScriptChangedAction; 
-        public TweenAction OnScriptChanged(Action action) {
+        public TweenAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) {
                 _onScriptChangedAction ??= new List<Action>(); 
-                Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Connect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             _onScriptChangedAction.Add(action);
             return this;
@@ -172,7 +179,7 @@ namespace Betauer.GodotAction {
             if (_onScriptChangedAction == null || _onScriptChangedAction.Count == 0) return this;
             _onScriptChangedAction.Remove(action); 
             if (_onScriptChangedAction.Count == 0) {
-                Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
+                GetParent().Disconnect("script_changed", this, nameof(_GodotSignalScriptChanged));
             }
             return this;
         }
@@ -183,10 +190,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeEnteredAction; 
-        public TweenAction OnTreeEntered(Action action) {
+        public TweenAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) {
                 _onTreeEnteredAction ??= new List<Action>(); 
-                Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Connect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             _onTreeEnteredAction.Add(action);
             return this;
@@ -195,7 +202,7 @@ namespace Betauer.GodotAction {
             if (_onTreeEnteredAction == null || _onTreeEnteredAction.Count == 0) return this;
             _onTreeEnteredAction.Remove(action); 
             if (_onTreeEnteredAction.Count == 0) {
-                Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
+                GetParent().Disconnect("tree_entered", this, nameof(_GodotSignalTreeEntered));
             }
             return this;
         }
@@ -206,10 +213,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitedAction; 
-        public TweenAction OnTreeExited(Action action) {
+        public TweenAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) {
                 _onTreeExitedAction ??= new List<Action>(); 
-                Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Connect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             _onTreeExitedAction.Add(action);
             return this;
@@ -218,7 +225,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitedAction == null || _onTreeExitedAction.Count == 0) return this;
             _onTreeExitedAction.Remove(action); 
             if (_onTreeExitedAction.Count == 0) {
-                Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
+                GetParent().Disconnect("tree_exited", this, nameof(_GodotSignalTreeExited));
             }
             return this;
         }
@@ -229,10 +236,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTreeExitingAction; 
-        public TweenAction OnTreeExiting(Action action) {
+        public TweenAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) {
                 _onTreeExitingAction ??= new List<Action>(); 
-                Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Connect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             _onTreeExitingAction.Add(action);
             return this;
@@ -241,7 +248,7 @@ namespace Betauer.GodotAction {
             if (_onTreeExitingAction == null || _onTreeExitingAction.Count == 0) return this;
             _onTreeExitingAction.Remove(action); 
             if (_onTreeExitingAction.Count == 0) {
-                Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
+                GetParent().Disconnect("tree_exiting", this, nameof(_GodotSignalTreeExiting));
             }
             return this;
         }
@@ -252,10 +259,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action>? _onTweenAllCompletedAction; 
-        public TweenAction OnTweenAllCompleted(Action action) {
+        public TweenAction OnTweenAllCompleted(Action action, bool oneShot = false, bool deferred = false) {
             if (_onTweenAllCompletedAction == null || _onTweenAllCompletedAction.Count == 0) {
                 _onTweenAllCompletedAction ??= new List<Action>(); 
-                Connect("tween_all_completed", this, nameof(_GodotSignalTweenAllCompleted));
+                GetParent().Connect("tween_all_completed", this, nameof(_GodotSignalTweenAllCompleted));
             }
             _onTweenAllCompletedAction.Add(action);
             return this;
@@ -264,7 +271,7 @@ namespace Betauer.GodotAction {
             if (_onTweenAllCompletedAction == null || _onTweenAllCompletedAction.Count == 0) return this;
             _onTweenAllCompletedAction.Remove(action); 
             if (_onTweenAllCompletedAction.Count == 0) {
-                Disconnect("tween_all_completed", this, nameof(_GodotSignalTweenAllCompleted));
+                GetParent().Disconnect("tween_all_completed", this, nameof(_GodotSignalTweenAllCompleted));
             }
             return this;
         }
@@ -275,10 +282,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Object, NodePath>>? _onTweenCompletedAction; 
-        public TweenAction OnTweenCompleted(Action<Object, NodePath> action) {
+        public TweenAction OnTweenCompleted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) {
             if (_onTweenCompletedAction == null || _onTweenCompletedAction.Count == 0) {
                 _onTweenCompletedAction ??= new List<Action<Object, NodePath>>(); 
-                Connect("tween_completed", this, nameof(_GodotSignalTweenCompleted));
+                GetParent().Connect("tween_completed", this, nameof(_GodotSignalTweenCompleted));
             }
             _onTweenCompletedAction.Add(action);
             return this;
@@ -287,7 +294,7 @@ namespace Betauer.GodotAction {
             if (_onTweenCompletedAction == null || _onTweenCompletedAction.Count == 0) return this;
             _onTweenCompletedAction.Remove(action); 
             if (_onTweenCompletedAction.Count == 0) {
-                Disconnect("tween_completed", this, nameof(_GodotSignalTweenCompleted));
+                GetParent().Disconnect("tween_completed", this, nameof(_GodotSignalTweenCompleted));
             }
             return this;
         }
@@ -298,10 +305,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Object, NodePath>>? _onTweenStartedAction; 
-        public TweenAction OnTweenStarted(Action<Object, NodePath> action) {
+        public TweenAction OnTweenStarted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) {
             if (_onTweenStartedAction == null || _onTweenStartedAction.Count == 0) {
                 _onTweenStartedAction ??= new List<Action<Object, NodePath>>(); 
-                Connect("tween_started", this, nameof(_GodotSignalTweenStarted));
+                GetParent().Connect("tween_started", this, nameof(_GodotSignalTweenStarted));
             }
             _onTweenStartedAction.Add(action);
             return this;
@@ -310,7 +317,7 @@ namespace Betauer.GodotAction {
             if (_onTweenStartedAction == null || _onTweenStartedAction.Count == 0) return this;
             _onTweenStartedAction.Remove(action); 
             if (_onTweenStartedAction.Count == 0) {
-                Disconnect("tween_started", this, nameof(_GodotSignalTweenStarted));
+                GetParent().Disconnect("tween_started", this, nameof(_GodotSignalTweenStarted));
             }
             return this;
         }
@@ -321,10 +328,10 @@ namespace Betauer.GodotAction {
         
 
         private List<Action<Object, float, NodePath, Object>>? _onTweenStepAction; 
-        public TweenAction OnTweenStep(Action<Object, float, NodePath, Object> action) {
+        public TweenAction OnTweenStep(Action<Object, float, NodePath, Object> action, bool oneShot = false, bool deferred = false) {
             if (_onTweenStepAction == null || _onTweenStepAction.Count == 0) {
                 _onTweenStepAction ??= new List<Action<Object, float, NodePath, Object>>(); 
-                Connect("tween_step", this, nameof(_GodotSignalTweenStep));
+                GetParent().Connect("tween_step", this, nameof(_GodotSignalTweenStep));
             }
             _onTweenStepAction.Add(action);
             return this;
@@ -333,7 +340,7 @@ namespace Betauer.GodotAction {
             if (_onTweenStepAction == null || _onTweenStepAction.Count == 0) return this;
             _onTweenStepAction.Remove(action); 
             if (_onTweenStepAction.Count == 0) {
-                Disconnect("tween_step", this, nameof(_GodotSignalTweenStep));
+                GetParent().Disconnect("tween_step", this, nameof(_GodotSignalTweenStep));
             }
             return this;
         }
