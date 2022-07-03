@@ -1,11 +1,10 @@
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.Memory {
-    public interface IObjectLifeCycle {
-        public bool IsValid();
-        public void Destroy();
+    public interface IObjectLifeCycle : IDisposable {
+        public bool MustBeDisposed();
     }
-    
 
     public class ObjectLifeCycleManager {
         public static readonly ObjectLifeCycleManager Singleton = new ObjectLifeCycleManager();
@@ -20,42 +19,48 @@ namespace Betauer.Memory {
             lock (_signalHandlersList) return new List<IObjectLifeCycle>(_signalHandlersList);
         }
 
-        public void Free(IObjectLifeCycle o) {
+        public void Dispose(IObjectLifeCycle o) {
             try {
-                o.Destroy();
+                o.Dispose();
             } finally {
                 lock (_signalHandlersList) _signalHandlersList.Remove(o);
             }
         }
 
-        public void FreeAllInvalid() {
+        public int DisposeAllInvalid() {
+            var x = 0;
             lock (_signalHandlersList) {
                 // loop backward allows to delete a List safely
                 for (var i = _signalHandlersList.Count - 1; i >= 0; i--) {
                     var signal = _signalHandlersList[i];
-                    if (!signal.IsValid()) {
+                    if (signal.MustBeDisposed()) {
                         try {
-                            signal.Destroy();
+                            signal.Dispose();
                         } finally {
+                            x++;
                             _signalHandlersList.RemoveAt(i);
                         }
                     }
                 }                
             }
+            return x;
         }
 
-        public void FreeAll() {
+        public int DisposeAll() {
+            var x = 0;
             lock (_signalHandlersList) {
                 // loop backward allows to delete a List safely
+                x = _signalHandlersList.Count;
                 try {
                     for (var i = _signalHandlersList.Count - 1; i >= 0; i--) {
                         var signal = _signalHandlersList[i];
-                        signal.Destroy();
+                        signal.Dispose();
                     }
                 } finally {
                     _signalHandlersList.Clear();
                 }
             }
+            return x;
         }
     }
 }
