@@ -9,25 +9,35 @@ namespace Betauer.GodotAction {
     public class MainLoopAction : ProxyNode {
 
         private List<Action<bool, string>>? _onRequestPermissionsResultAction; 
-        public void OnRequestPermissionsResult(Action<bool, string> action, bool oneShot = false, bool deferred = false) =>
+        public MainLoopAction OnRequestPermissionsResult(Action<bool, string> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRequestPermissionsResultAction, "on_request_permissions_result", nameof(_GodotSignalRequestPermissionsResult), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRequestPermissionsResult(Action<bool, string> action) =>
+        public MainLoopAction RemoveOnRequestPermissionsResult(Action<bool, string> action) {
             RemoveSignal(_onRequestPermissionsResultAction, "on_request_permissions_result", nameof(_GodotSignalRequestPermissionsResult), action);
+            return this;
+        }
 
-        private void _GodotSignalRequestPermissionsResult(bool granted, string permission) =>
+        private MainLoopAction _GodotSignalRequestPermissionsResult(bool granted, string permission) {
             ExecuteSignal(_onRequestPermissionsResultAction, granted, permission);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public MainLoopAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public MainLoopAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private MainLoopAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
     }
 }

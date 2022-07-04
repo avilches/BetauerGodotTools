@@ -9,245 +9,355 @@ namespace Betauer.GodotAction {
     public class HScrollBarAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnChanged(Action action) =>
+        public HScrollBarAction RemoveOnChanged(Action action) {
             RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalChanged() =>
+        private HScrollBarAction _GodotSignalChanged() {
             ExecuteSignal(_onChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onDrawAction; 
-        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDraw(Action action) =>
+        public HScrollBarAction RemoveOnDraw(Action action) {
             RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+            return this;
+        }
 
-        private void _GodotSignalDraw() =>
+        private HScrollBarAction _GodotSignalDraw() {
             ExecuteSignal(_onDrawAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusEnteredAction; 
-        public void OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusEntered(Action action) =>
+        public HScrollBarAction RemoveOnFocusEntered(Action action) {
             RemoveSignal(_onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusEntered() =>
+        private HScrollBarAction _GodotSignalFocusEntered() {
             ExecuteSignal(_onFocusEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusExitedAction; 
-        public void OnFocusExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusExited(Action action) =>
+        public HScrollBarAction RemoveOnFocusExited(Action action) {
             RemoveSignal(_onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusExited() =>
+        private HScrollBarAction _GodotSignalFocusExited() {
             ExecuteSignal(_onFocusExitedAction);
-        
+            return this;
+        }
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public void OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGuiInput(Action<InputEvent> action) =>
+        public HScrollBarAction RemoveOnGuiInput(Action<InputEvent> action) {
             RemoveSignal(_onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action);
+            return this;
+        }
 
-        private void _GodotSignalGuiInput(InputEvent @event) =>
+        private HScrollBarAction _GodotSignalGuiInput(InputEvent @event) {
             ExecuteSignal(_onGuiInputAction, @event);
-        
+            return this;
+        }
 
         private List<Action>? _onHideAction; 
-        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnHide(Action action) =>
+        public HScrollBarAction RemoveOnHide(Action action) {
             RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+            return this;
+        }
 
-        private void _GodotSignalHide() =>
+        private HScrollBarAction _GodotSignalHide() {
             ExecuteSignal(_onHideAction);
-        
+            return this;
+        }
 
         private List<Action>? _onItemRectChangedAction; 
-        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnItemRectChanged(Action action) =>
+        public HScrollBarAction RemoveOnItemRectChanged(Action action) {
             RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalItemRectChanged() =>
+        private HScrollBarAction _GodotSignalItemRectChanged() {
             ExecuteSignal(_onItemRectChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public void OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMinimumSizeChanged(Action action) =>
+        public HScrollBarAction RemoveOnMinimumSizeChanged(Action action) {
             RemoveSignal(_onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalMinimumSizeChanged() =>
+        private HScrollBarAction _GodotSignalMinimumSizeChanged() {
             ExecuteSignal(_onMinimumSizeChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onModalClosedAction; 
-        public void OnModalClosed(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnModalClosed(Action action) =>
+        public HScrollBarAction RemoveOnModalClosed(Action action) {
             RemoveSignal(_onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action);
+            return this;
+        }
 
-        private void _GodotSignalModalClosed() =>
+        private HScrollBarAction _GodotSignalModalClosed() {
             ExecuteSignal(_onModalClosedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseEnteredAction; 
-        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseEntered(Action action) =>
+        public HScrollBarAction RemoveOnMouseEntered(Action action) {
             RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseEntered() =>
+        private HScrollBarAction _GodotSignalMouseEntered() {
             ExecuteSignal(_onMouseEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseExitedAction; 
-        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseExited(Action action) =>
+        public HScrollBarAction RemoveOnMouseExited(Action action) {
             RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseExited() =>
+        private HScrollBarAction _GodotSignalMouseExited() {
             ExecuteSignal(_onMouseExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public HScrollBarAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private HScrollBarAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public HScrollBarAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private HScrollBarAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onResizedAction; 
-        public void OnResized(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onResizedAction, "resized", nameof(_GodotSignalResized), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnResized(Action action) =>
+        public HScrollBarAction RemoveOnResized(Action action) {
             RemoveSignal(_onResizedAction, "resized", nameof(_GodotSignalResized), action);
+            return this;
+        }
 
-        private void _GodotSignalResized() =>
+        private HScrollBarAction _GodotSignalResized() {
             ExecuteSignal(_onResizedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public HScrollBarAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private HScrollBarAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScrollingAction; 
-        public void OnScrolling(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnScrolling(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScrollingAction, "scrolling", nameof(_GodotSignalScrolling), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScrolling(Action action) =>
+        public HScrollBarAction RemoveOnScrolling(Action action) {
             RemoveSignal(_onScrollingAction, "scrolling", nameof(_GodotSignalScrolling), action);
+            return this;
+        }
 
-        private void _GodotSignalScrolling() =>
+        private HScrollBarAction _GodotSignalScrolling() {
             ExecuteSignal(_onScrollingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public void OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSizeFlagsChanged(Action action) =>
+        public HScrollBarAction RemoveOnSizeFlagsChanged(Action action) {
             RemoveSignal(_onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalSizeFlagsChanged() =>
+        private HScrollBarAction _GodotSignalSizeFlagsChanged() {
             ExecuteSignal(_onSizeFlagsChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public HScrollBarAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private HScrollBarAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public HScrollBarAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private HScrollBarAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public HScrollBarAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private HScrollBarAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action<float>>? _onValueChangedAction; 
-        public void OnValueChanged(Action<float> action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnValueChanged(Action<float> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onValueChangedAction, "value_changed", nameof(_GodotSignalValueChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnValueChanged(Action<float> action) =>
+        public HScrollBarAction RemoveOnValueChanged(Action<float> action) {
             RemoveSignal(_onValueChangedAction, "value_changed", nameof(_GodotSignalValueChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalValueChanged(float value) =>
+        private HScrollBarAction _GodotSignalValueChanged(float value) {
             ExecuteSignal(_onValueChangedAction, value);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public HScrollBarAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public HScrollBarAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private HScrollBarAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

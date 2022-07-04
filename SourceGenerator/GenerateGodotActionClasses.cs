@@ -54,15 +54,20 @@ namespace {GodotActionClassesNamespace} {{
             }
             return $@"
         private List<Action{signal.Generics()}>? {actionVarName}; 
-        public void On{signal.MethodName}(Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
+        public {signal.GodotClass.GeneratedClassName} On{signal.MethodName}(Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
             AddSignal(ref {actionVarName}, ""{signal.signal_name}"", nameof({godotExecuteActionMethodName}), action, oneShot, deferred);
+            return this;
+        }}
 
-        public void RemoveOn{signal.MethodName}(Action{signal.Generics()} action) =>
+        public {signal.GodotClass.GeneratedClassName} RemoveOn{signal.MethodName}(Action{signal.Generics()} action) {{
             RemoveSignal({actionVarName}, ""{signal.signal_name}"", nameof({godotExecuteActionMethodName}), action);
+            return this;
+        }}
 
-        private void {godotExecuteActionMethodName}({signal.GetParamNamesWithType()}) =>
+        private {signal.GodotClass.GeneratedClassName} {godotExecuteActionMethodName}({signal.GetParamNamesWithType()}) {{
             ExecuteSignal({parameters});
-        ";
+            return this;
+        }}";
         }
     }
 }

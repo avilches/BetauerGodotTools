@@ -9,47 +9,67 @@ namespace Betauer.GodotAction {
     public class AnimationNodeTimeScaleAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public AnimationNodeTimeScaleAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnChanged(Action action) =>
+        public AnimationNodeTimeScaleAction RemoveOnChanged(Action action) {
             RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalChanged() =>
+        private AnimationNodeTimeScaleAction _GodotSignalChanged() {
             ExecuteSignal(_onChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRemovedFromGraphAction; 
-        public void OnRemovedFromGraph(Action action, bool oneShot = false, bool deferred = false) =>
+        public AnimationNodeTimeScaleAction OnRemovedFromGraph(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRemovedFromGraphAction, "removed_from_graph", nameof(_GodotSignalRemovedFromGraph), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRemovedFromGraph(Action action) =>
+        public AnimationNodeTimeScaleAction RemoveOnRemovedFromGraph(Action action) {
             RemoveSignal(_onRemovedFromGraphAction, "removed_from_graph", nameof(_GodotSignalRemovedFromGraph), action);
+            return this;
+        }
 
-        private void _GodotSignalRemovedFromGraph() =>
+        private AnimationNodeTimeScaleAction _GodotSignalRemovedFromGraph() {
             ExecuteSignal(_onRemovedFromGraphAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public AnimationNodeTimeScaleAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public AnimationNodeTimeScaleAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private AnimationNodeTimeScaleAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeChangedAction; 
-        public void OnTreeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public AnimationNodeTimeScaleAction OnTreeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeChangedAction, "tree_changed", nameof(_GodotSignalTreeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeChanged(Action action) =>
+        public AnimationNodeTimeScaleAction RemoveOnTreeChanged(Action action) {
             RemoveSignal(_onTreeChangedAction, "tree_changed", nameof(_GodotSignalTreeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeChanged() =>
+        private AnimationNodeTimeScaleAction _GodotSignalTreeChanged() {
             ExecuteSignal(_onTreeChangedAction);
-        
+            return this;
+        }
     }
 }

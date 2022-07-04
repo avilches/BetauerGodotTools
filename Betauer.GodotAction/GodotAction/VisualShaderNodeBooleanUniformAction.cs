@@ -9,36 +9,51 @@ namespace Betauer.GodotAction {
     public class VisualShaderNodeBooleanUniformAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeBooleanUniformAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnChanged(Action action) =>
+        public VisualShaderNodeBooleanUniformAction RemoveOnChanged(Action action) {
             RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalChanged() =>
+        private VisualShaderNodeBooleanUniformAction _GodotSignalChanged() {
             ExecuteSignal(_onChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onEditorRefreshRequestAction; 
-        public void OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeBooleanUniformAction OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnEditorRefreshRequest(Action action) =>
+        public VisualShaderNodeBooleanUniformAction RemoveOnEditorRefreshRequest(Action action) {
             RemoveSignal(_onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalEditorRefreshRequest() =>
+        private VisualShaderNodeBooleanUniformAction _GodotSignalEditorRefreshRequest() {
             ExecuteSignal(_onEditorRefreshRequestAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeBooleanUniformAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public VisualShaderNodeBooleanUniformAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private VisualShaderNodeBooleanUniformAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
     }
 }

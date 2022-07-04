@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateSignalHandlerExtensions {
-        private const string SignalHandlerExtensionsFile = "../Betauer.Core/SignalHandlerExtensions.cs";
+        private const string SignalHandlerExtensionsFile = "../Betauer.Core/SignalHandler/SignalHandlerExtensions.cs";
 
         public static void WriteSignalHandlerExtensionsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
@@ -36,7 +36,7 @@ using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 
-namespace Betauer {{
+namespace Betauer.SignalHandler {{
     public static partial class SignalExtensions {{
 {string.Join("\n", methods)}
     }}

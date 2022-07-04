@@ -9,113 +9,163 @@ namespace Betauer.GodotAction {
     public class ParallaxLayerAction : ProxyNode {
 
         private List<Action>? _onDrawAction; 
-        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDraw(Action action) =>
+        public ParallaxLayerAction RemoveOnDraw(Action action) {
             RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+            return this;
+        }
 
-        private void _GodotSignalDraw() =>
+        private ParallaxLayerAction _GodotSignalDraw() {
             ExecuteSignal(_onDrawAction);
-        
+            return this;
+        }
 
         private List<Action>? _onHideAction; 
-        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnHide(Action action) =>
+        public ParallaxLayerAction RemoveOnHide(Action action) {
             RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+            return this;
+        }
 
-        private void _GodotSignalHide() =>
+        private ParallaxLayerAction _GodotSignalHide() {
             ExecuteSignal(_onHideAction);
-        
+            return this;
+        }
 
         private List<Action>? _onItemRectChangedAction; 
-        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnItemRectChanged(Action action) =>
+        public ParallaxLayerAction RemoveOnItemRectChanged(Action action) {
             RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalItemRectChanged() =>
+        private ParallaxLayerAction _GodotSignalItemRectChanged() {
             ExecuteSignal(_onItemRectChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public ParallaxLayerAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private ParallaxLayerAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public ParallaxLayerAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private ParallaxLayerAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public ParallaxLayerAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private ParallaxLayerAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public ParallaxLayerAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private ParallaxLayerAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public ParallaxLayerAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private ParallaxLayerAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public ParallaxLayerAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private ParallaxLayerAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public ParallaxLayerAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public ParallaxLayerAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private ParallaxLayerAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

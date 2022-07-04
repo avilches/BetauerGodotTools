@@ -9,47 +9,67 @@ namespace Betauer.GodotAction {
     public class VisualShaderNodeInputAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeInputAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnChanged(Action action) =>
+        public VisualShaderNodeInputAction RemoveOnChanged(Action action) {
             RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalChanged() =>
+        private VisualShaderNodeInputAction _GodotSignalChanged() {
             ExecuteSignal(_onChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onEditorRefreshRequestAction; 
-        public void OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeInputAction OnEditorRefreshRequest(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnEditorRefreshRequest(Action action) =>
+        public VisualShaderNodeInputAction RemoveOnEditorRefreshRequest(Action action) {
             RemoveSignal(_onEditorRefreshRequestAction, "editor_refresh_request", nameof(_GodotSignalEditorRefreshRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalEditorRefreshRequest() =>
+        private VisualShaderNodeInputAction _GodotSignalEditorRefreshRequest() {
             ExecuteSignal(_onEditorRefreshRequestAction);
-        
+            return this;
+        }
 
         private List<Action>? _onInputTypeChangedAction; 
-        public void OnInputTypeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeInputAction OnInputTypeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onInputTypeChangedAction, "input_type_changed", nameof(_GodotSignalInputTypeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnInputTypeChanged(Action action) =>
+        public VisualShaderNodeInputAction RemoveOnInputTypeChanged(Action action) {
             RemoveSignal(_onInputTypeChangedAction, "input_type_changed", nameof(_GodotSignalInputTypeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalInputTypeChanged() =>
+        private VisualShaderNodeInputAction _GodotSignalInputTypeChanged() {
             ExecuteSignal(_onInputTypeChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualShaderNodeInputAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public VisualShaderNodeInputAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private VisualShaderNodeInputAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
     }
 }

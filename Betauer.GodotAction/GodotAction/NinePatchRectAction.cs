@@ -9,223 +9,323 @@ namespace Betauer.GodotAction {
     public class NinePatchRectAction : ProxyNode {
 
         private List<Action>? _onDrawAction; 
-        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDraw(Action action) =>
+        public NinePatchRectAction RemoveOnDraw(Action action) {
             RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+            return this;
+        }
 
-        private void _GodotSignalDraw() =>
+        private NinePatchRectAction _GodotSignalDraw() {
             ExecuteSignal(_onDrawAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusEnteredAction; 
-        public void OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusEntered(Action action) =>
+        public NinePatchRectAction RemoveOnFocusEntered(Action action) {
             RemoveSignal(_onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusEntered() =>
+        private NinePatchRectAction _GodotSignalFocusEntered() {
             ExecuteSignal(_onFocusEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusExitedAction; 
-        public void OnFocusExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusExited(Action action) =>
+        public NinePatchRectAction RemoveOnFocusExited(Action action) {
             RemoveSignal(_onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusExited() =>
+        private NinePatchRectAction _GodotSignalFocusExited() {
             ExecuteSignal(_onFocusExitedAction);
-        
+            return this;
+        }
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public void OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGuiInput(Action<InputEvent> action) =>
+        public NinePatchRectAction RemoveOnGuiInput(Action<InputEvent> action) {
             RemoveSignal(_onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action);
+            return this;
+        }
 
-        private void _GodotSignalGuiInput(InputEvent @event) =>
+        private NinePatchRectAction _GodotSignalGuiInput(InputEvent @event) {
             ExecuteSignal(_onGuiInputAction, @event);
-        
+            return this;
+        }
 
         private List<Action>? _onHideAction; 
-        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnHide(Action action) =>
+        public NinePatchRectAction RemoveOnHide(Action action) {
             RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+            return this;
+        }
 
-        private void _GodotSignalHide() =>
+        private NinePatchRectAction _GodotSignalHide() {
             ExecuteSignal(_onHideAction);
-        
+            return this;
+        }
 
         private List<Action>? _onItemRectChangedAction; 
-        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnItemRectChanged(Action action) =>
+        public NinePatchRectAction RemoveOnItemRectChanged(Action action) {
             RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalItemRectChanged() =>
+        private NinePatchRectAction _GodotSignalItemRectChanged() {
             ExecuteSignal(_onItemRectChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public void OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMinimumSizeChanged(Action action) =>
+        public NinePatchRectAction RemoveOnMinimumSizeChanged(Action action) {
             RemoveSignal(_onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalMinimumSizeChanged() =>
+        private NinePatchRectAction _GodotSignalMinimumSizeChanged() {
             ExecuteSignal(_onMinimumSizeChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onModalClosedAction; 
-        public void OnModalClosed(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnModalClosed(Action action) =>
+        public NinePatchRectAction RemoveOnModalClosed(Action action) {
             RemoveSignal(_onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action);
+            return this;
+        }
 
-        private void _GodotSignalModalClosed() =>
+        private NinePatchRectAction _GodotSignalModalClosed() {
             ExecuteSignal(_onModalClosedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseEnteredAction; 
-        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseEntered(Action action) =>
+        public NinePatchRectAction RemoveOnMouseEntered(Action action) {
             RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseEntered() =>
+        private NinePatchRectAction _GodotSignalMouseEntered() {
             ExecuteSignal(_onMouseEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseExitedAction; 
-        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseExited(Action action) =>
+        public NinePatchRectAction RemoveOnMouseExited(Action action) {
             RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseExited() =>
+        private NinePatchRectAction _GodotSignalMouseExited() {
             ExecuteSignal(_onMouseExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public NinePatchRectAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private NinePatchRectAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public NinePatchRectAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private NinePatchRectAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onResizedAction; 
-        public void OnResized(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onResizedAction, "resized", nameof(_GodotSignalResized), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnResized(Action action) =>
+        public NinePatchRectAction RemoveOnResized(Action action) {
             RemoveSignal(_onResizedAction, "resized", nameof(_GodotSignalResized), action);
+            return this;
+        }
 
-        private void _GodotSignalResized() =>
+        private NinePatchRectAction _GodotSignalResized() {
             ExecuteSignal(_onResizedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public NinePatchRectAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private NinePatchRectAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public void OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSizeFlagsChanged(Action action) =>
+        public NinePatchRectAction RemoveOnSizeFlagsChanged(Action action) {
             RemoveSignal(_onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalSizeFlagsChanged() =>
+        private NinePatchRectAction _GodotSignalSizeFlagsChanged() {
             ExecuteSignal(_onSizeFlagsChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTextureChangedAction; 
-        public void OnTextureChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnTextureChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTextureChangedAction, "texture_changed", nameof(_GodotSignalTextureChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTextureChanged(Action action) =>
+        public NinePatchRectAction RemoveOnTextureChanged(Action action) {
             RemoveSignal(_onTextureChangedAction, "texture_changed", nameof(_GodotSignalTextureChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalTextureChanged() =>
+        private NinePatchRectAction _GodotSignalTextureChanged() {
             ExecuteSignal(_onTextureChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public NinePatchRectAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private NinePatchRectAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public NinePatchRectAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private NinePatchRectAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public NinePatchRectAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private NinePatchRectAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NinePatchRectAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public NinePatchRectAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private NinePatchRectAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

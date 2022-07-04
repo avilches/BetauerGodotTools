@@ -9,102 +9,147 @@ namespace Betauer.GodotAction {
     public class RemoteTransformAction : ProxyNode {
 
         private List<Action>? _onGameplayEnteredAction; 
-        public void OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayEntered(Action action) =>
+        public RemoteTransformAction RemoveOnGameplayEntered(Action action) {
             RemoveSignal(_onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayEntered() =>
+        private RemoteTransformAction _GodotSignalGameplayEntered() {
             ExecuteSignal(_onGameplayEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onGameplayExitedAction; 
-        public void OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayExited(Action action) =>
+        public RemoteTransformAction RemoveOnGameplayExited(Action action) {
             RemoveSignal(_onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayExited() =>
+        private RemoteTransformAction _GodotSignalGameplayExited() {
             ExecuteSignal(_onGameplayExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public RemoteTransformAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private RemoteTransformAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public RemoteTransformAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private RemoteTransformAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public RemoteTransformAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private RemoteTransformAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public RemoteTransformAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private RemoteTransformAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public RemoteTransformAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private RemoteTransformAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public RemoteTransformAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private RemoteTransformAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public RemoteTransformAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public RemoteTransformAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private RemoteTransformAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

@@ -9,113 +9,163 @@ namespace Betauer.GodotAction {
     public class TweenAction : ProxyNode {
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public TweenAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private TweenAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public TweenAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private TweenAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public TweenAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private TweenAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public TweenAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private TweenAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public TweenAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private TweenAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public TweenAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private TweenAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTweenAllCompletedAction; 
-        public void OnTweenAllCompleted(Action action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTweenAllCompleted(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTweenAllCompletedAction, "tween_all_completed", nameof(_GodotSignalTweenAllCompleted), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTweenAllCompleted(Action action) =>
+        public TweenAction RemoveOnTweenAllCompleted(Action action) {
             RemoveSignal(_onTweenAllCompletedAction, "tween_all_completed", nameof(_GodotSignalTweenAllCompleted), action);
+            return this;
+        }
 
-        private void _GodotSignalTweenAllCompleted() =>
+        private TweenAction _GodotSignalTweenAllCompleted() {
             ExecuteSignal(_onTweenAllCompletedAction);
-        
+            return this;
+        }
 
         private List<Action<Object, NodePath>>? _onTweenCompletedAction; 
-        public void OnTweenCompleted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTweenCompleted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTweenCompletedAction, "tween_completed", nameof(_GodotSignalTweenCompleted), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTweenCompleted(Action<Object, NodePath> action) =>
+        public TweenAction RemoveOnTweenCompleted(Action<Object, NodePath> action) {
             RemoveSignal(_onTweenCompletedAction, "tween_completed", nameof(_GodotSignalTweenCompleted), action);
+            return this;
+        }
 
-        private void _GodotSignalTweenCompleted(Object @object, NodePath key) =>
+        private TweenAction _GodotSignalTweenCompleted(Object @object, NodePath key) {
             ExecuteSignal(_onTweenCompletedAction, @object, key);
-        
+            return this;
+        }
 
         private List<Action<Object, NodePath>>? _onTweenStartedAction; 
-        public void OnTweenStarted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTweenStarted(Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTweenStartedAction, "tween_started", nameof(_GodotSignalTweenStarted), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTweenStarted(Action<Object, NodePath> action) =>
+        public TweenAction RemoveOnTweenStarted(Action<Object, NodePath> action) {
             RemoveSignal(_onTweenStartedAction, "tween_started", nameof(_GodotSignalTweenStarted), action);
+            return this;
+        }
 
-        private void _GodotSignalTweenStarted(Object @object, NodePath key) =>
+        private TweenAction _GodotSignalTweenStarted(Object @object, NodePath key) {
             ExecuteSignal(_onTweenStartedAction, @object, key);
-        
+            return this;
+        }
 
         private List<Action<Object, float, NodePath, Object>>? _onTweenStepAction; 
-        public void OnTweenStep(Action<Object, float, NodePath, Object> action, bool oneShot = false, bool deferred = false) =>
+        public TweenAction OnTweenStep(Action<Object, float, NodePath, Object> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTweenStepAction, "tween_step", nameof(_GodotSignalTweenStep), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTweenStep(Action<Object, float, NodePath, Object> action) =>
+        public TweenAction RemoveOnTweenStep(Action<Object, float, NodePath, Object> action) {
             RemoveSignal(_onTweenStepAction, "tween_step", nameof(_GodotSignalTweenStep), action);
+            return this;
+        }
 
-        private void _GodotSignalTweenStep(Object @object, float elapsed, NodePath key, Object value) =>
+        private TweenAction _GodotSignalTweenStep(Object @object, float elapsed, NodePath key, Object value) {
             ExecuteSignal(_onTweenStepAction, @object, elapsed, key, value);
-        
+            return this;
+        }
     }
 }

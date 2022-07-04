@@ -9,289 +9,419 @@ namespace Betauer.GodotAction {
     public class GraphNodeAction : ProxyNode {
 
         private List<Action>? _onCloseRequestAction; 
-        public void OnCloseRequest(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnCloseRequest(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onCloseRequestAction, "close_request", nameof(_GodotSignalCloseRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnCloseRequest(Action action) =>
+        public GraphNodeAction RemoveOnCloseRequest(Action action) {
             RemoveSignal(_onCloseRequestAction, "close_request", nameof(_GodotSignalCloseRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalCloseRequest() =>
+        private GraphNodeAction _GodotSignalCloseRequest() {
             ExecuteSignal(_onCloseRequestAction);
-        
+            return this;
+        }
 
         private List<Action<Vector2, Vector2>>? _onDraggedAction; 
-        public void OnDragged(Action<Vector2, Vector2> action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnDragged(Action<Vector2, Vector2> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDraggedAction, "dragged", nameof(_GodotSignalDragged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDragged(Action<Vector2, Vector2> action) =>
+        public GraphNodeAction RemoveOnDragged(Action<Vector2, Vector2> action) {
             RemoveSignal(_onDraggedAction, "dragged", nameof(_GodotSignalDragged), action);
+            return this;
+        }
 
-        private void _GodotSignalDragged(Vector2 from, Vector2 to) =>
+        private GraphNodeAction _GodotSignalDragged(Vector2 from, Vector2 to) {
             ExecuteSignal(_onDraggedAction, from, to);
-        
+            return this;
+        }
 
         private List<Action>? _onDrawAction; 
-        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDraw(Action action) =>
+        public GraphNodeAction RemoveOnDraw(Action action) {
             RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+            return this;
+        }
 
-        private void _GodotSignalDraw() =>
+        private GraphNodeAction _GodotSignalDraw() {
             ExecuteSignal(_onDrawAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusEnteredAction; 
-        public void OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusEntered(Action action) =>
+        public GraphNodeAction RemoveOnFocusEntered(Action action) {
             RemoveSignal(_onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusEntered() =>
+        private GraphNodeAction _GodotSignalFocusEntered() {
             ExecuteSignal(_onFocusEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusExitedAction; 
-        public void OnFocusExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusExited(Action action) =>
+        public GraphNodeAction RemoveOnFocusExited(Action action) {
             RemoveSignal(_onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusExited() =>
+        private GraphNodeAction _GodotSignalFocusExited() {
             ExecuteSignal(_onFocusExitedAction);
-        
+            return this;
+        }
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public void OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGuiInput(Action<InputEvent> action) =>
+        public GraphNodeAction RemoveOnGuiInput(Action<InputEvent> action) {
             RemoveSignal(_onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action);
+            return this;
+        }
 
-        private void _GodotSignalGuiInput(InputEvent @event) =>
+        private GraphNodeAction _GodotSignalGuiInput(InputEvent @event) {
             ExecuteSignal(_onGuiInputAction, @event);
-        
+            return this;
+        }
 
         private List<Action>? _onHideAction; 
-        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnHide(Action action) =>
+        public GraphNodeAction RemoveOnHide(Action action) {
             RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+            return this;
+        }
 
-        private void _GodotSignalHide() =>
+        private GraphNodeAction _GodotSignalHide() {
             ExecuteSignal(_onHideAction);
-        
+            return this;
+        }
 
         private List<Action>? _onItemRectChangedAction; 
-        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnItemRectChanged(Action action) =>
+        public GraphNodeAction RemoveOnItemRectChanged(Action action) {
             RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalItemRectChanged() =>
+        private GraphNodeAction _GodotSignalItemRectChanged() {
             ExecuteSignal(_onItemRectChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public void OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMinimumSizeChanged(Action action) =>
+        public GraphNodeAction RemoveOnMinimumSizeChanged(Action action) {
             RemoveSignal(_onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalMinimumSizeChanged() =>
+        private GraphNodeAction _GodotSignalMinimumSizeChanged() {
             ExecuteSignal(_onMinimumSizeChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onModalClosedAction; 
-        public void OnModalClosed(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnModalClosed(Action action) =>
+        public GraphNodeAction RemoveOnModalClosed(Action action) {
             RemoveSignal(_onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action);
+            return this;
+        }
 
-        private void _GodotSignalModalClosed() =>
+        private GraphNodeAction _GodotSignalModalClosed() {
             ExecuteSignal(_onModalClosedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseEnteredAction; 
-        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseEntered(Action action) =>
+        public GraphNodeAction RemoveOnMouseEntered(Action action) {
             RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseEntered() =>
+        private GraphNodeAction _GodotSignalMouseEntered() {
             ExecuteSignal(_onMouseEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseExitedAction; 
-        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseExited(Action action) =>
+        public GraphNodeAction RemoveOnMouseExited(Action action) {
             RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseExited() =>
+        private GraphNodeAction _GodotSignalMouseExited() {
             ExecuteSignal(_onMouseExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onOffsetChangedAction; 
-        public void OnOffsetChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnOffsetChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onOffsetChangedAction, "offset_changed", nameof(_GodotSignalOffsetChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnOffsetChanged(Action action) =>
+        public GraphNodeAction RemoveOnOffsetChanged(Action action) {
             RemoveSignal(_onOffsetChangedAction, "offset_changed", nameof(_GodotSignalOffsetChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalOffsetChanged() =>
+        private GraphNodeAction _GodotSignalOffsetChanged() {
             ExecuteSignal(_onOffsetChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRaiseRequestAction; 
-        public void OnRaiseRequest(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnRaiseRequest(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRaiseRequestAction, "raise_request", nameof(_GodotSignalRaiseRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRaiseRequest(Action action) =>
+        public GraphNodeAction RemoveOnRaiseRequest(Action action) {
             RemoveSignal(_onRaiseRequestAction, "raise_request", nameof(_GodotSignalRaiseRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalRaiseRequest() =>
+        private GraphNodeAction _GodotSignalRaiseRequest() {
             ExecuteSignal(_onRaiseRequestAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public GraphNodeAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private GraphNodeAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public GraphNodeAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private GraphNodeAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onResizedAction; 
-        public void OnResized(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onResizedAction, "resized", nameof(_GodotSignalResized), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnResized(Action action) =>
+        public GraphNodeAction RemoveOnResized(Action action) {
             RemoveSignal(_onResizedAction, "resized", nameof(_GodotSignalResized), action);
+            return this;
+        }
 
-        private void _GodotSignalResized() =>
+        private GraphNodeAction _GodotSignalResized() {
             ExecuteSignal(_onResizedAction);
-        
+            return this;
+        }
 
         private List<Action<Vector2>>? _onResizeRequestAction; 
-        public void OnResizeRequest(Action<Vector2> action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnResizeRequest(Action<Vector2> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onResizeRequestAction, "resize_request", nameof(_GodotSignalResizeRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnResizeRequest(Action<Vector2> action) =>
+        public GraphNodeAction RemoveOnResizeRequest(Action<Vector2> action) {
             RemoveSignal(_onResizeRequestAction, "resize_request", nameof(_GodotSignalResizeRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalResizeRequest(Vector2 new_minsize) =>
+        private GraphNodeAction _GodotSignalResizeRequest(Vector2 new_minsize) {
             ExecuteSignal(_onResizeRequestAction, new_minsize);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public GraphNodeAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private GraphNodeAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public void OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSizeFlagsChanged(Action action) =>
+        public GraphNodeAction RemoveOnSizeFlagsChanged(Action action) {
             RemoveSignal(_onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalSizeFlagsChanged() =>
+        private GraphNodeAction _GodotSignalSizeFlagsChanged() {
             ExecuteSignal(_onSizeFlagsChangedAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onSlotUpdatedAction; 
-        public void OnSlotUpdated(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnSlotUpdated(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSlotUpdatedAction, "slot_updated", nameof(_GodotSignalSlotUpdated), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSlotUpdated(Action<int> action) =>
+        public GraphNodeAction RemoveOnSlotUpdated(Action<int> action) {
             RemoveSignal(_onSlotUpdatedAction, "slot_updated", nameof(_GodotSignalSlotUpdated), action);
+            return this;
+        }
 
-        private void _GodotSignalSlotUpdated(int idx) =>
+        private GraphNodeAction _GodotSignalSlotUpdated(int idx) {
             ExecuteSignal(_onSlotUpdatedAction, idx);
-        
+            return this;
+        }
 
         private List<Action>? _onSortChildrenAction; 
-        public void OnSortChildren(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnSortChildren(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSortChildrenAction, "sort_children", nameof(_GodotSignalSortChildren), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSortChildren(Action action) =>
+        public GraphNodeAction RemoveOnSortChildren(Action action) {
             RemoveSignal(_onSortChildrenAction, "sort_children", nameof(_GodotSignalSortChildren), action);
+            return this;
+        }
 
-        private void _GodotSignalSortChildren() =>
+        private GraphNodeAction _GodotSignalSortChildren() {
             ExecuteSignal(_onSortChildrenAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public GraphNodeAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private GraphNodeAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public GraphNodeAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private GraphNodeAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public GraphNodeAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private GraphNodeAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public GraphNodeAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public GraphNodeAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private GraphNodeAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

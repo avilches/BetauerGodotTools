@@ -9,25 +9,35 @@ namespace Betauer.GodotAction {
     public class UndoRedoAction : ProxyNode {
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public UndoRedoAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public UndoRedoAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private UndoRedoAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVersionChangedAction; 
-        public void OnVersionChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public UndoRedoAction OnVersionChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVersionChangedAction, "version_changed", nameof(_GodotSignalVersionChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVersionChanged(Action action) =>
+        public UndoRedoAction RemoveOnVersionChanged(Action action) {
             RemoveSignal(_onVersionChangedAction, "version_changed", nameof(_GodotSignalVersionChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVersionChanged() =>
+        private UndoRedoAction _GodotSignalVersionChanged() {
             ExecuteSignal(_onVersionChangedAction);
-        
+            return this;
+        }
     }
 }

@@ -9,69 +9,99 @@ namespace Betauer.GodotAction {
     public class NetworkedMultiplayerENetAction : ProxyNode {
 
         private List<Action>? _onConnectionFailedAction; 
-        public void OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionFailed(Action action) =>
+        public NetworkedMultiplayerENetAction RemoveOnConnectionFailed(Action action) {
             RemoveSignal(_onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionFailed() =>
+        private NetworkedMultiplayerENetAction _GodotSignalConnectionFailed() {
             ExecuteSignal(_onConnectionFailedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onConnectionSucceededAction; 
-        public void OnConnectionSucceeded(Action action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnConnectionSucceeded(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionSucceededAction, "connection_succeeded", nameof(_GodotSignalConnectionSucceeded), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionSucceeded(Action action) =>
+        public NetworkedMultiplayerENetAction RemoveOnConnectionSucceeded(Action action) {
             RemoveSignal(_onConnectionSucceededAction, "connection_succeeded", nameof(_GodotSignalConnectionSucceeded), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionSucceeded() =>
+        private NetworkedMultiplayerENetAction _GodotSignalConnectionSucceeded() {
             ExecuteSignal(_onConnectionSucceededAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onPeerConnectedAction; 
-        public void OnPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPeerConnectedAction, "peer_connected", nameof(_GodotSignalPeerConnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPeerConnected(Action<int> action) =>
+        public NetworkedMultiplayerENetAction RemoveOnPeerConnected(Action<int> action) {
             RemoveSignal(_onPeerConnectedAction, "peer_connected", nameof(_GodotSignalPeerConnected), action);
+            return this;
+        }
 
-        private void _GodotSignalPeerConnected(int id) =>
+        private NetworkedMultiplayerENetAction _GodotSignalPeerConnected(int id) {
             ExecuteSignal(_onPeerConnectedAction, id);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onPeerDisconnectedAction; 
-        public void OnPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPeerDisconnectedAction, "peer_disconnected", nameof(_GodotSignalPeerDisconnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPeerDisconnected(Action<int> action) =>
+        public NetworkedMultiplayerENetAction RemoveOnPeerDisconnected(Action<int> action) {
             RemoveSignal(_onPeerDisconnectedAction, "peer_disconnected", nameof(_GodotSignalPeerDisconnected), action);
+            return this;
+        }
 
-        private void _GodotSignalPeerDisconnected(int id) =>
+        private NetworkedMultiplayerENetAction _GodotSignalPeerDisconnected(int id) {
             ExecuteSignal(_onPeerDisconnectedAction, id);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public NetworkedMultiplayerENetAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private NetworkedMultiplayerENetAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onServerDisconnectedAction; 
-        public void OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) =>
+        public NetworkedMultiplayerENetAction OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnServerDisconnected(Action action) =>
+        public NetworkedMultiplayerENetAction RemoveOnServerDisconnected(Action action) {
             RemoveSignal(_onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action);
+            return this;
+        }
 
-        private void _GodotSignalServerDisconnected() =>
+        private NetworkedMultiplayerENetAction _GodotSignalServerDisconnected() {
             ExecuteSignal(_onServerDisconnectedAction);
-        
+            return this;
+        }
     }
 }

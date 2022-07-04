@@ -9,135 +9,195 @@ namespace Betauer.GodotAction {
     public class ARVRControllerAction : ProxyNode {
 
         private List<Action<int>>? _onButtonPressedAction; 
-        public void OnButtonPressed(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnButtonPressed(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onButtonPressedAction, "button_pressed", nameof(_GodotSignalButtonPressed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnButtonPressed(Action<int> action) =>
+        public ARVRControllerAction RemoveOnButtonPressed(Action<int> action) {
             RemoveSignal(_onButtonPressedAction, "button_pressed", nameof(_GodotSignalButtonPressed), action);
+            return this;
+        }
 
-        private void _GodotSignalButtonPressed(int button) =>
+        private ARVRControllerAction _GodotSignalButtonPressed(int button) {
             ExecuteSignal(_onButtonPressedAction, button);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onButtonReleaseAction; 
-        public void OnButtonRelease(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnButtonRelease(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onButtonReleaseAction, "button_release", nameof(_GodotSignalButtonRelease), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnButtonRelease(Action<int> action) =>
+        public ARVRControllerAction RemoveOnButtonRelease(Action<int> action) {
             RemoveSignal(_onButtonReleaseAction, "button_release", nameof(_GodotSignalButtonRelease), action);
+            return this;
+        }
 
-        private void _GodotSignalButtonRelease(int button) =>
+        private ARVRControllerAction _GodotSignalButtonRelease(int button) {
             ExecuteSignal(_onButtonReleaseAction, button);
-        
+            return this;
+        }
 
         private List<Action>? _onGameplayEnteredAction; 
-        public void OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayEntered(Action action) =>
+        public ARVRControllerAction RemoveOnGameplayEntered(Action action) {
             RemoveSignal(_onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayEntered() =>
+        private ARVRControllerAction _GodotSignalGameplayEntered() {
             ExecuteSignal(_onGameplayEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onGameplayExitedAction; 
-        public void OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayExited(Action action) =>
+        public ARVRControllerAction RemoveOnGameplayExited(Action action) {
             RemoveSignal(_onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayExited() =>
+        private ARVRControllerAction _GodotSignalGameplayExited() {
             ExecuteSignal(_onGameplayExitedAction);
-        
+            return this;
+        }
 
         private List<Action<Mesh>>? _onMeshUpdatedAction; 
-        public void OnMeshUpdated(Action<Mesh> action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnMeshUpdated(Action<Mesh> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMeshUpdatedAction, "mesh_updated", nameof(_GodotSignalMeshUpdated), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMeshUpdated(Action<Mesh> action) =>
+        public ARVRControllerAction RemoveOnMeshUpdated(Action<Mesh> action) {
             RemoveSignal(_onMeshUpdatedAction, "mesh_updated", nameof(_GodotSignalMeshUpdated), action);
+            return this;
+        }
 
-        private void _GodotSignalMeshUpdated(Mesh mesh) =>
+        private ARVRControllerAction _GodotSignalMeshUpdated(Mesh mesh) {
             ExecuteSignal(_onMeshUpdatedAction, mesh);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public ARVRControllerAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private ARVRControllerAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public ARVRControllerAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private ARVRControllerAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public ARVRControllerAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private ARVRControllerAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public ARVRControllerAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private ARVRControllerAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public ARVRControllerAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private ARVRControllerAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public ARVRControllerAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private ARVRControllerAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public ARVRControllerAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public ARVRControllerAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private ARVRControllerAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

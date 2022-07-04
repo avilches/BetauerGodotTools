@@ -9,278 +9,403 @@ namespace Betauer.GodotAction {
     public class TabsAction : ProxyNode {
 
         private List<Action>? _onDrawAction; 
-        public void OnDraw(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDraw(Action action) =>
+        public TabsAction RemoveOnDraw(Action action) {
             RemoveSignal(_onDrawAction, "draw", nameof(_GodotSignalDraw), action);
+            return this;
+        }
 
-        private void _GodotSignalDraw() =>
+        private TabsAction _GodotSignalDraw() {
             ExecuteSignal(_onDrawAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusEnteredAction; 
-        public void OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnFocusEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusEntered(Action action) =>
+        public TabsAction RemoveOnFocusEntered(Action action) {
             RemoveSignal(_onFocusEnteredAction, "focus_entered", nameof(_GodotSignalFocusEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusEntered() =>
+        private TabsAction _GodotSignalFocusEntered() {
             ExecuteSignal(_onFocusEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onFocusExitedAction; 
-        public void OnFocusExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnFocusExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnFocusExited(Action action) =>
+        public TabsAction RemoveOnFocusExited(Action action) {
             RemoveSignal(_onFocusExitedAction, "focus_exited", nameof(_GodotSignalFocusExited), action);
+            return this;
+        }
 
-        private void _GodotSignalFocusExited() =>
+        private TabsAction _GodotSignalFocusExited() {
             ExecuteSignal(_onFocusExitedAction);
-        
+            return this;
+        }
 
         private List<Action<InputEvent>>? _onGuiInputAction; 
-        public void OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnGuiInput(Action<InputEvent> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGuiInput(Action<InputEvent> action) =>
+        public TabsAction RemoveOnGuiInput(Action<InputEvent> action) {
             RemoveSignal(_onGuiInputAction, "gui_input", nameof(_GodotSignalGuiInput), action);
+            return this;
+        }
 
-        private void _GodotSignalGuiInput(InputEvent @event) =>
+        private TabsAction _GodotSignalGuiInput(InputEvent @event) {
             ExecuteSignal(_onGuiInputAction, @event);
-        
+            return this;
+        }
 
         private List<Action>? _onHideAction; 
-        public void OnHide(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnHide(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onHideAction, "hide", nameof(_GodotSignalHide), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnHide(Action action) =>
+        public TabsAction RemoveOnHide(Action action) {
             RemoveSignal(_onHideAction, "hide", nameof(_GodotSignalHide), action);
+            return this;
+        }
 
-        private void _GodotSignalHide() =>
+        private TabsAction _GodotSignalHide() {
             ExecuteSignal(_onHideAction);
-        
+            return this;
+        }
 
         private List<Action>? _onItemRectChangedAction; 
-        public void OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnItemRectChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnItemRectChanged(Action action) =>
+        public TabsAction RemoveOnItemRectChanged(Action action) {
             RemoveSignal(_onItemRectChangedAction, "item_rect_changed", nameof(_GodotSignalItemRectChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalItemRectChanged() =>
+        private TabsAction _GodotSignalItemRectChanged() {
             ExecuteSignal(_onItemRectChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMinimumSizeChangedAction; 
-        public void OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnMinimumSizeChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMinimumSizeChanged(Action action) =>
+        public TabsAction RemoveOnMinimumSizeChanged(Action action) {
             RemoveSignal(_onMinimumSizeChangedAction, "minimum_size_changed", nameof(_GodotSignalMinimumSizeChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalMinimumSizeChanged() =>
+        private TabsAction _GodotSignalMinimumSizeChanged() {
             ExecuteSignal(_onMinimumSizeChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onModalClosedAction; 
-        public void OnModalClosed(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnModalClosed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnModalClosed(Action action) =>
+        public TabsAction RemoveOnModalClosed(Action action) {
             RemoveSignal(_onModalClosedAction, "modal_closed", nameof(_GodotSignalModalClosed), action);
+            return this;
+        }
 
-        private void _GodotSignalModalClosed() =>
+        private TabsAction _GodotSignalModalClosed() {
             ExecuteSignal(_onModalClosedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseEnteredAction; 
-        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseEntered(Action action) =>
+        public TabsAction RemoveOnMouseEntered(Action action) {
             RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseEntered() =>
+        private TabsAction _GodotSignalMouseEntered() {
             ExecuteSignal(_onMouseEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseExitedAction; 
-        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseExited(Action action) =>
+        public TabsAction RemoveOnMouseExited(Action action) {
             RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseExited() =>
+        private TabsAction _GodotSignalMouseExited() {
             ExecuteSignal(_onMouseExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public TabsAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private TabsAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public TabsAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private TabsAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onRepositionActiveTabRequestAction; 
-        public void OnRepositionActiveTabRequest(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnRepositionActiveTabRequest(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRepositionActiveTabRequestAction, "reposition_active_tab_request", nameof(_GodotSignalRepositionActiveTabRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRepositionActiveTabRequest(Action<int> action) =>
+        public TabsAction RemoveOnRepositionActiveTabRequest(Action<int> action) {
             RemoveSignal(_onRepositionActiveTabRequestAction, "reposition_active_tab_request", nameof(_GodotSignalRepositionActiveTabRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalRepositionActiveTabRequest(int idx_to) =>
+        private TabsAction _GodotSignalRepositionActiveTabRequest(int idx_to) {
             ExecuteSignal(_onRepositionActiveTabRequestAction, idx_to);
-        
+            return this;
+        }
 
         private List<Action>? _onResizedAction; 
-        public void OnResized(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnResized(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onResizedAction, "resized", nameof(_GodotSignalResized), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnResized(Action action) =>
+        public TabsAction RemoveOnResized(Action action) {
             RemoveSignal(_onResizedAction, "resized", nameof(_GodotSignalResized), action);
+            return this;
+        }
 
-        private void _GodotSignalResized() =>
+        private TabsAction _GodotSignalResized() {
             ExecuteSignal(_onResizedAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onRightButtonPressedAction; 
-        public void OnRightButtonPressed(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnRightButtonPressed(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRightButtonPressedAction, "right_button_pressed", nameof(_GodotSignalRightButtonPressed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRightButtonPressed(Action<int> action) =>
+        public TabsAction RemoveOnRightButtonPressed(Action<int> action) {
             RemoveSignal(_onRightButtonPressedAction, "right_button_pressed", nameof(_GodotSignalRightButtonPressed), action);
+            return this;
+        }
 
-        private void _GodotSignalRightButtonPressed(int tab) =>
+        private TabsAction _GodotSignalRightButtonPressed(int tab) {
             ExecuteSignal(_onRightButtonPressedAction, tab);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public TabsAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private TabsAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onSizeFlagsChangedAction; 
-        public void OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnSizeFlagsChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSizeFlagsChanged(Action action) =>
+        public TabsAction RemoveOnSizeFlagsChanged(Action action) {
             RemoveSignal(_onSizeFlagsChangedAction, "size_flags_changed", nameof(_GodotSignalSizeFlagsChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalSizeFlagsChanged() =>
+        private TabsAction _GodotSignalSizeFlagsChanged() {
             ExecuteSignal(_onSizeFlagsChangedAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onTabChangedAction; 
-        public void OnTabChanged(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTabChanged(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTabChangedAction, "tab_changed", nameof(_GodotSignalTabChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTabChanged(Action<int> action) =>
+        public TabsAction RemoveOnTabChanged(Action<int> action) {
             RemoveSignal(_onTabChangedAction, "tab_changed", nameof(_GodotSignalTabChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalTabChanged(int tab) =>
+        private TabsAction _GodotSignalTabChanged(int tab) {
             ExecuteSignal(_onTabChangedAction, tab);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onTabClickedAction; 
-        public void OnTabClicked(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTabClicked(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTabClickedAction, "tab_clicked", nameof(_GodotSignalTabClicked), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTabClicked(Action<int> action) =>
+        public TabsAction RemoveOnTabClicked(Action<int> action) {
             RemoveSignal(_onTabClickedAction, "tab_clicked", nameof(_GodotSignalTabClicked), action);
+            return this;
+        }
 
-        private void _GodotSignalTabClicked(int tab) =>
+        private TabsAction _GodotSignalTabClicked(int tab) {
             ExecuteSignal(_onTabClickedAction, tab);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onTabCloseAction; 
-        public void OnTabClose(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTabClose(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTabCloseAction, "tab_close", nameof(_GodotSignalTabClose), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTabClose(Action<int> action) =>
+        public TabsAction RemoveOnTabClose(Action<int> action) {
             RemoveSignal(_onTabCloseAction, "tab_close", nameof(_GodotSignalTabClose), action);
+            return this;
+        }
 
-        private void _GodotSignalTabClose(int tab) =>
+        private TabsAction _GodotSignalTabClose(int tab) {
             ExecuteSignal(_onTabCloseAction, tab);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onTabHoverAction; 
-        public void OnTabHover(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTabHover(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTabHoverAction, "tab_hover", nameof(_GodotSignalTabHover), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTabHover(Action<int> action) =>
+        public TabsAction RemoveOnTabHover(Action<int> action) {
             RemoveSignal(_onTabHoverAction, "tab_hover", nameof(_GodotSignalTabHover), action);
+            return this;
+        }
 
-        private void _GodotSignalTabHover(int tab) =>
+        private TabsAction _GodotSignalTabHover(int tab) {
             ExecuteSignal(_onTabHoverAction, tab);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public TabsAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private TabsAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public TabsAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private TabsAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public TabsAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private TabsAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public TabsAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public TabsAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private TabsAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

@@ -9,223 +9,323 @@ namespace Betauer.GodotAction {
     public class AreaAction : ProxyNode {
 
         private List<Action<Area>>? _onAreaEnteredAction; 
-        public void OnAreaEntered(Action<Area> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnAreaEntered(Action<Area> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onAreaEnteredAction, "area_entered", nameof(_GodotSignalAreaEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnAreaEntered(Action<Area> action) =>
+        public AreaAction RemoveOnAreaEntered(Action<Area> action) {
             RemoveSignal(_onAreaEnteredAction, "area_entered", nameof(_GodotSignalAreaEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalAreaEntered(Area area) =>
+        private AreaAction _GodotSignalAreaEntered(Area area) {
             ExecuteSignal(_onAreaEnteredAction, area);
-        
+            return this;
+        }
 
         private List<Action<Area>>? _onAreaExitedAction; 
-        public void OnAreaExited(Action<Area> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnAreaExited(Action<Area> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onAreaExitedAction, "area_exited", nameof(_GodotSignalAreaExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnAreaExited(Action<Area> action) =>
+        public AreaAction RemoveOnAreaExited(Action<Area> action) {
             RemoveSignal(_onAreaExitedAction, "area_exited", nameof(_GodotSignalAreaExited), action);
+            return this;
+        }
 
-        private void _GodotSignalAreaExited(Area area) =>
+        private AreaAction _GodotSignalAreaExited(Area area) {
             ExecuteSignal(_onAreaExitedAction, area);
-        
+            return this;
+        }
 
         private List<Action<Area, RID, int, int>>? _onAreaShapeEnteredAction; 
-        public void OnAreaShapeEntered(Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnAreaShapeEntered(Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onAreaShapeEnteredAction, "area_shape_entered", nameof(_GodotSignalAreaShapeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnAreaShapeEntered(Action<Area, RID, int, int> action) =>
+        public AreaAction RemoveOnAreaShapeEntered(Action<Area, RID, int, int> action) {
             RemoveSignal(_onAreaShapeEnteredAction, "area_shape_entered", nameof(_GodotSignalAreaShapeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalAreaShapeEntered(Area area, RID area_rid, int area_shape_index, int local_shape_index) =>
+        private AreaAction _GodotSignalAreaShapeEntered(Area area, RID area_rid, int area_shape_index, int local_shape_index) {
             ExecuteSignal(_onAreaShapeEnteredAction, area, area_rid, area_shape_index, local_shape_index);
-        
+            return this;
+        }
 
         private List<Action<Area, RID, int, int>>? _onAreaShapeExitedAction; 
-        public void OnAreaShapeExited(Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnAreaShapeExited(Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onAreaShapeExitedAction, "area_shape_exited", nameof(_GodotSignalAreaShapeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnAreaShapeExited(Action<Area, RID, int, int> action) =>
+        public AreaAction RemoveOnAreaShapeExited(Action<Area, RID, int, int> action) {
             RemoveSignal(_onAreaShapeExitedAction, "area_shape_exited", nameof(_GodotSignalAreaShapeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalAreaShapeExited(Area area, RID area_rid, int area_shape_index, int local_shape_index) =>
+        private AreaAction _GodotSignalAreaShapeExited(Area area, RID area_rid, int area_shape_index, int local_shape_index) {
             ExecuteSignal(_onAreaShapeExitedAction, area, area_rid, area_shape_index, local_shape_index);
-        
+            return this;
+        }
 
         private List<Action<Node>>? _onBodyEnteredAction; 
-        public void OnBodyEntered(Action<Node> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnBodyEntered(Action<Node> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onBodyEnteredAction, "body_entered", nameof(_GodotSignalBodyEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnBodyEntered(Action<Node> action) =>
+        public AreaAction RemoveOnBodyEntered(Action<Node> action) {
             RemoveSignal(_onBodyEnteredAction, "body_entered", nameof(_GodotSignalBodyEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalBodyEntered(Node body) =>
+        private AreaAction _GodotSignalBodyEntered(Node body) {
             ExecuteSignal(_onBodyEnteredAction, body);
-        
+            return this;
+        }
 
         private List<Action<Node>>? _onBodyExitedAction; 
-        public void OnBodyExited(Action<Node> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnBodyExited(Action<Node> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onBodyExitedAction, "body_exited", nameof(_GodotSignalBodyExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnBodyExited(Action<Node> action) =>
+        public AreaAction RemoveOnBodyExited(Action<Node> action) {
             RemoveSignal(_onBodyExitedAction, "body_exited", nameof(_GodotSignalBodyExited), action);
+            return this;
+        }
 
-        private void _GodotSignalBodyExited(Node body) =>
+        private AreaAction _GodotSignalBodyExited(Node body) {
             ExecuteSignal(_onBodyExitedAction, body);
-        
+            return this;
+        }
 
         private List<Action<Node, RID, int, int>>? _onBodyShapeEnteredAction; 
-        public void OnBodyShapeEntered(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnBodyShapeEntered(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onBodyShapeEnteredAction, "body_shape_entered", nameof(_GodotSignalBodyShapeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnBodyShapeEntered(Action<Node, RID, int, int> action) =>
+        public AreaAction RemoveOnBodyShapeEntered(Action<Node, RID, int, int> action) {
             RemoveSignal(_onBodyShapeEnteredAction, "body_shape_entered", nameof(_GodotSignalBodyShapeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
+        private AreaAction _GodotSignalBodyShapeEntered(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
             ExecuteSignal(_onBodyShapeEnteredAction, body, body_rid, body_shape_index, local_shape_index);
-        
+            return this;
+        }
 
         private List<Action<Node, RID, int, int>>? _onBodyShapeExitedAction; 
-        public void OnBodyShapeExited(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnBodyShapeExited(Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onBodyShapeExitedAction, "body_shape_exited", nameof(_GodotSignalBodyShapeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnBodyShapeExited(Action<Node, RID, int, int> action) =>
+        public AreaAction RemoveOnBodyShapeExited(Action<Node, RID, int, int> action) {
             RemoveSignal(_onBodyShapeExitedAction, "body_shape_exited", nameof(_GodotSignalBodyShapeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) =>
+        private AreaAction _GodotSignalBodyShapeExited(Node body, RID body_rid, int body_shape_index, int local_shape_index) {
             ExecuteSignal(_onBodyShapeExitedAction, body, body_rid, body_shape_index, local_shape_index);
-        
+            return this;
+        }
 
         private List<Action>? _onGameplayEnteredAction; 
-        public void OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayEntered(Action action) =>
+        public AreaAction RemoveOnGameplayEntered(Action action) {
             RemoveSignal(_onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayEntered() =>
+        private AreaAction _GodotSignalGameplayEntered() {
             ExecuteSignal(_onGameplayEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onGameplayExitedAction; 
-        public void OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnGameplayExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnGameplayExited(Action action) =>
+        public AreaAction RemoveOnGameplayExited(Action action) {
             RemoveSignal(_onGameplayExitedAction, "gameplay_exited", nameof(_GodotSignalGameplayExited), action);
+            return this;
+        }
 
-        private void _GodotSignalGameplayExited() =>
+        private AreaAction _GodotSignalGameplayExited() {
             ExecuteSignal(_onGameplayExitedAction);
-        
+            return this;
+        }
 
         private List<Action<InputEvent, Node, Vector3, Vector3, int>>? _onInputEventAction; 
-        public void OnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onInputEventAction, "input_event", nameof(_GodotSignalInputEvent), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action) =>
+        public AreaAction RemoveOnInputEvent(Action<InputEvent, Node, Vector3, Vector3, int> action) {
             RemoveSignal(_onInputEventAction, "input_event", nameof(_GodotSignalInputEvent), action);
+            return this;
+        }
 
-        private void _GodotSignalInputEvent(InputEvent @event, Node camera, Vector3 normal, Vector3 position, int shape_idx) =>
+        private AreaAction _GodotSignalInputEvent(InputEvent @event, Node camera, Vector3 normal, Vector3 position, int shape_idx) {
             ExecuteSignal(_onInputEventAction, @event, camera, normal, position, shape_idx);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseEnteredAction; 
-        public void OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnMouseEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseEntered(Action action) =>
+        public AreaAction RemoveOnMouseEntered(Action action) {
             RemoveSignal(_onMouseEnteredAction, "mouse_entered", nameof(_GodotSignalMouseEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseEntered() =>
+        private AreaAction _GodotSignalMouseEntered() {
             ExecuteSignal(_onMouseEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onMouseExitedAction; 
-        public void OnMouseExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnMouseExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnMouseExited(Action action) =>
+        public AreaAction RemoveOnMouseExited(Action action) {
             RemoveSignal(_onMouseExitedAction, "mouse_exited", nameof(_GodotSignalMouseExited), action);
+            return this;
+        }
 
-        private void _GodotSignalMouseExited() =>
+        private AreaAction _GodotSignalMouseExited() {
             ExecuteSignal(_onMouseExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onReadyAction; 
-        public void OnReady(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnReady(Action action) =>
+        public AreaAction RemoveOnReady(Action action) {
             RemoveSignal(_onReadyAction, "ready", nameof(_GodotSignalReady), action);
+            return this;
+        }
 
-        private void _GodotSignalReady() =>
+        private AreaAction _GodotSignalReady() {
             ExecuteSignal(_onReadyAction);
-        
+            return this;
+        }
 
         private List<Action>? _onRenamedAction; 
-        public void OnRenamed(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnRenamed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnRenamed(Action action) =>
+        public AreaAction RemoveOnRenamed(Action action) {
             RemoveSignal(_onRenamedAction, "renamed", nameof(_GodotSignalRenamed), action);
+            return this;
+        }
 
-        private void _GodotSignalRenamed() =>
+        private AreaAction _GodotSignalRenamed() {
             ExecuteSignal(_onRenamedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public AreaAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private AreaAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeEnteredAction; 
-        public void OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnTreeEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeEntered(Action action) =>
+        public AreaAction RemoveOnTreeEntered(Action action) {
             RemoveSignal(_onTreeEnteredAction, "tree_entered", nameof(_GodotSignalTreeEntered), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeEntered() =>
+        private AreaAction _GodotSignalTreeEntered() {
             ExecuteSignal(_onTreeEnteredAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitedAction; 
-        public void OnTreeExited(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnTreeExited(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExited(Action action) =>
+        public AreaAction RemoveOnTreeExited(Action action) {
             RemoveSignal(_onTreeExitedAction, "tree_exited", nameof(_GodotSignalTreeExited), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExited() =>
+        private AreaAction _GodotSignalTreeExited() {
             ExecuteSignal(_onTreeExitedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onTreeExitingAction; 
-        public void OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnTreeExiting(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnTreeExiting(Action action) =>
+        public AreaAction RemoveOnTreeExiting(Action action) {
             RemoveSignal(_onTreeExitingAction, "tree_exiting", nameof(_GodotSignalTreeExiting), action);
+            return this;
+        }
 
-        private void _GodotSignalTreeExiting() =>
+        private AreaAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
-        
+            return this;
+        }
 
         private List<Action>? _onVisibilityChangedAction; 
-        public void OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public AreaAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnVisibilityChanged(Action action) =>
+        public AreaAction RemoveOnVisibilityChanged(Action action) {
             RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalVisibilityChanged() =>
+        private AreaAction _GodotSignalVisibilityChanged() {
             ExecuteSignal(_onVisibilityChangedAction);
-        
+            return this;
+        }
     }
 }

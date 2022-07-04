@@ -9,36 +9,51 @@ namespace Betauer.GodotAction {
     public class VisualScriptLocalVarAction : ProxyNode {
 
         private List<Action>? _onChangedAction; 
-        public void OnChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualScriptLocalVarAction OnChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onChangedAction, "changed", nameof(_GodotSignalChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnChanged(Action action) =>
+        public VisualScriptLocalVarAction RemoveOnChanged(Action action) {
             RemoveSignal(_onChangedAction, "changed", nameof(_GodotSignalChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalChanged() =>
+        private VisualScriptLocalVarAction _GodotSignalChanged() {
             ExecuteSignal(_onChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onPortsChangedAction; 
-        public void OnPortsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualScriptLocalVarAction OnPortsChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPortsChangedAction, "ports_changed", nameof(_GodotSignalPortsChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPortsChanged(Action action) =>
+        public VisualScriptLocalVarAction RemoveOnPortsChanged(Action action) {
             RemoveSignal(_onPortsChangedAction, "ports_changed", nameof(_GodotSignalPortsChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalPortsChanged() =>
+        private VisualScriptLocalVarAction _GodotSignalPortsChanged() {
             ExecuteSignal(_onPortsChangedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public VisualScriptLocalVarAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public VisualScriptLocalVarAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private VisualScriptLocalVarAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
     }
 }

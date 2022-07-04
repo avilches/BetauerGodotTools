@@ -9,135 +9,195 @@ namespace Betauer.GodotAction {
     public class WebSocketClientAction : ProxyNode {
 
         private List<Action<bool>>? _onConnectionClosedAction; 
-        public void OnConnectionClosed(Action<bool> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnConnectionClosed(Action<bool> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionClosedAction, "connection_closed", nameof(_GodotSignalConnectionClosed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionClosed(Action<bool> action) =>
+        public WebSocketClientAction RemoveOnConnectionClosed(Action<bool> action) {
             RemoveSignal(_onConnectionClosedAction, "connection_closed", nameof(_GodotSignalConnectionClosed), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionClosed(bool was_clean_close) =>
+        private WebSocketClientAction _GodotSignalConnectionClosed(bool was_clean_close) {
             ExecuteSignal(_onConnectionClosedAction, was_clean_close);
-        
+            return this;
+        }
 
         private List<Action>? _onConnectionErrorAction; 
-        public void OnConnectionError(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnConnectionError(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionErrorAction, "connection_error", nameof(_GodotSignalConnectionError), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionError(Action action) =>
+        public WebSocketClientAction RemoveOnConnectionError(Action action) {
             RemoveSignal(_onConnectionErrorAction, "connection_error", nameof(_GodotSignalConnectionError), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionError() =>
+        private WebSocketClientAction _GodotSignalConnectionError() {
             ExecuteSignal(_onConnectionErrorAction);
-        
+            return this;
+        }
 
         private List<Action<string>>? _onConnectionEstablishedAction; 
-        public void OnConnectionEstablished(Action<string> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnConnectionEstablished(Action<string> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionEstablishedAction, "connection_established", nameof(_GodotSignalConnectionEstablished), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionEstablished(Action<string> action) =>
+        public WebSocketClientAction RemoveOnConnectionEstablished(Action<string> action) {
             RemoveSignal(_onConnectionEstablishedAction, "connection_established", nameof(_GodotSignalConnectionEstablished), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionEstablished(string protocol) =>
+        private WebSocketClientAction _GodotSignalConnectionEstablished(string protocol) {
             ExecuteSignal(_onConnectionEstablishedAction, protocol);
-        
+            return this;
+        }
 
         private List<Action>? _onConnectionFailedAction; 
-        public void OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnConnectionFailed(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionFailed(Action action) =>
+        public WebSocketClientAction RemoveOnConnectionFailed(Action action) {
             RemoveSignal(_onConnectionFailedAction, "connection_failed", nameof(_GodotSignalConnectionFailed), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionFailed() =>
+        private WebSocketClientAction _GodotSignalConnectionFailed() {
             ExecuteSignal(_onConnectionFailedAction);
-        
+            return this;
+        }
 
         private List<Action>? _onConnectionSucceededAction; 
-        public void OnConnectionSucceeded(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnConnectionSucceeded(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onConnectionSucceededAction, "connection_succeeded", nameof(_GodotSignalConnectionSucceeded), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnConnectionSucceeded(Action action) =>
+        public WebSocketClientAction RemoveOnConnectionSucceeded(Action action) {
             RemoveSignal(_onConnectionSucceededAction, "connection_succeeded", nameof(_GodotSignalConnectionSucceeded), action);
+            return this;
+        }
 
-        private void _GodotSignalConnectionSucceeded() =>
+        private WebSocketClientAction _GodotSignalConnectionSucceeded() {
             ExecuteSignal(_onConnectionSucceededAction);
-        
+            return this;
+        }
 
         private List<Action>? _onDataReceivedAction; 
-        public void OnDataReceived(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnDataReceived(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDataReceivedAction, "data_received", nameof(_GodotSignalDataReceived), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDataReceived(Action action) =>
+        public WebSocketClientAction RemoveOnDataReceived(Action action) {
             RemoveSignal(_onDataReceivedAction, "data_received", nameof(_GodotSignalDataReceived), action);
+            return this;
+        }
 
-        private void _GodotSignalDataReceived() =>
+        private WebSocketClientAction _GodotSignalDataReceived() {
             ExecuteSignal(_onDataReceivedAction);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onPeerConnectedAction; 
-        public void OnPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnPeerConnected(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPeerConnectedAction, "peer_connected", nameof(_GodotSignalPeerConnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPeerConnected(Action<int> action) =>
+        public WebSocketClientAction RemoveOnPeerConnected(Action<int> action) {
             RemoveSignal(_onPeerConnectedAction, "peer_connected", nameof(_GodotSignalPeerConnected), action);
+            return this;
+        }
 
-        private void _GodotSignalPeerConnected(int id) =>
+        private WebSocketClientAction _GodotSignalPeerConnected(int id) {
             ExecuteSignal(_onPeerConnectedAction, id);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onPeerDisconnectedAction; 
-        public void OnPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnPeerDisconnected(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPeerDisconnectedAction, "peer_disconnected", nameof(_GodotSignalPeerDisconnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPeerDisconnected(Action<int> action) =>
+        public WebSocketClientAction RemoveOnPeerDisconnected(Action<int> action) {
             RemoveSignal(_onPeerDisconnectedAction, "peer_disconnected", nameof(_GodotSignalPeerDisconnected), action);
+            return this;
+        }
 
-        private void _GodotSignalPeerDisconnected(int id) =>
+        private WebSocketClientAction _GodotSignalPeerDisconnected(int id) {
             ExecuteSignal(_onPeerDisconnectedAction, id);
-        
+            return this;
+        }
 
         private List<Action<int>>? _onPeerPacketAction; 
-        public void OnPeerPacket(Action<int> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnPeerPacket(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onPeerPacketAction, "peer_packet", nameof(_GodotSignalPeerPacket), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnPeerPacket(Action<int> action) =>
+        public WebSocketClientAction RemoveOnPeerPacket(Action<int> action) {
             RemoveSignal(_onPeerPacketAction, "peer_packet", nameof(_GodotSignalPeerPacket), action);
+            return this;
+        }
 
-        private void _GodotSignalPeerPacket(int peer_source) =>
+        private WebSocketClientAction _GodotSignalPeerPacket(int peer_source) {
             ExecuteSignal(_onPeerPacketAction, peer_source);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public WebSocketClientAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private WebSocketClientAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action<int, string>>? _onServerCloseRequestAction; 
-        public void OnServerCloseRequest(Action<int, string> action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnServerCloseRequest(Action<int, string> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onServerCloseRequestAction, "server_close_request", nameof(_GodotSignalServerCloseRequest), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnServerCloseRequest(Action<int, string> action) =>
+        public WebSocketClientAction RemoveOnServerCloseRequest(Action<int, string> action) {
             RemoveSignal(_onServerCloseRequestAction, "server_close_request", nameof(_GodotSignalServerCloseRequest), action);
+            return this;
+        }
 
-        private void _GodotSignalServerCloseRequest(int code, string reason) =>
+        private WebSocketClientAction _GodotSignalServerCloseRequest(int code, string reason) {
             ExecuteSignal(_onServerCloseRequestAction, code, reason);
-        
+            return this;
+        }
 
         private List<Action>? _onServerDisconnectedAction; 
-        public void OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebSocketClientAction OnServerDisconnected(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnServerDisconnected(Action action) =>
+        public WebSocketClientAction RemoveOnServerDisconnected(Action action) {
             RemoveSignal(_onServerDisconnectedAction, "server_disconnected", nameof(_GodotSignalServerDisconnected), action);
+            return this;
+        }
 
-        private void _GodotSignalServerDisconnected() =>
+        private WebSocketClientAction _GodotSignalServerDisconnected() {
             ExecuteSignal(_onServerDisconnectedAction);
-        
+            return this;
+        }
     }
 }

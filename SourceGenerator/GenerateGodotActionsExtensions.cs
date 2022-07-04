@@ -9,13 +9,11 @@ namespace Generator {
         private const string GodotActionClassesNamespace = "Betauer.GodotAction";
 
         public static void WriteGodotActionExtensionsClass(List<GodotClass> classes) {
-            List<string> allMethods = classes
-                .Where(godotClass => godotClass.AllSignals.Count > 0 &&
-                                     godotClass.IsNode &&
+            var allMethods = classes
+                .Where(godotClass => godotClass.IsNode &&
                                      !godotClass.IsEditor &&
                                      !godotClass.IsStatic &&
                                      !godotClass.IsAbstract)
-                .SelectMany(godotClass => godotClass.AllSignals)
                 .Select(CreateGodotActionExtensionsMethod)
                 .ToList();
             var bodySignalExtensionsClass = CreateGodotActionExtensionsClass(allMethods);
@@ -23,14 +21,25 @@ namespace Generator {
             File.WriteAllText(GodotActionsExtensionsFile, bodySignalExtensionsClass);
         }
 
+        private static string CreateGodotActionExtensionsMethod(GodotClass godotClass) {
+            return $@"
+        public static {godotClass.GeneratedClassName} GetProxy(this {godotClass.FullClassName} target) => 
+                GetOrCreateProxy<{godotClass.GeneratedClassName}>(target);";
+        }
+/*
         private static string CreateGodotActionExtensionsMethod(Signal signal) {
             return $@"
         public static {signal.GodotClass.FullClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
             GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);
             return target;
+        }}
+
+        public static {signal.GodotClass.FullClassName} RemoveOn{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action) {{
+            GetProxy<{signal.GodotClass.GeneratedClassName}>(target).RemoveOn{signal.MethodName}(action);
+            return target;
         }}";
         }
-
+*/
         private static string CreateGodotActionExtensionsClass(IEnumerable<string> methods) {
             return $@"using System;
 using Godot;
@@ -42,9 +51,9 @@ using {GodotActionClassesNamespace};
 namespace Betauer {{
     public static partial class GodotActionExtensions {{
 
-        private const string ProxyName = ""__ProxyNodeAction__"";
+        private const string ProxyName = ""__ProxyGodotAction__"";
 
-        public static T GetProxy<T>(this Node owner) where T : Node {{
+        public static T GetOrCreateProxy<T>(Node owner) where T : Node {{
             T proxy = owner.GetNodeOrNull<T>(ProxyName);
             if (proxy == null) {{
                 proxy = Activator.CreateInstance<T>();
@@ -53,7 +62,6 @@ namespace Betauer {{
             }}
             return proxy;
         }}
-
 {string.Join("\n", methods)}
     }}
 }}";

@@ -9,47 +9,67 @@ namespace Betauer.GodotAction {
     public class WebRTCPeerConnectionAction : ProxyNode {
 
         private List<Action<Object>>? _onDataChannelReceivedAction; 
-        public void OnDataChannelReceived(Action<Object> action, bool oneShot = false, bool deferred = false) =>
+        public WebRTCPeerConnectionAction OnDataChannelReceived(Action<Object> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDataChannelReceivedAction, "data_channel_received", nameof(_GodotSignalDataChannelReceived), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnDataChannelReceived(Action<Object> action) =>
+        public WebRTCPeerConnectionAction RemoveOnDataChannelReceived(Action<Object> action) {
             RemoveSignal(_onDataChannelReceivedAction, "data_channel_received", nameof(_GodotSignalDataChannelReceived), action);
+            return this;
+        }
 
-        private void _GodotSignalDataChannelReceived(Object channel) =>
+        private WebRTCPeerConnectionAction _GodotSignalDataChannelReceived(Object channel) {
             ExecuteSignal(_onDataChannelReceivedAction, channel);
-        
+            return this;
+        }
 
         private List<Action<int, string, string>>? _onIceCandidateCreatedAction; 
-        public void OnIceCandidateCreated(Action<int, string, string> action, bool oneShot = false, bool deferred = false) =>
+        public WebRTCPeerConnectionAction OnIceCandidateCreated(Action<int, string, string> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onIceCandidateCreatedAction, "ice_candidate_created", nameof(_GodotSignalIceCandidateCreated), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnIceCandidateCreated(Action<int, string, string> action) =>
+        public WebRTCPeerConnectionAction RemoveOnIceCandidateCreated(Action<int, string, string> action) {
             RemoveSignal(_onIceCandidateCreatedAction, "ice_candidate_created", nameof(_GodotSignalIceCandidateCreated), action);
+            return this;
+        }
 
-        private void _GodotSignalIceCandidateCreated(int index, string media, string name) =>
+        private WebRTCPeerConnectionAction _GodotSignalIceCandidateCreated(int index, string media, string name) {
             ExecuteSignal(_onIceCandidateCreatedAction, index, media, name);
-        
+            return this;
+        }
 
         private List<Action>? _onScriptChangedAction; 
-        public void OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        public WebRTCPeerConnectionAction OnScriptChanged(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnScriptChanged(Action action) =>
+        public WebRTCPeerConnectionAction RemoveOnScriptChanged(Action action) {
             RemoveSignal(_onScriptChangedAction, "script_changed", nameof(_GodotSignalScriptChanged), action);
+            return this;
+        }
 
-        private void _GodotSignalScriptChanged() =>
+        private WebRTCPeerConnectionAction _GodotSignalScriptChanged() {
             ExecuteSignal(_onScriptChangedAction);
-        
+            return this;
+        }
 
         private List<Action<string, string>>? _onSessionDescriptionCreatedAction; 
-        public void OnSessionDescriptionCreated(Action<string, string> action, bool oneShot = false, bool deferred = false) =>
+        public WebRTCPeerConnectionAction OnSessionDescriptionCreated(Action<string, string> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onSessionDescriptionCreatedAction, "session_description_created", nameof(_GodotSignalSessionDescriptionCreated), action, oneShot, deferred);
+            return this;
+        }
 
-        public void RemoveOnSessionDescriptionCreated(Action<string, string> action) =>
+        public WebRTCPeerConnectionAction RemoveOnSessionDescriptionCreated(Action<string, string> action) {
             RemoveSignal(_onSessionDescriptionCreatedAction, "session_description_created", nameof(_GodotSignalSessionDescriptionCreated), action);
+            return this;
+        }
 
-        private void _GodotSignalSessionDescriptionCreated(string sdp, string type) =>
+        private WebRTCPeerConnectionAction _GodotSignalSessionDescriptionCreated(string sdp, string type) {
             ExecuteSignal(_onSessionDescriptionCreatedAction, sdp, type);
-        
+            return this;
+        }
     }
 }

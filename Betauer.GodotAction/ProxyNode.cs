@@ -5,7 +5,6 @@ using Object = Godot.Object;
 
 namespace Betauer {
     public abstract class ProxyNode : Node {
-
         protected ProxyNode() {
             SetProcess(false);
             SetPhysicsProcess(false);
@@ -14,11 +13,12 @@ namespace Betauer {
             SetProcessUnhandledKeyInput(false);
         }
 
-
         protected void AddSignal<T>(ref List<T>? list, string signal, string methodName, T action, bool oneShot = false, bool deferred = false) {
             if (list == null || list.Count == 0) {
+                var parent = GetParent();
+                if (parent == null) throw new InvalidOperationException("Can't add signal to a Proxy without parent");
                 list ??= new List<T>(); 
-                GetParent().Connect(signal, this, methodName);
+                parent.Connect(signal, this, methodName);
             }
             list.Add(action);
         }
@@ -27,7 +27,9 @@ namespace Betauer {
             if (list == null || list.Count == 0) return;
             list.Remove(action); 
             if (list.Count == 0) {
-                GetParent().Disconnect(signal, this, methodName);
+                var parent = GetParent();
+                if (parent == null) throw new InvalidOperationException("Can't remove a signal from a Proxy without parent");
+                parent.Disconnect(signal, this, methodName);
             }
         }
 
