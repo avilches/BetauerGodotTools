@@ -1,32 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer {
-    public static partial class SignalExtensions {
-        public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
-            return AwaitPhysicsFrame(node.GetTree());
-        }
-
-        public static SignalAwaiter AwaitIdleFrame(this Node node) {
-            return AwaitIdleFrame(node.GetTree());
-        }
-
-        public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, SignalConstants.SceneTree_PhysicsFrameSignal);
-        }
-
-        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, SignalConstants.SceneTree_IdleFrameSignal);
-        }
-    }
-
+namespace Betauer.SignalHandler {
     public abstract class SignalHandler : GodotObject, IObjectLifeCycle {
         public readonly Object Target;
         public readonly string Signal;
         public readonly bool OneShot;
         public readonly bool Deferred;
+        private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
+        private LinkedList<Object>? _bound = null;
+        private bool _valid = true;
         public int Calls { get; private set; } = 0;
 
         public SignalHandler(Object target, string signal, bool oneShot = false, bool deferred = false) {
@@ -35,13 +23,11 @@ namespace Betauer {
             OneShot = oneShot;
             Deferred = deferred;
             Connect();
-            ObjectLifeCycleManager.Singleton.Add(this);
+            ObjectLifeCycleManager.Singleton.Watch(this);
         }
         
         public void Connect() {
-            if (!IsValid()) {
-                throw new Exception($"Can't connect '{Signal}' to a freed object");
-            }
+            if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
             Error err = Target.Connect(Signal, this, nameof(SignalHandlerAction.Call), null, SignalFlags(OneShot, Deferred));
             if (err != Error.Ok) {
                 throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
@@ -50,7 +36,22 @@ namespace Betauer {
 
         protected void Consumed() {
             Calls++;
-            if (OneShot) ObjectLifeCycleManager.Singleton.Free(this);
+            _promise.TrySetResult(true);
+            if (OneShot) _valid = false;
+        }
+
+        protected override void OnDispose(bool disposing) {
+            _promise.TrySetCanceled();
+        }
+
+        public Task<bool> Await() {
+            return _promise.Task;
+        } 
+
+        public SignalHandler Bind(Object o) {
+            _bound ??= new LinkedList<Object>();
+            _bound.AddLast(o);
+            return this;
         }
         
         private static uint SignalFlags(bool oneShot, bool deferred = false) =>
@@ -58,13 +59,12 @@ namespace Betauer {
             (deferred ? (uint)ConnectFlags.Deferred : 0) +
             0;
 
-
-        public bool IsValid() => IsInstanceValid(this) && IsInstanceValid(Target);
-
-        public void Destroy() {
-            Disconnect();
-            Free();
+        public bool MustBeDisposed() {
+            return !_valid || !IsValid() || (_bound != null && _bound.Any(IsInstanceValid));
         }
+
+        public bool IsValid() => IsInstanceValid(Target) &&
+                                 IsInstanceValid(this);
 
         public bool IsConnected() {
             return IsValid() && Target.IsConnected(Signal, this, nameof(SignalHandlerAction.Call));

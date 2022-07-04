@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Experimental {
+namespace Betauer.Tests.Experimental {
     public abstract class DynamicSignal {
         public readonly Node Node;
         public readonly string Signal;
