@@ -10,12 +10,10 @@ namespace Betauer.Memory {
      * 3: Optionally, it can show a message when the instance is created
      */
     public abstract class DisposableObject : IDisposable {
-        protected bool Disposed { get; private set; } = false;
+        public bool Disposed { get; private set; } = false;
 
-        public DisposableObject() {
-            if (DisposeTools.ShowMessageOnCreate) {
-                GD.Print("New DisposableObject instance: " + GetType().Name + ":" + this);
-            }
+        protected DisposableObject() {
+            DisposeTools.LogNewInstance(this);
         }
 
         ~DisposableObject() {
@@ -29,14 +27,12 @@ namespace Betauer.Memory {
 
         private void Dispose(bool disposing) {
             if (Disposed) return;
-            if (!disposing) DisposeTools.ShowDisposeOnShutdownWarning(this);
-            else if (DisposeTools.ShowMessageOnDispose) GD.Print("Dispose(): " + GetType() + " " + this);
+            Disposed = true;
             try {
+                DisposeTools.LogDispose(disposing, this);
                 OnDispose(disposing);
             } catch (Exception e) {
-                DisposeTools.ShowDisposeException(e);
-            } finally {
-                Disposed = true;
+                GD.PushError(e.ToString());
             }
         }
 
@@ -50,56 +46,46 @@ namespace Betauer.Memory {
      * try/catch your code. The OnDispose() method is already wrapped and the base.Dispose(disposing) is always called.
      * 3: Optionally, it can show a message when the instance is created
      */
-     public class GodotObject : Object {
+     public abstract class GodotObject : Object {
         protected bool Disposed { get; private set; } = false;
-        public GodotObject() {
-            if (DisposeTools.ShowMessageOnCreate) {
-                GD.Print("New GodotObject instance: " + GetType().Name + ":" + this);
-            }
-        }
 
-        // private bool _warningDisabled = false;
-        // public void DisableNoDisposedOnShutdownWarning() {
-        // _warningDisabled = true;
-        // }
+        protected GodotObject() {
+            DisposeTools.LogNewInstance(this);
+        }
 
         protected sealed override void Dispose(bool disposing) {
             if (Disposed) return;
             Disposed = true;
-            if (!disposing) DisposeTools.ShowDisposeOnShutdownWarning(this);
-            else if (DisposeTools.ShowMessageOnDispose) GD.Print("Dispose(): " + GetType() + " " + this);
             try {
+                DisposeTools.LogDispose(disposing, this);
                 OnDispose(disposing);
             } catch (Exception e) {
-                DisposeTools.ShowDisposeException(e);
+                GD.PushError(e.ToString());
             } finally {
                 base.Dispose(disposing);
-                Disposed = true;
-                // GD.Print("Dispose(" + disposing + "): " + GetType() + " " + ToString());
             }
         }
 
         protected virtual void OnDispose(bool disposing) {
         }
 
-    }
+     }
 
     public static class DisposeTools {
-        public static bool ShowShutdownWarning = false;
-        public static bool ShowMessageOnCreate = false;
+        public static bool ShowMessageOnNewInstance = false;
+        public static bool ShowWarningOnShutdownDispose = false;
         public static bool ShowMessageOnDispose = false;
 
-        public static void ShowDisposeException(Exception e) {
-            if (ShowShutdownWarning) {
-                GD.Print(e);
-            }
+        public static void LogNewInstance(object o) {
+            if (ShowMessageOnNewInstance) 
+                GD.Print($"New instance: {o.GetType().Name}: {o}");
         }
 
-        public static void ShowDisposeOnShutdownWarning(object o) {
-            if (ShowShutdownWarning) {
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                GD.Print($"Disposing on shutdown: {o.GetType()} " + o.ToString());
-                Console.ResetColor();
+        public static void LogDispose(bool disposing, object o) {
+            if (disposing) {
+                if (ShowMessageOnDispose) GD.Print($"Dispose(): {o.GetType()}: {o}");
+            } else {
+                if (ShowWarningOnShutdownDispose) GD.PushWarning($"Disposing on shutdown: {o.GetType()}: {o}");
             }
         }
     }

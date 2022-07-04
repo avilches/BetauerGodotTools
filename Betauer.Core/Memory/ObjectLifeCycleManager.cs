@@ -1,66 +1,105 @@
 using System;
 using System.Collections.Generic;
+using Godot;
 
 namespace Betauer.Memory {
     public interface IObjectLifeCycle : IDisposable {
         public bool MustBeDisposed();
     }
 
+    public class ObjectLifeCycleManagerNode : Node {
+        public override void _Process(float delta) {
+            ObjectLifeCycleManager.Singleton.ProcessWatching();
+            ObjectLifeCycleManager.Singleton.ProcessQueue();
+        }
+    }
+
     public class ObjectLifeCycleManager {
         public static readonly ObjectLifeCycleManager Singleton = new ObjectLifeCycleManager();
         
-        private readonly List<IObjectLifeCycle> _signalHandlersList = new List<IObjectLifeCycle>();
+        private readonly LinkedList<IObjectLifeCycle> _watching = new LinkedList<IObjectLifeCycle>();
+        private LinkedList<IDisposable> _queue = new LinkedList<IDisposable>();
+        private LinkedList<IDisposable> _queueB = new LinkedList<IDisposable>();
 
-        public void Add(IObjectLifeCycle signalHolder) {
-            lock (_signalHandlersList) _signalHandlersList.Add(signalHolder);
-        }
-
-        public List<IObjectLifeCycle> GetAll() {
-            lock (_signalHandlersList) return new List<IObjectLifeCycle>(_signalHandlersList);
-        }
-
-        public void Dispose(IObjectLifeCycle o) {
-            try {
-                o.Dispose();
-            } finally {
-                lock (_signalHandlersList) _signalHandlersList.Remove(o);
+        public int ProcessQueue() {
+            lock (this) {
+                if (_queue.Count == 0 && _queueB.Count == 0) return 0;
+                var disposedCount = _queueB.Count;
+                if (disposedCount > 0) {
+                    foreach (var disposable in _queueB) disposable.Dispose();
+                    _queueB.Clear();
+                }
+                // Swap queues
+                (_queueB, _queue) = (_queue, _queueB);
+                return disposedCount;
             }
         }
 
-        public int DisposeAllInvalid() {
-            var x = 0;
-            lock (_signalHandlersList) {
-                // loop backward allows to delete a List safely
-                for (var i = _signalHandlersList.Count - 1; i >= 0; i--) {
-                    var signal = _signalHandlersList[i];
-                    if (signal.MustBeDisposed()) {
-                        try {
-                            signal.Dispose();
-                        } finally {
-                            x++;
-                            _signalHandlersList.RemoveAt(i);
-                        }
-                    }
-                }                
-            }
-            return x;
+        public void Watch(IObjectLifeCycle o) {
+            lock (_watching) _watching.AddLast(o);
         }
 
-        public int DisposeAll() {
-            var x = 0;
-            lock (_signalHandlersList) {
-                // loop backward allows to delete a List safely
-                x = _signalHandlersList.Count;
-                try {
-                    for (var i = _signalHandlersList.Count - 1; i >= 0; i--) {
-                        var signal = _signalHandlersList[i];
-                        signal.Dispose();
+        public void Unwatch(IObjectLifeCycle o) {
+            lock (_watching) _watching.Remove(o);
+        }
+
+        public void QueueDispose(IDisposable disposable) {
+            lock (this) _queue.AddLast(disposable);
+        }
+
+        public void QueueDispose(IEnumerable<IDisposable> disposables) {
+            lock (this)
+                foreach (var disposable in disposables)
+                    _queue.AddLast(disposable);
+        }
+
+        public List<IDisposable> GetQueue() {
+            lock (_queue) return new List<IDisposable>(_queue);
+        }
+
+        public List<IObjectLifeCycle> GetWatching() {
+            lock (_watching) return new List<IObjectLifeCycle>(_watching);
+        }
+
+        public int ProcessWatching() {
+            LinkedList<IDisposable> toEnqueue = null;
+            lock (_watching) {
+                var node = _watching.First;
+                while (node != null) {
+                    var next = node.Next;
+                    var o = node.Value;
+                    if (o.MustBeDisposed()) {
+                        _watching.Remove(node);
+                        toEnqueue ??= new LinkedList<IDisposable>();
+                        toEnqueue.AddLast(o);
                     }
-                } finally {
-                    _signalHandlersList.Clear();
+                    node = next;
                 }
             }
-            return x;
+            if (toEnqueue == null) return 0;
+            QueueDispose(toEnqueue);
+            return toEnqueue.Count;
+        }
+
+        public int DisposeAllWatching() {
+            LinkedList<IDisposable> toEnqueue = null;
+            lock (_watching) {
+                if (_watching.Count > 0) {
+                    toEnqueue = new LinkedList<IDisposable>(_watching);
+                    _watching.Clear();
+                }
+            }
+            if (toEnqueue == null) return 0;
+            QueueDispose(toEnqueue);
+            return toEnqueue.Count;
+        }
+
+        public void Reset() {
+            lock (_watching) _watching.Clear();
+            lock (this) {
+                _queue.Clear();
+                _queueB.Clear();
+            }
         }
     }
 }
