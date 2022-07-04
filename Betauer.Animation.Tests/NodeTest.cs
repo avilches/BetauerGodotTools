@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Betauer.Memory;
+using Betauer.SignalHandler;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -8,7 +9,7 @@ namespace Betauer.Animation.Tests {
     public class NodeTest : Node {
         [SetUp]
         public void RemoveWarning() {
-            DisposeTools.ShowShutdownWarning = false;
+            DisposeTools.ShowWarningOnShutdownDispose = false;
         }
 
         public async Task<Sprite> CreateSprite(int width = 100) {

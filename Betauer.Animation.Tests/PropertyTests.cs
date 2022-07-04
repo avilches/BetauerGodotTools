@@ -5,6 +5,7 @@ using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
 using Betauer.Animation.Tests;
+using Betauer.SignalHandler;
 using Betauer.TestRunner;
 using Vector2 = Godot.Vector2;
 

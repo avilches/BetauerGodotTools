@@ -1,10 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.DI;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.DI.Tests {
     [TestFixture]

@@ -7,6 +7,7 @@ using Godot;
 using NUnit.Framework;
 using Betauer.Animation;
 using Betauer.Animation.Tests;
+using Betauer.SignalHandler;
 using Betauer.TestRunner;
 
 namespace Betauer.Animation.Tests {
