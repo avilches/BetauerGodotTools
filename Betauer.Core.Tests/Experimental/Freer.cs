@@ -6,7 +6,7 @@ using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Experimental {
+namespace Betauer.Tests.Experimental {
 
     public class GodotObjectOnDemandFreer : OnDemandConsumer<Object> {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GodotObjectOnDemandFreer));
@@ -27,7 +27,7 @@ namespace Betauer.Experimental {
     }
 
     public class GodotObjectImmediateConsumerTaskFreer : ImmediateConsumerTask<Object> {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GodotObjectOnDemandFreer));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GodotObjectImmediateConsumerTaskFreer));
 
         public override void Consume(Object obj) {
             Logger.Info($"Consume. {obj.GetType()}.Free() {obj}");
@@ -55,10 +55,10 @@ namespace Betauer.Experimental {
         public int ConsumedObjects { get; private set; } = 0;
 
         public Task Start() {
-            return Task.Factory.StartNew(Execute);
+            return Task.Run(Execute);
         }
 
-        private void Execute() {
+        private async Task Execute() {
             if (Disposed) return;
             Logger.Info("Run: start");
             try {

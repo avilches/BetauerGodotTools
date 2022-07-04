@@ -2,16 +2,8 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Experimental {
+namespace Betauer.Tests.Experimental {
 
-    public static class DynamicSignalExtensions {
-        public static DynamicSignalManager Manager = new DynamicSignalManager(); 
-        public static DynamicSignal OnPressed(this Button button, Action action, bool oneShot = false) =>
-            Manager.ConnectSignalToAction(button, "pressed", action, oneShot);
-        public static DynamicSignal OnToggled(this Button button, Action<bool> action, bool oneShot = false) =>
-            Manager.ConnectSignalToAction(button, "toggled", action, oneShot);
-    }
-    
     /*
      * Signals can't be disconnected because all signals (of the same number of parameters) share the same method name
      * DynamicSignal objets can be removed

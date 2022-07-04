@@ -1,16 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.Experimental;
+using Betauer.SignalHandler;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Tests.Experimental {
+    
+    internal static class DynamicSignalExtensions {
+        public static DynamicSignalManager Manager = new DynamicSignalManager(); 
+        public static DynamicSignal OnPressed(this Button button, Action action, bool oneShot = false) =>
+            Manager.ConnectSignalToAction(button, "pressed", action, oneShot);
+        public static DynamicSignal OnToggled(this Button button, Action<bool> action, bool oneShot = false) =>
+            Manager.ConnectSignalToAction(button, "toggled", action, oneShot);
+    }
+
     [TestFixture]
     public class DynamicSignalTests : Node {
         [Test(Description = "0p and 1p signals")]
-        [Only]
         public async Task BasicTest() {
             DynamicSignalExtensions.Manager = new DynamicSignalManager();
             var b1 = new CheckButton();
