@@ -6,6 +6,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
@@ -74,7 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
             _menuController = BuildMenu();
             _demoMenu = BuildDemoMenu();
             _menuLabel.Text = "Click the options to see animations";
-            _resetMenu.OnPressed(async () => {
+            _resetMenu.OnPressed(() => {
                 _demoMenu.QueueFree();
                 _demoMenu = BuildDemoMenu();
                 _demoMenu.Start();
@@ -147,20 +148,25 @@ namespace Veronenger.Game.Controller.Menu {
                     _animatorContainer.Visible = false;
                 });
 
-            root.CreateButton("Start", "Anima comparision").OnPressed(() => { _gameManager.LoadAnimaDemo(); });
-            root.CreateButton("Effects", "Show all animations").OnPressed(async () => {
+            root.AddButton("Start", "Anima comparision").OnPressed(() => { _gameManager.LoadAnimaDemo(); });
+            root.AddButton("Effects", "Show all animations").OnPressed(async () => {
                 _demoMenuContainer.Visible = false;
                 _animatorContainer.Visible = true;
-                // await ctx.Go("Effects");
+                await mainMenu.Go("Effects");
             });
-            root.CreateButton("Menus", "Demo with menus").OnPressed(async () => {
+            root.AddButton("Menus", "Demo with menus").OnPressed(async () => {
                 _demoMenuContainer.Visible = true;
                 _animatorContainer.Visible = false;
+                await mainMenu.Go("Menu");
             });
-            root.CreateButton("Exit", "Exit").OnPressed(() => { _gameManager.TriggerModalBoxConfirmExitDesktop(); });
+            root.AddButton("Exit", "Exit").OnPressed(() => { _gameManager.TriggerModalBoxConfirmExitDesktop(); });
 
             var effectsMenu = mainMenu.AddMenu("Effects");
             CreateEffectsMenu(effectsMenu);
+
+            var demoMenuMenu = mainMenu.AddMenu("Menu");
+            demoMenuMenu.AddButton("Back", "Back").OnPressed(() => _menuController.Back());
+            
             return mainMenu;
         }
 
@@ -168,25 +174,23 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in _menuDemoBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuDemoBase);
+            mainMenu.ConfigureGoTransition(GoGoodbyeAnimation, GoNewMenuAnimation);
+            mainMenu.ConfigureBackTransition(BackGoodbyeAnimation, BackNewMenuAnimation);
+            
             var root = mainMenu.AddMenu("Root");
-            root.CreateButton("x", "Start new game").OnPressed(() => {
-                mainMenu.Go("Other", "1", GoGoodbyeAnimation, GoNewMenuAnimation);
-            });
-            root.CreateButton("x", "Continue").OnPressed(() => {
-                mainMenu.Go("Other", "2", GoGoodbyeAnimation, GoNewMenuAnimation);
-            });
+            root.AddButton("S", "Start new game").OnPressed(() => mainMenu.Go("Other", "1"));
+            root.AddButton("C", "Continue").OnPressed(() => mainMenu.Go("Other", "2"));
+            
             var second = mainMenu.AddMenu("Other");
-            second.CreateButton("1", "Come back").OnPressed(() => {
-                mainMenu.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
-            });
-            second.CreateButton("2", "Exit to main menu").OnPressed(() => {
-                mainMenu.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
-            });
+            second.AddButton("1", "Come back").OnPressed(() => mainMenu.Back());
+            second.AddButton("2", "Exit to main menu").OnPressed(() => mainMenu.Back());
             return mainMenu;
         }
 
         private void CreateEffectsMenu(ActionMenu effectsMenu) {
-            var oldCategory = "@";
+            string oldCategory = null;
+
+            effectsMenu.AddButton("Back", "Back").OnPressed(() => _menuController.Back());
             foreach (var templateFactory in _templateFactories) {
                 var name = templateFactory.Name;
                 if (templateFactory.Category != oldCategory && templateFactory.Category != null) {
@@ -197,8 +201,7 @@ namespace Veronenger.Game.Controller.Menu {
                     oldCategory = templateFactory.Category;
                 }
 
-                Button button = null;
-                button = effectsMenu.CreateButton(name, name);
+                Button button = effectsMenu.AddButton(name, name);
                 button.OnPressed(async () => {
                     var buttonRestorer = button.CreateRestorer().Save();
                     button.Disabled = true;
@@ -210,7 +213,6 @@ namespace Veronenger.Game.Controller.Menu {
                     _animationsRestorer.Restore();
                 });
             }
-            // effectsMenu.AddButton("Back", "Back", async (ctx) => { await ctx.Back(); });
         }
 
         public void DimOut() {

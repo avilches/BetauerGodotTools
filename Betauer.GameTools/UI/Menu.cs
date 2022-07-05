@@ -11,11 +11,16 @@ namespace Betauer.UI {
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
         private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
-        public ActionMenu? ActiveMenu { get; private set; } = null;
+        public ActionMenu ActiveMenu { get; private set; } = null;
 
         public bool Available { get; private set; } = false;
 
         public bool DisableGuiInAnimations = true;
+
+        internal Func<MenuTransition, Task>? DefaultGoGoodbyeAnimation = null;
+        internal Func<MenuTransition, Task>? DefaultGoNewMenuAnimation = null;
+        internal Func<MenuTransition, Task>? DefaultBackGoodbyeAnimation = null;
+        internal Func<MenuTransition, Task>? DefaultBackNewMenuAnimation = null;
 
         public MenuController(Container originalContainer) {
             _parent = originalContainer.GetParent();
@@ -23,6 +28,23 @@ namespace Betauer.UI {
             _originalContainer.DisableAllNotifications();
             _originalContainer.Visible = false;
         }
+
+        public MenuController ConfigureGoTransition(
+            Func<MenuTransition, Task>? goGoodbyeAnimation,
+            Func<MenuTransition, Task>? goNewMenuAnimation) {
+            DefaultGoGoodbyeAnimation = goGoodbyeAnimation;
+            DefaultGoNewMenuAnimation = goNewMenuAnimation;
+            return this;
+        }
+
+        public MenuController ConfigureBackTransition(
+            Func<MenuTransition, Task>? backGoodbyeAnimation,
+            Func<MenuTransition, Task>? backNewMenuAnimation) {
+            DefaultBackGoodbyeAnimation = backGoodbyeAnimation;
+            DefaultBackNewMenuAnimation = backNewMenuAnimation;
+            return this;
+        }
+
 
         public void QueueFree() {
             _menus.ToList().ForEach(c => c.Container.QueueFree());
@@ -44,42 +66,45 @@ namespace Betauer.UI {
             return _menus.Find(menu => menu.Name == toMenuName);
         }
 
-        public async Task Go(ActionButton fromButton, string toMenuName, string? toButtonName,
-            Func<MenuTransition, Task>? goodbyeAnimation = null,
-            Func<MenuTransition, Task>? newMenuAnimation = null) {
+        public async Task Go(string toMenuName, string? toButtonName = null, string? fromButtonName = null) { //},
+            // Func<MenuTransition, Task>? goodbyeAnimation = null,
+            // Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
             try {
                 Available = false;
+                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
                 ActionMenu toMenu = GetMenu(toMenuName);
                 _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
 
-                ActionButton? toButton = toButtonName != null ? toMenu.GetButton(toButtonName) : null;
-                MenuTransition transition = new MenuTransition(fromButton.Menu, fromButton, toMenu, toButton);
-
+                BaseButton? toButton = toButtonName != null ? toMenu.GetControl<BaseButton>(toButtonName) : null;
+                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
+                Func<MenuTransition, Task>? goodbyeAnimation = toMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
+                Func<MenuTransition, Task>? newMenuAnimation = toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
             } finally {
                 Available = true;
             }
         }
 
-        public async Task Back(
-            Func<MenuTransition, Task>? goodbyeAnimation = null,
-            Func<MenuTransition, Task>? newMenuAnimation = null) {
-            await Back(null, goodbyeAnimation, newMenuAnimation);
-        }
+        // public async Task Back(
+        //     Func<MenuTransition, Task>? goodbyeAnimation = null,
+        //     Func<MenuTransition, Task>? newMenuAnimation = null) {
+        //     await Back(null, goodbyeAnimation, newMenuAnimation);
+        // }
 
-        public async Task Back(ActionButton? fromButton,
-            Func<MenuTransition, Task>? goodbyeAnimation = null,
-            Func<MenuTransition, Task>? newMenuAnimation = null) {
+        public async Task Back(string? fromButtonName = null) { // ,
+            // Func<MenuTransition, Task>? goodbyeAnimation = null,
+            // Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available || _navigationState.Count == 0) return;
             try {
                 Available = false;
                 MenuState lastState = _navigationState.Last();
                 _navigationState.RemoveLast();
-                ActionMenu fromMenu = fromButton != null ? fromButton.Menu : ActiveMenu!;
                 ActionMenu toMenu = lastState.Menu;
-                MenuTransition transition = new MenuTransition(fromMenu, fromButton, toMenu, lastState.Button);
-
+                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
+                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, lastState.Button);
+                Func<MenuTransition, Task>? goodbyeAnimation = toMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
+                Func<MenuTransition, Task>? newMenuAnimation = toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
             } finally {
                 Available = true;
@@ -147,94 +172,67 @@ namespace Betauer.UI {
         public readonly string Name;
         public Container Container { get; }
         public bool WrapButtons { get; set; } = true;
+        
+        internal Func<MenuTransition, Task>? GoGoodbyeAnimation = null;
+        internal Func<MenuTransition, Task>? GoNewMenuAnimation = null;
+        internal Func<MenuTransition, Task>? BackGoodbyeAnimation = null;
+        internal Func<MenuTransition, Task>? BackNewMenuAnimation = null;
 
         internal ActionMenu(MenuController menuController, string name, Container originalContainer,
             Node parent, Action<ActionMenu> onShow) {
             _originalContainer = originalContainer;
             _parent = parent;
+            _onShow = onShow;
             MenuController = menuController;
             Name = name;
             Container = (Container)originalContainer.Duplicate();
             Container.Visible = true;
-            _onShow = onShow;
         }
 
-        public ActionButton CreateButton(string name, string title) {
-            ActionButton button = new ActionButton(this);
+        public ActionMenu ConfigureGoTransition(
+            Func<MenuTransition, Task>? goGoodbyeAnimation,
+            Func<MenuTransition, Task>? goNewMenuAnimation) {
+            GoGoodbyeAnimation = goGoodbyeAnimation;
+            GoNewMenuAnimation = goNewMenuAnimation;
+            return this;
+        }
+
+        public ActionMenu ConfigureBackTransition(
+            Func<MenuTransition, Task>? backGoodbyeAnimation,
+            Func<MenuTransition, Task>? backNewMenuAnimation) {
+            BackGoodbyeAnimation = backGoodbyeAnimation;
+            BackNewMenuAnimation = backNewMenuAnimation;
+            return this;
+        }
+
+        public Button AddButton(string name, string title) {
+            Button button = new Button();
             button.Name = name;
             button.Text = title;
             AddNode(button);
             return button;
         }
 
-        public ActionCheckButton CreateCheckButton(string name, string title) {
-            ActionCheckButton button = new ActionCheckButton(this);
-            button.Name = name;
-            button.Text = title;
-            AddNode(button);
-            return button;
-        }
-
-        public ActionHSeparator CreateHSeparator() {
-            ActionHSeparator separator = new ActionHSeparator();
+        public HSeparator AddHSeparator() {
+            HSeparator separator = new HSeparator();
             AddNode(separator);
             return separator;
         }
 
-        public ActionVSeparator CreateVSeparator() {
-            ActionVSeparator separator = new ActionVSeparator();
+        public VSeparator AddVSeparator() {
+            VSeparator separator = new VSeparator();
             AddNode(separator);
             return separator;
+        }
+
+        public TScene Add<TScene>(PackedScene button) where TScene : Node {
+            var instance = button.Instance<TScene>();
+            Container.AddChild(instance);
+            return instance;
         }
 
         public ActionMenu AddNode(Node button) {
             Container.AddChild(button);
-            return this;
-        }
-
-        public ActionMenu AddCheckButton(string name, string title, Action<bool> action) {
-            var button = CreateCheckButton(name, title);
-            button.Action = action;
-            return this;
-        }
-
-        public ActionMenu AddCheckButton(string name, string title, Action<ActionCheckButton.Context> action) {
-            var button = CreateCheckButton(name, title);
-            button.ActionWithContext = action;
-            return this;
-        }
-
-        public ActionMenu AddCheckButton(string name, string title, Func<ActionCheckButton.InputEventContext, bool> action) {
-            var button = CreateCheckButton(name, title);
-            button.ActionWithInputEventContext = action;
-            return this;
-        }
-
-        public ActionMenu AddButton(string name, string title, Action action) {
-            var button = CreateButton(name, title);
-            button.Action = action;
-            return this;
-        }
-
-        public ActionMenu AddButton(string name, string title, Action<ActionButton.Context> action) {
-            var button = CreateButton(name, title);
-            button.ActionWithContext = action;
-            return this;
-        }
-
-        public ActionMenu AddButton(string name, string title, Func<ActionButton.InputEventContext, bool> action) {
-            var button = CreateButton(name, title);
-            button.ActionWithInputEventContext = action;
-            return this;
-        }
-
-        public ActionMenu AddHSeparator() {
-            CreateHSeparator();
-            return this;
-        }
-
-        public ActionMenu AddVSeparator() {
-            CreateVSeparator();
             return this;
         }
 
@@ -281,18 +279,10 @@ namespace Betauer.UI {
             _parent.RemoveChild(Container);
         }
 
-        internal void Show(ActionButton? focused = null) {
+        internal void Show(BaseButton? focused = null) {
             _onShow?.Invoke(this);
             _parent.AddChildBelowNode(_originalContainer, Container);
             Refresh(focused);
-        }
-
-        public ActionButton? GetButton(string name) {
-            return GetControl<ActionButton>(name);
-        }
-
-        public ActionCheckButton? GetCheckButton(string name) {
-            return GetControl<ActionCheckButton>(name);
         }
 
         public T? GetControl<T>(string name) where T : Control {
@@ -300,170 +290,14 @@ namespace Betauer.UI {
         }
     }
 
-
-    public interface IActionControl {
-    }
-
-    public class BaseContext {
-        public ActionMenu Menu { get; }
-        public BaseContext(ActionMenu menu) => Menu = menu;
-        public void Refresh() => Menu.Refresh();
-    }
-
-    public class ActionHSeparator : HSeparator, IActionControl {
-    }
-
-    public class ActionVSeparator : VSeparator, IActionControl {
-    }
-
-    public class ActionButton : Button, IActionControl {
-        public class Context : BaseContext {
-            public ActionButton ActionButton { get; }
-
-            public Context(ActionMenu menu, ActionButton actionButton) : base(menu) {
-                ActionButton = actionButton;
-            }
-
-            public async Task Go(string toMenuName,
-                Func<MenuTransition, Task>? goodbyeAnimation = null,
-                Func<MenuTransition, Task>? newMenuAnimation = null) {
-                await Go(toMenuName, null, goodbyeAnimation, newMenuAnimation);
-            }
-
-            public async Task Go(string toMenuName, string? toButtonName,
-                Func<MenuTransition, Task>? goodbyeAnimation = null,
-                Func<MenuTransition, Task>? newMenuAnimation = null) {
-                await Menu.MenuController.Go(ActionButton, toMenuName, toButtonName, goodbyeAnimation,
-                    newMenuAnimation);
-            }
-
-            public async Task Back(
-                Func<MenuTransition, Task>? goodbyeAnimation = null,
-                Func<MenuTransition, Task>? newMenuAnimation = null) {
-                await Menu.MenuController.Back(ActionButton, goodbyeAnimation, newMenuAnimation);
-            }
-        }
-
-        public class InputEventContext : Context {
-            public InputEvent InputEvent { get; }
-
-            public InputEventContext(ActionMenu menu, ActionButton actionButton, InputEvent @event) : base(menu, actionButton) {
-                InputEvent = @event;
-            }
-        }
-
-        public ActionMenu Menu { get; }
-        public Action? Action;
-        public Action<Context>? ActionWithContext;
-        public Func<InputEventContext, bool>? ActionWithInputEventContext;
-
-        // TODO: this class should extends ButtonWrapper
-
-        // TODO: i18n
-        internal ActionButton(ActionMenu menu) {
-            Menu = menu;
-            Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
-        }
-
-        public override void _Input(InputEvent @event) {
-            // It takes into account if the Root.GuiDisableInput = true
-            if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
-                if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
-                    GetTree().SetInputAsHandled();
-                }
-            }
-        }
-
-        public void Execute() {
-            if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
-            else Action?.Invoke();
-        }
-
-        private Action _onFocusEntered;
-        private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
-        public void OnFocusEntered(Action onFocus) {
-            Connect(SignalConstants.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
-            _onFocusEntered = onFocus;
-        }
-
-        private Action _onFocusExited;
-        private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
-        public void OnFocusExited(Action onFocus) {
-            Connect(SignalConstants.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
-            _onFocusExited = onFocus;
-        }
-    }
-
-    public class ActionCheckButton : CheckButton, IActionControl {
-        public class Context : BaseContext {
-            public ActionCheckButton ActionCheckButton { get; }
-
-            public bool Pressed => ActionCheckButton.Pressed;
-
-            public Context(ActionMenu menu, ActionCheckButton actionCheckButton) : base(menu) {
-                ActionCheckButton = actionCheckButton;
-            }
-        }
-
-        public class InputEventContext : Context {
-            public InputEvent InputEvent { get; }
-
-            public InputEventContext(ActionMenu menu, ActionCheckButton actionCheckButton, InputEvent @event) : base(menu, actionCheckButton) {
-                InputEvent = @event;
-            }
-        }
-
-
-        public ActionMenu Menu { get; }
-        public Action<bool>? Action;
-        public Action<Context>? ActionWithContext;
-        public Func<InputEventContext, bool>? ActionWithInputEventContext;
-        private Action _onFocusEntered;
-        private Action _onFocusExited;
-        
-        // TODO: this class should extends ButtonWrapper
-
-        // TODO: i18n
-        internal ActionCheckButton(ActionMenu menu) {
-            Menu = menu;
-            Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(Execute));
-        }
-
-        public override void _Input(InputEvent @event) {
-            // It takes into account if the Root.GuiDisableInput = true
-            if (ActionWithInputEventContext != null && GetFocusOwner() == this) {
-                if (ActionWithInputEventContext(new InputEventContext(Menu, this, @event))) {
-                    GetTree().SetInputAsHandled();
-                }
-            }
-        }
-
-        public void Execute() {
-            if (ActionWithContext != null) ActionWithContext(new Context(Menu, this));
-            else Action?.Invoke(Pressed);
-        }
-
-        private void ExecuteOnFocusEntered() => _onFocusEntered?.Invoke();
-        public void OnFocusEntered(Action onFocus) {
-            Connect(SignalConstants.Control_FocusEnteredSignal, this, nameof(ExecuteOnFocusEntered));
-            _onFocusEntered = onFocus;
-        }
-
-        private void ExecuteOnFocusExited() => _onFocusExited?.Invoke();
-        public void OnFocusExited(Action onFocus) {
-            Connect(SignalConstants.Control_FocusExitedSignal, this, nameof(ExecuteOnFocusExited));
-            _onFocusExited = onFocus;
-        }
-    }
-
     public class MenuTransition {
         public readonly ActionMenu FromMenu;
-        public readonly ActionButton? FromButton;
+        public readonly BaseButton? FromButton;
         public readonly ActionMenu ToMenu;
-        public readonly ActionButton? ToButton;
+        public readonly BaseButton? ToButton;
 
-        public MenuTransition(ActionMenu fromMenu, ActionButton? fromButton, ActionMenu toMenu,
-            ActionButton? toButton) {
+        public MenuTransition(ActionMenu fromMenu, BaseButton? fromButton, ActionMenu toMenu,
+            BaseButton? toButton) {
             FromMenu = fromMenu;
             FromButton = fromButton;
             ToMenu = toMenu;
@@ -473,9 +307,9 @@ namespace Betauer.UI {
 
     internal class MenuState {
         internal readonly ActionMenu Menu;
-        internal readonly ActionButton Button;
+        internal readonly BaseButton? Button;
 
-        internal MenuState(ActionMenu menu, ActionButton button) {
+        internal MenuState(ActionMenu menu, BaseButton? button) {
             Menu = menu;
             Button = button;
         }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Betauer;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.SignalHandler;
+using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
@@ -70,9 +70,9 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuController(_menuBase);
             var root = mainMenu.AddMenu("Root");
-            var noButton = root.CreateButton("No", "No");
+            var noButton = root.AddButton("No", "No");
             noButton.OnPressed(() => _promise.TrySetResult(false));
-            var yesButton = root.CreateButton("Yes", "Yes");
+            var yesButton = root.AddButton("Yes", "Yes");
             yesButton.OnPressed(() => _promise.TrySetResult(true));
             noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
             return mainMenu;

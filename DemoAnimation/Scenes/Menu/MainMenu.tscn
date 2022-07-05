@@ -64,12 +64,13 @@ text = "Exit"
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 margin_left = 400.0
 margin_top = 50.0
-margin_right = 888.0
-margin_bottom = 408.0
+margin_right = 988.0
+margin_bottom = 550.0
 
 [node name="DemoMenu" type="VBoxContainer" parent="HBoxContainer"]
+visible = false
 margin_right = 364.0
-margin_bottom = 455.0
+margin_bottom = 500.0
 rect_min_size = Vector2( 200, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -225,9 +226,8 @@ rect_min_size = Vector2( 280, 0 )
 text = "Reset menu"
 
 [node name="Animator" type="VBoxContainer" parent="HBoxContainer"]
-margin_left = 368.0
-margin_right = 712.0
-margin_bottom = 455.0
+margin_right = 344.0
+margin_bottom = 500.0
 rect_min_size = Vector2( 200, 0 )
 
 [node name="ControlTitle" type="Label" parent="HBoxContainer/Animator"]
