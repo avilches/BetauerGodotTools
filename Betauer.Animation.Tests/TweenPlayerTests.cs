@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using Betauer.Animation;
-using Betauer.Animation.Tests;
-using Betauer.SignalHandler;
 using Betauer.TestRunner;
 
 namespace Betauer.Animation.Tests {
@@ -514,13 +510,13 @@ namespace Betauer.Animation.Tests {
                 .WithParent(this, true)
                 .CreateSequence()
                 .SetProcessMode(Tween.TweenProcessMode.Idle)
-                .Pause(1f)
+                .Pause(0.5f)
                 .Callback(() => callback++)
                 .EndSequence()
                 .AddOnFinishAll(() => finished++)
                 .Play();
 
-            await Task.Delay(200);
+            await Task.Delay(100);
             tweenPlayer.Stop();
             tweenPlayer.Stop();
             tweenPlayer.Stop();
@@ -528,7 +524,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(finished, Is.EqualTo(0));
 
             // If the player is stopped, the callback shouldn't execute
-            await Task.Delay(1000);
+            await Task.Delay(500);
             Assert.That(callback, Is.EqualTo(0));
             Assert.That(finished, Is.EqualTo(0));
 
@@ -537,7 +533,7 @@ namespace Betauer.Animation.Tests {
             tweenPlayer.Play();
             tweenPlayer.Play();
             tweenPlayer.Play();
-            await Task.Delay(900);
+            await Task.Delay(500);
             Assert.That(callback, Is.EqualTo(1));
             Assert.That(finished, Is.EqualTo(1));
         }

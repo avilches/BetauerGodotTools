@@ -30,7 +30,7 @@ namespace Betauer.Animation {
         public IOnceStatus OnEnd(Action callback);
     }
 
-    public class AnimationStack : GodotObject /* needed to listen signals */ {
+    public class AnimationStack : DisposableGodotObject /* needed to listen signals */ {
         private class Status {
             public string Name { get; }
             public bool Playing { get; private set; }
