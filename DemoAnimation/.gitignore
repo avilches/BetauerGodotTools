@@ -1,0 +1,28 @@
+# Created by https://www.toptal.com/developers/gitignore/api/godot
+# Edit at https://www.toptal.com/developers/gitignore?templates=godot
+
+### Godot ###
+
+# Godot-specific ignores
+.import/
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+bin/
+obj/
+data_*/
+mono_crash.*
+
+# End of https://www.toptal.com/developers/gitignore/api/godot
+
+# Jetbrains
+.idea/
+
+# Tests
+/packages/
+/*.sln.DotSettings.*
+/export/releases
+

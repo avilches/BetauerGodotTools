@@ -21,7 +21,7 @@ namespace Veronenger.Game.Controller.UI {
             }
         }
 
-        private readonly ControlRestorer _saver;
+        private readonly Restorer _saver;
         private Action<Context>? _onPressedAction;
         private Func<InputEventContext, bool>? _onInputEvent;
         private Action? _onFocusEntered;
@@ -29,7 +29,7 @@ namespace Veronenger.Game.Controller.UI {
 
         // TODO: i18n
         internal ButtonWrapper() {
-            _saver = new ControlRestorer(this);
+            _saver = this.CreateRestorer();
             Connect(SignalConstants.BaseButton_PressedSignal, this, nameof(_GodotPressedSignal));
         }
 

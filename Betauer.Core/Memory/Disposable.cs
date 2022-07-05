@@ -51,7 +51,7 @@ namespace Betauer.Memory {
      * 3: Optionally, it can show a message when the instance is created
      */
      public abstract class DisposableGodotObject : Object {
-        protected bool Disposed { get; private set; } = false;
+        public bool Disposed { get; private set; } = false;
 
 #if DEBUG
         protected DisposableGodotObject() {

@@ -12,7 +12,7 @@ using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class GameManager : GodotObject {
+    public class GameManager : DisposableGodotObject {
         private MainMenu _mainMenuScene;
         private Node _currentGameScene;
 

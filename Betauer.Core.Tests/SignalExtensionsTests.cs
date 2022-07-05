@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.Memory;
-using Betauer.SignalHandler;
+using Betauer.Signal;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -29,17 +30,17 @@ namespace Betauer.Tests {
             var toggled1 = new List<bool>();
             var toggled2 = new List<bool>();
 
-            SignalHandler.SignalHandler p1 = b1.OnPressed(() => {
+            SignalHandler p1 = b1.OnPressed(() => {
                 executed1++;
             });
-            SignalHandler.SignalHandler p2 = b2.OnPressed(() => {
+            SignalHandler p2 = b2.OnPressed(() => {
                 executed2++;
             });
 
-            SignalHandler.SignalHandler t1 = b1.OnToggled((tog) => {
+            SignalHandler t1 = b1.OnToggled((tog) => {
                 toggled1.Add(tog);
             });
-            SignalHandler.SignalHandler t2 = b2.OnToggled((tog) => {
+            SignalHandler t2 = b2.OnToggled((tog) => {
                 toggled2.Add(tog);
             });
             
@@ -84,6 +85,7 @@ namespace Betauer.Tests {
             var bounded = new CheckButton();
             var disconnected = new CheckButton();
             var deferred = new CheckButton();
+            var signalDisposed = new CheckButton();
             
             var boundedTarget = new Object();
             AddChild(regular);
@@ -92,6 +94,7 @@ namespace Betauer.Tests {
             AddChild(bounded);
             AddChild(disconnected);
             AddChild(deferred);
+            AddChild(signalDisposed);
             AddChild(new ObjectLifeCycleManagerNode(1));
             await this.AwaitIdleFrame();
             
@@ -101,36 +104,42 @@ namespace Betauer.Tests {
             var executedBounded = 0;
             var executedDisconnected = 0;
             var executedDeferred = 0;
-            SignalHandler.SignalHandler p1 = regular.OnPressed(() => { executedNormal++; });
-            SignalHandler.SignalHandler p2 = oneShot.OnPressed(() => { executedOneShot++; }, true);
-            SignalHandler.SignalHandler p3 = targetDisposed.OnPressed(() => { executedTargetDisposed++; });
-            SignalHandler.SignalHandler p4 = bounded.OnPressed(() => { executedBounded++; }).Bind(boundedTarget);
-            SignalHandler.SignalHandler p5 = disconnected.OnPressed(() => { executedDisconnected++; });
-            SignalHandler.SignalHandler p6 = deferred.OnPressed(() => { executedDeferred++; }, false, true);
+            var executedSignalDisposed = 0;
+            SignalHandler p1 = regular.OnPressed(() => { executedNormal++; });
+            SignalHandler p2 = oneShot.OnPressed(() => { executedOneShot++; }, true);
+            SignalHandler p3 = targetDisposed.OnPressed(() => { executedTargetDisposed++; });
+            SignalHandler p4 = bounded.OnPressed(() => { executedBounded++; }).Bind(boundedTarget);
+            SignalHandler p5 = disconnected.OnPressed(() => { executedDisconnected++; });
+            SignalHandler p6 = deferred.OnPressed(() => { executedDeferred++; }, false, true);
+            SignalHandler p7 = signalDisposed.OnPressed(() => { executedSignalDisposed++; });
             Assert.That(executedNormal, Is.EqualTo(0));
             Assert.That(executedOneShot, Is.EqualTo(0));
             Assert.That(executedTargetDisposed, Is.EqualTo(0));
             Assert.That(executedBounded, Is.EqualTo(0));
             Assert.That(executedDisconnected, Is.EqualTo(0));
             Assert.That(executedDeferred, Is.EqualTo(0));
+            Assert.That(executedSignalDisposed, Is.EqualTo(0));
             Assert.That(p1.IsConnected(), Is.True);
             Assert.That(p2.IsConnected(), Is.True);
             Assert.That(p3.IsConnected(), Is.True);
             Assert.That(p4.IsConnected(), Is.True);
             Assert.That(p5.IsConnected(), Is.True);
             Assert.That(p6.IsConnected(), Is.True);
+            Assert.That(p7.IsConnected(), Is.True);
             Assert.That(p1.IsValid(), Is.True);
             Assert.That(p2.IsValid(), Is.True);
             Assert.That(p3.IsValid(), Is.True);
             Assert.That(p4.IsValid(), Is.True);
             Assert.That(p5.IsValid(), Is.True);
             Assert.That(p6.IsValid(), Is.True);
+            Assert.That(p7.IsValid(), Is.True);
             Assert.That(p1.MustBeDisposed(), Is.False);
             Assert.That(p2.MustBeDisposed(), Is.False);
             Assert.That(p3.MustBeDisposed(), Is.False);
             Assert.That(p4.MustBeDisposed(), Is.False);
             Assert.That(p5.MustBeDisposed(), Is.False);
             Assert.That(p6.MustBeDisposed(), Is.False);
+            Assert.That(p7.MustBeDisposed(), Is.False);
 
             regular.EmitSignal("pressed");
             oneShot.EmitSignal("pressed");
@@ -138,40 +147,48 @@ namespace Betauer.Tests {
             bounded.EmitSignal("pressed");
             disconnected.EmitSignal("pressed");
             deferred.EmitSignal("pressed");
+            signalDisposed.EmitSignal("pressed");
+            
             Assert.That(executedNormal, Is.EqualTo(1));
             Assert.That(executedOneShot, Is.EqualTo(1));
             Assert.That(executedTargetDisposed, Is.EqualTo(1));
             Assert.That(executedBounded, Is.EqualTo(1));
             Assert.That(executedDisconnected, Is.EqualTo(1));
             Assert.That(executedDeferred, Is.EqualTo(0));
+            Assert.That(executedSignalDisposed, Is.EqualTo(1));
             Assert.That(p1.MustBeDisposed(), Is.False);
             Assert.That(p2.MustBeDisposed(), Is.True);
             Assert.That(p3.MustBeDisposed(), Is.False);
             Assert.That(p4.MustBeDisposed(), Is.False);
             Assert.That(p5.MustBeDisposed(), Is.False);
             Assert.That(p6.MustBeDisposed(), Is.False);
+            Assert.That(p7.MustBeDisposed(), Is.False);
             Assert.That(p1.IsConnected(), Is.True);
             Assert.That(p2.IsConnected(), Is.False);
             Assert.That(p3.IsConnected(), Is.True);
             Assert.That(p4.IsConnected(), Is.True);
             Assert.That(p5.IsConnected(), Is.True);
             Assert.That(p6.IsConnected(), Is.True);
+            Assert.That(p7.IsConnected(), Is.True);
             Assert.That(p1.IsValid(), Is.True);
             Assert.That(p2.IsValid(), Is.True);
             Assert.That(p3.IsValid(), Is.True);
             Assert.That(p4.IsValid(), Is.True);
             Assert.That(p5.IsValid(), Is.True);
             Assert.That(p6.IsValid(), Is.True);
+            Assert.That(p7.IsValid(), Is.True);
 
             targetDisposed.Free();
             boundedTarget.Free();
             p5.Disconnect();
+            p7.Dispose();
             
             regular.EmitSignal("pressed");
             oneShot.EmitSignal("pressed");
             // targetDisposed.EmitSignal("pressed");
             bounded.EmitSignal("pressed");
             disconnected.EmitSignal("pressed");
+            signalDisposed.EmitSignal("pressed");
 
             Assert.That(executedNormal, Is.EqualTo(2));
             Assert.That(executedOneShot, Is.EqualTo(1));
@@ -179,39 +196,44 @@ namespace Betauer.Tests {
             Assert.That(executedBounded, Is.EqualTo(2));
             Assert.That(executedDisconnected, Is.EqualTo(1));
             Assert.That(executedDeferred, Is.EqualTo(0));
+            Assert.That(executedSignalDisposed, Is.EqualTo(1));
             Assert.That(p1.MustBeDisposed(), Is.False);
             Assert.That(p2.MustBeDisposed(), Is.True);
             Assert.That(p3.MustBeDisposed(), Is.True);
             Assert.That(p4.MustBeDisposed(), Is.True);
             Assert.That(p5.MustBeDisposed(), Is.False);
             Assert.That(p6.MustBeDisposed(), Is.False);
+            Assert.That(p7.MustBeDisposed(), Is.True);
             Assert.That(p1.IsConnected(), Is.True);
             Assert.That(p2.IsConnected(), Is.False);
             Assert.That(p3.IsConnected(), Is.False);
             Assert.That(p4.IsConnected(), Is.True);
             Assert.That(p5.IsConnected(), Is.False);
             Assert.That(p6.IsConnected(), Is.True);
+            Assert.That(p7.IsConnected(), Is.False);
             Assert.That(p1.IsValid(), Is.True);
             Assert.That(p2.IsValid(), Is.True);
             Assert.That(p3.IsValid(), Is.False);
             Assert.That(p4.IsValid(), Is.True);
             Assert.That(p5.IsValid(), Is.True);
             Assert.That(p6.IsValid(), Is.True);
+            Assert.That(p7.IsValid(), Is.False);
 
-            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(6));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(7));
             Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(0));
 
             await this.AwaitIdleFrame();
             Assert.That(executedDeferred, Is.EqualTo(1));
             
             Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(3));
-            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(3));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(4));
             Assert.That(IsInstanceValid(p1), Is.True);
             Assert.That(IsInstanceValid(p2), Is.True);
             Assert.That(IsInstanceValid(p3), Is.True);
             Assert.That(IsInstanceValid(p4), Is.True);
             Assert.That(IsInstanceValid(p5), Is.True);
             Assert.That(IsInstanceValid(p6), Is.True);
+            Assert.That(IsInstanceValid(p7), Is.False);
 
             await this.AwaitIdleFrame();
             Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(3));
@@ -222,6 +244,7 @@ namespace Betauer.Tests {
             Assert.That(IsInstanceValid(p4), Is.False); // bound to a disposed object 
             Assert.That(IsInstanceValid(p5), Is.True);  // disconnected
             Assert.That(IsInstanceValid(p6), Is.True);  // deferred
+            Assert.That(IsInstanceValid(p7), Is.False); // disposed
         }
     }
 }

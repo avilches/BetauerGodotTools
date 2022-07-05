@@ -7,9 +7,9 @@ using NUnit.Framework;
 
 namespace Betauer.GodotAction.Tests {
     [TestFixture]
+    // [Only]
     public class GodotActionSignalTests : Node {
         [Test(Description = "0p and 1p signals")]
-        [Only]
         public async Task BasicTest() {
             var b1 = new CheckButton();
             var b2 = new CheckButton();
@@ -21,20 +21,18 @@ namespace Betauer.GodotAction.Tests {
             var toggled1 = new List<bool>();
             var toggled2 = new List<bool>();
 
-            CheckButtonAction cb1 = b1.OnPressed(() => {
+            b1.GetProxy().OnPressed(() => {
                 executed1++;
-            });
-            CheckButtonAction cb2 = b2.OnPressed(() => {
-                executed2++;
-            });
-
-            cb1.OnToggled((tog) => {
+            }).OnToggled((tog) => {
                 toggled1.Add(tog);
             });
-            cb2.OnToggled((tog) => {
-                toggled2.Add(tog);
+                
+            b2.GetProxy().OnPressed(() => {
+                executed2++;
+            }).OnToggled((tog) => {
+                    toggled2.Add(tog);
             });
-            
+
             b1.EmitSignal("pressed");
             Assert.That(executed1, Is.EqualTo(1));
             Assert.That(executed2, Is.EqualTo(0));
@@ -69,7 +67,6 @@ namespace Betauer.GodotAction.Tests {
         }
 
         [Test]
-        [Only]
         public async Task OneShot() {
             var b1 = new CheckButton();
             var b2 = new CheckButton();
@@ -79,8 +76,8 @@ namespace Betauer.GodotAction.Tests {
             var executedNormal = 0;
             var executedOneShot = 0;
 
-            CheckButtonAction cb1 = b1.OnPressed(() => { executedNormal++; });
-            CheckButtonAction cb2 = b2.OnPressed(() => { executedOneShot++; }, true);
+            b1.GetProxy().OnPressed(() => { executedNormal++; });
+            b2.GetProxy().OnPressed(() => { executedOneShot++; }, true);
             b1.EmitSignal("pressed");
             b2.EmitSignal("pressed");
             Assert.That(executedNormal, Is.EqualTo(1));

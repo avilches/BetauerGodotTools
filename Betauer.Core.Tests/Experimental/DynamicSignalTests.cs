@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.SignalHandler;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -10,9 +9,9 @@ namespace Betauer.Tests.Experimental {
     
     internal static class DynamicSignalExtensions {
         public static DynamicSignalManager Manager = new DynamicSignalManager(); 
-        public static DynamicSignal OnPressed(this Button button, Action action, bool oneShot = false) =>
+        public static DynamicSignal OnPressed(Button button, Action action, bool oneShot = false) =>
             Manager.ConnectSignalToAction(button, "pressed", action, oneShot);
-        public static DynamicSignal OnToggled(this Button button, Action<bool> action, bool oneShot = false) =>
+        public static DynamicSignal OnToggled(Button button, Action<bool> action, bool oneShot = false) =>
             Manager.ConnectSignalToAction(button, "toggled", action, oneShot);
     }
 

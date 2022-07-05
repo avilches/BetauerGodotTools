@@ -1,69 +1,51 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Betauer.Memory;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.SignalHandler {
+namespace Betauer.Signal {
+
     public abstract class SignalHandler : DisposableGodotObject, IObjectLifeCycle {
         public readonly Object Target;
         public readonly string Signal;
         public readonly bool OneShot;
         public readonly bool Deferred;
-        private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
         private Object? _bound = null;
         private bool _valid = true;
-        public int Calls { get; private set; } = 0;
+        private string? _targetName;
 
-        public SignalHandler(Object target, string signal, bool oneShot = false, bool deferred = false) {
+        protected SignalHandler(Object target, string signal, bool oneShot = false, bool deferred = false) {
             Target = target;
             Signal = signal;
             OneShot = oneShot;
             Deferred = deferred;
             Connect();
-            ObjectLifeCycleManager.Singleton.Watch(this);
+            Watch();
         }
-        
+
+        public void Unwatch() => ObjectLifeCycleManager.Singleton.Unwatch(this);
+
+        public void Watch() => ObjectLifeCycleManager.Singleton.Watch(this);
+
+        public SignalHandler Bind(Object o) {
+            _bound = o;
+            return this;
+        }
+
         public void Connect() {
             if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
             Error err = Target.Connect(Signal, this, nameof(SignalHandlerAction.Call), null, SignalFlags(OneShot, Deferred));
             if (err != Error.Ok) {
                 throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
             }
+            _targetName = Target is Node node ? node.Name : null;
         }
 
-        protected void Consumed() {
-            Calls++;
-            _promise.TrySetResult(true);
+        protected void AfterCall() {
             if (OneShot) _valid = false;
         }
 
-        protected override void OnDispose(bool disposing) {
-            _promise.TrySetCanceled();
-        }
-
-        public Task<bool> Await() {
-            return _promise.Task;
-        } 
-
-        public SignalHandler Bind(Object o) {
-            _bound = o;
-            return this;
-        }
-        
-        private static uint SignalFlags(bool oneShot, bool deferred = false) =>
-            (oneShot ? (uint)ConnectFlags.Oneshot : 0) +
-            (deferred ? (uint)ConnectFlags.Deferred : 0) +
-            0;
-
-        public bool MustBeDisposed() {
-            return !_valid || !IsValid() || (_bound != null && !IsInstanceValid(_bound));
-        }
-
-        public bool IsValid() => IsInstanceValid(Target) &&
-                                 IsInstanceValid(this);
+        public bool IsValid() => IsInstanceValid(Target) && IsInstanceValid(this);
 
         public bool IsConnected() {
             return IsValid() && Target.IsConnected(Signal, this, nameof(SignalHandlerAction.Call));
@@ -73,23 +55,42 @@ namespace Betauer.SignalHandler {
             if (IsConnected()) Target.Disconnect(Signal, this, nameof(SignalHandlerAction.Call));
         }
 
-        public override string ToString() {
-            var txt = "Target:"+Target.GetType() + ". Signal:" + Signal;
+        protected override void OnDispose(bool disposing) {
+            _valid = false;
+            if (disposing) Disconnect();
+        }
 
-            if (IsInstanceValid(Target)) {
-                if (Target is Node node) {
-                    txt += ", Name: \"" + node.Name+"\"";
-                }
+        public bool MustBeDisposed() {
+            return !_valid || !IsValid() || (_bound != null && !IsInstanceValid(_bound));
+        }
+
+        public override string ToString() {
+            string txt = null;
+            if (IsInstanceValid(this)) {
+                txt += "Target:" + Target.GetType();                
             } else {
+                txt += "Disposed. Target:" + Target.GetType();                
+            }
+            if (_targetName != null) {
+                txt += " \"" + _targetName + "\"";
+            }
+            if (!IsInstanceValid(Target)) {
                 txt += " (Disposed)";
             }
+            txt += ". Signal:" + Signal;
             return txt;
         }
+
+        private static uint SignalFlags(bool oneShot, bool deferred = false) =>
+            (oneShot ? (uint)ConnectFlags.Oneshot : 0) +
+            (deferred ? (uint)ConnectFlags.Deferred : 0) +
+            0;
     }
     
     public abstract class SignalHandler<T> : SignalHandler {
         protected readonly T Action;
-        public SignalHandler(Object target, string signal, T action, bool oneShot = false, bool deferred = false): base(target, signal, oneShot, deferred) {
+
+        protected SignalHandler(Object target, string signal, T action, bool oneShot = false, bool deferred = false): base(target, signal, oneShot, deferred) {
             Action = action;
         }
     }
@@ -102,7 +103,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action();
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -115,7 +116,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -128,7 +129,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -141,7 +142,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -154,7 +155,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3, v4);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -167,7 +168,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3, v4, v5);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -180,7 +181,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3, v4, v5, v6);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -193,7 +194,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3, v4, v5, v6, v7);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
@@ -207,7 +208,7 @@ namespace Betauer.SignalHandler {
             try {
                 Action(v1, v2, v3, v4, v5, v6, v7, v8);
             } finally {
-                Consumed();
+                AfterCall();
             }
         }
     }
