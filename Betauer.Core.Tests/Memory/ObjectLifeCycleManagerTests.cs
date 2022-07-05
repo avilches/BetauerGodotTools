@@ -4,19 +4,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Memory;
 using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 using Object = Godot.Object;
 
 namespace Betauer.Tests.Memory {
 
     [TestFixture]
-    public class ObjectLifeCycleManagerTests {
+    public class ObjectLifeCycleManagerTests : Node {
         [SetUp]
         public void Setup() {
             ObjectLifeCycleManager.Singleton.Reset();
         }
 
-        private class Dummy : GodotObject, IObjectLifeCycle {
+        private class Dummy : DisposableGodotObject, IObjectLifeCycle {
             internal int DisposedCalls = 0;
             internal bool mustBeDisposed = false;
 
@@ -26,6 +27,92 @@ namespace Betauer.Tests.Memory {
             }
 
             public bool MustBeDisposed() => mustBeDisposed;
+        }
+
+        [Test]
+        public async Task NodeNoSkip() {
+            AddChild(new ObjectLifeCycleManagerNode( 1));
+            var disposed1 = new Dummy();
+            ObjectLifeCycleManager.Singleton.QueueDispose(disposed1); // Add to the Q
+            await this.AwaitIdleFrame(); // move from Q to the IQ
+            Assert.That(IsInstanceValid(disposed1), Is.True);
+            await this.AwaitIdleFrame(); // process the IQ
+            Assert.That(IsInstanceValid(disposed1), Is.False);
+        }
+
+        [Test]
+        public async Task NodeSkip2() {
+            AddChild(new ObjectLifeCycleManagerNode(2));
+            var disposed1 = new Dummy();
+            ObjectLifeCycleManager.Singleton.QueueDispose(disposed1); // Add to the Q
+            await this.AwaitIdleFrame(); // ignored
+            await this.AwaitIdleFrame(); // move from Q to the IQ
+            await this.AwaitIdleFrame(); // ignored
+            Assert.That(IsInstanceValid(disposed1), Is.True);
+            await this.AwaitIdleFrame(); // process the IQ
+            Assert.That(IsInstanceValid(disposed1), Is.False);
+        }
+
+        [Test]
+        public async Task Node() {
+            AddChild(new ObjectLifeCycleManagerNode(1));
+
+            var w1 = new Dummy();
+            var w2d = new Dummy();
+            var w3 = new Dummy();
+            var w4d = new Dummy();
+            var disposed1 = new Dummy();
+            var disposed2 = new Dummy();
+            var unwatch = new Dummy();
+            
+            ObjectLifeCycleManager.Singleton.Watch(w1);
+            ObjectLifeCycleManager.Singleton.Watch(w2d);
+            ObjectLifeCycleManager.Singleton.Watch(w3);
+            ObjectLifeCycleManager.Singleton.Watch(w4d);
+            ObjectLifeCycleManager.Singleton.Watch(unwatch);
+
+            await this.AwaitIdleFrame();
+
+            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(5));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(0));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(0));
+
+            // only x2, x4, disposed1, disposed2 must be disposed
+            w2d.mustBeDisposed = true;
+            w4d.mustBeDisposed = true;
+            unwatch.mustBeDisposed = true;
+            ObjectLifeCycleManager.Singleton.Unwatch(unwatch);
+            ObjectLifeCycleManager.Singleton.QueueDispose(disposed1);
+            ObjectLifeCycleManager.Singleton.QueueDispose(disposed2);
+            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(4));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(2));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(0));
+
+            await this.AwaitIdleFrame();
+            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(2));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(0));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(4));
+
+            Assert.That(IsInstanceValid(w1), Is.True);
+            Assert.That(IsInstanceValid(w2d), Is.True);
+            Assert.That(IsInstanceValid(w3), Is.True);
+            Assert.That(IsInstanceValid(w4d), Is.True);
+            Assert.That(IsInstanceValid(unwatch), Is.True);
+            Assert.That(IsInstanceValid(disposed1), Is.True);
+            Assert.That(IsInstanceValid(disposed2), Is.True);
+
+            await this.AwaitIdleFrame();
+            Assert.That(ObjectLifeCycleManager.Singleton.GetWatching().Count, Is.EqualTo(2));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(0));
+            Assert.That(ObjectLifeCycleManager.Singleton.GetDisposablesNextFrame().Count, Is.EqualTo(0));
+
+            Assert.That(IsInstanceValid(w1), Is.True);
+            Assert.That(IsInstanceValid(w2d), Is.False);
+            Assert.That(IsInstanceValid(w3), Is.True);
+            Assert.That(IsInstanceValid(w4d), Is.False);
+            Assert.That(IsInstanceValid(unwatch), Is.True);
+            Assert.That(IsInstanceValid(disposed1), Is.False);
+            Assert.That(IsInstanceValid(disposed2), Is.False);
         }
 
         [Test]
@@ -60,9 +147,9 @@ namespace Betauer.Tests.Memory {
             Assert.That(x1.DisposedCalls, Is.EqualTo(0));
             Assert.That(x2.DisposedCalls, Is.EqualTo(0));
             Assert.That(x3.DisposedCalls, Is.EqualTo(0));
-            Assert.That(Object.IsInstanceValid(x1), Is.True);
-            Assert.That(Object.IsInstanceValid(x2), Is.True);
-            Assert.That(Object.IsInstanceValid(x3), Is.True);
+            Assert.That(IsInstanceValid(x1), Is.True);
+            Assert.That(IsInstanceValid(x2), Is.True);
+            Assert.That(IsInstanceValid(x3), Is.True);
 
             // ProcessQueue
             // 1) move the current queue to internal queue
@@ -73,9 +160,9 @@ namespace Betauer.Tests.Memory {
             Assert.That(x1.DisposedCalls, Is.EqualTo(0));
             Assert.That(x2.DisposedCalls, Is.EqualTo(0));
             Assert.That(x3.DisposedCalls, Is.EqualTo(0));
-            Assert.That(Object.IsInstanceValid(x1), Is.True);
-            Assert.That(Object.IsInstanceValid(x2), Is.True);
-            Assert.That(Object.IsInstanceValid(x3), Is.True);
+            Assert.That(IsInstanceValid(x1), Is.True);
+            Assert.That(IsInstanceValid(x2), Is.True);
+            Assert.That(IsInstanceValid(x3), Is.True);
 
             // ProcessQueue
             // 1) move the current queue to internal queue
@@ -87,9 +174,9 @@ namespace Betauer.Tests.Memory {
             Assert.That(x1.DisposedCalls, Is.EqualTo(1));
             Assert.That(x2.DisposedCalls, Is.EqualTo(0));
             Assert.That(x3.DisposedCalls, Is.EqualTo(0));
-            Assert.That(Object.IsInstanceValid(x1), Is.False);
-            Assert.That(Object.IsInstanceValid(x2), Is.True);
-            Assert.That(Object.IsInstanceValid(x3), Is.True);
+            Assert.That(IsInstanceValid(x1), Is.False);
+            Assert.That(IsInstanceValid(x2), Is.True);
+            Assert.That(IsInstanceValid(x3), Is.True);
 
             Assert.That(ObjectLifeCycleManager.Singleton.DisposeAllWatching(), Is.EqualTo(2));
             Assert.That(ObjectLifeCycleManager.Singleton.GetQueue().Count, Is.EqualTo(2));
@@ -98,9 +185,9 @@ namespace Betauer.Tests.Memory {
             Assert.That(x1.DisposedCalls, Is.EqualTo(1));
             Assert.That(x2.DisposedCalls, Is.EqualTo(0));
             Assert.That(x3.DisposedCalls, Is.EqualTo(0));
-            Assert.That(Object.IsInstanceValid(x1), Is.False);
-            Assert.That(Object.IsInstanceValid(x2), Is.True);
-            Assert.That(Object.IsInstanceValid(x3), Is.True);
+            Assert.That(IsInstanceValid(x1), Is.False);
+            Assert.That(IsInstanceValid(x2), Is.True);
+            Assert.That(IsInstanceValid(x3), Is.True);
             
             Assert.That(ObjectLifeCycleManager.Singleton.ProcessQueue(), Is.EqualTo(0));
             Assert.That(ObjectLifeCycleManager.Singleton.ProcessQueue(), Is.EqualTo(2));
@@ -108,9 +195,9 @@ namespace Betauer.Tests.Memory {
             Assert.That(x1.DisposedCalls, Is.EqualTo(1));
             Assert.That(x2.DisposedCalls, Is.EqualTo(1));
             Assert.That(x3.DisposedCalls, Is.EqualTo(1));
-            Assert.That(Object.IsInstanceValid(x1), Is.False);
-            Assert.That(Object.IsInstanceValid(x2), Is.False);
-            Assert.That(Object.IsInstanceValid(x3), Is.False);
+            Assert.That(IsInstanceValid(x1), Is.False);
+            Assert.That(IsInstanceValid(x2), Is.False);
+            Assert.That(IsInstanceValid(x3), Is.False);
         }
 
         [Test]

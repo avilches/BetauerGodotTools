@@ -8,15 +8,43 @@ namespace Betauer.Memory {
     }
 
     public class ObjectLifeCycleManagerNode : Node {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ObjectLifeCycleManager));
+        public ObjectLifeCycleManager Manager;
+        private readonly ulong _frames;
+        private ulong _frameCount = 0;
+
+        public ObjectLifeCycleManagerNode(int frames = 600, ObjectLifeCycleManager? manager = null) {
+            _frames = (ulong)frames;
+            Manager = manager ?? ObjectLifeCycleManager.Singleton;
+        }
+        
         public override void _Process(float delta) {
-            ObjectLifeCycleManager.Singleton.ProcessWatching();
-            ObjectLifeCycleManager.Singleton.ProcessQueue();
+            ++_frameCount;
+            if (_frameCount < _frames) return;
+            _frameCount = 0;
+            var moved = Manager.ProcessWatching();
+            var processed = Manager.ProcessQueue();
+#if DEBUG
+            if (moved > 0 || processed > 0) {
+                var qSize = Manager.GetQueue().Count;
+                var iqSize = Manager.GetDisposablesNextFrame().Count;
+                var wSize = Manager.GetWatching().Count;
+                Logger.Debug("W:" + wSize + " / Q:" +
+                             qSize + " / IQ:" +
+                             iqSize + " ");
+            }
+#endif
+        }
+
+        protected override void Dispose(bool disposing) {
+            Manager.Dispose(disposing);
         }
     }
 
     public class ObjectLifeCycleManager {
         public static readonly ObjectLifeCycleManager Singleton = new ObjectLifeCycleManager();
-        
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ObjectLifeCycleManager));
+
         private readonly LinkedList<IObjectLifeCycle> _watching = new LinkedList<IObjectLifeCycle>();
         private LinkedList<IDisposable> _queue = new LinkedList<IDisposable>();
         private LinkedList<IDisposable> _queueB = new LinkedList<IDisposable>();
@@ -26,10 +54,18 @@ namespace Betauer.Memory {
                 if (_queue.Count == 0 && _queueB.Count == 0) return 0;
                 var disposedCount = _queueB.Count;
                 if (disposedCount > 0) {
+#if DEBUG
+                    Logger.Debug($"ProcessQueue. Disposed {_queueB.Count} elements from IQ");
+#endif                    
                     foreach (var disposable in _queueB) disposable.Dispose();
                     _queueB.Clear();
                 }
                 // Swap queues
+#if DEBUG
+                if (_queue.Count > 0) {
+                    Logger.Debug($"ProcessQueue. Moved {_queue.Count} elements from Q to IQ");
+                }
+#endif                    
                 (_queueB, _queue) = (_queue, _queueB);
                 return disposedCount;
             }
@@ -48,13 +84,17 @@ namespace Betauer.Memory {
         }
 
         public void QueueDispose(IEnumerable<IDisposable> disposables) {
-            lock (this)
-                foreach (var disposable in disposables)
-                    _queue.AddLast(disposable);
+            lock (this) {
+                foreach (var disposable in disposables) _queue.AddLast(disposable);
+            }
         }
 
         public List<IDisposable> GetQueue() {
-            lock (_queue) return new List<IDisposable>(_queue);
+            lock (this) return new List<IDisposable>(_queue);
+        }
+
+        public List<IDisposable> GetDisposablesNextFrame() {
+            lock (this) return new List<IDisposable>(_queueB);
         }
 
         public List<IObjectLifeCycle> GetWatching() {
@@ -78,6 +118,9 @@ namespace Betauer.Memory {
             }
             if (toEnqueue == null) return 0;
             QueueDispose(toEnqueue);
+#if DEBUG
+            Logger.Debug("ProcessWatching. Moved " + toEnqueue.Count + " elements");
+#endif                    
             return toEnqueue.Count;
         }
 
@@ -99,6 +142,15 @@ namespace Betauer.Memory {
             lock (this) {
                 _queue.Clear();
                 _queueB.Clear();
+            }
+        }
+
+        public void Dispose(bool disposing) {
+            lock (_watching)
+                foreach (var o in _watching) o.Dispose();
+            lock (this) {
+                foreach (var o in _queue) o.Dispose();;
+                foreach (var o in _queueB) o.Dispose();;
             }
         }
     }

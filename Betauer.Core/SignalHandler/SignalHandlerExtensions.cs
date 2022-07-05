@@ -4,7 +4,7 @@ using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 
-namespace Betauer {
+namespace Betauer.SignalHandler {
     public static partial class SignalExtensions {
 
         public static SignalHandlerAction OnConfirmed(this AcceptDialog target, Action action, bool oneShot = false, bool deferred = false) =>

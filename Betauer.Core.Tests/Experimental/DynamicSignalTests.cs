@@ -94,7 +94,6 @@ namespace Betauer.Tests.Experimental {
         }
 
         [Test]
-        [Only]
         public async Task OneShot() {
             DynamicSignalExtensions.Manager = new DynamicSignalManager();
             var b1 = new CheckButton();

@@ -7,13 +7,13 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.SignalHandler {
-    public abstract class SignalHandler : GodotObject, IObjectLifeCycle {
+    public abstract class SignalHandler : DisposableGodotObject, IObjectLifeCycle {
         public readonly Object Target;
         public readonly string Signal;
         public readonly bool OneShot;
         public readonly bool Deferred;
         private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
-        private LinkedList<Object>? _bound = null;
+        private Object? _bound = null;
         private bool _valid = true;
         public int Calls { get; private set; } = 0;
 
@@ -49,8 +49,7 @@ namespace Betauer.SignalHandler {
         } 
 
         public SignalHandler Bind(Object o) {
-            _bound ??= new LinkedList<Object>();
-            _bound.AddLast(o);
+            _bound = o;
             return this;
         }
         
@@ -60,7 +59,7 @@ namespace Betauer.SignalHandler {
             0;
 
         public bool MustBeDisposed() {
-            return !_valid || !IsValid() || (_bound != null && _bound.Any(IsInstanceValid));
+            return !_valid || !IsValid() || (_bound != null && !IsInstanceValid(_bound));
         }
 
         public bool IsValid() => IsInstanceValid(Target) &&
@@ -72,6 +71,19 @@ namespace Betauer.SignalHandler {
 
         public void Disconnect() {
             if (IsConnected()) Target.Disconnect(Signal, this, nameof(SignalHandlerAction.Call));
+        }
+
+        public override string ToString() {
+            var txt = "Target:"+Target.GetType() + ". Signal:" + Signal;
+
+            if (IsInstanceValid(Target)) {
+                if (Target is Node node) {
+                    txt += ", Name: \"" + node.Name+"\"";
+                }
+            } else {
+                txt += " (Disposed)";
+            }
+            return txt;
         }
     }
     

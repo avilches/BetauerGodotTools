@@ -212,7 +212,7 @@ namespace Betauer.Application.Screen {
         }
         
         protected override void OnDispose(bool disposing) {
-            _signalHandlerAction.Free();
+            _signalHandlerAction.Dispose();
         }
 
         public void Enable(ScreenConfiguration screenConfiguration) {
