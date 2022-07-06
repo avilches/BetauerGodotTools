@@ -84,52 +84,10 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public async Task BackMenu() {
-            await _menuController.Back(BackGoodbyeAnimation, BackNewMenuAnimation);
-        }
-        private async Task GoGoodbyeAnimation(MenuTransition transition) {
-            // await _launcher.Play(Template.BackOutLeftFactory.Get(150), transition.FromMenu.Control, 0f, MenuEffectTime).Await();
-            // await _launcher.Play(Template.FadeOut, transition.FromButton, 0f, MenuEffectTime*2).Await();
-            GD.Print("Go1");
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.FromMenu.GetChildren()) {
-                if (child is Control control) {
-                    // actionButton.Modulate =
-                    // new Color(actionButton.Modulate.r, actionButton.Modulate.g, actionButton.Modulate.b, 0);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutLeft, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
-            // GD.Print("Go2");
-            // await _launcher.Play(Template.FadeOutDown, transition.FromMenu.CanvasItem, 0f, 0.25f).Await();
-        }
-
-        private async Task GoNewMenuAnimation(MenuTransition transition) {
-            int x = 0;
-            GD.Print("Go3");
-            LoopStatus lastToWaitFor = null;
-            foreach (var child in transition.ToMenu.GetChildren()) {
-                if (child is Control control) {
-                    control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInRight, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
-            // await _launcher.Play(Template.BackInRightFactory.Get(200), _menuHolder, 0f, MenuEffectTime).Await();
-        }
-
-
-        private async Task BackGoodbyeAnimation(MenuTransition transition) {
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.FromMenu.GetChildren()) {
-                if (child is Control control) {
-                    // control.Modulate = new Color(1f,1f,1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeOutRight, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
+            if (_menuController.IsStartMenuActive()) {
+                // TOD: this doesn't work
+                _gameManager.TriggerModalBoxConfirmExitDesktop();
+                return;
             }
             await _menuController.Back();
         }

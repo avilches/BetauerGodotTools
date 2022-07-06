@@ -13,8 +13,7 @@ using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class GameManager : GodotObject {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(GameManager));
+    public class GameManager : Godot.Object {
 
         private MainMenu _mainMenuScene;
         public MainMenuBottomBar MainMenuBottomBarScene;
@@ -51,6 +50,7 @@ namespace Veronenger.Game.Managers {
         [Inject] private Func<SceneTree> GetTree;
         [Inject] private ResourceManager _resourceManager;
 
+        [Inject] private ActionState PixelPerfect;
         [Inject] private ActionState UiAccept;
         [Inject] private ActionState UiCancel;
         [Inject] private ActionState UiStart;
@@ -121,6 +121,14 @@ namespace Veronenger.Game.Managers {
             builder.State(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
+                .Execute(context => {
+                    if (UiStart.JustPressed) {
+                        return context.Trigger(Transition.Pause);
+                    } else if (PixelPerfect.JustPressed) {
+                        _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
+                    }
+                    return context.None();
+                })
                 .Exit(() => {
                     _currentGameScene.PrintStrayNodes();
                     _currentGameScene.QueueFree();
