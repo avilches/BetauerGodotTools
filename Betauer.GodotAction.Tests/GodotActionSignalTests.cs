@@ -66,6 +66,16 @@ namespace Betauer.GodotAction.Tests {
             
         }
 
+        // TODO: test process, physicsProcess
+        
+        
+        // TODO CharFXTransformAction le faltan nodos?
+        
+        // TODO: implement + test oneShot
+        // TODO: implement + test deferred
+        // TODO: test action is cleared after one shot
+        // TODO: test clean when invalid target or invalid signal
+
         [Test]
         public async Task OneShot() {
             var b1 = new CheckButton();
