@@ -216,15 +216,6 @@ namespace Betauer {
         public static void Dispose() {
             foreach (ITextWriter writer in Instance._writers) writer.Dispose();
         }
-
-        private Func<long>? _getFrame;
-        public static long GetFrame() {
-            return Instance._getFrame?.Invoke() ?? -1;
-        }
-
-        public static void LoadFrames(Func<long> getFrame) {
-            Instance._getFrame = getFrame;
-        }
     }
 
     public class Logger {
@@ -339,7 +330,7 @@ namespace Betauer {
 
         private void WriteLog(string level, string timestamp, string message) {
             var logLine = timestamp + (LoggerFactory.Instance.IncludeTimestamp ? " " : "") +
-                          string.Format(TraceFormat, LoggerFactory.GetFrame().ToString(),
+                          string.Format(TraceFormat, Engine.GetIdleFrames().ToString(),
                               level.Length > 5 ? level.Substring(0, 5) : level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);

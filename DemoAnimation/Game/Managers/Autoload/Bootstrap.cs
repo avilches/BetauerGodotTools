@@ -12,7 +12,6 @@ namespace DemoAnimation.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            LoggerFactory.LoadFrames(GetTree().GetFrame);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(ObjectLifeCycleManager), TraceLevel.All);
