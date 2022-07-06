@@ -65,7 +65,9 @@ namespace Betauer {
         /// <returns></returns>
         public Restorer Restore() {
             if (!HasSavedState) {
-                // GD.PushWarning("Restoring without saving before");
+#if DEBUG                
+                GD.PushWarning("Restoring without saving before");
+#endif                
                 return this;
             }
             DoRestore();
