@@ -3,7 +3,7 @@ using Betauer.DI;
 using Betauer.Input;
 using Godot;
 
-namespace Veronenger.Game.Managers {
+namespace DemoAnimation.Game.Managers {
     [Singleton]
     public class InputManager {
         private readonly ActionList _actionList;

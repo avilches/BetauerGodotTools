@@ -1,6 +1,6 @@
 using Betauer.DI;
 
-namespace Veronenger.Game.Managers {
+namespace DemoAnimation.Game.Managers {
     [Singleton]
     public class SettingsManager : Betauer.Application.SettingsManager {
     }

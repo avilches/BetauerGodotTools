@@ -4,7 +4,7 @@
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
         <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
-        <RootNamespace>Veronenger</RootNamespace>
+        <RootNamespace>DemoAnimation</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Game/**" />

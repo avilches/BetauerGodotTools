@@ -1,9 +1,10 @@
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Memory;
 using TraceLevel = Betauer.TraceLevel;
 
-namespace Veronenger.Game.Managers.Autoload {
+namespace DemoAnimation.Game.Managers.Autoload {
     public class Bootstrap : GodotContainer /* needed to be instantiated as an Autoload from Godot */ {
         public Bootstrap() {
             AutoConfigure();
@@ -14,7 +15,9 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.LoadFrames(GetTree().GetFrame);
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(ObjectLifeCycleManager), TraceLevel.All);
+            DisposeTools.ShowMessageOnDispose = true;
+            DisposeTools.ShowWarningOnShutdownDispose = true;
         }
-
     }
 }

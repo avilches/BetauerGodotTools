@@ -1,11 +1,11 @@
 using Betauer;
 using Betauer.Application;
 using Betauer.DI;
+using DemoAnimation.Game.Managers;
 using Godot;
-using Veronenger.Game.Managers;
-using SettingsManager = Veronenger.Game.Managers.SettingsManager;
+using SettingsManager = DemoAnimation.Game.Managers.SettingsManager;
 
-namespace Veronenger.Game.Controller {
+namespace DemoAnimation.Game.Controller {
     public class SplashScreenController : Control {
         [Inject] private GameManager _gameManager;
         [Inject] private SettingsManager _settingsManager;

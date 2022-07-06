@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Godot;
 
-namespace Veronenger.Game {
+namespace DemoAnimation.Game {
     public static class ApplicationConfig {
         public class UserSettings : IUserSettings {
             public bool PixelPerfect => true;

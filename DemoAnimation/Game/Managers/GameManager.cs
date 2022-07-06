@@ -1,16 +1,16 @@
 using System;
 using System.Threading.Tasks;
-using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Memory;
 using Betauer.StateMachine;
-using Veronenger.Game.Controller;
-using Veronenger.Game.Controller.Menu;
+using DemoAnimation.Game.Controller;
+using DemoAnimation.Game.Controller.Menu;
+using Godot;
 
-namespace Veronenger.Game.Managers {
+namespace DemoAnimation.Game.Managers {
     [Singleton]
     public class GameManager : DisposableGodotObject {
         private MainMenu _mainMenuScene;
@@ -18,16 +18,12 @@ namespace Veronenger.Game.Managers {
 
         public enum Transition {
             Back,
-            Settings,
-            StartGame,
             ModalBoxConfirmExitDesktop,
         }
 
         public enum State {
             Loading,
             MainMenu,
-            Settings,
-            StartingGame,
             ModalExitDesktop,
             ExitDesktop,
         }
@@ -61,8 +57,6 @@ namespace Veronenger.Game.Managers {
                 .Execute(context => context.Set(State.MainMenu));
 
             builder.State(State.MainMenu)
-                .On(Transition.StartGame, context => context.Set(State.StartingGame))
-                .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())

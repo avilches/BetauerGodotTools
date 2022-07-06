@@ -1,13 +1,11 @@
-using System;
 using System.Threading.Tasks;
-using Betauer;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace DemoAnimation.Game.Controller.Menu {
     public class ModalBoxConfirm : Node {
         [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;

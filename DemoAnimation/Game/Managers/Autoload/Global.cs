@@ -1,13 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.DI;
+using Godot;
 
-namespace Veronenger.Game.Managers.Autoload {
+namespace DemoAnimation.Game.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
-        // [Inject] private GameManager GameManager;
         private readonly Launcher _launcher = new Launcher();
         public override void _Ready() {
             this.DisableAllNotifications();

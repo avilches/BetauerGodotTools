@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,10 +7,10 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Signal;
 using Betauer.UI;
+using DemoAnimation.Game.Managers;
 using Godot;
-using Veronenger.Game.Managers;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace DemoAnimation.Game.Controller.Menu {
     public class MainMenu : Node2D {
         private const float MenuEffectTime = 1f;
         private const float FadeMainMenuEffectTime = 0.75f;
