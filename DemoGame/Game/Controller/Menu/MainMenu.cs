@@ -1,17 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
-
+using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Managers;
-using Veronenger.Game.Managers.Autoload;
 
 namespace Veronenger.Game.Controller.Menu {
     public class MainMenu : Control {
-        private const float MenuEffectTime = 0.10f;
         private const float FadeMainMenuEffectTime = 0.75f;
 
 
@@ -42,7 +41,7 @@ namespace Veronenger.Game.Controller.Menu {
             var modulate = Colors.White;
             modulate.a = 0;
             Modulate = modulate;
-            await _menuController.Start("Root");
+            await _menuController.Start();
             await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
@@ -54,37 +53,24 @@ namespace Veronenger.Game.Controller.Menu {
             GetTree().Root.GuiDisableInput = false;
         }
 
+        private Restorer _menuRestorer;
+
         public void DisableMenus() {
-            _menuController.ActiveMenu!.Save();
-            _menuController.ActiveMenu!.DisableButtons();
+            _menuRestorer = _menuController.ActiveMenu.DisableButtons();
         }
 
         public void EnableMenus() {
-            _menuController.ActiveMenu!.Restore();
+            _menuRestorer?.Restore();
         }
 
         public MenuController BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
-            mainMenu.AddMenu("Root")
-                .AddButton("Start", "Start", (ctx) => {
-                    _gameManager.TriggerStartGame();
-                    // var continueButton = ctx.Menu.GetButton("Continue");
-                    // continueButton!.Disabled = !continueButton.Disabled;
-                    // await _launcher.Play(Template.FadeIn, continueButton, 0f,
-                    //         MenuEffectTime)
-                    //     .Await();
-                    // continueButton.Save();
-                    // ctx.Refresh();
-                })
-                .AddButton("Settings", "Settings", async (ctx) => {
-                    _gameManager.TriggerSettings();
-                })
-                .AddButton("Exit", "Exit", async (ctx) => {
-                    _gameManager.TriggerModalBoxConfirmExitDesktop();
-                });
-
+            var rootMenu = mainMenu.GetStartMenu();
+            rootMenu.AddButton("Start", "Start").OnPressed(() => _gameManager.TriggerStartGame()).Unwatch();
+            rootMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings()).Unwatch();;
+            rootMenu.AddButton("Exit", "Exit").OnPressed(() => _gameManager.TriggerModalBoxConfirmExitDesktop()).Unwatch();;
             return mainMenu;
         }
 
@@ -95,10 +81,6 @@ namespace Veronenger.Game.Controller.Menu {
         public void RollbackDimOut() {
             _launcher.RemoveAll();
             Modulate = Colors.White;
-        }
-
-        public bool IsRootMenuActive() {
-            return _menuController.ActiveMenu?.Name == "Root";
         }
 
         public async Task BackMenu() {
@@ -149,26 +131,7 @@ namespace Veronenger.Game.Controller.Menu {
                     x++;
                 }
             }
-            await lastToWaitFor.Await();
-            // await _launcher.Play(Template.BackOutRightFactory.Get(200), transition.FromMenu.CanvasItem, 0f,
-            // MenuEffectTime)
-            // .Await();
-        }
-
-        private async Task BackNewMenuAnimation(MenuTransition transition) {
-            // await _launcher.Play(Template.BackInLeftFactory.Get(150), transition.ToMenu.CanvasItem, 0f,
-            // MenuEffectTime)
-            // .Await();
-            LoopStatus lastToWaitFor = null;
-            int x = 0;
-            foreach (var child in transition.ToMenu.GetChildren()) {
-                if (child is Control control) {
-                    control.Modulate = new Color(1f, 1f, 1f, 0f);
-                    lastToWaitFor = _launcher.Play(Template.FadeInLeft, control, x * 0.05f, MenuEffectTime);
-                    x++;
-                }
-            }
-            await lastToWaitFor.Await();
+            await _menuController.Back();
         }
     }
 }

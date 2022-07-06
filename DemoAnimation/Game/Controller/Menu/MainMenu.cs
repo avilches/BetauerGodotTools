@@ -72,7 +72,6 @@ namespace DemoAnimation.Game.Controller.Menu {
             _launcher.WithParent(this);
             _animationsRestorer = new MultiRestorer(_labelToAnimate, _logo, _texture).Save();
             _menuController = BuildMenu();
-            _demoMenu = BuildDemoMenu();
             _menuLabel.Text = "Click the options to see animations";
             _resetMenu.OnPressed(() => {
                 _demoMenu.QueueFree();
@@ -116,7 +115,6 @@ namespace DemoAnimation.Game.Controller.Menu {
             var modulate = Colors.White;
             modulate.a = 0;
             Modulate = modulate;
-            await _demoMenu.Start();
             await _menuController.Start();
             await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
@@ -130,7 +128,7 @@ namespace DemoAnimation.Game.Controller.Menu {
         }
 
         public void DisableMenus() {
-            _menuRestorer = _menuController.ActiveMenu!.DisableButtons().AddFocusRestorer(_menuLabel);
+            _menuRestorer = _menuController.ActiveMenu!.DisableButtons();
         }
 
         public void EnableMenus() {
@@ -141,11 +139,10 @@ namespace DemoAnimation.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
-            var root = mainMenu
-                .AddMenu("Root", (c) => {
-                    _demoMenuContainer.Visible = false;
-                    _animatorContainer.Visible = false;
-                });
+            var root = mainMenu.GetStartMenu().OnShow(() => {
+                _demoMenuContainer.Visible = false;
+                _animatorContainer.Visible = false;
+            });
 
             root.AddButton("Start", "Anima comparision").OnPressed(() => { _gameManager.LoadAnimaDemo(); });
             root.AddButton("Effects", "Show all animations").OnPressed(async () => {
@@ -156,6 +153,9 @@ namespace DemoAnimation.Game.Controller.Menu {
             root.AddButton("Menus", "Demo with menus").OnPressed(async () => {
                 _demoMenuContainer.Visible = true;
                 _animatorContainer.Visible = false;
+                _demoMenu?.Free();
+                _demoMenu = BuildDemoMenu();
+                await _demoMenu.Start();
                 await mainMenu.Go("Menu");
             });
             root.AddButton("Exit", "Exit").OnPressed(() => { _gameManager.TriggerModalBoxConfirmExitDesktop(); });
@@ -175,8 +175,8 @@ namespace DemoAnimation.Game.Controller.Menu {
             var mainMenu = new MenuController(_menuDemoBase);
             mainMenu.ConfigureGoTransition(GoGoodbyeAnimation, GoNewMenuAnimation);
             mainMenu.ConfigureBackTransition(BackGoodbyeAnimation, BackNewMenuAnimation);
-            
-            var root = mainMenu.AddMenu("Root");
+
+            var root = mainMenu.GetStartMenu();
             root.AddButton("S", "Start new game").OnPressed(() => mainMenu.Go("Other", "1"));
             root.AddButton("C", "Continue").OnPressed(() => mainMenu.Go("Other", "2"));
             
@@ -221,10 +221,6 @@ namespace DemoAnimation.Game.Controller.Menu {
         public void RollbackDimOut() {
             _launcher.RemoveAll();
             Modulate = Colors.White;
-        }
-
-        public bool IsRootMenuActive() {
-            return _menuController.ActiveMenu?.Name == "Root";
         }
 
         public async Task BackMenu() {

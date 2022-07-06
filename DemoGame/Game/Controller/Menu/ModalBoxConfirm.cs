@@ -1,8 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.Input;
-
+using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
@@ -57,7 +56,7 @@ namespace Veronenger.Game.Controller.Menu {
             }
 
             _menuController = BuildMenu();
-            await _menuController.Start("Root");
+            await _menuController.Start();
         }
 
         public Task<bool> AwaitResult() {
@@ -68,15 +67,11 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
-            mainMenu.AddMenu("Root")
-                .AddButton("No", "No", (ctx) => {
-                    _promise.TrySetResult(false);
-                })
-                .AddButton("Yes", "Yes", (ctx) => {
-                    _promise.TrySetResult(true);
-                });
-            var noButton = mainMenu.GetMenu("Root")!.GetButton("No");
-            var yesButton = mainMenu.GetMenu("Root")!.GetButton("Yes");
+            var root = mainMenu.GetStartMenu();
+            var noButton = root.AddButton("No", "No");
+            var yesButton = root.AddButton("Yes", "Yes");
+            noButton.OnPressed(() => _promise.TrySetResult(false));
+            yesButton.OnPressed(() => _promise.TrySetResult(true));
             noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
             return mainMenu;
         }

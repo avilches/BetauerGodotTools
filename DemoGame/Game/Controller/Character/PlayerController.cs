@@ -220,7 +220,6 @@ namespace Veronenger.Game.Controller.Character {
                 */
         }
         
-        [Inject] private ActionState PixelPerfect;
         [Inject] private ActionState UiStart;
 
         public override void _Input(InputEvent @event) {
@@ -255,11 +254,7 @@ namespace Veronenger.Game.Controller.Character {
                         $"Key \"{wrapper.KeyString}\" #{wrapper.Key} Pressed:{wrapper.Pressed}/Echo:{wrapper.Echo} {actionName}");
                 }
             */
-            if (UiStart.IsActionPressed(@event)) {
-                _gameManager.TriggerPauseMenu();
-            } else if (PixelPerfect.IsActionPressed(@event)) {
-                _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
-            } else if (@event is InputEventJoypadButton button) {
+            if (@event is InputEventJoypadButton button) {
                 _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {
                     _launcher.Stop();

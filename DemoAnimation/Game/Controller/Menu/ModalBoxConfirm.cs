@@ -56,7 +56,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             }
 
             _menuController = BuildMenu();
-            await _menuController.Start("Root");
+            await _menuController.Start();
         }
 
         public Task<bool> AwaitResult() {
@@ -67,7 +67,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuController(_menuBase);
-            var root = mainMenu.AddMenu("Root");
+            var root = mainMenu.GetStartMenu();
             var noButton = root.AddButton("No", "No");
             noButton.OnPressed(() => _promise.TrySetResult(false));
             var yesButton = root.AddButton("Yes", "Yes");

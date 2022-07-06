@@ -77,8 +77,8 @@ namespace Veronenger.Game.Managers.Autoload {
     }
         
         private static void DevelopmentConfig() {
-            DisposeTools.ShowShutdownWarning = true;
-            DisposeTools.ShowMessageOnCreate = false;
+            DisposeTools.ShowWarningOnShutdownDispose = true;
+            DisposeTools.ShowMessageOnNewInstance = false;
             DisposeTools.ShowMessageOnDispose = true;
             LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine); // No GD.Print means no logs
 

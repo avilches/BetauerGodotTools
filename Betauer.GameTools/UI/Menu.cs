@@ -6,13 +6,13 @@ using Godot;
 
 namespace Betauer.UI {
     public class MenuController {
-        private readonly Container _originalContainer;
-        private readonly Node _parent;
+        internal readonly Container OriginalContainer;
+        internal readonly Node Parent;
+        private readonly Viewport _viewport;
         private readonly List<ActionMenu> _menus = new List<ActionMenu>();
         private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
         public ActionMenu ActiveMenu { get; private set; } = null;
-
         public bool Available { get; private set; } = false;
 
         public bool DisableGuiInAnimations = true;
@@ -23,10 +23,13 @@ namespace Betauer.UI {
         internal Func<MenuTransition, Task>? DefaultBackNewMenuAnimation = null;
 
         public MenuController(Container originalContainer) {
-            _parent = originalContainer.GetParent();
-            _originalContainer = originalContainer;
-            _originalContainer.DisableAllNotifications();
-            _originalContainer.Visible = false;
+            Parent = originalContainer.GetParent();
+            _viewport = originalContainer.GetTree().Root;
+            OriginalContainer = originalContainer;
+            OriginalContainer.DisableAllNotifications();
+            OriginalContainer.Visible = false;
+            var menu = new ActionMenu(this, null);
+            _menus.Add(menu);
         }
 
         public MenuController ConfigureGoTransition(
@@ -46,85 +49,174 @@ namespace Betauer.UI {
         }
 
 
-        public void QueueFree() {
-            _menus.ToList().ForEach(c => c.Container.QueueFree());
-        }
-
-        public ActionMenu AddMenu(string name, Action<ActionMenu> onShow = null) {
-            var menu = new ActionMenu(this, name, _originalContainer, _parent, onShow);
+        public ActionMenu AddMenu(string name) {
+            if (name == null) throw new ArgumentNullException(nameof(name), "Menu name can't be null");
+            if (_menus.Any(menu => menu.Name == name)) {
+                throw new ArgumentException("Duplicated menu name: " + name);
+            }
+            var menu = new ActionMenu(this, name);
             _menus.Add(menu);
             return menu;
         }
 
-        public async Task Start(string? name = null) {
-            ActiveMenu = name != null ? _menus.Find(menu => menu.Name == name) : _menus.First();
-            ActiveMenu.Show();
+        public async Task Start(Func<MenuTransition, Task>? newMenuAnimation = null) {
+            ActiveMenu = GetStartMenu();
+            await PlayTransition(new MenuTransition(null, null, ActiveMenu, null), null, null);
             Available = true;
+        }
+
+        public ActionMenu GetStartMenu() {
+            return _menus.Find(menu => menu.Name == null);
         }
 
         public ActionMenu GetMenu(string toMenuName) {
             return _menus.Find(menu => menu.Name == toMenuName);
         }
 
-        public async Task Go(string toMenuName, string? toButtonName = null, string? fromButtonName = null) { //},
-            // Func<MenuTransition, Task>? goodbyeAnimation = null,
-            // Func<MenuTransition, Task>? newMenuAnimation = null) {
+        public bool IsStartMenuActive() => IsMenuActive(null);
+        public bool IsMenuActive(string name) => ActiveMenu.Name == name;
+
+        /// <summary>
+        /// Close the current menu using a goodbye animation and show a new menu using the new menu animation.
+        /// This method add to the stack a new state with the current menu and the current focused button,
+        /// so when the Back() method is called later, the old state will be recover.
+        /// 
+        /// 1-Start() show root menu. Stack: []
+        /// 2-Go("Settings") show Settings menu. Stack: ["Root"]
+        /// 3-Go("Video") show Video menu. Stack: ["Root", "Settings"]
+        /// 4-Back() show Settings menu. Stack: ["Root"]
+        /// 5-Back() show Root menu. Stack: []
+        /// </summary>
+        /// <param name="toMenuName"></param>
+        /// <param name="toButtonName"></param>
+        /// <param name="fromButtonName"></param>
+        /// <param name="goodbyeAnimation"></param>
+        /// <param name="newMenuAnimation"></param>
+        public async Task Go(string toMenuName, string? toButtonName = null, string? fromButtonName = null,
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            await _Go(false, toMenuName, toButtonName, fromButtonName, goodbyeAnimation, newMenuAnimation);
+        }
+
+        /// <summary>
+        /// Close the current menu using a goodbye animation and show the new menu using the new menu animation.
+        /// This method doesn't modify the stack, so call to the Back() method later will return the previous state
+        /// instead this one, as the Go() would do.
+        /// 
+        /// 1-Start() show root menu. Stack: []
+        /// 2-Go("Settings") show Settings menu. Stack: ["Root"]
+        /// 3-Replace("Video") show Video menu. Stack: ["Root"]
+        /// 4-Back() (show Root menu). Stack: []
+        ///
+        /// 1-Start() Stack: []
+        /// 2-Replace("Settings") show Settings menu. Stack: []
+        /// 3-Back() doesn't do anything
+        /// </summary>
+        /// <param name="toMenuName"></param>
+        /// <param name="toButtonName"></param>
+        /// <param name="fromButtonName"></param>
+        /// <param name="goodbyeAnimation"></param>
+        /// <param name="newMenuAnimation"></param>
+        public async Task Replace(string toMenuName, string? toButtonName = null, string? fromButtonName = null,
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            await _Go(true, toMenuName, toButtonName, fromButtonName, goodbyeAnimation, newMenuAnimation);
+        }
+
+        /// <summary>
+        /// Close the current menu using a goodbye animation and show the menu stored in the stack. If the stack is empty
+        /// it doesn't do anything.
+        /// </summary>
+        /// <param name="fromButtonName"></param>
+        /// <param name="goodbyeAnimation"></param>
+        /// <param name="newMenuAnimation"></param>
+        public async Task Back(string? fromButtonName = null, 
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            if (_navigationState.Count == 0) return;
+            await _Back(false, fromButtonName, null, goodbyeAnimation, newMenuAnimation);
+        }
+
+        /// <summary>
+        /// Close the current menu using a goodbye animation, show the root menu and reset the stack.
+        /// </summary>
+        /// <param name="fromButtonName"></param>
+        /// <param name="rootButtonName"></param>
+        /// <param name="goodbyeAnimation"></param>
+        /// <param name="newMenuAnimation"></param>
+        public async Task BackToRoot(string? fromButtonName = null, string? rootButtonName = null,
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            if (_navigationState.Count == 0 && IsStartMenuActive()) return;
+            await _Back(true, fromButtonName, rootButtonName, goodbyeAnimation, newMenuAnimation);
+        }
+
+        private async Task _Go(bool replace, string toMenuName, string? toButtonName = null, string? fromButtonName = null,
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
             try {
                 Available = false;
                 var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
                 ActionMenu toMenu = GetMenu(toMenuName);
-                _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
-
+                if (!replace)
+                    lock (_navigationState)
+                        _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
                 BaseButton? toButton = toButtonName != null ? toMenu.GetControl<BaseButton>(toButtonName) : null;
                 MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
-                Func<MenuTransition, Task>? goodbyeAnimation = toMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
-                Func<MenuTransition, Task>? newMenuAnimation = toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
+                goodbyeAnimation ??= ActiveMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
+                newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
             } finally {
                 Available = true;
             }
         }
 
-        // public async Task Back(
-        //     Func<MenuTransition, Task>? goodbyeAnimation = null,
-        //     Func<MenuTransition, Task>? newMenuAnimation = null) {
-        //     await Back(null, goodbyeAnimation, newMenuAnimation);
-        // }
-
-        public async Task Back(string? fromButtonName = null) { // ,
-            // Func<MenuTransition, Task>? goodbyeAnimation = null,
-            // Func<MenuTransition, Task>? newMenuAnimation = null) {
-            if (!Available || _navigationState.Count == 0) return;
+        private async Task _Back(bool backToRoot, string? rootButtonName, string? fromButtonName = null,
+            Func<MenuTransition, Task>? goodbyeAnimation = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            if (!Available) return;
             try {
                 Available = false;
-                MenuState lastState = _navigationState.Last();
-                _navigationState.RemoveLast();
-                ActionMenu toMenu = lastState.Menu;
+                ActionMenu toMenu;
+                BaseButton? toButton;
+                lock (_navigationState) {
+                    if (backToRoot) {
+                        _navigationState.Clear();
+                        toMenu = GetStartMenu();
+                        toButton = rootButtonName != null ? toMenu.GetControl<BaseButton>(rootButtonName) : null;
+                    } else {
+                        MenuState lastState = _navigationState.Last();
+                        _navigationState.RemoveLast();
+                        toMenu = lastState.Menu;
+                        toButton = lastState.Button;
+                    }
+                }
                 var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
-                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, lastState.Button);
-                Func<MenuTransition, Task>? goodbyeAnimation = toMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
-                Func<MenuTransition, Task>? newMenuAnimation = toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
+                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
+                goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
+                newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
             } finally {
                 Available = true;
             }
         }
 
-        private static readonly Color Invisible = new Color(0, 0, 0, 0);
+        private static readonly Color ModulateInvisible = new Color(0, 0, 0, 0);
         private async Task PlayTransition(MenuTransition transition, 
             Func<MenuTransition, Task>? goodbyeAnimation,
             Func<MenuTransition, Task>? newMenuAnimation) {
-            var viewport = transition.FromMenu.Container.GetTree().Root;
             try {
-                if (DisableGuiInAnimations) viewport.GuiDisableInput = true;
-                
-                if (goodbyeAnimation != null) {
-                    var saver = new MultiRestorer(transition.FromMenu.GetChildren()).Save();
-                    await goodbyeAnimation(transition);
-                    saver.Restore();
+                if (DisableGuiInAnimations) _viewport.GuiDisableInput = true;
+
+                if (transition.FromMenu != null) {
+                    if (goodbyeAnimation != null) {
+                        var saver = new MultiRestorer(transition.FromMenu.GetChildren()).Save();
+                        await goodbyeAnimation(transition);
+                        saver.Restore();
+                    }
+                    transition.FromMenu.Remove();
                 }
-                transition.FromMenu.Remove();
 
                 transition.ToMenu.Show(transition.ToButton);
                 if (newMenuAnimation != null) {
@@ -137,11 +229,11 @@ namespace Betauer.UI {
                      * human eye, but "visible" for the container and it can arrange them.
                      */
                     var saver = new MultiRestorer(transition.ToMenu.GetChildren(), "modulate").Save();
-                    transition.ToMenu.GetChildren().ForEach(e => e.Modulate = Invisible);
+                    transition.ToMenu.GetChildren().ForEach(e => e.Modulate = ModulateInvisible);
                     /*
                      * 2) Wait one frame, so the container can arrange the children positions safely.
                      */ 
-                    await _parent.AwaitIdleFrame();
+                    await Parent.AwaitIdleFrame();
                     /*
                      * 3) Restore the old modulates and start the animation.
                      */
@@ -157,19 +249,29 @@ namespace Betauer.UI {
                 }
                 ActiveMenu = transition.ToMenu;
             } finally {
-                if (DisableGuiInAnimations) viewport.GuiDisableInput = false;
+                if (DisableGuiInAnimations) _viewport.GuiDisableInput = false;
             }
         }
+
+        public void Free() {
+            _menus.ToList().ForEach(c => c.Container.Free());
+        }
+
+        public void QueueFree() {
+            _menus.ToList().ForEach(c => c.Container.QueueFree());
+        }
+
     }
 
 
     public class ActionMenu {
-        private readonly Action<ActionMenu> _onShow;
-        private readonly Node _parent;
-        private readonly Node _originalContainer;
-        internal readonly MenuController MenuController;
+        private Action? _onShow;
+        private Action? _onClose;
+        private readonly MenuController _menuController;
+        private Node Parent => _menuController.Parent;
+        private Node OriginalContainer => _menuController.OriginalContainer;
 
-        public readonly string Name;
+        public readonly string? Name;
         public Container Container { get; }
         public bool WrapButtons { get; set; } = true;
         
@@ -178,15 +280,22 @@ namespace Betauer.UI {
         internal Func<MenuTransition, Task>? BackGoodbyeAnimation = null;
         internal Func<MenuTransition, Task>? BackNewMenuAnimation = null;
 
-        internal ActionMenu(MenuController menuController, string name, Container originalContainer,
-            Node parent, Action<ActionMenu> onShow) {
-            _originalContainer = originalContainer;
-            _parent = parent;
-            _onShow = onShow;
-            MenuController = menuController;
+        internal ActionMenu(MenuController menuController, string? name) {
+            _menuController = menuController;
             Name = name;
-            Container = (Container)originalContainer.Duplicate();
+            Container = (Container)OriginalContainer.Duplicate();
+            Container.Name = name ?? "StartMenu";
             Container.Visible = true;
+        }
+
+        public ActionMenu OnShow(Action onShow) {
+            _onShow = onShow;
+            return this;
+        }
+
+        public ActionMenu OnClose(Action onClose) {
+            _onClose = onClose;
+            return this;
         }
 
         public ActionMenu ConfigureGoTransition(
@@ -236,16 +345,13 @@ namespace Betauer.UI {
             return this;
         }
 
-        public bool IsFocusedAndDisabled() {
-            foreach (var child in Container.GetChildren()) {
-                if (child is BaseButton { Disabled: true } disabledButton && disabledButton.HasFocus()) return true;
-            }
-            return false;
-        }
-
-        public MultiRestorer DisableButtons() {
+        public MultiRestorer DisableButtons(bool storeFocus = true) {
             var buttons = Container.GetChildren<BaseButton>();
-            var restorer = new MultiRestorer(buttons, "disabled");
+            MultiRestorer restorer = new MultiRestorer(buttons, "disabled");
+            if (storeFocus) {
+                restorer.AddFocusRestorer(Container);
+            }
+            restorer.Save();
             foreach (var child in Container.GetChildren()) {
                 if (child is BaseButton button) button.Disabled = true;
             }
@@ -263,7 +369,7 @@ namespace Betauer.UI {
         }
 
         public List<Control> GetVisibleControl() {
-            if (_parent is ScrollContainer scrollContainer) {
+            if (Parent is ScrollContainer scrollContainer) {
                 var topVisible = scrollContainer.ScrollVertical;
                 var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
                 return Container.GetChildren<Control>()
@@ -276,12 +382,13 @@ namespace Betauer.UI {
         }
 
         internal void Remove() {
-            _parent.RemoveChild(Container);
+            _onClose?.Invoke();
+            Parent.RemoveChild(Container);
         }
 
         internal void Show(BaseButton? focused = null) {
-            _onShow?.Invoke(this);
-            _parent.AddChildBelowNode(_originalContainer, Container);
+            _onShow?.Invoke();
+            Parent.AddChildBelowNode(OriginalContainer, Container);
             Refresh(focused);
         }
 
