@@ -15,7 +15,8 @@ namespace Betauer.StateMachine {
         /// </summary>
         Idle,
     }
-    public class StateMachineNode<TStateKey, TTransitionKey> : Node, IStateMachine<TStateKey, TTransitionKey> {
+    public class StateMachineNode<TStateKey, TTransitionKey> : Node, IStateMachine<TStateKey, TTransitionKey> 
+        where TStateKey : Enum where TTransitionKey : Enum {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1,1);
         public readonly IStateMachine<TStateKey, TTransitionKey> StateMachine;
         public IState<TStateKey, TTransitionKey> State => StateMachine.State;

@@ -6,7 +6,6 @@ using Godot;
 
 public class TestRunner : SceneTree {
     public override async void _Initialize() {
-        LoggerFactory.LoadFrames(GetFrame);
         LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
         var assemblies = new[] {
             "Betauer.Animation.Tests",

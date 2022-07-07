@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
 
-    public interface IStateMachine<TStateKey, TTransitionKey> {
+    public interface IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         public void AddState(IState<TStateKey, TTransitionKey> state);
         public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
@@ -16,7 +16,7 @@ namespace Betauer.StateMachine {
         public Task Execute(float delta);
     }
 
-    public class StateMachineBuilder<T, TStateKey, TTransitionKey> where T : IStateMachine<TStateKey, TTransitionKey> {
+    public class StateMachineBuilder<T, TStateKey, TTransitionKey> where T : IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         private readonly T _stateMachine;
         private readonly Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>> _pendingStateBuilders =
             new Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>>();
@@ -83,7 +83,7 @@ namespace Betauer.StateMachine {
         protected static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(StateMachine));
     }
 
-    public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> {
+    public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         internal readonly struct Change {
             internal readonly IState<TStateKey, TTransitionKey>? State;
             internal readonly TransitionType Type;

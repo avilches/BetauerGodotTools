@@ -3,28 +3,35 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
-    public interface IState<TStateKey, TTransitionKey> {
+    public interface IState<TStateKey, TTransitionKey>
+        where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
         public Task Enter(TStateKey from);
         public Task Awake(TStateKey from);
-        public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(ExecuteContext<TStateKey, TTransitionKey> executeContext);
+
+        public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+            ExecuteContext<TStateKey, TTransitionKey> executeContext);
+
         public Task Suspend(TStateKey to);
         public Task Exit(TStateKey to);
     }
 
-    public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey> {
+    public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
+        where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
-        
+
         protected BaseState(TStateKey key) {
             Key = key;
         }
+
         public virtual async Task Enter(TStateKey from) {
         }
 
         public virtual async Task Awake(TStateKey from) {
         }
 
-        public virtual async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(ExecuteContext<TStateKey, TTransitionKey> executeContext) {
+        public virtual async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+            ExecuteContext<TStateKey, TTransitionKey> executeContext) {
             return executeContext.None();
         }
 
@@ -35,18 +42,24 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class State<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey> {
+    public class State<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey>
+        where TStateKey : Enum where TTransitionKey : Enum {
         private readonly Func<TStateKey, Task>? _enter;
         private readonly Func<TStateKey, Task>? _awake;
-        private readonly Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? _execute;
+
+        private readonly
+            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
+            _execute;
+
         private readonly Func<TStateKey, Task>? _suspend;
         private readonly Func<TStateKey, Task>? _exit;
 
         public State(TStateKey key,
-            Func<TStateKey, Task>? enter = null, 
-            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? execute = null, 
+            Func<TStateKey, Task>? enter = null,
+            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
+                execute = null,
             Func<TStateKey, Task>? exit = null,
-            Func<TStateKey, Task>? suspend = null, 
+            Func<TStateKey, Task>? suspend = null,
             Func<TStateKey, Task>? awake = null) :
             base(key) {
             _enter = enter;
@@ -68,7 +81,8 @@ namespace Betauer.StateMachine {
             }
         }
 
-        public override async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(ExecuteContext<TStateKey, TTransitionKey> executeContext) {
+        public override async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+            ExecuteContext<TStateKey, TTransitionKey> executeContext) {
             if (_execute != null) {
                 return await _execute.Invoke(executeContext);
             }
@@ -88,9 +102,13 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class StateBuilder<T, TStateKey, TTransitionKey, TParent> where T : IStateMachine<TStateKey, TTransitionKey> {
+    public class StateBuilder<T, TStateKey, TTransitionKey, TParent> where T : IStateMachine<TStateKey, TTransitionKey>
+        where TStateKey : Enum where TTransitionKey : Enum {
         private Func<TStateKey, Task>? _enter;
-        private Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>? _execute;
+
+        private Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
+            _execute;
+
         private Func<TStateKey, Task>? _exit;
         private Func<TStateKey, Task>? _suspend;
         private Func<TStateKey, Task>? _awake;
@@ -106,10 +124,13 @@ namespace Betauer.StateMachine {
         }
 
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> On(
-            TTransitionKey transitionKey, 
+            TTransitionKey transitionKey,
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new List<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
-            _events.Add(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey, transition));
+            _events ??=
+                new List<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
+            _events.Add(
+                new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey,
+                    transition));
             return this;
         }
 
@@ -135,7 +156,7 @@ namespace Betauer.StateMachine {
             _enter = async from => enter();
             return this;
         }
-        
+
         /*
          * Awake
          */
@@ -161,23 +182,30 @@ namespace Betauer.StateMachine {
         }
 
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<Task<ExecuteTransition<TStateKey, TTransitionKey>>> execute) {
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
+            Func<Task<ExecuteTransition<TStateKey, TTransitionKey>>> execute) {
             _execute = delta => execute();
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>> execute) {
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
+            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>
+                execute) {
             _execute = execute;
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<ExecuteTransition<TStateKey, TTransitionKey>> execute) {
-            _execute = async delta => execute();;
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
+            Func<ExecuteTransition<TStateKey, TTransitionKey>> execute) {
+            _execute = async delta => execute();
+            ;
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> execute) {
-            _execute = async delta => execute(delta);;
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
+            Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> execute) {
+            _execute = async delta => execute(delta);
+            ;
             return this;
         }
 
@@ -226,13 +254,14 @@ namespace Betauer.StateMachine {
             _exit = async to => exit();
             return this;
         }
-        
+
         public TParent End() {
             return _parent;
-        } 
+        }
 
         internal IState<TStateKey, TTransitionKey> Build() {
-            IState<TStateKey, TTransitionKey> state = new State<TStateKey, TTransitionKey>(_key, _enter, _execute, _exit, _suspend, _awake);
+            IState<TStateKey, TTransitionKey> state =
+                new State<TStateKey, TTransitionKey>(_key, _enter, _execute, _exit, _suspend, _awake);
             _stateMachine.AddState(state);
             _events?.ForEach(tuple => _stateMachine.On(state.Key, tuple.Item1, tuple.Item2));
             return state;

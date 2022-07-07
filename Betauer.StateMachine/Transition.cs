@@ -11,21 +11,33 @@ namespace Betauer.StateMachine {
         None
     }
 
-    public class ExecuteContext<TStateKey, TTransitionKey> {
+    public class ExecuteContext<TStateKey, TTransitionKey> 
+        where TStateKey : Enum where TTransitionKey : Enum {
+
+        private static readonly ExecuteTransition<TStateKey,TTransitionKey> CachePop = 
+            new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.Pop);
+        private static readonly ExecuteTransition<TStateKey, TTransitionKey> CachedNone = 
+            new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.None);
+
+
+        // private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CachePush =
+            // new Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>();
+
+        static ExecuteContext() {
+        }
+        
         public ExecuteTransition<TStateKey, TTransitionKey> Push(TStateKey name) =>
             new ExecuteTransition<TStateKey, TTransitionKey>(name, TransitionType.Push);
 
         public ExecuteTransition<TStateKey, TTransitionKey> PopPush(TStateKey name) =>
             new ExecuteTransition<TStateKey, TTransitionKey>(name, TransitionType.PopPush);
 
-        public ExecuteTransition<TStateKey, TTransitionKey> Pop() =>
-            new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.Pop);
+        public ExecuteTransition<TStateKey, TTransitionKey> Pop() => CachePop;
 
         public ExecuteTransition<TStateKey, TTransitionKey> Set(TStateKey name) =>
             new ExecuteTransition<TStateKey, TTransitionKey>(name, TransitionType.Change);
 
-        public ExecuteTransition<TStateKey, TTransitionKey> None() =>
-            new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.None);
+        public ExecuteTransition<TStateKey, TTransitionKey> None() => CachedNone;
 
         public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey transitionKey) =>
             new ExecuteTransition<TStateKey, TTransitionKey>(transitionKey);
