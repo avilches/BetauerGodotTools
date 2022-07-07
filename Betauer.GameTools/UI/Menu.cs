@@ -274,12 +274,12 @@ namespace Betauer.UI {
             }
         }
 
-        public void Free() {
-            _menus.ToList().ForEach(c => c.Container.Free());
-        }
-
         public void QueueFree() {
+            Available = false;
             _menus.ToList().ForEach(c => c.Container.QueueFree());
+            _menus.Clear();
+            _navigationState.Clear();
+            ActiveMenu = null;
         }
 
     }
