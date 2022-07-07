@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.UI {
+namespace Betauer {
     public static partial class ContainerExtensions {
         /// <summary>
         /// It loops the children (only the buttons) and fixes all the FocusNeighbour* fields, taking into account
@@ -22,7 +23,7 @@ namespace Betauer.UI {
             BaseButton? last = null;
             BaseButton? previous = null;
             var takeNextFocus = false;
-            foreach (var button in container.GetChildren<Button>()) {
+            foreach (var button in container.GetChildren().OfType<Button>()) {
                 var isDisabled = button.Disabled;
 
                 if (focused == null && (button.HasFocus() || takeNextFocus)) {
@@ -58,5 +59,52 @@ namespace Betauer.UI {
             }
             return focused ?? first;
         }
+        
+        /// <summary>
+        /// Set disabled = true in all children buttons. It returns a MultiRestorer so the previous state before the
+        /// change can be recover. 
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="storeFocus"></param>
+        /// <returns></returns>
+        public static MultiRestorer DisableButtons(this Container container, bool storeFocus = true) {
+            var buttons = container.GetChildren().OfType<BaseButton>();
+            MultiRestorer restorer = new MultiRestorer(buttons, "disabled");
+            if (storeFocus) {
+                restorer.AddChildFocusRestorer(container);
+            }
+            restorer.Save();
+            foreach (var child in container.GetChildren().OfType<BaseButton>()) {
+                if (child is BaseButton button) button.Disabled = true;
+            }
+            return restorer;
+        }
+
+        public static List<T> GetVisibleControl<T>(this Container container) where T : Control{
+            if (container is ScrollContainer scrollContainer) {
+                var topVisible = scrollContainer.ScrollVertical;
+                var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
+                return scrollContainer.GetChild(0).GetChildren().OfType<T>()
+                    .Where(control =>
+                        control.RectPosition.y >= topVisible &&
+                        control.RectPosition.y + control.RectSize.y <= bottomVisible)
+                    .ToList();
+            }
+            return container.GetChildren<T>();
+        }
+        
+        /// <summary>
+        /// Return the focused control in the container (if the focused button belongs to other container, it returns null)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T? GetChildFocused<T>(this Container container) where T : Control {
+            var globalFocused = container.GetFocusOwner();
+            var children = container is ScrollContainer scrollContainer
+                ? scrollContainer.GetChild(0).GetChildren()
+                : container.GetChildren();
+            return globalFocused == null ? null : children.OfType<T>().FirstOrDefault(b => b == globalFocused);
+        }
+
     }
 }

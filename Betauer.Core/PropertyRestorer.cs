@@ -29,8 +29,12 @@ namespace Betauer {
         }).ToArray();
 
 
-        public static Restorer CreateFocusRestorer(this Control control) {
+        public static FocusRestorer CreateFocusRestorer(this Control control) {
             return new FocusRestorer(control);
+        }
+
+        public static ChildFocusRestorer CreateChildFocusRestorer(this Container container) {
+            return new ChildFocusRestorer(container);
         }
 
         public static Restorer CreateRestorer(this Node node, params string[] property) {
@@ -118,6 +122,11 @@ namespace Betauer {
             return this;
         }
 
+        public MultiRestorer AddChildFocusRestorer(Container container) {
+            Restorers.Add(container.CreateChildFocusRestorer());
+            return this;
+        }
+
         protected override void DoSave() {
             foreach (var restorer in Restorers) restorer.Save();
         }
@@ -128,7 +137,7 @@ namespace Betauer {
     }
 
     public class FocusRestorer : Restorer {
-        private Control _focused;
+        private Control? _focused;
         private readonly Control _control;
 
         public FocusRestorer(Control control) {
@@ -140,7 +149,24 @@ namespace Betauer {
         }
 
         protected override void DoRestore() {
-            _focused.GrabFocus();
+            _focused?.GrabFocus();
+        }
+    }
+
+    public class ChildFocusRestorer : Restorer {
+        private Control? _focused;
+        private readonly Container _container;
+
+        public ChildFocusRestorer(Container container) {
+            _container = container;
+        }
+
+        protected override void DoSave() {
+            _focused = _container.GetChildFocused<Control>();
+        }
+
+        protected override void DoRestore() {
+            _focused?.GrabFocus();
         }
     }
 

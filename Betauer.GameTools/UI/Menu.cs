@@ -172,7 +172,7 @@ namespace Betauer.UI {
                 Available = false;
                 var fromButton = fromButtonName != null
                     ? ActiveMenu.GetControl<BaseButton>(fromButtonName)
-                    : ActiveMenu.GetFocused<BaseButton>();
+                    : ActiveMenu.GetChildFocused();
                 Menu toMenu = GetMenu(toMenuName);
                 if (!replace)
                     lock (_navigationState)
@@ -209,7 +209,7 @@ namespace Betauer.UI {
                         toButton = lastState.Button;
                     }
                 }
-                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.GetFocused<BaseButton>();
+                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.GetChildFocused();
                 var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
                 goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
                 newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
@@ -366,42 +366,6 @@ namespace Betauer.UI {
             return this;
         }
 
-        public MultiRestorer DisableButtons(bool storeFocus = true) {
-            var buttons = Container.GetChildren<BaseButton>();
-            MultiRestorer restorer = new MultiRestorer(buttons, "disabled");
-            if (storeFocus) {
-                restorer.AddFocusRestorer(Container);
-            }
-            restorer.Save();
-            foreach (var child in Container.GetChildren()) {
-                if (child is BaseButton button) button.Disabled = true;
-            }
-            return restorer;
-        }
-
-        public Menu Refresh(BaseButton? focused = null) {
-            focused = Container.RefreshNeighbours(focused, WrapButtons);
-            focused?.GrabFocus();
-            return this;
-        }
-
-        public List<Control> GetChildren() {
-            return Container.GetChildren<Control>().ToList();
-        }
-
-        public List<Control> GetVisibleControl() {
-            if (Parent is ScrollContainer scrollContainer) {
-                var topVisible = scrollContainer.ScrollVertical;
-                var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
-                return Container.GetChildren<Control>()
-                    .Where(control =>
-                        control.RectPosition.y >= topVisible &&
-                        control.RectPosition.y + control.RectSize.y <= bottomVisible)
-                    .ToList();
-            }
-            return GetChildren();
-        }
-
         internal void Remove() {
             _onClose?.Invoke();
             Parent.RemoveChild(Container);
@@ -417,14 +381,26 @@ namespace Betauer.UI {
             return Container.GetNode<T>(name) ?? throw new NullReferenceException();
         }
 
-        /// <summary>
-        /// Return the focused control in the container (if the focused button belongs to other container, it returns null)
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T? GetFocused<T>() where T : Control {
-            var focused = Container.GetFocusOwner();
-            return focused == null ? null : Container.GetChildren<T>().Find(b => b == focused);
+        public Menu Refresh(BaseButton? focused = null) {
+            focused = Container.RefreshNeighbours(focused, WrapButtons);
+            focused?.GrabFocus();
+            return this;
+        }
+
+        public List<Control> GetChildren() {
+            return Container.GetChildren<Control>();
+        }
+
+        public BaseButton? GetChildFocused() {
+            return Container.GetChildFocused<BaseButton>();
+        }
+
+        public List<Control> GetVisibleControl() {
+            return Container.GetVisibleControl<Control>();
+        }
+
+        public Restorer DisableButtons(bool storeFocus = true) {
+            return Container.DisableButtons(storeFocus);
         }
     }
 
