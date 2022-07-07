@@ -54,7 +54,7 @@ namespace DemoAnimation.Game.Managers {
             var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
                 .CreateBuilder();
             builder.State(State.Loading)
-                .Execute(context => context.Set(State.MainMenu));
+                .Execute(context => context.Replace(State.MainMenu));
 
             builder.State(State.MainMenu)
                 .Suspend(() => _mainMenuScene.DisableMenus())

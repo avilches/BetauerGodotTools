@@ -73,6 +73,8 @@ namespace Betauer.StateMachine {
                 if (_beforeExecute != null) await _beforeExecute.Invoke(delta);
                 await StateMachine.Execute(delta);
                 if (_afterExecute != null) await _afterExecute.Invoke(delta);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 _semaphoreSlim.Release();
             }

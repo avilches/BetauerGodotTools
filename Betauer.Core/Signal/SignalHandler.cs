@@ -102,6 +102,8 @@ namespace Betauer.Signal {
         public void Call() {
             try {
                 Action();
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -115,6 +117,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1) {
             try {
                 Action(v1);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -128,6 +132,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2) {
             try {
                 Action(v1, v2);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -141,6 +147,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3) {
             try {
                 Action(v1, v2, v3);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -154,6 +162,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4) {
             try {
                 Action(v1, v2, v3, v4);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -167,6 +177,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {
             try {
                 Action(v1, v2, v3, v4, v5);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -180,6 +192,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {
             try {
                 Action(v1, v2, v3, v4, v5, v6);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -193,6 +207,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {
             try {
                 Action(v1, v2, v3, v4, v5, v6, v7);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }
@@ -207,6 +223,8 @@ namespace Betauer.Signal {
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {
             try {
                 Action(v1, v2, v3, v4, v5, v6, v7, v8);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 AfterCall();
             }

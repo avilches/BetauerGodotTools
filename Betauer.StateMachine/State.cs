@@ -137,21 +137,25 @@ namespace Betauer.StateMachine {
         /*
          * Enter
          */
+        // async (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Func<TStateKey, Task> enter) {
             _enter = enter;
             return this;
         }
 
+        // async () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Func<Task> enter) {
             _enter = async from => await enter();
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Action<TStateKey> enter) {
             _enter = async from => enter(from);
             return this;
         }
 
+        // () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Enter(Action enter) {
             _enter = async from => enter();
             return this;
@@ -161,33 +165,35 @@ namespace Betauer.StateMachine {
          * Awake
          */
 
+        // async (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Func<TStateKey, Task> awake) {
             _awake = awake;
             return this;
         }
 
+        // async () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Func<Task> awake) {
             _awake = async from => await awake();
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Action<TStateKey> awake) {
             _awake = async from => awake(from);
             return this;
         }
 
+        // () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Awake(Action awake) {
             _awake = async from => awake();
             return this;
         }
 
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
-            Func<Task<ExecuteTransition<TStateKey, TTransitionKey>>> execute) {
-            _execute = delta => execute();
-            return this;
-        }
-
+        /*
+         * Execute
+         */
+        // async (context) => { return context...() }
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
             Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>
                 execute) {
@@ -195,38 +201,53 @@ namespace Betauer.StateMachine {
             return this;
         }
 
-        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
-            Func<ExecuteTransition<TStateKey, TTransitionKey>> execute) {
-            _execute = async delta => execute();
-            ;
+        // async () => {}
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Func<Task> execute) {
+            _execute = async (ctx) => {
+                await execute();
+                return ctx.None();
+            };
             return this;
         }
 
+        // (context) => { return context...() }
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(
             Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> execute) {
-            _execute = async delta => execute(delta);
-            ;
+            _execute = async (ctx) => execute(ctx);
+            return this;
+        }
+
+        // () => {}
+        public StateBuilder<T, TStateKey, TTransitionKey, TParent> Execute(Action execute) {
+            _execute = async (ctx) => {
+                execute();
+                return ctx.None();
+            };
             return this;
         }
 
         /*
          * Suspend
          */
+        // async (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Func<TStateKey, Task> suspend) {
             _suspend = suspend;
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Func<Task> suspend) {
             _suspend = async to => await suspend();
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Action<TStateKey> suspend) {
             _suspend = async to => suspend(to);
             return this;
         }
 
+        // () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Suspend(Action suspend) {
             _suspend = async to => suspend();
             return this;
@@ -235,21 +256,25 @@ namespace Betauer.StateMachine {
         /*
          * Exit
          */
+        // async (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Func<TStateKey, Task> exit) {
             _exit = exit;
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Func<Task> exit) {
             _exit = async to => await exit();
             return this;
         }
 
+        // (state) => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Action<TStateKey> exit) {
             _exit = async to => exit(to);
             return this;
         }
 
+        // () => {}
         public StateBuilder<T, TStateKey, TTransitionKey, TParent> Exit(Action exit) {
             _exit = async to => exit();
             return this;

@@ -20,7 +20,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("GridContainer/MarginContainer/VBoxContainer/VBoxContainer/ver")]
         private Label _version;
 
-        private MenuController _menuController;
+        private MenuContainer _menuContainer;
 
         [Inject] private GameManager _gameManager;
         private readonly Launcher _launcher = new Launcher();
@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Menu {
         public override void _Ready() {
             _version.Text = AppInfo.Version + " - Betauer 2022";
             _launcher.WithParent(this);
-            _menuController = BuildMenu();
+            _menuContainer = BuildMenu();
         }
 
         public async Task ShowMenu() {
@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.Menu {
             var modulate = Colors.White;
             modulate.a = 0;
             Modulate = modulate;
-            await _menuController.Start();
+            await _menuContainer.Start();
             await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
@@ -56,21 +56,21 @@ namespace Veronenger.Game.Controller.Menu {
         private Restorer _menuRestorer;
 
         public void DisableMenus() {
-            _menuRestorer = _menuController.ActiveMenu.DisableButtons();
+            _menuRestorer = _menuContainer.ActiveMenu.DisableButtons();
         }
 
         public void EnableMenus() {
             _menuRestorer?.Restore();
         }
 
-        public MenuController BuildMenu() {
+        public MenuContainer BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
-            var mainMenu = new MenuController(_menuBase);
-            var rootMenu = mainMenu.GetStartMenu();
-            rootMenu.AddButton("Start", "Start").OnPressed(() => _gameManager.TriggerStartGame()).Unwatch();
-            rootMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings()).Unwatch();;
-            rootMenu.AddButton("Exit", "Exit").OnPressed(() => _gameManager.TriggerModalBoxConfirmExitDesktop()).Unwatch();;
+            var mainMenu = new MenuContainer(_menuBase);
+            var startMenu = mainMenu.GetStartMenu();
+            startMenu.AddButton("Start", "Start").OnPressed(() => _gameManager.TriggerStartGame()).Unwatch();
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings()).Unwatch();;
+            startMenu.AddButton("Exit", "Exit").OnPressed(() => _gameManager.TriggerModalBoxConfirmExitDesktop()).Unwatch();;
             return mainMenu;
         }
 
@@ -83,13 +83,14 @@ namespace Veronenger.Game.Controller.Menu {
             Modulate = Colors.White;
         }
 
-        public async Task BackMenu() {
-            if (_menuController.IsStartMenuActive()) {
-                // TOD: this doesn't work
-                _gameManager.TriggerModalBoxConfirmExitDesktop();
-                return;
+        public void Execute() {
+            if (UiCancel.JustPressed) { 
+                if (_menuContainer.IsStartMenuActive()) {
+                    _gameManager.TriggerModalBoxConfirmExitDesktop();
+                } else {
+                    _menuContainer.Back();
+                }
             }
-            await _menuController.Back();
         }
     }
 }

@@ -124,6 +124,8 @@ namespace Betauer.Animation {
             } else {
                 try {
                     _onFinish?.Invoke();
+                } catch (Exception e) {
+                    throw e;
                 } finally {
                     _promise.TrySetResult(this);
                 }

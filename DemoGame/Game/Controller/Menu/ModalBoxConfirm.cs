@@ -26,7 +26,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         [OnReady("ColorRect")] private ColorRect _colorRect;
 
-        private MenuController _menuController;
+        private MenuContainer _menuContainer;
 
         [Inject] private ActionState UiAccept;
         [Inject] private ActionState UiCancel;
@@ -55,21 +55,21 @@ namespace Veronenger.Game.Controller.Menu {
                 _singleTitle.Text = _titleText;
             }
 
-            _menuController = BuildMenu();
-            await _menuController.Start();
+            _menuContainer = BuildMenu();
+            await _menuContainer.Start();
         }
 
         public Task<bool> AwaitResult() {
             return _promise.Task;
         }
 
-        public MenuController BuildMenu() {
+        public MenuContainer BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
-            var mainMenu = new MenuController(_menuBase);
-            var root = mainMenu.GetStartMenu();
-            var noButton = root.AddButton("No", "No");
-            var yesButton = root.AddButton("Yes", "Yes");
+            var mainMenu = new MenuContainer(_menuBase);
+            var startMenu = mainMenu.GetStartMenu();
+            var noButton = startMenu.AddButton("No", "No");
+            var yesButton = startMenu.AddButton("Yes", "Yes");
             noButton.OnPressed(() => _promise.TrySetResult(false));
             yesButton.OnPressed(() => _promise.TrySetResult(true));
             noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);

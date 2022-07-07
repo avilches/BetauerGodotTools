@@ -55,7 +55,7 @@ namespace Veronenger.Game.Character.Enemy {
         }
 
         private void AddStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
-            builder.On(Transition.Attacked, context => context.Set(State.Destroy));
+            builder.On(Transition.Attacked, context => context.Replace(State.Destroy));
             builder.State(State.Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);
@@ -76,7 +76,7 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.MoveSnapping();
                     if (_stateTimer.IsAlarm()) {
                         _patrolTimer.SetAlarm(4).Reset().Start();
-                        return context.Set(State.PatrolStep);
+                        return context.Replace(State.PatrolStep);
                     }
                     return context.None();
                 });
@@ -99,7 +99,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (_patrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return context.Set(State.Idle);
+                            return context.Replace(State.Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
@@ -109,7 +109,7 @@ namespace Veronenger.Game.Character.Enemy {
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return context.Set(State.PatrolWait);
+                        return context.Replace(State.PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
@@ -125,12 +125,12 @@ namespace Veronenger.Game.Character.Enemy {
                 })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return context.Set(State.PatrolStep);
+                        return context.Replace(State.PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
-                    return _stateTimer.IsAlarm() ? context.Set(State.PatrolStep) : context.None();
+                    return _stateTimer.IsAlarm() ? context.Replace(State.PatrolStep) : context.None();
                 });
 
             builder.State(State.Destroy)

@@ -29,7 +29,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Node2D/CenterContainer/VBoxContainer/Title")]
         private Label _title;
 
-        private MenuController _menuController;
+        private MenuContainer _menuContainer;
 
         [Inject] private GameManager _gameManager;
 
@@ -41,14 +41,14 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override void _Ready() {
             _launcher.WithParent(this);
-            _menuController = BuildMenu();
+            _menuContainer = BuildMenu();
             HidePauseMenu();
         }
 
         public async Task ShowPauseMenu() {
             _container.Show();
             _launcher.Play(PartialFadeOut, _backgroundFader, 0f, 0.5f);
-            await _menuController.Start();
+            await _menuContainer.Start();
         }
 
         public void HidePauseMenu() {
@@ -59,33 +59,36 @@ namespace Veronenger.Game.Controller.Menu {
         private Restorer _menuRestorer;
 
         public void DisableMenus() {
-            _menuRestorer = _menuController.ActiveMenu.DisableButtons(); // TODO: .AddFocusRestorer();
+            _menuRestorer = _menuContainer.ActiveMenu.DisableButtons();
         }
 
         public void EnableMenus() {
             _menuRestorer?.Restore();
         }
 
-        public MenuController BuildMenu() {
+        public MenuContainer BuildMenu() {
             // TODO i18n
             _title.Text = "Paused";
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
-            var mainMenu = new MenuController(_menuBase);
-            var menu = mainMenu.GetStartMenu();
-            menu.AddButton("Resume", "Resume").OnPressed(() => _gameManager.TriggerBack());
-            menu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings());
-            menu.AddButton("QuitGame", "Quit game").OnPressed(() => _gameManager.TriggerModalBoxConfirmQuitGame());
+            var mainMenu = new MenuContainer(_menuBase);
+            var startMenu = mainMenu.GetStartMenu();
+            startMenu.AddButton("Resume", "Resume").OnPressed(() => _gameManager.TriggerBack());
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings());
+            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => _gameManager.TriggerModalBoxConfirmQuitGame());
             return mainMenu;
         }
 
-        public bool IsRootMenuActive() {
-            return _menuController.IsStartMenuActive();
+        public async Task Execute() {
+            if (UiCancel.JustPressed) {
+                if (_menuContainer.IsStartMenuActive()) {
+                    _gameManager.TriggerBack();
+                } else {
+                    await _menuContainer.Back();
+                }
+            } else if (UiStart.JustPressed) {
+                _gameManager.TriggerBack();
+            }
         }
-
-        public async Task BackMenu() {
-            await _menuController.Back();
-        }
-
     }
 }

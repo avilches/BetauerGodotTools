@@ -49,9 +49,8 @@ namespace DemoAnimation.Game.Controller.Menu {
         [OnReady("HBoxContainer/DemoMenu/MenuLabel")]
         private Label _menuLabel;
 
-
-        private MenuController _menuController;
-        private MenuController _demoMenu;
+        private MenuContainer _menuContainer;
+        private MenuContainer _demoMenu;
 
         [Inject] private GameManager _gameManager;
         private readonly Launcher _launcher = new Launcher();
@@ -63,7 +62,6 @@ namespace DemoAnimation.Game.Controller.Menu {
         private Restorer _animationsRestorer;
         private Restorer _menuRestorer;
 
-
         private readonly List<TemplateFactory> _templateFactories = Template.GetAllTemplates()
             .OrderBy(factory => (factory.Category ?? "0") + "-" + factory.Category + "-" + factory.Name)
             .ToList();
@@ -71,7 +69,7 @@ namespace DemoAnimation.Game.Controller.Menu {
         public override void _Ready() {
             _launcher.WithParent(this);
             _animationsRestorer = new MultiRestorer(_labelToAnimate, _logo, _texture).Save();
-            _menuController = BuildMenu();
+            _menuContainer = BuildMenu();
             _menuLabel.Text = "Click the options to see animations";
             _resetMenu.OnPressed(() => {
                 _demoMenu.QueueFree();
@@ -115,7 +113,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var modulate = Colors.White;
             modulate.a = 0;
             Modulate = modulate;
-            await _menuController.Start();
+            await _menuContainer.Start();
             await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
             GetTree().Root.GuiDisableInput = false;
         }
@@ -128,17 +126,17 @@ namespace DemoAnimation.Game.Controller.Menu {
         }
 
         public void DisableMenus() {
-            _menuRestorer = _menuController.ActiveMenu!.DisableButtons();
+            _menuRestorer = _menuContainer.ActiveMenu!.DisableButtons();
         }
 
         public void EnableMenus() {
             _menuRestorer?.Restore();
         }
 
-        public MenuController BuildMenu() {
+        public MenuContainer BuildMenu() {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
-            var mainMenu = new MenuController(_menuBase);
+            var mainMenu = new MenuContainer(_menuBase);
             var root = mainMenu.GetStartMenu().OnShow(() => {
                 _demoMenuContainer.Visible = false;
                 _animatorContainer.Visible = false;
@@ -153,7 +151,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             root.AddButton("Menus", "Demo with menus").OnPressed(async () => {
                 _demoMenuContainer.Visible = true;
                 _animatorContainer.Visible = false;
-                _demoMenu?.Free();
+                _demoMenu?.QueueFree();
                 _demoMenu = BuildDemoMenu();
                 await _demoMenu.Start();
                 await mainMenu.Go("Menu");
@@ -164,15 +162,15 @@ namespace DemoAnimation.Game.Controller.Menu {
             CreateEffectsMenu(effectsMenu);
 
             var demoMenuMenu = mainMenu.AddMenu("Menu");
-            demoMenuMenu.AddButton("Back", "Back").OnPressed(() => _menuController.Back());
+            demoMenuMenu.AddButton("Back", "Back").OnPressed(() => _menuContainer.Back());
             
             return mainMenu;
         }
 
-        public MenuController BuildDemoMenu() {
+        public MenuContainer BuildDemoMenu() {
             foreach (var child in _menuDemoBase.GetChildren()) (child as Node)?.Free();
 
-            var mainMenu = new MenuController(_menuDemoBase);
+            var mainMenu = new MenuContainer(_menuDemoBase);
             mainMenu.ConfigureGoTransition(GoGoodbyeAnimation, GoNewMenuAnimation);
             mainMenu.ConfigureBackTransition(BackGoodbyeAnimation, BackNewMenuAnimation);
 
@@ -186,10 +184,10 @@ namespace DemoAnimation.Game.Controller.Menu {
             return mainMenu;
         }
 
-        private void CreateEffectsMenu(ActionMenu effectsMenu) {
+        private void CreateEffectsMenu(Betauer.UI.Menu effectsMenu) {
             string oldCategory = null;
 
-            effectsMenu.AddButton("Back", "Back").OnPressed(() => _menuController.Back());
+            effectsMenu.AddButton("Back", "Back").OnPressed(() => _menuContainer.Back());
             foreach (var templateFactory in _templateFactories) {
                 var name = templateFactory.Name;
                 if (templateFactory.Category != oldCategory && templateFactory.Category != null) {
@@ -224,7 +222,7 @@ namespace DemoAnimation.Game.Controller.Menu {
         }
 
         public async Task BackMenu() {
-            await _menuController.Back();
+            await _menuContainer.Back();
         }
 
         private const float AllMenuEffectTime = 0.5f;

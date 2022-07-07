@@ -96,9 +96,9 @@ namespace Betauer.StateMachine {
             internal bool IsPop() => Type == TransitionType.Pop;
             internal bool IsPopPush() => Type == TransitionType.PopPush;
             internal bool IsPush() => Type == TransitionType.Push;
-            internal bool IsChange() => Type == TransitionType.Change;
+            internal bool IsReplace() => Type == TransitionType.Replace;
             internal bool IsChange(TStateKey key) {
-                return Type == TransitionType.Change && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
+                return Type == TransitionType.Replace && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
             }
             internal bool IsNone() => Type == TransitionType.None;
         }
@@ -151,24 +151,44 @@ namespace Betauer.StateMachine {
             States[state.Key] = state;
         }
 
+        private TTransitionKey _nextTransition;
+        private bool _nextTransitionDefined = false;
         public void Trigger(TTransitionKey name) {
-            var transition = GetTransitionFromTrigger(name);
-            _nextChange = CreateChange(transition);
+            lock (this) {
+                _nextTransition = name;
+                _nextTransitionDefined = true;
+            }
         }
 
+        public bool Available { get; private set; } = true;
         public async Task Execute(float delta) {
             if (_disposed) return;
-            var change = State == null && _nextChange.State == null
-                ? new Change(States[_initialState], TransitionType.Change)
-                : _nextChange;
-            if (change.Type == TransitionType.Pop) await DoPop(change);
-            else if (change.Type == TransitionType.Push) await DoPush(change);
-            else if (change.Type == TransitionType.PopPush) await DoPopPush(change);
-            else if (change.Type == TransitionType.Change) await DoChange(change);
+            if (!Available) return;
+            try {
+                Available = false;
+                lock (this) {
+                    if (_nextTransitionDefined) {
+                        _nextTransitionDefined = false;
+                        var triggerTransition = GetTransitionFromTrigger(_nextTransition);
+                        _nextChange = CreateChange(triggerTransition);
+                    }
+                }
+                var change = State == null && _nextChange.State == null
+                    ? new Change(States[_initialState], TransitionType.Replace)
+                    : _nextChange;
+                if (change.Type == TransitionType.Pop) await DoPop(change);
+                else if (change.Type == TransitionType.Push) await DoPush(change);
+                else if (change.Type == TransitionType.PopPush) await DoPopPush(change);
+                else if (change.Type == TransitionType.Replace) await DoReplace(change);
 
-            _executeContext.Delta = delta;
-            var transition = await State.Execute(_executeContext);
-            _nextChange = CreateChange(transition);
+                _executeContext.Delta = delta;
+                var transition = await State.Execute(_executeContext);
+                _nextChange = CreateChange(transition);
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                Available = true;
+            }
         }
 
         private async Task DoPop(Change change) {
@@ -191,7 +211,7 @@ namespace Betauer.StateMachine {
             await Enter(State, oldState.Key);
         }
 
-        private async Task DoChange(Change change) {
+        private async Task DoReplace(Change change) {
             if (_stack.Count > 1) {
                 // Spacial case: 
                 // Exit from all the states in stack, in order, until the next change
@@ -220,7 +240,7 @@ namespace Betauer.StateMachine {
             if (candidate.IsTrigger() ) {
                 candidate = GetTransitionFromTrigger(candidate.TransitionKey);
             }
-            if (State != null && candidate.IsChange(State.Key)) {
+            if (State != null && candidate.IsReplace(State.Key)) {
                 return new Change(State, TransitionType.None);
             }
             if (candidate.IsPop()) {
@@ -246,12 +266,12 @@ namespace Betauer.StateMachine {
             if (State != null && _stateEvents != null) {
                 var key = new Tuple<TStateKey, TTransitionKey>(State.Key, name);
                 if (_stateEvents != null && _stateEvents.ContainsKey(key)) {
-                    triggerTransition = _stateEvents[key](_triggerContext);
+                    triggerTransition = _stateEvents[key].Invoke(_triggerContext);
                     found = true;
                 }
             }
             if (!found && _events != null && _events.ContainsKey(name)) {
-                triggerTransition = _events[name](_triggerContext);
+                triggerTransition = _events[name].Invoke(_triggerContext);
                 found = true;
             }
             if (!found) {

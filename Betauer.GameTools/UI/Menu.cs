@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.UI {
-    public class MenuController {
+    public class MenuContainer {
         internal readonly Container OriginalContainer;
         internal readonly Node Parent;
         private readonly Viewport _viewport;
-        private readonly List<ActionMenu> _menus = new List<ActionMenu>();
+        private readonly List<Menu> _menus = new List<Menu>();
         private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
 
-        public ActionMenu ActiveMenu { get; private set; } = null;
-        public bool Available { get; private set; } = false;
+        public Menu ActiveMenu { get; private set; } = null;
+        public bool Available { get; private set; } = true;
 
         public bool DisableGuiInAnimations = true;
 
@@ -22,17 +22,17 @@ namespace Betauer.UI {
         internal Func<MenuTransition, Task>? DefaultBackGoodbyeAnimation = null;
         internal Func<MenuTransition, Task>? DefaultBackNewMenuAnimation = null;
 
-        public MenuController(Container originalContainer) {
+        public MenuContainer(Container originalContainer) {
             Parent = originalContainer.GetParent();
             _viewport = originalContainer.GetTree().Root;
             OriginalContainer = originalContainer;
             OriginalContainer.DisableAllNotifications();
             OriginalContainer.Visible = false;
-            var menu = new ActionMenu(this, null);
+            var menu = new Menu(this, null);
             _menus.Add(menu);
         }
 
-        public MenuController ConfigureGoTransition(
+        public MenuContainer ConfigureGoTransition(
             Func<MenuTransition, Task>? goGoodbyeAnimation,
             Func<MenuTransition, Task>? goNewMenuAnimation) {
             DefaultGoGoodbyeAnimation = goGoodbyeAnimation;
@@ -40,7 +40,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        public MenuController ConfigureBackTransition(
+        public MenuContainer ConfigureBackTransition(
             Func<MenuTransition, Task>? backGoodbyeAnimation,
             Func<MenuTransition, Task>? backNewMenuAnimation) {
             DefaultBackGoodbyeAnimation = backGoodbyeAnimation;
@@ -49,32 +49,44 @@ namespace Betauer.UI {
         }
 
 
-        public ActionMenu AddMenu(string name) {
+        public Menu AddMenu(string name) {
             if (name == null) throw new ArgumentNullException(nameof(name), "Menu name can't be null");
             if (_menus.Any(menu => menu.Name == name)) {
                 throw new ArgumentException("Duplicated menu name: " + name);
             }
-            var menu = new ActionMenu(this, name);
+            var menu = new Menu(this, name);
             _menus.Add(menu);
             return menu;
         }
 
-        public async Task Start(Func<MenuTransition, Task>? newMenuAnimation = null) {
-            ActiveMenu = GetStartMenu();
-            await PlayTransition(new MenuTransition(null, null, ActiveMenu, null), null, null);
-            Available = true;
-        }
-
-        public ActionMenu GetStartMenu() {
+        public Menu GetStartMenu() {
             return _menus.Find(menu => menu.Name == null);
         }
 
-        public ActionMenu GetMenu(string toMenuName) {
+        public Menu GetMenu(string toMenuName) {
             return _menus.Find(menu => menu.Name == toMenuName);
         }
 
         public bool IsStartMenuActive() => IsMenuActive(null);
         public bool IsMenuActive(string name) => ActiveMenu.Name == name;
+
+        public async Task Start(string? startMenuButtonName = null,
+            Func<MenuTransition, Task>? newMenuAnimation = null) {
+            if (!Available) return;
+            try {
+                Available = false;
+                Menu toMenu = GetStartMenu();
+                BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;;
+                lock (_navigationState) _navigationState.Clear();
+                var transition = new MenuTransition(null, null, toMenu, toButton);
+                newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
+                await PlayTransition(transition, null, newMenuAnimation);
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                Available = true;
+            }
+        }
 
         /// <summary>
         /// Close the current menu using a goodbye animation and show a new menu using the new menu animation.
@@ -144,7 +156,7 @@ namespace Betauer.UI {
         /// <param name="rootButtonName"></param>
         /// <param name="goodbyeAnimation"></param>
         /// <param name="newMenuAnimation"></param>
-        public async Task BackToRoot(string? fromButtonName = null, string? rootButtonName = null,
+        public async Task BackToStart(string? fromButtonName = null, string? rootButtonName = null,
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (_navigationState.Count == 0 && IsStartMenuActive()) return;
@@ -157,34 +169,38 @@ namespace Betauer.UI {
             if (!Available) return;
             try {
                 Available = false;
-                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
-                ActionMenu toMenu = GetMenu(toMenuName);
+                var fromButton = fromButtonName != null
+                    ? ActiveMenu.GetControl<BaseButton>(fromButtonName)
+                    : ActiveMenu.Container.GetFocusOwner() as BaseButton;
+                Menu toMenu = GetMenu(toMenuName);
                 if (!replace)
                     lock (_navigationState)
                         _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
-                BaseButton? toButton = toButtonName != null ? toMenu.GetControl<BaseButton>(toButtonName) : null;
-                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
+                var toButton = toButtonName != null ? toMenu.GetControl<BaseButton>(toButtonName) : null;
+                var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
                 goodbyeAnimation ??= ActiveMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 Available = true;
             }
         }
 
-        private async Task _Back(bool backToRoot, string? rootButtonName, string? fromButtonName = null,
+        private async Task _Back(bool backToStartMenu, string? startMenuButtonName, string? fromButtonName = null,
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
             try {
                 Available = false;
-                ActionMenu toMenu;
+                Menu toMenu;
                 BaseButton? toButton;
                 lock (_navigationState) {
-                    if (backToRoot) {
+                    if (backToStartMenu) {
                         _navigationState.Clear();
                         toMenu = GetStartMenu();
-                        toButton = rootButtonName != null ? toMenu.GetControl<BaseButton>(rootButtonName) : null;
+                        toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
                     } else {
                         MenuState lastState = _navigationState.Last();
                         _navigationState.RemoveLast();
@@ -193,10 +209,12 @@ namespace Betauer.UI {
                     }
                 }
                 var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
-                MenuTransition transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
+                var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
                 goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
                 newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
+            } catch (Exception e) {
+                throw e;
             } finally {
                 Available = true;
             }
@@ -248,6 +266,8 @@ namespace Betauer.UI {
                      */
                 }
                 ActiveMenu = transition.ToMenu;
+            } catch (Exception e) {
+                throw e;
             } finally {
                 if (DisableGuiInAnimations) _viewport.GuiDisableInput = false;
             }
@@ -264,12 +284,12 @@ namespace Betauer.UI {
     }
 
 
-    public class ActionMenu {
+    public class Menu {
         private Action? _onShow;
         private Action? _onClose;
-        private readonly MenuController _menuController;
-        private Node Parent => _menuController.Parent;
-        private Node OriginalContainer => _menuController.OriginalContainer;
+        private readonly MenuContainer _menuContainer;
+        private Node Parent => _menuContainer.Parent;
+        private Node OriginalContainer => _menuContainer.OriginalContainer;
 
         public readonly string? Name;
         public Container Container { get; }
@@ -280,25 +300,25 @@ namespace Betauer.UI {
         internal Func<MenuTransition, Task>? BackGoodbyeAnimation = null;
         internal Func<MenuTransition, Task>? BackNewMenuAnimation = null;
 
-        internal ActionMenu(MenuController menuController, string? name) {
-            _menuController = menuController;
+        internal Menu(MenuContainer menuContainer, string? name) {
+            _menuContainer = menuContainer;
             Name = name;
             Container = (Container)OriginalContainer.Duplicate();
             Container.Name = name ?? "StartMenu";
             Container.Visible = true;
         }
 
-        public ActionMenu OnShow(Action onShow) {
+        public Menu OnShow(Action onShow) {
             _onShow = onShow;
             return this;
         }
 
-        public ActionMenu OnClose(Action onClose) {
+        public Menu OnClose(Action onClose) {
             _onClose = onClose;
             return this;
         }
 
-        public ActionMenu ConfigureGoTransition(
+        public Menu ConfigureGoTransition(
             Func<MenuTransition, Task>? goGoodbyeAnimation,
             Func<MenuTransition, Task>? goNewMenuAnimation) {
             GoGoodbyeAnimation = goGoodbyeAnimation;
@@ -306,7 +326,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        public ActionMenu ConfigureBackTransition(
+        public Menu ConfigureBackTransition(
             Func<MenuTransition, Task>? backGoodbyeAnimation,
             Func<MenuTransition, Task>? backNewMenuAnimation) {
             BackGoodbyeAnimation = backGoodbyeAnimation;
@@ -340,7 +360,7 @@ namespace Betauer.UI {
             return instance;
         }
 
-        public ActionMenu AddNode(Node button) {
+        public Menu AddNode(Node button) {
             Container.AddChild(button);
             return this;
         }
@@ -358,7 +378,7 @@ namespace Betauer.UI {
             return restorer;
         }
 
-        public ActionMenu Refresh(BaseButton? focused = null) {
+        public Menu Refresh(BaseButton? focused = null) {
             focused = Container.RefreshNeighbours(focused, WrapButtons);
             focused?.GrabFocus();
             return this;
@@ -398,12 +418,12 @@ namespace Betauer.UI {
     }
 
     public class MenuTransition {
-        public readonly ActionMenu FromMenu;
+        public readonly Menu FromMenu;
         public readonly BaseButton? FromButton;
-        public readonly ActionMenu ToMenu;
+        public readonly Menu ToMenu;
         public readonly BaseButton? ToButton;
 
-        public MenuTransition(ActionMenu fromMenu, BaseButton? fromButton, ActionMenu toMenu,
+        public MenuTransition(Menu fromMenu, BaseButton? fromButton, Menu toMenu,
             BaseButton? toButton) {
             FromMenu = fromMenu;
             FromButton = fromButton;
@@ -413,10 +433,10 @@ namespace Betauer.UI {
     }
 
     internal class MenuState {
-        internal readonly ActionMenu Menu;
+        internal readonly Menu Menu;
         internal readonly BaseButton? Button;
 
-        internal MenuState(ActionMenu menu, BaseButton? button) {
+        internal MenuState(Menu menu, BaseButton? button) {
             Menu = menu;
             Button = button;
         }

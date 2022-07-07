@@ -3,10 +3,8 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Memory;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
@@ -83,31 +81,21 @@ namespace Veronenger.Game.Managers {
                 .CreateBuilder();
             builder.AddListener(MainMenuBottomBarScene);
             builder.State(State.Loading)
-                .Execute(context => context.Set(State.MainMenu));
+                .Execute(context => context.Replace(State.MainMenu));
 
             builder.State(State.MainMenu)
-                .On(Transition.StartGame, context => context.Set(State.StartingGame))
+                .On(Transition.StartGame, context => context.Replace(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
-                .Execute(async context => {
-                    if (UiCancel.JustPressed) {
-                        await _mainMenuScene.BackMenu();
-                    }
-                    return context.None();
-                });
+                .Execute(_mainMenuScene.Execute);
 
             builder.State(State.Settings)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(_settingsMenuScene.ShowSettingsMenu)
-                .Execute(context => {
-                    if (UiCancel.JustPressed && !_settingsMenuScene.IsRedefineAction()) {
-                        return context.Pop();
-                    }
-                    return context.None();
-                })
-                .Exit(() => { _settingsMenuScene.HideSettingsMenu(); });
+                .Execute(_settingsMenuScene.Execute)
+                .Exit(_settingsMenuScene.HideSettingsMenu);
 
             builder.State(State.StartingGame)
                 .Enter(async () => {
@@ -116,7 +104,7 @@ namespace Veronenger.Game.Managers {
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
-                .Execute(context => context.Set(State.Gaming));
+                .Execute(context => context.Replace(State.Gaming));
 
             builder.State(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
@@ -144,18 +132,7 @@ namespace Veronenger.Game.Managers {
                     GetTree().Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
-                .Execute(async context => {
-                    if (UiCancel.JustPressed) {
-                        if (_pauseMenuScene.IsRootMenuActive()) {
-                            return context.Pop();
-                        } else {
-                            await _pauseMenuScene.BackMenu();
-                        }
-                    } else if (UiStart.JustPressed) {
-                        return context.Pop();
-                    }
-                    return context.None();
-                })
+                .Execute(_pauseMenuScene.Execute)
                 .Exit(() => {
                     _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();
@@ -167,7 +144,7 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
-                    return result ? context.Set(State.MainMenu) : context.Pop();
+                    return result ? context.Replace(State.MainMenu) : context.Pop();
                 });
 
             builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));

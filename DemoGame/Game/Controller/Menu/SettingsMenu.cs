@@ -225,5 +225,11 @@ namespace Veronenger.Game.Controller.Menu {
             _panel.Hide();
             _redefineActionPanel.Hide();
         }
+
+        public void Execute() {
+            if (UiCancel.JustPressed && !IsRedefineAction()) {
+                _gameManager.TriggerBack();
+            }
+        }
     }
 }
