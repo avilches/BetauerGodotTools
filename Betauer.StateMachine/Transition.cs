@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Betauer.StateMachine {
     public enum TransitionType {
@@ -21,27 +22,20 @@ namespace Betauer.StateMachine {
             new ExecuteTransition<TStateKey, TTransitionKey>(TransitionType.None);
 
         private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CachePush =
-            new Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>();
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Push));
 
         private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CachePopPush =
-            new Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>();
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.PopPush));
 
         private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CacheChange =
-            new Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>();
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Change));
 
         private static readonly Dictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>> CacheTransition =
-            new Dictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>>();
-
-        static ExecuteContext() {
-            foreach (var stateKey in (TStateKey[])Enum.GetValues(typeof(TStateKey))) {
-                CachePush[stateKey] = new ExecuteTransition<TStateKey, TTransitionKey>(stateKey, TransitionType.Push);
-                CachePopPush[stateKey] = new ExecuteTransition<TStateKey, TTransitionKey>(stateKey, TransitionType.PopPush);
-                CacheChange[stateKey] = new ExecuteTransition<TStateKey, TTransitionKey>(stateKey, TransitionType.Change);
-            }
-            foreach (var transitionKey in (TTransitionKey[])Enum.GetValues(typeof(TTransitionKey))) {
-                CacheTransition[transitionKey] = new ExecuteTransition<TStateKey, TTransitionKey>(transitionKey);; 
-            }
-        }
+            Enum.GetValues(typeof(TTransitionKey)).Cast<TTransitionKey>().ToDictionary(s => s,
+                s => new ExecuteTransition<TStateKey, TTransitionKey>(s));
 
         public ExecuteTransition<TStateKey, TTransitionKey> Push(TStateKey name) => CachePush[name];
         public ExecuteTransition<TStateKey, TTransitionKey> PopPush(TStateKey name) => CachePopPush[name];
@@ -50,7 +44,6 @@ namespace Betauer.StateMachine {
         public ExecuteTransition<TStateKey, TTransitionKey> None() => CachedNone;
         public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey transitionKey) => CacheTransition[transitionKey];
             
-
         public float Delta { get; internal set; }
     }
 
@@ -58,28 +51,20 @@ namespace Betauer.StateMachine {
         private static readonly TriggerTransition<TStateKey> CachePop = new TriggerTransition<TStateKey>(TransitionType.Pop);
         
         private static readonly Dictionary<TStateKey, TriggerTransition<TStateKey>> CachePush =
-            new Dictionary<TStateKey, TriggerTransition<TStateKey>>();
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new TriggerTransition<TStateKey>(s, TransitionType.Push));
 
         private static readonly Dictionary<TStateKey, TriggerTransition<TStateKey>> CachePopPush =
-            new Dictionary<TStateKey, TriggerTransition<TStateKey>>();
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new TriggerTransition<TStateKey>(s, TransitionType.PopPush));
 
         private static readonly Dictionary<TStateKey, TriggerTransition<TStateKey>> CacheChange =
-            new Dictionary<TStateKey, TriggerTransition<TStateKey>>();
-
-        static TriggerContext() {
-            foreach (var stateKey in (TStateKey[])Enum.GetValues(typeof(TStateKey))) {
-                CachePush[stateKey] = new TriggerTransition<TStateKey>(stateKey, TransitionType.Push);
-                CachePopPush[stateKey] = new TriggerTransition<TStateKey>(stateKey, TransitionType.PopPush);
-                CacheChange[stateKey] = new TriggerTransition<TStateKey>(stateKey, TransitionType.Change);
-            }
-        }
+            Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
+                s => new TriggerTransition<TStateKey>(s, TransitionType.Change));
 
         public TriggerTransition<TStateKey> Push(TStateKey name) => CachePush[name];
-
         public TriggerTransition<TStateKey> PopPush(TStateKey name) => CachePopPush[name];
-
         public TriggerTransition<TStateKey> Pop() => CachePop;
-
         public TriggerTransition<TStateKey> Set(TStateKey name) => CacheChange[name];
 
     }
