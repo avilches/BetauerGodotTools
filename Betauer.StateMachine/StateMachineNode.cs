@@ -60,8 +60,8 @@ namespace Betauer.StateMachine {
             StateMachine.On(stateKey, transitionKey, transition);
         }
 
-        public void Trigger(TTransitionKey name) {
-            StateMachine.Trigger(name);
+        public void Enqueue(TTransitionKey name) {
+            StateMachine.Enqueue(name);
         }
 
         public async Task Execute(float delta) {

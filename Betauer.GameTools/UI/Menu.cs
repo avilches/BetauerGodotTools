@@ -77,7 +77,7 @@ namespace Betauer.UI {
                 Available = false;
                 var fromMenu = ActiveMenu;
                 var toMenu = GetStartMenu();
-                BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;;
+                BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
                 lock (_navigationState) _navigationState.Clear();
                 var transition = new MenuTransition(fromMenu, null, toMenu, toButton);
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
@@ -211,8 +211,8 @@ namespace Betauer.UI {
                 }
                 var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.GetChildFocused();
                 var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
-                goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
-                newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
+                goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;
+                newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
             } catch (Exception e) {
                 throw e;

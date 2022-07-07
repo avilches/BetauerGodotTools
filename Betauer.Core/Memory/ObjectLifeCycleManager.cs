@@ -149,8 +149,8 @@ namespace Betauer.Memory {
             lock (_watching)
                 foreach (var o in _watching) o.Dispose();
             lock (this) {
-                foreach (var o in _queue) o.Dispose();;
-                foreach (var o in _queueB) o.Dispose();;
+                foreach (var o in _queue) o.Dispose();
+                foreach (var o in _queueB) o.Dispose();
             }
         }
     }

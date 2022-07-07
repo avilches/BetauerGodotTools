@@ -40,7 +40,7 @@ namespace Betauer.Application {
         public static Dictionary<string, string> GetActiveMap() {
             return Description
                 .Where(val => OS.HasFeature(val.Key))
-                .ToDictionary(val => val.Key, val => val.Value);;
+                .ToDictionary(val => val.Key, val => val.Value);
         }
 
     }

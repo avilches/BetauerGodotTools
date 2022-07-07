@@ -12,7 +12,7 @@ namespace Betauer.StateMachine {
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public IState<TStateKey, TTransitionKey> State { get; }
-        public void Trigger(TTransitionKey name);
+        public void Enqueue(TTransitionKey name);
         public Task Execute(float delta);
     }
 
@@ -153,7 +153,7 @@ namespace Betauer.StateMachine {
 
         private TTransitionKey _nextTransition;
         private bool _nextTransitionDefined = false;
-        public void Trigger(TTransitionKey name) {
+        public void Enqueue(TTransitionKey name) {
             lock (this) {
                 _nextTransition = name;
                 _nextTransitionDefined = true;
