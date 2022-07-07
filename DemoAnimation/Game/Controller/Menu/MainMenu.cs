@@ -153,8 +153,8 @@ namespace DemoAnimation.Game.Controller.Menu {
                 _animatorContainer.Visible = false;
                 _demoMenu?.QueueFree();
                 _demoMenu = BuildDemoMenu();
-                await _demoMenu.Start();
                 await mainMenu.Go("Menu");
+                await _demoMenu.Start();
             });
             root.AddButton("Exit", "Exit").OnPressed(() => { _gameManager.TriggerModalBoxConfirmExitDesktop(); });
 

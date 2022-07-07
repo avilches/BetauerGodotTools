@@ -75,10 +75,11 @@ namespace Betauer.UI {
             if (!Available) return;
             try {
                 Available = false;
-                Menu toMenu = GetStartMenu();
+                var fromMenu = ActiveMenu;
+                var toMenu = GetStartMenu();
                 BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;;
                 lock (_navigationState) _navigationState.Clear();
-                var transition = new MenuTransition(null, null, toMenu, toButton);
+                var transition = new MenuTransition(fromMenu, null, toMenu, toButton);
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, null, newMenuAnimation);
             } catch (Exception e) {
@@ -171,7 +172,7 @@ namespace Betauer.UI {
                 Available = false;
                 var fromButton = fromButtonName != null
                     ? ActiveMenu.GetControl<BaseButton>(fromButtonName)
-                    : ActiveMenu.Container.GetFocusOwner() as BaseButton;
+                    : ActiveMenu.GetFocused<BaseButton>();
                 Menu toMenu = GetMenu(toMenuName);
                 if (!replace)
                     lock (_navigationState)
@@ -208,7 +209,7 @@ namespace Betauer.UI {
                         toButton = lastState.Button;
                     }
                 }
-                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.Container.GetFocusOwner() as BaseButton;
+                var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.GetFocused<BaseButton>();
                 var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
                 goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;;
                 newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;;
@@ -415,10 +416,20 @@ namespace Betauer.UI {
         public T? GetControl<T>(string name) where T : Control {
             return Container.GetNode<T>(name) ?? throw new NullReferenceException();
         }
+
+        /// <summary>
+        /// Return the focused control in the container (if the focused button belongs to other container, it returns null)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T? GetFocused<T>() where T : Control {
+            var focused = Container.GetFocusOwner();
+            return focused == null ? null : Container.GetChildren<T>().Find(b => b == focused);
+        }
     }
 
     public class MenuTransition {
-        public readonly Menu FromMenu;
+        public readonly Menu? FromMenu;
         public readonly BaseButton? FromButton;
         public readonly Menu ToMenu;
         public readonly BaseButton? ToButton;
