@@ -175,7 +175,9 @@ namespace DemoAnimation.Game.Controller.Menu {
             mainMenu.ConfigureBackTransition(BackGoodbyeAnimation, BackNewMenuAnimation);
 
             var root = mainMenu.GetStartMenu();
-            root.AddButton("S", "Start new game").OnPressed(() => mainMenu.Go("Other", "1"));
+            root.AddButton("S", "Start new game").OnPressed(() => {
+                mainMenu.Go("Other", "1");
+            }, true);
             root.AddButton("C", "Continue").OnPressed(() => mainMenu.Go("Other", "2"));
             
             var second = mainMenu.AddMenu("Other");

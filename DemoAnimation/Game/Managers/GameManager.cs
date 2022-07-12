@@ -84,7 +84,7 @@ namespace DemoAnimation.Game.Managers {
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {
-            _stateMachineNode.Trigger(Transition.ModalBoxConfirmExitDesktop);
+            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmExitDesktop);
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {

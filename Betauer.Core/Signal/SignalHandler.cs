@@ -5,7 +5,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Signal {
 
-    public abstract class SignalHandler : DisposableGodotObject, IObjectLifeCycle {
+    public abstract class SignalHandler : DisposableGodotObject, IObjectWatched {
         public readonly Object Target;
         public readonly string Signal;
         public readonly bool OneShot;
@@ -23,9 +23,9 @@ namespace Betauer.Signal {
             Watch();
         }
 
-        public void Unwatch() => ObjectLifeCycleManager.Singleton.Unwatch(this);
+        public void Unwatch() => DefaultObjectWatcher.Instance.Unwatch(this);
 
-        public void Watch() => ObjectLifeCycleManager.Singleton.Watch(this);
+        public void Watch() => DefaultObjectWatcher.Instance.Watch(this);
 
         public SignalHandler Bind(Object o) {
             _bound = o;
@@ -42,7 +42,9 @@ namespace Betauer.Signal {
         }
 
         protected void AfterCall() {
-            if (OneShot) _valid = false;
+            if (OneShot) {
+                _valid = false;
+            }
         }
 
         public bool IsValid() => IsInstanceValid(Target) && IsInstanceValid(this);
@@ -60,25 +62,28 @@ namespace Betauer.Signal {
             if (disposing) Disconnect();
         }
 
-        public bool MustBeDisposed() {
+        public bool MustBeFreed() {
             return !_valid || !IsValid() || (_bound != null && !IsInstanceValid(_bound));
         }
 
+        public Object Object => this;
+
         public override string ToString() {
-            string txt = null;
-            if (IsInstanceValid(this)) {
-                txt += "Target:" + Target.GetType();                
-            } else {
-                txt += "Disposed. Target:" + Target.GetType();                
-            }
-            if (_targetName != null) {
-                txt += " \"" + _targetName + "\"";
-            }
-            if (!IsInstanceValid(Target)) {
-                txt += " (Disposed)";
-            }
-            txt += ". Signal:" + Signal;
-            return txt;
+            // string txt = null;
+            // if (IsInstanceValid(this)) {
+                // txt += "Target:" + Target.GetType();                
+            // } else {
+                // txt += "Disposed. Target:" + Target.GetType();                
+            // }
+            // if (_targetName != null) {
+                // txt += " \"" + _targetName + "\"";
+            // }
+            // if (!IsInstanceValid(Target)) {
+                // txt += " (Disposed)";
+            // }
+            // txt += ". Signal:" + Signal;
+            // return txt;
+            return GetType().ToString();
         }
 
         private static uint SignalFlags(bool oneShot, bool deferred = false) =>

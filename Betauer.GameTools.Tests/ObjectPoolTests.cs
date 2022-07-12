@@ -33,7 +33,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
             Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
 
-            DefaultObjectPool.UsePool = true;
+            DefaultObjectPool.Enabled = true;
             R r = DefaultObjectPool.Get<R>();
             GR gr = DefaultObjectPool.Get<GR>();
             Assert.That(R.Created, Is.EqualTo(1));
@@ -51,7 +51,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(DefaultObjectPool.Registry, Is.EqualTo(objectPool));
             Assert.That(DefaultObjectPool.Registry.Pools.Count, Is.EqualTo(0));
 
-            DefaultObjectPool.UsePool = false;
+            DefaultObjectPool.Enabled = false;
             R r = DefaultObjectPool.Get<R>();
             GR gr = DefaultObjectPool.Get<GR>();
             Assert.That(R.Created, Is.EqualTo(1));

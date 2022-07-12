@@ -65,6 +65,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
+            AddChild(new ObjectWatcherNode());
         }
 
         private static void ExportConfig() {
