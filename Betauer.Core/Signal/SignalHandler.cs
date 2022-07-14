@@ -5,16 +5,68 @@ using Object = Godot.Object;
 
 namespace Betauer.Signal {
 
-    public abstract class SignalHandler : DisposableGodotObject, IObjectWatched {
+    public interface ISignalHandler {
+        public bool IsValid();
+        public void Connect();
+        public bool IsConnected();
+        public void Disconnect();
+    }
+
+    public static class SignalTools {
+        public static uint SignalFlags(bool oneShot, bool deferred = false) =>
+            (oneShot ? (uint)Object.ConnectFlags.Oneshot : 0) +
+            (deferred ? (uint)Object.ConnectFlags.Deferred : 0) +
+            0;
+    }
+
+    public class SignalHandler : ISignalHandler {
+        public readonly Object Origin;
+        public readonly Object Target;
+        public readonly string Signal;
+        public readonly string MethodName;
+        public readonly bool OneShot;
+        public readonly bool Deferred;
+        private string? _targetName;
+        public SignalHandler(Object origin, string signal, Object target, string methodName, bool oneShot = false, bool deferred = false) {
+            Origin = origin;
+            Signal = signal;
+            Target = target;
+            MethodName = methodName;
+            OneShot = oneShot;
+            Deferred = deferred;
+            _targetName = Target is Node node ? node.Name : null;
+            Connect();
+        }
+
+        public bool IsValid() => Object.IsInstanceValid(Target) && Object.IsInstanceValid(Origin);
+
+        public void Connect() {
+            if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
+            Error err = Target.Connect(Signal, Target, MethodName, null, SignalTools.SignalFlags(OneShot, Deferred));
+            if (err != Error.Ok) {
+                throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
+            }
+        }
+
+        public bool IsConnected() {
+            return IsValid() && Target.IsConnected(Signal, Target, MethodName);
+        }
+
+        public void Disconnect() {
+            if (IsConnected()) Target.Disconnect(Signal, Target, MethodName);
+        }
+    }
+
+    public abstract class SignalHandlerBase : DisposableGodotObject, ISignalHandler, IObjectWatched {
         public readonly Object Target;
         public readonly string Signal;
         public readonly bool OneShot;
         public readonly bool Deferred;
-        private Object? _bound = null;
+        public string? TargetName;
+        public Object? Bound { get; private set; } = null;
         private bool _valid = true;
-        private string? _targetName;
 
-        protected SignalHandler(Object target, string signal, bool oneShot = false, bool deferred = false) {
+        protected SignalHandlerBase(Object target, string signal, bool oneShot = false, bool deferred = false) {
             Target = target;
             Signal = signal;
             OneShot = oneShot;
@@ -27,22 +79,23 @@ namespace Betauer.Signal {
 
         public void Watch() => DefaultObjectWatcher.Instance.Watch(this);
 
-        public SignalHandler Bind(Object o) {
-            _bound = o;
+        public SignalHandlerBase Bind(Object o) {
+            Bound = o;
             return this;
         }
 
         public void Connect() {
             if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
-            Error err = Target.Connect(Signal, this, nameof(SignalHandlerAction.Call), null, SignalFlags(OneShot, Deferred));
+            Error err = Target.Connect(Signal, this, nameof(SignalHandlerAction.Call), null, SignalTools.SignalFlags(OneShot, Deferred));
             if (err != Error.Ok) {
                 throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
             }
-            _targetName = Target is Node node ? node.Name : null;
+            TargetName = Target is Node node ? node.Name : null;
         }
 
         protected void AfterCall() {
             if (OneShot) {
+                CallDeferred("free");
                 _valid = false;
             }
         }
@@ -63,7 +116,7 @@ namespace Betauer.Signal {
         }
 
         public bool MustBeFreed() {
-            return !_valid || !IsValid() || (_bound != null && !IsInstanceValid(_bound));
+            return !_valid || !IsValid() || (Bound != null && !IsInstanceValid(Bound));
         }
 
         public Object Object => this;
@@ -86,21 +139,17 @@ namespace Betauer.Signal {
             return GetType().ToString();
         }
 
-        private static uint SignalFlags(bool oneShot, bool deferred = false) =>
-            (oneShot ? (uint)ConnectFlags.Oneshot : 0) +
-            (deferred ? (uint)ConnectFlags.Deferred : 0) +
-            0;
     }
     
-    public abstract class SignalHandler<T> : SignalHandler {
+    public abstract class SignalHandlerBase<T> : SignalHandlerBase {
         protected readonly T Action;
 
-        protected SignalHandler(Object target, string signal, T action, bool oneShot = false, bool deferred = false): base(target, signal, oneShot, deferred) {
+        protected SignalHandlerBase(Object target, string signal, T action, bool oneShot = false, bool deferred = false): base(target, signal, oneShot, deferred) {
             Action = action;
         }
     }
 
-    public class SignalHandlerAction : SignalHandler<Action> {
+    public class SignalHandlerAction : SignalHandlerBase<Action> {
         public SignalHandlerAction(Object target, string signal, Action action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -115,7 +164,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1> : SignalHandler<Action<T1>> {
+    public class SignalHandlerAction<T1> : SignalHandlerBase<Action<T1>> {
         public SignalHandlerAction(Object target, string signal, Action<T1> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -130,7 +179,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2> : SignalHandler<Action<T1, T2>> {
+    public class SignalHandlerAction<T1, T2> : SignalHandlerBase<Action<T1, T2>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -145,7 +194,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2, T3> : SignalHandler<Action<T1, T2, T3>> {
+    public class SignalHandlerAction<T1, T2, T3> : SignalHandlerBase<Action<T1, T2, T3>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2, T3> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -160,7 +209,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2, T3, T4> : SignalHandler<Action<T1, T2, T3, T4>> {
+    public class SignalHandlerAction<T1, T2, T3, T4> : SignalHandlerBase<Action<T1, T2, T3, T4>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2, T3, T4> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -175,7 +224,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2, T3, T4, T5> : SignalHandler<Action<T1, T2, T3, T4, T5>> {
+    public class SignalHandlerAction<T1, T2, T3, T4, T5> : SignalHandlerBase<Action<T1, T2, T3, T4, T5>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2, T3, T4, T5> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -190,7 +239,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2, T3, T4, T5, T6> : SignalHandler<Action<T1, T2, T3, T4, T5, T6>> {
+    public class SignalHandlerAction<T1, T2, T3, T4, T5, T6> : SignalHandlerBase<Action<T1, T2, T3, T4, T5, T6>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -205,7 +254,7 @@ namespace Betauer.Signal {
         }
     }
 
-    public class SignalHandlerAction<T1, T2, T3, T4, T5, T6, T7> : SignalHandler<Action<T1, T2, T3, T4, T5, T6, T7>> {
+    public class SignalHandlerAction<T1, T2, T3, T4, T5, T6, T7> : SignalHandlerBase<Action<T1, T2, T3, T4, T5, T6, T7>> {
         public SignalHandlerAction(Object target, string signal, Action<T1, T2, T3, T4, T5, T6, T7> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
@@ -221,8 +270,8 @@ namespace Betauer.Signal {
     }
 
     public class
-        SignalHandler<T1, T2, T3, T4, T5, T6, T7, T8> : SignalHandler<Action<T1, T2, T3, T4, T5, T6, T7, T8>> {
-        public SignalHandler(Object target, string signal, Action<T1, T2, T3, T4, T5, T6, T7, T8> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
+        SignalHandlerBase<T1, T2, T3, T4, T5, T6, T7, T8> : SignalHandlerBase<Action<T1, T2, T3, T4, T5, T6, T7, T8>> {
+        public SignalHandlerBase(Object target, string signal, Action<T1, T2, T3, T4, T5, T6, T7, T8> action, bool oneShot = false, bool deferred = false) : base(target, signal, action, oneShot, deferred) {
         }
 
         public void Call(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {

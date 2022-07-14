@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateSignalHandlerExtensions {
-        private const string SignalHandlerExtensionsFile = "../Betauer.Core/SignalHandler/SignalHandlerExtensions.cs";
+        private const string SignalHandlerExtensionsFile = "../Betauer.Core/Signal/SignalHandlerExtensions.cs";
 
         public static void WriteSignalHandlerExtensionsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
@@ -25,6 +25,9 @@ namespace Generator {
                 : $"this {signal.GodotClass.FullClassName} target, ";
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
+        public static SignalHandler Connect{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
+            Connect(target, ""{signal.signal_name}"", action, oneShot, deferred);
+
         public static SignalHandlerAction{signal.Generics()} On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
             new SignalHandlerAction{signal.Generics()}({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
         }
@@ -36,8 +39,16 @@ using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 
-namespace Betauer.SignalHandler {{
+namespace Betauer.Signal {{
     public static partial class SignalExtensions {{
+        public static Object EnsureObject(object o) =>
+            !(o is Object obj) ? throw new Exception(""Only Godot.Object instances are allowed"") : obj;
+
+        public static SignalHandler Connect<T>(Object origin, string signal, Action<T> method, bool oneShot, bool deferred) =>
+            new SignalHandler(origin, signal, EnsureObject(method.Target), method.Method.Name, oneShot, deferred);
+
+        public static SignalHandler Connect(Object origin, string signal, Action method, bool oneShot, bool deferred) =>
+            new SignalHandler(origin, signal, EnsureObject(method.Target), method.Method.Name, oneShot, deferred);
 {string.Join("\n", methods)}
     }}
 }}";

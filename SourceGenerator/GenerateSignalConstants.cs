@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateSignalConstants {
-        private const string SignalConstantsFile = "../Betauer.Core/SignalConstants.cs";
+        private const string SignalConstantsFile = "../Betauer.Core/Signal/SignalConstants.cs";
 
         public static void WriteSignalConstantsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
