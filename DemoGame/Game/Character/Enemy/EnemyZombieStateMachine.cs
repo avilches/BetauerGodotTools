@@ -51,7 +51,7 @@ namespace Veronenger.Game.Character.Enemy {
         }
 
         public void TriggerAttacked() {
-            _stateMachineNode.Trigger(Transition.Attacked);
+            _stateMachineNode.Enqueue(Transition.Attacked);
         }
 
         private void AddStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
