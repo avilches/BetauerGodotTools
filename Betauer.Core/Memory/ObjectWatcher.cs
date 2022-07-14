@@ -11,19 +11,26 @@ namespace Betauer.Memory {
     }
 
     public class ObjectWatcherNode : Node {
-        public IObjectWatcher ObjectWatcher;
-        private readonly ulong _frames;
-        private ulong _frameCount = 0;
+        private readonly IObjectWatcher? _objectWatcher;
+        private IObjectWatcher ObjectWatcher => _objectWatcher ?? DefaultObjectWatcher.Instance;
+        private readonly float _seconds;
+        private float _timeElapsed = 0;
 
-        public ObjectWatcherNode(int frames = 600, ObjectWatcher? objectWatcher = null) {
-            _frames = (ulong)frames;
-            ObjectWatcher = objectWatcher ?? DefaultObjectWatcher.Instance;
+        public ObjectWatcherNode(float seconds = 10, IObjectWatcher? objectWatcher = null) {
+            _seconds = seconds;
+            _objectWatcher = objectWatcher;
+            PauseMode = PauseModeEnum.Process;
+        }
+
+        public override void _Ready() {
+            this.DisableAllNotifications();
+            SetProcess(true);
         }
 
         public override void _Process(float delta) {
-            ++_frameCount;
-            if (_frameCount < _frames) return;
-            _frameCount = 0;
+            _timeElapsed += delta;
+            if (_timeElapsed < _seconds) return;
+            _timeElapsed -= _seconds;
             ObjectWatcher.Process();
         }
 
