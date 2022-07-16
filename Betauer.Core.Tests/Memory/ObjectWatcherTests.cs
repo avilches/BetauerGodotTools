@@ -94,7 +94,6 @@ namespace Betauer.Tests.Memory {
         }
 
         [Test]
-        // [Only]
         public async Task LockTest() {
             Exception errorAdd1 = null;
             var dummies1 = new List<Dummy>();

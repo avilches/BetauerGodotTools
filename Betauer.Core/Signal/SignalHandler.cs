@@ -137,6 +137,10 @@ namespace Betauer.Signal {
         public void Dispose() {
             if (Target is SignalObjectTarget a) a.Dispose();
         }
+
+        public void Unwatch() {
+            if (Target is SignalObjectTarget a) a.Unwatch();
+        }
     }
 
     internal abstract class SignalObjectTarget : DisposableGodotObject, IObjectWatched {
@@ -157,6 +161,9 @@ namespace Betauer.Signal {
 
         public Object Object => this;
 
+        public void Unwatch() {
+            DefaultObjectWatcher.Instance.Unwatch(this);
+        }
     }
 
     internal abstract class SignalObjectTarget<T> : SignalObjectTarget {
