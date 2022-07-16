@@ -63,46 +63,5 @@ namespace Betauer.DI.Tests {
             Assert.That(s.myName(), Is.EqualTo("pepe"));
         }
 
-        public class MyNodeBase : Node {
-            internal string baseName = "basePepe";
-
-        }
-        public class MyNode : MyNodeBase {
-            internal string name = "pepe";
-            [OnReady] internal string myName;
-        }
-
-        [Test(Description = "Test a closure function in OnReady")]
-        public async Task OnReadyClosureTest() {
-            var di = new ContainerBuilder(this);
-            di.Function<MyNode, string>((s) => s.name);
-            var container = di.Build();
-
-            var d = new GodotContainer(container);
-            AddChild(d);
-
-            var s = new MyNode();
-            AddChild(s);
-
-            await this.AwaitIdleFrame();
-
-            Assert.That(s.myName, Is.EqualTo("pepe"));
-        }
-
-        [Test(Description = "Test a closure function in OnReady using a base class")]
-        public async Task OnReadyClosureTestBaseClass() {
-            var di = new ContainerBuilder(this);
-            di.Function<MyNodeBase, string>((s) => s.baseName);
-            var container = di.Build();
-
-            var d = new GodotContainer(container);
-            AddChild(d);
-            
-            MyNode s = new MyNode();
-            AddChild(s);
-            await this.AwaitIdleFrame();
-            
-            Assert.That(s.myName, Is.EqualTo("basePepe"));
-        }
     }
 }

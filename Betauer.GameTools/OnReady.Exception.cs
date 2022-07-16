@@ -16,4 +16,20 @@ namespace Betauer.DI {
             Name = name;
         }
     }
+
+    public abstract class OnReadyException : Exception {
+        public readonly object Instance;
+
+        public OnReadyException(string message, object instance) : base(message) {
+            Instance = instance;
+        }
+    }
+
+    public class OnReadyFieldException : OnReadyException {
+        public readonly string Name;
+
+        public OnReadyFieldException(string name, object instance, string message) : base(message, instance) {
+            Name = name;
+        }
+    }
 }

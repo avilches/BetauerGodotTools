@@ -11,7 +11,7 @@ using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class GameManager : Godot.Object {
+    public class GameManager {
 
         private MainMenu _mainMenuScene;
         public MainMenuBottomBar MainMenuBottomBarScene;

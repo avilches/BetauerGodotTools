@@ -27,13 +27,6 @@ namespace Betauer.DI {
             type.GetGenericTypeDefinition() == typeof(Func<>) &&
             type.GetGenericArguments().Length == 1;
 
-        public static void OnReadyField(Container container, Node target, Setter setter) {
-            // [OnReady] private TOut value
-            // Find a Func<T, TResult> where T is the current instance Type
-            Delegate func = container.ResolveCompatibleFunction(target.GetType(), setter.Type);
-            var value = func.DynamicInvoke(target);
-            setter.SetValue(target, value);
-        }
     }
 
     public static class ContainerFunctionExtensions {

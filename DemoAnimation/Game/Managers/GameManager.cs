@@ -12,7 +12,7 @@ using Godot;
 
 namespace DemoAnimation.Game.Managers {
     [Singleton]
-    public class GameManager : DisposableGodotObject {
+    public class GameManager {
         private MainMenu _mainMenuScene;
         private Node _currentGameScene;
 

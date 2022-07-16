@@ -182,10 +182,6 @@ namespace Betauer.DI {
             InjectAllFields(o, new ResolveContext(this));
         }
 
-        public void LoadOnReadyNodes(Node o) {
-            Injector.LoadOnReadyNodes(o);
-        }
-
         internal void InjectAllFields(object o, ResolveContext context) {
             Injector.InjectAllFields(o, context);
         }

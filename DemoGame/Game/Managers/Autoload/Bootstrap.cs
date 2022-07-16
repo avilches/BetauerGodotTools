@@ -14,7 +14,7 @@ using Container = Betauer.DI.Container;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Managers.Autoload {
-    public class Bootstrap : GodotContainer /* needed to be instantiated as an Autoload from Godot */ {
+    public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
@@ -32,19 +32,18 @@ namespace Veronenger.Game.Managers.Autoload {
                 DevelopmentConfig();
             }
             ShowConfig();
-            AutoConfigure();
             Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
         }
 
         private static void ShowConfig() {
-            Logger.Info("cmd line args: " + string.Join(" ", OS.GetCmdlineArgs()));
-            Logger.Info("app version  : " +AppInfo.Version);
-            Logger.Info("features     : " + string.Join(", ", FeatureFlags.GetActiveList()));
-            Logger.Info("name host    : " + OS.GetName());
-            Logger.Info("data dir     : " + OS.GetDataDir());
-            Logger.Info("user data dir: " + OS.GetUserDataDir());
-            Logger.Info("config dir   : " + OS.GetConfigDir());
-            Logger.Info("cache dir    : " + OS.GetCacheDir());
+            Logger.Info($"cmd line args: {string.Join(" ", OS.GetCmdlineArgs())}");
+            Logger.Info($"app version  : {AppInfo.Version}");
+            Logger.Info($"features     : {string.Join(", ", FeatureFlags.GetActiveList())}");
+            Logger.Info($"name host    : {OS.GetName()}");
+            Logger.Info($"data dir     : {OS.GetDataDir()}");
+            Logger.Info($"user data dir: {OS.GetUserDataDir()}");
+            Logger.Info($"config dir   : {OS.GetConfigDir()}");
+            Logger.Info($"cache dir    : {OS.GetCacheDir()}");
             new[] {
                 "logging/file_logging/enable_file_logging",
                 "logging/file_logging/enable_file_logging.pc",
@@ -65,7 +64,6 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            AddChild(new ObjectWatcherNode());
         }
 
         private static void ExportConfig() {
