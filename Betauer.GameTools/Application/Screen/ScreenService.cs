@@ -200,7 +200,7 @@ namespace Betauer.Application.Screen {
      */
     public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private readonly SignalHandlerAction _signalHandlerAction;
+        private readonly SignalHandler _signalHandlerAction;
         private bool _enabled = false;
 
         public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
