@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer {
+namespace Betauer.OnReady {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class OnReadyAttribute : Attribute {
         public bool Nullable { get; set; } = false;

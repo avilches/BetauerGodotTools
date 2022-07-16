@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.OnReady;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;

@@ -1,5 +1,6 @@
 using System;
 using Betauer.Memory;
+using Betauer.OnReady;
 using Betauer.Signal;
 using Godot;
 using Container = Betauer.DI.Container;
@@ -19,7 +20,7 @@ namespace Betauer {
             PauseMode = PauseModeEnum.Process;
             _container = new Container(this);
             var builder = _container.CreateBuilder();
-            builder.Static<Func<SceneTree>>(GetTree);
+            builder.Static(GetTree());
             builder.Scan();
             builder.Build();
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);

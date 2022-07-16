@@ -10,7 +10,6 @@ using Veronenger.Game.Controller.UI;
 namespace Veronenger.Game.Managers {
     [Singleton]
     public class ResourceManager {
-        [Inject] private Func<SceneTree> GetTree;
 
         private const string MainMenu = "res://Scenes/Menu/MainMenu.tscn";
         private const string MainMenuBottomBar = "res://Scenes/Menu/MainMenuBottomBar.tscn";

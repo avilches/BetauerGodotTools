@@ -2,6 +2,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.OnReady;
 
 namespace Veronenger.Game.Controller.Animation {
     public class TestPlatformController : Node2D {

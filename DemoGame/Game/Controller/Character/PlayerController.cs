@@ -4,6 +4,7 @@ using Betauer.Animation;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.OnReady;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI.Consoles;

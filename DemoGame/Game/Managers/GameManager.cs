@@ -45,7 +45,7 @@ namespace Veronenger.Game.Managers {
 
         [Inject] private StageManager _stageManager;
         [Inject] private SettingsManager _settingsManager;
-        [Inject] private Func<SceneTree> GetTree;
+        [Inject] private SceneTree _sceneTree;
         [Inject] private ResourceManager _resourceManager;
 
         [Inject] private ActionState PixelPerfect;
@@ -56,8 +56,8 @@ namespace Veronenger.Game.Managers {
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            _settingsManager.Start(GetTree(), ApplicationConfig.Configuration);
-            _launcher.WithParent(GetTree().Root);
+            _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+            _launcher.WithParent(_sceneTree.Root);
             _mainMenuScene = _resourceManager.CreateMainMenu();
             MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
             _pauseMenuScene = _resourceManager.CreatePauseMenu();
@@ -68,11 +68,11 @@ namespace Veronenger.Game.Managers {
             _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = _stateMachineNode.PauseMode =
                 Node.PauseModeEnum.Process;
 
-            GetTree().Root.AddChild(_pauseMenuScene);
-            GetTree().Root.AddChild(_settingsMenuScene);
-            GetTree().Root.AddChild(_mainMenuScene);
-            GetTree().Root.AddChild(MainMenuBottomBarScene);
-            GetTree().Root.AddChild(_stateMachineNode);
+            _sceneTree.Root.AddChild(_pauseMenuScene);
+            _sceneTree.Root.AddChild(_settingsMenuScene);
+            _sceneTree.Root.AddChild(_mainMenuScene);
+            _sceneTree.Root.AddChild(MainMenuBottomBarScene);
+            _sceneTree.Root.AddChild(_stateMachineNode);
             splashScreen.QueueFree();
         }
 
@@ -129,14 +129,14 @@ namespace Veronenger.Game.Managers {
                 .Suspend(() => _pauseMenuScene.DisableMenus())
                 .Awake(() => _pauseMenuScene.EnableMenus())
                 .Enter(async () => {
-                    GetTree().Paused = true;
+                    _sceneTree.Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
                 .Execute(_pauseMenuScene.Execute)
                 .Exit(() => {
                     _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();
-                    GetTree().Paused = false;
+                    _sceneTree.Paused = false;
                 });
 
             builder.On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
@@ -158,7 +158,7 @@ namespace Veronenger.Game.Managers {
                 });
 
             builder.State(State.ExitDesktop)
-                .Enter(() => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
+                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
 
             return builder.Build();
         }
@@ -191,7 +191,7 @@ namespace Veronenger.Game.Managers {
             ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(modalBoxConfirm);
+            _sceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
             return result;
@@ -218,8 +218,8 @@ namespace Veronenger.Game.Managers {
         }
 
         private async Task AddSceneDeferred(Node scene) {
-            await GetTree().AwaitIdleFrame();
-            GetTree().Root.AddChild(scene);
+            await _sceneTree.AwaitIdleFrame();
+            _sceneTree.Root.AddChild(scene);
         }
     }
 }

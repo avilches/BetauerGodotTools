@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Betauer;
 using Betauer.DI;
+using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Managers;
 

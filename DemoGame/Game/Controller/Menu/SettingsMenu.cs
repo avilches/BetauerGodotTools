@@ -5,6 +5,7 @@ using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;

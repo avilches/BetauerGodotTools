@@ -1,5 +1,5 @@
 using System;
-using Betauer.DI;
+using Betauer.OnReady;
 using Godot;
 using NUnit.Framework;
 

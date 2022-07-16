@@ -31,7 +31,7 @@ namespace DemoAnimation.Game.Managers {
         private readonly Launcher _launcher = new Launcher();
 
         [Inject] private SettingsManager _settingsManager;
-        [Inject] private Func<SceneTree> GetTree;
+        [Inject] private SceneTree _sceneTree;
 
         [Inject] private ActionState UiAccept;
         [Inject] private ActionState UiCancel;
@@ -40,13 +40,13 @@ namespace DemoAnimation.Game.Managers {
         private StateMachineNode<State, Transition> _stateMachineNode;
 
         public void OnFinishLoad(SplashScreenController splashScreen) {
-            _settingsManager.Start(GetTree(), ApplicationConfig.Configuration);
-            _launcher.WithParent(GetTree().Root);
+            _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+            _launcher.WithParent(_sceneTree.Root);
             _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn").Instance();
             _stateMachineNode = BuildStateMachine();
 
-            GetTree().Root.AddChild(_mainMenuScene);
-            GetTree().Root.AddChild(_stateMachineNode);
+            _sceneTree.Root.AddChild(_mainMenuScene);
+            _sceneTree.Root.AddChild(_stateMachineNode);
             splashScreen.QueueFree();
         }
 
@@ -78,7 +78,7 @@ namespace DemoAnimation.Game.Managers {
                 });
 
             builder.State(State.ExitDesktop)
-                .Enter(() => GetTree().Notification(MainLoop.NotificationWmQuitRequest));
+                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
 
             return builder.Build();
         }
@@ -92,14 +92,14 @@ namespace DemoAnimation.Game.Managers {
                 (ModalBoxConfirm)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/ModalBoxConfirm.tscn").Instance();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
-            GetTree().Root.AddChild(modalBoxConfirm);
+            _sceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
             return result;
         }
         private async Task AddSceneDeferred(Node scene) {
-            await GetTree().AwaitIdleFrame();
-            GetTree().Root.AddChild(scene);
+            await _sceneTree.AwaitIdleFrame();
+            _sceneTree.Root.AddChild(scene);
         }
 
         public async Task LoadAnimaDemo() {

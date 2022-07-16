@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer;
 using Betauer.DI;
 using Betauer.Input;
-
+using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;

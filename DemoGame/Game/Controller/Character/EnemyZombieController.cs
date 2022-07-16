@@ -3,6 +3,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.OnReady;
 using Betauer.StateMachine;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;

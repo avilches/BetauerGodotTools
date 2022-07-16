@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Betauer;
 using Betauer.DI;
 using Betauer.Input;
-
+using Betauer.OnReady;
 using Betauer.StateMachine;
 using Godot;
 using Veronenger.Game.Controller.UI;

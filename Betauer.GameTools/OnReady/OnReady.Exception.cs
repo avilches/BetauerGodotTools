@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.DI {
+namespace Betauer.OnReady {
     public abstract class InjectException : Exception {
         public readonly object Instance;
 

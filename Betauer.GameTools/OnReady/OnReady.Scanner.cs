@@ -3,7 +3,7 @@ using System.Reflection;
 using Betauer.DI;
 using Godot;
 
-namespace Betauer {
+namespace Betauer.OnReady {
     public class OnReadyScanner {
         private const BindingFlags OnReadyFlags =
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
