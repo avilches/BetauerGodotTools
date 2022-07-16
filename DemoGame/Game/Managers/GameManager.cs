@@ -164,27 +164,27 @@ namespace Veronenger.Game.Managers {
         }
 
         public void TriggerStartGame() {
-            _stateMachineNode.Trigger(Transition.StartGame);
+            _stateMachineNode.Enqueue(Transition.StartGame);
         }
 
         public void TriggerPauseMenu() {
-            _stateMachineNode.Trigger(Transition.Pause);
+            _stateMachineNode.Enqueue(Transition.Pause);
         }
 
         public void TriggerSettings() {
-            _stateMachineNode.Trigger(Transition.Settings);
+            _stateMachineNode.Enqueue(Transition.Settings);
         }
 
         public void TriggerBack() {
-            _stateMachineNode.Trigger(Transition.Back);
+            _stateMachineNode.Enqueue(Transition.Back);
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {
-            _stateMachineNode.Trigger(Transition.ModalBoxConfirmExitDesktop);
+            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmExitDesktop);
         }
 
         public void TriggerModalBoxConfirmQuitGame() {
-            _stateMachineNode.Trigger(Transition.ModalBoxConfirmQuitGame);
+            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmQuitGame);
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
