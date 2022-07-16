@@ -56,7 +56,7 @@ namespace Betauer.Memory {
 
         public ObjectWatcher() {
             _watcher = new ConditionalConsumer<IObjectWatched>(
-                o => o.MustBeFreed(),
+                o => o.MustBeFreed() || !Object.IsInstanceValid(o.Object),
                 objects => {
                     foreach (var o in objects.Select(o => o.Object).Where(Object.IsInstanceValid)) {
                         o.CallDeferred("free");

@@ -38,6 +38,8 @@ namespace Betauer.Tests.Memory {
             var w2d = new Dummy();
             var w3 = new Dummy();
             var w4d = new Dummy();
+            var freed1 = new Dummy();
+            var disposed1 = new Dummy();
             var unwatch = new Dummy();
 
             DefaultObjectWatcher.Instance.Watch(w1);
@@ -45,23 +47,33 @@ namespace Betauer.Tests.Memory {
             DefaultObjectWatcher.Instance.Watch(w3);
             DefaultObjectWatcher.Instance.Watch(w4d);
             DefaultObjectWatcher.Instance.Watch(unwatch);
+            DefaultObjectWatcher.Instance.Watch(freed1);
+            DefaultObjectWatcher.Instance.Watch(disposed1);
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(7));
 
+            // Nothing happens
             DefaultObjectWatcher.Instance.Process();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(7));
 
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(5));
+            // Unwatch removes the element
+            DefaultObjectWatcher.Instance.Unwatch(unwatch);
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(6));
 
-            // only w2d, w4d, disposed1, disposed2 must be disposed
+            // Unwatch a non-existent elements does nothing
+            DefaultObjectWatcher.Instance.Unwatch(unwatch);
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(6));
+
+            // Freed or disposed objects are removed from watching list
+            freed1.Free();
+            disposed1.Dispose();
+            Assert.That(IsInstanceValid(freed1), Is.False);
+            Assert.That(IsInstanceValid(disposed1), Is.False);
+            DefaultObjectWatcher.Instance.Process();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(4));
+            
+            // objects with mustBeFreed = true will be removed and disposed
             w2d.mustBeFreed = true;
             w4d.mustBeFreed = true;
-            unwatch.mustBeFreed = true;
-            DefaultObjectWatcher.Instance.Unwatch(unwatch);
-
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(4));
-
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(2));
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(2));
             DefaultObjectWatcher.Instance.Process();
             Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(2));
 
@@ -69,8 +81,6 @@ namespace Betauer.Tests.Memory {
             Assert.That(IsInstanceValid(w2d), Is.True);
             Assert.That(IsInstanceValid(w3), Is.True);
             Assert.That(IsInstanceValid(w4d), Is.True);
-            Assert.That(IsInstanceValid(unwatch), Is.True);
-
             
             // Objects are deleted using CallDeferred("free") so a new frame is needed
             await this.AwaitIdleFrame();
@@ -78,10 +88,13 @@ namespace Betauer.Tests.Memory {
             Assert.That(IsInstanceValid(w2d), Is.False);
             Assert.That(IsInstanceValid(w3), Is.True);
             Assert.That(IsInstanceValid(w4d), Is.False);
+            
+            // the unwatched remains valid after all of course...
             Assert.That(IsInstanceValid(unwatch), Is.True);
         }
 
         [Test]
+        // [Only]
         public async Task LockTest() {
             Exception errorAdd1 = null;
             var dummies1 = new List<Dummy>();
