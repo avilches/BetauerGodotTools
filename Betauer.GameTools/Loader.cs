@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Godot;
 
@@ -36,14 +37,16 @@ namespace Betauer {
         }
 
         public static async Task<Dictionary<string, Resource>> Load(IEnumerable<string> resourcesToLoad,
-            Action<LoadingContext>? progress = null, Func<Task>? awaiter = null) {
+            Action<LoadingContext>? progress = null, Func<Task>? awaiter = null, int maxTime = 100) {
             var queue = new List<ResourceToLoad>();
             var totalSize = CreateQueue(resourcesToLoad, queue);
             var totalLoadedSize = 0;
             var resources = new Dictionary<string, Resource>();
+            var stopwatch = Stopwatch.StartNew();
             foreach (var resource in queue) {
                 Resource godotResource = await Load(
-                    resource.Path, resource.Size, totalLoadedSize, totalSize, progress, awaiter);
+                    stopwatch,
+                    resource.Path, resource.Size, totalLoadedSize, totalSize, progress, awaiter, maxTime);
                 resources[resource.Path] = godotResource;
                 totalLoadedSize += resource.Size;
             }
@@ -63,11 +66,13 @@ namespace Betauer {
             return totalSizeToLoad;
         }
 
-        private static async Task<Resource> Load(string resourcePath, int resourceSize,
-            int totalLoadedSize, int totalSize, Action<LoadingContext>? progress = null, Func<Task>? awaiter = null) {
+        private static async Task<Resource> Load(Stopwatch stopwatch,
+            string resourcePath, int resourceSize,
+            int totalLoadedSize, int totalSize, Action<LoadingContext>? progress, Func<Task>? awaiter, int maxTime) {
             Resource resource = null;
 
-            progress?.Invoke(new LoadingContext(totalSize, totalLoadedSize, resourcePath, resourceSize, 0));
+            if (progress != null) 
+                progress(new LoadingContext(totalSize, totalLoadedSize, resourcePath, resourceSize, 0));
 
             using (var loader = ResourceLoader.LoadInteractive(resourcePath)) {
                 var stages = loader.GetStageCount();
@@ -79,14 +84,17 @@ namespace Betauer {
                     if (pollResult == Error.Ok) {
                         stage++;
                         var resourceLoadedSize = (int)((float)stage / stages * resourceSize);
-                        progress?.Invoke(new LoadingContext(totalSize, totalLoadedSize + resourceLoadedSize,
+                        if (progress != null) progress(new LoadingContext(totalSize, totalLoadedSize + resourceLoadedSize,
                             resourcePath, resourceSize, resourceLoadedSize));
-                        if (awaiter != null) await awaiter();
+                        if (awaiter != null && stopwatch.ElapsedMilliseconds > 100) {
+                            await awaiter();
+                            stopwatch.Restart();
+                        }
                     }
                 }
                 resource = loader.GetResource();
             }
-            progress?.Invoke(new LoadingContext(totalSize, totalLoadedSize + resourceSize,
+            if (progress != null) progress(new LoadingContext(totalSize, totalLoadedSize + resourceSize,
                 resourcePath, resourceSize, resourceSize));
             return resource;
         }

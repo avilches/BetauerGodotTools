@@ -47,7 +47,14 @@ namespace Veronenger.Game.Managers {
 
         private Dictionary<string, Resource> _resources;
 
-        public async Task Load(Action<LoadingContext> progress, Func<Task> awaiter) {
+        private LinkedList<Action<LoadingContext>>? _progress;
+        public ResourceManager OnProgress(Action<LoadingContext> progress) {
+            _progress ??= new LinkedList<Action<LoadingContext>>();
+            _progress.AddLast(progress);
+            return this;
+        }
+
+        public async Task Load(Func<Task> awaiter) {
             string[] resourcesToLoad = {
                 Xbox360Buttons,
                 XboxOneButtons,
@@ -64,6 +71,13 @@ namespace Veronenger.Game.Managers {
                 Player,
                 
             };
+            Action<LoadingContext>? progress = null;
+            if (_progress != null) {
+                progress = (context) => {
+                    foreach (var action in _progress) action(context);
+                };    
+            }
+            
             _resources = await Loader.Load(resourcesToLoad, progress, awaiter);
             // foreach (var resourcesValue in _resources.Values) {
             // GD.Print(resourcesValue);

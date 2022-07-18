@@ -62,16 +62,15 @@ namespace Veronenger.Game.Managers {
             builder.State(State.Init)
                 .Execute(async (ctx) => {
                     await _resourceManager.OnProgress(context => {
-                        GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
-                        context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
-                        context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
+                        // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
+                        // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
+                        // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     }).Load(async () => { await _sceneTree.AwaitIdleFrame(); });
                     _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
                     CreateAndAddStaticScenes();
                     ConfigureStates();
                     return ctx.Set(State.MainMenu);
                 });
-                // .On(Transition.EndLoading, context => context.Set(State.MainMenu));
             builder.Build();
         }
         
