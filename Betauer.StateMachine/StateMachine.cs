@@ -11,72 +11,10 @@ namespace Betauer.StateMachine {
         public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
-        public IState<TStateKey, TTransitionKey> State { get; }
+        public bool IsState(TStateKey state);
+        public IState<TStateKey, TTransitionKey> CurrentState { get; }
         public void Enqueue(TTransitionKey name);
         public Task Execute(float delta);
-    }
-
-    public class StateMachineBuilder<T, TStateKey, TTransitionKey> where T : IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
-        private readonly T _stateMachine;
-        private readonly Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>> _pendingStateBuilders =
-            new Queue<StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>>();
-
-        public StateMachineBuilder(T stateMachine) {
-            _stateMachine = stateMachine;
-        }
-
-        public StateMachineBuilder<T, TStateKey, TTransitionKey> On(TStateKey stateKey, TTransitionKey transitionKey, 
-            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _stateMachine.On(stateKey, transitionKey, transition);
-            return this;
-        }
-
-        public StateMachineBuilder<T, TStateKey, TTransitionKey> On(TTransitionKey transitionKey, 
-            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _stateMachine.On(transitionKey, transition);
-            return this;
-        }
-
-        public StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>> State(TStateKey stateKey) {
-            var stateBuilder = new StateBuilder<T, TStateKey, TTransitionKey, StateMachineBuilder<T, TStateKey, TTransitionKey>>(_stateMachine, stateKey, this);
-            _pendingStateBuilders.Enqueue(stateBuilder);
-            return stateBuilder;
-        }
-
-        public StateMachineBuilder<T, TStateKey, TTransitionKey> AddListener(IStateMachineListener<TStateKey> machineListener) {
-            _stateMachine.AddListener(machineListener);
-            return this;
-        }
-
-        public T Build() {
-            while (_pendingStateBuilders.Count > 0) _pendingStateBuilders.Dequeue().Build();
-            return _stateMachine;
-        }
-    }
-    
-    public interface IStateMachineListener<in TStateKey> {
-        public void OnEnter(TStateKey state, TStateKey from);
-        public void OnAwake(TStateKey state, TStateKey from);
-        public void OnSuspend(TStateKey state, TStateKey to);
-        public void OnExit(TStateKey state, TStateKey to);
-        public void OnTransition(TStateKey from, TStateKey to);
-    }
-
-    public class StateMachineListenerBase<TStateKey> : IStateMachineListener<TStateKey> {
-        public virtual void OnEnter(TStateKey state, TStateKey from) {
-        }
-
-        public virtual void OnAwake(TStateKey state, TStateKey from) {
-        }
-
-        public virtual void OnSuspend(TStateKey state, TStateKey to) {
-        }
-
-        public virtual void OnExit(TStateKey state, TStateKey to) {
-        }
-
-        public virtual void OnTransition(TStateKey from, TStateKey to) {
-        }
     }
 
     public abstract class StateMachine {
@@ -96,9 +34,9 @@ namespace Betauer.StateMachine {
             internal bool IsPop() => Type == TransitionType.Pop;
             internal bool IsPopPush() => Type == TransitionType.PopPush;
             internal bool IsPush() => Type == TransitionType.Push;
-            internal bool IsReplace() => Type == TransitionType.Replace;
+            internal bool IsSet() => Type == TransitionType.Set;
             internal bool IsChange(TStateKey key) {
-                return Type == TransitionType.Replace && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
+                return Type == TransitionType.Set && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
             }
             internal bool IsNone() => Type == TransitionType.None;
         }
@@ -117,7 +55,8 @@ namespace Betauer.StateMachine {
         public readonly string? Name;
         public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new Dictionary<TStateKey, IState<TStateKey, TTransitionKey>>();
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
-        public IState<TStateKey, TTransitionKey> State { get; private set; }
+        public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
+        public bool IsState(TStateKey state) => state.Equals(CurrentState.Key);
 
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
@@ -173,16 +112,15 @@ namespace Betauer.StateMachine {
                         _nextChange = CreateChange(triggerTransition);
                     }
                 }
-                var change = State == null && _nextChange.State == null
-                    ? new Change(States[_initialState], TransitionType.Replace)
+                var change = CurrentState == null && _nextChange.State == null
+                    ? new Change(States[_initialState], TransitionType.Set)
                     : _nextChange;
                 if (change.Type == TransitionType.Pop) await DoPop(change);
                 else if (change.Type == TransitionType.Push) await DoPush(change);
                 else if (change.Type == TransitionType.PopPush) await DoPopPush(change);
-                else if (change.Type == TransitionType.Replace) await DoReplace(change);
+                else if (change.Type == TransitionType.Set) await DoSet(change);
 
-                _executeContext.Delta = delta;
-                var transition = await State.Execute(_executeContext);
+                var transition = await DoExecute(delta);
                 _nextChange = CreateChange(transition);
             } catch (Exception e) {
                 throw e;
@@ -192,26 +130,26 @@ namespace Betauer.StateMachine {
         }
 
         private async Task DoPop(Change change) {
-            if (State != null) await Exit(_stack.Pop(), change.State.Key);
+            if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
             var newState = TransitionTo(change, out var oldState);
             await Awake(newState, oldState.Key);
         }
 
         private async Task DoPopPush(Change change) {
-            if (State != null) await Exit(_stack.Pop(), change.State.Key);
+            if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
             var newState = TransitionTo(change, out var oldState);
             _stack.Push(newState);
-            await Enter(State, oldState.Key);
+            await Enter(CurrentState, oldState.Key);
         }
 
         private async Task DoPush(Change change) {
-            if (State != null) await Suspend(State, change.State!.Key);
+            if (CurrentState != null) await Suspend(CurrentState, change.State!.Key);
             var newState = TransitionTo(change, out var oldState);
             _stack.Push(newState);
-            await Enter(State, oldState.Key);
+            await Enter(CurrentState, oldState.Key);
         }
 
-        private async Task DoReplace(Change change) {
+        private async Task DoSet(Change change) {
             if (_stack.Count > 1) {
                 // Spacial case: 
                 // Exit from all the states in stack, in order, until the next change
@@ -225,13 +163,21 @@ namespace Betauer.StateMachine {
             }
             var newState = TransitionTo(change, out var oldState);
             _stack.Push(newState);
-            await Enter(State, oldState.Key);
+            await Enter(CurrentState, oldState.Key);
+        }
+
+        private async Task<ExecuteTransition<TStateKey, TTransitionKey>> DoExecute(float delta) {
+            _listeners?.ForEach(listener => listener.OnExecuteStart(delta, CurrentState.Key));
+            _executeContext.Delta = delta;
+            var transition = await CurrentState.Execute(_executeContext);
+            _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
+            return transition;
         }
 
         private IState<TStateKey, TTransitionKey> TransitionTo(Change change, out IState<TStateKey, TTransitionKey> oldState) {
             var newState = change.State;
-            oldState = State ?? newState;
-            State = newState;
+            oldState = CurrentState ?? newState;
+            CurrentState = newState;
             Transition(change, oldState, newState);
             return newState;
         }
@@ -240,8 +186,8 @@ namespace Betauer.StateMachine {
             if (candidate.IsTrigger() ) {
                 candidate = GetTransitionFromTrigger(candidate.TransitionKey);
             }
-            if (State != null && candidate.IsReplace(State.Key)) {
-                return new Change(State, TransitionType.None);
+            if (CurrentState != null && candidate.IsSet(CurrentState.Key)) {
+                return new Change(CurrentState, TransitionType.None);
             }
             if (candidate.IsPop()) {
                 if (_stack.Count <= 1) {
@@ -253,7 +199,7 @@ namespace Betauer.StateMachine {
                 return transition;
             }
             if (candidate.IsNone()) {
-                return new Change(State, TransitionType.None);
+                return new Change(CurrentState, TransitionType.None);
             }
             IState<TStateKey, TTransitionKey> newState = States[candidate.StateKey];
             return new Change(newState, candidate.Type);
@@ -263,8 +209,8 @@ namespace Betauer.StateMachine {
         private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
             TriggerTransition<TStateKey> triggerTransition = default;
             var found = false;
-            if (State != null && _stateEvents != null) {
-                var key = new Tuple<TStateKey, TTransitionKey>(State.Key, name);
+            if (CurrentState != null && _stateEvents != null) {
+                var key = new Tuple<TStateKey, TTransitionKey>(CurrentState.Key, name);
                 if (_stateEvents != null && _stateEvents.ContainsKey(key)) {
                     triggerTransition = _stateEvents[key].Invoke(_triggerContext);
                     found = true;
@@ -282,7 +228,12 @@ namespace Betauer.StateMachine {
         }
 
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {
-            _listeners?.ForEach(listener => listener.OnTransition(from.Key, to.Key));
+            try {
+                _listeners?.ForEach(listener => listener.OnTransition(from.Key, to.Key));
+            } catch (Exception e) {
+                Console.WriteLine(e);
+                throw;
+            }
             Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key}");
         }
 

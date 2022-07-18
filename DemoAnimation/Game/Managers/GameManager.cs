@@ -2,34 +2,35 @@ using System;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Memory;
 using Betauer.StateMachine;
-using DemoAnimation.Game.Controller;
 using DemoAnimation.Game.Controller.Menu;
 using Godot;
 
 namespace DemoAnimation.Game.Managers {
     [Singleton]
-    public class GameManager {
-        private MainMenu _mainMenuScene;
-        private Node _currentGameScene;
-
+    public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
         public enum Transition {
+            FinishLoading,
             Back,
             ModalBoxConfirmExitDesktop,
         }
-
+    
         public enum State {
-            Loading,
+            Init,
             MainMenu,
             ModalExitDesktop,
             ExitDesktop,
         }
+    
+        private MainMenu _mainMenuScene;
+        private Node _currentGameScene;
 
         private readonly Launcher _launcher = new Launcher();
 
+        [Inject] private InputManager _inputManager;
         [Inject] private SettingsManager _settingsManager;
         [Inject] private SceneTree _sceneTree;
 
@@ -37,24 +38,21 @@ namespace DemoAnimation.Game.Managers {
         [Inject] private ActionState UiCancel;
         [Inject] private ActionState UiStart;
 
-        private StateMachineNode<State, Transition> _stateMachineNode;
-
-        public void OnFinishLoad(SplashScreenController splashScreen) {
-            _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
-            _launcher.WithParent(_sceneTree.Root);
-            _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn").Instance();
-            _stateMachineNode = BuildStateMachine();
-
-            _sceneTree.Root.AddChild(_mainMenuScene);
-            _sceneTree.Root.AddChild(_stateMachineNode);
-            splashScreen.QueueFree();
-        }
-
-        private StateMachineNode<State, Transition> BuildStateMachine() {
-            var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
-                .CreateBuilder();
-            builder.State(State.Loading)
-                .Execute(context => context.Replace(State.MainMenu));
+        public GameManager() : base(State.Init) {
+            var builder = CreateBuilder();
+            builder.On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
+            builder.State(State.Init)
+                .Enter(() => {
+                    var defaults = new ApplicationConfig.UserSettings();
+                    var userSettingsFile = new SettingsFile(defaults, _inputManager.ConfigurableActionList);
+                    _settingsManager.Load(userSettingsFile);
+                    _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+                    _launcher.WithParent(_sceneTree.Root);
+                    _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn")
+                        .Instance();
+                    _sceneTree.Root.AddChild(_mainMenuScene);
+                })
+                .Execute(context => context.Set(State.MainMenu));
 
             builder.State(State.MainMenu)
                 .Suspend(() => _mainMenuScene.DisableMenus())
@@ -79,12 +77,12 @@ namespace DemoAnimation.Game.Managers {
 
             builder.State(State.ExitDesktop)
                 .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
-
-            return builder.Build();
+            
+            builder.Build();
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {
-            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmExitDesktop);
+            Enqueue(Transition.ModalBoxConfirmExitDesktop);
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
@@ -107,5 +105,6 @@ namespace DemoAnimation.Game.Managers {
             _currentGameScene = nextScene;
             await AddSceneDeferred(_currentGameScene);
         }
+
     }
 }

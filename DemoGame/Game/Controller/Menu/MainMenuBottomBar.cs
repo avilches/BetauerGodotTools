@@ -83,6 +83,12 @@ namespace Veronenger.Game.Controller.Menu {
         public void OnExit(GameManager.State state, GameManager.State to) {
         }
 
+        public void OnExecuteStart(float delta, GameManager.State state) {
+        }
+
+        public void OnExecuteEnd(GameManager.State state) {
+        }
+
         public void OnTransition(GameManager.State from, GameManager.State to) {
             switch (to) {
                 case GameManager.State.ModalExitDesktop:

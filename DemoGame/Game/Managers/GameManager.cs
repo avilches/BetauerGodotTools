@@ -11,14 +11,7 @@ using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
     [Singleton]
-    public class GameManager {
-
-        private MainMenu _mainMenuScene;
-        public MainMenuBottomBar MainMenuBottomBarScene;
-        private PauseMenu _pauseMenuScene;
-        private SettingsMenu _settingsMenuScene;
-        private Node _currentGameScene;
-        private Node2D _playerScene;
+    public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
 
         public enum Transition {
             Back,
@@ -30,7 +23,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public enum State {
-            Loading,
+            Init,
             MainMenu,
             Settings,
             StartingGame,
@@ -40,6 +33,13 @@ namespace Veronenger.Game.Managers {
             ModalExitDesktop,
             ExitDesktop,
         }
+
+        private MainMenu _mainMenuScene;
+        public MainMenuBottomBar MainMenuBottomBarScene;
+        private PauseMenu _pauseMenuScene;
+        private SettingsMenu _settingsMenuScene;
+        private Node _currentGameScene;
+        private Node2D _playerScene;
 
         private readonly Launcher _launcher = new Launcher();
 
@@ -53,38 +53,33 @@ namespace Veronenger.Game.Managers {
         [Inject] private ActionState UiCancel;
         [Inject] private ActionState UiStart;
 
-        private StateMachineNode<State, Transition> _stateMachineNode;
-
-        public void OnFinishLoad(SplashScreenController splashScreen) {
-            _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
-            _launcher.WithParent(_sceneTree.Root);
-            _mainMenuScene = _resourceManager.CreateMainMenu();
-            MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
-            _pauseMenuScene = _resourceManager.CreatePauseMenu();
-            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
-            _stateMachineNode = BuildStateMachine();
-
-            // Never pause the pause, settings and the state machine, because they will not work!
-            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = _stateMachineNode.PauseMode =
-                Node.PauseModeEnum.Process;
-
-            _sceneTree.Root.AddChild(_pauseMenuScene);
-            _sceneTree.Root.AddChild(_settingsMenuScene);
-            _sceneTree.Root.AddChild(_mainMenuScene);
-            _sceneTree.Root.AddChild(MainMenuBottomBarScene);
-            _sceneTree.Root.AddChild(_stateMachineNode);
-            splashScreen.QueueFree();
+        public override void _Ready() {
+            PauseMode = PauseModeEnum.Process;
         }
 
-        private StateMachineNode<State, Transition> BuildStateMachine() {
-            var builder = new StateMachineNode<State, Transition>(State.Loading, "GameManager", ProcessMode.Idle)
-                .CreateBuilder();
-            builder.AddListener(MainMenuBottomBarScene);
-            builder.State(State.Loading)
-                .Execute(context => context.Replace(State.MainMenu));
-
+        public GameManager() : base(State.Init) {
+            var builder = CreateBuilder();
+            builder.State(State.Init)
+                .Execute(async (ctx) => {
+                    await _resourceManager.OnProgress(context => {
+                        GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
+                        context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
+                        context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
+                    }).Load(async () => { await _sceneTree.AwaitIdleFrame(); });
+                    _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+                    CreateAndAddStaticScenes();
+                    ConfigureStates();
+                    return ctx.Set(State.MainMenu);
+                });
+                // .On(Transition.EndLoading, context => context.Set(State.MainMenu));
+            builder.Build();
+        }
+        
+        private void ConfigureStates() {
+            var builder = CreateBuilder();
+            AddListener(MainMenuBottomBarScene);
             builder.State(State.MainMenu)
-                .On(Transition.StartGame, context => context.Replace(State.StartingGame))
+                .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
@@ -104,7 +99,7 @@ namespace Veronenger.Game.Managers {
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
-                .Execute(context => context.Replace(State.Gaming));
+                .Execute(context => context.Set(State.Gaming));
 
             builder.State(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
@@ -144,7 +139,7 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
-                    return result ? context.Replace(State.MainMenu) : context.Pop();
+                    return result ? context.Set(State.MainMenu) : context.Pop();
                 });
 
             builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
@@ -160,37 +155,53 @@ namespace Veronenger.Game.Managers {
             builder.State(State.ExitDesktop)
                 .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
 
-            return builder.Build();
+            builder.Build();
+        }
+
+        private void CreateAndAddStaticScenes() {
+            MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
+            _mainMenuScene = _resourceManager.CreateMainMenu();
+            _pauseMenuScene = _resourceManager.CreatePauseMenu();
+            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
+
+            // Never pause the pause, settings and the state machine, because they will not work!
+            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
+
+            _launcher.WithParent(_sceneTree.Root);
+            _sceneTree.Root.AddChild(_pauseMenuScene);
+            _sceneTree.Root.AddChild(_settingsMenuScene);
+            _sceneTree.Root.AddChild(_mainMenuScene);
+            _sceneTree.Root.AddChild(MainMenuBottomBarScene);
         }
 
         public void TriggerStartGame() {
-            _stateMachineNode.Enqueue(Transition.StartGame);
+            Enqueue(Transition.StartGame);
         }
 
         public void TriggerPauseMenu() {
-            _stateMachineNode.Enqueue(Transition.Pause);
+            Enqueue(Transition.Pause);
         }
 
         public void TriggerSettings() {
-            _stateMachineNode.Enqueue(Transition.Settings);
+            Enqueue(Transition.Settings);
         }
 
         public void TriggerBack() {
-            _stateMachineNode.Enqueue(Transition.Back);
+            Enqueue(Transition.Back);
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {
-            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmExitDesktop);
+            Enqueue(Transition.ModalBoxConfirmExitDesktop);
         }
 
         public void TriggerModalBoxConfirmQuitGame() {
-            _stateMachineNode.Enqueue(Transition.ModalBoxConfirmQuitGame);
+            Enqueue(Transition.ModalBoxConfirmQuitGame);
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
-            modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
+            modalBoxConfirm.PauseMode = PauseModeEnum.Process;
             _sceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
@@ -221,5 +232,6 @@ namespace Veronenger.Game.Managers {
             await _sceneTree.AwaitIdleFrame();
             _sceneTree.Root.AddChild(scene);
         }
+
     }
 }

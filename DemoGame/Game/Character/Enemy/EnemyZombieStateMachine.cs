@@ -37,16 +37,13 @@ namespace Veronenger.Game.Character.Enemy {
             _stateTimer = new AutoTimer(enemyZombie);
             enemyZombie.AddChild(_stateMachineNode);
 
-            _stateMachineNode.BeforeExecute((delta) => {
-                Body.StartFrame(delta);
-            });
+            _stateMachineNode.AddListener(new StateMachineListenerAction<State>()
+                .AddOnExecuteStart((delta, state) => Body.StartFrame(delta))
+                .AddOnExecuteEnd((state) => Body.EndFrame()));
 
             var builder = _stateMachineNode.CreateBuilder();
             AddStates(builder);
             builder.Build();
-            _stateMachineNode.AfterExecute((delta) => {
-                Body.EndFrame();
-            });
 
         }
 
@@ -55,7 +52,7 @@ namespace Veronenger.Game.Character.Enemy {
         }
 
         private void AddStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
-            builder.On(Transition.Attacked, context => context.Replace(State.Destroy));
+            builder.On(Transition.Attacked, context => context.Set(State.Destroy));
             builder.State(State.Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);
@@ -76,7 +73,7 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.MoveSnapping();
                     if (_stateTimer.IsAlarm()) {
                         _patrolTimer.SetAlarm(4).Reset().Start();
-                        return context.Replace(State.PatrolStep);
+                        return context.Set(State.PatrolStep);
                     }
                     return context.None();
                 });
@@ -99,7 +96,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (_patrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
-                            return context.Replace(State.Idle);
+                            return context.Set(State.Idle);
                         } else {
                             Body.StopLateralMotionWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
@@ -109,7 +106,7 @@ namespace Veronenger.Game.Character.Enemy {
                     }
 
                     if (!_enemyZombieController.AnimationStep.Playing) {
-                        return context.Replace(State.PatrolWait);
+                        return context.Set(State.PatrolWait);
                     }
 
                     Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
@@ -125,12 +122,12 @@ namespace Veronenger.Game.Character.Enemy {
                 })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
-                        return context.Replace(State.PatrolStep);
+                        return context.Set(State.PatrolStep);
                     }
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
-                    return _stateTimer.IsAlarm() ? context.Replace(State.PatrolStep) : context.None();
+                    return _stateTimer.IsAlarm() ? context.Set(State.PatrolStep) : context.None();
                 });
 
             builder.State(State.Destroy)

@@ -57,9 +57,6 @@ texture={
 "svg/scale": 1.0
 }
 
-[input]
-
-
 [logging]
 
 file_logging/log_path="user://logs/dev.log"

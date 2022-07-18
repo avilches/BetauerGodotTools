@@ -26,7 +26,7 @@ namespace Veronenger.Game.Controller {
         
         [Inject] private InputManager _inputManager;
 
-        public override async void _Ready() {
+        public override void _Ready() {
             var defaults = new ApplicationConfig.UserSettings();
             var userSettingsFile = new SettingsFile(defaults, _inputManager.ConfigurableActionList);
             _settingsManager.Load(userSettingsFile);
@@ -38,12 +38,12 @@ namespace Veronenger.Game.Controller {
                 OS.WindowSize = _settingsManager.SettingsFile.WindowedResolution.Size;
                 OS.CenterWindow();
             }
-            GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,
-                _baseResolutionSize, 1);
+            GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,_baseResolutionSize, 1);
             CenterContainer.RectSize = _baseResolutionSize;
             ColorRect.RectSize = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
             Visible = true;
+            _resourceManager.OnProgress(context => GD.Print("SPLASH " + context.TotalLoadedPercent));
             _launcher.WithParent(this)
                 .Play(SequenceBuilder
                         .Create(_sprite)
@@ -53,26 +53,11 @@ namespace Veronenger.Game.Controller {
                         .To(Colors.Red, 0.2f)
                         .EndAnimate()
                     , _sprite);
-
-            await _resourceManager.Load(context => {
-                // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
-                // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
-                // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-            }, async () => { await GetTree().AwaitIdleFrame(); });
-            _loadFinished = true;
-            _launcher.RemoveAll();
         }
 
-        public override void _Input(InputEvent e) {
-            if (_loadFinished &&
-                (e is InputEventKey { Pressed: true } ||
-                 e is InputEventJoypadButton { Pressed: true } ||
-                 e is InputEventMouseButton { Pressed: true })) {
-                Visible = false;
-                GetTree().SetInputAsHandled();
-                _loadFinished = false; // Avoid double input executed twice
-                _gameManager.OnFinishLoad(this);
-            }
+        public override void _Process(float delta) {
+            if (!_gameManager.IsState(GameManager.State.Init)) QueueFree();
         }
+
     }
 }

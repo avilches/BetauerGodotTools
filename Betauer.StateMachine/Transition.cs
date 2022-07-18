@@ -7,7 +7,7 @@ namespace Betauer.StateMachine {
         Push,
         PopPush,
         Pop,
-        Replace,
+        Set,
         Trigger,
         None
     }
@@ -29,9 +29,9 @@ namespace Betauer.StateMachine {
             Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
                 s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.PopPush));
 
-        private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CacheReplace =
+        private static readonly Dictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>> CacheSet =
             Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
-                s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Replace));
+                s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Set));
 
         private static readonly Dictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>> CacheTransition =
             Enum.GetValues(typeof(TTransitionKey)).Cast<TTransitionKey>().ToDictionary(s => s,
@@ -40,7 +40,7 @@ namespace Betauer.StateMachine {
         public ExecuteTransition<TStateKey, TTransitionKey> Push(TStateKey name) => CachePush[name];
         public ExecuteTransition<TStateKey, TTransitionKey> PopPush(TStateKey name) => CachePopPush[name];
         public ExecuteTransition<TStateKey, TTransitionKey> Pop() => CachePop;
-        public ExecuteTransition<TStateKey, TTransitionKey> Replace(TStateKey name) => CacheReplace[name];
+        public ExecuteTransition<TStateKey, TTransitionKey> Set(TStateKey name) => CacheSet[name];
         public ExecuteTransition<TStateKey, TTransitionKey> None() => CachedNone;
         public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey transitionKey) => CacheTransition[transitionKey];
             
@@ -58,14 +58,14 @@ namespace Betauer.StateMachine {
             Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
                 s => new TriggerTransition<TStateKey>(s, TransitionType.PopPush));
 
-        private static readonly Dictionary<TStateKey, TriggerTransition<TStateKey>> CacheReplace =
+        private static readonly Dictionary<TStateKey, TriggerTransition<TStateKey>> CacheSet =
             Enum.GetValues(typeof(TStateKey)).Cast<TStateKey>().ToDictionary(s => s,
-                s => new TriggerTransition<TStateKey>(s, TransitionType.Replace));
+                s => new TriggerTransition<TStateKey>(s, TransitionType.Set));
 
         public TriggerTransition<TStateKey> Push(TStateKey name) => CachePush[name];
         public TriggerTransition<TStateKey> PopPush(TStateKey name) => CachePopPush[name];
         public TriggerTransition<TStateKey> Pop() => CachePop;
-        public TriggerTransition<TStateKey> Replace(TStateKey name) => CacheReplace[name];
+        public TriggerTransition<TStateKey> Set(TStateKey name) => CacheSet[name];
 
     }
 
@@ -77,7 +77,7 @@ namespace Betauer.StateMachine {
         }
 
         public bool IsNone() => Type == TransitionType.None;
-        public bool IsReplace() => Type == TransitionType.Replace;
+        public bool IsSet() => Type == TransitionType.Set;
         public bool IsPop() => Type == TransitionType.Pop;
         public bool IsPopPush() => Type == TransitionType.PopPush;
         public bool IsPush() => Type == TransitionType.Push;
@@ -104,8 +104,8 @@ namespace Betauer.StateMachine {
 
         public bool IsTrigger() => Type == TransitionType.Trigger;
 
-        public bool IsReplace(TStateKey key) {
-            return IsReplace() && EqualityComparer<TStateKey>.Default.Equals(StateKey, key);
+        public bool IsSet(TStateKey key) {
+            return IsSet() && EqualityComparer<TStateKey>.Default.Equals(StateKey, key);
         }
 
     }
