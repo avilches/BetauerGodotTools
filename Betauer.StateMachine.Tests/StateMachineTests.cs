@@ -440,7 +440,7 @@ namespace Betauer.StateMachine.Tests {
         class TestMachineListener : IStateMachineListener<State> {
             internal List<string> states = new List<string>();
             public void OnEnter(State state, State from) {
-                states.Add(state + ":start");
+                states.Add(state + ":enter");
             }
 
             public void OnAwake(State state, State from) {
@@ -452,7 +452,7 @@ namespace Betauer.StateMachine.Tests {
             }
 
             public void OnExit(State state, State to) {
-                states.Add(state + ":end");
+                states.Add(state + ":exit");
             }
 
             public void OnTransition(State from, State to) {
@@ -469,6 +469,41 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test]
+        public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
+            var builder = new StateMachine<State, Trans>(State.Debug).CreateBuilder();
+
+
+            builder.On(Trans.Settings, context => context.Push(State.Settings));
+            builder.On(Trans.Back, context => context.Pop());
+            builder.State(State.MainMenu);
+            builder.State(State.Debug);
+            builder.State(State.Settings);
+            var stateListener = new TestMachineListener();
+            var sm = builder.AddListener(stateListener).Build();
+
+            await sm.Execute(0f);
+            sm.Enqueue(Trans.Settings);
+            await sm.Execute(0f);
+            sm.Enqueue(Trans.Back);
+            await sm.Execute(0f);
+            // Test listener
+            Console.WriteLine(string.Join(",", stateListener.states));
+            Assert.That(string.Join(",", stateListener.states), Is.EqualTo(
+                "from:Debug-to:Debug," +
+                "Debug:enter," +
+                    "Debug:execute.start,Debug:execute.end," +
+                    "Debug:suspend," +
+                    "from:Debug-to:Settings," +
+                    "Settings:enter," +
+                        "Settings:execute.start,Settings:execute.end," +
+                    "Settings:exit," +
+                    "from:Settings-to:Debug," +
+                    "Debug:awake," +
+                "Debug:execute.start,Debug:execute.end"));
+
+        }
+
+        [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
             var builder = new StateMachine<State, Trans>(State.Debug).CreateBuilder();
             
@@ -477,26 +512,26 @@ namespace Betauer.StateMachine.Tests {
             builder.On(Trans.Debug, context => context.Set(State.Debug));
             builder.State(State.Debug)
                 .Awake(() => states.Add("Debug:awake"))
-                .Enter(() => states.Add("Debug:start"))
+                .Enter(() => states.Add("Debug:enter"))
                 .Execute(context => {
                     states.Add("Debug");
                     return context.None();
 
                 })
                 .Suspend(() => states.Add("Debug:suspend"))
-                .Exit(() => states.Add("Debug:end"));
+                .Exit(() => states.Add("Debug:exit"));
 
             builder.On(Trans.MainMenu, context => context.Set(State.MainMenu));
             builder.State(State.MainMenu)
                 .Awake(() => states.Add("MainMenu:awake"))
-                .Enter(() => states.Add("MainMenu:start"))
+                .Enter(() => states.Add("MainMenu:enter"))
                 .Execute(context => {
                     states.Add("MainMenu");
                     return context.None();
                 })
                 .Suspend(() => states.Add("MainMenu:suspend"))
                 .Exit(()=>{
-                    states.Add("MainMenu:end");
+                    states.Add("MainMenu:exit");
                 });
             
             builder.On(Trans.Settings, context => context.Push(State.Settings));
@@ -504,43 +539,42 @@ namespace Betauer.StateMachine.Tests {
                 .On(Trans.Audio, context => context.Push(State.Audio))
                 .On(Trans.Back, context => context.Pop())
                 .Awake(() => states.Add("Settings:awake"))
-                .Enter(async () => states.Add("Settings:start"))
+                .Enter(async () => states.Add("Settings:enter"))
                 .Execute(async context => {
                     states.Add("Settings");
                     return context.None();
                 })
                 .Suspend(() => states.Add("Settings:suspend"))
                 .Exit(async () =>{
-                    states.Add("Settings:end");
+                    states.Add("Settings:exit");
                 });
             
             builder.State(State.Audio)
                 .On(Trans.Video, context => context.PopPush(State.Video))
                 .On(Trans.Back, context => context.Pop())
                 .Awake(() => states.Add("Audio:awake"))
-                .Enter(() => states.Add("Audio:start"))
+                .Enter(() => states.Add("Audio:enter"))
                 .Execute(context => {
                     states.Add("Audio");
                     return context.None();
                 })
                 .Suspend(() => states.Add("Audio:suspend"))
                 .Exit(()=>{
-                    states.Add("Audio:end");
+                    states.Add("Audio:exit");
                 });
 
             builder.State(State.Video)
                 .On(Trans.Back, context => context.Pop())
                 .Awake(() => states.Add("Video:awake"))
-                .Enter(() => states.Add("Video:start"))
+                .Enter(() => states.Add("Video:enter"))
                 .Execute(context => {
                     states.Add("Video");
                     return context.None();
                 })
                 .Suspend(() => states.Add("Video:suspend"))
-                .Exit(() => states.Add("Video:end"));
+                .Exit(() => states.Add("Video:exit"));
             
-            var stateListener = new TestMachineListener();
-            var sm = builder.AddListener(stateListener).Build();
+            var sm = builder.Build();
             
             await sm.Execute(0f);
             Console.WriteLine(string.Join(",", states));
@@ -563,18 +597,13 @@ namespace Betauer.StateMachine.Tests {
             await sm.Execute(0f);
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "Debug:start,Debug,Debug:end," +
-                "MainMenu:start,MainMenu,MainMenu:suspend," +
-                    "Settings:start,Settings,Settings:suspend," +
-                        "Audio:start,Audio,Audio:end," +
-                        "Video:start,Video,Video:end," +
-                    "Settings:awake,Settings,Settings:end," +
+                "Debug:enter,Debug,Debug:exit," +
+                "MainMenu:enter,MainMenu,MainMenu:suspend," +
+                    "Settings:enter,Settings,Settings:suspend," +
+                        "Audio:enter,Audio,Audio:exit," +
+                        "Video:enter,Video,Video:exit," +
+                    "Settings:awake,Settings,Settings:exit," +
                 "MainMenu:awake,MainMenu"));
-
-            // Test listener
-            Console.WriteLine(string.Join(",", stateListener.states));
-            Assert.That(string.Join(",", stateListener.states), Is.EqualTo(
-                "from:Debug-to:Debug,Debug:start,Debug:execute.start,Debug:execute.end,Debug:end,from:Debug-to:MainMenu,MainMenu:start,MainMenu:execute.start,MainMenu:execute.end,MainMenu:suspend,from:MainMenu-to:Settings,Settings:start,Settings:execute.start,Settings:execute.end,Settings:suspend,from:Settings-to:Audio,Audio:start,Audio:execute.start,Audio:execute.end,Audio:end,from:Audio-to:Video,Video:start,Video:execute.start,Video:execute.end,Video:end,from:Video-to:Settings,Settings:awake,Settings:execute.start,Settings:execute.end,Settings:end,from:Settings-to:MainMenu,MainMenu:awake,MainMenu:execute.start,MainMenu:execute.end"));
             
             // Test multiple exits when more than one state is in the stack and change is Replace instead of Pop
             states.Clear();
@@ -589,10 +618,10 @@ namespace Betauer.StateMachine.Tests {
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "MainMenu:suspend," +
-                    "Settings:start,Settings,Settings:suspend," +
-                        "Audio:start,Audio," +
-                        "Audio:end,Settings:end,MainMenu:end," + // This is the important part: three end in a row 
-                "Debug:start,Debug"));
+                    "Settings:enter,Settings,Settings:suspend," +
+                        "Audio:enter,Audio," +
+                        "Audio:exit,Settings:exit,MainMenu:exit," + // This is the important part: three end in a row 
+                "Debug:enter,Debug"));
 
 
         }
