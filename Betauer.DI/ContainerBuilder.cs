@@ -13,6 +13,10 @@ namespace Betauer.DI {
         public string? Name { get; set; }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class PostCreateAttribute : Attribute {
+    }
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class TransientAttribute : Attribute {
         public string? Name { get; set; }
@@ -20,8 +24,7 @@ namespace Betauer.DI {
 
     public class ContainerBuilder {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(ContainerBuilder));
-        private readonly Queue<IProvider> _resolvedPending = new Queue<IProvider>();
-        private readonly Queue<IProviderBuilder> _pendingToBuild = new Queue<IProviderBuilder>();
+        private readonly LinkedList<IProviderBuilder> _pendingToBuild = new LinkedList<IProviderBuilder>();
         private readonly Container _container;
 
         public ContainerBuilder(Container container) {
@@ -33,18 +36,14 @@ namespace Betauer.DI {
         }
 
         public Container Build() {
-            while (_pendingToBuild.Count > 0) {
-                var provider = _pendingToBuild.Dequeue().CreateProvider();
-                _container.Add(provider);
-                if (provider.GetLifetime() == Lifetime.Singleton) {
-                    _resolvedPending.Enqueue(provider);
+            lock (_pendingToBuild) {
+                if (_pendingToBuild.Count > 0) {
+                    foreach (var providerBuilder in _pendingToBuild) {
+                        _container.Add(providerBuilder.CreateProvider(), false);
+                    }
+                    _pendingToBuild.Clear();
+                    _container.Build();
                 }
-            }
-            while (_resolvedPending.Count > 0) {
-                var singleton = _resolvedPending.Dequeue();
-                _logger.Debug("Resolving Singleton Type: " + singleton.GetProviderType());
-                // Get() will also add the instance to the Owner if the service is a Node singleton
-                singleton.Get(new ResolveContext(_container));
             }
             return _container;
         }
@@ -105,7 +104,7 @@ namespace Betauer.DI {
         }
 
         public void AddToBuildQueue(IProviderBuilder builder) {
-            _pendingToBuild.Enqueue(builder);
+            lock (_pendingToBuild) _pendingToBuild.AddLast(builder);
         }
 
         public ContainerBuilder Scan(Predicate<Type>? predicate = null) {

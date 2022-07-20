@@ -2,11 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using Betauer.DI;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.DI.Tests {
     public interface IInterface1 {
@@ -486,69 +485,7 @@ namespace Betauer.DI.Tests {
             Assert.Throws<InvalidCastException>(() =>
                 di.Register(typeof(Node), Lifetime.Singleton, new[] { typeof(Sprite) }).CreateProvider());
         }
-
-        /*
-         * OnInstanceCreated is affected by factories only
-         */
-        [Test(Description = "Singleton instance doesn't execute OnInstanceCreated")]
-        public void RegisterSingletonInstanceOnInstanceCreated() {
-            var di = new ContainerBuilder(this);
-            var x = 0;
-            var c = di.Build();
-            c.OnInstanceCreated = (o) => x++;
-            var instance = new Node();
-            di.Static(instance);
-            Assert.That(x, Is.EqualTo(0));
-            di.Build();
-            c.Resolve<Node>();
-            Assert.That(x, Is.EqualTo(0));
-        }
-
-        [Test(Description = "Singleton Factory OnInstanceCreated is executed on Resolve (only the first time)")]
-        public void RegisterSingletonFactoryOnInstanceCreated() {
-            var di = new ContainerBuilder(this);
-            var x = 0;
-            di.Build().OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
-            di.Register(() => new Node()).CreateProvider();
-            Assert.That(x, Is.EqualTo(0));
-
-            var i1 = di.Build().Resolve<Node>();
-            Assert.That(x, Is.EqualTo(1));
-            Assert.That(i1.GetMeta("x"), Is.EqualTo("y1"));
-            Assert.That(i1.GetMeta("x"), Is.EqualTo("y1"));
-
-            // Second time is not executed
-            var i2 = di.Build().Resolve<Node>();
-            Assert.That(x, Is.EqualTo(1));
-            Assert.That(i2, Is.EqualTo(i1));
-            Assert.That(i2.GetMeta("x"), Is.EqualTo("y1"));
-        }
-
-        [Test(Description = "Transient Factory OnInstanceCreated is executed in every resolve")]
-        public void RegisterTransientFactoryOnInstanceCreated() {
-            var di = new ContainerBuilder(this);
-            var x = 0;
-            var c = di.Build();
-            c.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
-            di.Register<Node>(Lifetime.Transient).With(() => new Node()).CreateProvider();
-            di.Register<Control>(Lifetime.Transient).With(() => new Control()).CreateProvider();
-            di.Build();
-            Assert.That(c.Resolve<Node>().GetMeta("x"), Is.EqualTo("y1"));
-            Assert.That(c.Resolve<Control>().GetMeta("x"), Is.EqualTo("y2"));
-            Assert.That(c.Resolve<Node>().GetMeta("x"), Is.EqualTo("y3"));
-        }
-
-        [Test(Description = "Resolve unregistered types the OnInstanceCreated is executed in every resolve")]
-        public void ResolveUnregisteredTransientFactoryOnInstanceCreated() {
-            var di = new ContainerBuilder(this);
-            var x = 0;
-            var c = di.Build();
-            c.CreateIfNotFound = true;
-            c.OnInstanceCreated = (o) => ((Node)o).SetMeta("x", "y" + ++x);
-            Assert.That(c.Resolve<Node>().GetMeta("x"), Is.EqualTo("y1"));
-            Assert.That(c.Resolve<Node>().GetMeta("x"), Is.EqualTo("y2"));
-        }
-
+        
         /*
          * Node Singleton are added to the owner when resolved
          */

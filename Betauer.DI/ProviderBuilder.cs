@@ -74,8 +74,9 @@ namespace Betauer.DI {
                 info.GetParameters()[2].ParameterType == typeof(IEnumerable<Type>) &&
                 info.GetParameters()[3].ParameterType == typeof(IEnumerable<string>)
             );
-            IProviderBuilder @this = (IProviderBuilder)ctor.Invoke(new object[] { lifetime, factory, types, aliases });
-            return @this;
+            IProviderBuilder providerBuilder =
+                (IProviderBuilder)ctor.Invoke(new object[] { lifetime, factory, types, aliases });
+            return providerBuilder;
         }
     }
 

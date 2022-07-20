@@ -438,9 +438,53 @@ namespace Betauer.DI.Tests {
             Assert.That(s11, Is.Not.EqualTo(s12));
             // Singleton are the same
             Assert.That(s21, Is.EqualTo(s22));
-            
+        }
+        
+        
+        [Singleton]
+        class PostCreatedA {
+            [Inject] internal PostCreatedB B;
+            [Inject] internal Container container;
 
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(B, Is.Not.Null);
+                Assert.That(B.A, Is.Not.Null);
+                Called++;
+            }
         }
 
+        [Singleton]
+        class PostCreatedB {
+            [Inject] internal PostCreatedA A;
+            [Inject] internal Container container;
+
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(A, Is.Not.Null);
+                Assert.That(A.B, Is.Not.Null);
+                Called++;
+            }
+        }
+
+        [Test(Description = "Test if the [PostCreate] methods are invoked")]
+        public void PostCreateMethodTest() {
+            var c = new Container(this);
+            var di = c.CreateBuilder();
+            di.Scan<PostCreatedA>();
+            di.Scan<PostCreatedB>();
+            di.Build();
+
+            var A = c.Resolve<PostCreatedA>();
+            var B = c.Resolve<PostCreatedB>();
+            
+            Assert.That(A.B, Is.EqualTo(B));
+            Assert.That(A.Called, Is.EqualTo(1));
+            Assert.That(B.A, Is.EqualTo(A));
+            Assert.That(B.Called, Is.EqualTo(1));
+
+       }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using Godot;
 
 namespace Betauer.DI {
     public enum Lifetime {
@@ -12,6 +14,8 @@ namespace Betauer.DI {
         public Type GetProviderType();
         public Lifetime GetLifetime();
         public object Get(ResolveContext? context);
+        public void OnAddToContainer(Container container);
+        public void OnBuildContainer(Container container);
     }
 
     public abstract class BaseProvider<T> : IProvider where T : class {
@@ -31,6 +35,22 @@ namespace Betauer.DI {
 
         public abstract Lifetime GetLifetime();
         public abstract object Get(ResolveContext? context);
+        public abstract void OnAddToContainer(Container container);
+        public abstract void OnBuildContainer(Container container);
+        
+        internal static void ExecutePostCreateMethods<T>(T instance) {
+            var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var method in methods) {
+                if (Attribute.GetCustomAttribute(method, typeof(PostCreateAttribute), false) is PostCreateAttribute) {
+                    if (method.GetParameters().Length == 0) {
+                        method.Invoke(instance, new object[] { });
+                    } else {
+                        throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
+                    }
+                }
+            }
+        }
+
     }
 
     public abstract class FactoryProvider<T> : BaseProvider<T> where T : class {
@@ -47,12 +67,9 @@ namespace Betauer.DI {
                 Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
                              typeof(T) + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AfterCreate(lifetime, instance, GetAliases());
+            context.AddInstanceToCache(instance, GetAliases());
             return instance;
         }
-
-        public abstract override Lifetime GetLifetime();
-        public abstract override object Get(ResolveContext? context);
     }
 
     public class SingletonProvider<T> : FactoryProvider<T> where T : class {
@@ -65,10 +82,10 @@ namespace Betauer.DI {
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
         public override object Get(ResolveContext? context) {
-            if (context == null) throw new ArgumentNullException(nameof(context));
             if (_isSingletonDefined) return _singleton!;
-            if (context.Has<T>(GetAliases())) {
-                T singleton = context.Get<T>(GetAliases());
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (context.IsCached<T>(GetAliases())) {
+                T singleton = context.GetFromCache<T>(GetAliases());
                 Logger.Debug("Get from context " + GetLifetime() + " " + singleton.GetType().Name + " exposed as " +
                              typeof(T) + ": " + singleton.GetHashCode().ToString("X"));
                 return singleton;
@@ -81,6 +98,17 @@ namespace Betauer.DI {
             }
             return _singleton;
         }
+
+        public override void OnAddToContainer(Container container) {
+            var context = new ResolveContext(container, false);
+            var instance = Get(context);
+            container.InjectAllFields(instance, context);
+            if (instance is Node node) container.NodeSingletonOwner?.AddChild(node);
+        }
+
+        public override void OnBuildContainer(Container container) {
+            ExecutePostCreateMethods(Get(null));
+        }
     }
 
     public class TransientProvider<T> : FactoryProvider<T> where T : class {
@@ -89,15 +117,25 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
 
-        public override object Get(ResolveContext? context) {
+        public override object Get(ResolveContext context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (context.Has<T>(GetAliases())) {
-                T transient = context.Get<T>(GetAliases());
+            T transient;
+            if (context.IsCached<T>(GetAliases())) {
+                transient = context.GetFromCache<T>(GetAliases());
                 Logger.Debug("Get from context " + GetLifetime() + " " + transient.GetType().Name + " exposed as " +
                              typeof(T) + ": " + transient.GetHashCode().ToString("X"));
-                return transient;
+            } else {
+                transient = CreateNewInstance(GetLifetime(), context);
+                context.Container.InjectAllFields(transient, context);
+                ExecutePostCreateMethods(transient);
             }
-            return CreateNewInstance(GetLifetime(), context);
+            return transient;
+        }
+
+        public override void OnAddToContainer(Container container) {
+        }
+
+        public override void OnBuildContainer(Container container) {
         }
     }
 
@@ -112,6 +150,12 @@ namespace Betauer.DI {
 
         public override object Get(ResolveContext? context) {
             return _value;
+        }
+
+        public override void OnAddToContainer(Container container) {
+        }
+
+        public override void OnBuildContainer(Container container) {
         }
     }
 }

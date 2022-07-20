@@ -6,43 +6,44 @@ using Godot;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        internal readonly Dictionary<Type, object> _objects = new Dictionary<Type, object>();
-        internal readonly Dictionary<string, object> _objectsAlias = new Dictionary<string, object>();
+        private readonly Dictionary<Type, object> _objectsCache = new Dictionary<Type, object>();
+        private readonly Dictionary<string, object> _objectsCacheByAlias = new Dictionary<string, object>();
         internal readonly Container Container;
+        internal readonly bool ExecutePostCreate;
 
-        public ResolveContext(Container container) {
+        public ResolveContext(Container container, bool executePostCreate = true) {
             Container = container;
+            ExecutePostCreate = executePostCreate;
         }
 
-        internal bool Has<T>(string[]? aliases) {
+        internal bool IsCached<T>(string[]? aliases) {
             if (aliases != null && aliases.Length > 0) {
-                if (aliases.Any(alias => _objectsAlias.ContainsKey(alias))) {
+                if (aliases.Any(alias => _objectsCacheByAlias.ContainsKey(alias))) {
                     return true;
                 }
             } 
-            return _objects.ContainsKey(typeof(T));
+            return _objectsCache.ContainsKey(typeof(T));
         }
 
-        internal T Get<T>(string[]? aliases) {
+        internal T GetFromCache<T>(string[]? aliases) {
             if (aliases != null && aliases.Length > 0) {
                 foreach (var alias in aliases) {
-                    if (_objectsAlias.TryGetValue(alias, out var o)) {
+                    if (_objectsCacheByAlias.TryGetValue(alias, out var o)) {
                         return (T)o;
                     }
                 }
             } 
-            return (T)_objects[typeof(T)];
+            return (T)_objectsCache[typeof(T)];
         }
 
-        internal void AfterCreate<T>(Lifetime lifetime, T o, string[]? aliases) where T : class {
+        internal void AddInstanceToCache<T>(T o, string[]? aliases) where T : class {
             if (aliases != null && aliases.Length > 0) {
                 foreach (var alias in aliases) {
-                    _objectsAlias[alias] = o;
+                    _objectsCacheByAlias[alias] = o;
                 }
             } else {
-                _objects[typeof(T)] = o;
+                _objectsCache[typeof(T)] = o;
             }
-            Container.AfterCreate(this, lifetime, o);
         }
     }
 
@@ -52,19 +53,45 @@ namespace Betauer.DI {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Node NodeSingletonOwner;
         public readonly Injector Injector;
-        public Action<object>? OnInstanceCreated { get; set; }
         public bool CreateIfNotFound { get; set; }
+
+        private readonly LinkedList<IProvider> _providersPending = new LinkedList<IProvider>();
 
         public Container(Node nodeSingletonOwner) {
             NodeSingletonOwner = nodeSingletonOwner;
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
-            Add(new StaticProvider<Container>(new [] { typeof(Container) },this));
+            Add(new StaticProvider<Container>(new [] { typeof(Container) },this), true);
         }
 
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
 
-        public IProvider Add(IProvider provider) {
+        public Container Build() {
+            lock (_providersPending) {
+                if (_providersPending.Count > 0) {
+                    foreach (var provider in _providersPending) AddToRegistry(provider);
+                    foreach (var provider in _providersPending) provider.OnAddToContainer(this);
+                    foreach (var provider in _providersPending) provider.OnBuildContainer(this);
+                    _providersPending.Clear();
+                }
+            }
+            return this;
+        }
+
+        public IProvider Add(IProvider provider, bool addAndBuild) {
+            if (addAndBuild) {
+                AddToRegistry(provider);
+                provider.OnAddToContainer(this);
+                provider.OnBuildContainer(this);
+            } else {
+                lock (_providersPending) {
+                    _providersPending.AddLast(provider);
+                }
+            }
+            return provider;
+        }
+
+        private IProvider AddToRegistry(IProvider provider) {
             if (provider.GetRegisterTypes().Length == 0) {
                 throw new Exception("Provider without types are not allowed");
             }
@@ -159,8 +186,11 @@ namespace Betauer.DI {
         internal object Resolve(Type type, ResolveContext? context) {
             TryGetProvider(type, out IProvider? provider);
             if (provider != null) return provider.Get(context ?? new ResolveContext(this));
-            if (CreateIfNotFound)
-                return CreateNonRegisteredTransientInstance(type, context ?? new ResolveContext(this));
+            if (CreateIfNotFound) {
+                Add(FactoryProviderBuilder.Create(type, Lifetime.Transient).CreateProvider(), true);
+                // ReSharper disable once TailRecursiveCall
+                return Resolve(type, context);
+            }
             throw new KeyNotFoundException("Type not found: " + type.Name);
         }
 
@@ -170,13 +200,6 @@ namespace Betauer.DI {
             throw new KeyNotFoundException("Alias not found: " + alias);
         }
 
-        private object CreateNonRegisteredTransientInstance(Type type, ResolveContext context) {
-            if (!type.IsClass || type.IsAbstract)
-                throw new ArgumentException("Can't create an instance of a interface or abstract class");
-            var o = Activator.CreateInstance(type);
-            AfterCreate(context, Lifetime.Transient, o);
-            return o;
-        }
 
         public void InjectAllFields(object o) {
             InjectAllFields(o, new ResolveContext(this));
@@ -184,14 +207,6 @@ namespace Betauer.DI {
 
         internal void InjectAllFields(object o, ResolveContext context) {
             Injector.InjectAllFields(o, context);
-        }
-
-        internal void AfterCreate<T>(ResolveContext context, Lifetime lifetime, T instance) {
-            OnInstanceCreated?.Invoke(instance);
-            InjectAllFields(instance, context);
-            if (lifetime == Lifetime.Singleton && instance is Node node) {
-                NodeSingletonOwner?.AddChild(node);
-            }
         }
     }
 }
