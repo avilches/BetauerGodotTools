@@ -66,7 +66,7 @@ namespace Betauer.DI {
     public static class FactoryProviderBuilder {
         public static IProviderBuilder Create(Type type,
             Lifetime lifetime, Func<object>? factory = null, IEnumerable<Type>? types = null, IEnumerable<string>? aliases = null) {
-            var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(new[] { type });
+            var factoryType = typeof(FactoryProviderBuilder<>).MakeGenericType(type);
             var ctor = factoryType.GetConstructors().First(info =>
                 info.GetParameters().Length == 4 &&
                 info.GetParameters()[0].ParameterType == typeof(Lifetime) &&

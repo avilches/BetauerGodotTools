@@ -12,20 +12,20 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         [Inject] protected Xbox360SpriteConfig Xbox360;
         [Inject] protected XboxOneSpriteConfig XboxOne;
         
-        [Inject] protected ResourceManager _resourceManager;
+        [Inject] protected MainResourceManager MainResourceManager;
 
         [OnReady("AnimationPlayer")] private AnimationPlayer _animation;
 
         public override void _Ready() {
             if (_config == null) {
                 // TODO: this should depends on the controller connected
-                Configure(Xbox360);
+                Configure(XboxOne);
             }
         }
         
         public void Configure(SpriteConfig config) {
             _config = config;
-            Texture = _resourceManager.Resource<Texture>(_config.Texture);
+            Texture = _config.Texture;
         }
 
         public JoystickList _buttonToShow = JoystickList.InvalidOption;
@@ -92,10 +92,9 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         public SpriteConfig() {
             _default = CreateDefaultView();
             ConfigureButtons();
-            Texture = ConfigureTexture();
         }
-
-        public readonly string Texture;
+        
+        public abstract Texture Texture { get; }
 
         public int GetFrame(JoystickList button) => Get(button).Frame;
         public int GetFramePressed(JoystickList button) => Get(button).FramePressed;
@@ -104,7 +103,6 @@ namespace Veronenger.Game.Controller.UI.Consoles {
 
         public abstract void ConfigureButtons();
         public abstract ConsoleButtonView CreateDefaultView();
-        protected abstract string ConfigureTexture();
 
         protected void Add(JoystickList joystickList, string animation, int frame, int framePressed) {
             _mapping.Add(joystickList, new ConsoleButtonView(animation, frame, framePressed));
@@ -114,10 +112,9 @@ namespace Veronenger.Game.Controller.UI.Consoles {
     [Singleton]
     public class Xbox360SpriteConfig : SpriteConfig {
         public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(null, 0, 0);
-        
-        protected override string ConfigureTexture() {
-            return ResourceManager.Xbox360Buttons;
-        }
+
+        [Inject] private MainResourceManager MainResourceManager;
+        public override Texture Texture => MainResourceManager.Xbox360ButtonsTexture;
 
         public override void ConfigureButtons() {
             Add(JoystickList.XboxA, "A", 13, 14);
@@ -166,10 +163,8 @@ namespace Veronenger.Game.Controller.UI.Consoles {
 
     [Singleton]
     public class XboxOneSpriteConfig : Xbox360SpriteConfig {
-        protected override string ConfigureTexture() {
-            return ResourceManager.XboxOneButtons;
-        }
-
+        [Inject] private MainResourceManager MainResourceManager;
+        public override Texture Texture => MainResourceManager.XboxOneButtonsTexture;
     }
 
     public struct ConsoleButtonView {

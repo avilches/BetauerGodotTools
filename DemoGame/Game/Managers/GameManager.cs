@@ -5,6 +5,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Loader;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
@@ -34,10 +35,21 @@ namespace Veronenger.Game.Managers {
             ExitDesktop,
         }
 
+        [Scene("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
+
+        [Scene("res://Scenes/Menu/MainMenuBottomBar.tscn")]
         public MainMenuBottomBar MainMenuBottomBarScene;
+
+        [Scene("res://Scenes/Menu/PauseMenu.tscn")]
         private PauseMenu _pauseMenuScene;
+
+        [Scene("res://Scenes/Menu/SettingsMenu.tscn")]
         private SettingsMenu _settingsMenuScene;
+
+        [Scene("res://Scenes/Menu/ModalBoxConfirm.tscn")]
+        private Func<ModalBoxConfirm> CreateModalBoxConfirm;
+        
         private Node _currentGameScene;
         private Node2D _playerScene;
 
@@ -46,7 +58,7 @@ namespace Veronenger.Game.Managers {
         [Inject] private StageManager _stageManager;
         [Inject] private SettingsManager _settingsManager;
         [Inject] private SceneTree _sceneTree;
-        [Inject] private ResourceManager _resourceManager;
+        [Inject] private MainResourceManager _mainResourceManager;
 
         [Inject] private ActionState PixelPerfect;
         [Inject] private ActionState UiAccept;
@@ -61,13 +73,20 @@ namespace Veronenger.Game.Managers {
             var builder = CreateBuilder();
             builder.State(State.Init)
                 .Execute(async (ctx) => {
-                    await _resourceManager.OnProgress(context => {
+                    await _mainResourceManager.OnProgress(context => {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                    }).Load(async () => { await _sceneTree.AwaitIdleFrame(); });
+                    }).ScanAndLoad(this);
                     _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
-                    CreateAndAddStaticScenes();
+                    // Never pause the pause, settings and the state machine, because they will not work!
+                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
+
+                    _launcher.WithParent(_sceneTree.Root);
+                    _sceneTree.Root.AddChild(_pauseMenuScene);
+                    _sceneTree.Root.AddChild(_settingsMenuScene);
+                    _sceneTree.Root.AddChild(_mainMenuScene);
+                    _sceneTree.Root.AddChild(MainMenuBottomBarScene);
                     ConfigureStates();
                     return ctx.Set(State.MainMenu);
                 });
@@ -94,7 +113,7 @@ namespace Veronenger.Game.Managers {
             builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    _currentGameScene = _resourceManager.CreateWorld1();
+                    _currentGameScene = _mainResourceManager.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
@@ -157,22 +176,6 @@ namespace Veronenger.Game.Managers {
             builder.Build();
         }
 
-        private void CreateAndAddStaticScenes() {
-            MainMenuBottomBarScene = _resourceManager.CreateMainMenuBottomBar();
-            _mainMenuScene = _resourceManager.CreateMainMenu();
-            _pauseMenuScene = _resourceManager.CreatePauseMenu();
-            _settingsMenuScene = _resourceManager.CreateSettingsMenu();
-
-            // Never pause the pause, settings and the state machine, because they will not work!
-            _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
-
-            _launcher.WithParent(_sceneTree.Root);
-            _sceneTree.Root.AddChild(_pauseMenuScene);
-            _sceneTree.Root.AddChild(_settingsMenuScene);
-            _sceneTree.Root.AddChild(_mainMenuScene);
-            _sceneTree.Root.AddChild(MainMenuBottomBarScene);
-        }
-
         public void TriggerStartGame() {
             Enqueue(Transition.StartGame);
         }
@@ -198,7 +201,7 @@ namespace Veronenger.Game.Managers {
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
-            ModalBoxConfirm modalBoxConfirm = _resourceManager.CreateModalBoxConfirm();
+            ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = PauseModeEnum.Process;
             _sceneTree.Root.AddChild(modalBoxConfirm);
@@ -218,7 +221,7 @@ namespace Veronenger.Game.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene) {
-            _playerScene = _resourceManager.CreatePlayer();
+            _playerScene = _mainResourceManager.CreatePlayer();
             nextScene.AddChild(_playerScene);
             var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
             if (position2D == null) {
