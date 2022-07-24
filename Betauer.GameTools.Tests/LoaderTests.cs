@@ -10,12 +10,16 @@ namespace Betauer.GameTools.Tests {
     public class LoaderTests : Node {
         internal class ResourcesLoaderMetadataOk : ResourceLoaderContainer {
             [Resource("res://test-resources/1x1.png")]
-            public StreamTexture Texture;
+            public Texture Texture; // parent type
+            [Resource("res://test-resources/1x1.png")]
+            public StreamTexture StreamTexture; // real type
             [Resource("res://test-resources/MyScene.tscn")]
             public PackedScene PackedScene;
 
             [Resource("res://test-resources/1x1.png")]
             public ResourceMetadata<StreamTexture> ResourceMetadataTexture;
+            [Resource("res://test-resources/1x1.png")]
+            public ResourceMetadata<StreamTexture> ResourceMetadataStreamTexture;
             [Resource("res://test-resources/MyScene.tscn")]
             public ResourceMetadata<PackedScene> ResourceMetadataPackedScene;
 
@@ -35,8 +39,10 @@ namespace Betauer.GameTools.Tests {
             var r1 = new ResourcesLoaderMetadataOk();
             var x1 = new AdditionalResource();
             var x2 = new AdditionalResource();
-            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad(x1, x2);
+            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).Bind(x1).Load(x2);
+            Assert.That(r1.Texture, Is.EqualTo(r1.StreamTexture));
             Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataTexture.Resource));
+            Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataStreamTexture.Resource));
             Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadata.Resource));
             Assert.That(r1.PackedScene, Is.EqualTo(r1.ResourceMetadataPackedScene.Resource));
             Assert.That(r1.PackedScene, Is.EqualTo(r1.ResourceMetadataScene.Resource));
@@ -62,11 +68,11 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Resource load error")]
         public async Task WrongTypeTests() {
             var e1 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new WrongType1().SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad());
+                await new WrongType1().SetAwaiter(async () => { }).Load());
             var e2 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new WrongMetadataType().SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad());
+                await new WrongMetadataType().SetAwaiter(async () => { }).Load());
             var e3 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new NotGodotType().SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad());
+                await new NotGodotType().SetAwaiter(async () => { }).Load());
         }
 
         internal class ResourcesLoaderMetadataSceneOk : ResourceLoaderContainer {
@@ -93,7 +99,7 @@ namespace Betauer.GameTools.Tests {
             var r1 = new ResourcesLoaderMetadataSceneOk();
             var x1 = new AdditionalScene();
             var x2 = new AdditionalScene();
-            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad(x1, x2);
+            await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).Bind(x1).Load(x2);
             var node2DCreated1 = r1.Node2dFactory.Invoke();
             var node2DCreated2 = r1.Node2dFactory.Invoke();
             Assert.That(node2DCreated1, Is.Not.Null);
@@ -132,12 +138,12 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public async Task ResourcesSceneWrongTests() {
             var e1 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new ResourcesLoaderMetadataSceneWrong().SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad());
+                await new ResourcesLoaderMetadataSceneWrong().SetAwaiter(async () => { }).Load());
             var e2 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new ResourcesLoaderMetadataFuncTypeSceneWrong().SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad());
+                await new ResourcesLoaderMetadataFuncTypeSceneWrong().SetAwaiter(async () => { }).Load());
             
             var r1 = new ResourcesLoaderMetadataSceneFuncWrong();
-            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).ScanAndLoad();
+            await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).Load();
             Assert.Throws<InvalidCastException>(() => r1.SpatialFactory());
         }
     }
