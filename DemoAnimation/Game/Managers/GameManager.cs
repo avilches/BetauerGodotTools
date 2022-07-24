@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Signal;
 using Betauer.StateMachine;
 using DemoAnimation.Game.Controller.Menu;
 using Godot;

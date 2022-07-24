@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateGodotActionClasses {
-        private const string ActionClassesPath = "../Betauer.GodotAction/GodotAction";
-        private const string GodotActionClassesNamespace = "Betauer.GodotAction";
+        private const string ActionClassesPath = "../Betauer.GodotAction/Proxy";
+        private const string GodotActionClassesNamespace = "Betauer.GodotAction.Proxy";
 
         public static void WriteAllActionClasses(List<GodotClass> classes) {
             var n = 0;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Betauer.DI;
+using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Loader {
@@ -12,22 +13,23 @@ namespace Betauer.Loader {
         }
     }
 
-    public class ResourceMetadataRegistry {
+    public class BaseResourceMetadataRegistry {
         protected Dictionary<string, ResourceMetadata> _registry;
 
         public bool Contains(string res) => _registry.ContainsKey(res);
         public T? Resource<T>(string res) where T : class => _registry[res].Resource as T;
         public T? Scene<T>(string res) where T : class => Resource<PackedScene>(res)?.Instance<T>();
+    }
 
+    public class ResourceMetadataRegistry : BaseResourceMetadataRegistry {
         public async Task Load(IEnumerable<string> resourcesToLoad, Action<LoadingContext> progress,
             Func<Task> awaiter) {
             _registry = await Loader.Load(resourcesToLoad, progress, awaiter);
         }
 
-        public virtual void Unload() {
-            foreach (var resourceMetadata in _registry.Values) {
-                resourceMetadata.Resource.Dispose();
-            }
+        public void Unload() {
+            foreach (var resourceMetadata in _registry.Values) resourceMetadata.Resource.Dispose();
+            _registry.Clear();
         }
     }
 
@@ -48,12 +50,17 @@ namespace Betauer.Loader {
             Path = path;
         }
     }
+
     public abstract class ResourceLoaderContainer : ResourceMetadataRegistry {
-        private LinkedList<Action<LoadingContext>>? _progress;
+        private LinkedList<Action<LoadingContext>>? _onProgressList;
         private Func<Task>? _awaiter;
         private int _maxTime = 100;
+        private readonly LinkedList<object> _targets = new LinkedList<object>();
+        [Inject] public SceneTree SceneTree;
 
-        [Inject] protected SceneTree SceneTree;
+        protected ResourceLoaderContainer() {
+            _targets.AddLast(this);
+        }
 
         public ResourceLoaderContainer SetMaxPollTime(int maxTime) {
             _maxTime = maxTime;
@@ -66,42 +73,60 @@ namespace Betauer.Loader {
         }
 
         public ResourceLoaderContainer OnProgress(Action<LoadingContext> progress) {
-            _progress ??= new LinkedList<Action<LoadingContext>>();
-            _progress.AddLast(progress);
+            _onProgressList ??= new LinkedList<Action<LoadingContext>>();
+            _onProgressList.AddLast(progress);
             return this;
         }
 
-        public async Task ScanAndLoad(params object[] targets) {
-            Action<LoadingContext>? progress = null;
-            if (_progress != null) {
-                progress = context => {
-                    foreach (var action in _progress) action(context);
-                };
-            }
-            Func<Task> awaiter = _awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
-            targets = targets.Concat(new [] { this }).ToArray();
-            _registry = await Loader.Load(GetResourcesToLoad(targets), progress, awaiter, _maxTime);
-            InjectResources( _registry, targets);
+        public ResourceLoaderContainer Bind(params object[] targets) {
+            foreach (var target in targets)
+                if (!_targets.Contains(target))
+                    _targets.AddLast(target);
+            return this;
         }
 
-        public override void Unload() {
-            base.Unload();
+        public ResourceLoaderContainer Unbind(params object[] targets) {
+            foreach (var target in targets) _targets.Remove(target);
+            return this;
+        }
+
+        public async Task Load(params object[] moreTargets) {
+            var progress = CombineOnProgress(_onProgressList);
+            Func<Task> awaiter = _awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
+            IEnumerable<object> targets = _targets.Concat(moreTargets);
+            _registry = await Loader.Load(GetResourcesToLoad(targets), progress, awaiter, _maxTime);
+            InjectResources(_registry, targets);
+        }
+
+        public ResourceLoaderContainer Unload() {
+            foreach (var key in _registry.Keys) {
+                _registry[key].Resource.Dispose();
+                _registry.Remove(key);
+            }
             // Set to null all fields with attributes [Scene] and [Resource]
             foreach (var field in GetType().GetFields(Flags))
                 if (Attribute.GetCustomAttribute(field, typeof(SceneAttribute), false) is SceneAttribute ||
-                    Attribute.GetCustomAttribute(field, typeof(ResourceAttribute), false) is ResourceAttribute) 
+                    Attribute.GetCustomAttribute(field, typeof(ResourceAttribute), false) is ResourceAttribute)
                     field.SetValue(this, null);
 
-            foreach (var property in GetType().GetProperties(Flags)) 
+            foreach (var property in GetType().GetProperties(Flags))
                 if (Attribute.GetCustomAttribute(property, typeof(SceneAttribute), false) is SceneAttribute ||
                     Attribute.GetCustomAttribute(property, typeof(ResourceAttribute), false) is ResourceAttribute)
                     property.SetValue(this, null);
+            return this;
         }
 
-        private const BindingFlags Flags =
-            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private static Action<LoadingContext>? CombineOnProgress(IEnumerable<Action<LoadingContext>>? progress) {
+            if (progress == null) return null;
+            void OnProgress(LoadingContext context) {
+                foreach (var action in progress) action(context);
+            }
+            return OnProgress;
+        }
 
-        private static IEnumerable<string> GetResourcesToLoad(params object[] targets) {
+        private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+        private static IEnumerable<string> GetResourcesToLoad(IEnumerable<object> targets) {
             var resources = new HashSet<string>();
             foreach (var target in targets) {
                 foreach (var field in target.GetType().GetFields(Flags))
@@ -121,7 +146,8 @@ namespace Betauer.Loader {
             return resources;
         }
 
-        private static void InjectResources(IReadOnlyDictionary<string, ResourceMetadata> resources, params object[] targets) {
+        private static void InjectResources(IReadOnlyDictionary<string, ResourceMetadata> resources,
+            IEnumerable<object> targets) {
             foreach (var target in targets) {
                 foreach (var field in target.GetType().GetFields(Flags)) {
                     if (Attribute.GetCustomAttribute(field, typeof(SceneAttribute), false) is SceneAttribute scene)
@@ -164,7 +190,7 @@ namespace Betauer.Loader {
                     throw new ResourceLoaderException("Incompatible type ResourceMetadata<" + setter.Type + "> for " +
                                                       resource.Resource.GetType() + ": " + resource.Path);
                 }
-            } else if (resource.Resource.GetType().IsAssignableFrom(setter.Type)) {
+            } else if (setter.Type.IsInstanceOfType(resource.Resource)) {
                 setter.SetValue(target, resource.Resource);
             } else {
                 throw new ResourceLoaderException("Incompatible type " + setter.Type + " for " +

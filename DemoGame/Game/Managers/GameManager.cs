@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
+using Betauer.Signal;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
@@ -77,7 +77,7 @@ namespace Veronenger.Game.Managers {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                    }).ScanAndLoad(this);
+                    }).Bind(this).Load();
                     _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;

@@ -1,5 +1,4 @@
 using System;
-using Betauer;
 using Betauer.DI;
 using Betauer.Loader;
 using Godot;

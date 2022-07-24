@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.GodotAction.Proxy;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -47,9 +47,9 @@ namespace Betauer.GodotAction.Tests {
             Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Adding 2 listeners
-            l.OnTreeEntered(action1);
+            l.GetProxy().OnTreeEntered(action1);
             Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
-            l.OnTreeEntered(action2);
+            l.GetProxy().OnTreeEntered(action2);
             Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
 
             // Remove 2 listeners
@@ -63,7 +63,7 @@ namespace Betauer.GodotAction.Tests {
             Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
 
             // Add one again
-            l.OnTreeEntered(action1);
+            l.GetProxy().OnTreeEntered(action1);
             Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
 
             // Remove one that wasn't added

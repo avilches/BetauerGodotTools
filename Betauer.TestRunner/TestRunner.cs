@@ -107,7 +107,7 @@ namespace Betauer.TestRunner {
                             if (next is Task coTask) {
                                 await coTask;
                             } else {
-                                await sceneTree.AwaitPhysicsFrame();
+                                await sceneTree.AwaitIdleFrame();
                             }
                         }
                     }

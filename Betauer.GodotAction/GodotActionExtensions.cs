@@ -3,9 +3,9 @@ using Godot;
 using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
-using Betauer.GodotAction;
+using Betauer.GodotAction.Proxy;
 
-namespace Betauer {
+namespace Betauer.GodotAction {
     public static partial class GodotActionExtensions {
 
         private const string ProxyName = "__ProxyGodotAction__";

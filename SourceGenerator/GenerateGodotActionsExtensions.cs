@@ -6,7 +6,7 @@ using System.Linq;
 namespace Generator {
     public class GenerateGodotActionsExtensions {
         private const string GodotActionsExtensionsFile = "../Betauer.GodotAction/GodotActionExtensions.cs";
-        private const string GodotActionClassesNamespace = "Betauer.GodotAction";
+        private const string GodotActionClassesNamespace = "Betauer.GodotAction.Proxy";
 
         public static void WriteGodotActionExtensionsClass(List<GodotClass> classes) {
             var allMethods = classes
@@ -48,7 +48,7 @@ using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using {GodotActionClassesNamespace};
 
-namespace Betauer {{
+namespace Betauer.GodotAction {{
     public static partial class GodotActionExtensions {{
 
         private const string ProxyName = ""__ProxyGodotAction__"";

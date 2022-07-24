@@ -1,6 +1,7 @@
 using System;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Signal;
 using Godot;
 
 namespace Veronenger.Game.Controller.UI {

@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Betauer.TestRunner;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]

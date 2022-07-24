@@ -4,7 +4,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
         <LangVersion>8</LangVersion>
-        <RootNamespace>Betauer</RootNamespace>
+        <RootNamespace>Betauer.GodotAction</RootNamespace>
         <PackageId>Betauer.GodotAction</PackageId>
         <AssemblyName>Betauer.GodotAction</AssemblyName>
         <!--OutputPath>$(SolutionDir)\.mono\bin\$(Configuration)\</OutputPath-->        
@@ -18,5 +18,8 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Proxy" />
     </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Signal {
     public static partial class SignalExtensions {
         public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
             return AwaitPhysicsFrame(node.GetTree());

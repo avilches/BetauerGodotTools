@@ -4,6 +4,7 @@ using Betauer;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Memory;
+using Betauer.Signal;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
 using Array = Godot.Collections.Array;

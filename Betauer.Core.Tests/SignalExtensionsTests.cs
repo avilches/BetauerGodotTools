@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.Memory;
 using Betauer.Signal;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 using Object = Godot.Object;
