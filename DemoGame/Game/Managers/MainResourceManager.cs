@@ -7,7 +7,7 @@ using Veronenger.Game.Controller.Menu;
 namespace Veronenger.Game.Managers {
 
     [Singleton]
-    public class MainResourceManager : ResourceLoaderContainer {
+    public class MainResourceLoader : ResourceLoaderContainer {
         [Resource("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")] 
         public Texture Xbox360ButtonsTexture;
 

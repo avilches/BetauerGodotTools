@@ -1,6 +1,7 @@
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;

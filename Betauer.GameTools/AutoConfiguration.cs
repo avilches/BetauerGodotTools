@@ -1,4 +1,4 @@
-using System;
+using Betauer.DI;
 using Betauer.Memory;
 using Betauer.OnReady;
 using Betauer.Signal;
@@ -12,16 +12,15 @@ namespace Betauer {
     public class AutoConfiguration : Node {
         private Container _container;
 
-        public AutoConfiguration() {
-            AddChild(new ObjectWatcherNode());
-        }
-
+        [Singleton] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
+        [Singleton] public SceneTree SceneTree => GetTree();
+        
         public override void _EnterTree() {
             PauseMode = PauseModeEnum.Process;
             _container = new Container(this);
             var builder = _container.CreateBuilder();
-            builder.Static(GetTree());
             builder.Scan();
+            builder.ScanConfiguration(this);
             builder.Build();
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);
         }

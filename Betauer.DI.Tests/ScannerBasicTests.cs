@@ -412,32 +412,74 @@ namespace Betauer.DI.Tests {
 
         [Configuration]
         public class ConfigurationService {
-            [Transient] private Hold ConfHold1 => new Hold("1");
-            [Singleton] private Hold ConfHold2 => new Hold("2");
+            public static int Created = 0;
+            public ConfigurationService() {
+                Created++;
+            }
+
+            [Transient] private Hold TransientHold1 => new Hold("1");
+            [Singleton] private Hold SingletonHold1() => new Hold("2");
+        }
+
+        [Singleton]
+        public class ConfigurationServiceSingleton {
+            [Transient] private Hold TransientHold2 => new Hold("2");
+            [Singleton] private Hold SingletonHold2() => new Hold("2");
+        }
+
+        [Configuration]
+        public class ConfigurationServiceStatic {
+            public static int Created = 0;
+            public ConfigurationServiceStatic() {
+                Created++;
+            }
+
+            [Transient] private static Hold TransientStatic => new Hold("3");
+            [Singleton] private static Hold SingletonStatic() => new Hold("3");
         }
 
         [Test(Description = "Use configuration to export members")]
         public void ExportFromConfiguration() {
             var di = new ContainerBuilder(this);
             di.Scan<ConfigurationService>();
+            di.Scan<ConfigurationServiceSingleton>();
+            di.Scan<ConfigurationServiceStatic>();
             var c = di.Build();
             
+            Assert.That(ConfigurationService.Created, Is.EqualTo(1));
+            Assert.That(ConfigurationServiceStatic.Created, Is.EqualTo(0));
+            
             Assert.That(c.Contains<ConfigurationService>(), Is.False);
+            Assert.That(c.Contains<ConfigurationServiceSingleton>(), Is.True);
+            Assert.That(c.Contains<ConfigurationServiceStatic>(), Is.False);
             
-            Hold s11 = c.Resolve<Hold>("ConfHold1");
-            Hold s12 = c.Resolve<Hold>("ConfHold1");
-            Hold s21 = c.Resolve<Hold>("ConfHold2");
-            Hold s22 = c.Resolve<Hold>("ConfHold2");
+            Hold t1 = c.Resolve<Hold>("TransientHold1");
+            Hold t2 = c.Resolve<Hold>("TransientHold1");
+            Hold t3 = c.Resolve<Hold>("TransientHold2");
+            Hold t4 = c.Resolve<Hold>("TransientStatic");
             
-            Assert.That(s11.Name, Is.EqualTo("1"));
-            Assert.That(s12.Name, Is.EqualTo("1"));
-            Assert.That(s21.Name, Is.EqualTo("2"));
-            Assert.That(s22.Name, Is.EqualTo("2"));
-            
-            // Transients are different
-            Assert.That(s11, Is.Not.EqualTo(s12));
+            Assert.That(t1.Name, Is.EqualTo("1"));
+            Assert.That(t2.Name, Is.EqualTo("1"));
+            Assert.That(t3.Name, Is.EqualTo("2"));
+            // Transients are all different
+            Assert.That(t1, Is.Not.EqualTo(t2));
+            Assert.That(t2, Is.Not.EqualTo(t3));
+            Assert.That(t3, Is.Not.EqualTo(t4));
+            Assert.That(t4, Is.Not.EqualTo(t1));
+
             // Singleton are the same
+            Hold s11 = c.Resolve<Hold>("SingletonHold1");
+            Hold s12 = c.Resolve<Hold>("SingletonHold1");
+            Assert.That(s11, Is.EqualTo(s12));
+
+            Hold s21 = c.Resolve<Hold>("SingletonHold2");
+            Hold s22 = c.Resolve<Hold>("SingletonHold2");
             Assert.That(s21, Is.EqualTo(s22));
+
+            Hold s31 = c.Resolve<Hold>("SingletonStatic");
+            Hold s32 = c.Resolve<Hold>("SingletonStatic");
+            Assert.That(s31, Is.EqualTo(s32));
+            
         }
         
         

@@ -49,7 +49,7 @@ namespace Betauer.DI {
 
     public class Container {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
-        private readonly Dictionary<string, IProvider> _registryNames = new Dictionary<string, IProvider>();
+        private readonly Dictionary<string, IProvider> _registryByAlias = new Dictionary<string, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Node NodeSingletonOwner;
         public readonly Injector Injector;
@@ -97,26 +97,32 @@ namespace Betauer.DI {
             }
             var aliases = provider.GetAliases();
             if (aliases != null && aliases.Length > 0) {
+                var registeredTypes = new LinkedList<Type>();
+                var ignoredTypes = new LinkedList<Type>();
                 foreach (var alias in aliases!) {
-                    if (_registryNames.ContainsKey(alias)) {
-                        throw new DuplicateNameException(alias);
+                    if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
+                    _registryByAlias[alias] = provider;
+                }
+                foreach (var providerType in provider.GetRegisterTypes()) {
+                    if (_registry.ContainsKey(providerType)) {
+                        ignoredTypes.AddLast(providerType);
+                    } else {
+                        registeredTypes.AddLast(providerType);
+                        _registry[providerType] = provider;
                     }
-                    _registryNames[alias] = provider;
                 }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
-                                 string.Join(",", provider.GetRegisterTypes()[0]) + " Names: " +
-                                 string.Join(",", aliases));
+                    _logger.Info("Registered " + provider.GetLifetime() + " by types: " +
+                                 string.Join(",", registeredTypes) + " - Names: " +
+                                 string.Join(",", aliases) + " - Ignored types: " + string.Join(",", ignoredTypes));
                 }
             } else {
                 foreach (var providerType in provider.GetRegisterTypes()) {
-                    if (_registry.ContainsKey(providerType)) {
-                        throw new DuplicateNameException(providerType.ToString());
-                    }
+                    if (_registry.ContainsKey(providerType)) throw new DuplicateNameException(providerType.ToString());
                     _registry[providerType] = provider;
                 }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + " Type: " +
+                    _logger.Info("Registered " + provider.GetLifetime() + " by types: " +
                                  string.Join(",", provider.GetRegisterTypes().ToList()));
                 }
             }
@@ -133,8 +139,8 @@ namespace Betauer.DI {
             }
             return false;
         }
-        public bool Contains(string type, Lifetime? lifetime = null) {
-            if (_registryNames.TryGetValue(type, out var o)) {
+        public bool Contains(string alias, Lifetime? lifetime = null) {
+            if (_registryByAlias.TryGetValue(alias, out var o)) {
                 return lifetime == null || o.GetLifetime() == lifetime;
             }
             return false;
@@ -149,7 +155,7 @@ namespace Betauer.DI {
         }
 
         public IProvider GetProvider(string alias) {
-            return _registryNames[alias];
+            return _registryByAlias[alias];
         }
 
         public bool TryGetProvider<T>(out IProvider? provider) {
@@ -162,7 +168,7 @@ namespace Betauer.DI {
             return found;
         }
         public bool TryGetProvider(string type, out IProvider? provider) {
-            var found = _registryNames.TryGetValue(type, out provider);
+            var found = _registryByAlias.TryGetValue(type, out provider);
             if (!found) provider = null;
             return found;
         }

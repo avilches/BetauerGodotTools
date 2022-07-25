@@ -81,15 +81,6 @@ namespace Betauer.DI {
                 return;
             } 
             
-            if (_container.CreateIfNotFound || _container.Contains(setter.Type)) {
-                // There is a provider for the field type
-                _logger.Debug("Injecting field " + setter.Name + " " + setter.Type.Name + " in " + target.GetType() +
-                              "(" + target.GetHashCode() + ")");
-                var service = _container.Resolve(setter.Type, context);
-                setter.SetValue(target, service);
-                return;
-            }
-
             if (_container.Contains(setter.Name)) {
                 // There is a provider for the alias
                 _logger.Debug("Injecting field alias '" + setter.Name + "' " + setter.Name + " " + setter.Type.Name +
@@ -99,7 +90,15 @@ namespace Betauer.DI {
                 return;
             }
 
-            
+            if (_container.CreateIfNotFound || _container.Contains(setter.Type)) {
+                // There is a provider for the field type
+                _logger.Debug("Injecting field " + setter.Name + " " + setter.Type.Name + " in " + target.GetType() +
+                              "(" + target.GetHashCode() + ")");
+                var service = _container.Resolve(setter.Type, context);
+                setter.SetValue(target, service);
+                return;
+            }
+
             if (!nullable) {
                 throw new InjectFieldException(setter.Name, target,
                     "Injectable property [Inject] " + setter.Type.Name + " " + setter.Name +

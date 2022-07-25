@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;

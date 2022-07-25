@@ -132,29 +132,56 @@ namespace Betauer.DI {
         public ContainerBuilder Scan<T>() => Scan(typeof(T));
 
         public ContainerBuilder Scan(Type type) {
-            if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
-                ScanMemberExposingServices(type, true);
+            ExposedService? exposedService = ExposedService.CreateFrom(type, false);
+            if (exposedService == null) {
+                // No [Transient] or [Singleton] present in the class, check for [Configuration]
+                if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
+                    ScanMemberExposingServices(type, true);
+                    ScanStaticMemberExposingServices(type);
+                }
                 return this;
             }
-            
-            ExposedService? exposedService = ExposedService.CreateFrom(type, false);
-            if (exposedService == null) return this;
 
             var aliases = exposedService.Name != null ? new[] { exposedService.Name } : null;
             Register(type, exposedService.Lifetime, new[] { type }, aliases);
-            
-            if (exposedService.Lifetime == Lifetime.Singleton) ScanMemberExposingServices(type, false);
+
+            if (exposedService.Lifetime == Lifetime.Singleton) {
+                ScanMemberExposingServices(type, false);
+                ScanStaticMemberExposingServices(type);
+            }
             return this;
         }
 
-        private const BindingFlags InjectFlags =
-            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        public ContainerBuilder ScanConfiguration(params object[] instances) {
+            foreach (var instance in instances) {
+                ScanMemberExposingServices(instance);
+                ScanStaticMemberExposingServices(instance.GetType());
+            }
+            return this;
+        }
+
+        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
+
+        private void ScanStaticMemberExposingServices(Type type) {
+            foreach (var property in type.GetProperties(ScanMemberFlags | BindingFlags.Static)) {
+                ExposedService? exposedService = ExposedService.CreateFrom(property, true);
+                if (exposedService == null) continue;
+                object Factory() => property.GetValue(null); 
+                Register(property.PropertyType, Factory , exposedService.Lifetime, null, new[] { exposedService.Name! });
+            }
+            foreach (var method in type.GetMethods(ScanMemberFlags | BindingFlags.Static)) {
+                ExposedService? exposedService = ExposedService.CreateFrom(method, true);
+                if (exposedService == null) continue;
+
+                object Factory() => method.Invoke(null, Array.Empty<object>());
+                Register(method.ReturnType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name! });
+            }
+        }
 
         private void ScanMemberExposingServices(Type type, bool isConfiguration) {
             // _logger.Debug("Exposing properties and methods " + type;
-            var properties = type.GetProperties(InjectFlags);
             object conf = null;
-            foreach (var property in properties) {
+            foreach (var property in type.GetProperties(ScanMemberFlags | BindingFlags.Instance)) {
                 ExposedService? exposedService = ExposedService.CreateFrom(property, true);
                 if (exposedService == null) continue;
 
@@ -162,22 +189,37 @@ namespace Betauer.DI {
                     var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return property.GetValue(instance);
                 }
-
                 Register(property.PropertyType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name! });
             }
 
-            var methods = type.GetMethods(InjectFlags);
-            foreach (var method in methods) {
+            foreach (var method in type.GetMethods(ScanMemberFlags | BindingFlags.Instance)) {
                 ExposedService? exposedService = ExposedService.CreateFrom(method, true);
                 if (exposedService == null) continue;
 
                 object Factory() {
-                    var instance = _container.Resolve(type);
+                    var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return method.Invoke(instance, Array.Empty<object>());
                 }
 
                 Register(method.ReturnType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name! });
             }
+        }
+
+        private void ScanMemberExposingServices(object instance) {
+            foreach (var property in instance.GetType().GetProperties(ScanMemberFlags | BindingFlags.Instance)) {
+                ExposedService? exposedService = ExposedService.CreateFrom(property, true);
+                if (exposedService == null) continue;
+                object Factory() => property.GetValue(instance);
+                Register(property.PropertyType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name! });
+            }
+
+            foreach (var method in instance.GetType().GetMethods(ScanMemberFlags | BindingFlags.Instance)) {
+                ExposedService? exposedService = ExposedService.CreateFrom(method, true);
+                if (exposedService == null) continue;
+                object Factory() => method.Invoke(instance, Array.Empty<object>());
+                Register(method.ReturnType, Factory, exposedService.Lifetime, null, new[] { exposedService.Name! });
+            }
+            
         }
 
         private class ExposedService {

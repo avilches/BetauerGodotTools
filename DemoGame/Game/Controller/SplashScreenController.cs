@@ -6,13 +6,12 @@ using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Managers;
 using InputManager = Veronenger.Game.Managers.InputManager;
-using SettingsManager = Veronenger.Game.Managers.SettingsManager;
 
 namespace Veronenger.Game.Controller {
     public class SplashScreenController : Control {
         [Inject] private GameManager _gameManager;
         [Inject] private SettingsManager _settingsManager;
-        [Inject] private MainResourceManager _mainResourceManager;
+        [Inject] private MainResourceLoader _mainResourceLoader;
 
         [OnReady("ColorRect")] private ColorRect ColorRect;
         [OnReady("ColorRect/CenterContainer")] private CenterContainer CenterContainer;
@@ -43,7 +42,7 @@ namespace Veronenger.Game.Controller {
             ColorRect.RectSize = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
             Visible = true;
-            _mainResourceManager.OnProgress(context => {
+            _mainResourceLoader.OnProgress(context => {
                 // GD.Print("SPLASH " + context.TotalLoadedPercent);
             });
             _launcher.WithParent(this)

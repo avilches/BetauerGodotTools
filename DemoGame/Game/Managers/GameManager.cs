@@ -2,12 +2,12 @@ using System;
 using System.Threading.Tasks;
 using Godot;
 using Betauer.Animation;
+using Betauer.Application;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Signal;
 using Betauer.StateMachine;
-using Veronenger.Game.Controller;
 using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
@@ -58,7 +58,7 @@ namespace Veronenger.Game.Managers {
         [Inject] private StageManager _stageManager;
         [Inject] private SettingsManager _settingsManager;
         [Inject] private SceneTree _sceneTree;
-        [Inject] private MainResourceManager _mainResourceManager;
+        [Inject] private MainResourceLoader _mainResourceLoader;
 
         [Inject] private ActionState PixelPerfect;
         [Inject] private ActionState UiAccept;
@@ -73,7 +73,7 @@ namespace Veronenger.Game.Managers {
             var builder = CreateBuilder();
             builder.State(State.Init)
                 .Execute(async (ctx) => {
-                    await _mainResourceManager.OnProgress(context => {
+                    await _mainResourceLoader.OnProgress(context => {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
@@ -113,7 +113,7 @@ namespace Veronenger.Game.Managers {
             builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    _currentGameScene = _mainResourceManager.CreateWorld1();
+                    _currentGameScene = _mainResourceLoader.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
@@ -221,7 +221,7 @@ namespace Veronenger.Game.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene) {
-            _playerScene = _mainResourceManager.CreatePlayer();
+            _playerScene = _mainResourceLoader.CreatePlayer();
             nextScene.AddChild(_playerScene);
             var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
             if (position2D == null) {
