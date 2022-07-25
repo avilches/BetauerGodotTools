@@ -9,43 +9,31 @@ namespace Betauer.OnReady {
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
         public static void ScanAndInject(Node target) {
-            var fields = target.GetType().GetFields(OnReadyFlags);
-            foreach (var field in fields) {
-                if (Attribute.GetCustomAttribute(field, typeof(OnReadyAttribute), false) is 
-                    OnReadyAttribute onReady) {
-                    LoadOnReadyField(target, onReady, new Setter(field));
-                }
-            }
-
-            var properties = target.GetType().GetProperties(OnReadyFlags);
-            foreach (var property in properties) {
-                if (Attribute.GetCustomAttribute(property,
-                        typeof(OnReadyAttribute), false) is OnReadyAttribute onReady) {
-                    LoadOnReadyField(target, onReady, new Setter(property));
-                }
-            }
+            foreach (var setter in target.GetType().GetPropertiesAndFields<OnReadyAttribute>(OnReadyFlags))
+                LoadOnReadyField(target, setter);
         }
 
-        private static void LoadOnReadyField(Node target, OnReadyAttribute onReady, Setter setter) {
-            if (onReady.Path == null) return;
-            var path = onReady.Path.Trim();
+        private static void LoadOnReadyField(Node target, GetterSetter<OnReadyAttribute> getterSetter) {
+            var nullable = getterSetter.Attribute.Nullable; 
+            var path = getterSetter.Attribute.Path?.Trim(); 
+            if (path == null) return;
             // [OnReady("path/to/node")
             // private Sprite sprite = this.GetNode<Sprite>("path/to/node");
             var node = target.GetNode(path);
-            var fieldInfo = "[OnReady(\"" + path + "\")] " + setter.Type.Name + " " +
-                            setter.Name;
+            var fieldInfo = "[OnReady(\"" + path + "\")] " + getterSetter.Type.Name + " " +
+                            getterSetter.Name;
 
             if (node == null) {
-                if (onReady.Nullable) return;
-                throw new OnReadyFieldException(setter.Name, target,
+                if (nullable) return;
+                throw new OnReadyFieldException(getterSetter.Name, target,
                     "Path returns a null value for field " + fieldInfo + ", class " + target.GetType().Name);
             }
-            if (!setter.Type.IsInstanceOfType(node)) {
-                throw new OnReadyFieldException(setter.Name, target,
+            if (!getterSetter.Type.IsInstanceOfType(node)) {
+                throw new OnReadyFieldException(getterSetter.Name, target,
                     "Path returns an incompatible type " + node.GetType().Name + " for field " + fieldInfo +
                     ", class " + target.GetType().Name);
             }
-            setter.SetValue(target, node);
+            getterSetter.SetValue(target, node);
         }
         
     }

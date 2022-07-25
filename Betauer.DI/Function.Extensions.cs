@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.DI {
     public static class InjectorFunction {
-        public static bool InjectField(Container container, object target, Setter field) {
+        public static bool InjectField(Container container, object target, GetterSetter<InjectAttribute> field) {
             if (!IsZeroArgumentFunction(field.Type)) return false;
             var outType = field.Type.GetGenericArguments()[0];
             // [Inject] private Func<TOut> func;

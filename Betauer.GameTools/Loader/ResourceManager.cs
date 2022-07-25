@@ -104,15 +104,11 @@ namespace Betauer.Loader {
                 _registry.Remove(key);
             }
             // Set to null all fields with attributes [Scene] and [Resource]
-            foreach (var field in GetType().GetFields(Flags))
-                if (Attribute.GetCustomAttribute(field, typeof(SceneAttribute), false) is SceneAttribute ||
-                    Attribute.GetCustomAttribute(field, typeof(ResourceAttribute), false) is ResourceAttribute)
-                    field.SetValue(this, null);
+            foreach (var setter in GetType().GetPropertiesAndFields<SceneAttribute>(Flags))
+                setter.SetValue(this, null);
 
-            foreach (var property in GetType().GetProperties(Flags))
-                if (Attribute.GetCustomAttribute(property, typeof(SceneAttribute), false) is SceneAttribute ||
-                    Attribute.GetCustomAttribute(property, typeof(ResourceAttribute), false) is ResourceAttribute)
-                    property.SetValue(this, null);
+            foreach (var setter in GetType().GetPropertiesAndFields<ResourceAttribute>(Flags))
+                setter.SetValue(this, null);
             return this;
         }
 
@@ -129,41 +125,22 @@ namespace Betauer.Loader {
         private static IEnumerable<string> GetResourcesToLoad(IEnumerable<object> targets) {
             var resources = new HashSet<string>();
             foreach (var target in targets) {
-                foreach (var field in target.GetType().GetFields(Flags))
-                    if (Attribute.GetCustomAttribute(field, typeof(SceneAttribute), false) is SceneAttribute scene)
-                        resources.Add(scene.Path);
-                    else if (Attribute.GetCustomAttribute(field, typeof(ResourceAttribute), false) is ResourceAttribute
-                             resource)
-                        resources.Add(resource.Path);
-
-                foreach (var property in target.GetType().GetProperties(Flags))
-                    if (Attribute.GetCustomAttribute(property, typeof(SceneAttribute), false) is SceneAttribute scene)
-                        resources.Add(scene.Path);
-                    else if (Attribute.GetCustomAttribute(property, typeof(ResourceAttribute), false) is
-                             ResourceAttribute resource)
-                        resources.Add(resource.Path);
+                foreach (var setter in target.GetType().GetPropertiesAndFields<SceneAttribute>(Flags))
+                    resources.Add(setter.Attribute.Path);
+                
+                foreach (var setter in target.GetType().GetPropertiesAndFields<ResourceAttribute>(Flags))
+                    resources.Add(setter.Attribute.Path);
             }
             return resources;
         }
 
-        private static void InjectResources(IReadOnlyDictionary<string, ResourceMetadata> resources,
-            IEnumerable<object> targets) {
+        private static void InjectResources(IReadOnlyDictionary<string, ResourceMetadata> resources, IEnumerable<object> targets) {
             foreach (var target in targets) {
-                foreach (var field in target.GetType().GetFields(Flags)) {
-                    if (Attribute.GetCustomAttribute(field, typeof(SceneAttribute), false) is SceneAttribute scene)
-                        InjectScene(target, new Setter(field), resources[scene.Path]);
-                    else if (Attribute.GetCustomAttribute(field, typeof(ResourceAttribute), false) is ResourceAttribute
-                             resource)
-                        InjectResource(target, new Setter(field), resources[resource.Path]);
-                }
-
-                foreach (var property in target.GetType().GetProperties(Flags)) {
-                    if (Attribute.GetCustomAttribute(property, typeof(SceneAttribute), false) is SceneAttribute scene)
-                        InjectScene(target, new Setter(property), resources[scene.Path]);
-                    else if (Attribute.GetCustomAttribute(property, typeof(ResourceAttribute), false) is
-                             ResourceAttribute resource)
-                        InjectResource(target, new Setter(property), resources[resource.Path]);
-                }
+                foreach (var setter in target.GetType().GetPropertiesAndFields<SceneAttribute>(Flags))
+                    InjectScene(target, setter, resources[setter.Attribute.Path]);
+                
+                foreach (var setter in target.GetType().GetPropertiesAndFields<ResourceAttribute>(Flags))
+                    InjectResource(target, setter, resources[setter.Attribute.Path]);
             }
         }
 
@@ -178,44 +155,44 @@ namespace Betauer.Loader {
         private static readonly MethodInfo ComposeMethod = typeof(ResourceLoaderContainer)
             .GetMethod(nameof(PackedSceneToInstance), BindingFlags.Static | BindingFlags.NonPublic)!;
 
-        private static void InjectResource(object target, Setter setter, ResourceMetadata resource) {
-            if (setter.Type == typeof(ResourceMetadata)) {
-                setter.SetValue(target, resource);
-            } else if (setter.Type.IsGenericType &&
-                       setter.Type.GetGenericTypeDefinition() == typeof(ResourceMetadata<>)) {
-                var genericType = setter.Type.GetGenericArguments()[0];
+        private static void InjectResource(object target, GetterSetter<ResourceAttribute> getterSetter, ResourceMetadata resource) {
+            if (getterSetter.Type == typeof(ResourceMetadata)) {
+                getterSetter.SetValue(target, resource);
+            } else if (getterSetter.Type.IsGenericType &&
+                       getterSetter.Type.GetGenericTypeDefinition() == typeof(ResourceMetadata<>)) {
+                var genericType = getterSetter.Type.GetGenericArguments()[0];
                 if (genericType.IsInstanceOfType(resource.Resource)) {
-                    setter.SetValue(target, ResourceMetadata.DynamicConstructor(resource, genericType));
+                    getterSetter.SetValue(target, ResourceMetadata.DynamicConstructor(resource, genericType));
                 } else {
-                    throw new ResourceLoaderException("Incompatible type ResourceMetadata<" + setter.Type + "> for " +
+                    throw new ResourceLoaderException("Incompatible type ResourceMetadata<" + getterSetter.Type + "> for " +
                                                       resource.Resource.GetType() + ": " + resource.Path);
                 }
-            } else if (setter.Type.IsInstanceOfType(resource.Resource)) {
-                setter.SetValue(target, resource.Resource);
+            } else if (getterSetter.Type.IsInstanceOfType(resource.Resource)) {
+                getterSetter.SetValue(target, resource.Resource);
             } else {
-                throw new ResourceLoaderException("Incompatible type " + setter.Type + " for " +
+                throw new ResourceLoaderException("Incompatible type " + getterSetter.Type + " for " +
                                                   resource.Resource.GetType() + ": " + resource.Path);
             }
         }
 
-        private static void InjectScene(object target, Setter setter, ResourceMetadata resource) {
+        private static void InjectScene(object target, GetterSetter<SceneAttribute> getterSetter, ResourceMetadata resource) {
             if (!(resource.Resource is PackedScene packedScene)) {
                 throw new ResourceLoaderException("Resource type: " + resource.Resource.GetType() +
                                                   " should be a PackedScene. " + resource.Path);
             }
-            if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Func<>)) {
-                var packedSceneToInstanceFunction = CreatePackedSceneToInstanceFunction(packedScene, setter.Type);
-                setter.SetValue(target, packedSceneToInstanceFunction);
-            } else if (typeof(Node).IsAssignableFrom(setter.Type)) {
+            if (getterSetter.Type.IsGenericType && getterSetter.Type.GetGenericTypeDefinition() == typeof(Func<>)) {
+                var packedSceneToInstanceFunction = CreatePackedSceneToInstanceFunction(packedScene, getterSetter.Type);
+                getterSetter.SetValue(target, packedSceneToInstanceFunction);
+            } else if (typeof(Node).IsAssignableFrom(getterSetter.Type)) {
                 Node o = packedScene.Instance();
-                if (setter.Type.IsInstanceOfType(o)) {
-                    setter.SetValue(target, o);
+                if (getterSetter.Type.IsInstanceOfType(o)) {
+                    getterSetter.SetValue(target, o);
                 } else {
-                    throw new ResourceLoaderException("Scene " + o.GetType() + " created should be " + setter.Type +
+                    throw new ResourceLoaderException("Scene " + o.GetType() + " created should be " + getterSetter.Type +
                                                       " for " + resource.Path);
                 }
             } else {
-                throw new ResourceLoaderException("Incompatible type " + setter.Type + " for " +
+                throw new ResourceLoaderException("Incompatible type " + getterSetter.Type + " for " +
                                                   resource.Resource.GetType() + ": " + resource.Path);
             }
         }
