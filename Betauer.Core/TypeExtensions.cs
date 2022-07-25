@@ -87,7 +87,7 @@ namespace Betauer {
             return setters;
         } 
         
-        public static IEnumerable<Getter<T>> GetGetters<T>(this Type type, BindingFlags bindingAttr) {
+        public static IEnumerable<Getter<T>> GetPropertiesAndMethods<T>(this Type type, BindingFlags bindingAttr) {
             LinkedList<Getter<T>> setters = new LinkedList<Getter<T>>();
             foreach (var memberInfo in type.GetProperties(bindingAttr)) {
                 if (Attribute.GetCustomAttribute(memberInfo, typeof(T), false) is T attribute) {

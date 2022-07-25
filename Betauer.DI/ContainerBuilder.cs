@@ -163,11 +163,11 @@ namespace Betauer.DI {
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
 
         private void ScanStaticMemberExposingServices(Type type) {
-            foreach (var getter in type.GetGetters<SingletonAttribute>(ScanMemberFlags | BindingFlags.Static)) {
+            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Static)) {
                 Register(getter.Type, () => getter.GetValue(null) , Lifetime.Singleton, null, 
                     new[] { getter.Attribute.Name ?? getter.Name });
             }
-            foreach (var getter in type.GetGetters<TransientAttribute>(ScanMemberFlags | BindingFlags.Static)) {
+            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Static)) {
                 Register(getter.Type, () => getter.GetValue(null) , Lifetime.Transient, null, 
                     new[] { getter.Attribute.Name ?? getter.Name });
             }
@@ -176,14 +176,14 @@ namespace Betauer.DI {
         private void ScanMemberExposingServices(Type type, bool isConfiguration) {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
-            foreach (var getter in type.GetGetters<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 Register(getter.Type, () => {
                     var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return getter.GetValue(instance);
                 }, Lifetime.Singleton, null, new[] { getter.Attribute.Name ?? getter.Name });
             }
             
-            foreach (var getter in type.GetGetters<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 Register(getter.Type, () => {
                     var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return getter.GetValue(instance);
@@ -193,12 +193,12 @@ namespace Betauer.DI {
 
         private void ScanMemberExposingServices(object instance) {
             var type = instance.GetType();
-            foreach (var getter in type.GetGetters<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 Register(getter.Type, () => getter.GetValue(instance), Lifetime.Singleton, null,
                     new[] { getter.Attribute.Name ?? getter.Name });
             }
             
-            foreach (var getter in type.GetGetters<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 Register(getter.Type, () => getter.GetValue(instance), Lifetime.Transient, null,
                     new[] { getter.Attribute.Name ?? getter.Name });
             }
