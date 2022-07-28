@@ -1,5 +1,6 @@
 using System;
 using Betauer.Memory;
+using Betauer.Signal;
 using Godot;
 using Array = Godot.Collections.Array;
 using Object = Godot.Object;

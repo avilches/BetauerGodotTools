@@ -1,5 +1,4 @@
-using System;
-namespace Betauer {
+namespace Betauer.Signal {
     public static partial class SignalConstants {
         public const string AcceptDialog_ConfirmedSignal = "confirmed";
         public const string AcceptDialog_CustomActionSignal = "custom_action";
