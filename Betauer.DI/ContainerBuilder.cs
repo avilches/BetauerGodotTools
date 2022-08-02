@@ -9,17 +9,26 @@ namespace Betauer.DI {
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-    public class SingletonAttribute : Attribute {
+    public class ServiceAttribute : Attribute {
         public string? Name { get; set; }
+        public Lifetime Lifetime { get; set; } = Lifetime.Singleton;
+
+        public ServiceAttribute() {
+        }
+
+        public ServiceAttribute(Lifetime lifetime, string name = null) {
+            Lifetime = lifetime;
+            Name = name;
+        }
+
+        public ServiceAttribute(string name, Lifetime lifetime = Lifetime.Singleton) {
+            Name = name;
+            Lifetime = lifetime;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class PostCreateAttribute : Attribute {
-    }
-
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-    public class TransientAttribute : Attribute {
-        public string? Name { get; set; }
     }
 
     public class ContainerBuilder {
@@ -132,22 +141,19 @@ namespace Betauer.DI {
         public ContainerBuilder Scan<T>() => Scan(typeof(T));
 
         public ContainerBuilder Scan(Type type) {
-            ExposedService? exposedService = ExposedService.CreateFrom(type);
-            if (exposedService == null) {
-                // No [Transient] or [Singleton] present in the class, check for [Configuration]
+            if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
+                var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
+                Register(type, serviceAttr.Lifetime, new[] { type }, aliases);
+                if (serviceAttr.Lifetime == Lifetime.Singleton) {
+                    ScanMemberExposingServices(type, false);
+                    ScanStaticMemberExposingServices(type);
+                }
+            } else {
+                // No [Service] present in the class, check for [Configuration]
                 if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
                     ScanMemberExposingServices(type, true);
                     ScanStaticMemberExposingServices(type);
                 }
-                return this;
-            }
-
-            var aliases = exposedService.Name != null ? new[] { exposedService.Name } : null;
-            Register(type, exposedService.Lifetime, new[] { type }, aliases);
-
-            if (exposedService.Lifetime == Lifetime.Singleton) {
-                ScanMemberExposingServices(type, false);
-                ScanStaticMemberExposingServices(type);
             }
             return this;
         }
@@ -163,67 +169,28 @@ namespace Betauer.DI {
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
 
         private void ScanStaticMemberExposingServices(Type type) {
-            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Static)) {
-                Register(getter.Type, () => getter.GetValue(null) , Lifetime.Singleton, null, 
-                    new[] { getter.Attribute.Name ?? getter.Name });
-            }
-            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Static)) {
-                Register(getter.Type, () => getter.GetValue(null) , Lifetime.Transient, null, 
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Static)) {
+                Register(getter.Type, () => getter.GetValue(null) , getter.Attribute.Lifetime, null, 
                     new[] { getter.Attribute.Name ?? getter.Name });
             }
         }
 
-        private void ScanMemberExposingServices(Type type, bool isConfiguration) {
+        private void ScanMemberExposingServices(Type type, bool fromConfiguration) {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
-            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 Register(getter.Type, () => {
-                    var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
+                    var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return getter.GetValue(instance);
-                }, Lifetime.Singleton, null, new[] { getter.Attribute.Name ?? getter.Name });
-            }
-            
-            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
-                Register(getter.Type, () => {
-                    var instance = isConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
-                    return getter.GetValue(instance);
-                }, Lifetime.Transient, null, new[] { getter.Attribute.Name ?? getter.Name });
+                }, getter.Attribute.Lifetime, null, new[] { getter.Attribute.Name ?? getter.Name });
             }
         }
 
         private void ScanMemberExposingServices(object instance) {
             var type = instance.GetType();
-            foreach (var getter in type.GetPropertiesAndMethods<SingletonAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
-                Register(getter.Type, () => getter.GetValue(instance), Lifetime.Singleton, null,
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, null,
                     new[] { getter.Attribute.Name ?? getter.Name });
-            }
-            
-            foreach (var getter in type.GetPropertiesAndMethods<TransientAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
-                Register(getter.Type, () => getter.GetValue(instance), Lifetime.Transient, null,
-                    new[] { getter.Attribute.Name ?? getter.Name });
-            }
-        }
-
-        private class ExposedService {
-            public readonly string? Name;
-            public readonly Lifetime Lifetime;
-
-            private ExposedService(string? name, Lifetime lifetime) {
-                Name = name;
-                Lifetime = lifetime;
-            }
-
-            public static ExposedService? CreateFrom(Type type) {
-                Attribute[] attributes = Attribute.GetCustomAttributes(type);
-                foreach (var attribute in attributes) {
-                    switch (attribute) {
-                        case SingletonAttribute singleton:
-                            return new ExposedService(singleton.Name, Lifetime.Singleton);
-                        case TransientAttribute transient:
-                            return new ExposedService(transient.Name, Lifetime.Transient);
-                    }
-                }
-                return null;
             }
         }
     }

@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Betauer.DI.Tests {
     [TestFixture]
     public class ScannerCircularTests : Node {
-        [Singleton]
+        [Service]
         public class Singleton {
             public static int Created = 0;
             public Singleton() => Created++;
@@ -24,7 +24,7 @@ namespace Betauer.DI.Tests {
             Assert.That(s, Is.EqualTo(s.s));
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class Transient {
             public static int Created = 0;
             public Transient() => Created++;
@@ -94,7 +94,7 @@ namespace Betauer.DI.Tests {
             Assert.That(tx, Is.EqualTo(tx.t));
         }
 
-        [Singleton]
+        [Service]
         public class SingletonA {
             public static int Created = 0;
             public SingletonA() => Created++;
@@ -102,14 +102,14 @@ namespace Betauer.DI.Tests {
             [Inject] internal SingletonA sa;
         }
 
-        [Singleton]
+        [Service]
         public class SingletonB {
             public static int Created = 0;
             public SingletonB() => Created++;
             [Inject] internal SingletonC sc;
         }
 
-        [Singleton]
+        [Service]
         public class SingletonC {
             public static int Created = 0;
             public SingletonC() => Created++;
@@ -145,21 +145,21 @@ namespace Betauer.DI.Tests {
             Assert.That(sa.sb.sc.sa, Is.EqualTo(sa));
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class TransientA {
             public static int Created = 0;
             public TransientA() => Created++;
             [Inject] internal TransientB sb;
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class TransientB {
             public static int Created = 0;
             public TransientB() => Created++;
             [Inject] internal TransientC sc;
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class TransientC {
             public static int Created = 0;
             public TransientC() => Created++;
@@ -192,7 +192,7 @@ namespace Betauer.DI.Tests {
             Assert.That(sa.sb.sc, Is.Not.EqualTo(sb.sc));
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class MultiTransientA {
             public static int Created = 0;
             public MultiTransientA() => Created++;
@@ -201,7 +201,7 @@ namespace Betauer.DI.Tests {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class MultiTransientB {
             public static int Created = 0;
             public MultiTransientB() => Created++;
@@ -210,7 +210,7 @@ namespace Betauer.DI.Tests {
             [Inject] internal MultiTransientC sc;
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class MultiTransientC {
             public static int Created = 0;
             public MultiTransientC() => Created++;

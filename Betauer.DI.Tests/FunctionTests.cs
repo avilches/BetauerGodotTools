@@ -12,7 +12,7 @@ namespace Betauer.DI.Tests {
             internal string baseName = "basePepe";
         }
 
-        [Singleton]
+        [Service]
         public class Singleton : Base {
             internal string name = "pepe";
             [Inject] internal Func<string> myName;

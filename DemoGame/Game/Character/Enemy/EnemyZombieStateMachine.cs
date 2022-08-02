@@ -5,7 +5,7 @@ using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Enemy {
-    [Transient]
+    [Service(Lifetime.Transient)]
     public class EnemyZombieStateMachine {
         public enum Transition {
             Attacked

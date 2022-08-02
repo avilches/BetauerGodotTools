@@ -7,7 +7,7 @@ using Veronenger.Game.Managers;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
-    [Transient]
+    [Service(Lifetime.Transient)]
     public class KinematicPlatformMotionBody : IFlipper {
         private KinematicBody2D _body;
         private string _name;

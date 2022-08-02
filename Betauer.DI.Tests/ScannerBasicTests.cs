@@ -13,12 +13,12 @@ namespace Betauer.DI.Tests {
         public interface INotTagged {
         }
 
-        [Singleton]
+        [Service]
         public class MyServiceWithNotScanned {
             [Inject] internal INotTagged notFound;
         }
 
-        [Singleton]
+        [Service]
         public class MyServiceWithWithNullable {
             [Inject(Nullable = true)] internal INotTagged nullable;
         }
@@ -41,7 +41,7 @@ namespace Betauer.DI.Tests {
             Assert.That(x.nullable, Is.Null);
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class EmptyTransient {
             public static int Created = 0;
 
@@ -50,7 +50,7 @@ namespace Betauer.DI.Tests {
             }
         }
 
-        [Singleton]
+        [Service]
         public class SingletonWith2Transients {
             public static int Created = 0;
 
@@ -62,7 +62,7 @@ namespace Betauer.DI.Tests {
             [Inject] internal EmptyTransient et2 { get; set; }
         }
 
-        [Singleton]
+        [Service]
         public class MySingleton {
             public static int Created = 0;
 
@@ -115,7 +115,7 @@ namespace Betauer.DI.Tests {
             Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class TransientService {
             public static int Created = 0;
 
@@ -164,13 +164,13 @@ namespace Betauer.DI.Tests {
             
         }
 
-        [Singleton(Name = "M1")]
+        [Service(Name = "M1")]
         public class MultipleImpl1 : IMultipleImp {}
 
-        [Singleton(Name = "M2")]
+        [Service(Name = "M2")]
         public class MultipleImpl2 : IMultipleImp {}
 
-        [Transient(Name = "M3")]
+        [Service(Lifetime.Transient, "M3")]
         public class MultipleImpl3 : IMultipleImp {
             public static int Created = 0;
 
@@ -180,7 +180,7 @@ namespace Betauer.DI.Tests {
             
         }
 
-        [Singleton]
+        [Service]
         public class ServiceWithMultipleImpl1 {
             [Inject(Name = "M1")] internal IMultipleImp mul11;
             [Inject(Name = "M1")] internal IMultipleImp mul12;
@@ -192,7 +192,7 @@ namespace Betauer.DI.Tests {
             [Inject(Name = "M3")] internal IMultipleImp mul32;
         }
 
-        [Singleton]
+        [Service]
         public class ServiceWithMultipleImpl2 {
             [Inject(Name = "M1")] internal IMultipleImp mul11;
             [Inject(Name = "M1")] internal IMultipleImp mul12;
@@ -255,7 +255,7 @@ namespace Betauer.DI.Tests {
         }
 
 
-        [Singleton]
+        [Service]
         public class Hold {
             public string Name;
 
@@ -264,32 +264,32 @@ namespace Betauer.DI.Tests {
             }
         }
 
-        [Singleton]
+        [Service]
         public class SingletonHolder {
 
             // Property
-            [Singleton]
+            [Service]
             private Hold SingletonHold1 => new Hold("1");
             
             // Property with Name
-            [Singleton(Name = "SingletonHold2")]
+            [Service(Name = "SingletonHold2")]
             private Hold _hold2 => new Hold("2");
 
             // Method
-            [Singleton]
+            [Service]
             public Hold SingletonHold3() {
                 return new Hold("3");
             }
 
             // Method with name
-            [Singleton(Name = "SingletonHold4")]
+            [Service(Name = "SingletonHold4")]
             public Hold Hold4() {
                 return new Hold("4");
             }
 
         }
 
-        [Singleton]
+        [Service]
         public class SingletonInjected {
             [Inject] internal Hold SingletonHold1;
             [Inject(Name = "SingletonHold1")] internal Hold h1;
@@ -334,32 +334,32 @@ namespace Betauer.DI.Tests {
             Assert.That(s1.SingletonHold4, Is.EqualTo(s1.h4));
         }
         
-        [Singleton]
+        [Service]
         public class TransientHolder {
 
             // Property
-            [Transient]
+            [Service(Lifetime.Transient)]
             private Hold Hold1 => new Hold("1");
             
             // Property with Name
-            [Transient(Name = "Hold2")]
+            [Service(Lifetime.Transient, "Hold2")]
             private Hold _hold2 => new Hold("2");
 
             // Method
-            [Transient]
+            [Service(Lifetime.Transient)]
             public Hold Hold3() {
                 return new Hold("3");
             }
 
             // Method with name
-            [Transient(Name = "Hold4")]
+            [Service(Lifetime.Transient, "Hold4")]
             public Hold Hold4() {
                 return new Hold("4");
             }
 
         }
 
-        [Transient]
+        [Service(Lifetime.Transient)]
         public class TransientInjected {
             [Inject] internal Hold Hold1;
             [Inject(Name = "Hold1")] internal Hold h1;
@@ -417,14 +417,14 @@ namespace Betauer.DI.Tests {
                 Created++;
             }
 
-            [Transient] private Hold TransientHold1 => new Hold("1");
-            [Singleton] private Hold SingletonHold1() => new Hold("2");
+            [Service(Lifetime.Transient)] private Hold TransientHold1 => new Hold("1");
+            [Service] private Hold SingletonHold1() => new Hold("2");
         }
 
-        [Singleton]
+        [Service]
         public class ConfigurationServiceSingleton {
-            [Transient] private Hold TransientHold2 => new Hold("2");
-            [Singleton] private Hold SingletonHold2() => new Hold("2");
+            [Service(Lifetime.Transient)] private Hold TransientHold2 => new Hold("2");
+            [Service] private Hold SingletonHold2() => new Hold("2");
         }
 
         [Configuration]
@@ -434,8 +434,8 @@ namespace Betauer.DI.Tests {
                 Created++;
             }
 
-            [Transient] private static Hold TransientStatic => new Hold("3");
-            [Singleton] private static Hold SingletonStatic() => new Hold("3");
+            [Service(Lifetime.Transient)] private static Hold TransientStatic => new Hold("3");
+            [Service] private static Hold SingletonStatic() => new Hold("3");
         }
 
         [Test(Description = "Use configuration to export members")]
@@ -483,7 +483,7 @@ namespace Betauer.DI.Tests {
         }
         
         
-        [Singleton]
+        [Service]
         class PostCreatedA {
             [Inject] internal PostCreatedB B;
             [Inject] internal Container container;
@@ -497,7 +497,7 @@ namespace Betauer.DI.Tests {
             }
         }
 
-        [Singleton]
+        [Service]
         class PostCreatedB {
             [Inject] internal PostCreatedA A;
             [Inject] internal Container container;

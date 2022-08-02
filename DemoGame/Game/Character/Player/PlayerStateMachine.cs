@@ -9,7 +9,7 @@ using Veronenger.Game.Managers;
 using Timer = Betauer.Timer;
 
 namespace Veronenger.Game.Character.Player {
-    [Transient]
+    [Service(Lifetime.Transient)]
     public class PlayerStateMachine {
         private Logger _loggerJumpHelper;
         private Logger _loggerCoyoteJump;
