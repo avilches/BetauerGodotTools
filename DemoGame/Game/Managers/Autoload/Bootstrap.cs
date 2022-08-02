@@ -19,7 +19,7 @@ namespace Veronenger.Game.Managers.Autoload {
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
-        [Singleton] public SettingsManager SettingManager => new SettingsManager();
+        [Service(typeof(SettingsManager))] public SettingsManager SettingManager => new SettingsManager();
         
         public Bootstrap() {
             if (ApplicationConfig.IsExported()) {

@@ -109,7 +109,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         }
     }
 
-    [Singleton]
+    [Service]
     public class Xbox360SpriteConfig : SpriteConfig {
         public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(null, 0, 0);
 
@@ -161,7 +161,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
         }
     }
 
-    [Singleton]
+    [Service]
     public class XboxOneSpriteConfig : Xbox360SpriteConfig {
         [Inject] private MainResourceLoader _mainResourceLoader;
         public override Texture Texture => _mainResourceLoader.XboxOneButtonsTexture;

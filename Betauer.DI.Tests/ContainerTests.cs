@@ -114,8 +114,8 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<Node>("X"), Is.EqualTo(node));
             Assert.That(c.Resolve<Node>("Y"), Is.EqualTo(node));
 
-            // Instances with name are bound by type too
-            Assert.That(c.Contains<Node>(), Is.True);
+            // Instances with name are not bound by type
+            Assert.That(c.Contains<Node>(), Is.False);
         }
 
 
@@ -134,7 +134,8 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<Node>("X1"), Is.EqualTo(node1));
             Assert.That(c.Resolve<Node>("X2"), Is.EqualTo(node2));
             
-            Assert.That(c.Resolve<Node>(), Is.EqualTo(node1)); // Resolved the first instance by type, ignored the second
+            // Instances with name are not bound by type
+            Assert.That(c.Contains<Node>(), Is.False);
 
             di.Singleton(() => node2).As("X2");
             Assert.Throws<DuplicateNameException>(() => di.Build());

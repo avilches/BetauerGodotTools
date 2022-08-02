@@ -8,7 +8,7 @@ using Betauer.DI;
 using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
-    [Singleton]
+    [Service]
     public class PlatformManager {
         private const string GROUP_PLATFORMS = "platform";
         private const string GROUP_MOVING_PLATFORMS = "moving_platform";

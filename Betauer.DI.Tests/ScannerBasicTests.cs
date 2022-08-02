@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -18,17 +19,17 @@ namespace Betauer.DI.Tests {
             [Inject] internal INotTagged notFound;
         }
 
-        [Service]
-        public class MyServiceWithWithNullable {
-            [Inject(Nullable = true)] internal INotTagged nullable;
-        }
-
         [Test(Description = "Types not found")]
         public void NotFound() {
             var di = new ContainerBuilder(this);
             di.Scan<INotTagged>();
             di.Scan<MyServiceWithNotScanned>();
             Assert.Throws<InjectFieldException>(() => di.Build());
+        }
+
+        [Service]
+        public class MyServiceWithWithNullable {
+            [Inject(Nullable = true)] internal INotTagged nullable;
         }
 
         [Test(Description = "Nullable")]
@@ -39,6 +40,125 @@ namespace Betauer.DI.Tests {
             Assert.That(!c.Contains<INotTagged>());
             var x = c.Resolve<MyServiceWithWithNullable>();
             Assert.That(x.nullable, Is.Null);
+        }
+
+
+        [Service]
+        public class ExposeServiceClass1 {
+        }
+
+        [Service(Name = "C")]
+        public class ExposeServiceClass2 {
+        }
+
+        [Service(Type = typeof(INotTagged))]
+        public class ExposeServiceClass3 : INotTagged {
+        }
+
+        [Test(Description = "Name or type")]
+        public void NameOrTypeClass() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ExposeServiceClass1>();
+            di.Scan<ExposeServiceClass2>();
+            di.Scan<ExposeServiceClass3>();
+            var c = di.Build();
+            
+            // [Service] in class is registered by the class
+            Assert.That(c.Contains<ExposeServiceClass1>());
+            Assert.That(c.Resolve<ExposeServiceClass1>().GetType(), Is.EqualTo(typeof(ExposeServiceClass1)));
+            
+            // [Service(Name = "C"] in class is registered by the name only
+            Assert.That(!c.Contains<ExposeServiceClass2>());
+            Assert.That(c.Resolve("C").GetType(), Is.EqualTo(typeof(ExposeServiceClass2)));
+
+            // [Service(Type=typeof(INotTagged)] class is exposed by specified type
+            Assert.That(!c.Contains<ExposeServiceClass3>()); 
+            Assert.That(c.Resolve<INotTagged>().GetType(), Is.EqualTo(typeof(ExposeServiceClass3)));
+        }
+
+        public class ExposeServiceMember1 {}
+        public class ExposeServiceMember2 {}
+        public class ExposeServiceMember3 : Object {}
+
+        [Service]
+        public class ServiceMembers1 {
+            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+        [Test(Description = "Name or type members in service")]
+        public void NameOrTypeMembersInService() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ServiceMembers1>();
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        [Configuration]
+        public class ServiceMembers2 {
+            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+        [Test(Description = "Name or type members in configuration")]
+        public void NameOrTypeMembersInConfiguration() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ServiceMembers2>();
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        [Configuration]
+        public class ServiceMembersStatic {
+            [Service] internal static ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal static ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal static ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] static internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+        [Test(Description = "Name or type members in configuration")]
+        public void NameOrTypeMembersInStaticConfiguration() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ServiceMembersStatic>();
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        public class ServiceMembers3 {
+            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+
+        [Test(Description = "Name or type members in configuration")]
+        public void NameOrTypeMembersInConfigurationInstance() {
+            var di = new ContainerBuilder(this);
+            di.ScanConfiguration(new ServiceMembers3());
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        private void AssertNameOrTypeMembers(Container c) {
+            // [Service] member is exposed by variable or method name
+            Assert.That(!c.Contains<ExposeServiceMember1>()); 
+            Assert.That(c.Resolve("member11").GetType(), Is.EqualTo(typeof(ExposeServiceMember1)));
+            Assert.That(c.Resolve("member12").GetType(), Is.EqualTo(typeof(ExposeServiceMember1)));
+
+            // [Service(Name="M")] member is exposed by name M
+            Assert.That(!c.Contains<ExposeServiceMember2>()); 
+            Assert.That(!c.Contains("member2")); 
+            Assert.That(c.Resolve("M").GetType(), Is.EqualTo(typeof(ExposeServiceMember2)));
+
+            // [Service(Type=typeof(Object)] member is exposed by specified type
+            Assert.That(!c.Contains<ExposeServiceMember3>()); 
+            Assert.That(c.Resolve<Object>().GetType(), Is.EqualTo(typeof(ExposeServiceMember3)));
+            
         }
 
         [Service(Lifetime.Transient)]
@@ -160,65 +280,58 @@ namespace Betauer.DI.Tests {
             Assert.That(ts2.SingletonWith2Transients, Is.EqualTo(s1));
         }
         
-        public interface IMultipleImp {
-            
-        }
+        public interface IMultipleImpByName {}
 
-        [Service(Name = "M1")]
-        public class MultipleImpl1 : IMultipleImp {}
-
-        [Service(Name = "M2")]
-        public class MultipleImpl2 : IMultipleImp {}
-
+        [Service(Name = "M1")] public class MultipleImpl1ByName : IMultipleImpByName {}
+        [Service(Name = "M2")] public class MultipleImpl2ByName : IMultipleImpByName {}
         [Service(Lifetime.Transient, "M3")]
-        public class MultipleImpl3 : IMultipleImp {
+        public class MultipleImpl3ByName : IMultipleImpByName {
             public static int Created = 0;
 
-            public MultipleImpl3() {
+            public MultipleImpl3ByName() {
                 Created++;
             }
-            
         }
 
         [Service]
         public class ServiceWithMultipleImpl1 {
-            [Inject(Name = "M1")] internal IMultipleImp mul11;
-            [Inject(Name = "M1")] internal IMultipleImp mul12;
+            [Inject(Name = "M1")] internal IMultipleImpByName mul11;
+            [Inject(Name = "M1")] internal IMultipleImpByName mul12;
             
-            [Inject(Name = "M2")] internal IMultipleImp mul21;
-            [Inject(Name = "M2")] internal IMultipleImp mul22;
+            [Inject(Name = "M2")] internal IMultipleImpByName mul21;
+            [Inject(Name = "M2")] internal IMultipleImpByName mul22;
             
-            [Inject(Name = "M3")] internal IMultipleImp mul31;
-            [Inject(Name = "M3")] internal IMultipleImp mul32;
+            [Inject(Name = "M3")] internal IMultipleImpByName mul31;
+            [Inject(Name = "M3")] internal IMultipleImpByName mul32;
         }
 
         [Service]
         public class ServiceWithMultipleImpl2 {
-            [Inject(Name = "M1")] internal IMultipleImp mul11;
-            [Inject(Name = "M1")] internal IMultipleImp mul12;
+            [Inject(Name = "M1")] internal IMultipleImpByName mul11;
+            [Inject(Name = "M1")] internal IMultipleImpByName mul12;
             
-            [Inject(Name = "M2")] internal IMultipleImp mul21;
-            [Inject(Name = "M2")] internal IMultipleImp mul22;
+            [Inject(Name = "M2")] internal IMultipleImpByName mul21;
+            [Inject(Name = "M2")] internal IMultipleImpByName mul22;
             
-            [Inject(Name = "M3")] internal IMultipleImp mul31;
-            [Inject(Name = "M3")] internal IMultipleImp mul32;
+            [Inject(Name = "M3")] internal IMultipleImpByName mul31;
+            [Inject(Name = "M3")] internal IMultipleImpByName mul32;
         }
 
-        [Test(Description = "When an interface has multiple implementations")]
+        [Test(Description = "When an interface has multiple implementations, register by name")]
         public void InterfaceWithMultipleImplementations() {
             var di = new ContainerBuilder(this);
-            di.Scan<MultipleImpl1>();
-            di.Scan<MultipleImpl2>();
-            di.Scan<MultipleImpl3>();
+            di.Scan<MultipleImpl1ByName>();
+            di.Scan<MultipleImpl2ByName>();
+            di.Scan<MultipleImpl3ByName>();
             di.Scan<ServiceWithMultipleImpl1>();
             di.Scan<ServiceWithMultipleImpl2>();
             var c = di.Build();
-            var i1 = c.Resolve<IMultipleImp>("M1");
-            var i2 = c.Resolve<IMultipleImp>("M2");
-            Assert.That(MultipleImpl3.Created, Is.EqualTo(2));            
+            var i1 = c.Resolve<IMultipleImpByName>("M1");
+            var i2 = c.Resolve<IMultipleImpByName>("M2");
+            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(2));            
             var s1 = c.Resolve<ServiceWithMultipleImpl1>();
             var s2 = c.Resolve<ServiceWithMultipleImpl2>();
-            Assert.That(MultipleImpl3.Created, Is.EqualTo(2));            
+            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(2));            
 
             Assert.That(s1.mul11, Is.EqualTo(i1));
             Assert.That(s1.mul12, Is.EqualTo(i1));
@@ -233,6 +346,29 @@ namespace Betauer.DI.Tests {
             
             Assert.That(s1.mul31, Is.Not.EqualTo(s2.mul31));
         }
+
+        public interface IMultipleImpByType {}
+        
+        [Service(typeof(IMultipleImpByType))] public class MultipleImpl1ByType : IMultipleImpByType {}
+
+        [Service]
+        public class ServiceWithMultipleImplByType {
+            [Inject] internal IMultipleImpByType service;
+        }
+
+        [Test(Description = "When an interface has multiple implementations, register by one type")]
+        public void InterfaceWithMultipleImplementationsByType() {
+            var di = new ContainerBuilder(this);
+            di.Scan<MultipleImpl1ByType>();
+            di.Scan<ServiceWithMultipleImplByType>();
+            var c = di.Build();
+            var i1 = c.Resolve<IMultipleImpByType>();
+            Assert.That(i1, Is.TypeOf<MultipleImpl1ByType>());
+
+            var s1 = c.Resolve<ServiceWithMultipleImplByType>();
+            Assert.That(s1.service, Is.EqualTo(i1));
+        }
+
 
         class AutoTransient1 {
         }
@@ -251,7 +387,6 @@ namespace Betauer.DI.Tests {
 
             Assert.That(s1, Is.Not.EqualTo(s2));
             Assert.That(s1.auto, Is.Not.EqualTo(s2.auto));
-            
         }
 
 

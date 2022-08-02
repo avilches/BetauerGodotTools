@@ -103,16 +103,16 @@ namespace Betauer.DI {
                     if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
                     _registryByAlias[alias] = provider;
                 }
-                foreach (var providerType in provider.GetRegisterTypes()) {
-                    if (_registry.ContainsKey(providerType)) {
-                        ignoredTypes.AddLast(providerType);
-                    } else {
-                        registeredTypes.AddLast(providerType);
-                        _registry[providerType] = provider;
-                    }
-                }
+                // foreach (var providerType in provider.GetRegisterTypes()) {
+                //     if (_registry.ContainsKey(providerType)) {
+                //         ignoredTypes.AddLast(providerType);
+                //     } else {
+                //         registeredTypes.AddLast(providerType);
+                //         _registry[providerType] = provider;
+                //     }
+                // }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + " by types: " +
+                    _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() + " by types: " +
                                  string.Join(",", registeredTypes) + " - Names: " +
                                  string.Join(",", aliases) + " - Ignored types: " + string.Join(",", ignoredTypes));
                 }
@@ -122,8 +122,8 @@ namespace Betauer.DI {
                     _registry[providerType] = provider;
                 }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + " by types: " +
-                                 string.Join(",", provider.GetRegisterTypes().ToList()));
+                    _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
+                                 " by types: " + string.Join(",", provider.GetRegisterTypes().ToList()));
                 }
             }
             return provider;

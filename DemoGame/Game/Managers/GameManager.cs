@@ -11,7 +11,7 @@ using Betauer.StateMachine;
 using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
-    [Singleton]
+    [Service]
     public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
 
         public enum Transition {

@@ -4,7 +4,7 @@ using Betauer.Input;
 using Godot;
 
 namespace Veronenger.Game.Managers {
-    [Singleton]
+    [Service]
     public class InputManager {
         private readonly ActionList _actionList;
 
@@ -22,17 +22,17 @@ namespace Veronenger.Game.Managers {
         
         private readonly LateralAction UiLateralMotion;
         private readonly VerticalAction UiVerticalMotion;
-        [Singleton] private LateralAction LateralMotion => _lateralMotion;
-        [Singleton] private VerticalAction VerticalMotion => _verticalMotion;
-        [Singleton] private ActionState Jump => _jump;
-        [Singleton] private ActionState Attack => _attack;
-        [Singleton] private ActionState UiLeft => _uiLeft;
-        [Singleton] private ActionState UiRight => _uiRight;
-        [Singleton] private ActionState UiAccept => _uiAccept;
-        [Singleton] private ActionState UiSelect => _uiSelect;
-        [Singleton] private ActionState UiStart => _uiStart;
-        [Singleton] private ActionState UiCancel => _uiCancel;
-        [Singleton] private ActionState PixelPerfect => _pixelPerfect;
+        [Service] private LateralAction LateralMotion => _lateralMotion;
+        [Service] private VerticalAction VerticalMotion => _verticalMotion;
+        [Service] private ActionState Jump => _jump;
+        [Service] private ActionState Attack => _attack;
+        [Service] private ActionState UiLeft => _uiLeft;
+        [Service] private ActionState UiRight => _uiRight;
+        [Service] private ActionState UiAccept => _uiAccept;
+        [Service] private ActionState UiSelect => _uiSelect;
+        [Service] private ActionState UiStart => _uiStart;
+        [Service] private ActionState UiCancel => _uiCancel;
+        [Service] private ActionState PixelPerfect => _pixelPerfect;
 
 
         public readonly List<ActionState> ConfigurableActionList = new List<ActionState>();

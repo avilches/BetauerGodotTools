@@ -10,6 +10,7 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class ServiceAttribute : Attribute {
+        public Type? Type { get; set; }
         public string? Name { get; set; }
         public Lifetime Lifetime { get; set; } = Lifetime.Singleton;
 
@@ -21,8 +22,17 @@ namespace Betauer.DI {
             Name = name;
         }
 
+        public ServiceAttribute(Lifetime lifetime, Type type) {
+            Lifetime = lifetime;
+            Type = type;
+        }
+
         public ServiceAttribute(string name, Lifetime lifetime = Lifetime.Singleton) {
             Name = name;
+            Lifetime = lifetime;
+        }
+        public ServiceAttribute(Type type, Lifetime lifetime = Lifetime.Singleton) {
+            Type = type;
             Lifetime = lifetime;
         }
     }
@@ -142,8 +152,9 @@ namespace Betauer.DI {
 
         public ContainerBuilder Scan(Type type) {
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
+                var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
                 var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
-                Register(type, serviceAttr.Lifetime, new[] { type }, aliases);
+                Register(type, serviceAttr.Lifetime, types, aliases);
                 if (serviceAttr.Lifetime == Lifetime.Singleton) {
                     ScanMemberExposingServices(type, false);
                     ScanStaticMemberExposingServices(type);
@@ -170,8 +181,9 @@ namespace Betauer.DI {
 
         private void ScanStaticMemberExposingServices(Type type) {
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Static)) {
-                Register(getter.Type, () => getter.GetValue(null) , getter.Attribute.Lifetime, null, 
-                    new[] { getter.Attribute.Name ?? getter.Name });
+                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
+                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
+                Register(getter.Type, () => getter.GetValue(null), getter.Attribute.Lifetime, types, alias);
             }
         }
 
@@ -179,18 +191,21 @@ namespace Betauer.DI {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
+                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
                 Register(getter.Type, () => {
                     var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return getter.GetValue(instance);
-                }, getter.Attribute.Lifetime, null, new[] { getter.Attribute.Name ?? getter.Name });
+                }, getter.Attribute.Lifetime, types, alias);
             }
         }
 
         private void ScanMemberExposingServices(object instance) {
             var type = instance.GetType();
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
-                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, null,
-                    new[] { getter.Attribute.Name ?? getter.Name });
+                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
+                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
+                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, types, alias);
             }
         }
     }

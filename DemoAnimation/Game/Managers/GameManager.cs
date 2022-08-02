@@ -10,7 +10,7 @@ using DemoAnimation.Game.Controller.Menu;
 using Godot;
 
 namespace DemoAnimation.Game.Managers {
-    [Singleton]
+    [Service]
     public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
         public enum Transition {
             FinishLoading,

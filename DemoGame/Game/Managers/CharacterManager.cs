@@ -11,7 +11,7 @@ using Array = Godot.Collections.Array;
 using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
-    [Singleton]
+    [Service]
     public class CharacterManager : Object /* needed to receive signals TODO: it shouldn't be! */{
         private const string GROUP_ENEMY = "enemy";
 
