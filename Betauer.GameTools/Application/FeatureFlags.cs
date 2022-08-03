@@ -37,6 +37,8 @@ namespace Betauer.Application {
             return Description.Values.Where(OS.HasFeature);
         }
 
+        public static bool IsExported() => OS.HasFeature("standalone");
+
         public static Dictionary<string, string> GetActiveMap() {
             return Description
                 .Where(val => OS.HasFeature(val.Key))

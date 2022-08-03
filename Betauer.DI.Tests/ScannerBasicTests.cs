@@ -65,99 +65,66 @@ namespace Betauer.DI.Tests {
             
             // [Service] in class is registered by the class
             Assert.That(c.Contains<ExposeServiceClass1>());
-            Assert.That(c.Resolve<ExposeServiceClass1>().GetType(), Is.EqualTo(typeof(ExposeServiceClass1)));
+            Assert.That(c.Resolve<ExposeServiceClass1>(), Is.TypeOf<ExposeServiceClass1>());
             
-            // [Service(Name = "C"] in class is registered by the name only
-            Assert.That(!c.Contains<ExposeServiceClass2>());
-            Assert.That(c.Resolve("C").GetType(), Is.EqualTo(typeof(ExposeServiceClass2)));
+            // [Service(Name = "C"] in class is registered by the name and type
+            Assert.That(c.Resolve("C"), Is.TypeOf<ExposeServiceClass2>());
+            Assert.That(c.Resolve<ExposeServiceClass2>(), Is.TypeOf<ExposeServiceClass2>());
 
             // [Service(Type=typeof(INotTagged)] class is exposed by specified type
             Assert.That(!c.Contains<ExposeServiceClass3>()); 
-            Assert.That(c.Resolve<INotTagged>().GetType(), Is.EqualTo(typeof(ExposeServiceClass3)));
+            Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
         }
 
         public class ExposeServiceMember1 {}
         public class ExposeServiceMember2 {}
         public class ExposeServiceMember3 : Object {}
 
-        [Service]
-        public class ServiceMembers1 {
+        public class ConfigurationInstance {
             [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
             [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
             [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
             [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
         }
 
-        [Test(Description = "Name or type members in service")]
-        public void NameOrTypeMembersInService() {
-            var di = new ContainerBuilder(this);
-            di.Scan<ServiceMembers1>();
-            var c = di.Build();
-            AssertNameOrTypeMembers(c);
-        }
-
-        [Configuration]
-        public class ServiceMembers2 {
-            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
-            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
-        }
-
-        [Test(Description = "Name or type members in configuration")]
-        public void NameOrTypeMembersInConfiguration() {
-            var di = new ContainerBuilder(this);
-            di.Scan<ServiceMembers2>();
-            var c = di.Build();
-            AssertNameOrTypeMembers(c);
-        }
-
-        [Configuration]
-        public class ServiceMembersStatic {
-            [Service] internal static ExposeServiceMember1 member11 => new ExposeServiceMember1();
-            [Service] internal static ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal static ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] static internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
-        }
-
-        [Test(Description = "Name or type members in configuration")]
-        public void NameOrTypeMembersInStaticConfiguration() {
-            var di = new ContainerBuilder(this);
-            di.Scan<ServiceMembersStatic>();
-            var c = di.Build();
-            AssertNameOrTypeMembers(c);
-        }
-
-        public class ServiceMembers3 {
-            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
-            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
-        }
-
-
-        [Test(Description = "Name or type members in configuration")]
+        [Test(Description = "Name or type members in configuration instance")]
         public void NameOrTypeMembersInConfigurationInstance() {
             var di = new ContainerBuilder(this);
-            di.ScanConfiguration(new ServiceMembers3());
+            di.ScanConfiguration(new ConfigurationInstance());
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        [Configuration]
+        public class ConfigurationScanned {
+            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+        [Test(Description = "Name or type members in configuration type with [Configuration]")]
+        public void NameOrTypeMembersInConfiguration() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ConfigurationScanned>();
             var c = di.Build();
             AssertNameOrTypeMembers(c);
         }
 
         private void AssertNameOrTypeMembers(Container c) {
             // [Service] member is exposed by variable or method name
-            Assert.That(!c.Contains<ExposeServiceMember1>()); 
-            Assert.That(c.Resolve("member11").GetType(), Is.EqualTo(typeof(ExposeServiceMember1)));
-            Assert.That(c.Resolve("member12").GetType(), Is.EqualTo(typeof(ExposeServiceMember1)));
+            Assert.That(c.Resolve<ExposeServiceMember1>(), Is.TypeOf<ExposeServiceMember1>()); 
+            Assert.That(c.Resolve("member11"), Is.TypeOf<ExposeServiceMember1>());
+            Assert.That(c.Resolve("member12"), Is.TypeOf<ExposeServiceMember1>());
 
-            // [Service(Name="M")] member is exposed by name M
-            Assert.That(!c.Contains<ExposeServiceMember2>()); 
+            // [Service(Name="M")] member is exposed by name M and by type too
+            Assert.That(c.Resolve<ExposeServiceMember2>(), Is.TypeOf<ExposeServiceMember2>()); 
+            Assert.That(c.Resolve("M"), Is.TypeOf<ExposeServiceMember2>());
             Assert.That(!c.Contains("member2")); 
-            Assert.That(c.Resolve("M").GetType(), Is.EqualTo(typeof(ExposeServiceMember2)));
 
-            // [Service(Type=typeof(Object)] member is exposed by specified type
+            // [Service(Type=typeof(Object)] member is exposed by specified type only, not the member type
             Assert.That(!c.Contains<ExposeServiceMember3>()); 
-            Assert.That(c.Resolve<Object>().GetType(), Is.EqualTo(typeof(ExposeServiceMember3)));
+            Assert.That(c.Resolve<Object>(), Is.TypeOf<ExposeServiceMember3>());
             
         }
 
@@ -399,7 +366,7 @@ namespace Betauer.DI.Tests {
             }
         }
 
-        [Service]
+        [Configuration]
         public class SingletonHolder {
 
             // Property
@@ -469,7 +436,7 @@ namespace Betauer.DI.Tests {
             Assert.That(s1.SingletonHold4, Is.EqualTo(s1.h4));
         }
         
-        [Service]
+        [Configuration]
         public class TransientHolder {
 
             // Property
@@ -556,68 +523,30 @@ namespace Betauer.DI.Tests {
             [Service] private Hold SingletonHold1() => new Hold("2");
         }
 
-        [Service]
-        public class ConfigurationServiceSingleton {
-            [Service(Lifetime.Transient)] private Hold TransientHold2 => new Hold("2");
-            [Service] private Hold SingletonHold2() => new Hold("2");
-        }
-
-        [Configuration]
-        public class ConfigurationServiceStatic {
-            public static int Created = 0;
-            public ConfigurationServiceStatic() {
-                Created++;
-            }
-
-            [Service(Lifetime.Transient)] private static Hold TransientStatic => new Hold("3");
-            [Service] private static Hold SingletonStatic() => new Hold("3");
-        }
-
         [Test(Description = "Use configuration to export members")]
         public void ExportFromConfiguration() {
             var di = new ContainerBuilder(this);
             di.Scan<ConfigurationService>();
-            di.Scan<ConfigurationServiceSingleton>();
-            di.Scan<ConfigurationServiceStatic>();
             var c = di.Build();
-            
+
             Assert.That(ConfigurationService.Created, Is.EqualTo(1));
-            Assert.That(ConfigurationServiceStatic.Created, Is.EqualTo(0));
-            
+
             Assert.That(c.Contains<ConfigurationService>(), Is.False);
-            Assert.That(c.Contains<ConfigurationServiceSingleton>(), Is.True);
-            Assert.That(c.Contains<ConfigurationServiceStatic>(), Is.False);
-            
+
             Hold t1 = c.Resolve<Hold>("TransientHold1");
             Hold t2 = c.Resolve<Hold>("TransientHold1");
-            Hold t3 = c.Resolve<Hold>("TransientHold2");
-            Hold t4 = c.Resolve<Hold>("TransientStatic");
-            
+
             Assert.That(t1.Name, Is.EqualTo("1"));
             Assert.That(t2.Name, Is.EqualTo("1"));
-            Assert.That(t3.Name, Is.EqualTo("2"));
             // Transients are all different
             Assert.That(t1, Is.Not.EqualTo(t2));
-            Assert.That(t2, Is.Not.EqualTo(t3));
-            Assert.That(t3, Is.Not.EqualTo(t4));
-            Assert.That(t4, Is.Not.EqualTo(t1));
 
             // Singleton are the same
             Hold s11 = c.Resolve<Hold>("SingletonHold1");
             Hold s12 = c.Resolve<Hold>("SingletonHold1");
             Assert.That(s11, Is.EqualTo(s12));
-
-            Hold s21 = c.Resolve<Hold>("SingletonHold2");
-            Hold s22 = c.Resolve<Hold>("SingletonHold2");
-            Assert.That(s21, Is.EqualTo(s22));
-
-            Hold s31 = c.Resolve<Hold>("SingletonStatic");
-            Hold s32 = c.Resolve<Hold>("SingletonStatic");
-            Assert.That(s31, Is.EqualTo(s32));
-            
         }
-        
-        
+
         [Service]
         class PostCreatedA {
             [Inject] internal PostCreatedB B;
@@ -644,6 +573,13 @@ namespace Betauer.DI.Tests {
                 Assert.That(A.B, Is.Not.Null);
                 Called++;
             }
+            
+            internal bool more1 = false;
+            internal bool more2 = false;
+
+            [PostCreate] void More1() => more1 = true;
+            [PostCreate] void More2() => more2 = true;
+
         }
 
         [Test(Description = "Test if the [PostCreate] methods are invoked")]
@@ -661,6 +597,9 @@ namespace Betauer.DI.Tests {
             Assert.That(A.Called, Is.EqualTo(1));
             Assert.That(B.A, Is.EqualTo(A));
             Assert.That(B.Called, Is.EqualTo(1));
+            
+            Assert.That(B.more1, Is.True);
+            Assert.That(B.more2, Is.True);
 
        }
     }

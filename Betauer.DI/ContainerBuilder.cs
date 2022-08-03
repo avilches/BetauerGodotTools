@@ -155,15 +155,10 @@ namespace Betauer.DI {
                 var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
                 var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
                 Register(type, serviceAttr.Lifetime, types, aliases);
-                if (serviceAttr.Lifetime == Lifetime.Singleton) {
-                    ScanMemberExposingServices(type, false);
-                    ScanStaticMemberExposingServices(type);
-                }
             } else {
                 // No [Service] present in the class, check for [Configuration]
                 if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
-                    ScanMemberExposingServices(type, true);
-                    ScanStaticMemberExposingServices(type);
+                    ScanMemberExposingServices(type);
                 }
             }
             return this;
@@ -171,41 +166,29 @@ namespace Betauer.DI {
 
         public ContainerBuilder ScanConfiguration(params object[] instances) {
             foreach (var instance in instances) {
-                ScanMemberExposingServices(instance);
-                ScanStaticMemberExposingServices(instance.GetType());
+                ScanMemberExposingServices(instance.GetType(), instance);
             }
             return this;
         }
 
-        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-        private void ScanStaticMemberExposingServices(Type type) {
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Static)) {
-                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
-                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Register(getter.Type, () => getter.GetValue(null), getter.Attribute.Lifetime, types, alias);
-            }
-        }
-
-        private void ScanMemberExposingServices(Type type, bool fromConfiguration) {
+        private void ScanMemberExposingServices(Type type, object instance = null) {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
                 var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
                 var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Register(getter.Type, () => {
-                    var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
-                    return getter.GetValue(instance);
-                }, getter.Attribute.Lifetime, types, alias);
-            }
-        }
-
-        private void ScanMemberExposingServices(object instance) {
-            var type = instance.GetType();
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
-                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
-                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, types, alias);
+                Func<object> factory;
+                if (instance == null) {
+                    factory = () => {
+                        conf ??= Activator.CreateInstance(type);
+                        return getter.GetValue(conf);
+                    };
+                } else {
+                    factory = () => getter.GetValue(instance);
+                }
+                Register(getter.Type, factory, getter.Attribute.Lifetime, types, alias);
             }
         }
     }

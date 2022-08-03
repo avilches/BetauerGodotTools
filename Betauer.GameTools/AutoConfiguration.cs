@@ -12,8 +12,8 @@ namespace Betauer {
     public class AutoConfiguration : Node {
         private Container _container;
 
-        [Service(typeof(ObjectWatcherNode))] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
-        [Service(typeof(SceneTree))] public SceneTree SceneTree => GetTree();
+        [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
+        [Service] public SceneTree SceneTree => GetTree();
         
         public override void _EnterTree() {
             PauseMode = PauseModeEnum.Process;

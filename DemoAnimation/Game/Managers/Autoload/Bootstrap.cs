@@ -7,7 +7,7 @@ using TraceLevel = Betauer.TraceLevel;
 namespace DemoAnimation.Game.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         
-        [Service(typeof(SettingsManager))] public SettingsManager SettingManager => new SettingsManager();
+        [Service] public SettingsManager SettingManager => new SettingsManager();
         
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor

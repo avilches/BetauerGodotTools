@@ -19,10 +19,10 @@ namespace Veronenger.Game.Managers.Autoload {
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
 
-        [Service(typeof(SettingsManager))] public SettingsManager SettingManager => new SettingsManager();
+        [Service] public SettingsManager SettingManager => new SettingsManager();
         
         public Bootstrap() {
-            if (ApplicationConfig.IsExported()) {
+            if (FeatureFlags.IsExported()) {
                 AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                     Logger.Error($"Got unhandled exception: {args.ExceptionObject}");
                     // TODO: test this!

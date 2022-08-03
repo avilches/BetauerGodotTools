@@ -90,7 +90,15 @@ namespace Betauer.DI {
             }
             return provider;
         }
-
+        /// <summary>
+        /// Register by type only always overwrite. That means register the same type twice will not fail: the second
+        /// one will replace the first one.
+        /// Register by name will try to register by type too, but only if the type doesn't exist before
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="DuplicateNameException"></exception>
         private IProvider AddToRegistry(IProvider provider) {
             if (provider.GetRegisterTypes().Length == 0) {
                 throw new Exception("Provider without types are not allowed");
@@ -103,14 +111,11 @@ namespace Betauer.DI {
                     if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
                     _registryByAlias[alias] = provider;
                 }
-                // foreach (var providerType in provider.GetRegisterTypes()) {
-                //     if (_registry.ContainsKey(providerType)) {
-                //         ignoredTypes.AddLast(providerType);
-                //     } else {
-                //         registeredTypes.AddLast(providerType);
-                //         _registry[providerType] = provider;
-                //     }
-                // }
+                foreach (var providerType in provider.GetRegisterTypes()) {
+                    if (!_registry.ContainsKey(providerType)) {
+                        _registry[providerType] = provider;
+                    }
+                }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
                     _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() + " by types: " +
                                  string.Join(",", registeredTypes) + " - Names: " +
@@ -118,7 +123,6 @@ namespace Betauer.DI {
                 }
             } else {
                 foreach (var providerType in provider.GetRegisterTypes()) {
-                    if (_registry.ContainsKey(providerType)) throw new DuplicateNameException(providerType.ToString());
                     _registry[providerType] = provider;
                 }
                 if (_logger.IsEnabled(TraceLevel.Info)) {

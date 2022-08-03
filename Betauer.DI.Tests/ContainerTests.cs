@@ -114,8 +114,8 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<Node>("X"), Is.EqualTo(node));
             Assert.That(c.Resolve<Node>("Y"), Is.EqualTo(node));
 
-            // Instances with name are not bound by type
-            Assert.That(c.Contains<Node>(), Is.False);
+            // Instances with name are bound by type too
+            Assert.That(c.Contains<Node>(), Is.True);
         }
 
 
@@ -134,8 +134,8 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<Node>("X1"), Is.EqualTo(node1));
             Assert.That(c.Resolve<Node>("X2"), Is.EqualTo(node2));
             
-            // Instances with name are not bound by type
-            Assert.That(c.Contains<Node>(), Is.False);
+            // Instances with name are bound by type too
+            Assert.That(c.Contains<Node>(), Is.True);
 
             di.Singleton(() => node2).As("X2");
             Assert.Throws<DuplicateNameException>(() => di.Build());
@@ -156,10 +156,11 @@ namespace Betauer.DI.Tests {
             Assert.That(s.GetRegisterTypes(), Contains.Item(typeof(Node)));
             Assert.That(c.Resolve<Node>(), Is.EqualTo(node));
 
-            // Instances of the same Type can't be overriden
+            // Instances of the same Type are overriden
             var instance2 = new Node();
             di.Static(instance2);
-            Assert.Throws<DuplicateNameException>(() => di.Build());
+            di.Build();
+            Assert.That(c.Resolve<Node>(), Is.EqualTo(instance2));
 
             // Class with type and all nested interfaces by default
             di = new ContainerBuilder(this);

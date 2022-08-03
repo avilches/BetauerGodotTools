@@ -12,15 +12,9 @@ namespace Veronenger.Game {
             public bool VSync => true;
             public bool Borderless => false;
             public Resolution WindowedResolution { get; } = Configuration.BaseResolution;
-            public string SettingsPathFile => GetUserFolder("settings.ini");
+            public string SettingsPathFile => AppTools.GetUserFile("settings.ini");
         }
 
-        public static bool IsExported() => OS.HasFeature("standalone");
-
-        public static string GetUserFolder(string? file = null) {
-            var folder = IsExported() ? OS.GetUserDataDir() : System.IO.Directory.GetCurrentDirectory();
-            return file == null ? folder : System.IO.Path.Combine(folder, System.IO.Path.GetFileName(file));
-        }
 
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV3,
