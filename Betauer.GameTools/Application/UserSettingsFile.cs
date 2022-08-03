@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Reflection;
 using Betauer.Application.Screen;
 using Betauer.Input;
+using Godot;
 using File = System.IO.File;
 
 namespace Betauer.Application {
@@ -16,30 +20,33 @@ namespace Betauer.Application {
 
     public class SettingsFile : IUserSettings {
 
-        public const string VideoSection = "Video";
-        public const string PixelPerfectProperty = "PixelPerfect";
-        public const string FullscreenProperty = "Fullscreen";
-        public const string VSyncProperty = "VSync";
-        public const string BorderlessProperty = "Borderless";
-        public const string WindowedResolutionProperty = "WindowedResolution";
-
         public const string ControlsSection = "Controls";
 
+        // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
         public bool PixelPerfect { get; internal set; }
+        
+        // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
         public bool Fullscreen { get; internal set; }
+        
+        // [Setting(Section = "Video", Name = "VSync", Default = false)]
         public bool VSync { get; internal set; }
+        
+        // [Setting(Section = "Video", Name = "Borderless", Default = false)]
         public bool Borderless { get; internal set; }
+
+        // [Setting(Section = "Video", Name = "WindowedResolution")]
         public Resolution WindowedResolution { get; internal set; }
+        
         public ICollection<ActionState> ActionList { get; }
         public string SettingsPathFile { get; }
 
         private readonly IUserSettings _defaults;
-        private readonly Properties _cf;
+        private readonly ConfigFileWrapper _cf;
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SettingsFile));
         
         public SettingsFile(IUserSettings defaults, ICollection<ActionState> actionList) {
             SettingsPathFile = defaults.SettingsPathFile;
-            _cf = new Properties(SettingsPathFile);
+            _cf = new ConfigFileWrapper().SetFilePath(SettingsPathFile);
             _defaults = defaults;
             PixelPerfect = defaults.PixelPerfect;
             Fullscreen = defaults.Fullscreen;
@@ -55,12 +62,6 @@ namespace Betauer.Application {
                 Logger.Debug("Loading from " + SettingsPathFile + "\n" + content);
             }
             _cf.Load();
-            PixelPerfect = _cf.GetValue(VideoSection, PixelPerfectProperty, _defaults.PixelPerfect);
-            Fullscreen = _cf.GetValue(VideoSection, FullscreenProperty, _defaults.Fullscreen);
-            VSync = _cf.GetValue(VideoSection, VSyncProperty, _defaults.VSync);
-            Borderless = _cf.GetValue(VideoSection, BorderlessProperty, _defaults.Borderless);
-            var sn = _cf.GetValue(VideoSection, WindowedResolutionProperty, _defaults.WindowedResolution.Size);
-            WindowedResolution = new Resolution(sn);
             ActionList.ToList().ForEach(actionState => {
                 var keys = _cf.GetValue(ControlsSection, actionState.GetPropertyNameForKeys(),
                     actionState.ExportKeys());
@@ -73,11 +74,6 @@ namespace Betauer.Application {
         }
 
         public SettingsFile Save() {
-            _cf.SetValue(VideoSection, PixelPerfectProperty, PixelPerfect);
-            _cf.SetValue(VideoSection, FullscreenProperty, Fullscreen);
-            _cf.SetValue(VideoSection, VSyncProperty, VSync);
-            _cf.SetValue(VideoSection, BorderlessProperty, Borderless);
-            _cf.SetValue(VideoSection, WindowedResolutionProperty, WindowedResolution.Size);
             ActionList.ToList().ForEach(actionState => {
                 _cf.SetValue(ControlsSection, actionState.GetPropertyNameForKeys(), actionState.ExportKeys());
                 _cf.SetValue(ControlsSection, actionState.GetPropertyNameForButtons(), actionState.ExportButtons());
