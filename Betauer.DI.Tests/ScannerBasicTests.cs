@@ -76,15 +76,21 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
         }
 
+        public interface I1 { }
+        public interface I2 { }
+
         public class ExposeServiceMember1 {}
         public class ExposeServiceMember2 {}
-        public class ExposeServiceMember3 : Object {}
+        public class ExposeServiceMember3 : I1, I2 {}
 
         public class ConfigurationInstance {
             [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
             [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+            [Service(Name = "M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+            [Service(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
+            
+            [Service(Type = typeof(I1))] internal I1 member31 => new ExposeServiceMember3();
+            [Service(Type = typeof(I2))] internal I2 member32() => new ExposeServiceMember3();
         }
 
         [Test(Description = "Name or type members in configuration instance")]
@@ -99,8 +105,11 @@ namespace Betauer.DI.Tests {
         public class ConfigurationScanned {
             [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
             [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+            [Service(Name = "M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+            [Service(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
+            
+            [Service(Type = typeof(I1))] internal I1 member31 => new ExposeServiceMember3();
+            [Service(Type = typeof(I2))] internal I2 member32() => new ExposeServiceMember3();
         }
 
         [Test(Description = "Name or type members in class typed with [Configuration]")]
@@ -115,8 +124,11 @@ namespace Betauer.DI.Tests {
         public class ServiceScanned {
             [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
             [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
-            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+            [Service(Name = "M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+            [Service(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
+            
+            [Service(Type = typeof(I1))] internal I1 member31 => new ExposeServiceMember3();
+            [Service(Type = typeof(I2))] internal I2 member32() => new ExposeServiceMember3();
         }
 
         [Test(Description = "Name or type members in singleton typed with [Service]")]
@@ -135,13 +147,15 @@ namespace Betauer.DI.Tests {
 
             // [Service(Name="M")] member is exposed by name M and by type too
             Assert.That(c.Resolve<ExposeServiceMember2>(), Is.TypeOf<ExposeServiceMember2>()); 
-            Assert.That(c.Resolve("M"), Is.TypeOf<ExposeServiceMember2>());
-            Assert.That(!c.Contains("member2")); 
+            Assert.That(c.Resolve("M21"), Is.TypeOf<ExposeServiceMember2>());
+            Assert.That(c.Resolve("M22"), Is.TypeOf<ExposeServiceMember2>());
+            Assert.That(!c.Contains("member21")); 
+            Assert.That(!c.Contains("member22")); 
 
             // [Service(Type=typeof(Object)] member is exposed by specified type only, not the member type
             Assert.That(!c.Contains<ExposeServiceMember3>()); 
-            Assert.That(c.Resolve<Object>(), Is.TypeOf<ExposeServiceMember3>());
-            
+            Assert.That(c.Resolve<I1>(), Is.TypeOf<ExposeServiceMember3>());
+            Assert.That(c.Resolve<I2>(), Is.TypeOf<ExposeServiceMember3>());
         }
 
         [Service(Lifetime.Transient)]
@@ -524,8 +538,6 @@ namespace Betauer.DI.Tests {
             Assert.That(s1.Hold4.Name, Is.EqualTo("4"));
             Assert.That(s1.Hold4, Is.EqualTo(s1.h4));
             Assert.That(s2.Hold4, Is.Not.EqualTo(s1.h4));
-            
-            
         }
 
         [Configuration]
@@ -561,6 +573,34 @@ namespace Betauer.DI.Tests {
             Hold s11 = c.Resolve<Hold>("SingletonHold1");
             Hold s12 = c.Resolve<Hold>("SingletonHold1");
             Assert.That(s11, Is.EqualTo(s12));
+        }
+
+        [Scan(typeof(ServiceMemberExposing1))]
+        [Scan(typeof(ImportedService))]
+        internal class AddToScanByImport {
+        }
+
+        [Configuration]
+        internal class ServiceMemberExposing1 {
+            [Service] private ServiceMemberExposing2 member => new ServiceMemberExposing2();
+        }
+        
+        internal class ServiceMemberExposing2 {
+        }
+
+        [Service]
+        internal class ImportedService {
+        }
+
+        [Test]
+        public void MemberExposing() {
+            var di = new ContainerBuilder(this);
+            di.Scan<AddToScanByImport>();
+            var c = di.Build();
+
+            Assert.That(c.Resolve<ImportedService>(), Is.TypeOf<ImportedService>());
+            Assert.That(c.Resolve<ServiceMemberExposing2>(), Is.TypeOf<ServiceMemberExposing2>());
+            
         }
 
         [Service]
@@ -616,7 +656,6 @@ namespace Betauer.DI.Tests {
             
             Assert.That(B.more1, Is.True);
             Assert.That(B.more2, Is.True);
-
        }
     }
 }

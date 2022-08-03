@@ -8,6 +8,15 @@ namespace Betauer.DI {
     public class ConfigurationAttribute : Attribute {
     }
 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public class ScanAttribute : Attribute {
+        public Type Type { get; set; }
+
+        public ScanAttribute(Type type) {
+            Type = type;
+        }
+    }
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class ServiceAttribute : Attribute {
         public Type? Type { get; set; }
@@ -150,7 +159,16 @@ namespace Betauer.DI {
 
         public ContainerBuilder Scan<T>() => Scan(typeof(T));
 
-        public ContainerBuilder Scan(Type type) {
+        public ContainerBuilder Scan(Type type) => _Scan(type, null);  
+
+        private ContainerBuilder _Scan(Type type, HashSet<Type>? stack) {
+            foreach (var importAttribute in Attribute.GetCustomAttributes(type, typeof(ScanAttribute), false)) {
+                stack ??= new HashSet<Type>();
+                stack.Add(type);
+                var typeToImport = ((ScanAttribute)importAttribute).Type;
+                if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
+            }
+            
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
                 var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
                 var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
@@ -175,12 +193,12 @@ namespace Betauer.DI {
             return this;
         }
 
-        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
         private void ScanMemberExposingServices(Type type, bool fromConfiguration) {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
                 var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
                 var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
                 Register(getter.Type, () => {
@@ -192,7 +210,7 @@ namespace Betauer.DI {
 
         private void ScanMemberExposingServices(object instance) {
             var type = instance.GetType();
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
                 var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
                 var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
                 Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, types, alias);

@@ -240,5 +240,38 @@ namespace Betauer.DI.Tests {
             Assert.That(sa, Is.EqualTo(sa.sb.sa));
             Assert.That(sa, Is.EqualTo(sa.sb.sc.sa));
         }
+        
+        [Scan(typeof(ImportedService))]
+        [Configuration]
+        internal class AddToScanByImport {
+            [Service] private B B => new B();
+        }
+
+        [Scan(typeof(ImportSelf))]
+        internal class ImportSelf {
+        }
+
+        [Scan(typeof(AddToScanByImport))]
+        [Configuration]
+        internal class ImportedService {
+            [Service] private A A => new A();
+        }
+
+        internal class A { }
+        internal class B { }
+
+        [Test]
+        public void MemberExposing() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ImportSelf>();
+            di.Scan<AddToScanByImport>();
+            var c = di.Build();
+
+            Assert.That(c.Resolve<A>(), Is.TypeOf<A>());
+            Assert.That(c.Resolve<B>(), Is.TypeOf<B>());
+            
+        }
+
+        
     }
 }
