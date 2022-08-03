@@ -126,7 +126,7 @@ namespace Betauer.Application.Screen {
         public bool Matches(float ratio) => Math.Abs(ratio - Ratio) < Tolerance;
     }
 
-    public class Resolution {
+    public class Resolution : IEquatable<Resolution> {
         public static readonly Comparison<Resolution> Comparison = (left, right) =>
             left.x * left.y > right.x * right.y ? 1 : -1;
 
@@ -155,6 +155,11 @@ namespace Betauer.Application.Screen {
         public override string ToString() {
             return $"{AspectRatio.Name} {x}x{y}";
         }
+
+        public bool Equals(Resolution other) => Size.Equals(other.Size);
+        public override bool Equals(object obj) => obj is Resolution other && Equals(other);
+        public static bool operator ==(Resolution left, Resolution right) => left.Equals(right);
+        public static bool operator !=(Resolution left, Resolution right) => !left.Equals(right);
     }
 
     public class ScaledResolution : Resolution {
