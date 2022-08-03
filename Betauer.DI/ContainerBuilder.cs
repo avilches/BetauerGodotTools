@@ -155,10 +155,14 @@ namespace Betauer.DI {
                 var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
                 var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
                 Register(type, serviceAttr.Lifetime, types, aliases);
+                if (serviceAttr.Lifetime == Lifetime.Singleton) {
+                    // [Service] singletons can expose other services as it would have [Configuration]
+                    ScanMemberExposingServices(type, false);
+                }
             } else {
                 // No [Service] present in the class, check for [Configuration]
                 if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
-                    ScanMemberExposingServices(type);
+                    ScanMemberExposingServices(type, true);
                 }
             }
             return this;
@@ -166,29 +170,32 @@ namespace Betauer.DI {
 
         public ContainerBuilder ScanConfiguration(params object[] instances) {
             foreach (var instance in instances) {
-                ScanMemberExposingServices(instance.GetType(), instance);
+                ScanMemberExposingServices(instance);
             }
             return this;
         }
 
-        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic;
 
-        private void ScanMemberExposingServices(Type type, object instance = null) {
+        private void ScanMemberExposingServices(Type type, bool fromConfiguration) {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
                 var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
                 var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Func<object> factory;
-                if (instance == null) {
-                    factory = () => {
-                        conf ??= Activator.CreateInstance(type);
-                        return getter.GetValue(conf);
-                    };
-                } else {
-                    factory = () => getter.GetValue(instance);
-                }
-                Register(getter.Type, factory, getter.Attribute.Lifetime, types, alias);
+                Register(getter.Type, () => {
+                    var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
+                    return getter.GetValue(instance);
+                }, getter.Attribute.Lifetime, types, alias);
+            }
+        }
+
+        private void ScanMemberExposingServices(object instance) {
+            var type = instance.GetType();
+            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags | BindingFlags.Instance)) {
+                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
+                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
+                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, types, alias);
             }
         }
     }

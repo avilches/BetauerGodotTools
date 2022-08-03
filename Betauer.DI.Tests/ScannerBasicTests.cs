@@ -103,10 +103,26 @@ namespace Betauer.DI.Tests {
             [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
         }
 
-        [Test(Description = "Name or type members in configuration type with [Configuration]")]
+        [Test(Description = "Name or type members in class typed with [Configuration]")]
         public void NameOrTypeMembersInConfiguration() {
             var di = new ContainerBuilder(this);
             di.Scan<ConfigurationScanned>();
+            var c = di.Build();
+            AssertNameOrTypeMembers(c);
+        }
+
+        [Service]
+        public class ServiceScanned {
+            [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+            [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+            [Service(Name = "M")] internal ExposeServiceMember2 member2 => new ExposeServiceMember2();
+            [Service(Type = typeof(Object))] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        }
+
+        [Test(Description = "Name or type members in singleton typed with [Service]")]
+        public void NameOrTypeMembersInService() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ServiceScanned>();
             var c = di.Build();
             AssertNameOrTypeMembers(c);
         }
