@@ -100,7 +100,7 @@ namespace Betauer.DI {
         }
 
         public override void OnAddToContainer(Container container) {
-            var context = new ResolveContext(container, false);
+            var context = new ResolveContext(container);
             var instance = Get(context);
             container.InjectAllFields(instance, context);
             if (instance is Node node) container.NodeSingletonOwner?.AddChild(node);

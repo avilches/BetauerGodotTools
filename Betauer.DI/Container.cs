@@ -9,11 +9,9 @@ namespace Betauer.DI {
         private readonly Dictionary<Type, object> _objectsCache = new Dictionary<Type, object>();
         private readonly Dictionary<string, object> _objectsCacheByAlias = new Dictionary<string, object>();
         internal readonly Container Container;
-        internal readonly bool ExecutePostCreate;
 
-        public ResolveContext(Container container, bool executePostCreate = true) {
+        public ResolveContext(Container container) {
             Container = container;
-            ExecutePostCreate = executePostCreate;
         }
 
         internal bool IsCached<T>(string[]? aliases) {
