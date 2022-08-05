@@ -106,7 +106,7 @@ namespace Betauer.Application.Screen {
             };
     }
 
-    public struct AspectRatio {
+    public class AspectRatio {
         internal const float Tolerance = 0.05f;
 
         public readonly string Name;
