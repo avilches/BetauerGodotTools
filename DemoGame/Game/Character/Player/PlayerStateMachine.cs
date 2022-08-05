@@ -31,10 +31,10 @@ namespace Veronenger.Game.Character.Player {
 
         [Inject] private PlatformManager _platformManager;
         [Inject] private PlayerConfig _playerConfig;
-        [Inject] private LateralAction LateralMotion;
-        [Inject] private VerticalAction VerticalMotion;
-        [Inject] private ActionState Jump;
-        [Inject] private ActionState Attack;
+        [Inject] private LateralAction _lateralMotion;
+        [Inject] private VerticalAction _verticalMotion;
+        [Inject] private InputAction Jump;
+        [Inject] private InputAction Attack;
 
         private PlayerController _player;
         private StateMachineNode<State, Transition> _stateMachineNode;
@@ -42,8 +42,8 @@ namespace Veronenger.Game.Character.Player {
         private KinematicPlatformMotionBody Body => _player.KinematicPlatformMotionBody;
 
         // Input from the player
-        private float XInput => LateralMotion.Strength;
-        private float YInput => VerticalMotion.Strength;
+        private float XInput => _lateralMotion.Strength;
+        private float YInput => _verticalMotion.Strength;
         private bool IsRight => XInput > 0;
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;

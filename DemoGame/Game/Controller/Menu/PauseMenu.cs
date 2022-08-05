@@ -34,9 +34,9 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private GameManager _gameManager;
 
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
         private readonly Launcher _launcher = new Launcher();
 

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Betauer.Application.Screen;
+using Betauer.Application.Settings;
+using Betauer.DI;
 using Godot;
 
-namespace Betauer.Application {
-    public class SettingsManager {
+namespace Betauer.Application.Screen {
+    public class ScreenSettingsManager {
         private const bool DontSave = false;
-        private SettingsFile _settingsFile;
         private ScreenService _service;
 
         public IUserSettings SettingsFile => _settingsFile;
@@ -15,23 +15,26 @@ namespace Betauer.Application {
             _settingsFile.Load();
         }
 
-        public void SaveControls() {
-            _settingsFile.Save();
-        }
+        public bool PixelPerfect => _pixelPerfect.Value;
+        public bool Fullscreen => _fullscreen.Value;
+        public bool VSync => _VSync.Value;
+        public bool Borderless => _borderless.Value;
+        public Resolution WindowedResolution => _windowedResolution.Value;
 
-        public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.Strategy? strategy) {
+        public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration,
+            ScreenService.Strategy? strategy) {
             _service.SetScreenConfiguration(screenConfiguration, strategy);
         }
 
         public void Start(SceneTree tree, ScreenConfiguration initialConfiguration) {
             _service = new ScreenService(tree, initialConfiguration);
-            SetPixelPerfect(_settingsFile.PixelPerfect, DontSave);
-            SetVSync(_settingsFile.VSync, DontSave);
-            if (_settingsFile.Fullscreen) {
+            SetPixelPerfect(PixelPerfect, DontSave);
+            SetVSync(VSync, DontSave);
+            if (Fullscreen) {
                 SetFullscreen(true, DontSave);
             } else {
-                SetWindowed(_settingsFile.WindowedResolution, DontSave);
-                SetBorderless(_settingsFile.Borderless, DontSave);
+                SetWindowed(WindowedResolution, DontSave);
+                SetBorderless(Borderless, DontSave);
             }
         }
 
@@ -43,43 +46,28 @@ namespace Betauer.Application {
                 ? ScreenService.Strategy.PixelPerfectScale
                 : ScreenService.Strategy.FitToScreen;
             _service.SetStrategy(strategy);
-            if (save) {
-                _settingsFile.PixelPerfect = pixelPerfect;
-                _settingsFile.Save();
-            }
+            if (save) _pixelPerfect.Value = pixelPerfect;
         }
 
         public void SetBorderless(bool borderless, bool save = true) {
             _service.SetBorderless(borderless);
-            if (save) {
-                _settingsFile.Borderless = borderless;
-                _settingsFile.Save();
-            }
+            if (save) _borderless.Value = borderless;
         }
 
         public void SetVSync(bool vsync, bool save = true) {
             OS.VsyncEnabled = vsync;
-            if (save) {
-                _settingsFile.VSync = vsync;
-                _settingsFile.Save();
-            }
+            if (save) _VSync.Value = vsync;
         }
 
         public void SetFullscreen(bool fs, bool save = true) {
             if (fs) _service.SetFullscreen();
-            else SetWindowed(_settingsFile.WindowedResolution);
-            if (save) {
-                _settingsFile.Fullscreen = fs;
-                _settingsFile.Save();
-            }
+            else SetWindowed(WindowedResolution);
+            if (save) _fullscreen.Value = fs;
         }
 
         public void SetWindowed(Resolution resolution, bool save = true) {
             _service.SetWindowed(resolution);
-            if (save) {
-                _settingsFile.WindowedResolution = resolution;
-                _settingsFile.Save();
-            }
+            if (save) _windowedResolution.Value = resolution;
         }
 
         public void CenterWindow() {

@@ -15,9 +15,9 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 
         [OnReady("HBoxContainer/ActionHint4")] private ActionHint _actionHint4;
         private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
 
         public override void _Ready() {
@@ -34,14 +34,14 @@ namespace Veronenger.Game.Controller.Menu {
 
         public MainMenuBottomBar AddButton(string? label1, string animation, string? label2) {
             ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible);
-            hint.Labels(label1, label2).Button(animation, true);
+            hint.Labels(label1, label2).InputAction(animation, true);
             hint.Visible = true;
             return this;
         }
 
-        public MainMenuBottomBar AddButton(string? label1, ActionState action, string? label2, bool animate = false) {
+        public MainMenuBottomBar AddButton(string? label1, InputAction inputAction, string? label2, bool animate = false) {
             ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible);
-            hint.Labels(label1, label2).Button(action, animate);
+            hint.Labels(label1, label2).InputAction(inputAction, animate);
             hint.Visible = true;
             return this;
         }
@@ -49,26 +49,26 @@ namespace Veronenger.Game.Controller.Menu {
         // TODO: i18n
         public void ConfigureMenuAcceptBack() {
             HideAll()
-                .AddButton(null,UiAccept, "Accept")
-                .AddButton(null,UiCancel, "Back");
+                .AddButton(null, UiAccept, "Accept")
+                .AddButton(null, UiCancel, "Back");
         }
 
         public void ConfigureModalAcceptCancel() {
             HideAll()
-                .AddButton(null,UiAccept, "Accept")
-                .AddButton(null,UiCancel, "Cancel");
+                .AddButton(null, UiAccept, "Accept")
+                .AddButton(null, UiCancel, "Cancel");
         }
 
         public void ConfigureSettingsChangeBack() {
             HideAll()
-                .AddButton(null,UiAccept, "Change")
-                .AddButton(null,UiCancel, "Back");
-        }
+                .AddButton(null, UiAccept, "Change")
+                .AddButton(null, UiCancel, "Back");
+        }                             
 
         public void ConfigureSettingsResolution() {
             HideAll()
-                .AddButton(null,"left lateral", "Change resolution")
-                .AddButton(null,UiCancel, "Back");
+                .AddButton(null, "left lateral", "Change resolution")
+                .AddButton(null, UiCancel, "Back");
         }
 
         public void OnEnter(GameManager.State state, GameManager.State from) {

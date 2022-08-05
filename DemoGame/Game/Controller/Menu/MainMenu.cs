@@ -26,9 +26,9 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private GameManager _gameManager;
         private readonly Launcher _launcher = new Launcher();
 
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
         public override void _Ready() {
             _version.Text = AppInfo.Version + " - Betauer 2022";

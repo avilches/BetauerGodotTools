@@ -7,7 +7,7 @@ namespace Veronenger.Game.Controller.UI {
     public class RedefineActionButton : ButtonWrapper {
         [OnReady("ActionHint")] public ActionHint ActionHint;
         
-        public ActionState ActionState;
+        public InputAction InputAction;
     }
     
 }

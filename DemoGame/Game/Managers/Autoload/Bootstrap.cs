@@ -5,8 +5,10 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Screen;
+using Betauer.Application.Settings;
 using Betauer.Bus;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.Memory;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Stage;
@@ -18,8 +20,6 @@ namespace Veronenger.Game.Managers.Autoload {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
         public static readonly DateTime StartTime = DateTime.Now;
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
-
-        [Service] public SettingsManager SettingManager => new SettingsManager();
         
         public Bootstrap() {
             if (FeatureFlags.IsExported()) {
@@ -47,20 +47,20 @@ namespace Veronenger.Game.Managers.Autoload {
             Logger.Info($"config dir   : {OS.GetConfigDir()}");
             Logger.Info($"cache dir    : {OS.GetCacheDir()}");
             new[] {
-                "logging/file_logging/enable_file_logging",
-                "logging/file_logging/enable_file_logging.pc",
-                "logging/file_logging/log_path",
-                "logging/file_logging/log_path.standalone",
-                "application/run/disable_stdout",
-                "application/run/disable_stderr",
-                "application/run/flush_stdout_on_print",
-                "application/run/flush_stdout_on_print.debug",
-                "application/config/use_custom_user_dir",
-                "application/config/project_settings_override",
-                "mono/unhandled_exception_policy",
-                "mono/unhandled_exception_policy.standalone",
-                "application/config/version"
-            }.ToList()
+                    "logging/file_logging/enable_file_logging",
+                    "logging/file_logging/enable_file_logging.pc",
+                    "logging/file_logging/log_path",
+                    "logging/file_logging/log_path.standalone",
+                    "application/run/disable_stdout",
+                    "application/run/disable_stderr",
+                    "application/run/flush_stdout_on_print",
+                    "application/run/flush_stdout_on_print.debug",
+                    "application/config/use_custom_user_dir",
+                    "application/config/project_settings_override",
+                    "mono/unhandled_exception_policy",
+                    "mono/unhandled_exception_policy.standalone",
+                    "application/config/version"
+                }.ToList()
                 .ForEach(property => Logger.Info(property + ": " + ProjectSettings.GetSetting(property)));
         }
 
@@ -72,10 +72,10 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetConsoleOutput(ConsoleOutput.GodotPrint); // GD.Print means it appears in the user data logs
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Warning);
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(SettingsFile), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
-    }
-        
+        }
+
         private static void DevelopmentConfig() {
             DisposeTools.ShowWarningOnShutdownDispose = true;
             DisposeTools.ShowMessageOnNewInstance = false;
@@ -91,11 +91,10 @@ namespace Veronenger.Game.Managers.Autoload {
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(FactoryProvider<>), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.All);
 
             // GameTools
-            LoggerFactory.SetTraceLevel(typeof(SettingsFile), TraceLevel.Debug);
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);

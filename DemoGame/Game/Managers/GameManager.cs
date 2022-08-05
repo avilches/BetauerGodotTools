@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
@@ -56,14 +57,14 @@ namespace Veronenger.Game.Managers {
         private readonly Launcher _launcher = new Launcher();
 
         [Inject] private StageManager _stageManager;
-        [Inject] private SettingsManager _settingsManager;
+        [Inject] private ScreenSettingsManager _screenSettingsManager;
         [Inject] private SceneTree _sceneTree;
         [Inject] private MainResourceLoader _mainResourceLoader;
 
-        [Inject] private ActionState PixelPerfect;
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction _pixelPerfectInputAction;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
         public override void _Ready() {
             PauseMode = PauseModeEnum.Process;
@@ -78,7 +79,7 @@ namespace Veronenger.Game.Managers {
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     }).Bind(this).Load();
-                    _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+                    _screenSettingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 

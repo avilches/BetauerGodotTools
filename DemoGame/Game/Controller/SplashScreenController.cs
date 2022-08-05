@@ -1,16 +1,19 @@
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Screen;
+using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Managers;
-using InputManager = Veronenger.Game.Managers.InputManager;
 
 namespace Veronenger.Game.Controller {
     public class SplashScreenController : Control {
         [Inject] private GameManager _gameManager;
-        [Inject] private SettingsManager _settingsManager;
+        [Inject] private ScreenSettingsManager _screenSettingsManager;
+        [Inject] private SettingsContainer _settingsContainer;
         [Inject] private MainResourceLoader _mainResourceLoader;
 
         [OnReady("ColorRect")] private ColorRect ColorRect;
@@ -23,18 +26,13 @@ namespace Veronenger.Game.Controller {
         private Vector2 _baseResolutionSize;
         private bool _loadFinished = false;
         
-        [Inject] private InputManager _inputManager;
 
         public override void _Ready() {
-            var defaults = new ApplicationConfig.UserSettings();
-            var userSettingsFile = new SettingsFile(defaults, _inputManager.ConfigurableActionList);
-            _settingsManager.Load(userSettingsFile);
-            
-            _baseResolutionSize = _settingsManager.SettingsFile.WindowedResolution.Size;
-            if (_settingsManager.SettingsFile.Fullscreen) {
+            _baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
+            if (_screenSettingsManager.Fullscreen) {
                 OS.WindowFullscreen = true;
             } else {
-                OS.WindowSize = _settingsManager.SettingsFile.WindowedResolution.Size;
+                OS.WindowSize = _screenSettingsManager.WindowedResolution.Size;
                 OS.CenterWindow();
             }
             GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,_baseResolutionSize, 1);

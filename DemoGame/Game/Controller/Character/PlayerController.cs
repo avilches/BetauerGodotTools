@@ -2,6 +2,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
@@ -31,7 +32,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private PlatformManager _platformManager;
         [Inject] private CharacterManager _characterManager;
         [Inject] private SlopeStairsManager _slopeStairsManager;
-        [Inject] private SettingsManager _settingsManager;
+        [Inject] private ScreenSettingsManager _screenSettingsManager;
         [Inject] private PlayerStateMachine _stateMachine;
         [Inject] private PlayerConfig _playerConfig;
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
@@ -222,7 +223,7 @@ namespace Veronenger.Game.Controller.Character {
                 */
         }
         
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiStart;
 
         public override void _Input(InputEvent @event) {
                 /*

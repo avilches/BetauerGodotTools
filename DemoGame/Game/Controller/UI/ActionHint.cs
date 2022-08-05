@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.UI {
         [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Label1")] private Label _label1;
         [OnReady("Label2")] private Label _label2;
-        [Inject] private InputManager _inputManager;
+        [Inject] private InputActionsContainer _inputActionsContainer;
         [Export] private string ActionText1;
         [Export] private string ActionName;
         [Export] private string ActionText2;
@@ -41,7 +41,7 @@ namespace Veronenger.Game.Controller.UI {
             return this;
         }
 
-        public void Button(string actionName, bool animate = false) {
+        public void InputAction(string? actionName, bool animate = false) {
             if (_consoleButton.HasAnimation(actionName)) {
                 _consoleButton.Animate(actionName);
             } else {
