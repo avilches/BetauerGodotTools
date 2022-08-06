@@ -7,7 +7,7 @@ namespace Betauer.Application.Settings {
         [Inject] protected Container Container;
         public SettingsContainer SettingsContainer { get; internal set; }
 
-        private readonly string? _settingsFile;
+        private readonly string? _settingsContainerName;
         public readonly string Section;
         public readonly string Name;
         public readonly Type ValueType;
@@ -17,27 +17,33 @@ namespace Betauer.Application.Settings {
         internal object InternalValue;
         internal bool Initialized = false;
 
+        private static SettingsContainer? _anonymousSettingsContainer;
+
         [PostCreate]
         internal void AddToSettingContainer() {
-            SettingsContainer = _settingsFile == null
-                ? Container.Resolve<SettingsContainer>()
-                : Container.Resolve<SettingsContainer>(_settingsFile);
+            /*
+             * If 
+             */
+            SettingsContainer = _settingsContainerName != null
+                ? Container.Resolve<SettingsContainer>(_settingsContainerName)
+                : Container.Contains<SettingsContainer>() ? Container.Resolve<SettingsContainer>() : _anonymousSettingsContainer ??= new SettingsContainer();
+            
             SettingsContainer.Add(this);
         }
 
-        protected Setting(string settingsFile, string section, string name, Type valueType, object defaultValue, bool autoSave = true) {
+        protected Setting(string settingsContainerName, string section, string name, Type valueType, object defaultValue, bool autoSave = true) {
             ValueType = valueType;
             Section = section;
             Name = name;
             InternalDefaultValue = defaultValue;
             AutoSave = autoSave;
-            _settingsFile = settingsFile;
+            _settingsContainerName = settingsContainerName;
         }
     }
 
     public class Setting<T> : Setting {
-        public Setting(string settingsFile, string section, string name, T defaultValue, bool autoSave = true) :
-            base(settingsFile, section, name, typeof(T), defaultValue, autoSave) {
+        public Setting(string settingsContainerName, string section, string name, T defaultValue, bool autoSave = true) :
+            base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave) {
         }
         public Setting(string section, string name, T defaultValue, bool autoSave = true) :
             base(null, section, name, typeof(T), defaultValue, autoSave) {

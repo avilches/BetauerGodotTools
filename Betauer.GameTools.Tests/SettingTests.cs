@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
@@ -28,15 +29,15 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Configuration]
-        internal class Config1 {
+        internal class ConfigWithContainer {
             [Service]
             public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
             
             [Service] 
-            public Setting<bool> PixelPerfect => new Setting<bool>("Section", "PixelPerfect", true);
+            public Setting<bool> BoolSetting => new Setting<bool>("Section", "PixelPerfect", true);
 
             [Service] 
-            public Setting<string> Name => new Setting<string>("Section", "Name", "Default");
+            public Setting<string> StringSetting => new Setting<string>("Section", "Name", "Default");
             
             [Service] 
             public Setting<Resolution> Resolution => new Setting<Resolution>("Video", "Screen", Resolutions.WXGA);
@@ -46,9 +47,10 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Service]
-        internal class Basic1 {
-            [Inject] public Setting<bool> PixelPerfect;
-            [Inject] public Setting<string> Name;
+        internal class Service1 {
+            [Inject] public SettingsContainer SettingsContainerByType;
+            [Inject] public Setting<bool> BoolSetting;
+            [Inject] public Setting<string> StringSetting;
             [Inject] public Setting<Resolution> Resolution;
             [Inject] public Setting<string> NoAutoSave;
         }
@@ -56,49 +58,55 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public void DefaultsAndSaveTest() {
             var di = new ContainerBuilder(this);
-            di.Scan<Config1>();
-            di.Scan<Basic1>();
+            di.Scan<ConfigWithContainer>();
+            di.Scan<Service1>();
             var c = di.Build();
 
-            var b = c.Resolve<Basic1>();
+            var b = c.Resolve<Service1>();
+
+            // Check the SettingContainer
+            Assert.That(b.BoolSetting.SettingsContainer, Is.EqualTo(b.SettingsContainerByType));
+            Assert.That(b.StringSetting.SettingsContainer, Is.EqualTo(b.SettingsContainerByType));
+            Assert.That(b.Resolution.SettingsContainer, Is.EqualTo(b.SettingsContainerByType));
+            Assert.That(b.NoAutoSave.SettingsContainer, Is.EqualTo(b.SettingsContainerByType));
+
+            // Read with no settings save, the default values are used
             
-            // Default values are read
-            Assert.That(b.PixelPerfect.SettingsContainer.Dirty, Is.False);
-            
-            Assert.That(b.PixelPerfect.Value, Is.EqualTo(true));
-            Assert.That(b.Name.Value, Is.EqualTo("Default"));
+            Assert.That(b.BoolSetting.Value, Is.EqualTo(true));
+            Assert.That(b.StringSetting.Value, Is.EqualTo("Default"));
             Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA));
             Assert.That(b.NoAutoSave.Value, Is.EqualTo("DEFAULT"));
+            Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             
             // When force saved, default values are stored
-            b.PixelPerfect.SettingsContainer.Save();
-            Assert.That(b.PixelPerfect.SettingsContainer.Dirty, Is.False);
+            b.BoolSetting.SettingsContainer.Save();
+            Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.PixelPerfect.Section, b.PixelPerfect.Name, false), Is.True);
-            Assert.That(cf.GetValue(b.Name.Section, b.Name.Name, "XXX"), Is.EqualTo("Default"));
+            Assert.That(cf.GetValue(b.BoolSetting.Section, b.BoolSetting.Name, false), Is.True);
+            Assert.That(cf.GetValue(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("Default"));
             Assert.That(cf.GetValue(b.Resolution.Section, b.Resolution.Name, "XXX"), Is.EqualTo(Resolutions.WXGA.Size));
             Assert.That(cf.GetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
             
             // When changed, only the auto-saved are stored
-            b.PixelPerfect.Value = false;
+            b.BoolSetting.Value = false;
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.PixelPerfect.Section, b.PixelPerfect.Name, true), Is.False);
-            Assert.That(b.PixelPerfect.SettingsContainer.Dirty, Is.False);
+            Assert.That(cf.GetValue(b.BoolSetting.Section, b.BoolSetting.Name, true), Is.False);
+            Assert.That(b.SettingsContainerByType.Dirty, Is.False);
 
-            b.Name.Value = "CHANGED";
+            b.StringSetting.Value = "CHANGED";
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.Name.Section, b.Name.Name, "XXX"), Is.EqualTo("CHANGED"));
-            Assert.That(b.Name.SettingsContainer.Dirty, Is.False);
+            Assert.That(cf.GetValue(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("CHANGED"));
+            Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             
             b.Resolution.Value = Resolutions.FULLHD;
             cf.Load(SettingsFile);
             Assert.That(cf.GetValue(b.Resolution.Section, b.Resolution.Name, "XXX"), Is.EqualTo(Resolutions.FULLHD.Size));
-            Assert.That(b.Resolution.SettingsContainer.Dirty, Is.False);
+            Assert.That(b.SettingsContainerByType.Dirty, Is.False);
 
             // No autosave, dirty and the value is still the old value
             b.NoAutoSave.Value = "CHANGED";
-            Assert.That(b.NoAutoSave.SettingsContainer.Dirty, Is.True);
+            Assert.That(b.SettingsContainerByType.Dirty, Is.True);
             Assert.That(cf.GetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
             b.NoAutoSave.SettingsContainer.Save();
             cf.Load(SettingsFile);
@@ -124,20 +132,20 @@ namespace Betauer.GameTools.Tests {
             cf.Dispose();
             
             var di = new ContainerBuilder(this);
-            di.Scan<Config1>();
-            di.Scan<Basic1>();
+            di.Scan<ConfigWithContainer>();
+            di.Scan<Service1>();
             var c = di.Build();
-            var b = c.Resolve<Basic1>();
+            var b = c.Resolve<Service1>();
             
             // Stored values are read
-            Assert.That(b.PixelPerfect.Value, Is.EqualTo(false));
-            Assert.That(b.Name.Value, Is.EqualTo("CHANGED"));
+            Assert.That(b.BoolSetting.Value, Is.EqualTo(false));
+            Assert.That(b.StringSetting.Value, Is.EqualTo("CHANGED"));
             Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.FULLHD_DIV1_875));
         }
         
         
         [Configuration]
-        internal class Config2 {
+        internal class ConfigWithMultipleContainer {
             [Service(SettingsFile1)]
             public SettingsContainer SettingsContainer1 => new SettingsContainer(SettingsFile1);
 
@@ -160,15 +168,56 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Test]
-        public void MultipleSettingsFile() {
+        public void MultipleSettingsFileTest() {
             var di = new ContainerBuilder(this);
-            di.Scan<Config2>();
+            di.Scan<ConfigWithMultipleContainer>();
             di.Scan<Basic2>();
             var c = di.Build();
             var b = c.Resolve<Basic2>();
             
             Assert.That(b.P1.SettingsContainer, Is.EqualTo(b.SettingsContainer1));
             Assert.That(b.P2.SettingsContainer, Is.EqualTo(b.SettingsContainer2));
+        }
+
+        [Configuration]
+        internal class ConfigWithAnonymousContainer {
+            [Service] 
+            public Setting<string> P1 => new Setting<string>("Section", "Name", "Default");
+            [Service] 
+            public Setting<string> P2 => new Setting<string>("Section", "Name", "Default");
+        }
+
+        [Service]
+        internal class Basic3 {
+            [Inject] public Setting<string> P1;
+            [Inject] public Setting<string> P2;
+        }
+
+        [Test(Description = "Anonymous container test")]
+        public void AnonymousContainerTest() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ConfigWithAnonymousContainer>();
+            di.Scan<Basic3>();
+            var c = di.Build();
+            var b = c.Resolve<Basic3>();
+
+            Assert.That(c.Contains<SettingsContainer>(), Is.False);
+            Assert.That(b.P1.SettingsContainer, Is.TypeOf<SettingsContainer>());
+            Assert.That(b.P1.SettingsContainer, Is.EqualTo(b.P2.SettingsContainer));
+        }
+
+        [Configuration]
+        internal class SettingContainerNotFound {
+            [Service] 
+            public Setting<string> P1 => new Setting<string>("NOT FOUND", "Section", "Name", "Default");
+        }
+
+        [Test(Description = "SettingContainer name not found")]
+        public void SettingContainerNotFoundTest() {
+            var di = new ContainerBuilder(this);
+            di.Scan<SettingContainerNotFound>();
+            di.Scan<Basic3>();
+            Assert.Throws<KeyNotFoundException>(() => di.Build());
         }
 
 

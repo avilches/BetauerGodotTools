@@ -24,24 +24,24 @@ namespace Betauer.Input {
 
         [Inject] protected InputActionsContainer InputActionsContainer;
         [Inject] protected Container Container;
-        private readonly string? _settingsFile;
+        private readonly string? _settingsContainerName;
         private readonly bool _isConfigurable;
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
         private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
         private Setting<string> _buttonSetting;
         private Setting<string> _keySetting;
 
-        private InputAction(string name, bool configurable, string? settingsFile) {
+        private InputAction(string name, bool configurable, string? settingsContainerName) {
             Name = name;
             _isConfigurable = configurable;
-            _settingsFile = settingsFile;
+            _settingsContainerName = settingsContainerName;
         }
 
         [PostCreate]
         internal void ConfigureAndAddToActionContainer() {
             if (_isConfigurable) {
-                _buttonSetting = new Setting<string>(_settingsFile, "Controls", Name + ".Buttons", ExportButtons());
-                _keySetting = new Setting<string>(_settingsFile, "Controls", Name + ".Keys", ExportKeys());
+                _buttonSetting = new Setting<string>(_settingsContainerName, "Controls", Name + ".Buttons", ExportButtons());
+                _keySetting = new Setting<string>(_settingsContainerName, "Controls", Name + ".Keys", ExportKeys());
                 Container.InjectAllFields(_buttonSetting);
                 Container.InjectAllFields(_keySetting);
                 _buttonSetting.AddToSettingContainer();
@@ -128,7 +128,7 @@ namespace Betauer.Input {
             private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
 
             private bool isConfigurable = false;
-            private string? _settingsFile;
+            private string? _settingsContainerName;
             private readonly string _name;
 
             internal Builder(string name) {
@@ -147,12 +147,12 @@ namespace Betauer.Input {
 
             public Builder Configurable(string? settingsFile = null) {
                 isConfigurable = true;
-                _settingsFile = settingsFile;
+                _settingsContainerName = settingsFile;
                 return this;
             }
 
             public InputAction Build() {
-                return new InputAction(_name, isConfigurable, _settingsFile)
+                return new InputAction(_name, isConfigurable, _settingsContainerName)
                     .AddKey(_keys.ToArray())
                     .AddButton(_buttons.ToArray());
             }
