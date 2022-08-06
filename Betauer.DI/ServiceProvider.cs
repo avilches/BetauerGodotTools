@@ -43,7 +43,12 @@ namespace Betauer.DI {
             foreach (var method in methods) {
                 if (Attribute.GetCustomAttribute(method, typeof(PostCreateAttribute), false) is PostCreateAttribute) {
                     if (method.GetParameters().Length == 0) {
-                        method.Invoke(instance, new object[] { });
+                        try {
+                            method.Invoke(instance, new object[] { });
+                        } catch (Exception e) {
+                            if (e.InnerException != null) throw e.InnerException;
+                            throw e; 
+                        }
                     } else {
                         throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
                     }
