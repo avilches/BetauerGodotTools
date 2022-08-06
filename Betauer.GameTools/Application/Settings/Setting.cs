@@ -5,24 +5,29 @@ using Container = Betauer.DI.Container;
 namespace Betauer.Application.Settings {
     public abstract class Setting {
         [Inject] protected Container Container;
+        
         public SettingsContainer SettingsContainer { get; internal set; }
-
         private readonly string? _settingsContainerName;
+        
         public readonly string Section;
         public readonly string Name;
-        public readonly Type ValueType;
         public bool AutoSave { get; set; }
+        public bool Enabled { get; set; } = true;
 
+        internal readonly Type ValueType;
         internal object InternalDefaultValue;
         internal object InternalValue;
-        internal bool Initialized = false;
+        internal bool Initialized;
 
         private static SettingsContainer? _anonymousSettingsContainer;
 
         [PostCreate]
         internal void AddToSettingContainer() {
             /*
-             * If 
+             * If _settingsContainerName is defined, it will be used (and it will fail if the service is not found)
+             * If there is no _settingsContainerName defined, it will try to find the service by type. If not found, it
+             * will create a new one "anonymous" (it means it will not be added to the Dependency Injection Container,
+             * but it can be accessed from the yourSetting.SettingsContainer field
              */
             SettingsContainer = _settingsContainerName != null
                 ? Container.Resolve<SettingsContainer>(_settingsContainerName)
@@ -31,33 +36,48 @@ namespace Betauer.Application.Settings {
             SettingsContainer.Add(this);
         }
 
-        protected Setting(string settingsContainerName, string section, string name, Type valueType, object defaultValue, bool autoSave = true) {
-            ValueType = valueType;
+        protected Setting(string settingsContainerName, string section, string name, Type valueType, object defaultValue, bool autoSave, bool enabled) {
+            _settingsContainerName = settingsContainerName;
             Section = section;
             Name = name;
+            ValueType = valueType;
+            Initialized = false;
             InternalDefaultValue = defaultValue;
             AutoSave = autoSave;
-            _settingsContainerName = settingsContainerName;
+            Enabled = enabled;
         }
     }
 
     public class Setting<T> : Setting {
-        public Setting(string settingsContainerName, string section, string name, T defaultValue, bool autoSave = true) :
-            base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave) {
+        public Setting(string settingsContainerName, string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) :
+            base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave, enabled) {
         }
-        public Setting(string section, string name, T defaultValue, bool autoSave = true) :
-            base(null, section, name, typeof(T), defaultValue, autoSave) {
+
+        public Setting(string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) :
+            base(null, section, name, typeof(T), defaultValue, autoSave, enabled) {
+        }
+
+        public Setting(string name, T defaultValue, bool autoSave = true, bool enabled = true) :
+            base(null, "Config", name, typeof(T), defaultValue, autoSave, enabled) {
         }
 
         public T Value {
             get {
-                if (!Initialized) SettingsContainer.LoadSetting(this);
+                if (Enabled) {
+                    if (!Initialized) SettingsContainer.LoadSetting(this);
+                } else {
+                    if (!Initialized) InternalValue = InternalDefaultValue;
+                }
                 return (T)InternalValue;
             }
             set {
                 InternalValue = value;
-                SettingsContainer.SaveSetting(this);
-                if (AutoSave) SettingsContainer.Save();
+                if (Enabled) {
+                    SettingsContainer.SaveSetting(this);
+                    if (AutoSave) SettingsContainer.Save();
+                } else {
+                    Initialized = true;
+                }
             }
         }
 

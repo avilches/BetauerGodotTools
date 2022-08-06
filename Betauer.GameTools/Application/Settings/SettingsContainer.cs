@@ -41,7 +41,8 @@ namespace Betauer.Application.Settings {
         }
 
         internal void LoadSetting(Setting setting) {
-            var sectionName = setting.Section ?? "Default";
+            if (!setting.Enabled) return;
+            var sectionName = setting.Section;
             var settingName = setting.Name;
             var @default = Transformers.ToVariant(setting.InternalDefaultValue);
             var value = _configFileWrapper.GetValue(sectionName, settingName, @default);
@@ -50,7 +51,8 @@ namespace Betauer.Application.Settings {
         }
 
         internal void SaveSetting(Setting setting) {
-            var sectionName = setting.Section ?? "Default";
+            if (!setting.Enabled) return;
+            var sectionName = setting.Section;
             var settingName = setting.Name;
             var value = Transformers.ToVariant(setting.InternalValue);
             _configFileWrapper.SetValue(sectionName, settingName, value);
