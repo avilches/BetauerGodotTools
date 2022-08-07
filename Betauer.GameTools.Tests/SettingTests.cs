@@ -3,26 +3,23 @@ using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
+    [Only]
     public class SettingTests : Node {
 
         const string SettingsFile = "./test-settings.ini";
         const string SettingsFile1 = "./test-settings-1.ini";
         const string SettingsFile2 = "./test-settings-2.ini";
-        [SetUp]
-        public void SetUp() {
-            System.IO.File.Delete(SettingsFile);
-            System.IO.File.Delete(SettingsFile1);
-            System.IO.File.Delete(SettingsFile2);
-        }
 
+        [SetUp]
         [TearDown]
-        public void TearDown() {
+        public void Clear() {
             System.IO.File.Delete(SettingsFile);
             System.IO.File.Delete(SettingsFile1);
             System.IO.File.Delete(SettingsFile2);
@@ -194,14 +191,17 @@ namespace Betauer.GameTools.Tests {
             
             Assert.That(b.P1.SettingsContainer, Is.EqualTo(b.SettingsContainer1));
             Assert.That(b.P2.SettingsContainer, Is.EqualTo(b.SettingsContainer2));
+            Assert.That(b.SettingsContainer1.FilePath, Is.EqualTo(SettingsFile1));
+            Assert.That(b.SettingsContainer2.FilePath, Is.EqualTo(SettingsFile2));
         }
 
         [Configuration]
         internal class ConfigWithAnonymousContainer {
             [Service] 
-            public Setting<string> P1 => new Setting<string>("Section", "Name", "Default");
+            public Setting<string> P1() => new Setting<string>("Section", "Name", "Default");
+            
             [Service] 
-            public Setting<string> P2 => new Setting<string>("Section", "Name", "Default");
+            public Setting<string> P2() => new Setting<string>("Section", "Name", "Default");
         }
 
         [Service]
@@ -218,7 +218,8 @@ namespace Betauer.GameTools.Tests {
             var c = di.Build();
             var b = c.Resolve<Basic3>();
 
-            Assert.That(c.Contains<SettingsContainer>(), Is.False);
+            Assert.That(c.Contains<SettingsContainer>(), Is.True);
+            Assert.That(b.P1.SettingsContainer.FilePath.EndsWith("/settings.ini"), Is.True);
             Assert.That(b.P1.SettingsContainer, Is.TypeOf<SettingsContainer>());
             Assert.That(b.P1.SettingsContainer, Is.EqualTo(b.P2.SettingsContainer));
         }
@@ -236,7 +237,5 @@ namespace Betauer.GameTools.Tests {
             di.Scan<Basic3>();
             Assert.Throws<KeyNotFoundException>(() => di.Build());
         }
-
-
     }
 }

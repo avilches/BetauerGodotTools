@@ -5,8 +5,9 @@ namespace Betauer.Application.Settings {
         private readonly ConfigFileWrapper _configFileWrapper;
         public readonly List<Setting> Settings = new List<Setting>();
         public bool Dirty => _configFileWrapper?.Dirty ?? false;
+        public string FilePath => _configFileWrapper.FilePath;
 
-        public SettingsContainer(string resourceName = "settings.ini") : this(
+        public SettingsContainer(string resourceName) : this(
             new ConfigFileWrapper().SetFilePath(resourceName)) {
         }
 

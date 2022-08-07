@@ -4,22 +4,20 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Application.Settings {
     public abstract class Setting {
+        
         [Inject] protected Container Container;
+        public SettingsContainer SettingsContainer { get; private set; }
         
-        public SettingsContainer SettingsContainer { get; internal set; }
         private readonly string? _settingsContainerName;
-        
         public readonly string Section;
         public readonly string Name;
         public bool AutoSave { get; set; }
         public bool Enabled { get; set; } = true;
-
         internal readonly Type ValueType;
         internal object InternalDefaultValue;
         internal object InternalValue;
         internal bool Initialized;
 
-        private static SettingsContainer? _anonymousSettingsContainer;
 
         [PostCreate]
         internal void AddToSettingContainer() {
@@ -29,10 +27,17 @@ namespace Betauer.Application.Settings {
              * will create a new one "anonymous" (it means it will not be added to the Dependency Injection Container,
              * but it can be accessed from the yourSetting.SettingsContainer field
              */
-            SettingsContainer = _settingsContainerName != null
-                ? Container.Resolve<SettingsContainer>(_settingsContainerName)
-                : Container.Contains<SettingsContainer>() ? Container.Resolve<SettingsContainer>() : _anonymousSettingsContainer ??= new SettingsContainer();
-            
+
+            if (_settingsContainerName != null) {
+                SettingsContainer = Container.Resolve<SettingsContainer>(_settingsContainerName);
+            } else if (Container.Contains<SettingsContainer>()) {
+                SettingsContainer = Container.Resolve<SettingsContainer>();
+            } else {
+                SettingsContainer = new SettingsContainer(AppTools.GetUserFile("settings.ini"));
+                var builder = Container.CreateBuilder();
+                builder.Static(SettingsContainer);
+                builder.Build();
+            }
             SettingsContainer.Add(this);
         }
 
