@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using Godot;
 
 namespace Betauer.DI {
@@ -45,9 +46,8 @@ namespace Betauer.DI {
                     if (method.GetParameters().Length == 0) {
                         try {
                             method.Invoke(instance, new object[] { });
-                        } catch (Exception e) {
-                            if (e.InnerException != null) throw e.InnerException;
-                            throw e; 
+                        } catch (TargetInvocationException e) {
+                            ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                         }
                     } else {
                         throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
