@@ -53,39 +53,26 @@ namespace Betauer.DI {
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
 
-        private readonly LinkedList<IProvider> _providersPending = new LinkedList<IProvider>();
-
         public Container(Node nodeSingletonOwner) {
             NodeSingletonOwner = nodeSingletonOwner;
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
-            Add(new StaticProvider<Container>(new [] { typeof(Container) },this), true);
+            Add(new StaticProvider<Container>(new [] { typeof(Container) },this));
         }
 
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
 
-        public Container Build() {
-            lock (_providersPending) {
-                if (_providersPending.Count > 0) {
-                    foreach (var provider in _providersPending) AddToRegistry(provider);
-                    foreach (var provider in _providersPending) provider.OnAddToContainer(this);
-                    foreach (var provider in _providersPending) provider.OnBuildContainer(this);
-                    _providersPending.Clear();
-                }
-            }
+        public Container Build(IList<IProvider> providers) {
+            foreach (var provider in providers) AddToRegistry(provider);
+            foreach (var provider in providers) provider.OnAddToContainer(this);
+            foreach (var provider in providers) provider.OnBuildContainer(this);
             return this;
         }
 
-        public IProvider Add(IProvider provider, bool addAndBuild) {
-            if (addAndBuild) {
-                AddToRegistry(provider);
-                provider.OnAddToContainer(this);
-                provider.OnBuildContainer(this);
-            } else {
-                lock (_providersPending) {
-                    _providersPending.AddLast(provider);
-                }
-            }
+        public IProvider Add(IProvider provider) {
+            AddToRegistry(provider);
+            provider.OnAddToContainer(this);
+            provider.OnBuildContainer(this);
             return provider;
         }
         /// <summary>
@@ -195,7 +182,7 @@ namespace Betauer.DI {
             TryGetProvider(type, out IProvider? provider);
             if (provider != null) return provider.Get(context ?? new ResolveContext(this));
             if (CreateIfNotFound) {
-                Add(FactoryProviderBuilder.Create(type, Lifetime.Transient).CreateProvider(), true);
+                Add(FactoryProviderBuilder.Create(type, Lifetime.Transient).CreateProvider());
                 // ReSharper disable once TailRecursiveCall
                 return Resolve(type, context);
             }

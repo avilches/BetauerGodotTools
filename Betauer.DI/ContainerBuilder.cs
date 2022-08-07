@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Godot;
 
@@ -64,15 +65,8 @@ namespace Betauer.DI {
         }
 
         public Container Build() {
-            lock (_pendingToBuild) {
-                if (_pendingToBuild.Count > 0) {
-                    foreach (var providerBuilder in _pendingToBuild) {
-                        _container.Add(providerBuilder.CreateProvider(), false);
-                    }
-                    _pendingToBuild.Clear();
-                    _container.Build();
-                }
-            }
+            _container.Build(_pendingToBuild.Select(p => p.CreateProvider()).ToList());
+            _pendingToBuild.Clear();
             return _container;
         }
 
