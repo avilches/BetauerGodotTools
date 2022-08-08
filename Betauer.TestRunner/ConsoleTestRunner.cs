@@ -38,7 +38,14 @@ namespace Betauer.TestRunner {
             } else {
                 Red($"┌─────────────────────────────────────────────────────────────────────────────────");
                 Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
+                Red(testMethod.Exception.GetType().ToString());
                 Red(testMethod.Exception.Message);
+                var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.FixtureType.Name));
+                if (line != null) {
+                    Red("Error");
+                    Normal(line);
+                    Red("Stacktrace");
+                }
                 Normal(testMethod.Exception.StackTrace);
                 Red($"└──────────────────────────────────────────────────────────────────────────────────");
             }
@@ -52,25 +59,34 @@ namespace Betauer.TestRunner {
                 Red($"└─────────────────────────────────────────────────────────────────────────────────");
                 Red($"┌─────────────────────────────────────────────────────────────────────────────────");
 
+                var x = 1;
                 testRunner.TestsFailedResults.ForEach(testMethod => {
-                    Red($"│ {GetTestMethodLine(testRunner, testMethod)}: Failed");
+                    Red($"│ [Error: #{x}/{testRunner.TestsFailed}]");
+                    Normal($"│  {GetTestMethodLine(testRunner, testMethod)}: Failed");
+                    Red(testMethod.Exception.GetType().ToString());
                     Red(testMethod.Exception.Message);
-                    var stackTraceFiltered = testMethod.Exception.StackTrace.Split("\n").ToList()
-                        .FindAll(line => !line.Trim().EndsWith(":0") && !line.Contains("TestMethod.Execute"));
-                    Normal(string.Join("\n", stackTraceFiltered));
+                    var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.FixtureType.Name));
+                    if (line != null) {
+                        Red("Error");
+                        Normal(line);
+                    } else {
+                        Red("Stacktrace");
+                        Normal(testMethod.Exception.StackTrace);
+                    }
                     Red("├─────────────────────────────────────────────────────────────────────────────────");
+                    x++;
                 });
 
-                Red($"│ Failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
-                Green($"│ Passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                Red($"│ Total failed: {testRunner.TestsFailed}/{testRunner.TestsTotal}");
+                Green($"│ Total passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
                 Red($"└─────────────────────────────────────────────────────────────────────────────────");
             } else {
-                GreenBanner($"All tests passed: {testRunner.TestsPassed}/{testRunner.TestsTotal}");
+                GreenBanner($"All tests passed: {testRunner.TestsPassed}/{testRunner.TestsTotal} :-)");
             }
         }
 
         private static string GetTestMethodLine(TestRunner testRunner, TestRunner.TestMethod testMethod) {
-            var line = $"#{testMethod.Id}/{testRunner.TestsTotal} {testMethod.Type.Name}.{testMethod.Name}";
+            var line = $"[Test: #{testMethod.Id}/{testRunner.TestsTotal}] {testMethod.FixtureType.Name}.{testMethod.Name}";
             if (testMethod.Description != null) {
                 line += " \"" + testMethod.Description + "\"";
             }

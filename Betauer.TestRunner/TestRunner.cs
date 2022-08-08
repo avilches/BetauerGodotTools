@@ -68,10 +68,10 @@ namespace Betauer.TestRunner {
 
             public readonly Stopwatch Stopwatch = new Stopwatch();
 
-            private readonly object _instance;
-            private readonly MethodInfo _method;
+            public readonly object FixtureInstance;
+            public readonly MethodInfo Method;
 
-            public Type Type { get; }
+            public Type FixtureType { get; }
             public string Name { get; }
             public string? Description { get; }
             public Exception Exception { get; private set; }
@@ -82,10 +82,10 @@ namespace Betauer.TestRunner {
             public IEnumerable<MethodInfo>? TearDown { get; set; }
             public string Id { get; set; }
 
-            public TestMethod(MethodInfo method, object instance, string? description, bool only) {
-                _instance = instance;
-                _method = method;
-                Type = method.DeclaringType;
+            public TestMethod(MethodInfo method, object fixtureInstance, string? description, bool only) {
+                FixtureInstance = fixtureInstance;
+                Method = method;
+                FixtureType = fixtureInstance.GetType();
                 Name = method.Name;
                 Description = description;
                 Only = only;
@@ -94,11 +94,11 @@ namespace Betauer.TestRunner {
             public async Task Execute(SceneTree sceneTree) {
                 try {
                     Stopwatch.Start();
-                    if (_instance is Node node) {
+                    if (FixtureInstance is Node node) {
                         sceneTree.Root.AddChild(node);
                     }
-                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(_instance, EmptyParameters);
-                    var obj = _method.Invoke(_instance, EmptyParameters);
+                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(FixtureInstance, EmptyParameters);
+                    var obj = Method.Invoke(FixtureInstance, EmptyParameters);
                     if (obj is Task task) {
                         await task;
                     } else if (obj is IEnumerator coroutine) {
@@ -112,17 +112,17 @@ namespace Betauer.TestRunner {
                         }
                     }
                     Result = Result.Passed;
-                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(_instance, EmptyParameters);
+                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(FixtureInstance, EmptyParameters);
                 } catch (Exception e) {
                     Exception = e.InnerException ?? e;
                     Result = Result.Failed;
                     try {
-                        if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(_instance, EmptyParameters);
+                        if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(FixtureInstance, EmptyParameters);
                     } catch (Exception) {
                         // ignore tearDown error in failed tests
                     }
                 }
-                if (_instance is Node node2) {
+                if (FixtureInstance is Node node2) {
                     node2.QueueFree();
                     await sceneTree.AwaitIdleFrame();
                 }
