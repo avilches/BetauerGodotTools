@@ -79,7 +79,7 @@ namespace Veronenger.Game.Managers {
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     }).Bind(this).Load();
-                    _screenSettingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+                    _screenSettingsManager.Setup();
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
@@ -126,8 +126,8 @@ namespace Veronenger.Game.Managers {
                 .Execute(context => {
                     if (UiStart.JustPressed) {
                         return context.Trigger(Transition.Pause);
-                    } else if (PixelPerfect.JustPressed) {
-                        _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
+                    // } else if (_pixelPerfectInputAction.JustPressed) {
+                        // _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
                     }
                     return context.None();
                 })

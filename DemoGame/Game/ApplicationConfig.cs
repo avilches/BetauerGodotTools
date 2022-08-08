@@ -1,3 +1,4 @@
+using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
@@ -15,26 +16,26 @@ namespace Veronenger.Game {
 
     [Configuration]
     public class Settings {
-        [Service] public ScreenSettingsManager ScreenSettingsManager => new ScreenSettingsManager();
-        [Service] public SettingsContainer SettingsContainer => new SettingsContainer();
+        [Service] public ScreenSettingsManager ScreenSettingsManager => new ScreenSettingsManager(ApplicationConfig.Configuration);
+        [Service] public SettingsContainer SettingsContainer => new SettingsContainer(AppTools.GetUserFile("settings.ini"));
 
         // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
-        [Service("ScreenSettings.PixelPerfect")]
+        [Service("Settings.Screen.PixelPerfect")]
         public Setting<bool> PixelPerfect => new Setting<bool>("Video", "PixelPerfect", false);
 
         // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
-        [Service("ScreenSettings.Fullscreen")]
+        [Service("Settings.Screen.Fullscreen")]
         public Setting<bool> Fullscreen => new Setting<bool>("Video", "Fullscreen", true);
 
         // [Setting(Section = "Video", Name = "VSync", Default = false)]
-        [Service("ScreenSettings.VSync")] public Setting<bool> VSync => new Setting<bool>("Video", "VSync", false);
+        [Service("Settings.Screen.VSync")] public Setting<bool> VSync => new Setting<bool>("Video", "VSync", false);
 
         // [Setting(Section = "Video", Name = "Borderless", Default = false)]
-        [Service("ScreenSettings.Borderless")]
+        [Service("Settings.Screen.Borderless")]
         public Setting<bool> Borderless => new Setting<bool>("Video", "Borderless", false);
 
         // [Setting(Section = "Video", Name = "WindowedResolution")]
-        [Service("ScreenSettings.WindowedResolution")]
+        [Service("Settings.Screen.WindowedResolution")]
         public Setting<Resolution> WindowedResolution =>
             new Setting<Resolution>("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
     }

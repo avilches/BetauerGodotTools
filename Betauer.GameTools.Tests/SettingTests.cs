@@ -73,7 +73,6 @@ namespace Betauer.GameTools.Tests {
             Assert.That(b.NoEnabled.SettingsContainer, Is.EqualTo(b.SettingsContainerByType));
 
             // Read with no settings save, the default values are used
-            
             Assert.That(b.BoolSetting.Value, Is.EqualTo(true));
             Assert.That(b.StringSetting.Value, Is.EqualTo("Default"));
             Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA));

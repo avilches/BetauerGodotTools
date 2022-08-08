@@ -32,38 +32,37 @@ namespace Betauer.Application.Screen {
         private readonly Dictionary<Strategy, IScreenService> _strategies = new Dictionary<Strategy, IScreenService>();
         private ScreenConfiguration _currentScreenConfiguration;
         private IScreenService? _currentService;
-        private Strategy _currentStrategy = Strategy.Unknown;
+        private Strategy _currentStrategy = Strategy.FitToScreen;
 
         public enum Strategy {
-            Unknown = 0,
+            FitToScreen = 0,
             PixelPerfectScale = 1,
-            FitToScreen = 2,
         }
 
-        public ScreenService(SceneTree tree, ScreenConfiguration currentScreenConfiguration, Strategy? strategy = null) {
+        public ScreenService(SceneTree tree, ScreenConfiguration initialScreenConfiguration, Strategy? strategy = Strategy.FitToScreen) {
             _tree = tree;
-            _currentScreenConfiguration = currentScreenConfiguration;
             _strategies[Strategy.FitToScreen] = new FitToScreenResolutionService(_tree);
             _strategies[Strategy.PixelPerfectScale] = new PixelPerfectScreenResolutionService(_tree);
-            if (strategy.HasValue) SetStrategy(strategy.Value);
+            SetScreenConfiguration(initialScreenConfiguration, strategy);
         }
 
         public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, Strategy? strategy = null) {
+            if (screenConfiguration == null) throw new ArgumentNullException(nameof(screenConfiguration));
             if (_currentScreenConfiguration != screenConfiguration || (strategy.HasValue && strategy.Value != strategy)) {
                 _currentScreenConfiguration = screenConfiguration;
                 _currentStrategy = strategy ?? _currentStrategy;
-                ConfigureService();
+                ReconfigureService();
             }
         }
 
         public void SetStrategy(Strategy strategy) {
             if (_currentStrategy != strategy) {
                 _currentStrategy = strategy;
-                ConfigureService();
+                ReconfigureService();
             }
         }
 
-        private void ConfigureService() {
+        private void ReconfigureService() {
             _currentService?.Disable(); // can be null, but only the first time
             _currentService = _strategies[_currentStrategy];
             _currentService.Enable(_currentScreenConfiguration);

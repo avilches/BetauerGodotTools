@@ -1,6 +1,5 @@
 using System;
 using Betauer.DI;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.Application.Settings {
     public abstract class Setting {
@@ -17,7 +16,6 @@ namespace Betauer.Application.Settings {
         internal object InternalDefaultValue;
         internal object InternalValue;
         internal bool Initialized;
-
 
         [PostCreate]
         internal void AddToSettingContainer() {
@@ -53,7 +51,23 @@ namespace Betauer.Application.Settings {
         }
     }
 
-    public class Setting<T> : Setting {
+    public interface ISetting<T> {
+        public T Value { get; set; }
+    }
+
+    public class ImmutableSetting<T> : ISetting<T> {
+        private readonly T _value;
+        public ImmutableSetting(T value) {
+            _value = value;
+        }
+
+        public T Value {
+            get => _value;
+            set { }
+        }
+    }
+
+    public class Setting<T> : Setting, ISetting<T> {
         public Setting(string settingsContainerName, string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) :
             base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave, enabled) {
         }
@@ -68,20 +82,19 @@ namespace Betauer.Application.Settings {
 
         public T Value {
             get {
-                if (Enabled) {
-                    if (!Initialized) SettingsContainer.LoadSetting(this);
-                } else {
-                    if (!Initialized) InternalValue = InternalDefaultValue;
+                if (!Initialized) {
+                    if (Enabled) SettingsContainer.LoadSetting(this);
+                    else InternalValue = InternalDefaultValue;
+                    Initialized = true;
                 }
                 return (T)InternalValue;
             }
             set {
                 InternalValue = value;
+                Initialized = true;
                 if (Enabled) {
                     SettingsContainer.SaveSetting(this);
                     if (AutoSave) SettingsContainer.Save();
-                } else {
-                    Initialized = true;
                 }
             }
         }

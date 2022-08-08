@@ -48,16 +48,14 @@ namespace Betauer.Application.Settings {
             var @default = Transformers.ToVariant(setting.InternalDefaultValue);
             var value = _configFileWrapper.GetValue(sectionName, settingName, @default);
             setting.InternalValue = Transformers.FromVariant(setting.ValueType, value);
-            setting.Initialized = true;
         }
 
         internal void SaveSetting(Setting setting) {
-            if (!setting.Enabled) return;
+            if (!setting.Enabled || !setting.Initialized) return;
             var sectionName = setting.Section;
             var settingName = setting.Name;
             var value = Transformers.ToVariant(setting.InternalValue);
             _configFileWrapper.SetValue(sectionName, settingName, value);
-            setting.Initialized = true;
         }
     }
 }
