@@ -12,7 +12,6 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class ScreenSettingsManagerTests : Node {
 
         const string SettingsFile = "./test-screen-settings.ini";

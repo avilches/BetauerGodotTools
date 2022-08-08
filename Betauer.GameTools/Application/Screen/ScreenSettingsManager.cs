@@ -10,7 +10,10 @@ namespace Betauer.Application.Screen {
         [Inject] protected SceneTree SceneTree;
 
         private const bool DontSave = false;
-        private ScreenService _service;
+
+        public readonly ScreenConfiguration InitialScreenConfiguration;
+        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, InitialScreenConfiguration);
+        private ScreenService? _service;
         
         private ISetting<bool> _pixelPerfect;
         private ISetting<bool> _fullscreen;
@@ -24,16 +27,12 @@ namespace Betauer.Application.Screen {
         public bool Borderless => _borderless.Value;
         public Resolution WindowedResolution => _windowedResolution.Value;
 
-        public readonly ScreenConfiguration InitialScreenConfiguration;
-
         public ScreenSettingsManager(ScreenConfiguration initialScreenConfiguration) {
             InitialScreenConfiguration = initialScreenConfiguration;
         }
 
         [PostCreate]
         private void ConfigureSettings() {
-            _service = new ScreenService(SceneTree, InitialScreenConfiguration);
-
             _pixelPerfect = Container.Resolve<Setting<bool>>("Settings.Screen.PixelPerfect");
             _fullscreen = Container.Resolve<Setting<bool>>("Settings.Screen.Fullscreen");
             _VSync = Container.Resolve<Setting<bool>>("Settings.Screen.VSync");
@@ -54,22 +53,22 @@ namespace Betauer.Application.Screen {
 
         public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration,
             ScreenService.Strategy? strategy) {
-            _service.SetScreenConfiguration(screenConfiguration, strategy);
+            ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
         }
 
-        public bool IsFullscreen() => _service.IsFullscreen();
-        public List<ScaledResolution> GetResolutions() => _service.GetResolutions();
+        public bool IsFullscreen() => ScreenService.IsFullscreen();
+        public List<ScaledResolution> GetResolutions() => ScreenService.GetResolutions();
 
         public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
             var strategy = pixelPerfect
                 ? ScreenService.Strategy.PixelPerfectScale
                 : ScreenService.Strategy.FitToScreen;
-            _service.SetStrategy(strategy);
+            ScreenService.SetStrategy(strategy);
             if (save) _pixelPerfect.Value = pixelPerfect;
         }
 
         public void SetBorderless(bool borderless, bool save = true) {
-            _service.SetBorderless(borderless);
+            ScreenService.SetBorderless(borderless);
             if (save) _borderless.Value = borderless;
         }
 
@@ -79,18 +78,18 @@ namespace Betauer.Application.Screen {
         }
 
         public void SetFullscreen(bool fs, bool save = true) {
-            if (fs) _service.SetFullscreen();
+            if (fs) ScreenService.SetFullscreen();
             else SetWindowed(WindowedResolution, false); // Never save resolution because it has not changed
             if (save) _fullscreen.Value = fs;
         }
 
         public void SetWindowed(Resolution resolution, bool save = true) {
-            _service.SetWindowed(resolution);
+            ScreenService.SetWindowed(resolution);
             if (save) _windowedResolution.Value = resolution;
         }
 
         public void CenterWindow() {
-            _service.CenterWindow();
+            ScreenService.CenterWindow();
         }
 
         /*

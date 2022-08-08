@@ -8,7 +8,6 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class InputActionTests : Node {
 
         [Test]
@@ -47,7 +46,7 @@ namespace Betauer.GameTools.Tests {
             [Inject] public InputAction X2;
         }
 
-        [Test(Description = "No InputActionsContainer, it creates an Default instance. Check for action names")]
+        [Test(Description = "No InputActionsContainer, it creates a Default instance. Check for action names")]
         public void DefaultInputActionContainerTests() {
             var di = new ContainerBuilder(this);
             di.Scan<InputWithDefaultContainer>();

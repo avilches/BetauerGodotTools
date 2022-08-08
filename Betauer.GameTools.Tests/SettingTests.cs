@@ -10,7 +10,6 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class SettingTests : Node {
 
         const string SettingsFile = "./test-settings.ini";
