@@ -216,12 +216,11 @@ namespace Betauer.TestRunner {
                     } catch {
                         // Fail the test here?
                     }
-                } else if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),
-                               false) is SetUpAttribute) {
-                    setup.Add(method);
-                } else if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is
-                           TearDownAttribute) {
-                    tearDown.Add(method);
+                } else {
+                    if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),false) is SetUpAttribute)
+                        setup.Add(method);
+                    if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is TearDownAttribute)
+                        tearDown.Add(method);
                 }
             }
             testMethods.ForEach(testMethod => {
