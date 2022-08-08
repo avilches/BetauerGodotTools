@@ -91,20 +91,19 @@ namespace Betauer.DI {
             var aliases = provider.GetAliases();
             if (aliases != null && aliases.Length > 0) {
                 var registeredTypes = new LinkedList<Type>();
-                var ignoredTypes = new LinkedList<Type>();
                 foreach (var alias in aliases!) {
                     if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
                     _registryByAlias[alias] = provider;
                 }
                 foreach (var providerType in provider.GetRegisterTypes()) {
                     if (!_registry.ContainsKey(providerType)) {
+                        registeredTypes.AddLast(providerType)
                         _registry[providerType] = provider;
                     }
                 }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
                     _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() + " by types: " +
-                                 string.Join(",", registeredTypes) + " - Names: " +
-                                 string.Join(",", aliases) + " - Ignored types: " + string.Join(",", ignoredTypes));
+                                 string.Join(",", registeredTypes) + " - Names: " + string.Join(",", aliases));
                 }
             } else {
                 foreach (var providerType in provider.GetRegisterTypes()) {
@@ -162,20 +161,33 @@ namespace Betauer.DI {
             return found;
         }
 
-        public object Resolve(Type type) {
-            return Resolve(type, null);
+        public object Resolve(Type type) => Resolve(type, null);
+        public object ResolveOr(Type type, Func<object> or) {
+            try {
+                return Resolve(type, null);
+            } catch (KeyNotFoundException) {
+                return or();
+            }
         }
 
-        public T Resolve<T>() {
-            return (T)Resolve(typeof(T), null);
+        public T Resolve<T>() => (T)Resolve(typeof(T), null);
+        public T ResolveOr<T>(Func<T> or) {
+            try {
+                return (T)Resolve(typeof(T), null);
+            } catch (KeyNotFoundException) {
+                return or();
+            }
         }
 
-        public object Resolve(string alias) {
-            return Resolve(alias, null);
-        }
+        public object Resolve(string alias) => Resolve(alias, null);
 
-        public T Resolve<T>(string alias) {
-            return (T)Resolve(alias, null);
+        public T Resolve<T>(string alias) => (T)Resolve(alias, null);
+        public T ResolveOr<T>(string alias, Func<T> or) {
+            try {
+                return (T)Resolve(alias, null);
+            } catch (KeyNotFoundException) {
+                return or();
+            }
         }
 
         internal object Resolve(Type type, ResolveContext? context) {
@@ -186,13 +198,13 @@ namespace Betauer.DI {
                 // ReSharper disable once TailRecursiveCall
                 return Resolve(type, context);
             }
-            throw new KeyNotFoundException("Type not found: " + type.Name);
+            throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
         }
 
         internal object Resolve(string alias, ResolveContext? context) {
             TryGetProvider(alias, out IProvider? provider);
             if (provider != null) return provider.Get(context ?? new ResolveContext(this));
-            throw new KeyNotFoundException("Alias not found: " + alias);
+            throw new KeyNotFoundException($"Service not found. Alias: {alias}");
         }
 
 

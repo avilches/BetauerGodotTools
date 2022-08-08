@@ -28,6 +28,14 @@ namespace Betauer.DI.Tests {
 
     [TestFixture]
     public class ContainerTests : Node {
+        [Test(Description = "ResolveOrNull tests")]
+        public void ResolveOrNullTests() {
+            var di = new Container(this);
+            Assert.That(di.ResolveOr(typeof(string), () => "X"), Is.EqualTo("X"));
+            Assert.That(di.ResolveOr(() => "X"), Is.EqualTo("X"));
+            Assert.That(di.ResolveOr("O", () => "X"), Is.EqualTo("X"));
+        }
+
         [Test(Description = "Container in container, assert Contains and TryGetProvider")]
         public void Container() {
             var di = new Container(this);

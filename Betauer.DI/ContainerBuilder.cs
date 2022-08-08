@@ -156,6 +156,7 @@ namespace Betauer.DI {
         public ContainerBuilder Scan(Type type) => _Scan(type, null);  
 
         private ContainerBuilder _Scan(Type type, HashSet<Type>? stack) {
+            // Look up for [Scan(typeof(...)]
             foreach (var importAttribute in Attribute.GetCustomAttributes(type, typeof(ScanAttribute), false)) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
@@ -163,6 +164,7 @@ namespace Betauer.DI {
                 if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
             }
             
+            // Look up for [Service]
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
                 var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
                 var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
