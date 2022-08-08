@@ -6,7 +6,7 @@ namespace Betauer.Input {
         public readonly List<IInputAction> ConfigurableActionList = new List<IInputAction>();
         public readonly List<IInputAction> ActionList = new List<IInputAction>();
         public readonly Dictionary<string, IInputAction> ActionMap = new Dictionary<string, IInputAction>();
-
+        
         public IInputAction? FindAction(string name) {
             return ActionMap.TryGetValue(name, out var action) ? action : null;
         }
@@ -23,12 +23,21 @@ namespace Betauer.Input {
             return ActionMap.TryGetValue(name, out var action) ? action as T: null;
         }
 
-        internal void Add(IInputAction actionState) {
-            ActionList.Add(actionState);
-            ActionMap.Add(actionState.Name, actionState);
-            if (actionState.IsConfigurable()) {
-                ConfigurableActionList.Add(actionState);
+        public void Add(IInputAction inputAction) {
+            ActionList.Add(inputAction);
+            ActionMap.Add(inputAction.Name, inputAction);
+            if (inputAction.IsConfigurable()) {
+                ConfigurableActionList.Add(inputAction);
             }
+            inputAction.OnAddToInputContainer(this);
+        }
+
+        public void Setup() {
+            ActionList.ForEach(action => action.Setup());
+        }
+
+        public void RemoveSetup() {
+            ActionList.ForEach(action => action.RemoveSetup());
         }
     }
 }

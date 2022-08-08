@@ -18,24 +18,10 @@ namespace Betauer.Application.Settings {
         internal bool Initialized;
 
         [PostCreate]
-        internal void AddToSettingContainer() {
-            /*
-             * If _settingsContainerName is defined, it will be used (and it will fail if the service is not found)
-             * If there is no _settingsContainerName defined, it will try to find the service by type. If not found, it
-             * will create a new one "anonymous" (it means it will not be added to the Dependency Injection Container,
-             * but it can be accessed from the yourSetting.SettingsContainer field
-             */
-
-            if (_settingsContainerName != null) {
-                SettingsContainer = Container.Resolve<SettingsContainer>(_settingsContainerName);
-            } else if (Container.Contains<SettingsContainer>()) {
-                SettingsContainer = Container.Resolve<SettingsContainer>();
-            } else {
-                SettingsContainer = new SettingsContainer(AppTools.GetUserFile("settings.ini"));
-                var builder = Container.CreateBuilder();
-                builder.Static(SettingsContainer);
-                builder.Build();
-            }
+        internal void ConfigureAndAddToSettingContainer() {
+            SettingsContainer = _settingsContainerName != null
+                ? Container.Resolve<SettingsContainer>(_settingsContainerName)
+                : Container.Resolve<SettingsContainer>();
             SettingsContainer.Add(this);
         }
 

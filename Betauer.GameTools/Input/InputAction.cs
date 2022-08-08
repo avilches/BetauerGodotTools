@@ -8,10 +8,10 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
   
-    public class InputAction : IInputAction {
+    public class InputAction : BaseAction, IInputAction {
         public static Builder Create(string name) => new Builder(name);
+        public static Builder Create(string inputActionsContainerName, string name) => new Builder(inputActionsContainerName, name);
 
-        public string Name { get; }
         public bool Pressed => Godot.Input.IsActionPressed(Name);
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
         public bool Released => Godot.Input.IsActionJustReleased(Name);
@@ -22,42 +22,65 @@ namespace Betauer.Input {
         public bool IsActionReleased(InputEvent e, bool echo = false) => e.IsActionReleased(Name, echo);
         public bool IsConfigurable() => _isConfigurable;
 
-        [Inject] protected InputActionsContainer InputActionsContainer;
-        [Inject] protected Container Container;
+        private readonly string? _inputActionsContainerName;
         private readonly string? _settingsContainerName;
-        private readonly bool _isConfigurable;
+        private bool _isConfigurable;
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
         private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
-        private Setting<string> _buttonSetting;
-        private Setting<string> _keySetting;
+        public ISetting<string>? ButtonSetting { get; private set; }
+        public ISetting<string>? KeySetting { get; private set; }
 
-        private InputAction(string name, bool configurable, string? settingsContainerName) {
-            Name = name;
-            _isConfigurable = configurable;
+        private readonly string? _settingsSection;
+
+        private InputAction(string inputActionsContainerName, string name, bool isConfigurable, string? settingsContainerName, string? settingsSection) : base(name) {
+            _inputActionsContainerName = inputActionsContainerName;
+            _isConfigurable = isConfigurable;
             _settingsContainerName = settingsContainerName;
+            _settingsSection = settingsSection;
         }
 
         [PostCreate]
-        internal void ConfigureAndAddToActionContainer() {
+        private void ConfigureAndAddToActionContainer() {
             if (_isConfigurable) {
-                _buttonSetting = new Setting<string>(_settingsContainerName, "Controls", Name + ".Buttons", ExportButtons());
-                _keySetting = new Setting<string>(_settingsContainerName, "Controls", Name + ".Keys", ExportKeys());
-                Container.InjectAllFields(_buttonSetting);
-                Container.InjectAllFields(_keySetting);
-                _buttonSetting.AddToSettingContainer();
-                _keySetting.AddToSettingContainer();
-                Load();
+                var section = _settingsSection ?? "Controls";
+                var buttonSetting =
+                    new Setting<string>(_settingsContainerName, section, Name + ".Buttons", ExportButtons());
+                var keySetting = new Setting<string>(_settingsContainerName, section, Name + ".Keys", ExportKeys());
+                Container.InjectAllFields(buttonSetting);
+                Container.InjectAllFields(keySetting);
+                buttonSetting.ConfigureAndAddToSettingContainer();
+                keySetting.ConfigureAndAddToSettingContainer();
+                SetSettings(keySetting, buttonSetting);
             }
+        }
+        
+        [PostCreate]
+        private void AddToInputActionsContainer() {
+            InputActionsContainer = _inputActionsContainerName != null
+                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
+                : Container.Resolve<InputActionsContainer>();
             InputActionsContainer.Add(this);
-            Setup();
         }
 
-        private void Setup() {
-            if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
+        [PostCreate]
+        public void Setup() {
+            RemoveSetup();
             InputMap.AddAction(Name);
             CreateInputEvents().ForEach((e) => InputMap.ActionAddEvent(Name, e));
         }
 
+        public void RemoveSetup() {
+            if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);            
+        }
+
+        public InputAction SetSettings(ISetting<string> keySetting, ISetting<string> buttonSetting) {
+            KeySetting = keySetting;
+            ButtonSetting = buttonSetting;
+            _isConfigurable = true;
+            return this;
+        }
+
+        
         private List<InputEvent> CreateInputEvents() {
             List<InputEvent> events = new List<InputEvent>();
             foreach (var key in _keys) {
@@ -94,18 +117,14 @@ namespace Betauer.Input {
         }
 
         public InputAction Load() {
-            if (_isConfigurable) {
-                ClearKeys().ImportKeys(_keySetting.Value);
-                ClearButtons().ImportButtons(_buttonSetting.Value);
-            }
+            if (KeySetting != null) ClearKeys().ImportKeys(KeySetting.Value);
+            if (ButtonSetting != null) ClearButtons().ImportButtons(ButtonSetting.Value);
             return this;
         }
         
         public InputAction Save() {
-            if (_isConfigurable) {
-                _buttonSetting.Value = ExportButtons();
-                _keySetting.Value = ExportKeys();
-            }
+            if (KeySetting != null) ButtonSetting.Value = ExportButtons();
+            if (ButtonSetting != null) KeySetting.Value = ExportKeys();
             Setup();
             return this;
         }
@@ -114,24 +133,36 @@ namespace Betauer.Input {
         private string ExportButtons() => string.Join(",", Buttons.Select(button => (int)button));
 
         private void ImportKeys(string keys) {
-            keys.Split(",").ToList().ForEach(key => AddKey(Parse<KeyList>(key)));
+            if (string.IsNullOrWhiteSpace(keys)) return;
+            keys.Split(",").ToList().ForEach(key => {
+                try {
+                    AddKey(Parse<KeyList>(key.Trim()));
+                } catch (Exception) {}
+            });
         }
 
         private void ImportButtons(string buttons) {
-            buttons.Split(",").ToList().ForEach(button => AddButton((JoystickList)button.ToInt()));
+            if (string.IsNullOrWhiteSpace(buttons)) return;
+            buttons.Split(",").ToList().ForEach(button => AddButton((JoystickList)button.Trim().ToInt()));
         }
 
         private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
 
         public class Builder {
+            private readonly string _name;
+            private readonly string _inputActionsContainerName;
             private readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
             private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
-
-            private bool isConfigurable = false;
+            private bool _isConfigurable = false;
             private string? _settingsContainerName;
-            private readonly string _name;
+            private string? _settingsSection;
 
             internal Builder(string name) {
+                _name = name;
+            }
+
+            internal Builder(string inputActionsContainerName, string name) {
+                _inputActionsContainerName = inputActionsContainerName;
                 _name = name;
             }
 
@@ -145,14 +176,25 @@ namespace Betauer.Input {
                 return this;
             }
 
-            public Builder Configurable(string? settingsFile = null) {
-                isConfigurable = true;
+            public Builder Configurable() {
+                _isConfigurable = true;
+                return this;
+            }
+
+            public Builder SettingsContainer(string settingsFile) {
+                _isConfigurable = true;
                 _settingsContainerName = settingsFile;
                 return this;
             }
 
+            public Builder SettingsSection(string settingsSection) {
+                _isConfigurable = true;
+                _settingsSection = settingsSection;
+                return this;
+            }
+
             public InputAction Build() {
-                return new InputAction(_name, isConfigurable, _settingsContainerName)
+                return new InputAction(_inputActionsContainerName, _name, _isConfigurable, _settingsContainerName, _settingsSection)
                     .AddKey(_keys.ToArray())
                     .AddButton(_buttons.ToArray());
             }
