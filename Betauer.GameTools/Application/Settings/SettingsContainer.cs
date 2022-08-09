@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Betauer.Application.Settings {
     public class SettingsContainer {
         private readonly ConfigFileWrapper _configFileWrapper;
-        public readonly List<Setting> Settings = new List<Setting>();
+        public readonly List<SaveSetting> Settings = new List<SaveSetting>();
         public bool Dirty => _configFileWrapper?.Dirty ?? false;
         public string FilePath => _configFileWrapper.FilePath;
 
@@ -16,8 +16,15 @@ namespace Betauer.Application.Settings {
             _configFileWrapper.Load();
         }
 
-        public void Add(Setting setting) {
-            Settings.Add(setting);
+        // Used from [PostCreate] Setting
+        internal void Add(SaveSetting saveSetting) {
+            Settings.Add(saveSetting);
+            saveSetting.OnAddToSettingsContainer(this);
+        }
+
+        // Used from public
+        public void Add<T>(SaveSetting<T> saveSetting) {
+            Add(saveSetting as SaveSetting);
         }
 
         /// <summary>
@@ -41,7 +48,7 @@ namespace Betauer.Application.Settings {
             return this;
         }
 
-        internal void LoadSetting(Setting setting) {
+        internal void LoadSetting(SaveSetting setting) {
             if (!setting.Enabled) return;
             var sectionName = setting.Section;
             var settingName = setting.Name;
@@ -50,7 +57,7 @@ namespace Betauer.Application.Settings {
             setting.InternalValue = Transformers.FromVariant(setting.ValueType, value);
         }
 
-        internal void SaveSetting(Setting setting) {
+        internal void SaveSetting(SaveSetting setting) {
             if (!setting.Enabled || !setting.Initialized) return;
             var sectionName = setting.Section;
             var settingName = setting.Name;

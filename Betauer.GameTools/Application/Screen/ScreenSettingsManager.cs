@@ -33,11 +33,20 @@ namespace Betauer.Application.Screen {
 
         [PostCreate]
         private void ConfigureSettings() {
-            _pixelPerfect = Container.Resolve<Setting<bool>>("Settings.Screen.PixelPerfect");
-            _fullscreen = Container.Resolve<Setting<bool>>("Settings.Screen.Fullscreen");
-            _VSync = Container.Resolve<Setting<bool>>("Settings.Screen.VSync");
-            _borderless = Container.Resolve<Setting<bool>>("Settings.Screen.Borderless");
-            _windowedResolution = Container.Resolve<Setting<Resolution>>("Settings.Screen.WindowedResolution");
+            _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect", 
+                () => Setting<bool>.Memory(false));
+            
+            _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen", 
+                () => Setting<bool>.Memory(AppTools.GetWindowFullscreen()));
+            
+            _VSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync", 
+                () => Setting<bool>.Memory(AppTools.GetWindowVsync()));
+            
+            _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
+                () => Setting<bool>.Memory(AppTools.GetWindowBorderless()));
+            
+            _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution", 
+                () => Setting<Resolution>.Memory(InitialScreenConfiguration.BaseResolution));
         }
         
         public void Setup() {

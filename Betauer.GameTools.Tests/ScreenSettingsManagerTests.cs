@@ -22,84 +22,69 @@ namespace Betauer.GameTools.Tests {
             System.IO.File.Delete(SettingsFile);
         }
 
+        internal static ScreenConfiguration InitialScreenConfiguration =
+            new ScreenConfiguration(
+                Resolutions.FULLHD,
+                SceneTree.StretchMode.Mode2d, 
+                SceneTree.StretchAspect.KeepHeight);
+
         [Configuration]
         internal class ScreenSettingsManagerConfig {
-            internal ScreenConfiguration InitialScreenConfiguration =
-                new ScreenConfiguration(
-                    Resolutions.FULLHD,
-                    SceneTree.StretchMode.Mode2d, 
-                    SceneTree.StretchAspect.KeepHeight);
             [Service] private ScreenSettingsManager ScreenSettingsManager => 
                 new ScreenSettingsManager(InitialScreenConfiguration);
         }
 
-        [Service]
-        internal class Service1 {
-            [Inject] public ScreenSettingsManager ScreenSettingsManager;
-        }
-
-        [Test]
-        public void ScreenSettingsManagerNeedsSettingToGetTheDefaults() {
-            var di = new ContainerBuilder(this);
-            di.Static(GetTree());
-            di.Scan<ScreenSettingsManagerConfig>();
-            var e = Assert.Throws<KeyNotFoundException>(() => di.Build());
-            Assert.That(e.Message.Contains("Service not found. Alias: Settings.Screen."), Is.True);
-        }
-
         [Configuration]
-        internal class ScreenSettingsConfig {
+        internal class ScreenSettingsSavedConfig {
             [Service]
             public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
 
             // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
             [Service("Settings.Screen.PixelPerfect")]
-            public Setting<bool> PixelPerfect => new Setting<bool>("Video", "PixelPerfect", false);
+            public ISetting<bool> PixelPerfect => Setting<bool>.Save("Video", "PixelPerfect", false);
 
             // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
             [Service("Settings.Screen.Fullscreen")]
-            public Setting<bool> Fullscreen => new Setting<bool>("Video", "Fullscreen", true);
+            public ISetting<bool> Fullscreen => Setting<bool>.Save("Video", "Fullscreen", true);
 
             // [Setting(Section = "Video", Name = "VSync", Default = false)]
-            [Service("Settings.Screen.VSync")] public Setting<bool> VSync => new Setting<bool>("Video", "VSync", false);
+            [Service("Settings.Screen.VSync")]
+            public ISetting<bool> VSync => Setting<bool>.Save("Video", "VSync", false);
 
             // [Setting(Section = "Video", Name = "Borderless", Default = false)]
             [Service("Settings.Screen.Borderless")]
-            public Setting<bool> Borderless => new Setting<bool>("Video", "Borderless", false);
+            public ISetting<bool> Borderless => Setting<bool>.Save("Video", "Borderless", false);
 
             // [Setting(Section = "Video", Name = "WindowedResolution")]
             [Service("Settings.Screen.WindowedResolution")]
-            public Setting<Resolution> WindowedResolution =>
-                new Setting<Resolution>("Video", "WindowedResolution", Resolutions.FULLHD_DIV3);
+            public ISetting<Resolution> WindowedResolution =>
+                Setting<Resolution>.Save("Video", "WindowedResolution", Resolutions.FULLHD_DIV3);
         }
 
-
         [Test]
-        public void BasicTest() {
+        public void SaveSettingTest() {
             var di = new ContainerBuilder(this);
             di.Static(GetTree());
             di.Scan<ScreenSettingsManagerConfig>();
-            di.Scan<Service1>();
-            di.Scan<ScreenSettingsConfig>();
+            di.Scan<ScreenSettingsSavedConfig>();
             var c = di.Build();
-            var s = c.Resolve<Service1>();
+            var s = c.Resolve<ScreenSettingsManager>();
 
-            Assert.That(s.ScreenSettingsManager.Fullscreen, Is.True);
-            Assert.That(s.ScreenSettingsManager.PixelPerfect, Is.False);
-            Assert.That(s.ScreenSettingsManager.VSync, Is.False);
-            Assert.That(s.ScreenSettingsManager.WindowedResolution, Is.EqualTo(Resolutions.FULLHD_DIV3));
+            Assert.That(s.Fullscreen, Is.True);
+            Assert.That(s.PixelPerfect, Is.False);
+            Assert.That(s.VSync, Is.False);
+            Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.FULLHD_DIV3));
             
-            s.ScreenSettingsManager.Setup();
+            s.Setup();
+            s.SetFullscreen(false);
+            s.SetPixelPerfect(true);
+            s.SetVSync(true);
+            s.SetWindowed(Resolutions.WXGA);
             
-            s.ScreenSettingsManager.SetFullscreen(false);
-            s.ScreenSettingsManager.SetPixelPerfect(true);
-            s.ScreenSettingsManager.SetVSync(true);
-            s.ScreenSettingsManager.SetWindowed(Resolutions.WXGA);
-            
-            Assert.That(s.ScreenSettingsManager.Fullscreen, Is.False);
-            Assert.That(s.ScreenSettingsManager.PixelPerfect, Is.True);
-            Assert.That(s.ScreenSettingsManager.VSync, Is.True);
-            Assert.That(s.ScreenSettingsManager.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
+            Assert.That(s.Fullscreen, Is.False);
+            Assert.That(s.PixelPerfect, Is.True);
+            Assert.That(s.VSync, Is.True);
+            Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
             Assert.That(cf.GetValue("Video", "Fullscreen", "X"), Is.False);
@@ -107,21 +92,48 @@ namespace Betauer.GameTools.Tests {
             Assert.That(cf.GetValue("Video", "VSync", "X"), Is.True);
             Assert.That(cf.GetValue("Video", "WindowedResolution", "X"), Is.EqualTo(Resolutions.WXGA.Size));
             
-            s.ScreenSettingsManager.SetFullscreen(true, false);
-            s.ScreenSettingsManager.SetPixelPerfect(false, false);
-            s.ScreenSettingsManager.SetVSync(false, false);
-            s.ScreenSettingsManager.SetWindowed(Resolutions.FULLHD_DIV1_875, false);
+            s.SetFullscreen(true, false);
+            s.SetPixelPerfect(false, false);
+            s.SetVSync(false, false);
+            s.SetWindowed(Resolutions.FULLHD_DIV1_875, false);
             
-            Assert.That(s.ScreenSettingsManager.Fullscreen, Is.False);
-            Assert.That(s.ScreenSettingsManager.PixelPerfect, Is.True);
-            Assert.That(s.ScreenSettingsManager.VSync, Is.True);
-            Assert.That(s.ScreenSettingsManager.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
+            Assert.That(s.Fullscreen, Is.False);
+            Assert.That(s.PixelPerfect, Is.True);
+            Assert.That(s.VSync, Is.True);
+            Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
             cf.Load(SettingsFile);
             Assert.That(cf.GetValue("Video", "Fullscreen", "X"), Is.False);
             Assert.That(cf.GetValue("Video", "PixelPerfect", "X"), Is.True);
             Assert.That(cf.GetValue("Video", "VSync", "X"), Is.True);
             Assert.That(cf.GetValue("Video", "WindowedResolution", "X"), Is.EqualTo(Resolutions.WXGA.Size));
-
         }
+        
+        [Test]
+        public void MemorySettingTest() {
+            var di = new ContainerBuilder(this);
+            di.Static(GetTree());
+            di.Scan<ScreenSettingsManagerConfig>();
+            var c = di.Build();
+            var s = c.Resolve<ScreenSettingsManager>();
+
+            Assert.That(s.Fullscreen, Is.False);
+            Assert.That(s.PixelPerfect, Is.False);
+            Assert.That(s.VSync, Is.True);
+            Assert.That(s.WindowedResolution, Is.EqualTo(InitialScreenConfiguration.BaseResolution));
+            
+            s.Setup();
+            
+            s.SetFullscreen(true);
+            s.SetPixelPerfect(true);
+            s.SetVSync(false);
+            s.SetWindowed(Resolutions.WXGA);
+            
+            Assert.That(s.Fullscreen, Is.True);
+            Assert.That(s.PixelPerfect, Is.True);
+            Assert.That(s.VSync, Is.False);
+            Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
+        }
+
+     
     }
 }

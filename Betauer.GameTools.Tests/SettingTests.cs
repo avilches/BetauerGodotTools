@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Betauer.Application;
 using Betauer.Application.Screen;
@@ -15,7 +16,7 @@ namespace Betauer.GameTools.Tests {
         const string SettingsFile = "./test-settings.ini";
         const string SettingsFile1 = "./test-settings-1.ini";
         const string SettingsFile2 = "./test-settings-2.ini";
-
+        
         [SetUp]
         [TearDown]
         public void Clear() {
@@ -24,41 +25,110 @@ namespace Betauer.GameTools.Tests {
             System.IO.File.Delete(SettingsFile2);
         }
 
+        [Test]
+        public void MemoryTest() {
+            var imm = Setting<string>.Memory("I");
+            
+            Assert.That(imm.Value, Is.EqualTo("I"));
+            imm.Value = "X";
+            Assert.That(imm.Value, Is.EqualTo("X"));
+        }
+
+        [Test]
+        public void ManualUsageTest() {
+            var sc = new SettingsContainer(SettingsFile);
+            var saved = Setting<string>.Save("IGNORED", "Section", "Name2", "Saved");
+            var savedDisabled = Setting<string>.Save("IGNORED", "Section", "Name1", "SavedDisabled", true, false);
+            
+            // Read without container
+            Assert.Throws<NullReferenceException>(() => { var x = saved.Value; });
+            Assert.That(savedDisabled.Value, Is.EqualTo("SavedDisabled"));
+
+            // Write without container
+            Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
+            savedDisabled.Value = "New1";
+            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
+
+            sc.Add(saved);
+            sc.Add(savedDisabled);
+            Assert.That(saved.Value, Is.EqualTo("Saved"));
+            Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
+            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
+            Assert.That(savedDisabled.SettingsContainer, Is.EqualTo(sc));
+
+            const string changed = "XXXX";
+            saved.Value = changed;
+            savedDisabled.Value = changed;
+            Assert.That(saved.Value, Is.EqualTo(changed));
+            Assert.That(savedDisabled.Value, Is.EqualTo(changed));
+
+            var cf = new ConfigFile();
+            cf.Load(SettingsFile);
+            Assert.That(cf.GetValue(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
+            Assert.That(cf.GetValue(savedDisabled.Section, savedDisabled.Name, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
+        } 
+
         [Configuration]
-        internal class ConfigWithContainer {
+        internal class ErrorConfigWithNoContainer {
+            [Service] 
+            public ISetting<string> P1() => Setting<string>.Save("Section", "Name", "Default");
+        }
+
+        [Test(Description = "Error if container not found by type")]
+        public void ErrorConfigWithNoContainerTest() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ErrorConfigWithNoContainer>();
+            Assert.Throws<KeyNotFoundException>(() => di.Build());
+        }
+
+        [Configuration]
+        internal class ErrorConfigWithContainerNotFoundByName {
+            [Service] 
+            public ISetting<string> P1 => Setting<string>.Save("NOT FOUND", "Section", "Name", "Default");
+        }
+
+        [Test(Description = "Error if container not found by name")]
+        public void ErrorConfigWithContainerNotFoundByNameTest() {
+            var di = new ContainerBuilder(this);
+            di.Scan<ErrorConfigWithContainerNotFoundByName>();
+            Assert.Throws<KeyNotFoundException>(() => di.Build());
+        }
+
+        [Configuration]
+        internal class ConfigWithSettingContainer {
             [Service]
             public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
             
             [Service] 
-            public Setting<bool> BoolSetting => new Setting<bool>("Section", "PixelPerfect", true);
+            public ISetting<bool> BoolSetting => Setting<bool>.Save("Section", "PixelPerfect", true);
 
             [Service] 
-            public Setting<string> StringSetting => new Setting<string>("Section", "Name", "Default");
+            public ISetting<string> StringSetting => Setting<string>.Save("Section", "Name", "Default");
             
             [Service] 
-            public Setting<Resolution> Resolution => new Setting<Resolution>("Video", "Screen", Resolutions.WXGA);
+            public ISetting<Resolution> Resolution => Setting<Resolution>.Save("Video", "Screen", Resolutions.WXGA);
 
             [Service] 
-            public Setting<string> NoAutoSave => new Setting<string>("Video", "NoAutoSave", "DEFAULT", false);
+            public ISetting<string> NoAutoSave => Setting<string>.Save("Video", "NoAutoSave", "DEFAULT", false);
 
             [Service] 
-            public Setting<string> NoEnabled => new Setting<string>("Disabled", "PropertyDisabled", "DEFAULT", true, false);
+            public ISetting<string> NoEnabled => Setting<string>.Save("Disabled", "PropertyDisabled", "DEFAULT", true, false);
         }
 
         [Service]
         internal class Service1 {
             [Inject] public SettingsContainer SettingsContainerByType;
-            [Inject] public Setting<bool> BoolSetting;
-            [Inject] public Setting<string> StringSetting;
-            [Inject] public Setting<Resolution> Resolution;
-            [Inject] public Setting<string> NoAutoSave;
-            [Inject] public Setting<string> NoEnabled;
+            [Inject] public SaveSetting<bool> BoolSetting;
+            [Inject] public SaveSetting<string> StringSetting;
+            [Inject] public SaveSetting<Resolution> Resolution;
+            [Inject] public SaveSetting<string> NoAutoSave;
+            [Inject] public SaveSetting<string> NoEnabled;
         }
 
         [Test]
-        public void DefaultsAndSaveTest() {
+        public void ConfigWithSettingContainerTest() {
             var di = new ContainerBuilder(this);
-            di.Scan<ConfigWithContainer>();
+            di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
 
@@ -134,7 +204,7 @@ namespace Betauer.GameTools.Tests {
         }
         
         [Test]
-        public void Load() {
+        public void ConfigWithSettingContainerLoadTest() {
             var cf = new ConfigFile();
             cf.SetValue("Section", "PixelPerfect", false);
             cf.SetValue("Section", "Name", "CHANGED");
@@ -144,7 +214,7 @@ namespace Betauer.GameTools.Tests {
             cf.Dispose();
             
             var di = new ContainerBuilder(this);
-            di.Scan<ConfigWithContainer>();
+            di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
             var b = c.Resolve<Service1>();
@@ -165,22 +235,22 @@ namespace Betauer.GameTools.Tests {
             public SettingsContainer SettingsContainer2 => new SettingsContainer(SettingsFile2);
             
             [Service("P1")] 
-            public Setting<bool> PixelPerfect => new Setting<bool>(SettingsFile1, "Section", "PixelPerfect", true);
+            public ISetting<bool> PixelPerfect => Setting<bool>.Save(SettingsFile1, "Section", "PixelPerfect", true);
 
             [Service] 
-            public Setting<string> P2 => new Setting<string>(SettingsFile2, "Section", "Name", "Default");
+            public ISetting<string> P2 => Setting<string>.Save(SettingsFile2, "Section", "Name", "Default");
         }
 
         [Service]
         internal class Basic2 {
-            [Inject] public Setting<bool> P1;
-            [Inject] public Setting<string> P2;
+            [Inject] public ISetting<bool> P1;
+            [Inject] public ISetting<string> P2;
             [Inject(SettingsFile1)] public SettingsContainer SettingsContainer1;
             [Inject(SettingsFile2)] public SettingsContainer SettingsContainer2;
         }
 
         [Test]
-        public void MultipleSettingsFileTest() {
+        public void ConfigWithMultipleContainerTest() {
             var di = new ContainerBuilder(this);
             di.Scan<ConfigWithMultipleContainer>();
             di.Scan<Basic2>();
@@ -193,47 +263,5 @@ namespace Betauer.GameTools.Tests {
             Assert.That(b.SettingsContainer2.FilePath, Is.EqualTo(SettingsFile2));
         }
 
-        [Configuration]
-        internal class ConfigWithAnonymousContainer {
-            [Service] 
-            public Setting<string> P1() => new Setting<string>("Section", "Name", "Default");
-            
-            [Service] 
-            public Setting<string> P2() => new Setting<string>("Section", "Name", "Default");
-        }
-
-        [Service]
-        internal class Basic3 {
-            [Inject] public Setting<string> P1;
-            [Inject] public Setting<string> P2;
-        }
-
-        [Test(Description = "Anonymous container test")]
-        public void AnonymousContainerTest() {
-            var di = new ContainerBuilder(this);
-            di.Scan<ConfigWithAnonymousContainer>();
-            di.Scan<Basic3>();
-            var c = di.Build();
-            var b = c.Resolve<Basic3>();
-
-            Assert.That(c.Contains<SettingsContainer>(), Is.True);
-            Assert.That(b.P1.SettingsContainer.FilePath.EndsWith("/settings.ini"), Is.True);
-            Assert.That(b.P1.SettingsContainer, Is.TypeOf<SettingsContainer>());
-            Assert.That(b.P1.SettingsContainer, Is.EqualTo(b.P2.SettingsContainer));
-        }
-
-        [Configuration]
-        internal class SettingContainerNotFound {
-            [Service] 
-            public Setting<string> P1 => new Setting<string>("NOT FOUND", "Section", "Name", "Default");
-        }
-
-        [Test(Description = "SettingContainer name not found")]
-        public void SettingContainerNotFoundTest() {
-            var di = new ContainerBuilder(this);
-            di.Scan<SettingContainerNotFound>();
-            di.Scan<Basic3>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
-        }
     }
 }

@@ -44,8 +44,8 @@ namespace Betauer.Input {
             if (_isConfigurable) {
                 var section = _settingsSection ?? "Controls";
                 var buttonSetting =
-                    new Setting<string>(_settingsContainerName, section, Name + ".Buttons", ExportButtons());
-                var keySetting = new Setting<string>(_settingsContainerName, section, Name + ".Keys", ExportKeys());
+                    Setting<string>.Save(_settingsContainerName, section, Name + ".Buttons", ExportButtons());
+                var keySetting = Setting<string>.Save(_settingsContainerName, section, Name + ".Keys", ExportKeys());
                 Container.InjectAllFields(buttonSetting);
                 Container.InjectAllFields(keySetting);
                 buttonSetting.ConfigureAndAddToSettingContainer();
@@ -56,10 +56,11 @@ namespace Betauer.Input {
         
         [PostCreate]
         private void AddToInputActionsContainer() {
-            InputActionsContainer = _inputActionsContainerName != null
+            var inputActionsContainer = _inputActionsContainerName != null
                 ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
                 : Container.Resolve<InputActionsContainer>();
-            InputActionsContainer.Add(this);
+            inputActionsContainer.Add(this);
+            // The Add will set the InputActionsContainer using the OnAddToInputContainer
         }
 
         [PostCreate]
