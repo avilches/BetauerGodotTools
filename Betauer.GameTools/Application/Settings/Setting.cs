@@ -77,16 +77,8 @@ namespace Betauer.Application.Settings {
 
     public class SaveSetting<T> : SaveSetting, ISetting<T> {
         internal SaveSetting(string settingsContainerName, string section, string name, T defaultValue,
-            bool autoSave = true, bool enabled = true) :
+            bool autoSave, bool enabled) :
             base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave, enabled) {
-        }
-
-        internal SaveSetting(string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) :
-            base(null, section, name, typeof(T), defaultValue, autoSave, enabled) {
-        }
-
-        internal SaveSetting(string name, T defaultValue, bool autoSave = true, bool enabled = true) :
-            base(null, "Config", name, typeof(T), defaultValue, autoSave, enabled) {
         }
 
         public T Value {
