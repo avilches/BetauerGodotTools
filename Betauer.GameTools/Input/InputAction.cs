@@ -27,8 +27,8 @@ namespace Betauer.Input {
         private bool _isConfigurable;
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
         private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
-        public ISetting<string>? ButtonSetting { get; private set; }
-        public ISetting<string>? KeySetting { get; private set; }
+        public SaveSetting<string>? ButtonSetting { get; private set; }
+        public SaveSetting<string>? KeySetting { get; private set; }
 
         private readonly string? _settingsSection;
 
@@ -74,7 +74,7 @@ namespace Betauer.Input {
             if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);            
         }
 
-        public InputAction SetSettings(ISetting<string> keySetting, ISetting<string> buttonSetting) {
+        public InputAction SetSettings(SaveSetting<string> keySetting, SaveSetting<string> buttonSetting) {
             KeySetting = keySetting;
             ButtonSetting = buttonSetting;
             _isConfigurable = true;

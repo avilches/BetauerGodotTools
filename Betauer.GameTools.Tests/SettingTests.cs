@@ -35,36 +35,78 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Test]
-        public void ManualUsageTest() {
+        public void RegularAutoSaveTest() {
             var sc = new SettingsContainer(SettingsFile);
-            var saved = Setting<string>.Save("IGNORED", "Section", "Name2", "Saved");
-            var savedDisabled = Setting<string>.Save("IGNORED", "Section", "Name1", "SavedDisabled", true, false);
+            var saved = Setting<string>.Save("IGNORED", "Section", "AutoSave", "Default");
             
             // Read without container
             Assert.Throws<NullReferenceException>(() => { var x = saved.Value; });
-            Assert.That(savedDisabled.Value, Is.EqualTo("SavedDisabled"));
 
             // Write without container
             Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
-            savedDisabled.Value = "New1";
-            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
 
             sc.Add(saved);
-            sc.Add(savedDisabled);
-            Assert.That(saved.Value, Is.EqualTo("Saved"));
+            Assert.That(saved.Value, Is.EqualTo("Default"));
             Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
-            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
-            Assert.That(savedDisabled.SettingsContainer, Is.EqualTo(sc));
 
             const string changed = "XXXX";
             saved.Value = changed;
-            savedDisabled.Value = changed;
             Assert.That(saved.Value, Is.EqualTo(changed));
-            Assert.That(savedDisabled.Value, Is.EqualTo(changed));
 
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
             Assert.That(cf.GetValue(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
+        } 
+
+        [Test]
+        public void RegularNoAutoSaveTest() {
+            var sc = new SettingsContainer(SettingsFile);
+            var saved = Setting<string>.Save("IGNORED", "Section", "NoAutoSave", "Default", false);
+            
+            // Read without container
+            Assert.Throws<NullReferenceException>(() => { var x = saved.Value; });
+
+            // Write without container
+            Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
+
+            sc.Add(saved);
+            Assert.That(saved.Value, Is.EqualTo("Default"));
+            Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
+
+            const string changed = "XXXX";
+            saved.Value = changed;
+            Assert.That(saved.Value, Is.EqualTo(changed));
+
+            var cf = new ConfigFile();
+            cf.Load(SettingsFile);
+            Assert.That(cf.GetValue(saved.Section, saved.Name, "NOT SAVED"), Is.EqualTo("NOT SAVED"));
+
+            saved.SettingsContainer.Save();
+            cf.Load(SettingsFile);
+            Assert.That(cf.GetValue(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
+        } 
+
+        [Test]
+        public void DisabledTest() {
+            var sc = new SettingsContainer(SettingsFile);
+            var savedDisabled = Setting<string>.Save("IGNORED", "Section", "SavedDisabled", "Default", true, false);
+            
+            // Read without container
+            Assert.That(savedDisabled.Value, Is.EqualTo("Default"));
+
+            // Write without container
+            savedDisabled.Value = "New1";
+            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
+
+            sc.Add(savedDisabled);
+            Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
+            Assert.That(savedDisabled.SettingsContainer, Is.EqualTo(sc));
+
+            savedDisabled.Value = "New2";
+            Assert.That(savedDisabled.Value, Is.EqualTo("New2"));
+
+            var cf = new ConfigFile();
+            cf.Load(SettingsFile);
             Assert.That(cf.GetValue(savedDisabled.Section, savedDisabled.Name, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
         } 
 
