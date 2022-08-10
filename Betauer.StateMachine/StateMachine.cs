@@ -56,7 +56,7 @@ namespace Betauer.StateMachine {
         public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new Dictionary<TStateKey, IState<TStateKey, TTransitionKey>>();
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
         public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
-        public bool IsState(TStateKey state) => state.Equals(CurrentState.Key);
+        public bool IsState(TStateKey state) => CurrentState != null && state.Equals(CurrentState.Key);
 
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
