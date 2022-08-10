@@ -24,14 +24,16 @@ namespace Betauer.DI {
     public class ServiceAttribute : Attribute {
         public Type? Type { get; set; }
         public string? Name { get; set; }
+        public bool Primary { get; set; } = false;
         public Lifetime Lifetime { get; set; } = Lifetime.Singleton;
 
         public ServiceAttribute() {
         }
 
-        public ServiceAttribute(Lifetime lifetime, string name = null) {
+        public ServiceAttribute(Lifetime lifetime, string name = null, bool primary = false) {
             Lifetime = lifetime;
             Name = name;
+            Primary = primary;
         }
 
         public ServiceAttribute(Lifetime lifetime, Type type) {
@@ -39,9 +41,10 @@ namespace Betauer.DI {
             Type = type;
         }
 
-        public ServiceAttribute(string name, Lifetime lifetime = Lifetime.Singleton) {
+        public ServiceAttribute(string name, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             Name = name;
             Lifetime = lifetime;
+            Primary = primary;
         }
         public ServiceAttribute(Type type, Lifetime lifetime = Lifetime.Singleton) {
             Type = type;
@@ -63,11 +66,11 @@ namespace Betauer.DI {
         }
 
         public Container Build() {
-            _container.Build(_pendingToBuild);
+            var toBuild = new List<IProvider>(_pendingToBuild);
             _pendingToBuild.Clear();
+            _container.Build(toBuild);
             return _container;
         }
-
 
         public ContainerBuilder Static<T>(T instance, string? alias = null, bool primary = false) where T : class {
             Register(new StaticProvider(typeof(T),instance.GetType(), instance, alias, primary));
@@ -120,14 +123,14 @@ namespace Betauer.DI {
             return this;
         }
 
-        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool? primary = false) {
-            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, alias));
-            else Register(new TransientProvider(registeredType, type, factory, alias));
+        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) {
+            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, alias, primary));
+            else Register(new TransientProvider(registeredType, type, factory, alias, primary));
             return this;
         }
         
         public ContainerBuilder Register(IProvider builder) {
-            lock (_pendingToBuild) _pendingToBuild.AddLast(builder);
+            _pendingToBuild.AddLast(builder);
             return this;
         }
 
@@ -164,48 +167,37 @@ namespace Betauer.DI {
             
             // Look up for [Service]
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
+                if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute),
+                        false) is ConfigurationAttribute) {
+                    throw new Exception("Can't use [Configuration] and [Service] in the same class");
+                }
                 var registeredType = serviceAttr.Type ?? type;
                 var alias = serviceAttr.Name;
-                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, alias);
-                // TODO: stop allowing this?
-                if (serviceAttr.Lifetime == Lifetime.Singleton) {
-                    // [Service] singletons can expose other services as it would have [Configuration]
-                    ScanMemberExposingServices(type, false);
-                }
+                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, alias, serviceAttr.Primary);
             } else {
                 // No [Service] present in the class, check for [Configuration]
                 if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
-                    ScanMemberExposingServices(type, true);
+                    RegisterConfigurationServices(type, null);
                 }
             }
             return this;
         }
 
         public ContainerBuilder ScanConfiguration(params object[] instances) {
-            foreach (var instance in instances) {
-                ScanMemberExposingServices(instance);
-            }
+            foreach (var instance in instances) RegisterConfigurationServices(instance.GetType(), instance);
             return this;
         }
 
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-        private void ScanMemberExposingServices(Type type, bool fromConfiguration) {
-            // _logger.Debug("Exposing properties and methods " + type;
-            object conf = null;
+        private void RegisterConfigurationServices(Type type, object? instance) {
+            var conf = instance;
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
                 Register(getter.Attribute.Type ?? getter.Type, getter.Type, () => {
-                    var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
-                    return getter.GetValue(instance);
-                }, getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name);
-            }
-        }
-
-        private void ScanMemberExposingServices(object instance) {
-            var type = instance.GetType();
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
-                Register(getter.Attribute.Type ?? getter.Type, getter.Type, () => getter.GetValue(instance), 
-                    getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name);
+                        conf ??= Activator.CreateInstance(type); 
+                        return getter.GetValue(conf);
+                    }, 
+                    getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name, getter.Attribute.Primary);
             }
         }
     }
