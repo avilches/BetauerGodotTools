@@ -21,23 +21,24 @@ namespace Veronenger.Game {
 
         // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
         [Service("Settings.Screen.PixelPerfect")]
-        public Setting<bool> PixelPerfect => new Setting<bool>("Video", "PixelPerfect", false);
+        public ISetting<bool> PixelPerfect => Setting<bool>.Save("Video", "PixelPerfect", false);
 
         // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
         [Service("Settings.Screen.Fullscreen")]
-        public Setting<bool> Fullscreen => new Setting<bool>("Video", "Fullscreen", true);
+        public ISetting<bool> Fullscreen =>  Setting<bool>.Save("Video", "Fullscreen", true);
 
         // [Setting(Section = "Video", Name = "VSync", Default = false)]
-        [Service("Settings.Screen.VSync")] public Setting<bool> VSync => new Setting<bool>("Video", "VSync", false);
+        [Service("Settings.Screen.VSync")]
+        public ISetting<bool> VSync =>  Setting<bool>.Save("Video", "VSync", false);
 
         // [Setting(Section = "Video", Name = "Borderless", Default = false)]
         [Service("Settings.Screen.Borderless")]
-        public Setting<bool> Borderless => new Setting<bool>("Video", "Borderless", false);
+        public ISetting<bool> Borderless =>  Setting<bool>.Save("Video", "Borderless", false);
 
         // [Setting(Section = "Video", Name = "WindowedResolution")]
         [Service("Settings.Screen.WindowedResolution")]
-        public Setting<Resolution> WindowedResolution =>
-            new Setting<Resolution>("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
+        public ISetting<Resolution> WindowedResolution =>
+            Setting<Resolution>.Save("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
     }
 
     [Configuration]
