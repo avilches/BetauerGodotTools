@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using Betauer.DI;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -33,9 +30,6 @@ namespace Betauer.DI.Tests {
             var di = new Container();
             Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
             Assert.That(di.Contains<Container>());
-            Assert.That(di.Contains<Container>());
-            Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
-            Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
 
             Assert.That(di.GetProvider<Container>().Get(new ResolveContext(di)), Is.EqualTo(di));
             Assert.That(di.TryGetProvider<Container>(out var provider));
@@ -238,7 +232,41 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
             Assert.That(c.Resolve<IInterface1>("4"), Is.EqualTo(n4));
         }
-        
+
+        [Test(Description = "GetAllInstances - no transients")]
+        public void GetAllInstancesTransitionTests() {
+            var b = new ContainerBuilder();
+            b.Transient<ClassWith1Interface>();
+            b.Transient<ClassWith1Interface>("A");
+            var c = b.Build();
+            Assert.That(c.GetAllInstances<ClassWith1Interface>(), Is.Empty);
+        }
+
+        [Test(Description = "GetAllInstances - singleton")]
+        public void GetAllInstancesSingletonTests() {
+            var b = new ContainerBuilder();
+            b.Singleton<ClassWith1Interface>("A");
+            var c = b.Build();
+            Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(1));
+            Assert.That(c.GetAllInstances<IInterface1>().Count, Is.EqualTo(1));
+            Assert.That(c.GetAllInstances<object>().Count, Is.EqualTo(2)); // +1 (Include the container)
+        }
+
+        [Test(Description = "GetAllInstances - singleton")]
+        public void GetAllInstancesMultipleSingletonTests() {
+            var b = new ContainerBuilder();
+            b.Transient<Node2D>(); // ignored
+            b.Singleton<Node>("n1");
+            b.Singleton<Node>("n2");
+            b.Singleton<ClassWith1Interface>("A");
+            b.Static<IInterface1>(new ClassWith1Interface(), "B");
+            b.Singleton<ClassWith1Interface>();
+            var c = b.Build();
+            Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(2));
+            Assert.That(c.GetAllInstances<IInterface1>().Count, Is.EqualTo(3));
+            Assert.That(c.GetAllInstances<object>().Count, Is.EqualTo(6)); // +1 (Include the container)
+        }
+
         [Test(Description = "Singleton tests")]
         public void SingletonTests() {
             var b = new ContainerBuilder();
@@ -283,12 +311,63 @@ namespace Betauer.DI.Tests {
             Assert.That(n31, Is.Not.EqualTo(n32));
         }
         
-        [Test(Description = "Not allow duplicate by type")]
-        public void DuplicatedTest() {
+        [Test(Description = "Not allow duplicates by type")]
+        public void DuplicatedTypeTest() {
+            var b1 = new ContainerBuilder();
+            b1.Singleton<ClassWith1Interface>();
+            b1.Transient<ClassWith1Interface>();
+            Assert.Throws<DuplicateServiceException>(() => b1.Build());
+
+            var b2 = new ContainerBuilder();
+            b2.Static(new ClassWith1Interface());
+            b2.Static(new ClassWith1Interface());
+            Assert.Throws<DuplicateServiceException>(() => b2.Build());
+
+        }
+
+        [Test(Description = "Not allow duplicates by name")]
+        public void DuplicatedNameTest() {
+            var b1 = new ContainerBuilder();
+            b1.Singleton(() => new ClassWith1Interface(), "A");
+            b1.Transient<IInterface1, ClassWith1Interface>("A");
+            Assert.Throws<DuplicateServiceException>(() => b1.Build());
+
+            var b2 = new ContainerBuilder();
+            b2.Singleton<ClassWith1Interface>("A");
+            b2.Static<IInterface1>(new ClassWith1Interface(), "A");
+            Assert.Throws<DuplicateServiceException>(() => b2.Build());
+
+        }
+
+        [Test(Description = "GetProvider and TryGetProvider with fallbacks")]
+        public void GetProviderWithFallbackTest() {
             var b = new ContainerBuilder();
-            b.Singleton<ClassWith1Interface>();
-            b.Singleton<ClassWith1Interface>();
-            Assert.Throws<DuplicateServiceException>(() => b.Build());
+            var n1 = new ClassWith1Interface();
+            b.Static(n1, "1");
+            var c = b.Build();
+            Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider("1")));
+            var foundByName = c.TryGetProvider<ClassWith1Interface>(out var pName);
+            var foundFallback = c.TryGetProvider("1", out var fName);
+            Assert.That(foundByName);
+            Assert.That(foundFallback);
+            Assert.That(pName, Is.EqualTo(fName));
+        }
+
+        [Test(Description = "Overwrite the fallback with type")]
+        public void CreateFallbackTest() {
+            var b = new ContainerBuilder();
+            var n1 = new ClassWith1Interface();
+            var n2 = new ClassWith1Interface();
+            var typed = new ClassWith1Interface();
+            b.Static(n1, "1");
+            b.Static(n2, "2");
+            // This one should overwrite the fallback
+            b.Static(typed);
+            var c = b.Build();
+            
+            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(typed));
+            Assert.That(c.Resolve<ClassWith1Interface>("1"), Is.EqualTo(n1));
+            Assert.That(c.Resolve<ClassWith1Interface>("2"), Is.EqualTo(n2));
         }
 
         [Test(Description = "Fallback to the first element registered by type when register by name and resolve by type")]
@@ -302,8 +381,8 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
         }
 
-        [Test(Description = "Fallback to the primary element registered by type when register by name and resolve by type")]
-        public void FallbackPrimaryByTypeTest() {
+        [Test(Description = "Fallback to the primary element only if it's not registered by")]
+        public void NoFallbackPrimaryByTypeTest() {
             var b = new ContainerBuilder();
             var n0 = new ClassWith1Interface();
             var n1 = new ClassWith1Interface();
@@ -311,6 +390,26 @@ namespace Betauer.DI.Tests {
             var n3 = new ClassWith1Interface();
             var n4 = new ClassWith1Interface();
             b.Static(n0);
+            b.Static(n1, "1");
+            b.Static(n2, "2", true);
+            b.Static(n3, "3", true);
+            b.Static(n4, "4");
+            var c = b.Build();
+            Assert.That(c.Resolve<ClassWith1Interface>("1"), Is.EqualTo(n1));
+            Assert.That(c.Resolve<ClassWith1Interface>("2"), Is.EqualTo(n2));
+            Assert.That(c.Resolve<ClassWith1Interface>("3"), Is.EqualTo(n3));
+            Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
+
+            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n0));
+        }
+
+        [Test(Description = "Fallback to the primary element registered by type when register by name and resolve by type")]
+        public void FallbackPrimaryByTypeTest() {
+            var b = new ContainerBuilder();
+            var n1 = new ClassWith1Interface();
+            var n2 = new ClassWith1Interface();
+            var n3 = new ClassWith1Interface();
+            var n4 = new ClassWith1Interface();
             b.Static(n1, "1");
             b.Static(n2, "2", true);
             b.Static(n3, "3", true);

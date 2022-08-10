@@ -73,7 +73,7 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Static<T>(T instance, string? alias = null, bool primary = false) where T : class {
-            Register(new StaticProvider(typeof(T),instance.GetType(), instance, alias, primary));
+            Register(new StaticProvider(typeof(T), instance.GetType(), instance, alias, primary));
             return this;
         }
 
