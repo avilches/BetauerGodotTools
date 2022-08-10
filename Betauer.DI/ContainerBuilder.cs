@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using Godot;
 
 namespace Betauer.DI {
     [AttributeUsage(AttributeTargets.Class)]
@@ -72,12 +70,12 @@ namespace Betauer.DI {
 
 
         public ContainerBuilder Static<T>(T instance, string? alias = null, bool primary = false) where T : class {
-            Register(new StaticProvider<T>(typeof(T), instance, alias, primary));
+            Register(new StaticProvider(typeof(T),instance.GetType(), instance, alias, primary));
             return this;
         }
 
         public ContainerBuilder Static(Type type, object instance, string? alias = null, bool primary = false) {
-            Register(new StaticProvider<object>(type, instance, alias, primary));
+            Register(new StaticProvider(type, instance.GetType(), instance, alias, primary));
             return this;
         }
 
@@ -118,34 +116,15 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? alias, bool primary) where T : class {
-            Type registeredType = typeof(TI);
-            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider<T>(registeredType, factory, alias));
-            else Register(new TransientProvider<T>(registeredType, factory, alias));
+            Register(typeof(TI), typeof(T), factory, lifetime, alias, primary);
             return this;
         }
-
-        private static Func<T> CastFuncTFunc<T>(Func<object> func) => () => (T)func();
-
-        private static readonly MethodInfo CastFuncTMethod = typeof(ContainerBuilder)
-            .GetMethod(nameof(CastFuncTFunc), BindingFlags.Static | BindingFlags.NonPublic)!;
-
-        private static object CastFuncT(Type type, Func<object> func) =>
-            CastFuncTMethod.MakeGenericMethod(type).Invoke(null, new[] { func });
-        
 
         public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool? primary = false) {
-            var factoryType = lifetime switch {
-                Lifetime.Singleton => typeof(SingletonProvider<>).MakeGenericType(type),
-                Lifetime.Transient => typeof(TransientProvider<>).MakeGenericType(type),
-            };
-            // Ensure the first constructor has the right 4 parameters
-            var ctor = factoryType.GetConstructors()[0];
-            var typedFactory = CastFuncT(type, factory);
-            IProvider provider = (IProvider)ctor.Invoke(new [] { registeredType, typedFactory, alias, primary });
-            Register(provider);
+            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, alias));
+            else Register(new TransientProvider(registeredType, type, factory, alias));
             return this;
         }
-
         
         public ContainerBuilder Register(IProvider builder) {
             lock (_pendingToBuild) _pendingToBuild.AddLast(builder);
@@ -158,7 +137,7 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Scan(Assembly assembly, Predicate<Type>? predicate = null) {
-            _logger.Info("Scanning "+assembly);
+            _logger.Info("Scanning " + assembly);
             Scan(assembly.GetTypes(), predicate);
             return this;
         }
