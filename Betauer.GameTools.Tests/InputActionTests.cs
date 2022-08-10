@@ -57,6 +57,9 @@ namespace Betauer.GameTools.Tests {
 
             SaveSetting<string> b = Setting<string>.Save("Controls", "attack.buttons","0,1");
             SaveSetting<string> k = Setting<string>.Save("Controls", "attack.keys", "H,F");
+            var sc = new SettingsContainer(SettingsFile);
+            sc.Add(b);
+            sc.Add(k);
             jump.SetSettings(k, b).Load();
             Assert.That(jump.ButtonSetting, Is.EqualTo(b));
             Assert.That(jump.KeySetting, Is.EqualTo(k));
