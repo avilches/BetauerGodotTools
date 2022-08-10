@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests {
     [TestFixture]
+    [Only]
     public class FunctionTests : Node {
         private Container? _backup;
 

@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests {
     [TestFixture]
+    [Only]
     public class ScannerCircularTests : Node {
         [Service]
         public class Singleton {

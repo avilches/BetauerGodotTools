@@ -11,19 +11,10 @@ namespace Betauer.DI.Tests {
     public interface IInterface1 {
     }
 
-    public interface IInterface2 : IInterface2_2 {
-    }
-
-    public interface IInterface2_2 {
-    }
-
-    public abstract class AbstractClass : IInterface1 {
+    public abstract class AbstractClass {
     }
 
     public class ClassWith1Interface : IInterface1 {
-    }
-
-    public class ClassWith2Interfaces : IInterface1, IInterface2 {
     }
 
     [TestFixture]

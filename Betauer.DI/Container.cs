@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using Godot;
 
 namespace Betauer.DI {
     public class ResolveContext {
@@ -14,25 +12,25 @@ namespace Betauer.DI {
             Container = container;
         }
 
-        internal bool IsCached<T>(string? alias) {
+        internal bool IsCached(Type type, string? alias) {
             if (alias != null) return _objectsCacheByAlias.ContainsKey(alias);
-            return _objectsCache.ContainsKey(typeof(T));
+            return _objectsCache.ContainsKey(type);
         }
 
-        internal T GetFromCache<T>(string? alias) {
+        internal object GetFromCache(Type type, string? alias) {
             if (alias != null) {
                 if (_objectsCacheByAlias.TryGetValue(alias, out var o)) {
-                    return (T)o;
+                    return o;
                 }
             } 
-            return (T)_objectsCache[typeof(T)];
+            return _objectsCache[type];
         }
 
-        internal void AddInstanceToCache<T>(T o, string? alias) where T : class {
+        internal void AddInstanceToCache(Type type, object o, string? alias) {
             if (alias != null) {
                 _objectsCacheByAlias[alias] = o;
             } else {
-                _objectsCache[typeof(T)] = o;
+                _objectsCache[type] = o;
             }
         }
     }
@@ -54,7 +52,7 @@ namespace Betauer.DI {
         public Container() {
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
-            Add(new StaticProvider<Container>(typeof(Container),this));
+            Add(new StaticProvider(typeof(Container),typeof(Container),this));
         }
 
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
