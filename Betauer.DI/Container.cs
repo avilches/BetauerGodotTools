@@ -48,6 +48,7 @@ namespace Betauer.DI {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
+        public event Action<Lifetime, object> OnCreate;
 
         public Container() {
             Injector = new Injector(this);
@@ -174,6 +175,10 @@ namespace Betauer.DI {
             } catch (KeyNotFoundException) {
                 return or();
             }
+        }
+
+        internal void ExecuteOnCreate(Lifetime lifetime, object instance) {
+            OnCreate?.Invoke(lifetime, instance);
         }
 
         internal object Resolve(Type type, ResolveContext? context) {

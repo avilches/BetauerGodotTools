@@ -114,11 +114,11 @@ namespace Betauer.DI {
             var context = new ResolveContext(container);
             var instance = Get(context);
             container.InjectAllFields(instance, context);
-            container.OnCreate?.Invoke(instance);
         }
 
         public override void OnBuildContainer(Container container) {
-            ExecutePostCreateMethods(Get(null));
+            ExecutePostCreateMethods(_singleton);
+            container.ExecuteOnCreate(Lifetime.Singleton, _singleton);
         }
     }
 
@@ -139,6 +139,7 @@ namespace Betauer.DI {
                 transient = CreateNewInstance(GetLifetime(), context);
                 context.Container.InjectAllFields(transient, context);
                 ExecutePostCreateMethods(transient);
+                context.Container.ExecuteOnCreate(Lifetime.Transient, transient);
             }
             return transient;
         }

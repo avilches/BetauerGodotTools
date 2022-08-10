@@ -323,5 +323,41 @@ namespace Betauer.DI.Tests {
 
             Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n3));
         }
+
+        [Test(Description = "Test OnCreate")]
+        public void OnCreateTests() {
+            var singletons = new List<object>();
+            var transients = new List<object>();
+            var calls = 0;
+            var c = new Container();
+            c.OnCreate += (lifetime, instance) => {
+                if (lifetime == Lifetime.Singleton) {
+                    singletons.Add(instance);
+                } else {
+                    transients.Add(instance);
+                }
+            };
+            c.OnCreate += (lifetime, instance) => {
+                calls++;
+            };
+            var b = new ContainerBuilder(c);
+            b.Static(new Node2D());
+            b.Singleton<ClassWith1Interface>();
+            b.Transient<Node>();
+            b.Build();
+            c.Resolve<Node2D>();
+            Assert.That(singletons.Count, Is.EqualTo(1));
+            Assert.That(singletons[0], Is.TypeOf<ClassWith1Interface>());
+            c.Resolve<Node>();
+            Assert.That(transients.Count, Is.EqualTo(1));
+            Assert.That(transients[0], Is.TypeOf<Node>());
+            c.Resolve<Node>();
+            Assert.That(transients.Count, Is.EqualTo(2));
+            Assert.That(transients[0], Is.TypeOf<Node>());
+            Assert.That(transients[1], Is.TypeOf<Node>());
+            Assert.That(transients[1], Is.Not.EqualTo(transients[0]));
+            
+            Assert.That(calls, Is.EqualTo(singletons.Count + transients.Count));
+        }
     }
 }
