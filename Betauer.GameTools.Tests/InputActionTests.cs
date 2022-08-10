@@ -137,7 +137,7 @@ namespace Betauer.GameTools.Tests {
             var di = new ContainerBuilder();
             di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>();
             var e = Assert.Throws<KeyNotFoundException>(() => di.Build());
-            Assert.That(e.Message.Contains(nameof(SettingsContainer)));
+            Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
         }
 
         internal class MyInputActionsContainer : InputActionsContainer {

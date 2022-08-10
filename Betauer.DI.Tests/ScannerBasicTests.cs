@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using Betauer.TestRunner;
 using Godot;
@@ -26,6 +27,17 @@ namespace Betauer.DI.Tests {
             di.Scan<INotTagged>();
             di.Scan<MyServiceWithNotScanned>();
             Assert.Throws<InjectFieldException>(() => di.Build());
+        }
+
+        [Service]
+        [Configuration]
+        public class WrongCombination {
+        }
+
+        [Test(Description = "Can't use [Configuration] and [Service] in the same class")]
+        public void WrongCombinationTest() {
+            var e = Assert.Throws<Exception>(() => new ContainerBuilder().Scan<WrongCombination>());
+            Assert.That(e.Message, Contains.Substring("Can't use [Configuration] and [Service] in the same class"));
         }
 
         [Service]
