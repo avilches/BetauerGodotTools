@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using Godot;
 
 namespace Betauer.DI {
     public enum Lifetime {
@@ -10,8 +9,9 @@ namespace Betauer.DI {
     }
 
     public interface IProvider {
-        public string[]? GetAliases();
-        public Type[] GetRegisterTypes();
+        public string? GetAlias();
+        public bool Primary { get; }
+        public Type GetRegisterType();
         public Type GetProviderType();
         public Lifetime GetLifetime();
         public object Get(ResolveContext? context);
@@ -20,18 +20,20 @@ namespace Betauer.DI {
     }
 
     public abstract class BaseProvider<T> : IProvider where T : class {
-        private readonly Type[] _registeredTypes;
+        public bool Primary { get; }
+        private readonly Type _registeredTypes;
         private readonly Type _providerType;
-        private readonly string[]? _aliases;
-        public string[]? GetAliases() => _aliases;
+        private readonly string? _alias;
+        public string? GetAlias() => _alias;
 
-        public Type[] GetRegisterTypes() => _registeredTypes;
+        public Type GetRegisterType() => _registeredTypes;
         public Type GetProviderType() => _providerType;
 
-        public BaseProvider(Type[] registeredTypes, string[]? aliases = null) {
+        public BaseProvider(Type registeredTypes, string? alias, bool primary) {
             _registeredTypes = registeredTypes;
             _providerType = typeof(T);
-            _aliases = aliases;
+            _alias = alias;
+            Primary = primary;
         }
 
         public abstract Lifetime GetLifetime();
@@ -62,7 +64,7 @@ namespace Betauer.DI {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(FactoryProvider<>));
         private readonly Func<T> _factory;
 
-        protected FactoryProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, aliases) {
+        protected FactoryProvider(Type registeredTypes, Func<T> factory, string? alias, bool primary) : base(registeredTypes, alias, primary) {
             _factory = factory;
         }
 
@@ -72,7 +74,7 @@ namespace Betauer.DI {
                 Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
                              typeof(T) + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AddInstanceToCache(instance, GetAliases());
+            context.AddInstanceToCache(instance, GetAlias());
             return instance;
         }
     }
@@ -81,7 +83,7 @@ namespace Betauer.DI {
         private bool _isSingletonDefined;
         private T? _singleton;
 
-        public SingletonProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, factory, aliases) {
+        public SingletonProvider(Type registeredTypes, Func<T> factory, string? alias = null, bool primary = false) : base(registeredTypes, factory, alias, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
@@ -89,8 +91,8 @@ namespace Betauer.DI {
         public override object Get(ResolveContext? context) {
             if (_isSingletonDefined) return _singleton!;
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (context.IsCached<T>(GetAliases())) {
-                T singleton = context.GetFromCache<T>(GetAliases());
+            if (context.IsCached<T>(GetAlias())) {
+                T singleton = context.GetFromCache<T>(GetAlias());
                 Logger.Debug("Get from context " + GetLifetime() + " " + singleton.GetType().Name + " exposed as " +
                              typeof(T) + ": " + singleton.GetHashCode().ToString("X"));
                 return singleton;
@@ -108,7 +110,7 @@ namespace Betauer.DI {
             var context = new ResolveContext(container);
             var instance = Get(context);
             container.InjectAllFields(instance, context);
-            if (instance is Node node) container.NodeSingletonOwner?.AddChild(node);
+            container.OnCreate?.Invoke(instance);
         }
 
         public override void OnBuildContainer(Container container) {
@@ -117,7 +119,7 @@ namespace Betauer.DI {
     }
 
     public class TransientProvider<T> : FactoryProvider<T> where T : class {
-        public TransientProvider(Type[] registeredTypes, Func<T> factory, string[]? aliases = null) : base(registeredTypes, factory, aliases) {
+        public TransientProvider(Type registeredTypes, Func<T> factory, string? alias = null, bool primary = false) : base(registeredTypes, factory, alias, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
@@ -125,8 +127,8 @@ namespace Betauer.DI {
         public override object Get(ResolveContext context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             T transient;
-            if (context.IsCached<T>(GetAliases())) {
-                transient = context.GetFromCache<T>(GetAliases());
+            if (context.IsCached<T>(GetAlias())) {
+                transient = context.GetFromCache<T>(GetAlias());
                 Logger.Debug("Get from context " + GetLifetime() + " " + transient.GetType().Name + " exposed as " +
                              typeof(T) + ": " + transient.GetHashCode().ToString("X"));
             } else {
@@ -147,7 +149,7 @@ namespace Betauer.DI {
     public class StaticProvider<T> : BaseProvider<T> where T : class {
         private readonly T _value;
 
-        public StaticProvider(Type[] registeredTypes, T value, string[]? aliases = null) : base(registeredTypes, aliases) {
+        public StaticProvider(Type registeredTypes, T value, string? alias = null, bool primary = false) : base(registeredTypes, alias, primary) {
             _value = value;
         }
 

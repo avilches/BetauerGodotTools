@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
@@ -20,7 +21,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Test a regular function as static value")]
         public void FunctionTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<Singleton>();
             di.Static<Func<string>>(() => "hello");
             Container c = di.Build();
@@ -30,7 +31,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Test a closure function")]
         public void ClosureTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<Singleton>();
             di.Function<Singleton, string>((s) => s.name);
             Container c = di.Build();
@@ -42,7 +43,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Test a closure function with base class")]
         public void ClosureTestWithBaseClass() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<Singleton>();
             di.Function<Base, string>((s) => s.baseName);
             Container c = di.Build();
@@ -54,7 +55,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Test a closure function has more priority than a static")]
         public void ClosureMoreThanStaticTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<Singleton>();
             di.Function<Singleton, string>((s) => s.name);
             di.Static<Func<string>>(() => "hello");

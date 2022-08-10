@@ -34,9 +34,9 @@ namespace Betauer.Animation.Tests {
         public async Task InterpolateAction() {
             var tween = await CreateTween();
             tween.Start();
-            int x = 0;
-            tween.InterpolateAction<int>(0, 1, 0.01f, Tween.TransitionType.Linear, Tween.EaseType.InOut, 0f,
-                (p) => x = x + p);
+            var x = 0;
+            tween.InterpolateAction(0, 1, 0.01f, Tween.TransitionType.Linear, Tween.EaseType.InOut, 0f,
+                (p) => x += p);
             Assert.That(tween.GetPendingObjects().Count, Is.EqualTo(1));
             await Task.Delay((int)(TweenActionCallback.ExtraDelayToFinish * 2 * 1000));
             Assert.That(x, Is.EqualTo(2));

@@ -63,7 +63,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void SaveSettingTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Static(GetTree());
             di.Scan<ScreenSettingsManagerConfig>();
             di.Scan<ScreenSettingsSavedConfig>();
@@ -110,7 +110,7 @@ namespace Betauer.GameTools.Tests {
         
         [Test]
         public void MemorySettingTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Static(GetTree());
             di.Scan<ScreenSettingsManagerConfig>();
             var c = di.Build();

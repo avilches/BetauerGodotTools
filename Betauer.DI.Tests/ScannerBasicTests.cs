@@ -21,7 +21,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Types not found")]
         public void NotFound() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<INotTagged>();
             di.Scan<MyServiceWithNotScanned>();
             Assert.Throws<InjectFieldException>(() => di.Build());
@@ -34,7 +34,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Nullable")]
         public void Nullable() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<MyServiceWithWithNullable>();
             var c = di.Build();
             Assert.That(!c.Contains<INotTagged>());
@@ -57,7 +57,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Name or type")]
         public void NameOrTypeClass() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ExposeServiceClass1>();
             di.Scan<ExposeServiceClass2>();
             di.Scan<ExposeServiceClass3>();
@@ -95,7 +95,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Name or type members in configuration instance")]
         public void NameOrTypeMembersInConfigurationInstance() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.ScanConfiguration(new ConfigurationInstance());
             var c = di.Build();
             AssertNameOrTypeMembers(c);
@@ -114,7 +114,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Name or type members in class typed with [Configuration]")]
         public void NameOrTypeMembersInConfiguration() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ConfigurationScanned>();
             var c = di.Build();
             AssertNameOrTypeMembers(c);
@@ -133,7 +133,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Name or type members in singleton typed with [Service]")]
         public void NameOrTypeMembersInService() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ServiceScanned>();
             var c = di.Build();
             AssertNameOrTypeMembers(c);
@@ -194,7 +194,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Inject singletons in singleton + get/set properties")]
         public void SingletonInSingleton() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             EmptyTransient.Created = 0;
             SingletonWith2Transients.Created = 0;
             MySingleton.Created = 0;
@@ -246,7 +246,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Inject transients in transient")]
         public void SingletonInTransient() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             EmptyTransient.Created = 0;
             SingletonWith2Transients.Created = 0;
             TransientService.Created = 0;
@@ -316,7 +316,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "When an interface has multiple implementations, register by name")]
         public void InterfaceWithMultipleImplementations() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<MultipleImpl1ByName>();
             di.Scan<MultipleImpl2ByName>();
             di.Scan<MultipleImpl3ByName>();
@@ -355,7 +355,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "When an interface has multiple implementations, register by one type")]
         public void InterfaceWithMultipleImplementationsByType() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<MultipleImpl1ByType>();
             di.Scan<ServiceWithMultipleImplByType>();
             var c = di.Build();
@@ -376,7 +376,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Inject transients in transient")]
         public void CreateIfNotFound() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             var c = di.Build();
             c.CreateIfNotFound = true;
             var s1 = c.Resolve<AutoTransient2>();
@@ -438,7 +438,7 @@ namespace Betauer.DI.Tests {
         
         [Test(Description = "Inject singletons by name exported in a singleton")]
         public void ExportSingletonFrom() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<SingletonInjected>();
             di.Scan<SingletonHolder>();
             var c = di.Build();
@@ -508,7 +508,7 @@ namespace Betauer.DI.Tests {
         
         [Test(Description = "Inject Transients by name exported in a Transient")]
         public void ExportTransientFrom() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<TransientInjected>();
             di.Scan<TransientHolder>();
             var c = di.Build();
@@ -553,7 +553,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Use configuration to export members")]
         public void ExportFromConfiguration() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ConfigurationService>();
             var c = di.Build();
 
@@ -594,7 +594,7 @@ namespace Betauer.DI.Tests {
 
         [Test]
         public void MemberExposing() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<AddToScanByImport>();
             var c = di.Build();
 
@@ -640,7 +640,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Test if the [PostCreate] methods are invoked")]
         public void PostCreateMethodTest() {
-            var c = new Container(this);
+            var c = new Container();
             var di = c.CreateBuilder();
             di.Scan<PostCreatedA>();
             di.Scan<PostCreatedB>();

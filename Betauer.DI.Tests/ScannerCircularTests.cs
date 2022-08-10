@@ -15,7 +15,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Singleton includes itself")]
         public void SingletonItSelf() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             Singleton.Created = 0;
             di.Scan<Singleton>();
             var s = di.Build().Resolve<Singleton>();
@@ -33,7 +33,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Transient includes itself")]
         public void TransientItSelf() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             Transient.Created = 0;
             di.Scan<Transient>();
             var t = di.Build().Resolve<Transient>();
@@ -58,7 +58,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Singleton includes itself using interface as type")]
         public void CircularSingletonTypes() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             SingletonX.Created = 0;
 
             di.Singleton<ISingletonX, SingletonX>();
@@ -84,7 +84,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Transient includes itself using interface as type")]
         public void CircularTransientTypes() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             TransientX.Created = 0;
 
             di.Transient<ITransientX, TransientX>();
@@ -119,7 +119,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Circular dependency between singleton")]
         public void CircularSingleton() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             SingletonA.Created = 0;
             SingletonB.Created = 0;
             SingletonC.Created = 0;
@@ -169,7 +169,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Circular dependency between transients")]
         public void CircularTransient() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             TransientA.Created = 0;
             TransientB.Created = 0;
             TransientC.Created = 0;
@@ -222,7 +222,7 @@ namespace Betauer.DI.Tests {
 
         [Test(Description = "Multiple Transient dependency allowed recycling instances")]
         public void CircularMultipleTransient() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             MultiTransientA.Created = 0;
             MultiTransientB.Created = 0;
             MultiTransientC.Created = 0;
@@ -262,7 +262,7 @@ namespace Betauer.DI.Tests {
 
         [Test]
         public void MemberExposing() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ImportSelf>();
             di.Scan<AddToScanByImport>();
             var c = di.Build();

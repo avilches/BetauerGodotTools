@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 namespace Betauer.GodotAction.Tests {
     [TestFixture]
-    // [Only]
     public class GodotActionTests : Node {
         
         [Test]

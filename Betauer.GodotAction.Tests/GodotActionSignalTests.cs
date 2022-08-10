@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 namespace Betauer.GodotAction.Tests {
     [TestFixture]
-    // [Only]
     public class GodotActionSignalTests : Node {
         [Test(Description = "0p and 1p signals")]
         public async Task BasicTest() {

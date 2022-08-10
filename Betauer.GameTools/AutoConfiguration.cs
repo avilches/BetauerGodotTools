@@ -9,7 +9,7 @@ namespace Betauer {
     /**
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
-    public class AutoConfiguration : Node {
+    public abstract class AutoConfiguration : Node {
         private Container _container;
 
         [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
@@ -17,9 +17,14 @@ namespace Betauer {
         
         public override void _EnterTree() {
             PauseMode = PauseModeEnum.Process;
-            _container = new Container(this);
+            _container = new Container();
+            _container.OnCreate = async (o) => {
+                if (o is Node node) {
+                    AddChild(node);
+                }
+            };
             var builder = _container.CreateBuilder();
-            builder.Scan();
+            builder.Scan(GetType().Assembly);
             builder.ScanConfiguration(this);
             builder.Build();
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);

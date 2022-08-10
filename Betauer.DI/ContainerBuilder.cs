@@ -18,6 +18,10 @@ namespace Betauer.DI {
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class PostCreateAttribute : Attribute {
+    }
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class ServiceAttribute : Attribute {
         public Type? Type { get; set; }
@@ -47,90 +51,105 @@ namespace Betauer.DI {
         }
     }
 
-    [AttributeUsage(AttributeTargets.Method)]
-    public class PostCreateAttribute : Attribute {
-    }
-
     public class ContainerBuilder {
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(ContainerBuilder));
-        private readonly LinkedList<IProviderBuilder> _pendingToBuild = new LinkedList<IProviderBuilder>();
+        private readonly LinkedList<IProvider> _pendingToBuild = new LinkedList<IProvider>();
         private readonly Container _container;
 
         public ContainerBuilder(Container container) {
             _container = container;
         }
 
-        public ContainerBuilder(Node owner) {
-            _container = new Container(owner);
+        public ContainerBuilder() {
+            _container = new Container();
         }
 
         public Container Build() {
-            _container.Build(_pendingToBuild.Select(p => p.CreateProvider()).ToList());
+            _container.Build(_pendingToBuild);
             _pendingToBuild.Clear();
             return _container;
         }
 
-        public StaticProviderBuilder<T> Static<T>(T instance) where T : class {
-            var builder = new StaticProviderBuilder<T>(instance);
-            AddToBuildQueue(builder);
-            return builder;
+
+        public ContainerBuilder Static<T>(T instance, string? alias = null, bool primary = false) where T : class {
+            Register(new StaticProvider<T>(typeof(T), instance, alias, primary));
+            return this;
         }
 
-        public FactoryProviderBuilder<T> Singleton<T>(Func<T> factory = null) where T : class {
-            return Register<T>().IsSingleton().With(factory);
+        public ContainerBuilder Static(Type type, object instance, string? alias = null, bool primary = false) {
+            Register(new StaticProvider<object>(type, instance, alias, primary));
+            return this;
         }
 
-        public FactoryProviderBuilder<T> Singleton<TI, T>(Func<T> factory = null) where T : class {
-            return Register<T>().IsSingleton().With(factory).As<TI>();
+        public ContainerBuilder Singleton<T>(string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Transient<T>(Func<T> factory = null) where T : class {
-            return Register<T>().IsTransient().With(factory);
+        public ContainerBuilder Singleton<T>(Func<T> factory, string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, Lifetime.Singleton, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Transient<TI, T>(Func<T> factory = null) where T : class {
-            return Register<T>().IsTransient().With(factory).As<TI>();
+        public ContainerBuilder Singleton<TI, T>(string? alias = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton)
-            where T : class {
-            return Register<T>().With(factory).Lifetime(lifetime);
+        public ContainerBuilder Transient<T>(string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Register<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton)
-            where T : class {
-            return Register<T>().With(factory).Lifetime(lifetime).As<TI>();
+        public ContainerBuilder Transient<T>(Func<T> factory, string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, Lifetime.Transient, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Register<TI, T>(Lifetime lifetime = Lifetime.Singleton) where T : class {
-            return Register<T>(lifetime).As<TI>();
+        public ContainerBuilder Transient<TI, T>(string? alias = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, alias, primary);
         }
 
-        public FactoryProviderBuilder<T> Register<T>(Lifetime lifetime = Lifetime.Singleton,
-            IEnumerable<string>? aliases = null) where T : class {
-            var builder = new FactoryProviderBuilder<T>().Lifetime(lifetime).As(aliases);
-            AddToBuildQueue(builder);
-            return builder;
+        public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, lifetime, alias, primary);
         }
 
-        public IProviderBuilder Register(Type type, Lifetime lifetime = Lifetime.Singleton,
-            IEnumerable<Type>? types = null, IEnumerable<string>? aliases = null) {
-            return Register(type, null, lifetime, types, aliases);
+        public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, lifetime, alias, primary);
         }
 
-        public IProviderBuilder Register(Type type, Func<object> factory, Lifetime lifetime,
-            IEnumerable<Type>? types, IEnumerable<string>? aliases = null) {
-            var builder = FactoryProviderBuilder.Create(type, lifetime, factory, types, aliases);
-            AddToBuildQueue(builder);
-            return builder;
+        public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, lifetime, alias, primary);
         }
 
-        public void AddToBuildQueue(IProviderBuilder builder) {
+        public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? alias, bool primary) where T : class {
+            Type registeredType = typeof(TI);
+            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider<T>(registeredType, factory, alias));
+            else Register(new TransientProvider<T>(registeredType, factory, alias));
+            return this;
+        }
+
+        private static Func<T> CastFuncTFunc<T>(Func<object> func) => () => (T)func();
+
+        private static readonly MethodInfo CastFuncTMethod = typeof(ContainerBuilder)
+            .GetMethod(nameof(CastFuncTFunc), BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        private static object CastFuncT(Type type, Func<object> func) =>
+            CastFuncTMethod.MakeGenericMethod(type).Invoke(null, new[] { func });
+        
+
+        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool? primary = false) {
+            var factoryType = lifetime switch {
+                Lifetime.Singleton => typeof(SingletonProvider<>).MakeGenericType(type),
+                Lifetime.Transient => typeof(TransientProvider<>).MakeGenericType(type),
+            };
+            // Ensure the first constructor has the right 4 parameters
+            var ctor = factoryType.GetConstructors()[0];
+            var typedFactory = CastFuncT(type, factory);
+            IProvider provider = (IProvider)ctor.Invoke(new [] { registeredType, typedFactory, alias, primary });
+            Register(provider);
+            return this;
+        }
+
+        
+        public ContainerBuilder Register(IProvider builder) {
             lock (_pendingToBuild) _pendingToBuild.AddLast(builder);
-        }
-
-        public ContainerBuilder Scan(Predicate<Type>? predicate = null) {
-            return Scan(_container.NodeSingletonOwner.GetType().Assembly, predicate);
+            return this;
         }
 
         public ContainerBuilder Scan(IEnumerable<Assembly> assemblies, Predicate<Type>? predicate = null) {
@@ -166,9 +185,10 @@ namespace Betauer.DI {
             
             // Look up for [Service]
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
-                var types = serviceAttr.Name == null ? new[] { serviceAttr.Type ?? type } : null;
-                var aliases = serviceAttr.Name != null ? new[] { serviceAttr.Name } : null;
-                Register(type, serviceAttr.Lifetime, types, aliases);
+                var registeredType = serviceAttr.Type ?? type;
+                var alias = serviceAttr.Name;
+                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, alias);
+                // TODO: stop allowing this?
                 if (serviceAttr.Lifetime == Lifetime.Singleton) {
                     // [Service] singletons can expose other services as it would have [Configuration]
                     ScanMemberExposingServices(type, false);
@@ -195,21 +215,18 @@ namespace Betauer.DI {
             // _logger.Debug("Exposing properties and methods " + type;
             object conf = null;
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
-                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
-                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Register(getter.Type, () => {
+                Register(getter.Attribute.Type ?? getter.Type, getter.Type, () => {
                     var instance = fromConfiguration ? conf ??= Activator.CreateInstance(type) : _container.Resolve(type);
                     return getter.GetValue(instance);
-                }, getter.Attribute.Lifetime, types, alias);
+                }, getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name);
             }
         }
 
         private void ScanMemberExposingServices(object instance) {
             var type = instance.GetType();
             foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
-                var types = getter.Attribute.Type == null ? null : new[] { getter.Attribute.Type };  
-                var alias = getter.Attribute.Type != null ? null : new[] { getter.Attribute.Name ?? getter.Name };
-                Register(getter.Type, () => getter.GetValue(instance), getter.Attribute.Lifetime, types, alias);
+                Register(getter.Attribute.Type ?? getter.Type, getter.Type, () => getter.GetValue(instance), 
+                    getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name);
             }
         }
     }

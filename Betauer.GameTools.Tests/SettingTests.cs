@@ -118,7 +118,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if container not found by type")]
         public void ErrorConfigWithNoContainerTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ErrorConfigWithNoContainer>();
             Assert.Throws<KeyNotFoundException>(() => di.Build());
         }
@@ -131,7 +131,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if container not found by name")]
         public void ErrorConfigWithContainerNotFoundByNameTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ErrorConfigWithContainerNotFoundByName>();
             Assert.Throws<KeyNotFoundException>(() => di.Build());
         }
@@ -169,7 +169,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ConfigWithSettingContainerTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
@@ -255,7 +255,7 @@ namespace Betauer.GameTools.Tests {
             cf.Clear();
             cf.Dispose();
             
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
@@ -293,7 +293,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ConfigWithMultipleContainerTest() {
-            var di = new ContainerBuilder(this);
+            var di = new ContainerBuilder();
             di.Scan<ConfigWithMultipleContainer>();
             di.Scan<Basic2>();
             var c = di.Build();

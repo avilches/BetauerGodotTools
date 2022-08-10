@@ -30,11 +30,10 @@ namespace Betauer.DI {
     }
 
     public static class ContainerFunctionExtensions {
-        public static StaticProviderBuilder<Func<T, TResult>> Function<T, TResult>(this ContainerBuilder containerBuilder,
+        public static ContainerBuilder Function<T, TResult>(this ContainerBuilder containerBuilder,
             Func<T, TResult> function) {
-            var builder = new StaticProviderBuilder<Func<T, TResult>>(function);
-            containerBuilder.AddToBuildQueue(builder);
-            return builder;
+            containerBuilder.Static(function);
+            return containerBuilder;
         }
 
         public static Func<T, TResult> ResolveFunction<T, TResult>(this Container container) {

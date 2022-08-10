@@ -14,34 +14,33 @@ namespace Betauer.DI {
             Container = container;
         }
 
-        internal bool IsCached<T>(string[]? aliases) {
-            if (aliases != null && aliases.Length > 0) {
-                if (aliases.Any(alias => _objectsCacheByAlias.ContainsKey(alias))) {
-                    return true;
-                }
-            } 
+        internal bool IsCached<T>(string? alias) {
+            if (alias != null) return _objectsCacheByAlias.ContainsKey(alias);
             return _objectsCache.ContainsKey(typeof(T));
         }
 
-        internal T GetFromCache<T>(string[]? aliases) {
-            if (aliases != null && aliases.Length > 0) {
-                foreach (var alias in aliases) {
-                    if (_objectsCacheByAlias.TryGetValue(alias, out var o)) {
-                        return (T)o;
-                    }
+        internal T GetFromCache<T>(string? alias) {
+            if (alias != null) {
+                if (_objectsCacheByAlias.TryGetValue(alias, out var o)) {
+                    return (T)o;
                 }
             } 
             return (T)_objectsCache[typeof(T)];
         }
 
-        internal void AddInstanceToCache<T>(T o, string[]? aliases) where T : class {
-            if (aliases != null && aliases.Length > 0) {
-                foreach (var alias in aliases) {
-                    _objectsCacheByAlias[alias] = o;
-                }
+        internal void AddInstanceToCache<T>(T o, string? alias) where T : class {
+            if (alias != null) {
+                _objectsCacheByAlias[alias] = o;
             } else {
                 _objectsCache[typeof(T)] = o;
             }
+        }
+    }
+    
+    public class DuplicateServiceException : Exception {
+        public readonly Type Type;
+        public DuplicateServiceException(Type type) : base($"Service already registered: {type.Name}") {
+            Type = type;
         }
     }
 
@@ -49,20 +48,18 @@ namespace Betauer.DI {
         private readonly Dictionary<Type, IProvider> _registry = new Dictionary<Type, IProvider>();
         private readonly Dictionary<string, IProvider> _registryByAlias = new Dictionary<string, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
-        public readonly Node NodeSingletonOwner;
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
 
-        public Container(Node nodeSingletonOwner) {
-            NodeSingletonOwner = nodeSingletonOwner;
+        public Container() {
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
-            Add(new StaticProvider<Container>(new [] { typeof(Container) },this));
+            Add(new StaticProvider<Container>(typeof(Container),this));
         }
 
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
 
-        public Container Build(IList<IProvider> providers) {
+        public Container Build(ICollection<IProvider> providers) {
             foreach (var provider in providers) AddToRegistry(provider);
             foreach (var provider in providers) provider.OnAddToContainer(this);
             foreach (var provider in providers) provider.OnBuildContainer(this);
@@ -85,51 +82,42 @@ namespace Betauer.DI {
         /// <exception cref="Exception"></exception>
         /// <exception cref="DuplicateNameException"></exception>
         private IProvider AddToRegistry(IProvider provider) {
-            if (provider.GetRegisterTypes().Length == 0) {
-                throw new Exception("Provider without types are not allowed");
-            }
-            var aliases = provider.GetAliases();
-            if (aliases != null && aliases.Length > 0) {
+            var alias = provider.GetAlias();
+            if (alias != null) {
                 var registeredTypes = new LinkedList<Type>();
-                foreach (var alias in aliases!) {
-                    if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
+                if (_registryByAlias.ContainsKey(alias)) throw new DuplicateNameException(alias);
                     _registryByAlias[alias] = provider;
-                }
-                foreach (var providerType in provider.GetRegisterTypes()) {
-                    if (!_registry.ContainsKey(providerType)) {
-                        registeredTypes.AddLast(providerType)
-                        _registry[providerType] = provider;
+                    if (provider.Primary || !_registry.ContainsKey(provider.GetRegisterType())) {
+                        registeredTypes.AddLast(provider.GetRegisterType());
+                        _registry[provider.GetRegisterType()] = provider;
                     }
-                }
                 if (_logger.IsEnabled(TraceLevel.Info)) {
                     _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() + " by types: " +
-                                 string.Join(",", registeredTypes) + " - Names: " + string.Join(",", aliases));
+                                 string.Join(",", registeredTypes) + " - Names: " + alias);
                 }
             } else {
-                foreach (var providerType in provider.GetRegisterTypes()) {
-                    _registry[providerType] = provider;
-                }
+                if (_registry.ContainsKey(provider.GetRegisterType())) throw new DuplicateServiceException(provider.GetRegisterType());
+                _registry[provider.GetRegisterType()] = provider;
                 if (_logger.IsEnabled(TraceLevel.Info)) {
                     _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
-                                 " by types: " + string.Join(",", provider.GetRegisterTypes().ToList()));
+                                 " by types: " + provider.GetRegisterType().Name);
                 }
             }
             return provider;
         }
 
-        public bool Contains<T>(Lifetime? lifetime = null) {
-            return Contains(typeof(T), lifetime);
+        public bool Contains<T>(string alias = null) {
+            return Contains(typeof(T), alias);
         }
 
-        public bool Contains(Type type, Lifetime? lifetime = null) {
-            if (_registry.TryGetValue(type, out var o)) {
-                return lifetime == null || o.GetLifetime() == lifetime;
-            }
-            return false;
+        public bool Contains(string alias) {
+            return _registryByAlias.ContainsKey(alias);
         }
-        public bool Contains(string alias, Lifetime? lifetime = null) {
+
+        public bool Contains(Type type, string? alias = null) {
+            if (alias == null) return _registry.ContainsKey(type);
             if (_registryByAlias.TryGetValue(alias, out var o)) {
-                return lifetime == null || o.GetLifetime() == lifetime;
+                return type.IsAssignableFrom(o.GetRegisterType()); // Just check if it can be casted
             }
             return false;
         }
@@ -194,7 +182,7 @@ namespace Betauer.DI {
             TryGetProvider(type, out IProvider? provider);
             if (provider != null) return provider.Get(context ?? new ResolveContext(this));
             if (CreateIfNotFound) {
-                Add(FactoryProviderBuilder.Create(type, Lifetime.Transient).CreateProvider());
+                CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
                 // ReSharper disable once TailRecursiveCall
                 return Resolve(type, context);
             }
