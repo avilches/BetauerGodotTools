@@ -21,19 +21,23 @@ namespace Betauer.DI {
 
     public abstract class BaseProvider<T> : IProvider where T : class {
         public bool Primary { get; }
-        private readonly Type _registeredTypes;
+        private readonly Type _registerType;
         private readonly Type _providerType;
         private readonly string? _alias;
         public string? GetAlias() => _alias;
 
-        public Type GetRegisterType() => _registeredTypes;
+        public Type GetRegisterType() => _registerType;
         public Type GetProviderType() => _providerType;
 
-        public BaseProvider(Type registeredTypes, string? alias, bool primary) {
-            _registeredTypes = registeredTypes;
+        public BaseProvider(Type registerType, string? alias, bool primary) {
+            _registerType = registerType;
             _providerType = typeof(T);
             _alias = alias;
             Primary = primary;
+            if (!registerType.IsAssignableFrom(_providerType)) {
+                throw new InvalidCastException(
+                    $"Can't create a provider of {_providerType.Name} and register with {_registerType}");
+            } 
         }
 
         public abstract Lifetime GetLifetime();
@@ -64,7 +68,7 @@ namespace Betauer.DI {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(FactoryProvider<>));
         private readonly Func<T> _factory;
 
-        protected FactoryProvider(Type registeredTypes, Func<T> factory, string? alias, bool primary) : base(registeredTypes, alias, primary) {
+        protected FactoryProvider(Type registerType, Func<T> factory, string? alias, bool primary) : base(registerType, alias, primary) {
             _factory = factory;
         }
 
@@ -83,7 +87,7 @@ namespace Betauer.DI {
         private bool _isSingletonDefined;
         private T? _singleton;
 
-        public SingletonProvider(Type registeredTypes, Func<T> factory, string? alias = null, bool primary = false) : base(registeredTypes, factory, alias, primary) {
+        public SingletonProvider(Type registerType, Func<T> factory, string? alias = null, bool primary = false) : base(registerType, factory, alias, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
@@ -119,7 +123,7 @@ namespace Betauer.DI {
     }
 
     public class TransientProvider<T> : FactoryProvider<T> where T : class {
-        public TransientProvider(Type registeredTypes, Func<T> factory, string? alias = null, bool primary = false) : base(registeredTypes, factory, alias, primary) {
+        public TransientProvider(Type registerType, Func<T> factory, string? alias = null, bool primary = false) : base(registerType, factory, alias, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
@@ -149,7 +153,7 @@ namespace Betauer.DI {
     public class StaticProvider<T> : BaseProvider<T> where T : class {
         private readonly T _value;
 
-        public StaticProvider(Type registeredTypes, T value, string? alias = null, bool primary = false) : base(registeredTypes, alias, primary) {
+        public StaticProvider(Type registerType, T value, string? alias = null, bool primary = false) : base(registerType, alias, primary) {
             _value = value;
         }
 

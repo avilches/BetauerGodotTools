@@ -27,6 +27,7 @@ namespace Betauer.DI.Tests {
     }
 
     [TestFixture]
+    [Only]
     public class ContainerTests : Node {
         [Test(Description = "ResolveOrNull tests")]
         public void ResolveOrNullTests() {
@@ -51,8 +52,8 @@ namespace Betauer.DI.Tests {
             Assert.That(provider!.Get(new ResolveContext(di)), Is.EqualTo(di));
         }
 
-        [Test(Description = "Types & alias not found")]
-        public void NotFound() {
+        [Test(Description = "Resolve by types & alias not found")]
+        public void NotFoundTests() {
             var di = new Container();
 
             // Not found types fail
@@ -61,8 +62,26 @@ namespace Betauer.DI.Tests {
             Assert.Throws<KeyNotFoundException>(() => di.Resolve("X"));
         }
 
-        [Test(Description = "Types not found -> create transient automatically")]
-        public void CreateTransientIfNotFound() {
+        [Test(Description = "InvalidCastException when register type is not compatible with the provider type")]
+        public void WrongCreatingTests() {
+            TestDelegate[] x = {
+                () => new ContainerBuilder().Static(typeof(Node), new ClassWith1Interface()).Build(),
+                () => new ContainerBuilder().Static(typeof(Node), new ClassWith1Interface(), "P").Build(),
+                () => new ContainerBuilder().Singleton<ClassWith1Interface, IInterface1>().Build(),
+                () => new ContainerBuilder().Singleton<ClassWith1Interface, IInterface1>("P").Build(),
+                () => new ContainerBuilder().Transient<ClassWith1Interface, IInterface1>().Build(),
+                () => new ContainerBuilder().Transient<ClassWith1Interface, IInterface1>("P").Build(),
+                () => new ContainerBuilder().Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton).Build(),
+                () => new ContainerBuilder().Service<ClassWith1Interface, IInterface1>(Lifetime.Transient, "P").Build(),
+            };
+            foreach (var func in x) {
+                Console.WriteLine($"Test #{x}");
+                Assert.Throws<InvalidCastException>(func);
+            }
+        }
+
+        [Test(Description = "CreateIfNotFound: if type is not found, create a new instance automatically (like transient)")]
+        public void CreateTransientIfNotFoundTest() {
             var di = new Container() {
                 CreateIfNotFound = true
             };
@@ -312,23 +331,6 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
 
             Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n3));
-        }
-
-
-        /*
-         * Special
-         */
-
-        [Test(Description = "Register a lambda as instance can be called as method")]
-        public void RegisterFactoryAsInstance() {
-            var di = new ContainerBuilder(this);
-            var n = 0;
-            di.Static<Func<int>>(() => ++n).CreateProvider();
-
-            Func<int> resolve = di.Build().Resolve<Func<int>>();
-
-            Assert.That(resolve(), Is.EqualTo(1));
-            Assert.That(resolve(), Is.EqualTo(2));
         }
     }
 }
