@@ -15,7 +15,6 @@ namespace Betauer.DI.Tests {
     }
 
     [TestFixture]
-    [Only]
     public class ContainerTests : Node {
         [Test(Description = "ResolveOrNull tests")]
         public void ResolveOrNullTests() {

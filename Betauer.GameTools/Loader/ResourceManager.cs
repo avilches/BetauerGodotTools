@@ -52,7 +52,7 @@ namespace Betauer.Loader {
     }
 
     public abstract class ResourceLoaderContainer : ResourceMetadataRegistry {
-        private LinkedList<Action<LoadingContext>>? _onProgressList;
+        public event Action<LoadingContext> OnProgress;
         private Func<Task>? _awaiter;
         private int _maxTime = 100;
         private readonly LinkedList<object> _targets = new LinkedList<object>();
@@ -72,12 +72,6 @@ namespace Betauer.Loader {
             return this;
         }
 
-        public ResourceLoaderContainer OnProgress(Action<LoadingContext> progress) {
-            _onProgressList ??= new LinkedList<Action<LoadingContext>>();
-            _onProgressList.AddLast(progress);
-            return this;
-        }
-
         public ResourceLoaderContainer Bind(params object[] targets) {
             foreach (var target in targets)
                 if (!_targets.Contains(target))
@@ -91,10 +85,9 @@ namespace Betauer.Loader {
         }
 
         public async Task Load(params object[] moreTargets) {
-            var progress = CombineOnProgress(_onProgressList);
             Func<Task> awaiter = _awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
             IEnumerable<object> targets = _targets.Concat(moreTargets);
-            _registry = await Loader.Load(GetResourcesToLoad(targets), progress, awaiter, _maxTime);
+            _registry = await Loader.Load(GetResourcesToLoad(targets), (context) => OnProgress(context), awaiter, _maxTime);
             InjectResources(_registry, targets);
         }
 

@@ -436,37 +436,6 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-        class TestMachineListener : IStateMachineListener<State> {
-            internal List<string> states = new List<string>();
-            public void OnEnter(State state, State from) {
-                states.Add(state + ":enter");
-            }
-
-            public void OnAwake(State state, State from) {
-                states.Add(state + ":awake");
-            }
-
-            public void OnSuspend(State state, State to) {
-                states.Add(state + ":suspend");
-            }
-
-            public void OnExit(State state, State to) {
-                states.Add(state + ":exit");
-            }
-
-            public void OnTransition(State from, State to) {
-                states.Add("from:" + from + "-to:" + to);
-            }
-
-            public void OnExecuteStart(float delta, State state) {
-                states.Add(state + ":execute.start");
-            }
-
-            public void OnExecuteEnd(State state) {
-                states.Add(state + ":execute.end");
-            }
-        }
-
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
             var builder = new StateMachine<State, Trans>(State.Debug).CreateBuilder();
@@ -477,7 +446,16 @@ namespace Betauer.StateMachine.Tests {
             builder.State(State.MainMenu);
             builder.State(State.Debug);
             builder.State(State.Settings);
-            var stateListener = new TestMachineListener();
+            var stateListener = new StateMachineEvents<State>();
+            List<string> states = new List<string>();
+            stateListener.Enter += (State state, State from) => states.Add(state + ":enter");
+            stateListener.Awake += (State state, State from)  => states.Add(state + ":awake");
+            stateListener.Suspend += (State state, State to)  => states.Add(state + ":suspend");
+            stateListener.Exit += (State state, State to)  => states.Add(state + ":exit");
+            stateListener.Transition += (State from, State to)  => states.Add("from:" + from + "-to:" + to);
+            stateListener.ExecuteStart += (float delta, State state)  => states.Add(state + ":execute.start");
+            stateListener.ExecuteEnd += (State state)  => states.Add(state + ":execute.end");
+            
             var sm = builder.AddListener(stateListener).Build();
 
             await sm.Execute(0f);
@@ -486,8 +464,8 @@ namespace Betauer.StateMachine.Tests {
             sm.Enqueue(Trans.Back);
             await sm.Execute(0f);
             // Test listener
-            Console.WriteLine(string.Join(",", stateListener.states));
-            Assert.That(string.Join(",", stateListener.states), Is.EqualTo(
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo(
                 "from:Debug-to:Debug," +
                 "Debug:enter," +
                     "Debug:execute.start,Debug:execute.end," +
