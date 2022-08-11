@@ -90,6 +90,10 @@ namespace Betauer.DI {
             return Register<T, T>(factory, Lifetime.Singleton, name, primary);
         }
 
+        public ContainerBuilder Singleton<TI, T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(factory, Lifetime.Singleton, name, primary);
+        }
+
         public ContainerBuilder Singleton<TI, T>(string? name = null, bool primary = false) where T : class {
             return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary);
         }
@@ -102,6 +106,10 @@ namespace Betauer.DI {
             return Register<T, T>(factory, Lifetime.Transient, name, primary);
         }
 
+        public ContainerBuilder Transient<TI, T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(factory, Lifetime.Transient, name, primary);
+        }
+
         public ContainerBuilder Transient<TI, T>(string? name = null, bool primary = false) where T : class {
             return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary);
         }
@@ -112,6 +120,10 @@ namespace Betauer.DI {
 
         public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
             return Register<T, T>(factory, lifetime, name, primary);
+        }
+
+        public ContainerBuilder Service<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(factory, lifetime, name, primary);
         }
 
         public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {

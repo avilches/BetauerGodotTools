@@ -84,7 +84,6 @@ namespace Betauer.DI {
         private IProvider AddToRegistry(IProvider provider) {
             var name = provider.GetName();
             if (name != null) {
-                var registeredTypes = new LinkedList<Type>();
                 if (_registry.ContainsKey(name)) throw new DuplicateServiceException(name);
                     _registry[name] = provider;
                     if (_logger.IsEnabled(TraceLevel.Info)) {
@@ -92,7 +91,6 @@ namespace Betauer.DI {
                                      ". Name: " + name);
                     }
                     if (provider.Primary || !_fallbackByType.ContainsKey(provider.GetRegisterType())) {
-                        registeredTypes.AddLast(provider.GetRegisterType());
                         _fallbackByType[provider.GetRegisterType()] = provider;
                         if (_logger.IsEnabled(TraceLevel.Info)) {
                             _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
@@ -110,51 +108,46 @@ namespace Betauer.DI {
             return provider;
         }
 
-        public bool Contains<T>(string name = null) {
-            return Contains(typeof(T), name);
-        }
+        public bool Contains(string name) => _registry.ContainsKey(name);
+        public bool Contains<T>() => Contains(typeof(T));
+        public bool Contains<T>(string name) => Contains(typeof(T), name);
+        public bool Contains(Type type) => _registry.ContainsKey(type.FullName) || _fallbackByType.ContainsKey(type);
 
-        public bool Contains(string name) {
-            return _registry.ContainsKey(name);
-        }
-
-        public bool Contains(Type type, string? name = null) {
-            if (name == null) return _registry.ContainsKey(type.FullName) || _fallbackByType.ContainsKey(type);
+        public bool Contains(Type type, string name) {
             if (_registry.TryGetValue(name, out var o)) {
                 return type.IsAssignableFrom(o.GetProviderType()); // Just check if it can be casted
             }
             return false;
         }
 
-        public IProvider GetProvider<T>() {
-            return GetProvider(typeof(T));
+        public IProvider GetProvider(string name) => _registry[name];
+        public IProvider GetProvider<T>() => GetProvider(typeof(T));
+        public IProvider GetProvider<T>(string name) => GetProvider(typeof(T), name);
+        public IProvider GetProvider(Type type) => 
+            _registry.TryGetValue(type.FullName, out var found) ? found : _fallbackByType[type];
+
+        public IProvider GetProvider(Type type, string name) {
+            if (_registry.TryGetValue(name, out var provider)) {
+                return type.IsAssignableFrom(provider.GetProviderType()) ? provider : throw new InvalidCastException();
+            }
+            throw new KeyNotFoundException(name);
         }
 
-        public IProvider GetProvider(Type type) {
-            return _registry.TryGetValue(type.FullName, out var found) ? found : _fallbackByType[type];
-        }
-
-        public IProvider GetProvider(string name) {
-            return _registry[name];
-        }
-
-        public bool TryGetProvider<T>(out IProvider? provider) {
-            return TryGetProvider(typeof(T), out provider);
-        }
-
+        public bool TryGetProvider(string name, out IProvider? provider) => _registry.TryGetValue(name, out provider);
+        public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
+        public bool TryGetProvider<T>(string name, out IProvider? provider) => TryGetProvider(typeof(T), name, out provider);
         public bool TryGetProvider(Type type, out IProvider? provider) {
             var found = _registry.TryGetValue(type.FullName, out provider);
-            if (!found) {
-                found = _fallbackByType.TryGetValue(type, out provider);
-            }
+            if (!found) found = _fallbackByType.TryGetValue(type, out provider);
             if (!found) provider = null;
             return found;
         }
-        
-        public bool TryGetProvider(string type, out IProvider? provider) {
-            var found = _registry.TryGetValue(type, out provider);
-            if (!found) provider = null;
-            return found;
+
+        public bool TryGetProvider(Type type, string name, out IProvider? provider) {
+            var found = _registry.TryGetValue(name, out provider);
+            if (found) return type.IsAssignableFrom(provider.GetProviderType()); // Just check if it can be casted
+            provider = null;
+            return false;
         }
 
         public object Resolve(Type type) => Resolve(type, null);

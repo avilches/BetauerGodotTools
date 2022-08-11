@@ -82,11 +82,8 @@ namespace Betauer.DI.Tests {
             Assert.Throws<MissingMethodException>(() => di.Resolve(typeof(AbstractClass)));
         }
 
-        /*
-         * Static instances
-         */
-        [Test(Description = "Resolve and Contains by type")]
-        public void StaticInstanceTest() {
+        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: type")]
+        public void TypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(ClassWith1Interface),new ClassWith1Interface()).Build(),
                 () => new ContainerBuilder().Static(new ClassWith1Interface()).Build(),
@@ -106,26 +103,34 @@ namespace Betauer.DI.Tests {
                 var c = func();
                 Assert.That(c.Contains<ClassWith1Interface>());
                 Assert.That(!c.Contains<IInterface1>());
-            
+
+                Assert.That(c.GetProvider<ClassWith1Interface>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.Throws<KeyNotFoundException>(() => c.GetProvider<IInterface1>());
+
+                Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
+                Assert.That(provider, Is.Null);
+
                 Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
             }
         }
         
-        [Test(Description = "Register static instances by other type")]
-        public void StaticInstanceOtherTypeTest() {
+        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: othertype")]
+        public void OtherTypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(IInterface1),new ClassWith1Interface()).Build(),
                 () => new ContainerBuilder().Static<IInterface1>(new ClassWith1Interface()).Build(),
                 () => new ContainerBuilder().Singleton<IInterface1, ClassWith1Interface>().Build(),
-                () => new ContainerBuilder().Singleton<IInterface1>(() => new ClassWith1Interface()).Build(),
+                () => new ContainerBuilder().Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface()).Build(),
                 () => new ContainerBuilder().Transient<IInterface1, ClassWith1Interface>().Build(),
-                () => new ContainerBuilder().Transient<IInterface1>(() => new ClassWith1Interface()).Build(),
+                () => new ContainerBuilder().Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface()).Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>().Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton).Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Transient).Build(),
-                () => new ContainerBuilder().Service<IInterface1>(() => new ClassWith1Interface(), Lifetime.Singleton).Build(),
-                () => new ContainerBuilder().Service<IInterface1>(() => new ClassWith1Interface(), Lifetime.Transient).Build(),
+                () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Singleton).Build(),
+                () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Transient).Build(),
             };
             foreach (var func in x) {
                 Console.WriteLine($"Test #{x}");
@@ -133,13 +138,21 @@ namespace Betauer.DI.Tests {
                 Assert.That(!c.Contains<ClassWith1Interface>());
                 Assert.That(c.Contains<IInterface1>());
 
+                Assert.Throws<KeyNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
+                Assert.That(c.GetProvider<IInterface1>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+
+                Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
+                Assert.That(provider, Is.Null);
+                Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
             }
         }
         
-        [Test(Description = "Register static instances by name")]
-        public void StaticInstanceOtherNameTest() {
+        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: name")]
+        public void NameTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(ClassWith1Interface),new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Static(new ClassWith1Interface(), "P").Build(),
@@ -160,7 +173,6 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Contains<IInterface1>("P"));
                 Assert.That(c.Contains<object>("P"));
                 Assert.That(c.Contains("P"));
-
                 Assert.That(c.Contains<ClassWith1Interface>());
                 Assert.That(!c.Contains<IInterface1>());
 
@@ -168,21 +180,44 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
-
                 Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
+
+                Assert.That(c.GetProvider<ClassWith1Interface>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<object>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<ClassWith1Interface>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.Throws<KeyNotFoundException>(() => c.GetProvider<IInterface1>());
+                
+                Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
+                Assert.That(provider, Is.Null);
             }
         }
 
-        [Test(Description = "Register static instances by name and other type")]
-        public void StaticInstanceOtherNameAndTypeTest() {
+        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: name other type")]
+        public void NameOtherTypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(IInterface1),new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Static<IInterface1>(new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Singleton<IInterface1, ClassWith1Interface>("P").Build(),
+                () => new ContainerBuilder().Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P").Build(),
                 () => new ContainerBuilder().Transient<IInterface1, ClassWith1Interface>("P").Build(),
+                () => new ContainerBuilder().Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P").Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton, "P").Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Transient, "P").Build(),
+                () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Singleton, "P").Build(),
+                () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Transient, "P").Build(),
             };
             foreach (var func in x) {
                 Console.WriteLine($"Test #{x}");
@@ -191,41 +226,36 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Contains<IInterface1>("P"));
                 Assert.That(c.Contains<object>("P"));
                 Assert.That(c.Contains("P"));
-                
                 Assert.That(!c.Contains<ClassWith1Interface>());
                 Assert.That(c.Contains<IInterface1>());
+
+                Assert.That(c.GetProvider<ClassWith1Interface>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<object>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.Throws<KeyNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
+                Assert.That(c.GetProvider<IInterface1>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+
+                Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider("P", out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
+                Assert.That(provider, Is.Null);
+                Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
+                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
 
                 Assert.That(c.Resolve<ClassWith1Interface>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
-
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
             }
-        }
-        
-        [Test(Description = "Static tests")]
-        public void StaticTests() {
-            var n1 = new ClassWith1Interface();
-            var n2 = new ClassWith1Interface();
-            var n3 = new ClassWith1Interface();
-            var n4 = new ClassWith1Interface();
-            var b = new ContainerBuilder();
-            b.Static(n1);
-            b.Static<IInterface1>(n2);
-            b.Static(n3, "3");
-            b.Static(n4, "4");
-            var c = b.Build();
-            
-            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
-            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
-            Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(n2));
-            Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(n2));
-            Assert.That(c.Resolve<ClassWith1Interface>("3"), Is.EqualTo(n3));
-            Assert.That(c.Resolve<IInterface1>("3"), Is.EqualTo(n3));
-            Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
-            Assert.That(c.Resolve<IInterface1>("4"), Is.EqualTo(n4));
         }
 
         [Test(Description = "GetAllInstances - no transients")]
@@ -262,6 +292,29 @@ namespace Betauer.DI.Tests {
             Assert.That(c.GetAllInstances<Node>().Count, Is.EqualTo(2));
             Assert.That(c.GetAllInstances<Node2D>().Count, Is.EqualTo(1));
             Assert.That(c.GetAllInstances<object>().Count, Is.EqualTo(6)); // +1 (Include the container)
+        }
+
+        [Test(Description = "Static tests")]
+        public void StaticTests() {
+            var n1 = new ClassWith1Interface();
+            var n2 = new ClassWith1Interface();
+            var n3 = new ClassWith1Interface();
+            var n4 = new ClassWith1Interface();
+            var b = new ContainerBuilder();
+            b.Static(n1);
+            b.Static<IInterface1>(n2);
+            b.Static(n3, "3");
+            b.Static(n4, "4");
+            var c = b.Build();
+            
+            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
+            Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
+            Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(n2));
+            Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(n2));
+            Assert.That(c.Resolve<ClassWith1Interface>("3"), Is.EqualTo(n3));
+            Assert.That(c.Resolve<IInterface1>("3"), Is.EqualTo(n3));
+            Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
+            Assert.That(c.Resolve<IInterface1>("4"), Is.EqualTo(n4));
         }
 
         [Test(Description = "Singleton tests")]
@@ -343,6 +396,7 @@ namespace Betauer.DI.Tests {
             b.Static(n1, "1");
             var c = b.Build();
             Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider("1")));
+            Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider<ClassWith1Interface>("1")));
             var foundByName = c.TryGetProvider<ClassWith1Interface>(out var pName);
             var foundFallback = c.TryGetProvider("1", out var fName);
             Assert.That(foundByName);
