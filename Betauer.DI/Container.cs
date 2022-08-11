@@ -5,33 +5,32 @@ using System.Linq;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        private readonly Dictionary<Type, object> _objectsCache = new Dictionary<Type, object>();
-        private readonly Dictionary<string, object> _objectsCacheByAlias = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> _objectsCache = new Dictionary<string, object>();
         internal readonly Container Container;
 
         public ResolveContext(Container container) {
             Container = container;
         }
 
-        internal bool IsCached(Type type, string? alias) {
-            if (alias != null) return _objectsCacheByAlias.ContainsKey(alias);
-            return _objectsCache.ContainsKey(type);
+        internal bool IsCached(Type type, string? name) {
+            if (name != null) return _objectsCache.ContainsKey(name);
+            return _objectsCache.ContainsKey(type.FullName);
         }
 
-        internal object GetFromCache(Type type, string? alias) {
-            if (alias != null) {
-                if (_objectsCacheByAlias.TryGetValue(alias, out var o)) {
+        internal object GetFromCache(Type type, string? name) {
+            if (name != null) {
+                if (_objectsCache.TryGetValue(name, out var o)) {
                     return o;
                 }
             } 
-            return _objectsCache[type];
+            return _objectsCache[type.FullName];
         }
 
-        internal void AddInstanceToCache(Type type, object o, string? alias) {
-            if (alias != null) {
-                _objectsCacheByAlias[alias] = o;
+        internal void AddInstanceToCache(Type type, object o, string? name) {
+            if (name != null) {
+                _objectsCache[name] = o;
             } else {
-                _objectsCache[type] = o;
+                _objectsCache[type.FullName] = o;
             }
         }
     }
@@ -40,14 +39,13 @@ namespace Betauer.DI {
         public DuplicateServiceException(Type type) : base($"Service already registered. Type: {type.Name}") {
         }
         
-        public DuplicateServiceException(string alias) : base($"Service already registered. Alias: {alias}") {
+        public DuplicateServiceException(string name) : base($"Service already registered. Name: {name}") {
         }
     }
 
     public class Container {
-        private readonly Dictionary<Type, IProvider> _registryByType = new Dictionary<Type, IProvider>();
         private readonly Dictionary<Type, IProvider> _fallbackByType = new Dictionary<Type, IProvider>();
-        private readonly Dictionary<string, IProvider> _registryByAlias = new Dictionary<string, IProvider>();
+        private readonly Dictionary<string, IProvider> _registry = new Dictionary<string, IProvider>();
         private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
@@ -84,42 +82,46 @@ namespace Betauer.DI {
         /// <exception cref="Exception"></exception>
         /// <exception cref="DuplicateNameException"></exception>
         private IProvider AddToRegistry(IProvider provider) {
-            var alias = provider.GetAlias();
-            if (alias != null) {
+            var name = provider.GetName();
+            if (name != null) {
                 var registeredTypes = new LinkedList<Type>();
-                if (_registryByAlias.ContainsKey(alias)) throw new DuplicateServiceException(alias);
-                    _registryByAlias[alias] = provider;
+                if (_registry.ContainsKey(name)) throw new DuplicateServiceException(name);
+                    _registry[name] = provider;
+                    if (_logger.IsEnabled(TraceLevel.Info)) {
+                        _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
+                                     ". Name: " + name);
+                    }
                     if (provider.Primary || !_fallbackByType.ContainsKey(provider.GetRegisterType())) {
                         registeredTypes.AddLast(provider.GetRegisterType());
                         _fallbackByType[provider.GetRegisterType()] = provider;
+                        if (_logger.IsEnabled(TraceLevel.Info)) {
+                            _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
+                                         ". Fallback: " + provider.GetRegisterType().FullName);
+                        }
                     }
-                if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() + " by types: " +
-                                 string.Join(",", registeredTypes) + " - Names: " + alias);
-                }
             } else {
-                if (_registryByType.ContainsKey(provider.GetRegisterType())) throw new DuplicateServiceException(provider.GetRegisterType());
-                _registryByType[provider.GetRegisterType()] = provider;
+                if (_registry.ContainsKey(provider.GetRegisterType().FullName)) throw new DuplicateServiceException(provider.GetRegisterType());
+                _registry[provider.GetRegisterType().FullName] = provider;
                 if (_logger.IsEnabled(TraceLevel.Info)) {
                     _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
-                                 " by types: " + provider.GetRegisterType().Name);
+                                 ". Name: " + provider.GetRegisterType().FullName);
                 }
             }
             return provider;
         }
 
-        public bool Contains<T>(string alias = null) {
-            return Contains(typeof(T), alias);
+        public bool Contains<T>(string name = null) {
+            return Contains(typeof(T), name);
         }
 
-        public bool Contains(string alias) {
-            return _registryByAlias.ContainsKey(alias);
+        public bool Contains(string name) {
+            return _registry.ContainsKey(name);
         }
 
-        public bool Contains(Type type, string? alias = null) {
-            if (alias == null) return _registryByType.ContainsKey(type) || _fallbackByType.ContainsKey(type);
-            if (_registryByAlias.TryGetValue(alias, out var o)) {
-                return type.IsAssignableFrom(o.GetRegisterType()); // Just check if it can be casted
+        public bool Contains(Type type, string? name = null) {
+            if (name == null) return _registry.ContainsKey(type.FullName) || _fallbackByType.ContainsKey(type);
+            if (_registry.TryGetValue(name, out var o)) {
+                return type.IsAssignableFrom(o.GetProviderType()); // Just check if it can be casted
             }
             return false;
         }
@@ -129,11 +131,11 @@ namespace Betauer.DI {
         }
 
         public IProvider GetProvider(Type type) {
-            return _registryByType.TryGetValue(type, out var found) ? found : _fallbackByType[type];
+            return _registry.TryGetValue(type.FullName, out var found) ? found : _fallbackByType[type];
         }
 
-        public IProvider GetProvider(string alias) {
-            return _registryByAlias[alias];
+        public IProvider GetProvider(string name) {
+            return _registry[name];
         }
 
         public bool TryGetProvider<T>(out IProvider? provider) {
@@ -141,7 +143,7 @@ namespace Betauer.DI {
         }
 
         public bool TryGetProvider(Type type, out IProvider? provider) {
-            var found = _registryByType.TryGetValue(type, out provider);
+            var found = _registry.TryGetValue(type.FullName, out provider);
             if (!found) {
                 found = _fallbackByType.TryGetValue(type, out provider);
             }
@@ -150,7 +152,7 @@ namespace Betauer.DI {
         }
         
         public bool TryGetProvider(string type, out IProvider? provider) {
-            var found = _registryByAlias.TryGetValue(type, out provider);
+            var found = _registry.TryGetValue(type, out provider);
             if (!found) provider = null;
             return found;
         }
@@ -175,22 +177,21 @@ namespace Betauer.DI {
 
         public List<T> GetAllInstances<T>() {
             var context = new ResolveContext(this);
-            return _registryByAlias.Values
-                .Concat(_registryByType.Values)
+            return _registry.Values
                 .ToHashSet() // remove duplicates
                 .Where(provider => provider.GetLifetime() == Lifetime.Singleton &&
-                                   typeof(T).IsAssignableFrom(provider.GetRegisterType()))
+                                   typeof(T).IsAssignableFrom(provider.GetProviderType()))
                 .Select(provider => provider.Get(context))
                 .OfType<T>()
                 .ToList();
         }
 
-        public object Resolve(string alias) => Resolve(alias, null);
+        public object Resolve(string name) => Resolve(name, null);
 
-        public T Resolve<T>(string alias) => (T)Resolve(alias, null);
-        public T ResolveOr<T>(string alias, Func<T> or) {
+        public T Resolve<T>(string name) => (T)Resolve(name, null);
+        public T ResolveOr<T>(string name, Func<T> or) {
             try {
-                return (T)Resolve(alias, null);
+                return (T)Resolve(name, null);
             } catch (KeyNotFoundException) {
                 return or();
             }
@@ -211,10 +212,10 @@ namespace Betauer.DI {
             throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
         }
 
-        internal object Resolve(string alias, ResolveContext? context) {
-            TryGetProvider(alias, out IProvider? provider);
+        internal object Resolve(string name, ResolveContext? context) {
+            TryGetProvider(name, out IProvider? provider);
             if (provider != null) return provider.Get(context ?? new ResolveContext(this));
-            throw new KeyNotFoundException($"Service not found. Alias: {alias}");
+            throw new KeyNotFoundException($"Service not found. name: {name}");
         }
 
 

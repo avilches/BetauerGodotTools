@@ -34,8 +34,8 @@ namespace Betauer.DI {
             if (name != null) {
                 name = name.Trim();
                 if (_container.Contains(name)) {
-                    // There is a provider for the alias
-                    _logger.Debug("Injecting field alias '" + name + "' " + getterSetter.Name + " " + getterSetter.Type.Name +
+                    // There is a provider for the name
+                    _logger.Debug("Injecting field name '" + name + "' " + getterSetter.Name + " " + getterSetter.Type.Name +
                                   " in " + target.GetType() + "(" + target.GetHashCode() + ")");
                     var service = _container.Resolve(name, context);
                     getterSetter.SetValue(target, service);
@@ -50,8 +50,8 @@ namespace Betauer.DI {
             } 
             
             if (_container.Contains(getterSetter.Name)) {
-                // There is a provider for the alias
-                _logger.Debug("Injecting field alias '" + getterSetter.Name + "' " + getterSetter.Name + " " + getterSetter.Type.Name +
+                // There is a provider for the name
+                _logger.Debug("Injecting field name '" + getterSetter.Name + "' " + getterSetter.Name + " " + getterSetter.Type.Name +
                               " in " + target.GetType() + "(" + target.GetHashCode() + ")");
                 var service = _container.Resolve(getterSetter.Name, context);
                 getterSetter.SetValue(target, service);

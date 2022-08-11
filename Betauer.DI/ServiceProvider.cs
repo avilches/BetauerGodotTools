@@ -9,7 +9,7 @@ namespace Betauer.DI {
     }
 
     public interface IProvider {
-        public string? GetAlias();
+        public string? GetName();
         public bool Primary { get; }
         public Type GetRegisterType();
         public Type GetProviderType();
@@ -23,20 +23,20 @@ namespace Betauer.DI {
         public bool Primary { get; }
         private readonly Type _registerType;
         private readonly Type _providerType;
-        private readonly string? _alias;
-        public string? GetAlias() => _alias;
+        private readonly string? _name;
+        public string? GetName() => _name;
 
         public Type GetRegisterType() => _registerType;
         public Type GetProviderType() => _providerType;
 
-        public BaseProvider(Type registerType, Type providerType, string? alias, bool primary) {
+        public BaseProvider(Type registerType, Type providerType, string? name, bool primary) {
             if (!registerType.IsAssignableFrom(providerType)) {
                 throw new InvalidCastException(
                     $"Can't create a provider of {providerType.Name} and register with {registerType}");
             } 
             _registerType = registerType;
             _providerType = providerType;
-            _alias = alias;
+            _name = name;
             Primary = primary;
         }
 
@@ -68,7 +68,7 @@ namespace Betauer.DI {
         protected readonly Logger Logger = LoggerFactory.GetLogger(typeof(FactoryProvider));
         private readonly Func<object> _factory;
 
-        protected FactoryProvider(Type registerType, Type providerType, Func<object> factory, string? alias, bool primary) : base(registerType, providerType, alias, primary) {
+        protected FactoryProvider(Type registerType, Type providerType, Func<object> factory, string? name, bool primary) : base(registerType, providerType, name, primary) {
             _factory = factory;
         }
 
@@ -78,7 +78,7 @@ namespace Betauer.DI {
                 Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
                              GetRegisterType().Name + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AddInstanceToCache(GetRegisterType(), instance, GetAlias());
+            context.AddInstanceToCache(GetRegisterType(), instance, GetName());
             return instance;
         }
     }
@@ -87,7 +87,7 @@ namespace Betauer.DI {
         private bool _isSingletonDefined;
         private object? _singleton;
 
-        public SingletonProvider(Type registerType, Type providerType, Func<object> factory, string? alias = null, bool primary = false) : base(registerType, providerType, factory, alias, primary) {
+        public SingletonProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, factory, name, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
@@ -95,8 +95,8 @@ namespace Betauer.DI {
         public override object Get(ResolveContext? context) {
             if (_isSingletonDefined) return _singleton!;
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (context.IsCached(GetRegisterType(), GetAlias())) {
-                object singleton = context.GetFromCache(GetRegisterType(), GetAlias());
+            if (context.IsCached(GetRegisterType(), GetName())) {
+                object singleton = context.GetFromCache(GetRegisterType(), GetName());
                 Logger.Debug("Get from context " + GetLifetime() + " " + singleton.GetType().Name + " exposed as " +
                              GetRegisterType().Name + ": " + singleton.GetHashCode().ToString("X"));
                 return singleton;
@@ -123,7 +123,7 @@ namespace Betauer.DI {
     }
 
     public class TransientProvider : FactoryProvider {
-        public TransientProvider(Type registerType, Type providerType, Func<object> factory, string? alias = null, bool primary = false) : base(registerType, providerType, factory, alias, primary) {
+        public TransientProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, factory, name, primary) {
         }
 
         public override Lifetime GetLifetime() => Lifetime.Transient;
@@ -131,8 +131,8 @@ namespace Betauer.DI {
         public override object Get(ResolveContext context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
             object transient;
-            if (context.IsCached(GetRegisterType(), GetAlias())) {
-                transient = context.GetFromCache(GetRegisterType(), GetAlias());
+            if (context.IsCached(GetRegisterType(), GetName())) {
+                transient = context.GetFromCache(GetRegisterType(), GetName());
                 Logger.Debug("Get from context " + GetLifetime() + " " + transient.GetType().Name + " exposed as " +
                              GetRegisterType().Name + ": " + transient.GetHashCode().ToString("X"));
             } else {
@@ -154,7 +154,7 @@ namespace Betauer.DI {
     public class StaticProvider : BaseProvider {
         private readonly object _value;
 
-        public StaticProvider(Type registerType, Type providerType, object value, string? alias = null, bool primary = false) : base(registerType, providerType, alias, primary) {
+        public StaticProvider(Type registerType, Type providerType, object value, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
             _value = value;
         }
 

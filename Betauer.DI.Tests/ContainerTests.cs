@@ -180,19 +180,14 @@ namespace Betauer.DI.Tests {
                 () => new ContainerBuilder().Static(typeof(IInterface1),new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Static<IInterface1>(new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Singleton<IInterface1, ClassWith1Interface>("P").Build(),
-                () => new ContainerBuilder().Singleton<IInterface1>(() => new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Transient<IInterface1, ClassWith1Interface>("P").Build(),
-                () => new ContainerBuilder().Transient<IInterface1>(() => new ClassWith1Interface(), "P").Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton, "P").Build(),
                 () => new ContainerBuilder().Service<IInterface1, ClassWith1Interface>(Lifetime.Transient, "P").Build(),
-                () => new ContainerBuilder().Service<IInterface1>(() => new ClassWith1Interface(), Lifetime.Singleton, "P").Build(),
-                () => new ContainerBuilder().Service<IInterface1>(() => new ClassWith1Interface(), Lifetime.Transient, "P").Build(),
             };
             foreach (var func in x) {
                 Console.WriteLine($"Test #{x}");
                 var c = func();
-                // Special case! Registered by interface, the contains doesn't know the factory type
-                Assert.That(!c.Contains<ClassWith1Interface>("P"));   
+                Assert.That(c.Contains<ClassWith1Interface>("P"));   
                 Assert.That(c.Contains<IInterface1>("P"));
                 Assert.That(c.Contains<object>("P"));
                 Assert.That(c.Contains("P"));
@@ -257,13 +252,15 @@ namespace Betauer.DI.Tests {
             var b = new ContainerBuilder();
             b.Transient<Node2D>(); // ignored
             b.Singleton<Node>("n1");
-            b.Singleton<Node>("n2");
+            b.Singleton<Node2D>("n2");
             b.Singleton<ClassWith1Interface>("A");
             b.Static<IInterface1>(new ClassWith1Interface(), "B");
             b.Singleton<ClassWith1Interface>();
             var c = b.Build();
-            Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(2));
+            Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(3));
             Assert.That(c.GetAllInstances<IInterface1>().Count, Is.EqualTo(3));
+            Assert.That(c.GetAllInstances<Node>().Count, Is.EqualTo(2));
+            Assert.That(c.GetAllInstances<Node2D>().Count, Is.EqualTo(1));
             Assert.That(c.GetAllInstances<object>().Count, Is.EqualTo(6)); // +1 (Include the container)
         }
 

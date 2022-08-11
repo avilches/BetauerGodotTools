@@ -72,60 +72,60 @@ namespace Betauer.DI {
             return _container;
         }
 
-        public ContainerBuilder Static<T>(T instance, string? alias = null, bool primary = false) where T : class {
-            Register(new StaticProvider(typeof(T), instance.GetType(), instance, alias, primary));
+        public ContainerBuilder Static<T>(T instance, string? name = null, bool primary = false) where T : class {
+            Register(new StaticProvider(typeof(T), instance.GetType(), instance, name, primary));
             return this;
         }
 
-        public ContainerBuilder Static(Type type, object instance, string? alias = null, bool primary = false) {
-            Register(new StaticProvider(type, instance.GetType(), instance, alias, primary));
+        public ContainerBuilder Static(Type type, object instance, string? name = null, bool primary = false) {
+            Register(new StaticProvider(type, instance.GetType(), instance, name, primary));
             return this;
         }
 
-        public ContainerBuilder Singleton<T>(string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, alias, primary);
+        public ContainerBuilder Singleton<T>(string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary);
         }
 
-        public ContainerBuilder Singleton<T>(Func<T> factory, string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, Lifetime.Singleton, alias, primary);
+        public ContainerBuilder Singleton<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, Lifetime.Singleton, name, primary);
         }
 
-        public ContainerBuilder Singleton<TI, T>(string? alias = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, alias, primary);
+        public ContainerBuilder Singleton<TI, T>(string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary);
         }
 
-        public ContainerBuilder Transient<T>(string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, alias, primary);
+        public ContainerBuilder Transient<T>(string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary);
         }
 
-        public ContainerBuilder Transient<T>(Func<T> factory, string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, Lifetime.Transient, alias, primary);
+        public ContainerBuilder Transient<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, Lifetime.Transient, name, primary);
         }
 
-        public ContainerBuilder Transient<TI, T>(string? alias = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, alias, primary);
+        public ContainerBuilder Transient<TI, T>(string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary);
         }
 
-        public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, lifetime, alias, primary);
+        public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, lifetime, name, primary);
         }
 
-        public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, lifetime, alias, primary);
+        public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
+            return Register<T, T>(factory, lifetime, name, primary);
         }
 
-        public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, lifetime, alias, primary);
+        public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, lifetime, name, primary);
         }
 
-        public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? alias, bool primary) where T : class {
-            Register(typeof(TI), typeof(T), factory, lifetime, alias, primary);
+        public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? name, bool primary) where T : class {
+            Register(typeof(TI), typeof(T), factory, lifetime, name, primary);
             return this;
         }
 
-        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? alias = null, bool primary = false) {
-            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, alias, primary));
-            else Register(new TransientProvider(registeredType, type, factory, alias, primary));
+        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) {
+            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, name, primary));
+            else Register(new TransientProvider(registeredType, type, factory, name, primary));
             return this;
         }
         
@@ -172,8 +172,8 @@ namespace Betauer.DI {
                     throw new Exception("Can't use [Configuration] and [Service] in the same class");
                 }
                 var registeredType = serviceAttr.Type ?? type;
-                var alias = serviceAttr.Name;
-                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, alias, serviceAttr.Primary);
+                var name = serviceAttr.Name;
+                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, name, serviceAttr.Primary);
             } else {
                 // No [Service] present in the class, check for [Configuration]
                 if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
