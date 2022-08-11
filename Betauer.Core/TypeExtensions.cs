@@ -31,17 +31,19 @@ namespace Betauer {
         public readonly Type Type;
         public readonly string Name;
         public readonly Func<object?, object?> GetValue;
+        public readonly MemberInfo MemberInfo;
         
-        public Getter(MemberInfo member) {
-            if (member is PropertyInfo property) {
+        public Getter(MemberInfo memberInfo) {
+            MemberInfo = memberInfo;
+            if (memberInfo is PropertyInfo property) {
                 Type = property.PropertyType;
                 Name = property.Name;
                 GetValue = property.GetValue;
-            } else if (member is FieldInfo field) {
+            } else if (memberInfo is FieldInfo field) {
                 Type = field.FieldType;
                 Name = field.Name;
                 GetValue = field.GetValue;
-            } else if (member is MethodInfo method) {
+            } else if (memberInfo is MethodInfo method) {
                 Type = method.ReturnType;
                 Name = method.Name;
                 GetValue = (instance) => method.Invoke(instance, Array.Empty<object>());
@@ -54,7 +56,7 @@ namespace Betauer {
     public class Getter<T> : Getter {
         public readonly T Attribute;
 
-        public Getter(MemberInfo member, T attribute) : base(member) {
+        public Getter(MemberInfo memberInfo, T attribute) : base(memberInfo) {
             Attribute = attribute;
         }
     }
