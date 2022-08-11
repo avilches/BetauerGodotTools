@@ -89,6 +89,96 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
         }
 
+        [Service(Primary = true)]
+        public class PrimaryClass {
+        }
+        
+        [Service]
+        [Primary]
+        public class PrimaryTagClass {
+        }
+        
+        [Service]
+        public class NonPrimaryClass {
+        }
+
+        public class DummyClass {
+        }
+
+        [Configuration]
+        [Scan(typeof(PrimaryClass), typeof(PrimaryTagClass))]
+        [Scan(typeof(NonPrimaryClass))]
+        public class PrimaryConfiguration {
+            [Service] private DummyClass noPrimary => new DummyClass();
+            [Service] [Primary] private DummyClass primaryTag => new DummyClass();
+            [Service(Primary = true)] private DummyClass primary => new DummyClass();
+        }
+
+        [Test(Description = "Check Primary attribute")]
+        public void CheckPrimaryAttribute() {
+            var di = new ContainerBuilder();
+            di.Scan<PrimaryConfiguration>();
+            var c = di.Build();
+            Assert.That(c.GetProvider<PrimaryClass>().Primary, Is.True);
+            Assert.That(c.GetProvider<PrimaryTagClass>().Primary, Is.True);
+            Assert.That(c.GetProvider<NonPrimaryClass>().Primary, Is.False);
+            
+            Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
+            Assert.That(c.GetProvider("primaryTag").Primary, Is.True);
+            Assert.That(c.GetProvider("primary").Primary, Is.True);
+                
+        }
+        
+        [Service]
+        public class NoLazyClass {
+        }
+        
+        [Service(Lazy = true)]
+        public class LazyClass {
+        }
+        
+        [Service(Lifetime.Transient, Lazy = true)]
+        public class TransientLazyClass {
+        }
+        
+        [Service]
+        [Lazy]
+        public class LazyTagClass {
+        }
+        
+        [Service(Lifetime.Transient, Lazy = false)]
+        public class TransientLazyTagClass {
+        }
+        
+        [Configuration]
+        [Scan(typeof(LazyClass), typeof(LazyTagClass), typeof(TransientLazyClass))]
+        [Scan(typeof(TransientLazyTagClass), typeof(NoLazyClass))]
+        public class LazyConfiguration {
+            [Service] private DummyClass noLazy => new DummyClass();
+            [Service] [Lazy] private DummyClass lazyTag => new DummyClass();
+            [Service(Lifetime.Transient)] [Lazy] private DummyClass transientLazyTag => new DummyClass();
+            [Service(Lazy = true)] private DummyClass lazy => new DummyClass();
+            [Service(Lifetime.Transient, Lazy = true)] private DummyClass transientLazy => new DummyClass();
+        }
+
+        [Test(Description = "Check Lazy attribute")]
+        public void CheckLazyAttribute() {
+            var di = new ContainerBuilder();
+            di.Scan<LazyConfiguration>();
+            var c = di.Build();
+            Assert.That(c.GetProvider<NoLazyClass>().Lazy, Is.False);
+            Assert.That(c.GetProvider<LazyClass>().Lazy, Is.True);
+            Assert.That(c.GetProvider<TransientLazyClass>().Lazy, Is.True);
+            Assert.That(c.GetProvider<LazyTagClass>().Lazy, Is.True);
+            Assert.That(c.GetProvider<TransientLazyTagClass>().Lazy, Is.True);
+            
+            Assert.That(c.GetProvider("noLazy").Lazy, Is.False);
+            Assert.That(c.GetProvider("lazyTag").Lazy, Is.True);
+            Assert.That(c.GetProvider("transientLazyTag").Lazy, Is.True);
+            Assert.That(c.GetProvider("lazy").Lazy, Is.True);
+            Assert.That(c.GetProvider("transientLazy").Lazy, Is.True);
+        }
+
         public interface I1 { }
         public interface I2 { }
 
@@ -318,7 +408,7 @@ namespace Betauer.DI.Tests {
 
         [Service(Name = "M1")] public class MultipleImpl1ByName : IMultipleImpByName {}
         [Service(Name = "M2")] public class MultipleImpl2ByName : IMultipleImpByName {}
-        [Service(Lifetime.Transient, "M3")]
+        [Service(Lifetime.Transient, Name = "M3")]
         public class MultipleImpl3ByName : IMultipleImpByName {
             public static int Created = 0;
 
@@ -511,7 +601,7 @@ namespace Betauer.DI.Tests {
             private Hold Hold1 => new Hold("1");
             
             // Property with Name
-            [Service(Lifetime.Transient, "Hold2")]
+            [Service(Lifetime.Transient, Name = "Hold2")]
             private Hold _hold2 => new Hold("2");
 
             // Method
@@ -521,7 +611,7 @@ namespace Betauer.DI.Tests {
             }
 
             // Method with name
-            [Service(Lifetime.Transient, "Hold4")]
+            [Service(Lifetime.Transient, Name = "Hold4")]
             public Hold Hold4() {
                 return new Hold("4");
             }

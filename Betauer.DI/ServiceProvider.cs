@@ -11,6 +11,7 @@ namespace Betauer.DI {
     public interface IProvider {
         public string? GetName();
         public bool Primary { get; }
+        public bool Lazy { get; }
         public Type GetRegisterType();
         public Type GetProviderType();
         public Lifetime GetLifetime();
@@ -25,6 +26,7 @@ namespace Betauer.DI {
         private readonly Type _providerType;
         private readonly string? _name;
         public string? GetName() => _name;
+        public abstract bool Lazy { get; }
 
         public Type GetRegisterType() => _registerType;
         public Type GetProviderType() => _providerType;
@@ -84,16 +86,18 @@ namespace Betauer.DI {
     }
 
     public class SingletonProvider : FactoryProvider {
-        private bool _isSingletonDefined;
-        private object? _singleton;
+        public bool IsSingletonCreated { get; private set; }
+        public override bool Lazy { get; }
+        public object? SingletonInstance;
 
-        public SingletonProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, factory, name, primary) {
+        public SingletonProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false, bool lazy = false) : base(registerType, providerType, factory, name, primary) {
+            Lazy = lazy;
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
         public override object Get(ResolveContext? context) {
-            if (_isSingletonDefined) return _singleton!;
+            if (IsSingletonCreated) return SingletonInstance!;
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.IsCached(GetRegisterType(), GetName())) {
                 object singleton = context.GetFromCache(GetRegisterType(), GetName());
@@ -103,11 +107,11 @@ namespace Betauer.DI {
             }
             lock (this) {
                 // Just in case another thread was waiting for the lock
-                if (_isSingletonDefined) return _singleton!;
-                _singleton = CreateNewInstance(GetLifetime(), context);
-                _isSingletonDefined = true;
+                if (IsSingletonCreated) return SingletonInstance!;
+                SingletonInstance = CreateNewInstance(GetLifetime(), context);
+                IsSingletonCreated = true;
             }
-            return _singleton;
+            return SingletonInstance;
         }
 
         public override void OnAddToContainer(Container container) {
@@ -117,12 +121,14 @@ namespace Betauer.DI {
         }
 
         public override void OnBuildContainer(Container container) {
-            ExecutePostCreateMethods(_singleton);
-            container.ExecuteOnCreate(Lifetime.Singleton, _singleton);
+            ExecutePostCreateMethods(SingletonInstance);
+            container.ExecuteOnCreate(Lifetime.Singleton, SingletonInstance);
         }
     }
 
     public class TransientProvider : FactoryProvider {
+        public override bool Lazy => true;
+
         public TransientProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, factory, name, primary) {
         }
 
@@ -152,16 +158,17 @@ namespace Betauer.DI {
     }
 
     public class StaticProvider : BaseProvider {
-        private readonly object _value;
+        public readonly object StaticInstance;
+        public override bool Lazy => false;
 
-        public StaticProvider(Type registerType, Type providerType, object value, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
-            _value = value;
+        public StaticProvider(Type registerType, Type providerType, object staticInstance, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
+            StaticInstance = staticInstance;
         }
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
         public override object Get(ResolveContext? context) {
-            return _value;
+            return StaticInstance;
         }
 
         public override void OnAddToContainer(Container container) {

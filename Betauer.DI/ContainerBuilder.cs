@@ -9,10 +9,10 @@ namespace Betauer.DI {
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ScanAttribute : Attribute {
-        public Type Type { get; set; }
+        public Type[] Types { get; set; }
 
-        public ScanAttribute(Type type) {
-            Type = type;
+        public ScanAttribute(params Type[] types) {
+            Types = types;
         }
     }
 
@@ -25,31 +25,30 @@ namespace Betauer.DI {
         public Type? Type { get; set; }
         public string? Name { get; set; }
         public bool Primary { get; set; } = false;
+        public bool Lazy { get; set; } = false;
         public Lifetime Lifetime { get; set; } = Lifetime.Singleton;
 
         public ServiceAttribute() {
         }
 
-        public ServiceAttribute(Lifetime lifetime, string name = null, bool primary = false) {
+        public ServiceAttribute(Lifetime lifetime) {
             Lifetime = lifetime;
-            Name = name;
-            Primary = primary;
         }
 
-        public ServiceAttribute(Lifetime lifetime, Type type) {
-            Lifetime = lifetime;
-            Type = type;
-        }
-
-        public ServiceAttribute(string name, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
+        public ServiceAttribute(string name) {
             Name = name;
-            Lifetime = lifetime;
-            Primary = primary;
         }
-        public ServiceAttribute(Type type, Lifetime lifetime = Lifetime.Singleton) {
+        public ServiceAttribute(Type type) {
             Type = type;
-            Lifetime = lifetime;
         }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
+    public class PrimaryAttribute : Attribute {
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
+    public class LazyAttribute : Attribute {
     }
 
     public class ContainerBuilder {
@@ -82,61 +81,61 @@ namespace Betauer.DI {
             return this;
         }
 
-        public ContainerBuilder Singleton<T>(string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary);
+        public ContainerBuilder Singleton<T>(string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary, lazy);
         }
 
-        public ContainerBuilder Singleton<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, Lifetime.Singleton, name, primary);
+        public ContainerBuilder Singleton<T>(Func<T> factory, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<T, T>(factory, Lifetime.Singleton, name, primary, lazy);
         }
 
-        public ContainerBuilder Singleton<TI, T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(factory, Lifetime.Singleton, name, primary);
+        public ContainerBuilder Singleton<TI, T>(Func<T> factory, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<TI, T>(factory, Lifetime.Singleton, name, primary, lazy);
         }
 
-        public ContainerBuilder Singleton<TI, T>(string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary);
+        public ContainerBuilder Singleton<TI, T>(string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary, lazy);
         }
 
         public ContainerBuilder Transient<T>(string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary);
+            return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary, false);
         }
 
         public ContainerBuilder Transient<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, Lifetime.Transient, name, primary);
+            return Register<T, T>(factory, Lifetime.Transient, name, primary, false);
         }
 
         public ContainerBuilder Transient<TI, T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(factory, Lifetime.Transient, name, primary);
+            return Register<TI, T>(factory, Lifetime.Transient, name, primary, false);
         }
 
         public ContainerBuilder Transient<TI, T>(string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary);
+            return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary, false);
         }
 
-        public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(Activator.CreateInstance<T>, lifetime, name, primary);
+        public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<T, T>(Activator.CreateInstance<T>, lifetime, name, primary, lazy);
         }
 
-        public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
-            return Register<T, T>(factory, lifetime, name, primary);
+        public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<T, T>(factory, lifetime, name, primary, lazy);
         }
 
-        public ContainerBuilder Service<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(factory, lifetime, name, primary);
+        public ContainerBuilder Service<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<TI, T>(factory, lifetime, name, primary, lazy);
         }
 
-        public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) where T : class {
-            return Register<TI, T>(Activator.CreateInstance<T>, lifetime, name, primary);
+        public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Register<TI, T>(Activator.CreateInstance<T>, lifetime, name, primary, lazy);
         }
 
-        public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? name, bool primary) where T : class {
-            Register(typeof(TI), typeof(T), factory, lifetime, name, primary);
+        public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? name, bool primary, bool lazy = false) where T : class {
+            Register(typeof(TI), typeof(T), factory, lifetime, name, primary, lazy);
             return this;
         }
 
-        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false) {
-            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, name, primary));
+        public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) {
+            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, name, primary, lazy));
             else Register(new TransientProvider(registeredType, type, factory, name, primary));
             return this;
         }
@@ -166,31 +165,34 @@ namespace Betauer.DI {
 
         public ContainerBuilder Scan<T>() => Scan(typeof(T));
 
-        public ContainerBuilder Scan(Type type) => _Scan(type, null);  
+        public ContainerBuilder Scan(Type type) => _Scan(type, null);
 
+
+        private static bool Has<T>(MemberInfo type) => Attribute.GetCustomAttribute(type, typeof(T), false) is T;
+        
         private ContainerBuilder _Scan(Type type, HashSet<Type>? stack) {
             // Look up for [Scan(typeof(...)]
             foreach (var importAttribute in Attribute.GetCustomAttributes(type, typeof(ScanAttribute), false)) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
-                var typeToImport = ((ScanAttribute)importAttribute).Type;
-                if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
+                foreach (var typeToImport in ((ScanAttribute)importAttribute).Types) {
+                    if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
+                }
             }
             
             // Look up for [Service]
             if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
-                if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute),
-                        false) is ConfigurationAttribute) {
+                if (Has<ConfigurationAttribute>(type)) 
                     throw new Exception("Can't use [Configuration] and [Service] in the same class");
-                }
                 var registeredType = serviceAttr.Type ?? type;
                 var name = serviceAttr.Name;
-                Register(registeredType, type, () => Activator.CreateInstance(type), serviceAttr.Lifetime, name, serviceAttr.Primary);
+                var primary = serviceAttr.Primary || Has<PrimaryAttribute>(type);
+                var lazy = serviceAttr.Lazy || Has<LazyAttribute>(type);
+                Func<object> factory = () => Activator.CreateInstance(type);
+                Register(registeredType, type, factory, serviceAttr.Lifetime, name, primary, lazy);
             } else {
                 // No [Service] present in the class, check for [Configuration]
-                if (Attribute.GetCustomAttribute(type, typeof(ConfigurationAttribute), false) is ConfigurationAttribute) {
-                    RegisterConfigurationServices(type, null);
-                }
+                if (Has<ConfigurationAttribute>(type)) RegisterConfigurationServices(type, null);
             }
             return this;
         }
@@ -202,14 +204,20 @@ namespace Betauer.DI {
 
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-        private void RegisterConfigurationServices(Type type, object? instance) {
+        private void RegisterConfigurationServices(Type configurationType, object? instance) {
             var conf = instance;
-            foreach (var getter in type.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
-                Register(getter.Attribute.Type ?? getter.Type, getter.Type, () => {
-                        conf ??= Activator.CreateInstance(type); 
-                        return getter.GetValue(conf);
-                    }, 
-                    getter.Attribute.Lifetime, getter.Attribute.Name ?? getter.Name, getter.Attribute.Primary);
+            foreach (var getter in configurationType.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
+                var serviceAttr = getter.Attribute;
+                var type = getter.Type;
+                var registeredType = serviceAttr.Type ?? type;
+                var name = serviceAttr.Name?? getter.Name;
+                var primary = serviceAttr.Primary || Has<PrimaryAttribute>(getter.MemberInfo);
+                var lazy = serviceAttr.Lazy || Has<LazyAttribute>(getter.MemberInfo);
+                Func<object> factory = () => {
+                    conf ??= Activator.CreateInstance(configurationType);
+                    return getter.GetValue(conf);
+                };
+                Register(registeredType, type, factory, serviceAttr.Lifetime, name , primary, lazy);
             }
         }
     }
