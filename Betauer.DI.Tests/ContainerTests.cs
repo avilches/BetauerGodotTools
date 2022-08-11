@@ -20,7 +20,8 @@ namespace Betauer.DI.Tests {
         [Test(Description = "ResolveOrNull tests")]
         public void ResolveOrNullTests() {
             var di = new Container();
-            Assert.That(di.ResolveOr(typeof(string), () => "X"), Is.EqualTo("X"));
+            var c = new ClassWith1Interface();
+            Assert.That(di.ResolveOr<IInterface1>(() => c), Is.EqualTo(c));
             Assert.That(di.ResolveOr(() => "X"), Is.EqualTo("X"));
             Assert.That(di.ResolveOr("O", () => "X"), Is.EqualTo("X"));
         }
@@ -472,6 +473,48 @@ namespace Betauer.DI.Tests {
             Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
 
             Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n3));
+        }
+
+        [Test(Description = "Lazy tests")]
+        public void LazyTest() {
+            var b = new ContainerBuilder();
+            b.Singleton<ClassWith1Interface>("NoLazy1");
+            b.Singleton<ClassWith1Interface>("NoLazy2");
+            b.Singleton<ClassWith1Interface>("Lazy1", false, true);
+            b.Singleton<ClassWith1Interface>("Lazy2", false, true);
+            var c = b.Build();
+            
+            var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonProvider;
+            var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonProvider;
+            var lazy1Provider = c.GetProvider("Lazy1") as SingletonProvider;
+            var lazy2Provider = c.GetProvider("Lazy2") as SingletonProvider;
+            
+            Assert.That(noLazy1Provider.Lazy, Is.False);
+            Assert.That(noLazy1Provider.IsSingletonCreated, Is.True);
+            Assert.That(noLazy1Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            
+            Assert.That(noLazy2Provider.Lazy, Is.False);
+            Assert.That(noLazy2Provider.IsSingletonCreated, Is.True);
+            Assert.That(noLazy2Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+
+            Assert.That(lazy1Provider.Lazy, Is.True);
+            Assert.That(lazy1Provider.IsSingletonCreated, Is.False);
+            Assert.That(lazy1Provider.SingletonInstance, Is.Null);
+            Assert.That(lazy2Provider.Lazy, Is.True);
+            Assert.That(lazy2Provider.IsSingletonCreated, Is.False);
+            Assert.That(lazy2Provider.SingletonInstance, Is.Null);
+
+            c.Resolve("Lazy1");
+            Assert.That(lazy1Provider.Lazy, Is.True);
+            Assert.That(lazy1Provider.IsSingletonCreated, Is.True);
+            Assert.That(lazy1Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(lazy2Provider.Lazy, Is.True);
+
+            c.Resolve("Lazy2");
+            Assert.That(lazy2Provider.Lazy, Is.True);
+            Assert.That(lazy2Provider.IsSingletonCreated, Is.True);
+            Assert.That(lazy2Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+
         }
 
         [Test(Description = "Test OnCreate")]

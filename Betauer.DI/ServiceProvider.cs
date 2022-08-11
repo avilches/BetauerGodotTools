@@ -1,6 +1,4 @@
 using System;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
 
 namespace Betauer.DI {
     public enum Lifetime {
@@ -16,8 +14,6 @@ namespace Betauer.DI {
         public Type GetProviderType();
         public Lifetime GetLifetime();
         public object Get(ResolveContext? context);
-        public void OnAddToContainer(Container container);
-        public void OnBuildContainer(Container container);
     }
 
     public abstract class BaseProvider : IProvider {
@@ -43,27 +39,7 @@ namespace Betauer.DI {
         }
 
         public abstract Lifetime GetLifetime();
-        public abstract object Get(ResolveContext? context);
-        public abstract void OnAddToContainer(Container container);
-        public abstract void OnBuildContainer(Container container);
-        
-        internal static void ExecutePostCreateMethods<T>(T instance) {
-            var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var method in methods) {
-                if (Attribute.GetCustomAttribute(method, typeof(PostCreateAttribute), false) is PostCreateAttribute) {
-                    if (method.GetParameters().Length == 0) {
-                        try {
-                            method.Invoke(instance, new object[] { });
-                        } catch (TargetInvocationException e) {
-                            ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-                        }
-                    } else {
-                        throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
-                    }
-                }
-            }
-        }
-
+        public abstract object Get(ResolveContext context);
     }
 
     public abstract class FactoryProvider: BaseProvider {
@@ -96,7 +72,7 @@ namespace Betauer.DI {
 
         public override Lifetime GetLifetime() => Lifetime.Singleton;
 
-        public override object Get(ResolveContext? context) {
+        public override object Get(ResolveContext context) {
             if (IsSingletonCreated) return SingletonInstance!;
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.IsCached(GetRegisterType(), GetName())) {
@@ -110,19 +86,9 @@ namespace Betauer.DI {
                 if (IsSingletonCreated) return SingletonInstance!;
                 SingletonInstance = CreateNewInstance(GetLifetime(), context);
                 IsSingletonCreated = true;
+                context.Container.InjectAllFields(SingletonInstance, context);
             }
             return SingletonInstance;
-        }
-
-        public override void OnAddToContainer(Container container) {
-            var context = new ResolveContext(container);
-            var instance = Get(context);
-            container.InjectAllFields(instance, context);
-        }
-
-        public override void OnBuildContainer(Container container) {
-            ExecutePostCreateMethods(SingletonInstance);
-            container.ExecuteOnCreate(Lifetime.Singleton, SingletonInstance);
         }
     }
 
@@ -144,16 +110,10 @@ namespace Betauer.DI {
             } else {
                 transient = CreateNewInstance(GetLifetime(), context);
                 context.Container.InjectAllFields(transient, context);
-                ExecutePostCreateMethods(transient);
+                Container.ExecutePostCreateMethods(transient);
                 context.Container.ExecuteOnCreate(Lifetime.Transient, transient);
             }
             return transient;
-        }
-
-        public override void OnAddToContainer(Container container) {
-        }
-
-        public override void OnBuildContainer(Container container) {
         }
     }
 
@@ -169,12 +129,6 @@ namespace Betauer.DI {
 
         public override object Get(ResolveContext? context) {
             return StaticInstance;
-        }
-
-        public override void OnAddToContainer(Container container) {
-        }
-
-        public override void OnBuildContainer(Container container) {
         }
     }
 }

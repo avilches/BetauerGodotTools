@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        private readonly Dictionary<string, object> _objectsCache = new Dictionary<string, object>();
+        internal readonly Dictionary<string, object> ObjectsCache = new Dictionary<string, object>();
         internal readonly Container Container;
 
         public ResolveContext(Container container) {
@@ -13,24 +15,31 @@ namespace Betauer.DI {
         }
 
         internal bool IsCached(Type type, string? name) {
-            if (name != null) return _objectsCache.ContainsKey(name);
-            return _objectsCache.ContainsKey(type.FullName);
+            if (name != null) return ObjectsCache.ContainsKey(name);
+            return ObjectsCache.ContainsKey(type.FullName);
         }
 
         internal object GetFromCache(Type type, string? name) {
             if (name != null) {
-                if (_objectsCache.TryGetValue(name, out var o)) {
+                if (ObjectsCache.TryGetValue(name, out var o)) {
                     return o;
                 }
             } 
-            return _objectsCache[type.FullName];
+            return ObjectsCache[type.FullName];
         }
 
         internal void AddInstanceToCache(Type type, object o, string? name) {
             if (name != null) {
-                _objectsCache[name] = o;
+                ObjectsCache[name] = o;
             } else {
-                _objectsCache[type.FullName] = o;
+                ObjectsCache[type.FullName] = o;
+            }
+        }
+
+        internal void End() {
+            foreach (var instance in ObjectsCache.Values) {
+                Container.ExecutePostCreateMethods(instance);
+                Container.ExecuteOnCreate(Lifetime.Singleton, instance);
             }
         }
     }
@@ -61,15 +70,29 @@ namespace Betauer.DI {
 
         public Container Build(ICollection<IProvider> providers) {
             foreach (var provider in providers) AddToRegistry(provider);
-            foreach (var provider in providers) provider.OnAddToContainer(this);
-            foreach (var provider in providers) provider.OnBuildContainer(this);
+            foreach (var provider in providers) {
+                if (!provider.Lazy && provider is SingletonProvider sp && !sp.IsSingletonCreated) {
+                    var context = new ResolveContext(this);
+                    try {
+                        provider.Get(context);
+                    } finally {
+                        context.End();
+                    }
+                }
+            }
             return this;
         }
 
         public IProvider Add(IProvider provider) {
             AddToRegistry(provider);
-            provider.OnAddToContainer(this);
-            provider.OnBuildContainer(this);
+            if (!provider.Lazy) {
+                var context = new ResolveContext(this);
+                try {
+                    provider.Get(context);
+                } finally {
+                    context.End();
+                }
+            }
             return provider;
         }
         /// <summary>
@@ -150,43 +173,61 @@ namespace Betauer.DI {
             return false;
         }
 
-        public object Resolve(Type type) => Resolve(type, null);
-        public object ResolveOr(Type type, Func<object> or) {
+        public T Resolve<T>() => (T)Resolve(typeof(T));
+        public object Resolve(Type type) {
+            var context = new ResolveContext(this);
             try {
-                return Resolve(type, null);
-            } catch (KeyNotFoundException) {
-                return or();
+                return Resolve(type, context);
+            } finally {
+                context.End();
             }
         }
 
-        public T Resolve<T>() => (T)Resolve(typeof(T), null);
-        public T ResolveOr<T>(Func<T> or) {
+        public T Resolve<T>(string name) => (T)Resolve(name);
+        public object Resolve(string name) {
+            var context = new ResolveContext(this);
             try {
-                return (T)Resolve(typeof(T), null);
+                return Resolve(name, context);
+            } finally {
+                context.End();
+            }
+        }
+
+        public T ResolveOr<T>(Func<T> or) {
+            var context = new ResolveContext(this);
+            try {
+                return (T)Resolve(typeof(T), context);
             } catch (KeyNotFoundException) {
                 return or();
+            } finally {
+                context.End();
+            }
+        }
+
+        public T ResolveOr<T>(string name, Func<T> or) {
+            var context = new ResolveContext(this);
+            try {
+                return (T)Resolve(name, context);
+            } catch (KeyNotFoundException) {
+                return or();
+            } finally {
+                context.End();
             }
         }
 
         public List<T> GetAllInstances<T>() {
             var context = new ResolveContext(this);
-            return _registry.Values
-                .ToHashSet() // remove duplicates
-                .Where(provider => provider.GetLifetime() == Lifetime.Singleton &&
-                                   typeof(T).IsAssignableFrom(provider.GetProviderType()))
-                .Select(provider => provider.Get(context))
-                .OfType<T>()
-                .ToList();
-        }
-
-        public object Resolve(string name) => Resolve(name, null);
-
-        public T Resolve<T>(string name) => (T)Resolve(name, null);
-        public T ResolveOr<T>(string name, Func<T> or) {
             try {
-                return (T)Resolve(name, null);
-            } catch (KeyNotFoundException) {
-                return or();
+                var instances = _registry.Values
+                    .ToHashSet() // remove duplicates
+                    .Where(provider => provider.GetLifetime() == Lifetime.Singleton &&
+                                       typeof(T).IsAssignableFrom(provider.GetProviderType()))
+                    .Select(provider => provider.Get(context))
+                    .OfType<T>()
+                    .ToList();
+                return instances;
+            } finally {
+                context.End();
             }
         }
 
@@ -194,9 +235,26 @@ namespace Betauer.DI {
             OnCreate?.Invoke(lifetime, instance);
         }
 
-        internal object Resolve(Type type, ResolveContext? context) {
+        internal static void ExecutePostCreateMethods<T>(T instance) {
+            var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var method in methods) {
+                if (Attribute.GetCustomAttribute(method, typeof(PostCreateAttribute), false) is PostCreateAttribute) {
+                    if (method.GetParameters().Length == 0) {
+                        try {
+                            method.Invoke(instance, new object[] { });
+                        } catch (TargetInvocationException e) {
+                            ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                        }
+                    } else {
+                        throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
+                    }
+                }
+            }
+        }
+        
+        internal object Resolve(Type type, ResolveContext context) {
             TryGetProvider(type, out IProvider? provider);
-            if (provider != null) return provider.Get(context ?? new ResolveContext(this));
+            if (provider != null) return provider.Get(context);
             if (CreateIfNotFound) {
                 CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
                 // ReSharper disable once TailRecursiveCall
@@ -205,15 +263,20 @@ namespace Betauer.DI {
             throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
         }
 
-        internal object Resolve(string name, ResolveContext? context) {
+        internal object Resolve(string name, ResolveContext context) {
             TryGetProvider(name, out IProvider? provider);
-            if (provider != null) return provider.Get(context ?? new ResolveContext(this));
+            if (provider != null) return provider.Get(context);
             throw new KeyNotFoundException($"Service not found. name: {name}");
         }
 
 
         public void InjectAllFields(object o) {
-            InjectAllFields(o, new ResolveContext(this));
+            var context = new ResolveContext(this);
+            try {
+                InjectAllFields(o, context);
+            } finally {
+                context.End();
+            }
         }
 
         internal void InjectAllFields(object o, ResolveContext context) {
