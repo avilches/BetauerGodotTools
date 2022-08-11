@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Signal;
@@ -30,23 +31,19 @@ namespace DemoAnimation.Game.Managers {
 
         private readonly Launcher _launcher = new Launcher();
 
-        [Inject] private InputManager _inputManager;
-        [Inject] private SettingsManager _settingsManager;
+        [Inject] private ScreenSettingsManager _screenSettingsManager;
         [Inject] private SceneTree _sceneTree;
 
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
         public GameManager() : base(State.Init) {
             var builder = CreateBuilder();
             builder.On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
             builder.State(State.Init)
                 .Enter(() => {
-                    var defaults = new ApplicationConfig.UserSettings();
-                    var userSettingsFile = new SettingsFile(defaults, _inputManager.ConfigurableActionList);
-                    _settingsManager.Load(userSettingsFile);
-                    _settingsManager.Start(_sceneTree, ApplicationConfig.Configuration);
+                    _screenSettingsManager.Setup();
                     _launcher.WithParent(_sceneTree.Root);
                     _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn")
                         .Instance();

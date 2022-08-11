@@ -56,9 +56,9 @@ namespace DemoAnimation.Game.Controller.Menu {
         [Inject] private GameManager _gameManager;
         private readonly Launcher _launcher = new Launcher();
 
-        [Inject] private ActionState UiAccept;
-        [Inject] private ActionState UiCancel;
-        [Inject] private ActionState UiStart;
+        [Inject] private InputAction UiAccept;
+        [Inject] private InputAction UiCancel;
+        [Inject] private InputAction UiStart;
 
         private Restorer _animationsRestorer;
         private Restorer _menuRestorer;

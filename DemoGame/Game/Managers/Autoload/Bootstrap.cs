@@ -22,6 +22,8 @@ namespace Veronenger.Game.Managers.Autoload {
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
         
         public Bootstrap() {
+            AddSingletonNodesToTree = true;
+            
             if (FeatureFlags.IsExported()) {
                 AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                     Logger.Error($"Got unhandled exception: {args.ExceptionObject}");
@@ -90,7 +92,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(FactoryProvider<>), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(FactoryProvider), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.All);
 

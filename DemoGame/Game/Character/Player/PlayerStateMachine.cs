@@ -68,9 +68,10 @@ namespace Veronenger.Game.Character.Player {
             _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, name, ProcessMode.Physics);
             playerController.AddChild(_stateMachineNode);
 
-            _stateMachineNode.AddListener(new StateMachineListenerAction<State>()
-                .AddOnExecuteStart((delta, state) => Body.StartFrame(delta))
-                .AddOnExecuteEnd((state) => Body.EndFrame()));
+            var events = new StateMachineEvents<State>();
+            events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
+            events.ExecuteEnd += (state) => Body.EndFrame();
+            _stateMachineNode.AddListener(events);
 
             var builder = _stateMachineNode.CreateBuilder();
             GroundStates(builder);

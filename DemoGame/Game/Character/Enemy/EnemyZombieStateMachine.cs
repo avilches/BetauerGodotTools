@@ -37,9 +37,10 @@ namespace Veronenger.Game.Character.Enemy {
             _stateTimer = new AutoTimer(enemyZombie);
             enemyZombie.AddChild(_stateMachineNode);
 
-            _stateMachineNode.AddListener(new StateMachineListenerAction<State>()
-                .AddOnExecuteStart((delta, state) => Body.StartFrame(delta))
-                .AddOnExecuteEnd((state) => Body.EndFrame()));
+            var events = new StateMachineEvents<State>();
+            events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
+            events.ExecuteEnd += (state) => Body.EndFrame();
+            _stateMachineNode.AddListener(events);
 
             var builder = _stateMachineNode.CreateBuilder();
             AddStates(builder);

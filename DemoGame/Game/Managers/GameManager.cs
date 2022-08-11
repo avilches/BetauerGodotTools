@@ -74,11 +74,12 @@ namespace Veronenger.Game.Managers {
             var builder = CreateBuilder();
             builder.State(State.Init)
                 .Execute(async (ctx) => {
-                    await _mainResourceLoader.OnProgress(context => {
+                    _mainResourceLoader.OnProgress += context => {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                    }).Bind(this).Load();
+                    };
+                    await _mainResourceLoader.Bind(this).Load();
                     _screenSettingsManager.Setup();
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
