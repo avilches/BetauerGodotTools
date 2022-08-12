@@ -40,9 +40,9 @@ namespace Veronenger.Game.Controller {
             ColorRect.RectSize = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
             Visible = true;
-            _mainResourceLoader.OnProgress(context => {
+            _mainResourceLoader.OnProgress += context => {
                 // GD.Print("SPLASH " + context.TotalLoadedPercent);
-            });
+            };
             _launcher.WithParent(this)
                 .Play(SequenceBuilder
                         .Create(_sprite)
