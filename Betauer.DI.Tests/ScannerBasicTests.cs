@@ -773,29 +773,83 @@ namespace Betauer.DI.Tests {
         }
 
         [Service]
-        class PostCreatedA {
-            [Inject] internal PostCreatedB B { get; set; }
+        [Lazy]
+        class LazyPostCreatedA1 {
+            [Inject] internal PostCreatedA2 A2 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
             [PostCreate]
             void PostCreateMethod() {
-                Assert.That(B, Is.Not.Null);
-                Assert.That(B.A, Is.Not.Null);
+                Assert.That(A2, Is.Not.Null);
                 Called++;
             }
         }
 
         [Service]
-        class PostCreatedB {
-            [Inject] internal PostCreatedA A { get; set; }
+        class PostCreatedA2 {
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
             [PostCreate]
             void PostCreateMethod() {
-                Assert.That(A, Is.Not.Null);
-                Assert.That(A.B, Is.Not.Null);
+                Called++;
+            }
+            
+            internal bool more1 = false;
+            internal bool more2 = false;
+
+            [PostCreate] void More1() => more1 = true;
+            [PostCreate] void More2() => more2 = true;
+        }
+
+        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using a non lazy")]
+        public void PostCreateMethodLazyWithNoLazyTest() {
+            var c = new Container();
+            var di = c.CreateBuilder();
+            di.Scan<LazyPostCreatedA1>();
+            di.Scan<PostCreatedA2>();
+            di.Build();
+
+            Assert.That(c.GetProvider<LazyPostCreatedA1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<PostCreatedA2>() is ISingletonProvider { IsInstanceCreated: true });
+            var A1 = c.Resolve<LazyPostCreatedA1>();
+            Assert.That(A1.Called, Is.EqualTo(1));
+            
+            Assert.That(c.GetProvider<LazyPostCreatedA1>() is ISingletonProvider { IsInstanceCreated: true });
+            
+            var A2 = c.Resolve<PostCreatedA2>();
+            Assert.That(A1.A2, Is.EqualTo(A2));
+            Assert.That(A2.Called, Is.EqualTo(1));
+            Assert.That(A2.more1, Is.True);
+            Assert.That(A2.more2, Is.True);
+        }
+
+        [Service]
+        class PostCreatedB1 {
+            [Inject] internal LazyPostCreatedB2 B2 { get; set; }
+            [Inject] internal Container container { get; set; }
+
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(B2, Is.Not.Null);
+                Assert.That(B2.B1, Is.Not.Null);
+                Called++;
+            }
+        }
+
+        [Service]
+        [Lazy]
+        class LazyPostCreatedB2 {
+            [Inject] internal PostCreatedB1 B1 { get; set; }
+            [Inject] internal Container container { get; set; }
+
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(B1, Is.Not.Null);
+                Assert.That(B1.B2, Is.Not.Null);
                 Called++;
             }
             
@@ -807,24 +861,91 @@ namespace Betauer.DI.Tests {
 
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked")]
+        [Test(Description = "Test if the [PostCreate] methods are invoked + Non Lazy using Lazy")]
         public void PostCreateMethodTest() {
             var c = new Container();
             var di = c.CreateBuilder();
-            di.Scan<PostCreatedA>();
-            di.Scan<PostCreatedB>();
+            di.Scan<PostCreatedB1>();
+            di.Scan<LazyPostCreatedB2>();
             di.Build();
 
-            var A = c.Resolve<PostCreatedA>();
-            var B = c.Resolve<PostCreatedB>();
+            Assert.That(c.GetProvider<PostCreatedB1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostCreatedB2>() is ISingletonProvider { IsInstanceCreated: true });
+
+            var B1 = c.Resolve<PostCreatedB1>();
+            var B2 = c.Resolve<LazyPostCreatedB2>();
             
-            Assert.That(A.B, Is.EqualTo(B));
-            Assert.That(A.Called, Is.EqualTo(1));
-            Assert.That(B.A, Is.EqualTo(A));
-            Assert.That(B.Called, Is.EqualTo(1));
+            Assert.That(B1.B2, Is.EqualTo(B2));
+            Assert.That(B1.Called, Is.EqualTo(1));
+            Assert.That(B2.B1, Is.EqualTo(B1));
+            Assert.That(B2.Called, Is.EqualTo(1));
             
-            Assert.That(B.more1, Is.True);
-            Assert.That(B.more2, Is.True);
-       }
+            Assert.That(B2.more1, Is.True);
+            Assert.That(B2.more2, Is.True);
+
+        }
+        
+        [Service]
+        [Lazy]
+        class LazyPostCreatedC1 {
+            [Inject] internal LazyPostCreatedC2 C2 { get; set; }
+            [Inject] internal Container container { get; set; }
+
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(C2, Is.Not.Null);
+                Assert.That(C2.C1, Is.Not.Null);
+                Called++;
+            }
+        }
+
+        [Service]
+        [Lazy]
+        class LazyPostCreatedC2 {
+            [Inject] internal LazyPostCreatedC1 C1 { get; set; }
+            [Inject] internal Container container { get; set; }
+
+            internal int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Assert.That(C1, Is.Not.Null);
+                Assert.That(C1.C2, Is.Not.Null);
+                Called++;
+            }
+            
+            internal bool more1 = false;
+            internal bool more2 = false;
+
+            [PostCreate] void More1() => more1 = true;
+            [PostCreate] void More2() => more2 = true;
+
+        }
+
+        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy")]
+        public void PostCreateMethodLazyWithLazyTest() {
+            var c = new Container();
+            var di = c.CreateBuilder();
+            di.Scan<LazyPostCreatedC1>();
+            di.Scan<LazyPostCreatedC2>();
+            di.Build();
+
+            Assert.That(c.GetProvider<LazyPostCreatedC1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<LazyPostCreatedC2>() is ISingletonProvider { IsInstanceCreated: false });
+
+            var C1 = c.Resolve<LazyPostCreatedC1>();
+            Assert.That(c.GetProvider<LazyPostCreatedC1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostCreatedC2>() is ISingletonProvider { IsInstanceCreated: true });
+            
+            var C2 = c.Resolve<LazyPostCreatedC2>();
+            Assert.That(C1.C2, Is.EqualTo(C2));
+            Assert.That(C1.Called, Is.EqualTo(1));
+            Assert.That(C2.C1, Is.EqualTo(C1));
+            Assert.That(C2.Called, Is.EqualTo(1));
+            
+            Assert.That(C2.more1, Is.True);
+            Assert.That(C2.more2, Is.True);
+
+        }
     }
 }
