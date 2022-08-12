@@ -1,6 +1,6 @@
 using System;
-using Godot;
-using Godot.Collections;
+// using Godot;
+// using Godot.Collections;
 
 namespace Betauer.DI {
     // public class RootSceneHolder : Node {
@@ -41,6 +41,7 @@ namespace Betauer.DI {
         // }
 
         // TODO: not tested. Test with a node outside of the tree
+        /*
         private static Node? FindSceneNode(Node node) {
             Viewport? root = node.GetTree()?.Root;
             if (root == null) {
@@ -57,5 +58,6 @@ namespace Betauer.DI {
 
             return isScene ? scene : null;
         }
+        */
     }
 }
