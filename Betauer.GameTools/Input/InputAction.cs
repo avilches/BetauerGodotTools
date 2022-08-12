@@ -46,8 +46,8 @@ namespace Betauer.Input {
                 var buttonSetting =
                     Setting<string>.Save(_settingsContainerName, section, Name + ".Buttons", ExportButtons());
                 var keySetting = Setting<string>.Save(_settingsContainerName, section, Name + ".Keys", ExportKeys());
-                Container.InjectAllFields(buttonSetting);
-                Container.InjectAllFields(keySetting);
+                Container.InjectServices(buttonSetting);
+                Container.InjectServices(keySetting);
                 buttonSetting.ConfigureAndAddToSettingContainer();
                 keySetting.ConfigureAndAddToSettingContainer();
                 SetSettings(keySetting, buttonSetting);
