@@ -136,28 +136,18 @@ namespace Betauer.DI.Tests {
         public class LazyClass {
         }
         
-        [Service(Lifetime.Transient, Lazy = true)]
-        public class TransientLazyClass {
-        }
-        
         [Service]
         [Lazy]
         public class LazyTagClass {
         }
         
-        [Service(Lifetime.Transient, Lazy = false)]
-        public class TransientLazyTagClass {
-        }
-        
         [Configuration]
-        [Scan(typeof(LazyClass), typeof(LazyTagClass), typeof(TransientLazyClass))]
-        [Scan(typeof(TransientLazyTagClass), typeof(NoLazyClass))]
+        [Scan(typeof(LazyClass), typeof(LazyTagClass))]
+        [Scan(typeof(NoLazyClass))]
         public class LazyConfiguration {
             [Service] private DummyClass noLazy => new DummyClass();
             [Service] [Lazy] private DummyClass lazyTag => new DummyClass();
-            [Service(Lifetime.Transient)] [Lazy] private DummyClass transientLazyTag => new DummyClass();
             [Service(Lazy = true)] private DummyClass lazy => new DummyClass();
-            [Service(Lifetime.Transient, Lazy = true)] private DummyClass transientLazy => new DummyClass();
         }
 
         [Test(Description = "Check Lazy attribute")]
@@ -165,17 +155,13 @@ namespace Betauer.DI.Tests {
             var di = new ContainerBuilder();
             di.Scan<LazyConfiguration>();
             var c = di.Build();
-            Assert.That(c.GetProvider<NoLazyClass>().Lazy, Is.False);
-            Assert.That(c.GetProvider<LazyClass>().Lazy, Is.True);
-            Assert.That(c.GetProvider<TransientLazyClass>().Lazy, Is.True);
-            Assert.That(c.GetProvider<LazyTagClass>().Lazy, Is.True);
-            Assert.That(c.GetProvider<TransientLazyTagClass>().Lazy, Is.True);
+            Assert.That((c.GetProvider<NoLazyClass>() as ISingletonProvider)!.Lazy, Is.False);
+            Assert.That((c.GetProvider<LazyClass>() as ISingletonProvider)!.Lazy, Is.True);
+            Assert.That((c.GetProvider<LazyTagClass>() as ISingletonProvider)!.Lazy, Is.True);
             
-            Assert.That(c.GetProvider("noLazy").Lazy, Is.False);
-            Assert.That(c.GetProvider("lazyTag").Lazy, Is.True);
-            Assert.That(c.GetProvider("transientLazyTag").Lazy, Is.True);
-            Assert.That(c.GetProvider("lazy").Lazy, Is.True);
-            Assert.That(c.GetProvider("transientLazy").Lazy, Is.True);
+            Assert.That((c.GetProvider("noLazy") as ISingletonProvider)!.Lazy, Is.False);
+            Assert.That((c.GetProvider("lazyTag") as ISingletonProvider)!.Lazy, Is.True);
+            Assert.That((c.GetProvider("lazy") as ISingletonProvider)!.Lazy, Is.True);
         }
 
         public interface I1 { }

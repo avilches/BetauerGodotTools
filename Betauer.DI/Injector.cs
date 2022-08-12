@@ -13,7 +13,7 @@ namespace Betauer.DI {
             _container = container;
         }
 
-        public void InjectAllFields(object target, ResolveContext context) {
+        public void InjectServices(object target, ResolveContext context) {
             if (target is Delegate) return;
             _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
             foreach (var setter in target.GetType().GetPropertiesAndFields<InjectAttribute>(InjectFlags))

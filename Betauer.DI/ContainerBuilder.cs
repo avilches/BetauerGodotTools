@@ -72,12 +72,12 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Static<T>(T instance, string? name = null, bool primary = false) where T : class {
-            Register(new StaticProvider(typeof(T), instance.GetType(), instance, name, primary));
+            Register(new SingletonInstanceProvider(typeof(T), instance.GetType(), instance, name, primary));
             return this;
         }
 
         public ContainerBuilder Static(Type type, object instance, string? name = null, bool primary = false) {
-            Register(new StaticProvider(type, instance.GetType(), instance, name, primary));
+            Register(new SingletonInstanceProvider(type, instance.GetType(), instance, name, primary));
             return this;
         }
 
@@ -135,8 +135,8 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Register(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) {
-            if (lifetime == Lifetime.Singleton) Register(new SingletonProvider(registeredType, type, factory, name, primary, lazy));
-            else Register(new TransientProvider(registeredType, type, factory, name, primary));
+            if (lifetime == Lifetime.Singleton) Register(new SingletonFactoryProvider(registeredType, type, factory, name, primary, lazy));
+            else Register(new TransientFactoryProvider(registeredType, type, factory, name, primary));
             return this;
         }
         

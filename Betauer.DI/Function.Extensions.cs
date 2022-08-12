@@ -44,7 +44,7 @@ namespace Betauer.DI {
             var funcType = typeof(Func<,>).MakeGenericType(functionGenericTypes);
 
             container.TryGetProvider(funcType, out IProvider? provider);
-            if (provider != null) return (Delegate)provider.Get(null);
+            if (provider != null) return (Delegate)provider.Get(container);
             throw new KeyNotFoundException($"Function <{inputType},{returnType}> not found");
         }
 
@@ -64,7 +64,7 @@ namespace Betauer.DI {
             do {
                 var funcType = typeof(Func<,>).MakeGenericType(functionGenericTypes);
                 container.TryGetProvider(funcType, out IProvider? provider);
-                if (provider != null) function = (Delegate)provider.Get(null);
+                if (provider != null) function = (Delegate)provider.Get(container);
                 if (function == null) functionGenericTypes[0] = functionGenericTypes[0]?.BaseType;
             } while (function == null && functionGenericTypes[0] != null);
             if (function == null) {

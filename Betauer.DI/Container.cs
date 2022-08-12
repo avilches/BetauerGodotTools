@@ -52,7 +52,7 @@ namespace Betauer.DI {
         public Container() {
             Injector = new Injector(this);
             // Adding the Container in the Container allows to use [Inject] Container...
-            Add(new StaticProvider(typeof(Container),typeof(Container),this));
+            Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
         }
 
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
@@ -60,13 +60,8 @@ namespace Betauer.DI {
         public Container Build(ICollection<IProvider> providers) {
             foreach (var provider in providers) AddToRegistry(provider);
             foreach (var provider in providers) {
-                if (!provider.Lazy && provider is SingletonProvider sp && !sp.IsSingletonCreated) {
-                    var context = new ResolveContext(this);
-                    try {
-                        provider.Get(context);
-                    } finally {
-                        context.End();
-                    }
+                if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
+                    provider.Get(this);
                 }
             }
             return this;
@@ -74,13 +69,8 @@ namespace Betauer.DI {
 
         public IProvider Add(IProvider provider) {
             AddToRegistry(provider);
-            if (!provider.Lazy) {
-                var context = new ResolveContext(this);
-                try {
-                    provider.Get(context);
-                } finally {
-                    context.End();
-                }
+            if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
+                provider.Get(this);
             }
             return provider;
         }
@@ -94,27 +84,27 @@ namespace Betauer.DI {
         /// <exception cref="Exception"></exception>
         /// <exception cref="DuplicateNameException"></exception>
         private IProvider AddToRegistry(IProvider provider) {
-            var name = provider.GetName();
+            var name = provider.Name;
             if (name != null) {
                 if (_registry.ContainsKey(name)) throw new DuplicateServiceException(name);
                     _registry[name] = provider;
                     if (_logger.IsEnabled(TraceLevel.Info)) {
-                        _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
+                        _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
                                      ". Name: " + name);
                     }
-                    if (provider.Primary || !_fallbackByType.ContainsKey(provider.GetRegisterType())) {
-                        _fallbackByType[provider.GetRegisterType()] = provider;
+                    if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
+                        _fallbackByType[provider.RegisterType] = provider;
                         if (_logger.IsEnabled(TraceLevel.Info)) {
-                            _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
-                                         ". Fallback: " + provider.GetRegisterType().FullName);
+                            _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
+                                         ". Fallback: " + provider.RegisterType.FullName);
                         }
                     }
             } else {
-                if (_registry.ContainsKey(provider.GetRegisterType().FullName)) throw new DuplicateServiceException(provider.GetRegisterType());
-                _registry[provider.GetRegisterType().FullName] = provider;
+                if (_registry.ContainsKey(provider.RegisterType.FullName)) throw new DuplicateServiceException(provider.RegisterType);
+                _registry[provider.RegisterType.FullName] = provider;
                 if (_logger.IsEnabled(TraceLevel.Info)) {
-                    _logger.Info("Registered " + provider.GetLifetime() + ":" + provider.GetProviderType() +
-                                 ". Name: " + provider.GetRegisterType().FullName);
+                    _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
+                                 ". Name: " + provider.RegisterType.FullName);
                 }
             }
             return provider;
@@ -127,7 +117,7 @@ namespace Betauer.DI {
 
         public bool Contains(Type type, string name) {
             if (_registry.TryGetValue(name, out var o)) {
-                return type.IsAssignableFrom(o.GetProviderType()); // Just check if it can be casted
+                return type.IsAssignableFrom(o.ProviderType); // Just check if it can be casted
             }
             return false;
         }
@@ -140,7 +130,7 @@ namespace Betauer.DI {
 
         public IProvider GetProvider(Type type, string name) {
             if (_registry.TryGetValue(name, out var provider)) {
-                return type.IsAssignableFrom(provider.GetProviderType()) ? provider : throw new InvalidCastException();
+                return type.IsAssignableFrom(provider.ProviderType) ? provider : throw new InvalidCastException();
             }
             throw new KeyNotFoundException(name);
         }
@@ -157,7 +147,7 @@ namespace Betauer.DI {
 
         public bool TryGetProvider(Type type, string name, out IProvider? provider) {
             var found = _registry.TryGetValue(name, out provider);
-            if (found) return type.IsAssignableFrom(provider.GetProviderType()); // Just check if it can be casted
+            if (found) return type.IsAssignableFrom(provider.ProviderType); // Just check if it can be casted
             provider = null;
             return false;
         }
@@ -183,41 +173,29 @@ namespace Betauer.DI {
         }
 
         public T ResolveOr<T>(Func<T> or) {
-            var context = new ResolveContext(this);
             try {
-                return (T)Resolve(typeof(T), context);
+                return (T)Resolve(typeof(T));
             } catch (KeyNotFoundException) {
                 return or();
-            } finally {
-                context.End();
             }
         }
 
         public T ResolveOr<T>(string name, Func<T> or) {
-            var context = new ResolveContext(this);
             try {
-                return (T)Resolve(name, context);
+                return Resolve<T>(name);
             } catch (KeyNotFoundException) {
                 return or();
-            } finally {
-                context.End();
             }
         }
 
         public List<T> GetAllInstances<T>() {
-            var context = new ResolveContext(this);
-            try {
-                var instances = _registry.Values
-                    .ToHashSet() // remove duplicates
-                    .Where(provider => provider.GetLifetime() == Lifetime.Singleton &&
-                                       typeof(T).IsAssignableFrom(provider.GetProviderType()))
-                    .Select(provider => provider.Get(context))
-                    .OfType<T>()
-                    .ToList();
-                return instances;
-            } finally {
-                context.End();
-            }
+            var instances = _registry.Values
+                .OfType<ISingletonProvider>()
+                .Where(provider => typeof(T).IsAssignableFrom(provider.ProviderType))
+                .Select(provider => provider.Get(this))
+                .OfType<T>()
+                .ToList();
+            return instances;
         }
 
         internal void ExecuteOnCreate(Lifetime lifetime, object instance) {
@@ -259,17 +237,17 @@ namespace Betauer.DI {
         }
 
 
-        public void InjectAllFields(object o) {
+        public void InjectServices(object o) {
             var context = new ResolveContext(this);
             try {
-                InjectAllFields(o, context);
+                InjectServices(o, context);
             } finally {
                 context.End();
             }
         }
 
-        internal void InjectAllFields(object o, ResolveContext context) {
-            Injector.InjectAllFields(o, context);
+        internal void InjectServices(object o, ResolveContext context) {
+            Injector.InjectServices(o, context);
         }
     }
 }

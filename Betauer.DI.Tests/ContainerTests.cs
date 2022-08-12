@@ -104,11 +104,11 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Contains<ClassWith1Interface>());
                 Assert.That(!c.Contains<IInterface1>());
 
-                Assert.That(c.GetProvider<ClassWith1Interface>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<ClassWith1Interface>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.Throws<KeyNotFoundException>(() => c.GetProvider<IInterface1>());
 
                 Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
                 Assert.That(provider, Is.Null);
 
@@ -139,12 +139,12 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Contains<IInterface1>());
 
                 Assert.Throws<KeyNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
-                Assert.That(c.GetProvider<IInterface1>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
 
                 Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
                 Assert.That(provider, Is.Null);
                 Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
 
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
@@ -183,23 +183,23 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
 
-                Assert.That(c.GetProvider<ClassWith1Interface>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider<IInterface1>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider<object>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider<ClassWith1Interface>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<ClassWith1Interface>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<object>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<ClassWith1Interface>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.Throws<KeyNotFoundException>(() => c.GetProvider<IInterface1>());
                 
                 Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
                 Assert.That(provider, Is.Null);
             }
@@ -229,25 +229,25 @@ namespace Betauer.DI.Tests {
                 Assert.That(!c.Contains<ClassWith1Interface>());
                 Assert.That(c.Contains<IInterface1>());
 
-                Assert.That(c.GetProvider<ClassWith1Interface>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider<IInterface1>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider<object>("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
-                Assert.That(c.GetProvider("P").GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<ClassWith1Interface>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<object>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.Throws<KeyNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
-                Assert.That(c.GetProvider<IInterface1>().GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(c.GetProvider<IInterface1>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
 
                 Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider("P", out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
                 Assert.That(provider, Is.Null);
                 Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
-                Assert.That(provider.GetProviderType(), Is.EqualTo(typeof(ClassWith1Interface)));
+                Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
 
                 Assert.That(c.Resolve<ClassWith1Interface>("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
@@ -483,36 +483,36 @@ namespace Betauer.DI.Tests {
             b.Singleton<ClassWith1Interface>("Lazy2", false, true);
             var c = b.Build();
             
-            var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonProvider;
-            var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonProvider;
-            var lazy1Provider = c.GetProvider("Lazy1") as SingletonProvider;
-            var lazy2Provider = c.GetProvider("Lazy2") as SingletonProvider;
+            var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonFactoryProvider;
+            var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonFactoryProvider;
+            var lazy1Provider = c.GetProvider("Lazy1") as SingletonFactoryProvider;
+            var lazy2Provider = c.GetProvider("Lazy2") as SingletonFactoryProvider;
             
             Assert.That(noLazy1Provider.Lazy, Is.False);
-            Assert.That(noLazy1Provider.IsSingletonCreated, Is.True);
-            Assert.That(noLazy1Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(noLazy1Provider.IsInstanceCreated, Is.True);
+            Assert.That(noLazy1Provider.Instance, Is.TypeOf<ClassWith1Interface>());
             
             Assert.That(noLazy2Provider.Lazy, Is.False);
-            Assert.That(noLazy2Provider.IsSingletonCreated, Is.True);
-            Assert.That(noLazy2Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(noLazy2Provider.IsInstanceCreated, Is.True);
+            Assert.That(noLazy2Provider.Instance, Is.TypeOf<ClassWith1Interface>());
 
             Assert.That(lazy1Provider.Lazy, Is.True);
-            Assert.That(lazy1Provider.IsSingletonCreated, Is.False);
-            Assert.That(lazy1Provider.SingletonInstance, Is.Null);
+            Assert.That(lazy1Provider.IsInstanceCreated, Is.False);
+            Assert.That(lazy1Provider.Instance, Is.Null);
             Assert.That(lazy2Provider.Lazy, Is.True);
-            Assert.That(lazy2Provider.IsSingletonCreated, Is.False);
-            Assert.That(lazy2Provider.SingletonInstance, Is.Null);
+            Assert.That(lazy2Provider.IsInstanceCreated, Is.False);
+            Assert.That(lazy2Provider.Instance, Is.Null);
 
             c.Resolve("Lazy1");
             Assert.That(lazy1Provider.Lazy, Is.True);
-            Assert.That(lazy1Provider.IsSingletonCreated, Is.True);
-            Assert.That(lazy1Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(lazy1Provider.IsInstanceCreated, Is.True);
+            Assert.That(lazy1Provider.Instance, Is.TypeOf<ClassWith1Interface>());
             Assert.That(lazy2Provider.Lazy, Is.True);
 
             c.Resolve("Lazy2");
             Assert.That(lazy2Provider.Lazy, Is.True);
-            Assert.That(lazy2Provider.IsSingletonCreated, Is.True);
-            Assert.That(lazy2Provider.SingletonInstance, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(lazy2Provider.IsInstanceCreated, Is.True);
+            Assert.That(lazy2Provider.Instance, Is.TypeOf<ClassWith1Interface>());
 
         }
 

@@ -1,3 +1,4 @@
+using System;
 using Betauer.DI;
 using Betauer.Memory;
 using Betauer.OnReady;
@@ -5,28 +6,31 @@ using Betauer.Signal;
 using Godot;
 using Container = Betauer.DI.Container;
 
-namespace Betauer {
+namespace Betauer.Application {
+
     /**
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
     public abstract class AutoConfiguration : Node {
-        private Container _container;
+        protected Container Container;
 
         [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
         [Service] public SceneTree SceneTree => GetTree();
+
+        public bool AddSingletonNodesToTree = true;
         
         public override void _EnterTree() {
             PauseMode = PauseModeEnum.Process;
-            _container = new Container();
-            _container.OnCreate = async (o) => {
-                if (o is Node node) {
-                    AddChild(node);
-                }
-            };
-            var builder = _container.CreateBuilder();
-            builder.Scan(GetType().Assembly);
-            builder.ScanConfiguration(this);
-            builder.Build();
+            Container = new Container();
+            if (AddSingletonNodesToTree) {
+                Container.OnCreate += (lifetime, o) => {
+                    if (lifetime == Lifetime.Singleton && o is Node node) AddChild(node);
+                };
+            }
+            Container.CreateBuilder()
+                .Scan(GetType().Assembly)
+                .ScanConfiguration(this)
+                .Build();
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);
         }
 
@@ -37,7 +41,7 @@ namespace Betauer {
             if (node.GetScript() is CSharpScript) {
                 OnReadyScanner.ScanAndInject(node);
                 if (!node.HasMeta(MetaInjected)) {
-                    _container.InjectAllFields(node);
+                    Container.InjectServices(node);
                     node.SetMeta(MetaInjected, true);
                 }
             }
