@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Betauer.DI {
@@ -206,7 +207,7 @@ namespace Betauer.DI {
 
         private void RegisterConfigurationServices(Type configurationType, object? instance) {
             var conf = instance;
-            foreach (var getter in configurationType.GetPropertiesAndMethods<ServiceAttribute>(ScanMemberFlags)) {
+            foreach (var getter in configurationType.GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags)) {
                 var serviceAttr = getter.Attribute;
                 var type = getter.Type;
                 var registeredType = serviceAttr.Type ?? type;

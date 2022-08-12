@@ -16,7 +16,7 @@ namespace Betauer.DI.Tests {
         [Service]
         public class Singleton : Base {
             internal string name = "pepe";
-            [Inject] internal Func<string> myName;
+            [Inject] internal Func<string> myName { get; set; }
         }
 
         [Test(Description = "Test a regular function as static value")]

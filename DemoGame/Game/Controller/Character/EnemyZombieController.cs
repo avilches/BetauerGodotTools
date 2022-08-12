@@ -21,9 +21,9 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Position2D")] public Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-        [Inject] private EnemyZombieStateMachine _stateMachine;
-        [Inject] private CharacterManager _characterManager;
-        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
+        [Inject] private EnemyZombieStateMachine _stateMachine { get; set; }
+        [Inject] private CharacterManager _characterManager { get; set; }
+        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public IOnceStatus AnimationStep { get; private set; }

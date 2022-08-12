@@ -17,7 +17,7 @@ namespace Veronenger.Game.Controller.Stage {
      * Non Area2D elements will be ignored. Non RectangleShape2D collision shapes will be ignored too.
      */
     public class StageListController : Node {
-        [Inject] public StageManager StageManager;
+        [Inject] public StageManager StageManager { get; set;}
 
         public override void _Ready() {
             foreach (var node in GetChildren()) {

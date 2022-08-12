@@ -185,13 +185,13 @@ namespace Betauer.GameTools.Tests {
 
         [Service]
         internal class Service4 {
-            [Inject] public InputActionsContainer InputActionsContainer;
-            [Inject] public SettingsContainer SettingsContainer;
-            [Inject(Name="Other")] public SettingsContainer SettingsContainerOther;
+            [Inject] public InputActionsContainer InputActionsContainer { get; set; }
+            [Inject] public SettingsContainer SettingsContainer { get; set; }
+            [Inject(Name="Other")] public SettingsContainer SettingsContainerOther { get; set; }
             
-            [Inject] public InputAction JumpConfigurable;
-            [Inject] public InputAction JumpConfigurableWithSetting;
-            [Inject] public InputAction NoConfigurable;
+            [Inject] public InputAction JumpConfigurable { get; set; }
+            [Inject] public InputAction JumpConfigurableWithSetting { get; set; }
+            [Inject] public InputAction NoConfigurable { get; set; }
         }
 
         [Test(Description = "Configurable with different setting container")]
@@ -245,12 +245,12 @@ namespace Betauer.GameTools.Tests {
 
         [Service]
         internal class Service5 {
-            [Inject] public InputActionsContainer InputActionsContainer;
-            [Inject(Name="Other")] public InputActionsContainer InputActionsContainer2;
-            [Inject] public SettingsContainer SettingsContainer;
+            [Inject] public InputActionsContainer InputActionsContainer { get; set; }
+            [Inject(Name="Other")] public InputActionsContainer InputActionsContainer2 { get; set; }
+            [Inject] public SettingsContainer SettingsContainer { get; set; }
             
-            [Inject] public InputAction Jump;
-            [Inject] public InputAction JumpOther;
+            [Inject] public InputAction Jump { get; set; }
+            [Inject] public InputAction JumpOther { get; set; }
         }
 
         [Test(Description = "Configurable with different input action container")]

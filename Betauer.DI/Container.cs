@@ -88,15 +88,16 @@ namespace Betauer.DI {
             if (name != null) {
                 if (_registry.ContainsKey(name)) throw new DuplicateServiceException(name);
                     _registry[name] = provider;
-                    if (_logger.IsEnabled(TraceLevel.Info)) {
-                        _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
-                                     ". Name: " + name);
-                    }
                     if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
                         _fallbackByType[provider.RegisterType] = provider;
                         if (_logger.IsEnabled(TraceLevel.Info)) {
                             _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
-                                         ". Fallback: " + provider.RegisterType.FullName);
+                                         " | Name: " + name + " | Added fallback: " + provider.RegisterType.FullName);
+                        }
+                    } else {
+                        if (_logger.IsEnabled(TraceLevel.Info)) {
+                            _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
+                                         " | Name: " + name);
                         }
                     }
             } else {

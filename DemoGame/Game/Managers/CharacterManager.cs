@@ -17,9 +17,9 @@ namespace Veronenger.Game.Managers {
 
         public PlayerController PlayerController { get; private set; }
 
-        [Inject] public PlatformManager PlatformManager;
-        [Inject] public SlopeStairsManager SlopeStairsManager;
-        [Inject] public GameManager GameManager;
+        [Inject] public PlatformManager PlatformManager { get; set;}
+        [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
+        [Inject] public GameManager GameManager { get; set; }
 
         private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
 

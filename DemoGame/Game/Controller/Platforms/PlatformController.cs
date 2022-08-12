@@ -6,7 +6,7 @@ using Veronenger.Game.Managers;
 namespace Veronenger.Game.Controller.Platforms {
     public class PlatformController :KinematicBody2D {
 
-        [Inject] public PlatformManager PlatformManager;
+        [Inject] public PlatformManager PlatformManager { get; set; }
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool IsMovingPlatform = false;
 

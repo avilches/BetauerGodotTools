@@ -40,15 +40,15 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("RedefineActionPanel")] 
         private Panel _redefineActionPanel;
 
-        [Inject] private GameManager _gameManager;
-        [Inject] private ScreenSettingsManager _screenSettingsManager;
-        [Inject] private InputActionsContainer _inputActionsContainer;
+        [Inject] private GameManager _gameManager { get; set; }
+        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
+        [Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
-        [Inject] private InputAction UiAccept;
-        [Inject] private InputAction UiCancel;
-        [Inject] private InputAction UiStart;
-        [Inject] private InputAction UiLeft;
-        [Inject] private InputAction UiRight;
+        [Inject] private InputAction UiAccept { get; set; }
+        [Inject] private InputAction UiCancel { get; set; }
+        [Inject] private InputAction UiStart { get; set; }
+        [Inject] private InputAction UiLeft { get; set; }
+        [Inject] private InputAction UiRight { get; set; }
 
         private readonly Launcher _launcher = new Launcher();
 

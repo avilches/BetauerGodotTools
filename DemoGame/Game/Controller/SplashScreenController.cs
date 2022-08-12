@@ -11,10 +11,10 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller {
     public class SplashScreenController : Control {
-        [Inject] private GameManager _gameManager;
-        [Inject] private ScreenSettingsManager _screenSettingsManager;
-        [Inject] private SettingsContainer _settingsContainer;
-        [Inject] private MainResourceLoader _mainResourceLoader;
+        [Inject] private GameManager _gameManager { get; set; }
+        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
+        [Inject] private SettingsContainer _settingsContainer { get; set; }
+        [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
 
         [OnReady("ColorRect")] private ColorRect ColorRect;
         [OnReady("ColorRect/CenterContainer")] private CenterContainer CenterContainer;

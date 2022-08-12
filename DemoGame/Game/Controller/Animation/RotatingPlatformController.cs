@@ -11,7 +11,7 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
         [Export] public bool Enabled = true;
-        [Inject] public PlatformManager PlatformManager;
+        [Inject] public PlatformManager PlatformManager { get; set;}
         private float _angle = 0;
         private float _speed;
 

@@ -10,7 +10,7 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
-        [Inject] public PlatformManager PlatformManager;
+        [Inject] public PlatformManager PlatformManager { get; set;}
 
 
         private List<PhysicsBody2D> _platforms;

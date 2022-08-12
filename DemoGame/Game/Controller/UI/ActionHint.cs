@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.UI {
         [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Label1")] private Label _label1;
         [OnReady("Label2")] private Label _label2;
-        [Inject] private InputActionsContainer _inputActionsContainer;
+        [Inject] private InputActionsContainer _inputActionsContainer { get; set; }
         [Export] private string ActionText1;
         [Export] private string ActionName;
         [Export] private string ActionText2;

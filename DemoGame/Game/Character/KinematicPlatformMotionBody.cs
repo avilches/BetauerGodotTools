@@ -23,8 +23,8 @@ namespace Veronenger.Game.Character {
 
         public Vector2 Motion = Vector2.Zero;
 
-        [Inject] private PlatformManager _platformManager;
-        [Inject] private SlopeStairsManager _slopeStairsManager;
+        [Inject] private PlatformManager _platformManager { get; set;}
+        [Inject] private SlopeStairsManager _slopeStairsManager { get; set;}
 
         public void Configure(KinematicBody2D body, IFlipper flippers, string name, MotionConfig motionConfig) {
             _body = body;

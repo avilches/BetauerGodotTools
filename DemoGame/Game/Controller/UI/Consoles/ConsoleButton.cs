@@ -9,10 +9,9 @@ namespace Veronenger.Game.Controller.UI.Consoles {
     public abstract class ConsoleButton : Sprite {
         private SpriteConfig _config;
 
-        [Inject] protected Xbox360SpriteConfig Xbox360;
-        [Inject] protected XboxOneSpriteConfig XboxOne;
-        
-        [Inject] protected MainResourceLoader MainResourceLoader;
+        [Inject] protected Xbox360SpriteConfig Xbox360 { get; set; }
+        [Inject] protected XboxOneSpriteConfig XboxOne { get; set; }
+        [Inject] protected MainResourceLoader MainResourceLoader { get; set; }
 
         [OnReady("AnimationPlayer")] private AnimationPlayer _animation;
 
@@ -113,7 +112,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
     public class Xbox360SpriteConfig : SpriteConfig {
         public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(null, 0, 0);
 
-        [Inject] private MainResourceLoader _mainResourceLoader;
+        [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
         public override Texture Texture => _mainResourceLoader.Xbox360ButtonsTexture;
 
         public override void ConfigureButtons() {
@@ -163,7 +162,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
 
     [Service]
     public class XboxOneSpriteConfig : Xbox360SpriteConfig {
-        [Inject] private MainResourceLoader _mainResourceLoader;
+        [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
         public override Texture Texture => _mainResourceLoader.XboxOneButtonsTexture;
     }
 

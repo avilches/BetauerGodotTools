@@ -9,7 +9,7 @@ namespace Veronenger.Game.Managers {
 
     [Service]
     public class SlopeStairsManager {
-        [Inject] public PlatformManager PlatformManager;
+        [Inject] public PlatformManager PlatformManager { get; set;}
 
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
         private readonly BodyOnArea2DTopic _downTopic = new BodyOnArea2DTopic("SlopeStairsDown");

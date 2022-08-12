@@ -50,7 +50,7 @@ namespace Betauer.Loader {
         public ResourceMetadata(string path, int size) : base(path, size) {
         }
 
-        public static object DynamicConstructor(ResourceMetadata resource, Type genericType) {
+        public static object CreateResourceMetadataWithGeneric(ResourceMetadata resource, Type genericType) {
             var type = typeof(ResourceMetadata<>).MakeGenericType(genericType);
             var ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
                 .First(info => info.GetParameters().Length == 1 &&

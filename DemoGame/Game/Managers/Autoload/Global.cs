@@ -8,7 +8,7 @@ using Betauer.DI;
 namespace Veronenger.Game.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
         // [Inject] private GameManager GameManager;
-        [Inject] private CharacterManager CharacterManager;
+        [Inject] private CharacterManager CharacterManager { get; set; }
 
         public bool IsPlayer(KinematicBody2D player) {
             return CharacterManager.IsPlayer(player);

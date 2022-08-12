@@ -16,7 +16,7 @@ namespace Veronenger.Game.Controller.Stage {
      */
     public class StageCameraController :Camera2D {
 
-        [Inject] public StageManager StageManager;
+        [Inject] public StageManager StageManager { get; set;}
 
         [OnReady("../Detector")] private Area2D stageDetector;
 

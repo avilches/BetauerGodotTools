@@ -159,12 +159,12 @@ namespace Betauer.GameTools.Tests {
 
         [Service]
         internal class Service1 {
-            [Inject] public SettingsContainer SettingsContainerByType;
-            [Inject] public SaveSetting<bool> BoolSetting;
-            [Inject] public SaveSetting<string> StringSetting;
-            [Inject] public SaveSetting<Resolution> Resolution;
-            [Inject] public SaveSetting<string> NoAutoSave;
-            [Inject] public SaveSetting<string> NoEnabled;
+            [Inject] public SettingsContainer SettingsContainerByType { get; set; }
+            [Inject] public SaveSetting<bool> BoolSetting { get; set; }
+            [Inject] public SaveSetting<string> StringSetting { get; set; }
+            [Inject] public SaveSetting<Resolution> Resolution { get; set; }
+            [Inject] public SaveSetting<string> NoAutoSave { get; set; }
+            [Inject] public SaveSetting<string> NoEnabled { get; set; }
         }
 
         [Test]
@@ -285,10 +285,10 @@ namespace Betauer.GameTools.Tests {
 
         [Service]
         internal class Basic2 {
-            [Inject] public ISetting<bool> P1;
-            [Inject] public ISetting<string> P2;
-            [Inject(SettingsFile1)] public SettingsContainer SettingsContainer1;
-            [Inject(SettingsFile2)] public SettingsContainer SettingsContainer2;
+            [Inject] public ISetting<bool> P1 { get; set; }
+            [Inject] public ISetting<string> P2 { get; set; }
+            [Inject(SettingsFile1)] public SettingsContainer SettingsContainer1 { get; set; }
+            [Inject(SettingsFile2)] public SettingsContainer SettingsContainer2 { get; set; }
         }
 
         [Test]

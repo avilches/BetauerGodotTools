@@ -5,7 +5,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Area {
     public class DeathArea2DController : Area2D {
-        [Inject] public CharacterManager CharacterManager;
+        [Inject] public CharacterManager CharacterManager { get; set; }
 
         public override void _Ready() {
             CharacterManager.ConfigurePlayerDeathZone(this);

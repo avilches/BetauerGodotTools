@@ -4,10 +4,10 @@ using System.Reflection;
 
 namespace Betauer.DI {
     public static class InjectorFunction {
-        public static bool InjectField(Container container, object target, GetterSetter<InjectAttribute> field) {
+        public static bool InjectField(Container container, object target, ISetter<InjectAttribute> field) {
             if (!IsZeroArgumentFunction(field.Type)) return false;
             var outType = field.Type.GetGenericArguments()[0];
-            // [Inject] private Func<TOut> func;
+            // [Inject] private Func<TOut> func { get; set; }
             // Find a Func<T, TResult> (callable with func(instance) => returns TResult) where T is the current
             // instance Type (or any of its base classes) and convert it to a function where the current instance
             // lives inside (a closure), so the user can call it later with just func()

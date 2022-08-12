@@ -10,7 +10,7 @@ namespace Betauer.DI.Tests {
         public class Singleton {
             public static int Created = 0;
             public Singleton() => Created++;
-            [Inject] public Singleton s;
+            [Inject] public Singleton s { get; set; }
         }
 
         [Test(Description = "Singleton includes itself")]
@@ -28,7 +28,7 @@ namespace Betauer.DI.Tests {
         public class Transient {
             public static int Created = 0;
             public Transient() => Created++;
-            [Inject] public Transient t;
+            [Inject] public Transient t { get; set; }
         }
 
         [Test(Description = "Transient includes itself")]
@@ -98,22 +98,22 @@ namespace Betauer.DI.Tests {
         public class SingletonA {
             public static int Created = 0;
             public SingletonA() => Created++;
-            [Inject] internal SingletonB sb;
-            [Inject] internal SingletonA sa;
+            [Inject] internal SingletonB sb { get; set; }
+            [Inject] internal SingletonA sa { get; set; }
         }
 
         [Service]
         public class SingletonB {
             public static int Created = 0;
             public SingletonB() => Created++;
-            [Inject] internal SingletonC sc;
+            [Inject] internal SingletonC sc { get; set; }
         }
 
         [Service]
         public class SingletonC {
             public static int Created = 0;
             public SingletonC() => Created++;
-            [Inject] internal SingletonA sa;
+            [Inject] internal SingletonA sa { get; set; }
         }
 
 
@@ -149,21 +149,21 @@ namespace Betauer.DI.Tests {
         public class TransientA {
             public static int Created = 0;
             public TransientA() => Created++;
-            [Inject] internal TransientB sb;
+            [Inject] internal TransientB sb { get; set; }
         }
 
         [Service(Lifetime.Transient)]
         public class TransientB {
             public static int Created = 0;
             public TransientB() => Created++;
-            [Inject] internal TransientC sc;
+            [Inject] internal TransientC sc { get; set; }
         }
 
         [Service(Lifetime.Transient)]
         public class TransientC {
             public static int Created = 0;
             public TransientC() => Created++;
-            [Inject] internal TransientA sa;
+            [Inject] internal TransientA sa { get; set; }
         }
 
 
@@ -196,27 +196,27 @@ namespace Betauer.DI.Tests {
         public class MultiTransientA {
             public static int Created = 0;
             public MultiTransientA() => Created++;
-            [Inject] internal MultiTransientA sa;
-            [Inject] internal MultiTransientB sb;
-            [Inject] internal MultiTransientC sc;
+            [Inject] internal MultiTransientA sa { get; set; }
+            [Inject] internal MultiTransientB sb { get; set; }
+            [Inject] internal MultiTransientC sc { get; set; }
         }
 
         [Service(Lifetime.Transient)]
         public class MultiTransientB {
             public static int Created = 0;
             public MultiTransientB() => Created++;
-            [Inject] internal MultiTransientA sa;
-            [Inject] internal MultiTransientB sb;
-            [Inject] internal MultiTransientC sc;
+            [Inject] internal MultiTransientA sa { get; set; }
+            [Inject] internal MultiTransientB sb { get; set; }
+            [Inject] internal MultiTransientC sc { get; set; }
         }
 
         [Service(Lifetime.Transient)]
         public class MultiTransientC {
             public static int Created = 0;
             public MultiTransientC() => Created++;
-            [Inject] internal MultiTransientA sa;
-            [Inject] internal MultiTransientB sb;
-            [Inject] internal MultiTransientC sc;
+            [Inject] internal MultiTransientA sa { get; set; }
+            [Inject] internal MultiTransientB sb { get; set; }
+            [Inject] internal MultiTransientC sc { get; set; }
         }
 
 

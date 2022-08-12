@@ -5,7 +5,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Stage {
     public class WorldCompleteArea2DController :Area2D {
-        [Inject] public CharacterManager CharacterManager;
+        [Inject] public CharacterManager CharacterManager { get; set; }
 
         [Export(PropertyHint.File, "*.tscn")] private string nextScene;
 

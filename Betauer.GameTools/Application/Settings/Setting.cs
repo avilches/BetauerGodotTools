@@ -34,7 +34,7 @@ namespace Betauer.Application.Settings {
     }
 
     public abstract class SaveSetting : BaseSetting {
-        [Inject] protected Container Container;
+        [Inject] protected Container Container { get; set; }
 
         private readonly string? _settingsContainerName;
         public readonly string Section;

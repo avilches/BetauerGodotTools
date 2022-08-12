@@ -29,12 +29,12 @@ namespace Veronenger.Game.Character.Player {
             Jump,
         }
 
-        [Inject] private PlatformManager _platformManager;
-        [Inject] private PlayerConfig _playerConfig;
-        [Inject] private LateralAction _lateralMotion;
-        [Inject] private VerticalAction _verticalMotion;
-        [Inject] private InputAction Jump;
-        [Inject] private InputAction Attack;
+        [Inject] private PlatformManager _platformManager { get; set;}
+        [Inject] private PlayerConfig _playerConfig { get; set;}
+        [Inject] private LateralAction _lateralMotion { get; set;}
+        [Inject] private VerticalAction _verticalMotion { get; set;}
+        [Inject] private InputAction Jump { get; set;}
+        [Inject] private InputAction Attack { get; set;}
 
         private PlayerController _player;
         private StateMachineNode<State, Transition> _stateMachineNode;

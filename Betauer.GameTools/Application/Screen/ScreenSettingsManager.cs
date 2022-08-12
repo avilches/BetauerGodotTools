@@ -6,8 +6,8 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Application.Screen {
     public class ScreenSettingsManager {
-        [Inject] protected Container Container;
-        [Inject] protected SceneTree SceneTree;
+        [Inject] protected Container Container { get; set; }
+        [Inject] protected SceneTree SceneTree { get; set; }
 
         private const bool DontSave = false;
 

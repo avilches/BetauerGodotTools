@@ -28,14 +28,14 @@ namespace Veronenger.Game.Controller.Character {
         private SceneTree _sceneTree;
         private IFlipper _flippers;
 
-        [Inject] private GameManager _gameManager;
-        [Inject] private PlatformManager _platformManager;
-        [Inject] private CharacterManager _characterManager;
-        [Inject] private SlopeStairsManager _slopeStairsManager;
-        [Inject] private ScreenSettingsManager _screenSettingsManager;
-        [Inject] private PlayerStateMachine _stateMachine;
-        [Inject] private PlayerConfig _playerConfig;
-        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody;
+        [Inject] private GameManager _gameManager { get; set; }
+        [Inject] private PlatformManager _platformManager { get; set; }
+        [Inject] private CharacterManager _characterManager { get; set; }
+        [Inject] private SlopeStairsManager _slopeStairsManager { get; set; }
+        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
+        [Inject] private PlayerStateMachine _stateMachine { get; set; }
+        [Inject] private PlayerConfig _playerConfig { get; set; }
+        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
@@ -223,8 +223,10 @@ namespace Veronenger.Game.Controller.Character {
                 */
         }
         
-        [Inject] private InputAction UiStart;
+        [Inject] private InputAction UiStart { get; set; }
 
+        
+        // TODO: review
         public override void _Input(InputEvent @event) {
                 /*
                 var action = new ActionState("a"); // FindAction(e);

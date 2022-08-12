@@ -6,7 +6,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Platforms {
     public class SlopeStairsController : Node {
-        [Inject] public SlopeStairsManager SlopeStairsManager;
+        [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
 
         [OnReady("SlopeStairs")] StaticBody2D slopeStairs;
         [OnReady("Cover")] StaticBody2D cover;

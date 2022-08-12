@@ -18,7 +18,7 @@ namespace Veronenger.Game.Character.Enemy {
             PatrolWait,
         }
     
-        [Inject] private CharacterManager CharacterManager;
+        [Inject] private CharacterManager CharacterManager { get; set; }
 
         private EnemyZombieController _enemyZombieController;
         private StateMachineNode<State, Transition> _stateMachineNode;

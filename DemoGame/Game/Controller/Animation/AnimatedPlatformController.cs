@@ -9,7 +9,7 @@ namespace Veronenger.Game.Controller.Animation {
     public class AnimatedPlatformController : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public bool Enabled = true;
-        [Inject] public PlatformManager PlatformManager;
+        [Inject] public PlatformManager PlatformManager { get; set;}
 
 
         private Vector2 _original;
