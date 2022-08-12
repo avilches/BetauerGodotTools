@@ -7,36 +7,25 @@ using System.Runtime.ExceptionServices;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        internal readonly Dictionary<string, object> ObjectsCache = new Dictionary<string, object>();
+        internal Dictionary<string, object>? ObjectsCache;
         internal readonly Container Container;
 
         public ResolveContext(Container container) {
             Container = container;
         }
 
-        internal bool IsCached(Type type, string? name) {
-            if (name != null) return ObjectsCache.ContainsKey(name);
-            return ObjectsCache.ContainsKey(type.FullName);
-        }
-
-        internal object GetFromCache(Type type, string? name) {
-            if (name != null) {
-                if (ObjectsCache.TryGetValue(name, out var o)) {
-                    return o;
-                }
-            } 
-            return ObjectsCache[type.FullName];
+        internal bool TryGetFromCache(Type type, string? name, out object? o) {
+            o = null;
+            return ObjectsCache?.TryGetValue(name ?? type.FullName, out o) ?? false;
         }
 
         internal void AddInstanceToCache(Type type, object o, string? name) {
-            if (name != null) {
-                ObjectsCache[name] = o;
-            } else {
-                ObjectsCache[type.FullName] = o;
-            }
+            ObjectsCache ??= new Dictionary<string, object>();
+            ObjectsCache[name ?? type.FullName] = o;
         }
 
         internal void End() {
+            if (ObjectsCache == null) return;
             foreach (var instance in ObjectsCache.Values) {
                 Container.ExecutePostCreateMethods(instance);
                 Container.ExecuteOnCreate(Lifetime.Singleton, instance);
