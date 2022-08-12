@@ -62,6 +62,9 @@ namespace Betauer {
         public string Name { get; }
         public Action<object?, object?> SetValue { get; }
         public MemberInfo MemberInfo { get; }
+#if DEBUG
+        private readonly string _toString;
+#endif                
         
         public Setter(MemberInfo memberInfo) {
             MemberInfo = memberInfo;
@@ -69,19 +72,33 @@ namespace Betauer {
                 Type = property.PropertyType;
                 Name = property.Name;
                 SetValue = property.SetValue;
+#if DEBUG
+                _toString = "Property " + Type.Name + " " + Name + " { " +
+                            (property.GetMethod.IsPrivate ? "private" : "public") + " get; " +
+                            (property.SetMethod.IsPrivate ? "private" : "public") + " set; }";
+#endif                
             } else if (memberInfo is FieldInfo field) {
                 Type = field.FieldType;
                 Name = field.Name;
                 SetValue = field.SetValue;
+#if DEBUG
+                _toString = "Field " + (field.IsPrivate ? "private " : "public ") + Type.Name + " " + Name;
+#endif                
             } else if (memberInfo is MethodInfo method) {
                 if (method.GetParameters().Length != 1) throw new ArgumentException("Setter method must have 1 parameter only");
                 Type = method.GetParameters()[0].ParameterType;
                 Name = method.Name;
                 SetValue = (instance, value) => method.Invoke(instance, new [] { value });
+#if DEBUG
+                _toString = "Method " + (method.IsPrivate ? "private " : "public ") + Name + "(" + Type.Name + " "+method.GetParameters()[0].Name+")";
+#endif                
             } else {
                 throw new ArgumentException("Member must be PropertyInfo or FieldInfo or MethodInfo");
             }
         }
+#if DEBUG
+        public override string ToString() => _toString;
+#endif                
     }
 
     public class GetterSetter : IGetterSetter {

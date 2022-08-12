@@ -25,7 +25,7 @@ namespace Betauer.DI.Tests {
             var di = new ContainerBuilder();
             di.Scan<INotTagged>();
             di.Scan<MyServiceWithNotScanned>();
-            Assert.Throws<InjectFieldException>(() => di.Build());
+            Assert.Throws<InjectMemberException>(() => di.Build());
         }
 
         [Service]
@@ -945,6 +945,42 @@ namespace Betauer.DI.Tests {
             
             Assert.That(C2.more1, Is.True);
             Assert.That(C2.more2, Is.True);
+
+        }
+        
+        [Service]
+        [Lazy]
+        class LazyPostCreatedD1 {
+            [Inject] internal Lazy<LazyPostCreatedD2> D2 { get; set; }
+        }
+
+        [Service]
+        [Lazy]
+        class LazyPostCreatedD2 {
+            [Inject] internal Lazy<LazyPostCreatedD1> D1 { get; set; }
+        }
+
+        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy and Lazy<T>")]
+        public void PostCreateMethodLazyWithLazyTypedAsLazyTest() {
+            var c = new Container();
+            var di = c.CreateBuilder();
+            di.Scan<LazyPostCreatedD1>();
+            di.Scan<LazyPostCreatedD2>();
+            di.Build();
+
+            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: false });
+
+            var D1 = c.Resolve<LazyPostCreatedD1>();
+            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: false });
+
+            var D2 = D1.D2.Get();
+            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: true });
+
+            Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostCreatedD2>()));
+            Assert.That(D2.D1.Get(), Is.EqualTo(D1));
 
         }
     }

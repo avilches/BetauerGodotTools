@@ -9,10 +9,10 @@ namespace Betauer.DI {
         }
     }
 
-    public class InjectFieldException : InjectException {
+    public class InjectMemberException : InjectException {
         public readonly string Name;
 
-        public InjectFieldException(string name, object instance, string message) : base(message, instance) {
+        public InjectMemberException(string name, object instance, string message) : base(message, instance) {
             Name = name;
         }
     }
