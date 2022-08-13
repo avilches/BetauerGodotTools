@@ -3,17 +3,17 @@ using System.Linq;
 using System.Reflection;
 
 namespace Betauer.DI {
-    public class Lazy<T> {
-        private Container _container;
-        private IProvider _provider;
+    public class Factory<T> {
+        private readonly Container _container;
+        public IProvider Provider { get; }
 
         public T Get() {
-            return (T)_provider.Get(_container);
+            return (T)Provider.Get(_container);
         }
 
-        private Lazy(Container container, IProvider provider) {
+        private Factory(Container container, IProvider provider) {
             _container = container;
-            _provider = provider;
+            Provider = provider;
         }
     }
 
@@ -72,7 +72,7 @@ namespace Betauer.DI {
                 return;
             }
 
-            var realType = setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Lazy<>)
+            var realType = setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)
                 ? setter.Type.GetGenericArguments()[0]
                 : setter.Type;
             if (_container.CreateIfNotFound || _container.Contains(realType)) {
@@ -90,7 +90,7 @@ namespace Betauer.DI {
         }
 
         private void InjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
-            if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Lazy<>)) {
+            if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)) {
                 var type = setter.Type.GetGenericArguments()[0];
                 var provider = _container.GetProvider(setter.Type);
                 var lazy = CreateLazyWithGeneric(_container, provider, type);
@@ -102,7 +102,7 @@ namespace Betauer.DI {
         }
 
         private void InjectFieldByType(object target, ResolveContext context, ISetter setter) {
-            if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Lazy<>)) {
+            if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)) {
                 var type = setter.Type.GetGenericArguments()[0];
                 var provider = _container.GetProvider(type);
                 var lazy = CreateLazyWithGeneric(_container, provider, type);
@@ -114,7 +114,7 @@ namespace Betauer.DI {
         }
 
         private static object CreateLazyWithGeneric(Container container, IProvider provider, Type genericType) {
-            var type = typeof(Lazy<>).MakeGenericType(genericType);
+            var type = typeof(Factory<>).MakeGenericType(genericType);
             var ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
                 .First(info => info.GetParameters().Length == 2 &&
                                info.GetParameters()[0].ParameterType == typeof(Container) &&

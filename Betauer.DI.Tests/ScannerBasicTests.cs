@@ -951,16 +951,16 @@ namespace Betauer.DI.Tests {
         [Service]
         [Lazy]
         class LazyPostCreatedD1 {
-            [Inject] internal Lazy<LazyPostCreatedD2> D2 { get; set; }
+            [Inject] internal Factory<LazyPostCreatedD2> D2 { get; set; }
         }
 
         [Service]
         [Lazy]
         class LazyPostCreatedD2 {
-            [Inject] internal Lazy<LazyPostCreatedD1> D1 { get; set; }
+            [Inject] internal Factory<LazyPostCreatedD1> D1 { get; set; }
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy and Lazy<T>")]
+        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy and Factory<T>")]
         public void PostCreateMethodLazyWithLazyTypedAsLazyTest() {
             var c = new Container();
             var di = c.CreateBuilder();
