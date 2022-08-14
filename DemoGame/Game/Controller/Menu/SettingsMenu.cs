@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
@@ -7,6 +8,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
+using Betauer.Signal;
 using Godot;
 using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
@@ -55,8 +57,7 @@ namespace Veronenger.Game.Controller.Menu {
         public override void _Ready() {
             _launcher.WithParent(this);
 
-            ConfigureCheckboxes();
-            ConfigureResolutionButton();
+            ConfigureScreenSettingsButtons();
             ConfigureControls();
 
             _fullscreenButtonWrapper.Pressed = _screenSettingsManager.Fullscreen;
@@ -71,86 +72,37 @@ namespace Veronenger.Game.Controller.Menu {
             HideSettingsMenu();
         }
 
-        private void ConfigureCheckboxes() {
+        private void ConfigureScreenSettingsButtons() {
             _fullscreenButtonWrapper
                 .OnFocusEntered(() => {
                     _scrollContainer.ScrollVertical = 0;
                     _gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
-                })
-                .OnPressed(isChecked => {
-                    _resolutionButton.SetFocusDisabled(isChecked);
-                    _borderlessButtonWrapper.SetFocusDisabled(isChecked);
-                    if (isChecked) {
-                        _borderlessButtonWrapper.Pressed = false;
-                    }
-                    _screenSettingsManager.SetFullscreen(isChecked);
                 });
-            _pixelPerfectButtonWrapper
-                .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenSettingsManager.SetPixelPerfect(isChecked));
-            
-            _borderlessButtonWrapper
-                .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenSettingsManager.SetBorderless(isChecked));
-            
-            _vsyncButtonWrapper
-                .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack)
-                .OnPressed(isChecked => _screenSettingsManager.SetVSync(isChecked));
-        }
-
-        private void ConfigureResolutionButton() {
+            _fullscreenButtonWrapper.OnToggled(isChecked => {
+                _resolutionButton.SetFocusDisabled(isChecked);
+                _borderlessButtonWrapper.SetFocusDisabled(isChecked);
+                if (isChecked) {
+                    _borderlessButtonWrapper.Pressed = false;
+                }
+                _screenSettingsManager.SetFullscreen(isChecked);
+                CheckIfResolutionStillMatches();
+            });
             _resolutionButton.OnFocusEntered(() => {
                 UpdateResolutionButton();
                 _gameManager.MainMenuBottomBarScene.ConfigureSettingsResolution();
             });
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
-            _resolutionButton.OnInputEvent(ctx => {
-                List<ScaledResolution> resolutions = _screenSettingsManager.GetResolutions();
-                Resolution resolution = _screenSettingsManager.WindowedResolution;
-                var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
-                pos = pos == -1 ? 0 : pos;
-                
-                if (UiLeft.IsActionPressed(ctx.InputEvent)) {
-                    if (pos > 0) {
-                        _screenSettingsManager.SetWindowed(resolutions[pos - 1]);
-                        UpdateResolutionButton();
-                        return true;
-                    }
-                } else if (UiRight.IsActionPressed(ctx.InputEvent)) {
-                    if (pos < resolutions.Count - 1) {
-                        _screenSettingsManager.SetWindowed(resolutions[pos + 1]);
-                        UpdateResolutionButton();
-                        return true;
-                    }
-                } else if (UiAccept.IsActionPressed(ctx.InputEvent)) {
-                    _screenSettingsManager.SetWindowed(pos == resolutions.Count - 1
-                        ? resolutions[0]
-                        : resolutions[pos + 1]);
-                    UpdateResolutionButton();
-                    return true;
-                }
-                return false;
+            _pixelPerfectButtonWrapper.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _pixelPerfectButtonWrapper.OnToggled(isChecked => {
+                _screenSettingsManager.SetPixelPerfect(isChecked);
+                CheckIfResolutionStillMatches();
             });
-        }
 
-        private void UpdateResolutionButton() {
-            List<ScaledResolution> resolutions = _screenSettingsManager.GetResolutions();
-            Resolution resolution = _screenSettingsManager.WindowedResolution;
-            var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == resolution.Size);
-            pos = pos == -1 ? 0 : pos;
+            _borderlessButtonWrapper.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _borderlessButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetBorderless(isChecked));
 
-            var prefix = pos > 0 ? "< " : "";
-            var suffix = pos < resolutions.Count - 1 ? " >" : "";
-            ScaledResolution scaledResolution = resolutions[pos];
-            var res = scaledResolution.ToString();
-            if (scaledResolution.IsPixelPerfectScale()) {
-                if (scaledResolution.GetPixelPerfectScale() == 1) {
-                    res += " (Original)";
-                } else {
-                    res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
-                }
-            }
-            _resolutionButton.Text = prefix + res + suffix;
+            _vsyncButtonWrapper.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _vsyncButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetVSync(isChecked));
         }
 
         private void ConfigureControls() {
@@ -163,24 +115,83 @@ namespace Veronenger.Game.Controller.Menu {
             var x = 0;
             _controls.GetChildren<RedefineActionButton>().ForEach(button => {
                 var action = _inputActionsContainer.ConfigurableActionList[x] as InputAction;
-                button
-                    .OnPressed(() => {
-                        ShowRedefineActionPanel(button);
-                    })
-                    .OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+                button.OnPressed(() => {
+                    ShowRedefineActionPanel(button);
+                });
+                button.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
                 button.ActionHint.Labels(null, action.Name).InputAction(action);
                 button.InputAction = action;
                 x++;
             });
-            _controls.GetChild<ButtonWrapper>(_controls.GetChildCount() - 1).OnFocusEntered(() => {
+            _controls.GetChild<Button>(_controls.GetChildCount() - 1).OnFocusEntered(() => {
                 _gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 _scrollContainer.ScrollVertical = int.MaxValue;
             });
         }
 
+        private Tuple<ScaledResolution, List<ScaledResolution>, int> FindClosestResolutionToSelected() {
+            List<ScaledResolution> resolutions = _screenSettingsManager.GetResolutions();
+            Resolution currentResolution = _screenSettingsManager.WindowedResolution;
+            var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == currentResolution.Size);
+            if (pos == -1) {
+                // Find the closest resolution with the same or smaller height
+                pos = resolutions.Count(scaledResolution => scaledResolution.Size.y <= currentResolution.Size.y) - 1;
+                if (pos == -1) pos = 0;
+            }
+            return new Tuple<ScaledResolution, List<ScaledResolution>, int>(resolutions[pos], resolutions, pos);
+        }
+
+        private void CheckIfResolutionStillMatches() {
+            if (_screenSettingsManager.IsFullscreen()) return; 
+            var (closestResolution, resolutions, pos) = FindClosestResolutionToSelected();
+            if (_screenSettingsManager.WindowedResolution.Size != closestResolution.Size) {
+                _screenSettingsManager.SetWindowed(resolutions[pos]);
+                UpdateResolutionButton();
+            }
+        }
+
+        private void ProcessChangeResolution() {
+            if (!UiLeft.JustPressed && !UiRight.JustPressed && !UiAccept.JustPressed) return;
+            var (_, resolutions, pos) = FindClosestResolutionToSelected();
+            if (UiLeft.JustPressed) {
+                if (pos > 0) {
+                    _screenSettingsManager.SetWindowed(resolutions[pos - 1]);
+                    UpdateResolutionButton();
+                }
+            } else if (UiRight.JustPressed) {
+                if (pos < resolutions.Count - 1) {
+                    _screenSettingsManager.SetWindowed(resolutions[pos + 1]);
+                    UpdateResolutionButton();
+                }
+            } else if (UiAccept.JustPressed) {
+                _screenSettingsManager.SetWindowed(pos == resolutions.Count - 1
+                    ? resolutions[0]
+                    : resolutions[pos + 1]);
+                UpdateResolutionButton();
+            }
+        }
+
+        private void UpdateResolutionButton() {
+            var (scaledResolution, resolutions, pos) = FindClosestResolutionToSelected();
+            var prefix = pos > 0 ? "< " : "";
+            var suffix = pos < resolutions.Count - 1 ? " >" : "";
+            var res = scaledResolution.ToString();
+            if (scaledResolution.Size == _screenSettingsManager.InitialScreenConfiguration.BaseResolution.Size) {
+                res += " (Original)";
+            } else if (scaledResolution.Base == _screenSettingsManager.InitialScreenConfiguration.BaseResolution.Size &&
+                       scaledResolution.IsPixelPerfectScale()) {
+                res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
+            }
+            _resolutionButton.Text = prefix + res + suffix;
+        }
+
+        public override void _Input(InputEvent @event) {
+            if (IsRedefineInputActive()) RedefineButtonInput(@event);
+        }
+
         private RedefineActionButton? _redefineButtonSelected;
 
-        public bool IsRedefineAction() {
+        public bool IsRedefineInputActive() {
             return _redefineButtonSelected != null;
         }
 
@@ -190,8 +201,7 @@ namespace Veronenger.Game.Controller.Menu {
             _redefineActionPanel.Show();
         }
 
-        public override void _Input(InputEvent @event) {
-            if (_redefineButtonSelected == null) return;
+        private void RedefineButtonInput(InputEvent @event) {
             var e = new EventWrapper(@event);
             if ((e.IsAnyKey() || e.IsAnyButton()) && e.Released) {
                 if (!e.IsKey(KeyList.Escape)) {
@@ -225,7 +235,10 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public void Execute() {
-            if (UiCancel.JustPressed && !IsRedefineAction()) {
+            if (_resolutionButton.HasFocus()) {
+                ProcessChangeResolution();
+            }
+            if (UiCancel.JustPressed && !IsRedefineInputActive()) {
                 _gameManager.TriggerBack();
             }
         }
