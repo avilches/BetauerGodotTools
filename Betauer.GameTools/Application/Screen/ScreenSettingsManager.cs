@@ -17,13 +17,13 @@ namespace Betauer.Application.Screen {
         
         private ISetting<bool> _pixelPerfect;
         private ISetting<bool> _fullscreen;
-        private ISetting<bool> _VSync;
+        private ISetting<bool> _vSync;
         private ISetting<bool> _borderless;
         private ISetting<Resolution> _windowedResolution;
 
         public bool PixelPerfect => _pixelPerfect.Value;
         public bool Fullscreen => _fullscreen.Value;
-        public bool VSync => _VSync.Value;
+        public bool VSync => _vSync.Value;
         public bool Borderless => _borderless.Value;
         public Resolution WindowedResolution => _windowedResolution.Value;
 
@@ -39,7 +39,7 @@ namespace Betauer.Application.Screen {
             _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen", 
                 () => Setting<bool>.Memory(AppTools.GetWindowFullscreen()));
             
-            _VSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync", 
+            _vSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync", 
                 () => Setting<bool>.Memory(AppTools.GetWindowVsync()));
             
             _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
@@ -83,7 +83,7 @@ namespace Betauer.Application.Screen {
 
         public void SetVSync(bool vsync, bool save = true) {
             OS.VsyncEnabled = vsync;
-            if (save) _VSync.Value = vsync;
+            if (save) _vSync.Value = vsync;
         }
 
         public void SetFullscreen(bool fs, bool save = true) {

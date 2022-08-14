@@ -4,11 +4,14 @@ using System.Linq;
 using Betauer.Memory;
 using Betauer.Signal;
 using Godot;
+using static Betauer.Application.Screen.AspectRatios;
+using static Betauer.Application.Screen.Resolutions;
 
 namespace Betauer.Application.Screen {
     public class ScreenConfiguration {
         public Resolution BaseResolution { get; }
         public List<Resolution> Resolutions { get; }
+        public List<AspectRatio> AspectRatios { get; }
 
         // disabled: while the framebuffer will be resized to match the game window, nothing will be upscaled or downscaled (this includes GUIs).
         // 2d: the framebuffer is still resized, but GUIs can be upscaled or downscaled. This can result in blurry or pixelated fonts.
@@ -22,7 +25,8 @@ namespace Betauer.Application.Screen {
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
             StretchAspect = stretchAspect;
-            Resolutions = resolutions ?? Application.Screen.Resolutions.All(AspectRatios.Ratio16_9);
+            Resolutions = resolutions ?? GetAll(Ratio16_9);
+            AspectRatios = Resolutions.Select(r => r.AspectRatio).Distinct().ToList();
             Zoom = zoom;
         }
     }
@@ -96,8 +100,7 @@ namespace Betauer.Application.Screen {
         protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
 
         protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
-
-        // protected ICollection<AspectRatio> AspectRatios => _screenConfiguration.AspectRatios;
+        protected List<AspectRatio> AspectRatios => ScreenConfiguration.AspectRatios;
         protected SceneTree.StretchMode StretchMode => ScreenConfiguration.StretchMode;
         protected SceneTree.StretchAspect StretchAspect => ScreenConfiguration.StretchAspect;
         protected float Zoom => ScreenConfiguration.Zoom;
@@ -167,12 +170,26 @@ namespace Betauer.Application.Screen {
         protected override void OnDispose(bool disposing) {
         }
 
+        private class ScaledResolutionComparer : IEqualityComparer<ScaledResolution> {
+            public static readonly ScaledResolutionComparer Instance = new ScaledResolutionComparer();
+            public bool Equals(ScaledResolution x, ScaledResolution y) => x.Size.Equals(y.Size);
+            public int GetHashCode(ScaledResolution scaledResolution) => scaledResolution.Size.GetHashCode();
+        }
+
         public List<ScaledResolution> GetResolutions() {
-            var screenSize = OS.GetScreenSize();
-            return (from resolution in Resolutions ?? Application.Screen.Resolutions.All()
-                where resolution.x <= screenSize.x && resolution.y <= screenSize.y &&
-                      resolution.x >= BaseResolution.x && resolution.y >= BaseResolution.y
-                select new ScaledResolution(BaseResolution.Size, resolution.Size)).ToList();
+            var screenSize = new Resolution(OS.GetScreenSize());
+            var resolutions = Resolutions
+                    .Where(resolution => resolution.x >= BaseResolution.x && 
+                                         resolution.x <= screenSize.x &&
+                                         resolution.y >= BaseResolution.y && 
+                                         resolution.y <= screenSize.y)
+                    .Select(resolution => 
+                        ExpandResolutionsByWidth(new ScaledResolution(BaseResolution.Size, resolution.Size), screenSize, AspectRatios))
+                .SelectMany(list => list)
+                .Distinct(ScaledResolutionComparer.Instance)
+                .OrderBy(x => x, Resolution.ComparerByHeight)
+                .ToList();
+            return resolutions;
         }
 
         public override void SetFullscreen() {
@@ -236,49 +253,8 @@ namespace Betauer.Application.Screen {
         }
 
         public List<ScaledResolution> GetResolutions() {
-            var screenSize = OS.GetScreenSize();
-            var maxScale = Resolution.CalculateMaxScale(screenSize, BaseResolution.Size);
-            List<ScaledResolution> resolutions = new List<ScaledResolution>();
-            HashSet<AspectRatio> otherAspectRatios = new HashSet<AspectRatio>();
-            // Loop all the possible resolution just to extract all the aspect ratios...
-            foreach (var resolution in Resolutions.Where(resolution => !resolution.AspectRatio.Matches(BaseResolution))) {
-                otherAspectRatios.Add(resolution.AspectRatio);
-            }
-            for (var scale = 1; scale <= maxScale; scale++) {
-                var scaledResolution = new ScaledResolution(BaseResolution.Size, BaseResolution.Size * scale);
-                // Add the baseResolution x scale
-                resolutions.Add(scaledResolution);
-                // And add it again adapted to other aspect ratios
-                foreach (var aspectRatio in otherAspectRatios) {
-                    // TODO: This is only with landscapes
-                    if (aspectRatio.Ratio > scaledResolution.AspectRatio.Ratio) {
-                        // Convert the resolution to a wider aspect ratio, keeping the height and adding more width
-                        // So, if base is 1920x1080 = 1,77777 16:9
-                        // to 21:9 => 2,3333
-                        // x=1080*2,333=2520
-                        // 2520x1080 = 2,3333 21:9
-                        var newWidth = scaledResolution.y * aspectRatio.Ratio;
-                        if (newWidth <= screenSize.x) {
-                            var newResolution = new Vector2(newWidth, scaledResolution.y);
-                            var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
-                            resolutions.Add(scaledResolutionUpdated);
-                        }
-                    } else {
-                        // Convert the resolution to a stretcher aspect ratio, keeping the width and adding more height
-                        // So, if base is 1920x1080 = 1,77777 16:9
-                        // to 4:3 => 1,333
-                        // y=1920/1,333=823
-                        // 1920x1440 = 1,3333 3:4
-                        var newHeight = scaledResolution.x / aspectRatio.Ratio;
-                        if (newHeight <= screenSize.y) {
-                            var newResolution = new Vector2(scaledResolution.x, newHeight);
-                            var scaledResolutionUpdated = new ScaledResolution(BaseResolution.Size, newResolution);
-                            resolutions.Add(scaledResolutionUpdated);
-                        }
-                    }
-                }
-            }
-            return resolutions;
+            var maxSize = new Resolution(OS.GetScreenSize());
+            return Betauer.Application.Screen.Resolutions.ExpandResolutionsByWidth(BaseResolution, maxSize, AspectRatios);
         }
 
         public override void SetFullscreen() {
@@ -304,7 +280,7 @@ namespace Betauer.Application.Screen {
 
         private void ScaleResolutionViewport() {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            var maxScale = Resolution.CalculateMaxScale(windowSize, BaseResolution.Size);
+            var maxScale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
             var screenSize = BaseResolution.Size;
             var viewportSize = screenSize * maxScale;
             var overScan = ((windowSize - viewportSize) / maxScale).Floor();
