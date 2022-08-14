@@ -10,7 +10,7 @@ namespace Betauer.Application.Screen {
         public readonly int Width;
         public readonly int Height;
 
-        internal AspectRatio(int width, int height) {
+        public AspectRatio(int width, int height) {
             Width = width;
             Height = height;
             Name = width + ":" + height;
@@ -41,8 +41,8 @@ namespace Betauer.Application.Screen {
             return !left.Equals(right); // not the same reference
         }
 
-        public override bool Equals(object obj) => obj is AspectRatio other && Equals(other);
-        public bool Equals(AspectRatio other) => Ratio == other.Ratio;
+        public override bool Equals(object? obj) => obj is AspectRatio other && Equals(other);
+        public bool Equals(AspectRatio? obj) => ReferenceEquals(this, obj) || (obj is { } && Ratio.Equals(obj.Ratio));
         public override int GetHashCode() => Ratio.GetHashCode();
     }
 }

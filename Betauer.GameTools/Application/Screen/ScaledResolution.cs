@@ -37,8 +37,9 @@ namespace Betauer.Application.Screen {
             return !left.Equals(right); // not the same reference
         }
 
-        public override bool Equals(object obj) => obj is ScaledResolution other && Equals(other);
-        public bool Equals(ScaledResolution other) => Base.Equals(other.Base) && Size.Equals(other.Size);
+        public override bool Equals(object? obj) => obj is ScaledResolution other && Equals(other);
+        public bool Equals(ScaledResolution? obj) => ReferenceEquals(this, obj) || (obj is { } &&
+            Base.Equals(obj.Base) && Size.Equals(obj.Size));
         public override int GetHashCode() {
             unchecked {
                 var hashCode = base.GetHashCode();

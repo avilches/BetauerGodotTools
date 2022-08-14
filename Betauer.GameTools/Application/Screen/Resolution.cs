@@ -20,7 +20,7 @@ namespace Betauer.Application.Screen {
         public int Compare(Resolution left, Resolution right) => (left.x * left.y).CompareTo(right.x * right.y);
     }
     
-    public class Resolution : IEquatable<Resolution> {
+    public class Resolution {
         public static readonly IComparer<Resolution> ComparerByHeight = new ResolutionByHeightComparer();
         public static readonly IComparer<Resolution> ComparerByArea = new ResolutionByAreaComparer();
         public static readonly Comparison<Resolution> ComparisonByArea = (left, right) =>
@@ -70,8 +70,8 @@ namespace Betauer.Application.Screen {
             return !left.Equals(right); // not the same reference
         }
 
-        public override bool Equals(object obj) => obj is Resolution other && Equals(other);
-        public bool Equals(Resolution other) => Size.Equals(other.Size);
+        public override bool Equals(object? obj) => obj is Resolution other && Equals(other);
+        public bool Equals(Resolution? obj) => ReferenceEquals(this, obj) || (obj is { } && Size.Equals(obj.Size));
         public override int GetHashCode() => Size.GetHashCode();
     }
 }
