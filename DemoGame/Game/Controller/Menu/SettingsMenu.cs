@@ -17,19 +17,19 @@ namespace Veronenger.Game.Controller.Menu {
         private Panel _panel;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Fullscreen")]
-        private ButtonWrapper _fullscreenButtonWrapper;
+        private CheckButton _fullscreenButtonWrapper;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Resolution")]
-        private ButtonWrapper _resolutionButton;
+        private Button _resolutionButton;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/PixelPerfect")]
-        private ButtonWrapper _pixelPerfectButtonWrapper;
+        private CheckButton _pixelPerfectButtonWrapper;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Borderless")]
-        private ButtonWrapper _borderlessButtonWrapper;
+        private CheckButton _borderlessButtonWrapper;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/VSync")]
-        private ButtonWrapper _vsyncButtonWrapper;
+        private CheckButton _vsyncButtonWrapper;
 
         [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls")]
         private VBoxContainer _controls;

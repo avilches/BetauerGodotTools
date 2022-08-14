@@ -11,7 +11,7 @@ namespace Veronenger.Game {
             Resolutions.FULLHD_DIV3,
             SceneTree.StretchMode.Mode2d,
             SceneTree.StretchAspect.Keep,
-            Resolutions.All(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
+            Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
     }
 
     [Configuration]
