@@ -2,7 +2,7 @@ using System;
 using Godot;
 
 namespace Betauer.Application.Screen {
-    public class AspectRatio : IEquatable<AspectRatio> {
+    public class AspectRatio {
         internal const float Tolerance = 0.05f;
 
         public readonly string Name;
@@ -10,14 +10,14 @@ namespace Betauer.Application.Screen {
         public readonly int Width;
         public readonly int Height;
 
-        public AspectRatio(int width, int height, string? name = null) {
+        internal AspectRatio(int width, int height) {
             Width = width;
             Height = height;
-            Name = name ?? width + ":" + height;
+            Name = width + ":" + height;
             Ratio = width / (float)height;
         }
 
-        public AspectRatio(Vector2 resolution, string? name = null) : this((int)resolution.x, (int)resolution.y, name) {
+        private AspectRatio(Vector2 resolution) : this((int)resolution.x, (int)resolution.y) {
         }
 
         public bool Matches(AspectRatio aspectRatio) => Matches(aspectRatio.Ratio);
@@ -29,19 +29,20 @@ namespace Betauer.Application.Screen {
         /**
          * Two AspectRatio are equal if their Width and Height are equal (Name is ignored)
          */
-        public static bool operator ==(AspectRatio left, AspectRatio right) => left.Equals(right);
-        public static bool operator !=(AspectRatio left, AspectRatio right) => !left.Equals(right);
-        public override bool Equals(object obj) => obj is AspectRatio other && Equals(other);
-        public bool Equals(AspectRatio other) => Width == other.Width && Height == other.Height;
-
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = Name.GetHashCode();
-                hashCode = (hashCode * 397) ^ Ratio.GetHashCode();
-                hashCode = (hashCode * 397) ^ Width;
-                hashCode = (hashCode * 397) ^ Height;
-                return hashCode;
-            }
+        public static bool operator ==(AspectRatio? left, AspectRatio? right) {
+            if (ReferenceEquals(left, right)) return true; // equals or both null
+            if (right is null || left is null) return false; // one of them is null
+            return left.Equals(right); // not the same reference
         }
+
+        public static bool operator !=(AspectRatio? left, AspectRatio? right) {
+            if (ReferenceEquals(left, right)) return false; // equals or both null
+            if (right is null || left is null) return true; // one of them is null
+            return !left.Equals(right); // not the same reference
+        }
+
+        public override bool Equals(object obj) => obj is AspectRatio other && Equals(other);
+        public bool Equals(AspectRatio other) => Ratio == other.Ratio;
+        public override int GetHashCode() => Ratio.GetHashCode();
     }
 }

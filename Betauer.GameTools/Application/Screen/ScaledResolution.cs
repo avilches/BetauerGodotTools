@@ -15,11 +15,8 @@ namespace Betauer.Application.Screen {
         }
 
         public bool HasSameAspectRatio() => Math.Abs(Scale.x - Scale.y) < 0.00001f;
-
         public bool IsPixelPerfectScale() => HasSameAspectRatio() && IsInteger(Scale.x);
-
         private static bool IsInteger(float x) => Math.Abs(x - Math.Floor(x)) < 0.00001f;
-
         // Please check IsPixelPerfectScale before to use this value!!
         public int GetPixelPerfectScale() => (int)Math.Floor(Scale.x);
 
@@ -28,8 +25,18 @@ namespace Betauer.Application.Screen {
          * Scale is a computed value (size / base)
          * Aspect ratio (inherited from parent Resolution class) is a computed value (size.x/size.y, width/height)
          */
-        public static bool operator ==(ScaledResolution left, ScaledResolution right) => left.Equals(right);
-        public static bool operator !=(ScaledResolution left, ScaledResolution right) => !left.Equals(right);
+        public static bool operator ==(ScaledResolution? left, ScaledResolution? right) {
+            if (ReferenceEquals(left, right)) return true; // equals or both null
+            if (right is null || left is null) return false; // one of them is null
+            return left.Equals(right); // not the same reference
+        }
+
+        public static bool operator !=(ScaledResolution? left, ScaledResolution? right) {
+            if (ReferenceEquals(left, right)) return false; // equals or both null
+            if (right is null || left is null) return true; // one of them is null
+            return !left.Equals(right); // not the same reference
+        }
+
         public override bool Equals(object obj) => obj is ScaledResolution other && Equals(other);
         public bool Equals(ScaledResolution other) => Base.Equals(other.Base) && Size.Equals(other.Size);
         public override int GetHashCode() {

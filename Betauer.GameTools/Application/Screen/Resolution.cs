@@ -17,8 +17,7 @@ namespace Betauer.Application.Screen {
         /// <summary>
         /// Multiply the height x width to get the area
         /// </summary>
-        public int Compare(Resolution left, Resolution right) => 
-            left.x * left.y > right.x * right.y ? 1 : -1;
+        public int Compare(Resolution left, Resolution right) => (left.x * left.y).CompareTo(right.x * right.y);
     }
     
     public class Resolution : IEquatable<Resolution> {
@@ -42,7 +41,7 @@ namespace Betauer.Application.Screen {
 
         public Resolution(Vector2 size) {
             Size = size;
-            AspectRatio = AspectRatios.Get(this) ?? new AspectRatio(size);
+            AspectRatio = AspectRatios.Get(this);
         }
 
         public Resolution(int x, int y) : this(new Vector2(x, y)) {
@@ -59,8 +58,18 @@ namespace Betauer.Application.Screen {
          * Two Resolutions are equal if their fields Size are equal
          * Aspect ratio (inherited from parent Resolution class) is a computed value (size.x/size.y, width/height)
          */
-        public static bool operator ==(Resolution left, Resolution right) => left.Equals(right);
-        public static bool operator !=(Resolution left, Resolution right) => !left.Equals(right);
+        public static bool operator ==(Resolution? left, Resolution? right) {
+            if (ReferenceEquals(left, right)) return true; // equals or both null
+            if (right is null || left is null) return false; // one of them is null
+            return left.Equals(right); // not the same reference
+        }
+
+        public static bool operator !=(Resolution? left, Resolution? right) {
+            if (ReferenceEquals(left, right)) return false; // equals or both null
+            if (right is null || left is null) return true; // one of them is null
+            return !left.Equals(right); // not the same reference
+        }
+
         public override bool Equals(object obj) => obj is Resolution other && Equals(other);
         public bool Equals(Resolution other) => Size.Equals(other.Size);
         public override int GetHashCode() => Size.GetHashCode();

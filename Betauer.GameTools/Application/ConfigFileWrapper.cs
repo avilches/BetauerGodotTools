@@ -87,7 +87,6 @@ namespace Betauer.Application {
             if (LastError != Error.Ok) {
                 LoggerFactory.GetLogger(typeof(ConfigFileWrapper)).Error($"Save \"{FilePath}\" error: {LastError}");
             }
-            GD.Print(File.ReadAllText(FilePath));
             return this;
         }
 
