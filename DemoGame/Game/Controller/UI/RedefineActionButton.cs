@@ -1,10 +1,9 @@
-using Betauer;
-using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
+using Godot;
 
 namespace Veronenger.Game.Controller.UI {
-    public class RedefineActionButton : ButtonWrapper {
+    public class RedefineActionButton : Button {
         [OnReady("ActionHint")] public ActionHint ActionHint;
         
         public InputAction InputAction;
