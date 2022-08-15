@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class ResolutionTests {
 
         [Test]

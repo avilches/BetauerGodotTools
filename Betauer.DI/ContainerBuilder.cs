@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using Betauer.Reflection;
 
 namespace Betauer.DI {
     [AttributeUsage(AttributeTargets.Class)]
@@ -168,12 +168,9 @@ namespace Betauer.DI {
 
         public ContainerBuilder Scan(Type type) => _Scan(type, null);
 
-
-        private static bool Has<T>(MemberInfo type) => Attribute.GetCustomAttribute(type, typeof(T), false) is T;
-        
         private ContainerBuilder _Scan(Type type, HashSet<Type>? stack) {
             // Look up for [Scan(typeof(...)]
-            foreach (var importAttribute in Attribute.GetCustomAttributes(type, typeof(ScanAttribute), false)) {
+            foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
                 foreach (var typeToImport in ((ScanAttribute)importAttribute).Types) {
@@ -182,18 +179,18 @@ namespace Betauer.DI {
             }
             
             // Look up for [Service]
-            if (Attribute.GetCustomAttribute(type, typeof(ServiceAttribute), false) is ServiceAttribute serviceAttr) {
-                if (Has<ConfigurationAttribute>(type)) 
+            if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
+                if (type.HasAttribute<ConfigurationAttribute>()) 
                     throw new Exception("Can't use [Configuration] and [Service] in the same class");
                 var registeredType = serviceAttr.Type ?? type;
                 var name = serviceAttr.Name;
-                var primary = serviceAttr.Primary || Has<PrimaryAttribute>(type);
-                var lazy = serviceAttr.Lazy || Has<LazyAttribute>(type);
+                var primary = serviceAttr.Primary || type.HasAttribute<PrimaryAttribute>();
+                var lazy = serviceAttr.Lazy || type.HasAttribute<LazyAttribute>();
                 Func<object> factory = () => Activator.CreateInstance(type);
                 Register(registeredType, type, factory, serviceAttr.Lifetime, name, primary, lazy);
             } else {
                 // No [Service] present in the class, check for [Configuration]
-                if (Has<ConfigurationAttribute>(type)) RegisterConfigurationServices(type, null);
+                if (type.HasAttribute<ConfigurationAttribute>()) RegisterConfigurationServices(type, null);
             }
             return this;
         }
@@ -207,13 +204,14 @@ namespace Betauer.DI {
 
         private void RegisterConfigurationServices(Type configurationType, object? instance) {
             var conf = instance;
+            // No need to use GetGettersCached, this reflection scan is only done once
             foreach (var getter in configurationType.GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags)) {
                 var serviceAttr = getter.Attribute;
                 var type = getter.Type;
                 var registeredType = serviceAttr.Type ?? type;
                 var name = serviceAttr.Name?? getter.Name;
-                var primary = serviceAttr.Primary || Has<PrimaryAttribute>(getter.MemberInfo);
-                var lazy = serviceAttr.Lazy || Has<LazyAttribute>(getter.MemberInfo);
+                var primary = serviceAttr.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
+                var lazy = serviceAttr.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>();
                 Func<object> factory = () => {
                     conf ??= Activator.CreateInstance(configurationType);
                     return getter.GetValue(conf);

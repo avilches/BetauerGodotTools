@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Betauer.DI;
+using Betauer.Reflection;
 using Betauer.Signal;
 using Godot;
 
@@ -98,8 +99,7 @@ namespace Betauer.Loader {
                 _registry.Remove(key);
             }
             // Set to null all fields with attributes [Scene] and [Resource]
-            foreach (var setter in GetType()
-                         .GetGetterSetters<BaseResourceAttribute>(MemberFlags, Flags))
+            foreach (var setter in GetType().GetSettersCached<BaseResourceAttribute>(MemberFlags, Flags))
                 setter.SetValue(this, null);
             return this;
         }
@@ -107,15 +107,14 @@ namespace Betauer.Loader {
         private static IEnumerable<string> GetResourcesToLoad(IEnumerable<object> targets) {
             var resources = new HashSet<string>();
             foreach (var target in targets)
-                foreach (var setter in target.GetType()
-                             .GetSetters<BaseResourceAttribute>(MemberFlags, Flags))
+                foreach (var setter in target.GetType().GetSettersCached<BaseResourceAttribute>(MemberFlags, Flags))
                     resources.Add(setter.Attribute.Path);
             return resources;
         }
 
         private static void InjectResources(IReadOnlyDictionary<string, ResourceMetadata> resources, IEnumerable<object> targets) {
             foreach (var target in targets) {
-                foreach (var setter in target.GetType().GetSetters<BaseResourceAttribute>(MemberFlags, Flags))
+                foreach (var setter in target.GetType().GetSettersCached<BaseResourceAttribute>(MemberFlags, Flags))
                     if (setter.Attribute is SceneAttribute)
                         InjectScene(target, setter, resources[setter.Attribute.Path]);
                     else if (setter.Attribute is ResourceAttribute)

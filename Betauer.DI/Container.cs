@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class ResolveContext {
@@ -206,7 +207,7 @@ namespace Betauer.DI {
         internal static void ExecutePostCreateMethods<T>(T instance) {
             var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var method in methods) {
-                if (Attribute.GetCustomAttribute(method, typeof(PostCreateAttribute), false) is PostCreateAttribute) {
+                if (method.HasAttribute<PostCreateAttribute>()) {
                     if (method.GetParameters().Length == 0) {
                         try {
                             method.Invoke(instance, new object[] { });

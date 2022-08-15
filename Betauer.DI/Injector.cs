@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class Factory<T> {
@@ -33,11 +35,12 @@ namespace Betauer.DI {
 #if DEBUG
             _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
 #endif
-            foreach (var setter in target.GetType().GetSetters<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags))
-                InjectField(target, context, setter);
+            var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
+            foreach (var setter in members)
+                InjectMember(target, context, setter);
         }
 
-        private void InjectField(object target, ResolveContext context, ISetter<InjectAttribute> setter) {
+        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> setter) {
             if (setter is IGetter getter && getter.GetValue(target) != null) {
                 // Ignore the already defined values
                 // TODO: test

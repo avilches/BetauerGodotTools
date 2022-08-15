@@ -1,7 +1,5 @@
-using System;
-using System.Linq;
 using System.Reflection;
-using Betauer.DI;
+using Betauer.Reflection;
 using Godot;
 
 namespace Betauer.OnReady {
@@ -11,7 +9,7 @@ namespace Betauer.OnReady {
 
         public static void ScanAndInject(Node target) {
             var type = target.GetType();
-            foreach (var setter in type.GetSetters<OnReadyAttribute>(MemberTypes.Field | MemberTypes.Property, OnReadyFlags))
+            foreach (var setter in type.GetSettersCached<OnReadyAttribute>(MemberTypes.Field | MemberTypes.Property, OnReadyFlags))
                 LoadOnReadyField(target, setter);
         }
 

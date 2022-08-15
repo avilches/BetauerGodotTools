@@ -85,7 +85,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine); // No GD.Print means no logs
 
             // All enabled, then disabled one by one, so developers can enable just one 
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
 
             // Bootstrap logs, all always :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
@@ -93,8 +93,8 @@ namespace Veronenger.Game.Managers.Autoload {
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(FactoryProvider), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
             // GameTools
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
