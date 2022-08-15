@@ -1,18 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Object = Godot.Object;
 
-namespace Betauer {
+namespace Betauer.GodotAction {
     public abstract class ProxyNode : Node {
-        protected ProxyNode() {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-            SetProcessUnhandledInput(false);
-            SetProcessUnhandledKeyInput(false);
-        }
-
         protected void AddSignal<T>(ref List<T>? list, string signal, string methodName, T action, bool oneShot = false, bool deferred = false) {
             if (list == null || list.Count == 0) {
                 var parent = GetParent();
@@ -63,99 +54,94 @@ namespace Betauer {
             foreach (var t in list) t.Invoke(p1, p2, p3, p4, p5);
         }
         
-        private List<Action<float>>? _onProcessActions; 
-        private List<Action<float>>? _onPhysicsProcessActions; 
-        private List<Action<InputEvent>>? _onInputActions; 
-        private List<Action<InputEvent>>? _onUnhandledInputActions; 
-        private List<Action<InputEventKey>>? _onUnhandledKeyInputActions;
+        private event Action<float>? OnProcessActions; 
+        private event Action<float>? OnPhysicsProcessActions; 
+        private event Action<InputEvent>? OnInputActions; 
+        private event Action<InputEvent>? OnUnhandledInputActions; 
+        private event Action<InputEventKey>? OnUnhandledKeyInputActions;
 
         public void OnProcess(Action<float> action) {
-            _onProcessActions ??= new List<Action<float>>(1);
-            _onProcessActions.Add(action);
+            OnProcessActions += action;
             SetProcess(true);
         }
         public void OnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions ??= new List<Action<float>>(1);
-            _onPhysicsProcessActions.Add(action);
+            OnPhysicsProcessActions += action;
             SetPhysicsProcess(true);
         }
 
         public void OnInput(Action<InputEvent> action) {
-            _onInputActions ??= new List<Action<InputEvent>>(1);
-            _onInputActions.Add(action);
+            OnInputActions += action;
             SetProcessInput(true);
         }
 
         public void OnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions ??= new List<Action<InputEvent>>(1);
-            _onUnhandledInputActions.Add(action);
+            OnUnhandledInputActions += action;
             SetProcessUnhandledInput(true);
         }
 
         public void OnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions ??= new List<Action<InputEventKey>>(1);
-            _onUnhandledKeyInputActions.Add(action);
+            OnUnhandledKeyInputActions += action;
             SetProcessUnhandledKeyInput(true);
         }
 
         public void RemoveOnProcess(Action<float> action) {
-            _onProcessActions?.Remove(action);
+            OnProcessActions -= action;
         }
 
         public void RemoveOnPhysicsProcess(Action<float> action) {
-            _onPhysicsProcessActions?.Remove(action);
+            OnPhysicsProcessActions -= action;
         }
 
         public void RemoveOnInput(Action<InputEvent> action) {
-            _onInputActions?.Remove(action);
+            OnInputActions -= action;
         }
 
         public void RemoveOnUnhandledInput(Action<InputEvent> action) {
-            _onUnhandledInputActions?.Remove(action);
+            OnUnhandledInputActions -= action;
         }
 
         public void RemoveOnUnhandledKeyInput(Action<InputEventKey> action) {
-            _onUnhandledKeyInputActions?.Remove(action);
+            OnUnhandledKeyInputActions -= action;
         }
 
         public override void _Process(float delta) {
-            if (_onProcessActions == null || _onProcessActions.Count == 0) {
+            if (OnProcessActions == null) {
                 SetProcess(false);
                 return;
             }
-            for (var i = 0; i < _onProcessActions.Count; i++) _onProcessActions[i].Invoke(delta);
+            OnProcessActions?.Invoke(delta);
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_onPhysicsProcessActions == null || _onPhysicsProcessActions.Count == 0) {
+            if (OnPhysicsProcessActions == null) {
                 SetPhysicsProcess(false);
                 return;
             }
-            for (var i = 0; i < _onPhysicsProcessActions.Count; i++) _onPhysicsProcessActions[i].Invoke(delta);
+            OnPhysicsProcessActions?.Invoke(delta);
         }
 
         public override void _Input(InputEvent @event) {
-            if (_onInputActions == null || _onInputActions.Count == 0) {
+            if (OnInputActions == null) {
                 SetProcessInput(false);
                 return;
             }
-            for (var i = 0; i < _onInputActions.Count; i++) _onInputActions[i].Invoke(@event);
+            OnInputActions?.Invoke(@event);
         }
 
         public override void _UnhandledInput(InputEvent @event) {
-            if (_onUnhandledInputActions == null || _onUnhandledInputActions.Count == 0) {
+            if (OnUnhandledInputActions == null) {
                 SetProcessUnhandledInput(false);
                 return;
             }
-            for (var i = 0; i < _onUnhandledInputActions.Count; i++) _onUnhandledInputActions[i].Invoke(@event);
+            OnUnhandledInputActions?.Invoke(@event);
         }
 
         public override void _UnhandledKeyInput(InputEventKey @event) {
-            if (_onUnhandledKeyInputActions == null || _onUnhandledKeyInputActions.Count == 0) {
+            if (OnUnhandledKeyInputActions == null) {
                 SetProcessUnhandledKeyInput(false);
                 return;
             }
-            for (var i = 0; i < _onUnhandledKeyInputActions.Count; i++) _onUnhandledKeyInputActions[i].Invoke(@event);
+            OnUnhandledKeyInputActions?.Invoke(@event);
         }
 
     }
