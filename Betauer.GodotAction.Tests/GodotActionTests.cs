@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 namespace Betauer.GodotAction.Tests {
     [TestFixture]
-    [Only]
     public class GodotActionTests : Node {
         
         [Test]
@@ -17,7 +16,6 @@ namespace Betauer.GodotAction.Tests {
         }
 
         [Test]
-        [Ignore("TODO")]
         public async Task MultipleActionsPerSignal() {
             var l = new Label();
             var entered1 = 0;
@@ -33,46 +31,45 @@ namespace Betauer.GodotAction.Tests {
         }
 
         [Test(Description = "Test IsConnected() when multiple actions per signal are added and removed")]
-        [Ignore("TODO")]
         public async Task MultipleConnectAndDisconnect() {
             var l = new Label();
             var entered1 = 0;
             var entered2 = 0;
             Action action1 = () => entered1++;
             Action action2 = () => entered2++;
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.False);
 
             // Remove one when there wasn't listeners (count is 0), it shouldn't appear an error
             l.GetProxy().RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.False);
 
             // Adding 2 listeners
             l.GetProxy().OnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.True);
             l.GetProxy().OnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.True);
 
             // Remove 2 listeners
             l.GetProxy().RemoveOnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.True);
             l.GetProxy().RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.False);
 
             // Remove one when there wasn't listeners (count is 0), it shouldn't appear an error
             l.GetProxy().RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.False);
 
             // Add one again
             l.GetProxy().OnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.True);
 
             // Remove one that wasn't added
             l.GetProxy().RemoveOnTreeEntered(action2);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.True);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.True);
 
             // Remove one
             l.GetProxy().RemoveOnTreeEntered(action1);
-            Assert.That(l.IsConnected("tree_entered", l, "_GodotSignalTreeEntered"), Is.False);
+            Assert.That(l.IsConnected("tree_entered", l.GetProxy(), "_GodotSignalTreeEntered"), Is.False);
 
         }
 

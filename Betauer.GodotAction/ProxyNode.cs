@@ -5,9 +5,11 @@ using Godot;
 namespace Betauer.GodotAction {
     public abstract class ProxyNode : Node {
         protected void AddSignal<T>(ref List<T>? list, string signal, string methodName, T action, bool oneShot = false, bool deferred = false) {
+            if (!IsInstanceValid(this)) return;
             if (list == null || list.Count == 0) {
                 var parent = GetParent();
                 if (parent == null) throw new InvalidOperationException("Can't add signal to a Proxy without parent");
+                if (!IsInstanceValid(parent)) return;
                 list ??= new List<T>(); 
                 parent.Connect(signal, this, methodName);
             }
@@ -15,11 +17,13 @@ namespace Betauer.GodotAction {
         }
 
         protected void RemoveSignal<T>(List<T>? list, string signal, string methodName, T action) {
+            if (!IsInstanceValid(this)) return;
             if (list == null || list.Count == 0) return;
             list.Remove(action); 
             if (list.Count == 0) {
                 var parent = GetParent();
                 if (parent == null) throw new InvalidOperationException("Can't remove a signal from a Proxy without parent");
+                if (!IsInstanceValid(parent)) return;
                 parent.Disconnect(signal, this, methodName);
             }
         }
@@ -64,6 +68,7 @@ namespace Betauer.GodotAction {
             OnProcessActions += action;
             SetProcess(true);
         }
+        
         public void OnPhysicsProcess(Action<float> action) {
             OnPhysicsProcessActions += action;
             SetPhysicsProcess(true);
