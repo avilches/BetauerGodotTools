@@ -41,8 +41,13 @@ namespace Betauer.Application.Screen {
             return !left.Equals(right); // not the same reference
         }
 
-        public override bool Equals(object? obj) => obj is AspectRatio other && Equals(other);
-        public bool Equals(AspectRatio? obj) => ReferenceEquals(this, obj) || (obj is { } && Ratio.Equals(obj.Ratio));
+        public override bool Equals(object? obj) => 
+            obj is AspectRatio other && Equals(other);
+        
+        public bool Equals(AspectRatio? obj) => 
+            ReferenceEquals(this, obj) ||
+            (obj is { } && Ratio.Equals(obj.Ratio));
+        
         public override int GetHashCode() => Ratio.GetHashCode();
     }
 }

@@ -70,8 +70,13 @@ namespace Betauer.Application.Screen {
             return !left.Equals(right); // not the same reference
         }
 
-        public override bool Equals(object? obj) => obj is Resolution other && Equals(other);
-        public bool Equals(Resolution? obj) => ReferenceEquals(this, obj) || (obj is { } && Size.Equals(obj.Size));
+        public override bool Equals(object? obj) => 
+            obj is Resolution other && Equals(other);
+        
+        public bool Equals(Resolution? obj) => 
+            ReferenceEquals(this, obj) || 
+            (obj is { } && Size.Equals(obj.Size));
+        
         public override int GetHashCode() => Size.GetHashCode();
     }
 }

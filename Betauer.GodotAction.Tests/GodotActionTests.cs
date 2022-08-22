@@ -117,7 +117,6 @@ namespace Betauer.GodotAction.Tests {
             await this.AwaitIdleFrame();
             Assert.That(process1, Is.EqualTo(3));
             Assert.That(process2, Is.EqualTo(3));
-
         }
     }
 }
