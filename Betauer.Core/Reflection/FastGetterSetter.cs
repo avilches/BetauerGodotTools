@@ -14,24 +14,21 @@ namespace Betauer.Reflection {
     }
 
     public class FastGetterSetter : IGetterSetter {
-        public Type Type { get; }
-        public string Name { get; }
-        public Action<object, object> SetValue { get; }
-        public Func<object, object> GetValue { get; }
-        public MemberInfo MemberInfo { get; }
+        private readonly IGetter _iGetter;
+        private readonly ISetter _iSetter;
+        public Type Type => _iGetter.Type;
+        public string Name => _iGetter.Name;
+        public Action<object, object> SetValue => _iSetter.SetValue;
+        public Func<object, object> GetValue => _iGetter.GetValue;
+        public MemberInfo MemberInfo => _iGetter.Type;
         
         public FastGetterSetter(MemberInfo memberInfo) {
-            MemberInfo = memberInfo;
             if (memberInfo is PropertyInfo propertyInfo) {
-                Type = propertyInfo.PropertyType;
-                Name = propertyInfo.Name;
-                SetValue = FastSetter.CreateLambdaSetter(propertyInfo);
-                GetValue = FastGetter.CreateLambdaGetter(propertyInfo);
+                _iGetter = new PropertyFastGetter(propertyInfo);
+                _iSetter = new PropertyFastSetter(propertyInfo);
             } else if (memberInfo is FieldInfo fieldInfo) {
-                Type = fieldInfo.FieldType;
-                Name = fieldInfo.Name;
-                SetValue = FastSetter.CreateLambdaSetter(fieldInfo);
-                GetValue = FastGetter.CreateLambdaGetter(fieldInfo);
+                _iGetter = new FieldFastGetter(fieldInfo);
+                _iSetter = new FieldFastSetter(fieldInfo);
             } else {
                 throw new ArgumentException("Member must be PropertyInfo or FieldInfo");
             }
