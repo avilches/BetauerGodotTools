@@ -4,6 +4,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Nodes;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {

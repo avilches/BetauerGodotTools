@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Betauer;
 using Betauer.Animation;
+using Betauer.Nodes;
 using Godot;
 
 namespace DemoAnimation.Game.Managers.Autoload {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Nodes {
     public static partial class ContainerExtensions {
         /// <summary>
         /// It loops the children (only the buttons) and fixes all the FocusNeighbour* fields, taking into account

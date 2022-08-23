@@ -1,6 +1,7 @@
 using System;
 using Betauer.DI;
 using Betauer.Memory;
+using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.Signal;
 using Godot;
@@ -15,6 +16,7 @@ namespace Betauer.Application {
         protected Container Container;
 
         [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
+        [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => GetTree();
 
         public bool AddSingletonNodesToTree = true;

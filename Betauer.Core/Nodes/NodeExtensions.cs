@@ -1,10 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Nodes {
     public static partial class NodeExtensions {
         public static T? GetNode<T>(this Node parent) where T : Node {
             return parent.GetChildren().OfType<T>().First();

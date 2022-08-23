@@ -75,6 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
             noButton.OnPressed(() => _promise.TrySetResult(false));
             yesButton.OnPressed(() => _promise.TrySetResult(true));
             noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
+
             return mainMenu;
         }
 
