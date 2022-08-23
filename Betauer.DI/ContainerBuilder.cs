@@ -125,7 +125,7 @@ namespace Betauer.DI {
             foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
-                foreach (var typeToImport in ((ScanAttribute)importAttribute).Types) {
+                foreach (var typeToImport in importAttribute.Types) {
                     if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
                 }
             }

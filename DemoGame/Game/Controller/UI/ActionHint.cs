@@ -31,8 +31,8 @@ namespace Veronenger.Game.Controller.UI {
             return this;
         }
 
-        public ActionHint Button(ActionState actionState, bool animate = false) {
-            JoystickList button = actionState.Buttons.First();
+        public ActionHint InputAction(InputAction action, bool animate = false) {
+            JoystickList button = action.Buttons.First();
             if (animate) {
                 _consoleButton.Animate(button);
             } else {
@@ -45,10 +45,8 @@ namespace Veronenger.Game.Controller.UI {
             if (_consoleButton.HasAnimation(actionName)) {
                 _consoleButton.Animate(actionName);
             } else {
-                ActionState? action = actionName != null ? _inputManager.FindActionState(actionName) : null;
-                if (action != null) {
-                    Button(action, animate);
-                }
+                InputAction? action = actionName != null ? _inputActionsContainer.FindAction(actionName) : null;
+                InputAction(action, animate);
             }
         }
 

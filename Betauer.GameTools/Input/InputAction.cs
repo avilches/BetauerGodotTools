@@ -7,40 +7,130 @@ using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
-  
-    public class InputAction : BaseAction, IInputAction {
-        public static Builder Create(string name) => new Builder(name);
-        public static Builder Create(string inputActionsContainerName, string name) => new Builder(inputActionsContainerName, name);
 
+    public class AxisAction {
+        [Inject] private Container Container { get; set; }
+
+        public readonly string NegativeName;
+        public readonly string PositiveName;
+        public int Axis;
+        public float DeadZone = 0.5f;
+
+        public float Strength => Godot.Input.GetAxis(NegativeAction.Name, PositiveAction.Name);
+
+        public InputAction NegativeAction { get; private set; }
+        public InputAction PositiveAction { get; private set; }
+
+        public AxisAction(string negativeName, string positiveName) {
+            NegativeName = negativeName;
+            PositiveName = positiveName;
+        }
+
+        public AxisAction SetDeadZone(float deadZone) {
+            DeadZone = deadZone;
+            return this;
+        }
+
+        public AxisAction SetAxis(int axis) {
+            Axis = axis;
+            return this;
+        }
+
+        [PostCreate]
+        private void OnCreate() {
+            NegativeAction = Container.Resolve<InputAction>(NegativeName);
+            NegativeAction.SetAxis(Axis, -1, DeadZone);
+            NegativeAction.Setup();
+            
+            PositiveAction = Container.Resolve<InputAction>(PositiveName);
+            PositiveAction.SetAxis(Axis, 1, DeadZone);
+            PositiveAction.Setup();
+        }
+        
+        public bool IsRightEventPressed(InputEvent e, bool echo = false) {
+            return e.IsActionPressed(PositiveName, echo);
+        }
+
+        public bool IsLeftEventPressed(InputEvent e, bool echo = false) {
+            return e.IsActionPressed(NegativeName, echo);
+        }
+        
+        public bool IsRightEventReleased(InputEvent e, bool echo = false) {
+            return e.IsActionReleased(PositiveName, echo);
+        }
+
+        public bool IsLeftEventReleased(InputEvent e, bool echo = false) {
+            return e.IsActionReleased(NegativeName, echo);
+        }
+
+        public bool IsDownEventPressed(InputEvent e, bool echo = false) {
+            return e.IsActionPressed(PositiveName, echo);
+        }
+
+        public bool IsUpEventPressed(InputEvent e, bool echo = false) {
+            return e.IsActionPressed(NegativeName, echo);
+        }
+        
+        public bool IsDownEventReleased(InputEvent e, bool echo = false) {
+            return e.IsActionReleased(PositiveName, echo);
+        }
+
+        public bool IsUpEventReleased(InputEvent e, bool echo = false) {
+            return e.IsActionReleased(NegativeName, echo);
+        }
+        
+    } 
+  
+    public class InputAction {
+        public static NormalBuilder Create(string name) => new NormalBuilder(name);
+        public static NormalBuilder Create(string inputActionsContainerName, string name) => new NormalBuilder(inputActionsContainerName, name);
+
+        public static ConfigurableBuilder Configurable(string name) => new ConfigurableBuilder(name);
+        public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new ConfigurableBuilder(inputActionsContainerName, name);
+
+        public string Name { get; }
+        public InputActionsContainer InputActionsContainer { get; private set; }
+        public bool IsConfigurable() => _isConfigurable;
         public bool Pressed => Godot.Input.IsActionPressed(Name);
         public bool JustPressed => Godot.Input.IsActionJustPressed(Name);
         public bool Released => Godot.Input.IsActionJustReleased(Name);
         public List<JoystickList> Buttons => _buttons.ToList();
         public List<KeyList> Keys => _keys.ToList();
+        public int Axis { get; private set; } = -1;
+        public int AxisSign { get; private set; } = 1;
+        public float DeadZone { get; private set; } = 0.5f;
+        public SaveSetting<string>? ButtonSetting { get; private set; }
+        public SaveSetting<string>? KeySetting { get; private set; }
         public bool IsEventAction(InputEvent e, bool echo = false) => e.IsAction(Name, echo);
         public bool IsActionPressed(InputEvent e, bool echo = false) => e.IsActionPressed(Name, echo);
         public bool IsActionReleased(InputEvent e, bool echo = false) => e.IsActionReleased(Name, echo);
-        public bool IsConfigurable() => _isConfigurable;
-
-        private readonly string? _inputActionsContainerName;
-        private readonly string? _settingsContainerName;
-        private bool _isConfigurable;
+        
+        [Inject] private Container Container { get; set; }
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
         private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
-        public SaveSetting<string>? ButtonSetting { get; private set; }
-        public SaveSetting<string>? KeySetting { get; private set; }
-
+        private readonly string? _inputActionsContainerName;
+        private readonly string? _settingsContainerName;
         private readonly string? _settingsSection;
+        private bool _isConfigurable;
 
-        private InputAction(string inputActionsContainerName, string name, bool isConfigurable, string? settingsContainerName, string? settingsSection) : base(name) {
+
+        private InputAction(string inputActionsContainerName, string name, bool isConfigurable, string? settingsContainerName, string? settingsSection) {
+            Name = name;
             _inputActionsContainerName = inputActionsContainerName;
             _isConfigurable = isConfigurable;
             _settingsContainerName = settingsContainerName;
             _settingsSection = settingsSection;
+            
+        }
+
+        public void SetAxis(int axis, int axisSign, float deadZone) {
+            Axis = axis;
+            AxisSign = axisSign;
+            DeadZone = deadZone;
         }
 
         [PostCreate]
-        private void ConfigureAndAddToActionContainer() {
+        private void ConfigureSettings() {
             if (_isConfigurable) {
                 var section = _settingsSection ?? "Controls";
                 var buttonSetting =
@@ -55,19 +145,23 @@ namespace Betauer.Input {
         }
         
         [PostCreate]
+        public void Setup() {
+            RemoveSetup();
+            InputMap.AddAction(Name, DeadZone);
+            CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(Name, e));
+        }
+
+        [PostCreate]
         private void AddToInputActionsContainer() {
             var inputActionsContainer = _inputActionsContainerName != null
                 ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
                 : Container.Resolve<InputActionsContainer>();
             inputActionsContainer.Add(this);
-            // The Add will set the InputActionsContainer using the OnAddToInputContainer
+            // The Add will set the InputActionsContainer using the OnAddToInputContainer() method
         }
 
-        [PostCreate]
-        public void Setup() {
-            RemoveSetup();
-            InputMap.AddAction(Name);
-            CreateInputEvents().ForEach((e) => InputMap.ActionAddEvent(Name, e));
+        public void OnAddToInputContainer(InputActionsContainer inputActionsContainer) {
+            InputActionsContainer = inputActionsContainer;
         }
 
         public void RemoveSetup() {
@@ -80,7 +174,6 @@ namespace Betauer.Input {
             _isConfigurable = true;
             return this;
         }
-
         
         private List<InputEvent> CreateInputEvents() {
             List<InputEvent> events = new List<InputEvent>();
@@ -92,7 +185,16 @@ namespace Betauer.Input {
             foreach (var button in _buttons) {
                 var e = new InputEventJoypadButton();
                 e.ButtonIndex = (int)button;
+                // e.Device = -1; // TODO: you can add a device id here
                 events.Add(e);
+            }
+
+            if (Axis != -1) {
+                var axisEvent = new InputEventJoypadMotion();
+                axisEvent.Device = -1; // TODO: you can add a device id here
+                axisEvent.Axis = Axis;
+                axisEvent.AxisValue = AxisSign;
+                events.Add(axisEvent);
             }
             return events;
         }
@@ -149,53 +251,77 @@ namespace Betauer.Input {
 
         private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
 
-        public class Builder {
+        public class NormalBuilder {
             private readonly string _name;
             private readonly string _inputActionsContainerName;
             private readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
             private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
-            private bool _isConfigurable = false;
-            private string? _settingsContainerName;
-            private string? _settingsSection;
 
-            internal Builder(string name) {
+            internal NormalBuilder(string name) {
                 _name = name;
             }
 
-            internal Builder(string inputActionsContainerName, string name) {
+            internal NormalBuilder(string inputActionsContainerName, string name) {
                 _inputActionsContainerName = inputActionsContainerName;
                 _name = name;
             }
 
-            public Builder Keys(params KeyList[] keys) {
+            public NormalBuilder Keys(params KeyList[] keys) {
                 foreach (var key in keys) _keys.Add(key);
                 return this;
             }
 
-            public Builder Buttons(params JoystickList[] buttons) {
+            public NormalBuilder Buttons(params JoystickList[] buttons) {
                 foreach (var button in buttons) _buttons.Add(button);
                 return this;
             }
 
-            public Builder Configurable() {
-                _isConfigurable = true;
+            public InputAction Build() {
+                return new InputAction(_inputActionsContainerName, _name, false, null, null)
+                    .AddKey(_keys.ToArray())
+                    .AddButton(_buttons.ToArray());
+            }
+        }
+        
+        public class ConfigurableBuilder {
+            private readonly string _name;
+            private readonly string _inputActionsContainerName;
+            private readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
+            private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
+            private string? _settingsContainerName;
+            private string? _settingsSection;
+
+            internal ConfigurableBuilder(string name) {
+                _name = name;
+            }
+
+            internal ConfigurableBuilder(string inputActionsContainerName, string name) {
+                _inputActionsContainerName = inputActionsContainerName;
+                _name = name;
+            }
+
+            public ConfigurableBuilder Keys(params KeyList[] keys) {
+                foreach (var key in keys) _keys.Add(key);
                 return this;
             }
 
-            public Builder SettingsContainer(string settingsFile) {
-                _isConfigurable = true;
+            public ConfigurableBuilder Buttons(params JoystickList[] buttons) {
+                foreach (var button in buttons) _buttons.Add(button);
+                return this;
+            }
+
+            public ConfigurableBuilder SettingsContainer(string settingsFile) {
                 _settingsContainerName = settingsFile;
                 return this;
             }
 
-            public Builder SettingsSection(string settingsSection) {
-                _isConfigurable = true;
+            public ConfigurableBuilder SettingsSection(string settingsSection) {
                 _settingsSection = settingsSection;
                 return this;
             }
 
             public InputAction Build() {
-                return new InputAction(_inputActionsContainerName, _name, _isConfigurable, _settingsContainerName, _settingsSection)
+                return new InputAction(_inputActionsContainerName, _name, true, _settingsContainerName, _settingsSection)
                     .AddKey(_keys.ToArray())
                     .AddButton(_buttons.ToArray());
             }

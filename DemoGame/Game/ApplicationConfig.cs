@@ -45,58 +45,96 @@ namespace Veronenger.Game {
     public class Actions {
         [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
 
-        // Game actions
         [Service]
-        private LateralAction LateralMotion => new LateralAction("Game Lateral", "left", "right")
-            .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis0)
-            .AddLateralCursorKeys()
-            .AddLateralDPadButtons();
-
-        [Service]
-        private LateralAction UiLateralMotion => new LateralAction("UI Lateral", "ui_left", "ui_right")
-            .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis0)
-            .AddLateralCursorKeys()
-            .AddLateralDPadButtons();
-
-        [Service]
-        private InputAction UiLeft => InputAction.Create("left")
+        private InputAction Left => InputAction.Create("left")
             .Keys(KeyList.Left)
-            .Buttons(JoystickList.DpadLeft).Build();
-
+            .Buttons(JoystickList.DpadLeft)
+            .Build();
+            
         [Service]
-        private InputAction UiRight => InputAction.Create("right")
+        private InputAction UiLeft => InputAction.Create("ui_left")
+            .Keys(KeyList.Left)
+            .Buttons(JoystickList.DpadLeft)
+            .Build();
+            
+        [Service]
+        private InputAction Right => InputAction.Create("right")
             .Keys(KeyList.Right)
             .Buttons(JoystickList.DpadRight)
             .Build();
-
+            
         [Service]
-        private VerticalAction VerticalMotion => new VerticalAction("Game Vertical", "up", "down")
+        private InputAction UiRight => InputAction.Create("ui_right")
+            .Keys(KeyList.Right)
+            .Buttons(JoystickList.DpadRight)
+            .Build();
+            
+        [Service]
+        private AxisAction LateralMotion => new AxisAction("Left", "Right")
             .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis1)
-            .AddVerticalCursorKeys()
-            .AddVerticalDPadButtons();
+            .SetAxis(0);
 
         [Service]
-        private VerticalAction UiVerticalMotion => new VerticalAction("UI Vertical", "ui_up", "ui_down")
+        private AxisAction UiLateralMotion => new AxisAction("UiLeft", "UiRight")
             .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis1)
-            .AddVerticalCursorKeys()
-            .AddVerticalDPadButtons();
+            .SetAxis(0);
+
+
+        
+
+        
+        
+        [Service]
+        private InputAction Up => InputAction.Create("up")
+            .Keys(KeyList.Up)
+            .Buttons(JoystickList.DpadUp)
+            .Build();
+            
+        [Service]
+        private InputAction UiUp => InputAction.Create("ui_up")
+            .Keys(KeyList.Up)
+            .Buttons(JoystickList.DpadUp)
+            .Build();
+            
+        [Service]
+        private InputAction Down => InputAction.Create("down")
+            .Keys(KeyList.Down)
+            .Buttons(JoystickList.DpadDown)
+            .Build();
+            
+        [Service]
+        private InputAction UiDown => InputAction.Create("ui_down")
+            .Keys(KeyList.Down)
+            .Buttons(JoystickList.DpadDown)
+            .Build();
+            
+        [Service]
+        private AxisAction VerticalMotion => new AxisAction("Up", "Down")
+            .SetDeadZone(0.5f)
+            .SetAxis(1);
 
         [Service]
-        private InputAction Jump => InputAction.Create("Jump")
+        private AxisAction UiVerticalMotion => new AxisAction("UiUp", "UiDown")
+            .SetDeadZone(0.5f)
+            .SetAxis(1);
+
+
+        
+        
+        
+        
+        
+        
+        [Service]
+        private InputAction Jump => InputAction.Configurable("Jump")
             .Keys(KeyList.Space)
             .Buttons(JoystickList.XboxA)
-            .Configurable()
             .Build();
 
         [Service]
-        private InputAction Attack => InputAction.Create("Attack")
+        private InputAction Attack => InputAction.Configurable("Attack")
             .Keys(KeyList.C)
             .Buttons(JoystickList.XboxX)
-            .Configurable()
             .Build();
 
         [Service]

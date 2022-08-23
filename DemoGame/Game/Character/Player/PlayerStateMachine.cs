@@ -31,8 +31,8 @@ namespace Veronenger.Game.Character.Player {
 
         [Inject] private PlatformManager _platformManager { get; set;}
         [Inject] private PlayerConfig _playerConfig { get; set;}
-        [Inject] private LateralAction _lateralMotion { get; set;}
-        [Inject] private VerticalAction _verticalMotion { get; set;}
+        [Inject("LateralMotion")] private AxisAction _lateralMotion { get; set;}
+        [Inject("VerticalMotion")] private AxisAction _verticalMotion { get; set;}
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
 
