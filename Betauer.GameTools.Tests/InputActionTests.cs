@@ -38,9 +38,9 @@ namespace Betauer.GameTools.Tests {
             Assert.That(reg.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.K, KeyList.Alt}.ToList()));
             Assert.That(reg.Buttons, Is.EqualTo(new [] {JoystickList.Button0, JoystickList.Button1, JoystickList.Button2}.ToList()));
 
-            Assert.That(InputAction.Create("N").Configurable().Build().IsConfigurable(), Is.True);
-            Assert.That(InputAction.Create("N").SettingsContainer("X").Build().IsConfigurable(), Is.True);
-            Assert.That(InputAction.Create("N").SettingsSection("D").Build().IsConfigurable(), Is.True);
+            Assert.That(InputAction.Configurable("N").Build().IsConfigurable(), Is.True);
+            Assert.That(InputAction.Configurable("N").SettingsContainer("X").Build().IsConfigurable(), Is.True);
+            Assert.That(InputAction.Configurable("N").SettingsSection("D").Build().IsConfigurable(), Is.True);
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(attack.ButtonSetting, Is.Null);
             Assert.That(attack.KeySetting, Is.Null);
 
-            var jump = InputAction.Create("ManualJump").Configurable().Build();
+            var jump = InputAction.Configurable("ManualJump").Build();
             Assert.That(jump.IsConfigurable(), Is.True);
             Assert.That(jump.ButtonSetting, Is.Null);
             Assert.That(jump.KeySetting, Is.Null);
@@ -83,8 +83,8 @@ namespace Betauer.GameTools.Tests {
 
             Assert.That(c.ActionList.Count, Is.EqualTo(2));
             Assert.That(c.ConfigurableActionList.Count, Is.EqualTo(1));
-            Assert.That(c.FindAction<InputAction>("ManualJump"), Is.EqualTo(jump));
-            Assert.That(c.FindAction<InputAction>("ManualAttack"), Is.EqualTo(attack));
+            Assert.That(c.FindAction("ManualJump"), Is.EqualTo(jump));
+            Assert.That(c.FindAction("ManualAttack"), Is.EqualTo(attack));
         }
 
         [Test]
@@ -95,7 +95,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(jump.InputActionsContainer, Is.EqualTo(acc));
             
             var acc2 = new InputActionsContainer();
-            var jumpOther = InputAction.Create("VALUE IGNORED", "JumpOther").Configurable().Build();
+            var jumpOther = InputAction.Configurable("VALUE IGNORED", "JumpOther").Build();
             acc2.Add(jumpOther);
             Assert.That(jumpOther.InputActionsContainer, Is.EqualTo(acc2));
 
@@ -129,7 +129,7 @@ namespace Betauer.GameTools.Tests {
         [Configuration]
         internal class ConfigurableInputWithContainerButWithoutSettingContainer {
             [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-            [Service] private InputAction JumpConfigurable => InputAction.Create("Jump").Configurable().Build();
+            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").Build();
         }
 
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
@@ -161,7 +161,7 @@ namespace Betauer.GameTools.Tests {
 
             Assert.That(s.ActionList.Count, Is.EqualTo(1));
             Assert.That(s.ConfigurableActionList.Count, Is.EqualTo(0));
-            Assert.That(s.FindAction<InputAction>("Jump"), Is.EqualTo(jump));
+            Assert.That(s.FindAction("Jump"), Is.EqualTo(jump));
         }
 
         [Configuration]
@@ -171,11 +171,9 @@ namespace Betauer.GameTools.Tests {
             [Service] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
             [Service(Name="Other")] public SettingsContainer SettingsContainerOther => new SettingsContainer("settings2.ini");
             
-            [Service] private InputAction JumpConfigurable => InputAction.Create("Jump")
-                .Configurable()
-                .Build();
+            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").Build();
 
-            [Service] private InputAction JumpConfigurableWithSetting => InputAction.Create("Jump2")
+            [Service] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
                 .SettingsContainer("Other")
                 .SettingsSection("Controls2")
                 .Build();
@@ -212,9 +210,9 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.NoConfigurable.ButtonSetting, Is.Null);
             Assert.That(s.NoConfigurable.KeySetting, Is.Null);
 
-            Assert.That(s.InputActionsContainer.FindAction<InputAction>("Jump"), Is.EqualTo(s.JumpConfigurable));
-            Assert.That(s.InputActionsContainer.FindAction<InputAction>("Jump2"), Is.EqualTo(s.JumpConfigurableWithSetting));
-            Assert.That(s.InputActionsContainer.FindAction<InputAction>("Jump3"), Is.EqualTo(s.NoConfigurable));
+            Assert.That(s.InputActionsContainer.FindAction("Jump"), Is.EqualTo(s.JumpConfigurable));
+            Assert.That(s.InputActionsContainer.FindAction("Jump2"), Is.EqualTo(s.JumpConfigurableWithSetting));
+            Assert.That(s.InputActionsContainer.FindAction("Jump3"), Is.EqualTo(s.NoConfigurable));
             Assert.That(s.InputActionsContainer.ActionList.Count, Is.EqualTo(3));
             Assert.That(s.InputActionsContainer.ConfigurableActionList.Count, Is.EqualTo(2));
             

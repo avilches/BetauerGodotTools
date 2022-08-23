@@ -78,7 +78,6 @@ namespace Betauer.Input {
         public bool IsUpEventReleased(InputEvent e, bool echo = false) {
             return e.IsActionReleased(NegativeName, echo);
         }
-        
     } 
   
     public class InputAction {
