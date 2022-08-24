@@ -206,23 +206,25 @@ namespace Betauer.Input {
         public void Import(string export) {
             if (string.IsNullOrWhiteSpace(export)) return;
             ClearButtons().ClearKeys();
-            export.Split(",")
-                .ToList()
-                .ForEach(item => {
-                    var parts = item.Split(":");
-                    var key = parts[0].ToLower().Trim();
-                    var value = parts[1].Trim();
-                    if (key == "key") {
-                        try {
-                            var keyList = Parse<KeyList>(value);
-                            AddKey(keyList);
-                        } catch (Exception) {}               
-                    } else if (key == "button") {
-                        if (value.IsValidInteger()) AddButton((JoystickList)value.ToInt());
-                    } else if (key == "axis") {
-                        if (value.IsValidInteger()) SetAxis(value.ToInt());
-                    }
-                });
+            export.Split(",").ToList().ForEach(ImportItem);
+        }
+
+        private void ImportItem(string item) {
+            if (!item.Contains(":")) return;
+            var parts = item.Split(":");
+            var key = parts[0].ToLower().Trim();
+            var value = parts[1].Trim();
+            if (key == "key") {
+                try {
+                    var keyList = Parse<KeyList>(value);
+                    AddKey(keyList);
+                } catch (Exception) {
+                }
+            } else if (key == "button") {
+                if (value.IsValidInteger()) AddButton((JoystickList)value.ToInt());
+            } else if (key == "axis") {
+                if (value.IsValidInteger()) SetAxis(value.ToInt());
+            }
         }
 
         private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
