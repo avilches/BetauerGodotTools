@@ -121,6 +121,11 @@ namespace Veronenger.Game.Managers {
                 })
                 .Execute(context => context.Set(State.Gaming));
 
+            // OnInput(State.Gaming, (e) => {
+                // if (PixelPerfectInputAction.IsActionPressed(e)) {
+                    // ScreenSettingsManager.SetPixelPerfect(!ScreenSettingsManager.PixelPerfect);
+                // }
+            // });
             builder.State(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))

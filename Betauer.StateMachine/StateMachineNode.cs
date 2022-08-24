@@ -1,5 +1,5 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 
@@ -22,6 +22,9 @@ namespace Betauer.StateMachine {
         public ProcessMode Mode { get; set; }
         public bool IsState(TStateKey state) => StateMachine.IsState(state);
 
+        private Dictionary<TStateKey, Action<InputEvent>>? _input;
+        private Dictionary<TStateKey, Action<InputEvent>>? _unhandledInput;
+
         public StateMachineNode(TStateKey initialState, string? name = null, ProcessMode mode = ProcessMode.Idle) :
             this(new StateMachine<TStateKey, TTransitionKey>(initialState, name), mode) {
         }
@@ -30,7 +33,7 @@ namespace Betauer.StateMachine {
             StateMachine = stateMachine;
             Mode = mode;
         }
-
+        
         public StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {
             return new StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
         }
@@ -57,6 +60,30 @@ namespace Betauer.StateMachine {
 
         public async Task Execute(float delta) {
             await StateMachine.Execute(delta);
+        }
+
+        public void OnInput(TStateKey stateKey, Action<InputEvent> input) {
+            _input ??= new Dictionary<TStateKey, Action<InputEvent>>();
+            _input.Add(stateKey, input);
+        }
+
+        public void OnUnhandledInput(TStateKey stateKey, Action<InputEvent> unhandledInput) {
+            _unhandledInput ??= new Dictionary<TStateKey, Action<InputEvent>>();
+            _unhandledInput.Add(stateKey, unhandledInput);
+        }
+
+        public override void _Input(InputEvent e) {
+            if (_input != null && 
+                _input.TryGetValue(StateMachine.CurrentState.Key, out var input)) {
+                input(e);
+            }
+        }
+
+        public override void _UnhandledInput(InputEvent e) {
+            if (_unhandledInput != null && 
+                _unhandledInput.TryGetValue(StateMachine.CurrentState.Key, out var unhandledInput)) {
+                unhandledInput(e);
+            }
         }
 
         public override async void _PhysicsProcess(float delta) {
