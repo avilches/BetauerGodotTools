@@ -131,7 +131,7 @@ namespace Betauer.DI {
             }
             
             // Look up for [Service]
-            if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
+            if (type.GetAttribute<ServiceAttribute>() is { } serviceAttr) {
                 if (type.HasAttribute<ConfigurationAttribute>()) 
                     throw new Exception("Can't use [Configuration] and [Service] in the same class");
                 var registeredType = serviceAttr.Type ?? type;
