@@ -6,7 +6,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Enemy {
     [Service(Lifetime.Transient)]
-    public class EnemyZombieStateMachine {
+    public class EnemyZombieStateMachine : StateMachineNode<EnemyZombieStateMachine.State,EnemyZombieStateMachine.Transition> {
         public enum Transition {
             Attacked
         }
@@ -17,11 +17,13 @@ namespace Veronenger.Game.Character.Enemy {
             PatrolStep,
             PatrolWait,
         }
-    
+
+        public EnemyZombieStateMachine() : base(State.Idle) {
+        }
+
         [Inject] private CharacterManager CharacterManager { get; set; }
 
         private EnemyZombieController _enemyZombieController;
-        private StateMachineNode<State, Transition> _stateMachineNode;
 
         private KinematicPlatformMotionBody Body => _enemyZombieController.KinematicPlatformMotionBody;
         private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
@@ -32,29 +34,17 @@ namespace Veronenger.Game.Character.Enemy {
 
         public void Configure(EnemyZombieController enemyZombie, string name) {
             _enemyZombieController = enemyZombie;
-            _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, name, ProcessMode.Idle);
             _patrolTimer = new AutoTimer(enemyZombie);
             _stateTimer = new AutoTimer(enemyZombie);
-            enemyZombie.AddChild(_stateMachineNode);
+            enemyZombie.AddChild(this);
 
             var events = new StateMachineEvents<State>();
             events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
             events.ExecuteEnd += (state) => Body.EndFrame();
-            _stateMachineNode.AddListener(events);
+            AddListener(events);
 
-            var builder = _stateMachineNode.CreateBuilder();
-            AddStates(builder);
-            builder.Build();
-
-        }
-
-        public void TriggerAttacked() {
-            _stateMachineNode.Enqueue(Transition.Attacked);
-        }
-
-        private void AddStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
-            builder.On(Transition.Attacked, context => context.Set(State.Destroy));
-            builder.State(State.Idle)
+            On(Transition.Attacked, context => context.Set(State.Destroy));
+            CreateState(State.Idle)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(2f);
                     _enemyZombieController.AnimationIdle.PlayLoop();
@@ -77,9 +67,10 @@ namespace Veronenger.Game.Character.Enemy {
                         return context.Set(State.PatrolStep);
                     }
                     return context.None();
-                });
+                })
+                .Build();
             
-            builder.State(State.PatrolStep)
+            CreateState(State.PatrolStep)
                 .Enter(() => {
                     _enemyZombieController.FaceTo(CharacterManager.PlayerController.PlayerDetector);
                     _enemyZombieController.AnimationStep.PlayOnce();
@@ -115,9 +106,10 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.LimitMotion();
                     Body.MoveSnapping();
                     return context.None();
-                });
+                })
+                .Build();
 
-            builder.State(State.PatrolWait)
+            CreateState(State.PatrolWait)
                 .Enter(() => {
                     _stateTimer.Reset().Start().SetAlarm(0.3f);
                 })
@@ -129,9 +121,10 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.MoveSnapping();
 
                     return _stateTimer.IsAlarm() ? context.Set(State.PatrolStep) : context.None();
-                });
+                })
+                .Build();
 
-            builder.State(State.Destroy)
+            CreateState(State.Destroy)
                 .Enter(() => {
                     _enemyZombieController.DisableAll();
 
@@ -146,7 +139,12 @@ namespace Veronenger.Game.Character.Enemy {
                         _enemyZombieController.QueueFree();
                     }
                     return context.None();
-                });
+                })
+                .Build();
+        }
+
+        public void TriggerAttacked() {
+            Enqueue(Transition.Attacked);
         }
     }
 }

@@ -75,13 +75,11 @@ namespace Veronenger.Game.Character.Player {
             events.ExecuteEnd += (state) => Body.EndFrame();
             _stateMachineNode.AddListener(events);
 
-            var builder = _stateMachineNode.CreateBuilder();
-            GroundStates(builder);
-            AirStates(builder);
-            builder.Build();
+            GroundStates();
+            AirStates();
         }
         
-        public void GroundStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
+        public void GroundStates() {
             bool CheckGroundAttack() {
                 if (!Attack.JustPressed()) return false;
                 // Attack was pressed
@@ -105,7 +103,7 @@ namespace Veronenger.Game.Character.Player {
                 }
             }
 
-            builder.State(State.Idle)
+            _stateMachineNode.CreateState(State.Idle)
                 .Enter(() => { _player.AnimationIdle.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
@@ -136,9 +134,10 @@ namespace Veronenger.Game.Character.Player {
                     Body.MoveSnapping();
 
                     return context.None();
-                });
+                })
+                .Build();
 
-            builder.State(State.Run)
+            _stateMachineNode.CreateState(State.Run)
                 .Enter(() => { _player.AnimationRun.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
@@ -176,10 +175,12 @@ namespace Veronenger.Game.Character.Player {
                     Body.MoveSnapping();
 
                     return context.None();
-                });
+                })
+                .Build();
+                
         }
 
-        public void AirStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
+        public void AirStates() {
             ExecuteTransition<State, Transition> CheckLanding(ExecuteContext<State, Transition> context) {
                 if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
@@ -226,7 +227,7 @@ namespace Veronenger.Game.Character.Player {
                 return false;
             }
 
-            builder.State(State.Jump)
+            _stateMachineNode.CreateState(State.Jump)
                 .Enter(() => {
                     Body.SetMotionY(-MotionConfig.JumpForce);
                     DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
@@ -251,9 +252,11 @@ namespace Veronenger.Game.Character.Player {
                     }
 
                     return CheckLanding(context);
-                });
+                })
+                .Build();
+                
 
-            builder.State(State.FallShort)
+            _stateMachineNode.CreateState(State.FallShort)
                 .Enter(() => {
                     // Only if the state comes from running -> fall, the Coyote jump is enabled
                     // Other cases (State.State comes from idle or jump), the coyote is not enabled
@@ -277,9 +280,11 @@ namespace Veronenger.Game.Character.Player {
                     Body.Fall();
 
                     return CheckLanding(context);
-                });
+                })
+                .Build();
+                
 
-            builder.State(State.FallLong)
+            _stateMachineNode.CreateState(State.FallLong)
                 .Enter(() => {
                     if (_fallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
                         DebugCoyoteJump(
@@ -302,7 +307,9 @@ namespace Veronenger.Game.Character.Player {
 
                         return CheckLanding(context);
                     }
-                );
+                )
+                .Build();
+                
         }
     }
 }

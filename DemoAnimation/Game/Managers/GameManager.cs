@@ -38,9 +38,8 @@ namespace DemoAnimation.Game.Managers {
         [Inject] private InputAction UiStart { get; set; }
 
         public GameManager() : base(State.Init) {
-            var builder = CreateBuilder();
-            builder.On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
-            builder.State(State.Init)
+            On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
+            CreateState(State.Init)
                 .Enter(() => {
                     _screenSettingsManager.Setup();
                     _launcher.WithParent(_sceneTree.Root);
@@ -48,9 +47,11 @@ namespace DemoAnimation.Game.Managers {
                         .Instance();
                     _sceneTree.Root.AddChild(_mainMenuScene);
                 })
-                .Execute(context => context.Set(State.MainMenu));
+                .Execute(context => context.Set(State.MainMenu))
+                .Build();
+                
 
-            builder.State(State.MainMenu)
+            CreateState(State.MainMenu)
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
@@ -59,22 +60,25 @@ namespace DemoAnimation.Game.Managers {
                         await _mainMenuScene.BackMenu();
                     }
                     return context.None();
-                });
+                })
+                .Build();
+                
 
-            builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
-            builder.State(State.ModalExitDesktop)
+            On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
+            CreateState(State.ModalExitDesktop)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Exit game?");
                     return result ? context.Push(State.ExitDesktop) : context.Pop();
-                });
+                })
+                .Build();
 
-            builder.State(State.ExitDesktop)
-                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
+            CreateState(State.ExitDesktop)
+                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest))
+                .Build();
             
-            builder.Build();
         }
 
         public void TriggerModalBoxConfirmExitDesktop() {

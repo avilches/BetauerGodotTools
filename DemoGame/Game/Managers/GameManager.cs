@@ -71,8 +71,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public GameManager() : base(State.Init) {
-            var builder = CreateBuilder();
-            builder.State(State.Init)
+            CreateState(State.Init)
                 .Execute(async (ctx) => {
                     MainResourceLoader.OnProgress += context => {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
@@ -91,42 +90,43 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     ConfigureStates();
                     return ctx.Set(State.MainMenu);
-                });
-            builder.Build();
+                }).Build();
         }
         
         private void ConfigureStates() {
-            var builder = CreateBuilder();
             AddListener(MainMenuBottomBarScene);
-            builder.State(State.MainMenu)
+            CreateState(State.MainMenu)
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
-                .Execute(_mainMenuScene.Execute);
+                .Execute(_mainMenuScene.Execute)
+                .Build();
 
-            builder.State(State.Settings)
+            CreateState(State.Settings)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(_settingsMenuScene.ShowSettingsMenu)
                 .Execute(_settingsMenuScene.Execute)
-                .Exit(_settingsMenuScene.HideSettingsMenu);
+                .Exit(_settingsMenuScene.HideSettingsMenu)
+                .Build();
 
-            builder.State(State.StartingGame)
+            CreateState(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
                     _currentGameScene = MainResourceLoader.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
-                .Execute(context => context.Set(State.Gaming));
+                .Execute(context => context.Set(State.Gaming))
+                .Build();
 
-            // OnInput(State.Gaming, (e) => {
-                // if (PixelPerfectInputAction.IsActionPressed(e)) {
-                    // ScreenSettingsManager.SetPixelPerfect(!ScreenSettingsManager.PixelPerfect);
-                // }
-            // });
-            builder.State(State.Gaming)
+            OnInput(State.Gaming, (e) => {
+                if (PixelPerfectInputAction.IsActionPressed(e)) {
+                    ScreenSettingsManager.SetPixelPerfect(!ScreenSettingsManager.PixelPerfect);
+                }
+            });
+            CreateState(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
                 .Execute(context => {
@@ -139,9 +139,11 @@ namespace Veronenger.Game.Managers {
                     _currentGameScene.PrintStrayNodes();
                     _currentGameScene.QueueFree();
                     _currentGameScene = null;
-                });
+                })
+                .Build();
+                
 
-            builder.State(State.PauseMenu)
+            CreateState(State.PauseMenu)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())
@@ -155,30 +157,34 @@ namespace Veronenger.Game.Managers {
                     _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();
                     SceneTree.Paused = false;
-                });
+                })
+                .Build();
 
-            builder.On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
-            builder.State(State.ModalQuitGame)
+            On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
+            CreateState(State.ModalQuitGame)
                 .On(Transition.Back, context => context.Pop())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
                     return result ? context.Set(State.MainMenu) : context.Pop();
-                });
+                })
+                .Build();
+                
 
-            builder.On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
-            builder.State(State.ModalExitDesktop)
+            On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
+            CreateState(State.ModalExitDesktop)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Exit game?");
                     return result ? context.Push(State.ExitDesktop) : context.Pop();
-                });
+                })
+                .Build();
+                
 
-            builder.State(State.ExitDesktop)
-                .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest));
-
-            builder.Build();
+            CreateState(State.ExitDesktop)
+                .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest))
+                .Build();
         }
 
         public void TriggerStartGame() {

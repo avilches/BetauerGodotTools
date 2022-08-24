@@ -34,16 +34,16 @@ namespace Betauer.StateMachine {
             Mode = mode;
         }
         
-        public StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {
-            return new StateMachineBuilder<StateMachineNode<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
-        }
-
         public void AddListener(IStateMachineListener<TStateKey> machineListener) {
             StateMachine.AddListener(machineListener);
         }
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
             StateMachine.AddState(state);
+        }
+
+        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey) {
+            return StateMachine.CreateState(stateKey);
         }
 
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {

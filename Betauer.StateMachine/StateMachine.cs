@@ -8,6 +8,7 @@ namespace Betauer.StateMachine {
 
     public interface IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         public void AddState(IState<TStateKey, TTransitionKey> state);
+        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey);
         public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
@@ -64,10 +65,6 @@ namespace Betauer.StateMachine {
             Logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
         }
 
-        public StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateBuilder() {
-            return new StateMachineBuilder<StateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this);
-        }
-
         public void On(TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
             _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
@@ -83,6 +80,11 @@ namespace Betauer.StateMachine {
         public void AddListener(IStateMachineListener<TStateKey> machineListener) {
             _listeners ??= new List<IStateMachineListener<TStateKey>>();
             _listeners.Add(machineListener);
+        }
+
+        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(
+            TStateKey stateKey) {
+            return new StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this, stateKey);
         }
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
