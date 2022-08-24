@@ -35,7 +35,7 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Test(Description = "Resource load ok")]
-        [Ignore]
+        [Ignore("It fails in github actions")]
         public async Task ResourcesOkTests() {
             var r1 = new ResourcesLoaderMetadataOk();
             var x1 = new AdditionalResource();
