@@ -56,12 +56,12 @@ namespace Veronenger.Game.Managers {
 
         private readonly Launcher _launcher = new Launcher();
 
-        [Inject] private StageManager _stageManager { get; set; }
-        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
-        [Inject] private SceneTree _sceneTree { get; set; }
-        [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
+        [Inject] private StageManager StageManager { get; set; }
+        [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
+        [Inject] private SceneTree SceneTree { get; set; }
+        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
-        [Inject] private InputAction _pixelPerfectInputAction { get; set; }
+        [Inject] private InputAction PixelPerfectInputAction { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiStart { get; set; }
@@ -74,21 +74,21 @@ namespace Veronenger.Game.Managers {
             var builder = CreateBuilder();
             builder.State(State.Init)
                 .Execute(async (ctx) => {
-                    _mainResourceLoader.OnProgress += context => {
+                    MainResourceLoader.OnProgress += context => {
                         // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     };
-                    await _mainResourceLoader.Bind(this).Load();
-                    _screenSettingsManager.Setup();
+                    await MainResourceLoader.Bind(this).Load();
+                    ScreenSettingsManager.Setup();
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
-                    _launcher.WithParent(_sceneTree.Root);
-                    _sceneTree.Root.AddChild(_pauseMenuScene);
-                    _sceneTree.Root.AddChild(_settingsMenuScene);
-                    _sceneTree.Root.AddChild(_mainMenuScene);
-                    _sceneTree.Root.AddChild(MainMenuBottomBarScene);
+                    _launcher.WithParent(SceneTree.Root);
+                    SceneTree.Root.AddChild(_pauseMenuScene);
+                    SceneTree.Root.AddChild(_settingsMenuScene);
+                    SceneTree.Root.AddChild(_mainMenuScene);
+                    SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     ConfigureStates();
                     return ctx.Set(State.MainMenu);
                 });
@@ -115,7 +115,7 @@ namespace Veronenger.Game.Managers {
             builder.State(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    _currentGameScene = _mainResourceLoader.CreateWorld1();
+                    _currentGameScene = MainResourceLoader.CreateWorld1();
                     await AddSceneDeferred(_currentGameScene);
                     AddPlayerToScene(_currentGameScene);
                 })
@@ -127,8 +127,6 @@ namespace Veronenger.Game.Managers {
                 .Execute(context => {
                     if (UiStart.JustPressed()) {
                         return context.Trigger(Transition.Pause);
-                    // } else if (_pixelPerfectInputAction.JustPressed()) {
-                        // _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
                     }
                     return context.None();
                 })
@@ -144,14 +142,14 @@ namespace Veronenger.Game.Managers {
                 .Suspend(() => _pauseMenuScene.DisableMenus())
                 .Awake(() => _pauseMenuScene.EnableMenus())
                 .Enter(async () => {
-                    _sceneTree.Paused = true;
+                    SceneTree.Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
                 .Execute(_pauseMenuScene.Execute)
                 .Exit(() => {
                     _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();
-                    _sceneTree.Paused = false;
+                    SceneTree.Paused = false;
                 });
 
             builder.On(Transition.ModalBoxConfirmQuitGame, context => context.Push(State.ModalQuitGame));
@@ -173,7 +171,7 @@ namespace Veronenger.Game.Managers {
                 });
 
             builder.State(State.ExitDesktop)
-                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest));
+                .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest));
 
             builder.Build();
         }
@@ -206,14 +204,14 @@ namespace Veronenger.Game.Managers {
             ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = PauseModeEnum.Process;
-            _sceneTree.Root.AddChild(modalBoxConfirm);
+            SceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
             return result;
         }
 
         public async void QueueChangeSceneWithPlayer(string sceneName) {
-            _stageManager.ClearTransition();
+            StageManager.ClearTransition();
             _currentGameScene.QueueFree();
 
             var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
@@ -223,7 +221,7 @@ namespace Veronenger.Game.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene) {
-            _playerScene = _mainResourceLoader.CreatePlayer();
+            _playerScene = MainResourceLoader.CreatePlayer();
             nextScene.AddChild(_playerScene);
             var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
             if (position2D == null) {
@@ -233,8 +231,8 @@ namespace Veronenger.Game.Managers {
         }
 
         private async Task AddSceneDeferred(Node scene) {
-            await _sceneTree.AwaitIdleFrame();
-            _sceneTree.Root.AddChild(scene);
+            await SceneTree.AwaitIdleFrame();
+            SceneTree.Root.AddChild(scene);
         }
 
     }

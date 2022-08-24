@@ -40,7 +40,7 @@ namespace Veronenger.Game.Controller.Character {
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
-            _logger = LoggerFactory.GetLogger(_name);
+            _logger = LoggerFactory.GetLogger(typeof(PlayerController));
         }
 
         public ILoopStatus AnimationIdle { get; private set; }
@@ -226,41 +226,16 @@ namespace Veronenger.Game.Controller.Character {
         
         [Inject] private InputAction UiStart { get; set; }
 
-        
-        // TODO: review
-        public override void _Input(InputEvent @event) {
-                /*
-                var action = new ActionState("a"); // FindAction(e);
-                string actionName = null;
-                switch (action) {
-                    case ActionState state:
-                        actionName = state.Name;
-                        break;
-                    case DirectionalAction directional:
-                        // TODO: move this code to DirectionalAction, and create a IsPressed(e) and IsReleased(e)
-                        if (directional.Strength == 0f) {
-                            actionName = e.IsActionReleased(directional.NegativeName)
-                                ? directional.NegativeName
-                                : directional.PositiveName;
-                        } else {
-                            actionName = directional.Strength < 0 ? directional.NegativeName : directional.PositiveName;
-                        }
-                        break;
-                }
-                if (actionName == null && actionsOnly) return;
-                var wrapper = new EventWrapper(e);
-                if (wrapper.IsMotion()) {
-                    Logger.Debug(
-                        $"Axis {wrapper.Device}[{wrapper.Axis}]:{wrapper.GetStrength()} ({wrapper.AxisValue}) {actionName}");
-                } else if (wrapper.IsAnyButton()) {
-                    Logger.Debug(
-                        $"Button {wrapper.Device}[{wrapper.Button}]:{wrapper.Pressed} ({wrapper.Pressure}) {actionName}");
-                } else if (wrapper.IsAnyKey()) {
-                    Logger.Debug(
-                        $"Key \"{wrapper.KeyString}\" #{wrapper.Key} Pressed:{wrapper.Pressed}/Echo:{wrapper.Echo} {actionName}");
-                }
-            */
-            if (@event is InputEventJoypadButton button) {
+
+        [Inject] private InputActionsContainer InputActionsContainer { get; set; }
+
+        public override void _Input(InputEvent e) {
+            // var action = InputActionsContainer.FindAction(e);
+            // if (action != null) {
+                // _logger.Debug(
+                    // $"{action.Name} | JustPressed:{action.JustPressed()} Pressed:{action.Pressed()} Released:{action.Released()} {action.Strength()}");
+            // }
+            if (e is InputEventJoypadButton button) {
                 _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {
                     _launcher.Stop();
@@ -270,8 +245,6 @@ namespace Veronenger.Game.Controller.Character {
                 }
             }
         }
-        
-        
 
         public override void _Draw() {
             // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);
