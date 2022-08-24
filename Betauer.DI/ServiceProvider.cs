@@ -71,7 +71,7 @@ namespace Betauer.DI {
                 Logger.Debug("Creating " + lifetime + " " + instance.GetType().Name + " exposed as " +
                              RegisterType.Name + ": " + instance.GetHashCode().ToString("X"));
             }
-            context.AddInstanceToCache(RegisterType, instance, Name);
+            context.AddInstanceToCache(RegisterType, lifetime, instance, Name);
             return instance;
         }
     }
@@ -138,8 +138,6 @@ namespace Betauer.DI {
             } else {
                 transient = CreateNewInstance(Lifetime, context);
                 context.Container.InjectServices(transient, context);
-                Container.ExecutePostCreateMethods(transient);
-                context.Container.ExecuteOnCreate(Lifetime.Transient, transient);
             }
             return transient;
         }

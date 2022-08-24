@@ -1,6 +1,5 @@
 using System;
-using System.Runtime.InteropServices;
-using Betauer.TestRunner;
+using System.Collections.Generic;
 using Godot;
 using NUnit.Framework;
 
@@ -414,7 +413,7 @@ namespace Betauer.DI.Tests {
         }
 
         [Test(Description = "Inject transients in transient")]
-        public void SingletonInTransient() {
+        public void TransientInTransient() {
             var di = new ContainerBuilder();
             EmptyTransient.Created = 0;
             SingletonWith2Transients.Created = 0;
@@ -543,7 +542,7 @@ namespace Betauer.DI.Tests {
             [Inject] internal AutoTransient1 auto { get; set; }
         }
 
-        [Test(Description = "Inject transients in transient")]
+        [Test(Description = "Create if not found")]
         public void CreateIfNotFound() {
             var di = new ContainerBuilder();
             var c = di.Build();
@@ -981,7 +980,96 @@ namespace Betauer.DI.Tests {
 
             Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostCreatedD2>()));
             Assert.That(D2.D1.Get(), Is.EqualTo(D1));
+        }
+
+        [Service]
+        class SingletonWithTransient {
+            [Inject] public PostCreateTransient Transient { get; set; }
+        }
+        
+        [Service(Lifetime.Transient)]
+        public class PostCreateTransient {
+            public static int Created = 0;
+
+            public PostCreateTransient() {
+                Created++;
+            }
+            public int Called = 0;
+            [PostCreate]
+            void PostCreateMethod() {
+                Called++;
+            }
+        }
+
+
+        [Test(Description = "Inject transient on singletons, test OnCreate when a singleton creates a transient")]
+        public void OnCreateTests() {
+            PostCreateTransient.Created = 0;
+            var singletons = new List<object>();
+            var transients = new List<object>();
+            var c = new Container();
+            c.OnCreate += (lifetime, instance) => {
+                if (lifetime == Lifetime.Singleton) {
+                    singletons.Add(instance);
+                } else {
+                    transients.Add(instance);
+                }
+            };
+
+            var di = c.CreateBuilder();
+            di.Scan<SingletonWithTransient>();
+            di.Scan<PostCreateTransient>();
+            di.Build();
+
+            Assert.That(PostCreateTransient.Created, Is.EqualTo(1));
+            Assert.That(singletons.Count, Is.EqualTo(1));
+            Assert.That(transients.Count, Is.EqualTo(1));
+
+            var s = c.Resolve<SingletonWithTransient>();
+            Assert.That(s.Transient.Called, Is.EqualTo(1));
+            Assert.That(s, Is.EqualTo(singletons[0]));
+            Assert.That(s.Transient, Is.EqualTo(transients[0]));
 
         }
+
+        [Service(Lifetime.Transient)]
+        class TransientWithTransient {
+            [Inject] public PostCreateTransient Transient { get; set; }
+        }
+        
+        
+        [Test(Description = "Inject transient on transient, test OnCreate when a singleton creates a transient")]
+        public void OnCreateTests2() {
+            PostCreateTransient.Created = 0;
+            var singletons = new List<object>();
+            var transients = new List<object>();
+            var c = new Container();
+            c.OnCreate += (lifetime, instance) => {
+                if (lifetime == Lifetime.Singleton) {
+                    singletons.Add(instance);
+                } else {
+                    transients.Add(instance);
+                }
+            };
+
+            var di = c.CreateBuilder();
+            di.Scan<TransientWithTransient>();
+            di.Scan<PostCreateTransient>();
+            di.Build();
+            
+            Assert.That(singletons.Count, Is.EqualTo(0));
+            Assert.That(transients.Count, Is.EqualTo(0));
+            Assert.That(PostCreateTransient.Created, Is.EqualTo(0));
+
+            var s = c.Resolve<TransientWithTransient>();
+            Assert.That(PostCreateTransient.Created, Is.EqualTo(1));
+            Assert.That(s.Transient.Called, Is.EqualTo(1));
+            Assert.That(singletons.Count, Is.EqualTo(0));
+            Assert.That(transients.Count, Is.EqualTo(2));
+            Assert.That(s, Is.EqualTo(transients[0]));
+            Assert.That(s.Transient, Is.EqualTo(transients[1]));
+
+        }
+
     }
 }

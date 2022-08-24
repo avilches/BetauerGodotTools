@@ -8,28 +8,35 @@ using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        internal Dictionary<string, object>? ObjectsCache;
+        internal Dictionary<string, (Lifetime, object)>? ObjectsCache;
         internal readonly Container Container;
 
         public ResolveContext(Container container) {
             Container = container;
         }
 
-        internal bool TryGetFromCache(Type type, string? name, out object? o) {
-            o = null;
-            return ObjectsCache?.TryGetValue(name ?? type.FullName, out o) ?? false;
+        internal bool TryGetFromCache(Type type, string? name, out object? instanceFound) {
+            var key = name ?? type.FullName;
+            if (ObjectsCache?.ContainsKey(key) ?? false) {
+                var (l, o) = ObjectsCache[key];
+                instanceFound = o;
+                return true;
+            }
+            instanceFound = null;
+            return false;
         }
 
-        internal void AddInstanceToCache(Type type, object o, string? name) {
-            ObjectsCache ??= new Dictionary<string, object>();
-            ObjectsCache[name ?? type.FullName] = o;
+        internal void AddInstanceToCache(Type type, Lifetime lifetime, object o, string? name) {
+            var key = name ?? type.FullName;
+            ObjectsCache ??= new Dictionary<string, (Lifetime, object)>();
+            ObjectsCache[key] = (lifetime, o);
         }
 
         internal void End() {
             if (ObjectsCache == null) return;
-            foreach (var instance in ObjectsCache.Values) {
+            foreach (var (lifetime, instance) in ObjectsCache.Values) {
                 Container.ExecutePostCreateMethods(instance);
-                Container.ExecuteOnCreate(Lifetime.Singleton, instance);
+                Container.ExecuteOnCreate(lifetime, instance);
             }
         }
     }
