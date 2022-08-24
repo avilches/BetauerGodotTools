@@ -85,7 +85,7 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public void Execute() {
-            if (UiCancel.JustPressed) { 
+            if (UiCancel.JustPressed()) { 
                 if (_menuContainer.IsStartMenuActive()) {
                     _gameManager.TriggerModalBoxConfirmExitDesktop();
                 } else {

@@ -78,7 +78,7 @@ namespace DemoAnimation.Game.Controller.Menu {
         }
 
         public override void _Process(float delta) {
-            if (UiCancel.JustPressed) {
+            if (UiCancel.JustPressed()) {
                 _promise.TrySetResult(false);
             }
         }

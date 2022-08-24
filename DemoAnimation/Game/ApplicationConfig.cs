@@ -19,67 +19,53 @@ namespace DemoAnimation.Game {
         public ScreenSettingsManager ScreenSettingsManager =>
             new ScreenSettingsManager(ApplicationConfig.Configuration);
     }
+    
     [Configuration]
-    public class Actions {
+    public class UiActions {
         [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-
-        // Game actions
+        
         [Service]
-        private LateralAction LateralMotion => new LateralAction("Game Lateral", "left", "right")
-            .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis0)
-            .AddLateralCursorKeys()
-            .AddLateralDPadButtons();
-
-        [Service]
-        private LateralAction UiLateralMotion => new LateralAction("UI Lateral", "ui_left", "ui_right")
-            .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis0)
-            .AddLateralCursorKeys()
-            .AddLateralDPadButtons();
-
-        [Service]
-        private InputAction UiLeft => InputAction.Create("left")
-            .Keys(KeyList.Left)
-            .Buttons(JoystickList.DpadLeft).Build();
-
-        [Service]
-        private InputAction UiRight => InputAction.Create("right")
-            .Keys(KeyList.Right)
-            .Buttons(JoystickList.DpadRight)
-            .Build();
-
-
-        [Service]
-        private VerticalAction UiVerticalMotion => new VerticalAction("UI Vertical", "ui_up", "ui_down")
-            .SetDeadZone(0.5f)
-            .SetAxis(JoystickList.Axis1)
-            .AddVerticalCursorKeys()
-            .AddVerticalDPadButtons();
-
-
-        // UI actions
-        [Service]
-        private InputAction UiAccept => InputAction.Create("ui_accept")
-            .Keys(KeyList.Space)
-            .Keys(KeyList.Enter)
-            .Buttons(JoystickList.XboxA)
+        private InputAction UiUp => InputAction.Create("ui_up")
+            .KeepProjectSettings()
+            .NegativeAxis(1, "ui_down")
+            .DeadZone(0.5f)
             .Build();
 
         [Service]
-        private InputAction UiCancel => InputAction.Create("ui_cancel")
+        private InputAction UiDown => InputAction.Create("ui_down")
+            .KeepProjectSettings()
+            .PositiveAxis(1, "ui_up")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiLeft => InputAction.Create("ui_left")
+            .KeepProjectSettings()
+            .NegativeAxis(0, "ui_right")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiRight => InputAction.Create("ui_right")
+            .KeepProjectSettings()
+            .PositiveAxis(0, "ui_left")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiAccept => InputAction.Create("ui_accept").KeepProjectSettings().Build();
+
+        [Service]
+        private InputAction UiCancel => InputAction.Create("ui_cancel").KeepProjectSettings().Build();
+
+        [Service]
+        private InputAction UiSelect => InputAction.Create("select")
             .Keys(KeyList.Escape)
             .Buttons(JoystickList.XboxB)
             .Build();
 
         [Service]
-        private InputAction UiSelect => InputAction.Create("ui_select")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.XboxB)
-            .Build();
-
-        [Service]
-        private InputAction UiStart => InputAction.Create("ui_start")
+        private InputAction UiStart => InputAction.Create("start")
             .Keys(KeyList.Escape)
             .Buttons(JoystickList.Start)
             .Build();

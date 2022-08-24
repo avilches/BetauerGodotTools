@@ -31,8 +31,10 @@ namespace Veronenger.Game.Character.Player {
 
         [Inject] private PlatformManager _platformManager { get; set;}
         [Inject] private PlayerConfig _playerConfig { get; set;}
-        [Inject("LateralMotion")] private AxisAction _lateralMotion { get; set;}
-        [Inject("VerticalMotion")] private AxisAction _verticalMotion { get; set;}
+        private AxisAction LateralMotion => Left.AxisAction;
+        private AxisAction VerticalMotion => Up.AxisAction;
+        [Inject] private InputAction Left { get; set;}
+        [Inject] private InputAction Up { get; set;}
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
 
@@ -42,8 +44,8 @@ namespace Veronenger.Game.Character.Player {
         private KinematicPlatformMotionBody Body => _player.KinematicPlatformMotionBody;
 
         // Input from the player
-        private float XInput => _lateralMotion.Strength;
-        private float YInput => _verticalMotion.Strength;
+        private float XInput => LateralMotion.Strength;
+        private float YInput => VerticalMotion.Strength;
         private bool IsRight => XInput > 0;
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
@@ -81,7 +83,7 @@ namespace Veronenger.Game.Character.Player {
         
         public void GroundStates(StateMachineBuilder<StateMachineNode<State, Transition>, State, Transition> builder) {
             bool CheckGroundAttack() {
-                if (!Attack.JustPressed) return false;
+                if (!Attack.JustPressed()) return false;
                 // Attack was pressed
                 _player.AnimationAttack.PlayOnce();
                 return true;
@@ -116,7 +118,7 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(State.Run);
                     }
 
-                    if (Jump.JustPressed) {
+                    if (Jump.JustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
@@ -150,7 +152,7 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(State.Idle);
                     }
 
-                    if (Jump.JustPressed) {
+                    if (Jump.JustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
@@ -206,14 +208,14 @@ namespace Veronenger.Game.Character.Player {
             }
 
             bool CheckAirAttack() {
-                if (!Attack.JustPressed) return false;
+                if (!Attack.JustPressed()) return false;
                 // Attack was pressed
                 _player.AnimationJumpAttack.PlayOnce();
                 return true;
             }
 
             bool CheckCoyoteJump() {
-                if (!Jump.JustPressed) return false;
+                if (!Jump.JustPressed()) return false;
                 // Jump was pressed
                 _fallingJumpTimer.Reset().Start();
                 if (_fallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
@@ -233,7 +235,7 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckAirAttack();
 
-                    if (Jump.Released && Motion.y < -MotionConfig.JumpForceMin) {
+                    if (Jump.Released() && Motion.y < -MotionConfig.JumpForceMin) {
                         DebugJump("Short jump: decelerating from " + Motion.y + " to " +
                                   -MotionConfig.JumpForceMin);
                         Body.SetMotionY(-MotionConfig.JumpForceMin);

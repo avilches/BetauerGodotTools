@@ -3,17 +3,13 @@ using Betauer.DI;
 
 namespace Betauer.Application.Settings {
     public static class Setting<T> {
-        public static SaveSetting<T> Save(string settingsContainerName, string section, string name,
+        public static SaveSetting<T> Save(string? settingsContainerName, string section, string name,
             T defaultValue, bool autoSave = true, bool enabled = true) =>
             new SaveSetting<T>(settingsContainerName, section, name, defaultValue, autoSave, enabled);
 
         public static SaveSetting<T> Save(string section, string name,
             T defaultValue, bool autoSave = true, bool enabled = true) =>
             new SaveSetting<T>(null, section, name, defaultValue, autoSave, enabled);
-
-        public static SaveSetting<T> Save(string name,
-            T defaultValue, bool autoSave = true, bool enabled = true) =>
-            new SaveSetting<T>(null, null, name, defaultValue, autoSave, enabled);
 
         public static MemorySetting<T> Memory(T value) =>
             new MemorySetting<T>(value);
@@ -54,10 +50,10 @@ namespace Betauer.Application.Settings {
             SettingsContainer.Add(this);
         }
 
-        protected SaveSetting(string settingsContainerName, string section, string name, Type valueType,
+        protected SaveSetting(string? settingsContainerName, string? section, string name, Type valueType,
             object defaultValue, bool autoSave, bool enabled) {
             _settingsContainerName = settingsContainerName;
-            Section = section;
+            Section = section ?? "Settings";
             Name = name;
             ValueType = valueType;
             Initialized = false;
@@ -76,7 +72,7 @@ namespace Betauer.Application.Settings {
     }
 
     public class SaveSetting<T> : SaveSetting, ISetting<T> {
-        internal SaveSetting(string settingsContainerName, string section, string name, T defaultValue,
+        internal SaveSetting(string? settingsContainerName, string? section, string name, T defaultValue,
             bool autoSave, bool enabled) :
             base(settingsContainerName, section, name, typeof(T), defaultValue, autoSave, enabled) {
         }

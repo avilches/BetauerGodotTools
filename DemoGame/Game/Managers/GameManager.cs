@@ -125,9 +125,9 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
                 .Execute(context => {
-                    if (UiStart.JustPressed) {
+                    if (UiStart.JustPressed()) {
                         return context.Trigger(Transition.Pause);
-                    // } else if (_pixelPerfectInputAction.JustPressed) {
+                    // } else if (_pixelPerfectInputAction.JustPressed()) {
                         // _settingsManager.SetPixelPerfect(!_settingsManager.SettingsFile.PixelPerfect);
                     }
                     return context.None();

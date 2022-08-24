@@ -81,13 +81,13 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         public async Task Execute() {
-            if (UiCancel.JustPressed) {
+            if (UiCancel.JustPressed()) {
                 if (_menuContainer.IsStartMenuActive()) {
                     _gameManager.TriggerBack();
                 } else {
                     await _menuContainer.Back();
                 }
-            } else if (UiStart.JustPressed) {
+            } else if (UiStart.JustPressed()) {
                 _gameManager.TriggerBack();
             }
         }

@@ -152,19 +152,19 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         private void ProcessChangeResolution() {
-            if (!UiLeft.JustPressed && !UiRight.JustPressed && !UiAccept.JustPressed) return;
+            if (!UiLeft.JustPressed() && !UiRight.JustPressed() && !UiAccept.JustPressed()) return;
             var (_, resolutions, pos) = FindClosestResolutionToSelected();
-            if (UiLeft.JustPressed) {
+            if (UiLeft.JustPressed()) {
                 if (pos > 0) {
                     _screenSettingsManager.SetWindowed(resolutions[pos - 1]);
                     UpdateResolutionButton();
                 }
-            } else if (UiRight.JustPressed) {
+            } else if (UiRight.JustPressed()) {
                 if (pos < resolutions.Count - 1) {
                     _screenSettingsManager.SetWindowed(resolutions[pos + 1]);
                     UpdateResolutionButton();
                 }
-            } else if (UiAccept.JustPressed) {
+            } else if (UiAccept.JustPressed()) {
                 _screenSettingsManager.SetWindowed(pos == resolutions.Count - 1
                     ? resolutions[0]
                     : resolutions[pos + 1]);
@@ -239,7 +239,7 @@ namespace Veronenger.Game.Controller.Menu {
             if (_resolutionButton.HasFocus()) {
                 ProcessChangeResolution();
             }
-            if (UiCancel.JustPressed && !IsRedefineInputActive()) {
+            if (UiCancel.JustPressed() && !IsRedefineInputActive()) {
                 _gameManager.TriggerBack();
             }
         }

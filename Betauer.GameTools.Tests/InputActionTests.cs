@@ -44,25 +44,57 @@ namespace Betauer.GameTools.Tests {
         }
 
         [Test]
+        public void ImportExport() {
+            SaveSetting<string> b = Setting<string>.Save(null, "attack", "");
+            var sc = new SettingsContainer(SettingsFile);
+            sc.Add(b);
+            
+            var jump = InputAction.Configurable("ImportExportAction").Build();
+            jump.SetSaveSettings(b).Load();
+            Assert.That(jump.Buttons, Is.Empty);
+            Assert.That(jump.Keys, Is.Empty);
+            Assert.That(jump.Axis, Is.EqualTo(-1));
+
+            // Configure and save
+            jump.AddKey(KeyList.A, KeyList.Acircumflex);
+            jump.AddButton(JoystickList.Button3, JoystickList.SonyX);
+            jump.SetAxis(2);
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button3, JoystickList.SonyX}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(2));
+            jump.Save();
+
+            // Delete
+            jump.ClearKeys().ClearButtons();
+            jump.SetAxis(-1);
+            Assert.That(jump.Buttons, Is.Empty);
+            Assert.That(jump.Keys, Is.Empty);
+            Assert.That(jump.Axis, Is.EqualTo(-1));
+
+            // Load
+            jump.Load();
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button3, JoystickList.SonyX}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(2));
+
+        }
+
+        [Test]
         public void ManualConfigurationWithSettingTest() {
             var attack = InputAction.Create("ManualAttack").Build();
             Assert.That(attack.IsConfigurable(), Is.False);
-            Assert.That(attack.ButtonSetting, Is.Null);
-            Assert.That(attack.KeySetting, Is.Null);
+            Assert.That(attack.SaveSetting, Is.Null);
 
             var jump = InputAction.Configurable("ManualJump").Build();
             Assert.That(jump.IsConfigurable(), Is.True);
-            Assert.That(jump.ButtonSetting, Is.Null);
-            Assert.That(jump.KeySetting, Is.Null);
+            Assert.That(jump.SaveSetting, Is.Null);
 
-            SaveSetting<string> b = Setting<string>.Save("Controls", "attack.buttons","0,1");
-            SaveSetting<string> k = Setting<string>.Save("Controls", "attack.keys", "H,F");
+            SaveSetting<string> b = Setting<string>.Save(null, "attack","button:0,button:1,key:H,key:F");
+            Assert.That(b.Section, Is.EqualTo("Settings")); // default value when section is null
             var sc = new SettingsContainer(SettingsFile);
             sc.Add(b);
-            sc.Add(k);
-            jump.SetSettings(k, b).Load();
-            Assert.That(jump.ButtonSetting, Is.EqualTo(b));
-            Assert.That(jump.KeySetting, Is.EqualTo(k));
+            jump.SetSaveSettings(b).Load();
+            Assert.That(jump.SaveSetting, Is.EqualTo(b));
             
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button0, JoystickList.Button1}.ToList()));
             Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.H, KeyList.F}.ToList()));
@@ -200,15 +232,10 @@ namespace Betauer.GameTools.Tests {
             var c = di.Build();
             var s = c.Resolve<Service4>();
 
-            Assert.That(s.JumpConfigurable.ButtonSetting.Section, Is.EqualTo("Controls"));
-            Assert.That(s.JumpConfigurable.ButtonSetting.Name, Is.EqualTo("Jump.Buttons"));
-            Assert.That(s.JumpConfigurable.KeySetting.Section, Is.EqualTo("Controls"));
-            Assert.That(s.JumpConfigurable.KeySetting.Name, Is.EqualTo("Jump.Keys"));
-            Assert.That(s.JumpConfigurable.KeySetting.SettingsContainer,
-                Is.EqualTo(s.JumpConfigurable.ButtonSetting.SettingsContainer));
+            Assert.That(s.JumpConfigurable.SaveSetting.Section, Is.EqualTo("Controls"));
+            Assert.That(s.JumpConfigurable.SaveSetting.Name, Is.EqualTo("Jump"));
 
-            Assert.That(s.NoConfigurable.ButtonSetting, Is.Null);
-            Assert.That(s.NoConfigurable.KeySetting, Is.Null);
+            Assert.That(s.NoConfigurable.SaveSetting, Is.Null);
 
             Assert.That(s.InputActionsContainer.FindAction("Jump"), Is.EqualTo(s.JumpConfigurable));
             Assert.That(s.InputActionsContainer.FindAction("Jump2"), Is.EqualTo(s.JumpConfigurableWithSetting));
@@ -217,12 +244,9 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.InputActionsContainer.ConfigurableActionList.Count, Is.EqualTo(2));
             
             
-            Assert.That(s.JumpConfigurable.KeySetting.SettingsContainer, Is.EqualTo(s.SettingsContainer));
-            Assert.That(s.JumpConfigurable.ButtonSetting.SettingsContainer, Is.EqualTo(s.SettingsContainer));
-            Assert.That(s.JumpConfigurableWithSetting.ButtonSetting.Section, Is.EqualTo("Controls2"));
-            Assert.That(s.JumpConfigurableWithSetting.KeySetting.Section, Is.EqualTo("Controls2"));
-            Assert.That(s.JumpConfigurableWithSetting.KeySetting.SettingsContainer, Is.EqualTo(s.SettingsContainerOther));
-            Assert.That(s.JumpConfigurableWithSetting.ButtonSetting.SettingsContainer, Is.EqualTo(s.SettingsContainerOther));
+            Assert.That(s.JumpConfigurable.SaveSetting.SettingsContainer, Is.EqualTo(s.SettingsContainer));
+            Assert.That(s.JumpConfigurableWithSetting.SaveSetting.Section, Is.EqualTo("Controls2"));
+            Assert.That(s.JumpConfigurableWithSetting.SaveSetting.SettingsContainer, Is.EqualTo(s.SettingsContainerOther));
         }
         
         [Configuration]

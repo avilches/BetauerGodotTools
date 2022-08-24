@@ -42,89 +42,90 @@ namespace Veronenger.Game {
     }
 
     [Configuration]
-    public class Actions {
+    public class UiActions {
         [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
+        
+        [Service]
+        private InputAction UiUp => InputAction.Create("ui_up")
+            .KeepProjectSettings()
+            .NegativeAxis(1, "ui_down")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiDown => InputAction.Create("ui_down")
+            .KeepProjectSettings()
+            .PositiveAxis(1, "ui_up")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiLeft => InputAction.Create("ui_left")
+            .KeepProjectSettings()
+            .NegativeAxis(0, "ui_right")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiRight => InputAction.Create("ui_right")
+            .KeepProjectSettings()
+            .PositiveAxis(0, "ui_left")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction UiAccept => InputAction.Create("ui_accept").KeepProjectSettings().Build();
+
+        [Service]
+        private InputAction UiCancel => InputAction.Create("ui_cancel").KeepProjectSettings().Build();
+
+        [Service]
+        private InputAction UiSelect => InputAction.Create("select")
+            .Keys(KeyList.Escape)
+            .Buttons(JoystickList.XboxB)
+            .Build();
+
+        [Service]
+        private InputAction UiStart => InputAction.Create("start")
+            .Keys(KeyList.Escape)
+            .Buttons(JoystickList.Start)
+            .Build();
+    }
+
+    [Configuration]
+    public class Actions {
+        [Service]
+        private InputAction Up => InputAction.Create("up")
+            .Keys(KeyList.Up)
+            .Buttons(JoystickList.DpadUp)
+            .NegativeAxis(1, "down")
+            .DeadZone(0.5f)
+            .Build();
+
+        [Service]
+        private InputAction Down => InputAction.Create("down")
+            .Keys(KeyList.Down)
+            .Buttons(JoystickList.DpadDown)
+            .PositiveAxis(1, "up")
+            .DeadZone(0.5f)
+            .Build();
 
         [Service]
         private InputAction Left => InputAction.Create("left")
             .Keys(KeyList.Left)
             .Buttons(JoystickList.DpadLeft)
+            .NegativeAxis(0, "right")
+            .DeadZone(0.5f)
             .Build();
-            
-        [Service]
-        private InputAction UiLeft => InputAction.Create("ui_left")
-            .Keys(KeyList.Left)
-            .Buttons(JoystickList.DpadLeft)
-            .Build();
-            
+
         [Service]
         private InputAction Right => InputAction.Create("right")
             .Keys(KeyList.Right)
             .Buttons(JoystickList.DpadRight)
+            .PositiveAxis(0, "left")
+            .DeadZone(0.5f)
             .Build();
-            
-        [Service]
-        private InputAction UiRight => InputAction.Create("ui_right")
-            .Keys(KeyList.Right)
-            .Buttons(JoystickList.DpadRight)
-            .Build();
-            
-        [Service]
-        private AxisAction LateralMotion => new AxisAction("Left", "Right")
-            .SetDeadZone(0.5f)
-            .SetAxis(0);
 
-        [Service]
-        private AxisAction UiLateralMotion => new AxisAction("UiLeft", "UiRight")
-            .SetDeadZone(0.5f)
-            .SetAxis(0);
-
-
-        
-
-        
-        
-        [Service]
-        private InputAction Up => InputAction.Create("up")
-            .Keys(KeyList.Up)
-            .Buttons(JoystickList.DpadUp)
-            .Build();
-            
-        [Service]
-        private InputAction UiUp => InputAction.Create("ui_up")
-            .Keys(KeyList.Up)
-            .Buttons(JoystickList.DpadUp)
-            .Build();
-            
-        [Service]
-        private InputAction Down => InputAction.Create("down")
-            .Keys(KeyList.Down)
-            .Buttons(JoystickList.DpadDown)
-            .Build();
-            
-        [Service]
-        private InputAction UiDown => InputAction.Create("ui_down")
-            .Keys(KeyList.Down)
-            .Buttons(JoystickList.DpadDown)
-            .Build();
-            
-        [Service]
-        private AxisAction VerticalMotion => new AxisAction("Up", "Down")
-            .SetDeadZone(0.5f)
-            .SetAxis(1);
-
-        [Service]
-        private AxisAction UiVerticalMotion => new AxisAction("UiUp", "UiDown")
-            .SetDeadZone(0.5f)
-            .SetAxis(1);
-
-
-        
-        
-        
-        
-        
-        
         [Service]
         private InputAction Jump => InputAction.Configurable("Jump")
             .Keys(KeyList.Space)
@@ -142,30 +143,5 @@ namespace Veronenger.Game {
             .Keys(KeyList.F9)
             .Build();
 
-        // UI actions
-        [Service]
-        private InputAction UiAccept => InputAction.Create("ui_accept")
-            .Keys(KeyList.Space)
-            .Keys(KeyList.Enter)
-            .Buttons(JoystickList.XboxA)
-            .Build();
-
-        [Service]
-        private InputAction UiCancel => InputAction.Create("ui_cancel")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.XboxB)
-            .Build();
-
-        [Service]
-        private InputAction UiSelect => InputAction.Create("ui_select")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.XboxB)
-            .Build();
-
-        [Service]
-        private InputAction UiStart => InputAction.Create("ui_start")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.Start)
-            .Build();
     }
 }

@@ -12,7 +12,7 @@ namespace Betauer.Input {
         }
 
         public InputAction? FindAction(InputEvent inputEvent, bool echo = false) {
-            return ActionList.Find(action => action.IsEventAction(inputEvent, echo));
+            return ActionList.Find(action => action.IsAction(inputEvent, echo));
         }
 
         public void Add(InputAction inputAction) {
