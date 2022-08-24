@@ -25,9 +25,7 @@ namespace Betauer.Input {
         public float Axis => Event is InputEventJoypadMotion joypadMotion ? joypadMotion.Axis : -1;
         public float AxisValue => Event is InputEventJoypadMotion joypadMotion ? joypadMotion.AxisValue : 0;
 
-        public bool IsMotion() {
-            return Event is InputEventJoypadMotion;
-        }
+        public bool IsMotion() => Event is InputEventJoypadMotion;
 
         public bool IsDevice(int deviceId) {
             return Event.Device == deviceId;

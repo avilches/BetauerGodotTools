@@ -11,6 +11,7 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Memory;
 using Betauer.StateMachine;
+using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
 using Container = Betauer.DI.Container;
 using TraceLevel = Betauer.TraceLevel;
@@ -121,6 +122,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PlayerController), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(StateMachine), "Player:*", TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Player:*", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Motion", "Player:*", TraceLevel.Error);
