@@ -10,7 +10,7 @@ using Timer = Betauer.Timer;
 
 namespace Veronenger.Game.Character.Player {
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachine {
+    public class PlayerStateMachineNode : StateMachineNode<PlayerStateMachineNode.State, PlayerStateMachineNode.Transition> {
         private Logger _loggerJumpHelper;
         private Logger _loggerCoyoteJump;
         private Logger _loggerJumpVelocity;
@@ -28,6 +28,9 @@ namespace Veronenger.Game.Character.Player {
             FallLong,
             Jump,
         }
+        
+        public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
+        }
 
         [Inject] private PlatformManager _platformManager { get; set;}
         [Inject] private PlayerConfig _playerConfig { get; set;}
@@ -39,8 +42,6 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private InputAction Attack { get; set;}
 
         private PlayerController _player;
-        private StateMachineNode<State, Transition> _stateMachineNode;
-
         private KinematicPlatformMotionBody Body => _player.KinematicPlatformMotionBody;
 
         // Input from the player
@@ -67,14 +68,12 @@ namespace Veronenger.Game.Character.Player {
             _fallingJumpTimer = new AutoTimer(playerController).Stop();
             _fallingTimer = new AutoTimer(playerController).Stop();
 
-            _stateMachineNode = new StateMachineNode<State, Transition>(State.Idle, name, ProcessMode.Physics);
-            playerController.AddChild(_stateMachineNode);
+            playerController.AddChild(this);
 
             var events = new StateMachineEvents<State>();
             events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
             events.ExecuteEnd += (state) => Body.EndFrame();
-            _stateMachineNode.AddListener(events);
-
+            AddListener(events);
             GroundStates();
             AirStates();
         }
@@ -103,7 +102,7 @@ namespace Veronenger.Game.Character.Player {
                 }
             }
 
-            _stateMachineNode.CreateState(State.Idle)
+            CreateState(State.Idle)
                 .Enter(() => { _player.AnimationIdle.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
@@ -137,7 +136,7 @@ namespace Veronenger.Game.Character.Player {
                 })
                 .Build();
 
-            _stateMachineNode.CreateState(State.Run)
+            CreateState(State.Run)
                 .Enter(() => { _player.AnimationRun.PlayLoop(); })
                 .Execute(context => {
                     CheckGroundAttack();
@@ -227,7 +226,7 @@ namespace Veronenger.Game.Character.Player {
                 return false;
             }
 
-            _stateMachineNode.CreateState(State.Jump)
+            CreateState(State.Jump)
                 .Enter(() => {
                     Body.SetMotionY(-MotionConfig.JumpForce);
                     DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
@@ -256,7 +255,7 @@ namespace Veronenger.Game.Character.Player {
                 .Build();
                 
 
-            _stateMachineNode.CreateState(State.FallShort)
+            CreateState(State.FallShort)
                 .Enter(() => {
                     // Only if the state comes from running -> fall, the Coyote jump is enabled
                     // Other cases (State.State comes from idle or jump), the coyote is not enabled
@@ -284,7 +283,7 @@ namespace Veronenger.Game.Character.Player {
                 .Build();
                 
 
-            _stateMachineNode.CreateState(State.FallLong)
+            CreateState(State.FallLong)
                 .Enter(() => {
                     if (_fallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
                         DebugCoyoteJump(

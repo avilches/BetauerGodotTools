@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private CharacterManager _characterManager { get; set; }
         [Inject] private SlopeStairsManager _slopeStairsManager { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
-        [Inject] private PlayerStateMachine _stateMachine { get; set; }
+        [Inject] private PlayerStateMachineNode StateMachineNode { get; set; }
         [Inject] private PlayerConfig _playerConfig { get; set; }
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
 
@@ -86,7 +86,7 @@ namespace Veronenger.Game.Controller.Character {
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             KinematicPlatformMotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
 
-            _stateMachine.Configure(this, _name);
+            StateMachineNode.Configure(this, _name);
 
             _characterManager.RegisterPlayerController(this);
             _characterManager.ConfigurePlayerCollisions(this);

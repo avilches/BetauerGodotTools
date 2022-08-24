@@ -21,7 +21,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Position2D")] public Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-        [Inject] private EnemyZombieStateMachine _stateMachine { get; set; }
+        [Inject] private EnemyZombieStateMachineNode StateMachineNode { get; set; }
         [Inject] private CharacterManager _characterManager { get; set; }
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
 
@@ -51,7 +51,7 @@ namespace Veronenger.Game.Controller.Character {
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             KinematicPlatformMotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
 
-            _stateMachine.Configure(this, _name);
+            StateMachineNode.Configure(this, _name);
 
             _characterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
@@ -119,7 +119,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void AttackedByPlayer(PlayerController playerController) {
-            _stateMachine.TriggerAttacked();
+            StateMachineNode.TriggerAttacked();
         }
 
         protected override void Dispose(bool disposing) {

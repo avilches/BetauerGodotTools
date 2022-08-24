@@ -6,7 +6,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Enemy {
     [Service(Lifetime.Transient)]
-    public class EnemyZombieStateMachine : StateMachineNode<EnemyZombieStateMachine.State,EnemyZombieStateMachine.Transition> {
+    public class EnemyZombieStateMachineNode : StateMachineNode<EnemyZombieStateMachineNode.State,EnemyZombieStateMachineNode.Transition> {
         public enum Transition {
             Attacked
         }
@@ -18,7 +18,7 @@ namespace Veronenger.Game.Character.Enemy {
             PatrolWait,
         }
 
-        public EnemyZombieStateMachine() : base(State.Idle) {
+        public EnemyZombieStateMachineNode() : base(State.Idle) {
         }
 
         [Inject] private CharacterManager CharacterManager { get; set; }
