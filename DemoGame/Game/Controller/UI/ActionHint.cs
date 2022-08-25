@@ -11,33 +11,25 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.UI {
     public abstract class ActionHint : HBoxContainer {
-        [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Label1")] private Label _label1;
+        [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Label2")] private Label _label2;
         [Inject] private InputActionsContainer _inputActionsContainer { get; set; }
-        [Export] private string ActionText1;
-        [Export] private string ActionName;
-        [Export] private string ActionText2;
-        private string _savedLabel1;
-        private string _savedLabel2;
-        private string _savedActionName;
+        [Export] private string? _actionText1;
+        [Export] private string? _actionName;
+        [Export] private string? _actionText2;
 
 
         public ActionHint Labels(string? label1, string? label2) {
-            _label1.Text = ActionText1 = label1;
-            _label2.Text = ActionText2 = label2;
-            _label2.Visible = !string.IsNullOrEmpty(label2);
+            _label1.Text = _actionText1 = label1;
+            _label2.Text = _actionText2 = label2;
             _label1.Visible = !string.IsNullOrEmpty(label1);
+            _label2.Visible = !string.IsNullOrEmpty(label2);
             return this;
         }
 
         public ActionHint InputAction(InputAction action, bool animate = false) {
-            JoystickList button = action.Buttons.First();
-            if (animate) {
-                _consoleButton.Animate(button);
-            } else {
-                _consoleButton.ShowButton(button);
-            }
+            _consoleButton.InputAction(action, animate);
             return this;
         }
 

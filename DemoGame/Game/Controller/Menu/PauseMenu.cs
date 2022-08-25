@@ -80,15 +80,19 @@ namespace Veronenger.Game.Controller.Menu {
             return mainMenu;
         }
 
-        public async Task Execute() {
-            if (UiCancel.JustPressed()) {
+        public void OnInput(InputEvent e) {
+            if (UiCancel.IsEventJustPressed(e)) {
                 if (_menuContainer.IsStartMenuActive()) {
                     _gameManager.TriggerBack();
                 } else {
-                    await _menuContainer.Back();
+                    _menuContainer.Back();
                 }
-            } else if (UiStart.JustPressed()) {
+                GetTree().SetInputAsHandled();
+
+            } else if (UiStart.IsJustPressed()) {
                 _gameManager.TriggerBack();
+                GetTree().SetInputAsHandled();
+                
             }
         }
     }

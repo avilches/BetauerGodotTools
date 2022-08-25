@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using Betauer;
 using Betauer.DI;
+using Betauer.Input;
 using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Managers;
@@ -80,6 +82,18 @@ namespace Veronenger.Game.Controller.UI.Consoles {
                 ShowButton(button);
             }
         }
+        
+        public void InputAction(InputAction action, bool animate = false) {
+            if (action.Buttons.Count > 0) {
+                JoystickList button = action.Buttons.First();
+                if (animate) {
+                    Animate(button);
+                } else {
+                    ShowButton(button);
+                }
+            }
+        }
+        
     }
 
     public abstract class SpriteConfig {

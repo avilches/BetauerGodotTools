@@ -19,29 +19,38 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Panel")] 
         private Panel _panel;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Fullscreen")]
+        [OnReady("Panel/SettingsBox")] 
+        private VBoxContainer _settingsBox;
+
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Fullscreen")]
         private CheckButton _fullscreenButtonWrapper;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Resolution")]
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Resolution")]
         private Button _resolutionButton;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/PixelPerfect")]
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/PixelPerfect")]
         private CheckButton _pixelPerfectButtonWrapper;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Borderless")]
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Borderless")]
         private CheckButton _borderlessButtonWrapper;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/VSync")]
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/VSync")]
         private CheckButton _vsyncButtonWrapper;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls")]
-        private VBoxContainer _controls;
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls")]
+        private VBoxContainer _gamepadControls;
 
-        [OnReady("Panel/VBoxContainer/ScrollContainer")]
+        [OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls")]
+        private VBoxContainer _keyboardControls;
+
+        [OnReady("Panel/SettingsBox/ScrollContainer")]
         private ScrollContainer _scrollContainer;
 
-        [OnReady("RedefineActionPanel")] 
-        private Panel _redefineActionPanel;
+        [OnReady("Panel/RedefineBox")] 
+        private VBoxContainer _redefineBox;
+
+        [OnReady("Panel/RedefineBox/Message")] 
+        private Label _redefineActionMessage;
 
         [Inject] private GameManager _gameManager { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
@@ -52,6 +61,16 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction UiStart { get; set; }
         [Inject] private InputAction UiLeft { get; set; }
         [Inject] private InputAction UiRight { get; set; }
+
+        [Inject] private InputAction Attack { get; set; }
+        [Inject] private InputAction Jump { get; set; }
+        
+        [Inject] private InputAction Up { get; set; }
+        [Inject] private InputAction Down { get; set; }
+        [Inject] private InputAction Left { get; set; }
+        [Inject] private InputAction Right { get; set; }
+        
+        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
         private readonly Launcher _launcher = new Launcher();
 
@@ -107,28 +126,35 @@ namespace Veronenger.Game.Controller.Menu {
         }
 
         private void ConfigureControls() {
-            if (_controls.GetChildCount() < _inputActionsContainer.ConfigurableActionList.Count)
-                throw new Exception("Please, clone and add more RedefineActionButton nodes in Controls container");
-
-            while (_controls.GetChildCount() > _inputActionsContainer.ConfigurableActionList.Count)
-                _controls.RemoveChild(_controls.GetChild(0));
-
-            var x = 0;
-            _controls.GetChildren<RedefineActionButton>().ForEach(button => {
-                var action = _inputActionsContainer.ConfigurableActionList[x] as InputAction;
-                button.OnPressed(() => {
-                    ShowRedefineActionPanel(button);
-                });
-                button.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
-                button.ActionHint.Labels(null, action.Name).InputAction(action);
-                button.InputAction = action;
-                x++;
-            });
-            _controls.GetChild<Button>(_controls.GetChildCount() - 1).OnFocusEntered(() => {
+            // Remove all
+            foreach (Node child in _gamepadControls.GetChildren()) child.QueueFree();
+            foreach (Node child in _keyboardControls.GetChildren()) child.QueueFree();
+            
+            // TODO: i18n
+            AddConfigureControl("Jump", Jump, false);
+            AddConfigureControl("Attack", Attack, false);
+            
+            AddConfigureControl("Up", Up, true);
+            AddConfigureControl("Down", Down, true);
+            AddConfigureControl("Left", Left, true);
+            AddConfigureControl("Right", Right, true);
+            AddConfigureControl("Jump", Jump, true);
+            AddConfigureControl("Attack", Attack, true);
+            
+            _keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).OnFocusEntered(() => {
                 _gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 _scrollContainer.ScrollVertical = int.MaxValue;
             });
         }
+
+        private void AddConfigureControl(string name, InputAction action, bool isKey) {
+            var button = MainResourceLoader.RedefineActionButtonFactory();
+            button.OnPressed(() => ShowRedefineActionPanel(button));
+            button.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            button.SetInputAction(name, action, isKey);
+            if (isKey) _keyboardControls.AddChild(button);
+            else _gamepadControls.AddChild(button);
+        } 
 
         private Tuple<ScaledResolution, List<ScaledResolution>, int> FindClosestResolutionToSelected() {
             List<ScaledResolution> resolutions = _screenSettingsManager.GetResolutions();
@@ -151,25 +177,27 @@ namespace Veronenger.Game.Controller.Menu {
             }
         }
 
-        private void ProcessChangeResolution() {
-            if (!UiLeft.JustPressed() && !UiRight.JustPressed() && !UiAccept.JustPressed()) return;
+        private bool ProcessChangeResolution(InputEvent e) {
+            if (!UiLeft.IsEventJustPressed(e) && !UiRight.IsEventJustPressed(e) &&
+                !UiAccept.IsEventJustPressed(e)) return false;
             var (_, resolutions, pos) = FindClosestResolutionToSelected();
-            if (UiLeft.JustPressed()) {
+            if (UiLeft.IsEventJustPressed(e)) {
                 if (pos > 0) {
                     _screenSettingsManager.SetWindowed(resolutions[pos - 1]);
                     UpdateResolutionButton();
                 }
-            } else if (UiRight.JustPressed()) {
+            } else if (UiRight.IsEventJustPressed(e)) {
                 if (pos < resolutions.Count - 1) {
                     _screenSettingsManager.SetWindowed(resolutions[pos + 1]);
                     UpdateResolutionButton();
                 }
-            } else if (UiAccept.JustPressed()) {
+            } else if (UiAccept.IsEventJustPressed(e)) {
                 _screenSettingsManager.SetWindowed(pos == resolutions.Count - 1
                     ? resolutions[0]
                     : resolutions[pos + 1]);
                 UpdateResolutionButton();
             }
+            return true;
         }
 
         private void UpdateResolutionButton() {
@@ -186,62 +214,70 @@ namespace Veronenger.Game.Controller.Menu {
             _resolutionButton.Text = prefix + res + suffix;
         }
 
-        public override void _Input(InputEvent @event) {
-            if (IsRedefineInputActive()) RedefineButtonInput(@event);
+        public void OnInput(InputEvent e) {
+            // if (e.IsAnyKey()) {
+                // Console.WriteLine("GetKeyString:" + e.GetKeyString() + " / Enum:" + e.GetKey()+" / Unicode: "+e.GetKeyUnicode());
+            // } else if (e.IsAnyButton()) {
+                // Console.WriteLine("ButtonString:" + e.GetButtonString() + " / Enum:" + e.GetButton());
+            // }
+            if (IsWaitingFromRedefineInputEvent()) {
+                RedefineControlFromInputEvent(e);
+                GetTree().SetInputAsHandled();
+                
+            } else if (UiCancel.IsEventPressed(e)) {
+                _gameManager.TriggerBack();
+                GetTree().SetInputAsHandled();
+                
+            } else if (_resolutionButton.HasFocus()) {
+                if (ProcessChangeResolution(e)) {
+                    GetTree().SetInputAsHandled();
+                }
+            }
         }
 
         private RedefineActionButton? _redefineButtonSelected;
 
-        public bool IsRedefineInputActive() {
+        public bool IsWaitingFromRedefineInputEvent() {
             return _redefineButtonSelected != null;
         }
 
         public void ShowRedefineActionPanel(RedefineActionButton button) {
             _redefineButtonSelected = button;
-            _scrollContainer.Hide();
-            _redefineActionPanel.Show();
+            _redefineBox.Show();
+            _settingsBox.Hide();
+            _redefineActionMessage.Text = button.IsKey ? "Press key for..." : "Press button for...";
+            _gameManager.MainMenuBottomBarScene.HideAll();
         }
 
-        private void RedefineButtonInput(InputEvent @event) {
-            var e = new EventWrapper(@event);
-            if ((e.IsAnyKey() || e.IsAnyButton()) && e.Released) {
-                if (!e.IsKey(KeyList.Escape)) {
-                    if (e.IsAnyKey()) {
-                        _redefineButtonSelected.InputAction.ClearKeys().AddKey((KeyList)e.Key).Save();
-                        Console.WriteLine("New key " + e.KeyString);
-                    } else if (e.IsAnyButton()) {
-                        _redefineButtonSelected.InputAction.ClearButtons().AddButton((JoystickList)e.Button).Save();
-                        Console.WriteLine("New button " + e.Button);
-                    }
+        private void RedefineControlFromInputEvent(InputEvent e) {
+            if (!e.IsKey(KeyList.Escape)) {
+                if (_redefineButtonSelected!.IsKey && e.IsAnyKey() && !e.IsKey(KeyList.Escape)) {
+                    _redefineButtonSelected!.InputAction.ClearKeys().AddKey(e.GetKey()).Save().Setup();
+                    _redefineButtonSelected.Refresh();
+                } else if (_redefineButtonSelected!.IsButton && e.IsAnyButton()) {
+                    _redefineButtonSelected!.InputAction.ClearButtons().AddButton(e.GetButton()).Save().Setup();
+                    _redefineButtonSelected.Refresh();
+                } else {
+                    // Ignore the event
+                    return;
                 }
-                _redefineButtonSelected.GrabFocus();
-                GetTree().SetInputAsHandled();
-                _scrollContainer.Show();
-                _redefineActionPanel.Hide();
-                _redefineButtonSelected = null;
             }
+            _redefineBox.Hide();
+            _settingsBox.Show();
+            _redefineButtonSelected!.GrabFocus();
+            _redefineButtonSelected = null;
         }
 
         public void ShowSettingsMenu() {
             _panel.Show();
-            _scrollContainer.Show();
-            _redefineActionPanel.Hide();
+            _settingsBox.Show();
+            _redefineBox.Hide();
             _fullscreenButtonWrapper.GrabFocus();
         }
 
         public void HideSettingsMenu() {
             _launcher.RemoveAll();
             _panel.Hide();
-            _redefineActionPanel.Hide();
-        }
-
-        public void Execute() {
-            if (_resolutionButton.HasFocus()) {
-                ProcessChangeResolution();
-            }
-            if (UiCancel.JustPressed() && !IsRedefineInputActive()) {
-                _gameManager.TriggerBack();
-            }
         }
     }
 }

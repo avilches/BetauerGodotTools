@@ -20,186 +20,198 @@ __meta__ = {
 [node name="Panel" type="Panel" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 20.0
+margin_left = 170.0
 margin_top = 20.0
-margin_right = -20.0
+margin_right = -170.0
 margin_bottom = -20.0
 theme = ExtResource( 2 )
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="SettingsBox" type="VBoxContainer" parent="Panel"]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 120.0
+margin_left = 20.0
 margin_top = 10.0
-margin_right = -120.0
+margin_right = -20.0
 margin_bottom = -24.0
 rect_min_size = Vector2( 180, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 2
 alignment = 1
 
-[node name="Title" type="Label" parent="Panel/VBoxContainer"]
-margin_top = 125.0
-margin_right = 360.0
-margin_bottom = 141.0
+[node name="Title" type="Label" parent="Panel/SettingsBox"]
+margin_right = 260.0
+margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 text = "Settings"
 align = 1
 
-[node name="Title2" type="Label" parent="Panel/VBoxContainer"]
-margin_top = 145.0
-margin_right = 360.0
-margin_bottom = 161.0
+[node name="Title2" type="Label" parent="Panel/SettingsBox"]
+margin_top = 20.0
+margin_right = 260.0
+margin_bottom = 36.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 align = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBoxContainer"]
-visible = false
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/SettingsBox"]
 margin_top = 40.0
-margin_right = 360.0
+margin_right = 260.0
 margin_bottom = 286.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 follow_focus = true
 scroll_horizontal_enabled = false
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer/ScrollContainer"]
-margin_right = 360.0
-margin_bottom = 249.0
+[node name="MarginContainer" type="MarginContainer" parent="Panel/SettingsBox/ScrollContainer"]
+margin_right = 260.0
+margin_bottom = 329.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/margin_right = 5
 custom_constants/margin_left = 3
 custom_constants/margin_bottom = 3
 
-[node name="Menu" type="VBoxContainer" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer"]
+[node name="Menu" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer"]
 margin_left = 3.0
-margin_right = 355.0
-margin_bottom = 246.0
+margin_right = 255.0
+margin_bottom = 326.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
 
-[node name="VideoTitle" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
-margin_right = 340.0
+[node name="VideoTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+margin_right = 240.0
 margin_bottom = 16.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
 text = "Video"
 
-[node name="Fullscreen" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
+[node name="Fullscreen" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 21.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 38.0
 text = " Fullscreen"
 
-[node name="Resolution" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 3 )]
+[node name="Resolution" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 3 )]
 margin_top = 43.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 58.0
 text = " Resolution"
 align = 0
 
-[node name="PixelPerfect" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
+[node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 63.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 80.0
 text = " Pixel perfect"
 
-[node name="Borderless" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
+[node name="Borderless" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 85.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 102.0
 text = " Borderless window"
 
-[node name="VSync" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
+[node name="VSync" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource( 4 )]
 margin_top = 107.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 124.0
 text = " Vertical sync"
 
-[node name="Spacer1" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
+[node name="GamepadTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 margin_top = 129.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 145.0
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 6 )
+text = "Gamepad"
 
-[node name="ControlsTitle" type="Label" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
+[node name="GamepadControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 margin_top = 150.0
-margin_right = 340.0
-margin_bottom = 166.0
-size_flags_horizontal = 3
-custom_fonts/font = ExtResource( 6 )
-text = "Controls"
-
-[node name="Controls" type="VBoxContainer" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu"]
-margin_top = 171.0
-margin_right = 340.0
-margin_bottom = 246.0
+margin_right = 240.0
+margin_bottom = 225.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 5
 
-[node name="Jump1" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
-margin_right = 340.0
+[node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource( 5 )]
+margin_right = 240.0
 margin_bottom = 15.0
 
-[node name="Jump2" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+[node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource( 5 )]
 margin_top = 20.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 35.0
 
-[node name="Jump3" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+[node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource( 5 )]
 margin_top = 40.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 55.0
 
-[node name="Jump4" parent="Panel/VBoxContainer/ScrollContainer/MarginContainer/Menu/Controls" instance=ExtResource( 5 )]
+[node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource( 5 )]
 margin_top = 60.0
-margin_right = 340.0
+margin_right = 240.0
 margin_bottom = 75.0
 
-[node name="RedefineActionPanel" type="Panel" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -170.0
-margin_top = -100.0
-margin_right = 170.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 300, 0 )
+[node name="KeyboardTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+margin_top = 230.0
+margin_right = 240.0
+margin_bottom = 246.0
 size_flags_horizontal = 3
-theme = ExtResource( 2 )
+custom_fonts/font = ExtResource( 6 )
+text = "Keyboard"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="RedefineActionPanel"]
+[node name="KeyboardControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+margin_top = 251.0
+margin_right = 240.0
+margin_bottom = 326.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_constants/separation = 5
+
+[node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource( 5 )]
+margin_right = 240.0
+margin_bottom = 15.0
+
+[node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource( 5 )]
+margin_top = 20.0
+margin_right = 240.0
+margin_bottom = 35.0
+
+[node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource( 5 )]
+margin_top = 40.0
+margin_right = 240.0
+margin_bottom = 55.0
+
+[node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource( 5 )]
+margin_top = 60.0
+margin_right = 240.0
+margin_bottom = 75.0
+
+[node name="RedefineBox" type="VBoxContainer" parent="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 10.0
-margin_right = -10.0
-rect_min_size = Vector2( 300, 0 )
+margin_left = 20.0
+margin_top = 10.0
+margin_right = -20.0
+margin_bottom = -24.0
+rect_min_size = Vector2( 180, 0 )
 size_flags_horizontal = 3
-size_flags_vertical = 0
+size_flags_vertical = 2
+alignment = 1
 
-[node name="VBoxContainerDouble" type="VBoxContainer" parent="RedefineActionPanel/VBoxContainer"]
-margin_right = 320.0
-margin_bottom = 138.0
-grow_vertical = 2
-rect_min_size = Vector2( 0, 125 )
-size_flags_vertical = 0
-
-[node name="Spacer1" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_right = 320.0
-margin_bottom = 30.0
+[node name="Spacer1" type="Control" parent="Panel/RedefineBox"]
+visible = false
+margin_top = 74.0
+margin_right = 260.0
+margin_bottom = 104.0
 rect_min_size = Vector2( 0, 30 )
 
-[node name="Message" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 34.0
-margin_right = 320.0
-margin_bottom = 48.0
+[node name="Message" type="Label" parent="Panel/RedefineBox"]
+margin_top = 91.0
+margin_right = 260.0
+margin_bottom = 105.0
 size_flags_horizontal = 3
 custom_colors/font_color = Color( 1, 1, 1, 1 )
 custom_fonts/font = ExtResource( 7 )
@@ -208,37 +220,37 @@ align = 1
 valign = 1
 autowrap = true
 
-[node name="Spacer2" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 52.0
-margin_right = 320.0
-margin_bottom = 67.0
+[node name="Spacer2" type="Control" parent="Panel/RedefineBox"]
+margin_top = 109.0
+margin_right = 260.0
+margin_bottom = 124.0
 rect_min_size = Vector2( 0, 15 )
 
-[node name="ActionLabel2" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 71.0
-margin_right = 320.0
-margin_bottom = 101.0
-rect_min_size = Vector2( 300, 30 )
+[node name="ActionLabel2" type="Label" parent="Panel/RedefineBox"]
+margin_top = 128.0
+margin_right = 260.0
+margin_bottom = 158.0
+rect_min_size = Vector2( 260, 30 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 8 )
 text = "Jump"
 align = 1
 autowrap = true
 
-[node name="Spacer3" type="Control" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 105.0
-margin_right = 320.0
-margin_bottom = 120.0
+[node name="Spacer3" type="Control" parent="Panel/RedefineBox"]
+margin_top = 162.0
+margin_right = 260.0
+margin_bottom = 177.0
 rect_min_size = Vector2( 0, 15 )
 
-[node name="Message2" type="Label" parent="RedefineActionPanel/VBoxContainer/VBoxContainerDouble"]
-margin_top = 124.0
-margin_right = 320.0
-margin_bottom = 138.0
+[node name="Message2" type="Label" parent="Panel/RedefineBox"]
+margin_top = 181.0
+margin_right = 260.0
+margin_bottom = 195.0
 size_flags_horizontal = 3
 custom_colors/font_color = Color( 1, 1, 1, 1 )
 custom_fonts/font = ExtResource( 7 )
-text = "Escape to cancel"
+text = "(Escape to cancel)"
 align = 1
 valign = 1
 autowrap = true

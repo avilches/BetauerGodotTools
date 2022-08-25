@@ -24,7 +24,6 @@ size_flags_vertical = 0
 
 [node name="ConsoleButton" parent="Control" instance=ExtResource( 1 )]
 offset = Vector2( 8, 8 )
-frame = 13
 
 [node name="Label2" type="Label" parent="."]
 margin_left = 53.0

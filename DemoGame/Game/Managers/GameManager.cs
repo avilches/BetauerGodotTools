@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Godot;
 using Betauer.Animation;
-using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
@@ -95,19 +94,20 @@ namespace Veronenger.Game.Managers {
         
         private void ConfigureStates() {
             AddListener(MainMenuBottomBarScene);
+
+            OnInput(State.MainMenu, _mainMenuScene.OnInput);
             CreateState(State.MainMenu)
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
-                .Execute(_mainMenuScene.Execute)
                 .Build();
 
+            OnInput(State.Settings, _settingsMenuScene.OnInput);
             CreateState(State.Settings)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(_settingsMenuScene.ShowSettingsMenu)
-                .Execute(_settingsMenuScene.Execute)
                 .Exit(_settingsMenuScene.HideSettingsMenu)
                 .Build();
 
@@ -122,19 +122,18 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             OnInput(State.Gaming, (e) => {
-                if (PixelPerfectInputAction.IsActionPressed(e)) {
+                if (PixelPerfectInputAction.IsEventPressed(e)) {
                     ScreenSettingsManager.SetPixelPerfect(!ScreenSettingsManager.PixelPerfect);
+                    GetTree().SetInputAsHandled();
+                    
+                } else if (UiStart.IsEventJustPressed(e)) {
+                    Enqueue(Transition.Pause);
+                    GetTree().SetInputAsHandled();
                 }
             });
             CreateState(State.Gaming)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
-                .Execute(context => {
-                    if (UiStart.JustPressed()) {
-                        return context.Trigger(Transition.Pause);
-                    }
-                    return context.None();
-                })
                 .Exit(() => {
                     _currentGameScene.PrintStrayNodes();
                     _currentGameScene.QueueFree();
@@ -143,6 +142,7 @@ namespace Veronenger.Game.Managers {
                 .Build();
                 
 
+            OnInput(State.PauseMenu, _pauseMenuScene.OnInput);
             CreateState(State.PauseMenu)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
@@ -152,7 +152,6 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Paused = true;
                     await _pauseMenuScene.ShowPauseMenu();
                 })
-                .Execute(_pauseMenuScene.Execute)
                 .Exit(() => {
                     _pauseMenuScene.EnableMenus();
                     _pauseMenuScene.HidePauseMenu();

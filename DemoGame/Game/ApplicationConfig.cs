@@ -95,7 +95,7 @@ namespace Veronenger.Game {
     [Configuration]
     public class Actions {
         [Service]
-        private InputAction Up => InputAction.Create("up")
+        private InputAction Up => InputAction.Configurable("up")
             .Keys(KeyList.Up)
             .Buttons(JoystickList.DpadUp)
             .NegativeAxis(1, "down")
@@ -103,7 +103,7 @@ namespace Veronenger.Game {
             .Build();
 
         [Service]
-        private InputAction Down => InputAction.Create("down")
+        private InputAction Down => InputAction.Configurable("down")
             .Keys(KeyList.Down)
             .Buttons(JoystickList.DpadDown)
             .PositiveAxis(1, "up")
@@ -111,7 +111,7 @@ namespace Veronenger.Game {
             .Build();
 
         [Service]
-        private InputAction Left => InputAction.Create("left")
+        private InputAction Left => InputAction.Configurable("left")
             .Keys(KeyList.Left)
             .Buttons(JoystickList.DpadLeft)
             .NegativeAxis(0, "right")
@@ -119,7 +119,7 @@ namespace Veronenger.Game {
             .Build();
 
         [Service]
-        private InputAction Right => InputAction.Create("right")
+        private InputAction Right => InputAction.Configurable("right")
             .Keys(KeyList.Right)
             .Buttons(JoystickList.DpadRight)
             .PositiveAxis(0, "left")

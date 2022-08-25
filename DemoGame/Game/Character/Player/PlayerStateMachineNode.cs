@@ -80,7 +80,7 @@ namespace Veronenger.Game.Character.Player {
         
         public void GroundStates() {
             bool CheckGroundAttack() {
-                if (!Attack.JustPressed()) return false;
+                if (!Attack.IsJustPressed()) return false;
                 // Attack was pressed
                 _player.AnimationAttack.PlayOnce();
                 return true;
@@ -115,7 +115,7 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(State.Run);
                     }
 
-                    if (Jump.JustPressed()) {
+                    if (Jump.IsJustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
@@ -150,7 +150,7 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(State.Idle);
                     }
 
-                    if (Jump.JustPressed()) {
+                    if (Jump.IsJustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
                             _platformManager.BodyFallFromPlatform(_player);
                         } else {
@@ -208,14 +208,14 @@ namespace Veronenger.Game.Character.Player {
             }
 
             bool CheckAirAttack() {
-                if (!Attack.JustPressed()) return false;
+                if (!Attack.IsJustPressed()) return false;
                 // Attack was pressed
                 _player.AnimationJumpAttack.PlayOnce();
                 return true;
             }
 
             bool CheckCoyoteJump() {
-                if (!Jump.JustPressed()) return false;
+                if (!Jump.IsJustPressed()) return false;
                 // Jump was pressed
                 _fallingJumpTimer.Reset().Start();
                 if (_fallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
@@ -235,7 +235,7 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckAirAttack();
 
-                    if (Jump.Released() && Motion.y < -MotionConfig.JumpForceMin) {
+                    if (Jump.IsReleased() && Motion.y < -MotionConfig.JumpForceMin) {
                         DebugJump("Short jump: decelerating from " + Motion.y + " to " +
                                   -MotionConfig.JumpForceMin);
                         Body.SetMotionY(-MotionConfig.JumpForceMin);

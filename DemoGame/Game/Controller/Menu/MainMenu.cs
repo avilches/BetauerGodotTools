@@ -84,14 +84,16 @@ namespace Veronenger.Game.Controller.Menu {
             Modulate = Colors.White;
         }
 
-        public void Execute() {
-            if (UiCancel.JustPressed()) { 
+        public void OnInput(InputEvent e) {
+            if (UiCancel.IsEventJustPressed(e)) { 
                 if (_menuContainer.IsStartMenuActive()) {
                     _gameManager.TriggerModalBoxConfirmExitDesktop();
                 } else {
                     _menuContainer.Back();
                 }
+                GetTree().SetInputAsHandled();
             }
         }
+
     }
 }

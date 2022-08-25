@@ -3,6 +3,7 @@ using Betauer.DI;
 using Betauer.Loader;
 using Godot;
 using Veronenger.Game.Controller.Menu;
+using Veronenger.Game.Controller.UI;
 
 namespace Veronenger.Game.Managers {
 
@@ -13,6 +14,9 @@ namespace Veronenger.Game.Managers {
 
         [Resource("res://Assets/UI/Consoles/Xbox One Controller Updated.png")]
         public Texture XboxOneButtonsTexture;
+
+        [Scene("res://Scenes/UI/RedefineActionButton.tscn")]
+        public Func<RedefineActionButton> RedefineActionButtonFactory;
         
         [Scene("res://Worlds/World1.tscn")] public Func<Node> CreateWorld1;
         [Scene("res://Worlds/World2.tscn")] public Func<Node> CreateWorld2;
