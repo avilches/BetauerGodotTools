@@ -17,11 +17,17 @@ namespace Betauer.Input {
         public string Name { get; }
         public InputActionsContainer InputActionsContainer { get; private set; }
         
-        public bool Pressed(bool exact = false) => Godot.Input.IsActionPressed(Name, exact);
-        public bool JustPressed(bool exact = false) => Godot.Input.IsActionJustPressed(Name, exact);
-        public bool Released(bool exact = false) => Godot.Input.IsActionJustReleased(Name, exact);
-        public float Strength(bool exact = false) => Godot.Input.GetActionStrength(Name, exact);
-        public float RawStrength(bool exact = false) => Godot.Input.GetActionRawStrength(Name, exact);
+        public bool IsPressed(bool exact = false) => Godot.Input.IsActionPressed(Name, exact);
+        public bool IsJustPressed(bool exact = false) => Godot.Input.IsActionJustPressed(Name, exact);
+        public bool IsReleased(bool exact = false) => Godot.Input.IsActionJustReleased(Name, exact);
+
+        public bool IsEvent(InputEvent e, bool exact = false) => e.IsAction(Name, exact);
+        public bool IsEventPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact);
+        public bool IsEventJustPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact) && e.IsJustPressed();
+        public bool IsEventReleased(InputEvent e, bool exact = false) => e.IsActionReleased(Name, exact);
+
+        public float GetStrength(bool exact = false) => Godot.Input.GetActionStrength(Name, exact);
+        public float GetRawStrength(bool exact = false) => Godot.Input.GetActionRawStrength(Name, exact);
 
         public AxisAction? AxisAction {
             get {
@@ -44,9 +50,6 @@ namespace Betauer.Input {
         public int AxisValue { get; private set; } = 1;
         public float DeadZone { get; private set; } = 0.5f;
         public SaveSetting<string>? SaveSetting { get; private set; }
-        public bool IsAction(InputEvent e, bool exact = false) => e.IsAction(Name, exact);
-        public bool IsActionPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact);
-        public bool IsActionReleased(InputEvent e, bool exact = false) => e.IsActionReleased(Name, exact);
         
         [Inject] private Container Container { get; set; }
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
