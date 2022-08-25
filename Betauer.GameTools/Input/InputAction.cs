@@ -86,6 +86,7 @@ namespace Betauer.Input {
                 Container.InjectServices(setting);
                 setting.ConfigureAndAddToSettingContainer();
                 SetSaveSettings(setting);
+                Load();
             }
         }
         
