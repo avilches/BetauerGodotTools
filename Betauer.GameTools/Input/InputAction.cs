@@ -16,7 +16,6 @@ namespace Betauer.Input {
 
         public string Name { get; }
         public InputActionsContainer InputActionsContainer { get; private set; }
-        public bool IsConfigurable() => _isConfigurable;
         
         public bool Pressed(bool exact = false) => Godot.Input.IsActionPressed(Name, exact);
         public bool JustPressed(bool exact = false) => Godot.Input.IsActionJustPressed(Name, exact);
@@ -57,7 +56,7 @@ namespace Betauer.Input {
         private readonly string? _settingsSection;
         private readonly string? _oppositeActionName;
         private AxisAction? _axisAction;
-        private bool _isConfigurable;
+        private readonly bool _isConfigurable;
 
         private InputAction(string inputActionsContainerName, string name, string? oppositeActionName, bool keepProjectSettings,
             bool isConfigurable, string? settingsContainerName, string? settingsSection) {
@@ -79,33 +78,35 @@ namespace Betauer.Input {
         }
 
         [PostCreate]
-        private void ConfigureSaveSettings() {
+        private void PostCreate() {
+            // Configure and load settings
             if (_isConfigurable) {
                 var section = _settingsSection ?? "Controls";
                 var setting = Setting<string>.Save(_settingsContainerName, section, Name, Export());
                 Container.InjectServices(setting);
                 setting.ConfigureAndAddToSettingContainer();
                 SetSaveSettings(setting);
+                
+                // Load settings from file
                 Load();
             }
+            
+            // Add to InputContainer
+            var inputActionsContainer = _inputActionsContainerName != null
+                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
+                : Container.Resolve<InputActionsContainer>();
+            inputActionsContainer.Add(this);
+            
+            // Configure the Godot InputMap
+            Setup();
         }
         
-        [PostCreate]
         public void Setup() {
             RemoveSetup();
             if (DeadZone > 0) InputMap.AddAction(Name, DeadZone);
             else InputMap.AddAction(Name);
             CreateInputEvents()
                 .ForEach(e => InputMap.ActionAddEvent(Name, e));
-        }
-
-        [PostCreate]
-        private void AddToInputActionsContainer() {
-            var inputActionsContainer = _inputActionsContainerName != null
-                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
-                : Container.Resolve<InputActionsContainer>();
-            inputActionsContainer.Add(this);
-            // The Add will set the InputActionsContainer using the OnAddToInputContainer() method
         }
 
         public void OnAddToInputContainer(InputActionsContainer inputActionsContainer) {
@@ -118,7 +119,6 @@ namespace Betauer.Input {
 
         public InputAction SetSaveSettings(SaveSetting<string> saveSetting) {
             SaveSetting = saveSetting;
-            _isConfigurable = true;
             return this;
         }
         
@@ -172,25 +172,59 @@ namespace Betauer.Input {
             return this;
         }
 
-        public InputAction AddKey(params KeyList[] keys) {
-            foreach (var key in keys) _keys.Add(key);
+        public bool HasKey(KeyList key) {
+            return _keys.Contains(key);
+        }
+
+        public bool HasButton(JoystickList button) {
+            return _buttons.Contains(button);
+        }
+
+        public InputAction RemoveKey(KeyList key) {
+            _keys.Remove(key);
             return this;
         }
 
-        public InputAction AddButton(params JoystickList[] buttons) {
-            foreach (var button in buttons) _buttons.Add(button);
+        public InputAction RemoveButton(JoystickList button) {
+            _buttons.Remove(button);
             return this;
         }
 
+        public InputAction AddKey(KeyList key) {
+            _keys.Add(key);
+            return this;
+        }
+
+        public InputAction AddButton(JoystickList button) {
+            _buttons.Add(button);
+            return this;
+        }
+
+        public InputAction AddKeys(params KeyList[] keys) {
+            foreach (var key in keys) AddKey(key);
+            return this;
+        }
+
+        public InputAction AddButtons(params JoystickList[] buttons) {
+            foreach (var button in buttons) AddButton(button);
+            return this;
+        }
+
+        public InputAction ResetToDefaults() {
+            if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+            Import(SaveSetting.DefaultValue);
+            return this;
+        }
+        
         public InputAction Load() {
-            if (SaveSetting != null) Import(SaveSetting.Value);
+            if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+            Import(SaveSetting.Value);
             return this;
         }
         
         public InputAction Save() {
-            if (SaveSetting != null) {
-                SaveSetting.Value = Export();
-            }
+            if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+            SaveSetting.Value = Export();
             return this;
         }
 
@@ -204,10 +238,11 @@ namespace Betauer.Input {
             return string.Join(",", export);
         }
 
-        public void Import(string export) {
-            if (string.IsNullOrWhiteSpace(export)) return;
+        public InputAction Import(string export) {
+            if (string.IsNullOrWhiteSpace(export)) return this;
             ClearButtons().ClearKeys();
             export.Split(",").ToList().ForEach(ImportItem);
+            return this;
         }
 
         private void ImportItem(string item) {
@@ -230,58 +265,68 @@ namespace Betauer.Input {
 
         private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
 
-        public class NormalBuilder {
-            private readonly string _name;
-            private readonly string _inputActionsContainerName;
-            private readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
-            private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
-            private int _axis = -1;
-            private int _axisValue = 0;
-            private string? _oppositeActionName;
-            private float _deadZone = -1f;
-            private bool _keepProjectSettings = true;
+        public abstract class Builder<TBuilder> where TBuilder : class {
+            protected readonly string _name;
+            protected readonly string _inputActionsContainerName;
+            protected readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
+            protected readonly ISet<KeyList> _keys = new HashSet<KeyList>();
+            protected int _axis = -1;
+            protected int _axisValue = 0;
+            protected string? _oppositeActionName;
+            protected float _deadZone = -1f;
+            protected bool _keepProjectSettings = true;
 
-            internal NormalBuilder(string name) {
+            internal Builder(string name) {
                 _name = name;
             }
 
-            internal NormalBuilder(string inputActionsContainerName, string name) {
+            internal Builder(string inputActionsContainerName, string name) {
                 _inputActionsContainerName = inputActionsContainerName;
                 _name = name;
             }
 
-            public NormalBuilder DeadZone(float deadZone) {
+            public TBuilder DeadZone(float deadZone) {
                 _deadZone = deadZone;
-                return this;
+                return this as TBuilder;
             }
 
-            public NormalBuilder NegativeAxis(int axis, string positiveActionName) {
+            public TBuilder NegativeAxis(int axis, string positiveActionName) {
                 _axis = axis;
                 _axisValue = -1;
                 _oppositeActionName = positiveActionName;
-                return this;
+                return this as TBuilder;
             }
 
-            public NormalBuilder PositiveAxis(int axis, string negativeActionName) {
+            public TBuilder PositiveAxis(int axis, string negativeActionName) {
                 _axis = axis;
                 _axisValue = 1;
                 _oppositeActionName = negativeActionName;
-                return this;
+                return this as TBuilder;
             }
 
-            public NormalBuilder KeepProjectSettings(bool keepProjectSettings = true) {
+            public TBuilder KeepProjectSettings(bool keepProjectSettings = true) {
                 _keepProjectSettings = keepProjectSettings;
-                return this;
+                return this as TBuilder;
             } 
 
-            public NormalBuilder Keys(params KeyList[] keys) {
+            public TBuilder Keys(params KeyList[] keys) {
                 foreach (var key in keys) _keys.Add(key);
-                return this;
+                return this as TBuilder;
             }
 
-            public NormalBuilder Buttons(params JoystickList[] buttons) {
+            public TBuilder Buttons(params JoystickList[] buttons) {
                 foreach (var button in buttons) _buttons.Add(button);
-                return this;
+                return this as TBuilder;
+            }
+        }
+
+        public class NormalBuilder : Builder<NormalBuilder> {
+
+            internal NormalBuilder(string name): base(name) {
+            }
+
+            internal NormalBuilder(string inputActionsContainerName, string name) : 
+                base(inputActionsContainerName, name) {
             }
 
             public InputAction Build() {
@@ -290,65 +335,20 @@ namespace Betauer.Input {
                     .SetAxis(_axis)
                     .SetAxisValue(_axisValue)
                     .SetDeadZone(_deadZone)
-                    .AddKey(_keys.ToArray())
-                    .AddButton(_buttons.ToArray());
+                    .AddKeys(_keys.ToArray())
+                    .AddButtons(_buttons.ToArray());
             }
         }
         
-        public class ConfigurableBuilder {
-            private readonly string _name;
-            private readonly string _inputActionsContainerName;
-            private readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
-            private readonly ISet<KeyList> _keys = new HashSet<KeyList>();
+        public class ConfigurableBuilder : Builder<ConfigurableBuilder> {
+
             private string? _settingsContainerName;
             private string? _settingsSection;
-            private int _axis = -1;
-            private int _axisValue = 0;
-            private string? _oppositeActionName;
-            private float _deadZone = 0.5f;
-            private bool _keepProjectSettings = true;
 
-            internal ConfigurableBuilder(string name) {
-                _name = name;
+            public ConfigurableBuilder(string name) : base(name) {
             }
 
-            internal ConfigurableBuilder(string inputActionsContainerName, string name) {
-                _inputActionsContainerName = inputActionsContainerName;
-                _name = name;
-            }
-
-            public ConfigurableBuilder DeadZone(float deadZone) {
-                _deadZone = deadZone;
-                return this;
-            }
-
-            public ConfigurableBuilder NegativeAxis(int axis, string positiveActionName) {
-                _axis = axis;
-                _axisValue = -1;
-                _oppositeActionName = positiveActionName;
-                return this;
-            }
-
-            public ConfigurableBuilder PositiveAxis(int axis, string negativeActionName) {
-                _axis = axis;
-                _axisValue = 1;
-                _oppositeActionName = negativeActionName;
-                return this;
-            }
-
-            public ConfigurableBuilder KeepProjectSettings(bool keepProjectSettings = true) {
-                _keepProjectSettings = keepProjectSettings;
-                return this;
-            } 
-
-            public ConfigurableBuilder Keys(params KeyList[] keys) {
-                foreach (var key in keys) _keys.Add(key);
-                return this;
-            }
-
-            public ConfigurableBuilder Buttons(params JoystickList[] buttons) {
-                foreach (var button in buttons) _buttons.Add(button);
-                return this;
+            public ConfigurableBuilder(string inputActionsContainerName, string name) : base(inputActionsContainerName, name) {
             }
 
             public ConfigurableBuilder SettingsContainer(string settingsFile) {
@@ -367,8 +367,8 @@ namespace Betauer.Input {
                     .SetAxis(_axis)
                     .SetAxisValue(_axisValue)
                     .SetDeadZone(_deadZone)
-                    .AddKey(_keys.ToArray())
-                    .AddButton(_buttons.ToArray());
+                    .AddKeys(_keys.ToArray())
+                    .AddButtons(_buttons.ToArray());
             }
         }
     }

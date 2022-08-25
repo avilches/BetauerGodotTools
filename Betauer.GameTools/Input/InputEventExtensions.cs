@@ -109,6 +109,10 @@ namespace Betauer.Input {
             return input is InputEventKey k ? OS.GetScancodeString(k.Scancode) : "";
         }
 
+        public static string GetKeyUnicode(this InputEvent input) {
+            return input is InputEventKey k ? char.ToString((char)k.Unicode) : "";
+        }
+
         // This include echoes
         public static bool IsKeyPressed(this InputEvent input, KeyList scancode) {
             return input is InputEventKey k && (KeyList)k.Scancode == scancode && k.Pressed;

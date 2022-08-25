@@ -3,7 +3,6 @@ using Godot;
 
 namespace Betauer.Input {
     public class InputActionsContainer {
-        public readonly List<InputAction> ConfigurableActionList = new List<InputAction>();
         public readonly List<InputAction> ActionList = new List<InputAction>();
         public readonly Dictionary<string, InputAction> ActionMap = new Dictionary<string, InputAction>();
         
@@ -18,9 +17,6 @@ namespace Betauer.Input {
         public void Add(InputAction inputAction) {
             ActionList.Add(inputAction);
             ActionMap.Add(inputAction.Name, inputAction);
-            if (inputAction.IsConfigurable()) {
-                ConfigurableActionList.Add(inputAction);
-            }
             inputAction.OnAddToInputContainer(this);
         }
 
