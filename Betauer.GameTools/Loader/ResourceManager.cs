@@ -59,6 +59,10 @@ namespace Betauer.Loader {
 
         protected ResourceLoaderContainer() {
             _targets.AddLast(this);
+            OnProgress += DoOnProgress;
+        }
+
+        public virtual void DoOnProgress(LoadingContext context) {
         }
 
         public ResourceLoaderContainer SetMaxPollTime(int maxTime) {

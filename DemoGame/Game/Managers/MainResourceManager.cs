@@ -22,5 +22,9 @@ namespace Veronenger.Game.Managers {
         [Scene("res://Worlds/World2.tscn")] public Func<Node> CreateWorld2;
 
         [Scene("res://Scenes/Player.tscn")] public Func<Node2D> CreatePlayer;
+
+        public override void DoOnProgress(LoadingContext context) {
+        }
+
     }
 }

@@ -10,18 +10,18 @@ using Object = Godot.Object;
 namespace Betauer.Loader {
     public class LoadingContext {
         public readonly int TotalSize;
-        public readonly int TotalLoadedSize;
-        public float TotalLoadedPercent => (float)TotalLoadedSize / TotalSize;
+        public readonly int LoadedSize;
+        public float LoadPercent => (float)LoadedSize / TotalSize;
 
         public readonly string ResourcePath;
         public readonly int ResourceSize;
         public readonly int ResourceLoadedSize;
         public float ResourceLoadedPercent => (float)ResourceLoadedSize / ResourceSize;
 
-        public LoadingContext(int totalSize, int totalLoadedSize, string resourcePath, int resourceSize,
+        public LoadingContext(int totalSize, int loadedSize, string resourcePath, int resourceSize,
             int resourceLoadedSize) {
             TotalSize = totalSize;
-            TotalLoadedSize = totalLoadedSize;
+            LoadedSize = loadedSize;
             ResourcePath = resourcePath;
             ResourceSize = resourceSize;
             ResourceLoadedSize = resourceLoadedSize;
