@@ -152,17 +152,17 @@ namespace Betauer.StateMachine {
         }
 
         private async Task DoSet(Change change) {
-            if (_stack.Count > 1) {
-                // Spacial case: 
-                // Exit from all the states in stack, in order, until the next change
+            if (_stack.Count == 1) {
+                await Exit(_stack.Pop(), change.State.Key);
+            } else {
+                // Special case: 
+                // Exit from all the states from the stack, in order
                 while (_stack.Count > 0) {
                     var exitingState = _stack.Pop();
                     var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
                     await Exit(exitingState, to);
                 }
-            } else if (_stack.Count == 1) {
-                await Exit(_stack.Pop(), change.State.Key);
-            }
+            } 
             var newState = TransitionTo(change, out var oldState);
             _stack.Push(newState);
             await Enter(CurrentState, oldState.Key);
