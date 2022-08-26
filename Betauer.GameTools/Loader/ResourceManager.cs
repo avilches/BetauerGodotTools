@@ -71,17 +71,18 @@ namespace Betauer.Loader {
             return this;
         }
 
-        public ResourceLoaderContainer Bind(params object[] targets) {
+        public ResourceLoaderContainer From(params object[] targets) {
             foreach (var target in targets)
                 if (!_targets.Contains(target))
                     _targets.AddLast(target);
             return this;
         }
 
-        public ResourceLoaderContainer Unbind(params object[] targets) {
-            foreach (var target in targets) _targets.Remove(target);
+        public ResourceLoaderContainer Inject(params object[] targets) {
+            InjectResources(_registry, targets);
             return this;
         }
+
 
         private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         private const MemberTypes MemberFlags = MemberTypes.Field | MemberTypes.Property;
@@ -92,6 +93,7 @@ namespace Betauer.Loader {
             _registry = await Loader.Load(GetResourcesToLoad(targets), (context) => OnProgress?.Invoke(context), awaiter, _maxTime);
             InjectResources(_registry, targets);
         }
+        
 
         public ResourceLoaderContainer Unload() {
             foreach (var key in _registry.Keys) {
