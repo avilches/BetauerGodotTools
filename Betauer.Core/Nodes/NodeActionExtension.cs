@@ -17,19 +17,18 @@ namespace Betauer.Nodes {
         public class NodeEvent<T> : INodeEvent {
             internal readonly Node Node;
             internal readonly T Delegate;
-            internal bool IsDestroyed = false;
-            internal bool IsEnabled = true;
-
+            internal bool IsEnabled  => _isEnabled && Node.IsInsideTree();
+            internal bool IsDestroyed => _isDestroyed || IsInstanceValid(Node);
+            private bool _isEnabled = true;
+            private bool _isDestroyed = false;
             public NodeEvent(Node node, T @delegate) {
                 Node = node;
                 Delegate = @delegate;
             }
 
-            public void Disable() => IsEnabled = false;
-
-            public void Enable() => IsEnabled = true;
-
-            public void Destroy() => IsDestroyed = true;
+            public void Disable() => _isEnabled = false;
+            public void Enable() => _isEnabled = true;
+            public void Destroy() => _isDestroyed = true;
         }
 
         private readonly List<NodeEvent<Action<float>>> _onProcesses = new List<NodeEvent<Action<float>>>();
@@ -82,16 +81,16 @@ namespace Betauer.Nodes {
         
         public override void _Process(float delta) {
             _onProcesses.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed || !IsInstanceValid(nodeOnProcess.Node)) return true;
-                if (nodeOnProcess.IsEnabled && nodeOnProcess.Node.IsInsideTree()) nodeOnProcess.Delegate.Invoke(delta);
+                if (nodeOnProcess.IsDestroyed) return true;
+                if (nodeOnProcess.IsEnabled) nodeOnProcess.Delegate.Invoke(delta);
                 return false;
             });
         }
 
         public override void _PhysicsProcess(float delta) {
             _onPhysicsProcesses.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed || !IsInstanceValid(nodeOnProcess.Node)) return true;
-                if (nodeOnProcess.IsEnabled && nodeOnProcess.Node.IsInsideTree()) nodeOnProcess.Delegate.Invoke(delta);
+                if (nodeOnProcess.IsDestroyed) return true;
+                if (nodeOnProcess.IsEnabled) nodeOnProcess.Delegate.Invoke(delta);
                 return false;
             });
         }
@@ -99,10 +98,10 @@ namespace Betauer.Nodes {
         public override void _Input(InputEvent e) {
             var isInputHandled = false;
             _onInput.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed || !IsInstanceValid(nodeOnProcess.Node)) return true;
+                if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
-                    if (!isInputHandled && nodeOnProcess.Node.IsInsideTree()) {
+                    if (!isInputHandled) {
                         if (nodeOnProcess.Delegate.Invoke(e)) _sceneTree.SetInputAsHandled();
                     }
                 }
@@ -113,10 +112,10 @@ namespace Betauer.Nodes {
         public override void _UnhandledInput(InputEvent e) {
             var isInputHandled = false;
             _onUnhandledInput.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed || !IsInstanceValid(nodeOnProcess.Node)) return true;
+                if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
-                    if (!isInputHandled && nodeOnProcess.Node.IsInsideTree()) {
+                    if (!isInputHandled) {
                         if (nodeOnProcess.Delegate.Invoke(e)) _sceneTree.SetInputAsHandled();
                     }
                 }
