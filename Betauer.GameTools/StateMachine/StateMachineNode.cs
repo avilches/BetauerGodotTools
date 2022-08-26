@@ -62,6 +62,8 @@ namespace Betauer.StateMachine {
             await StateMachine.Execute(delta);
         }
 
+        public bool Available => StateMachine.Available; 
+
         public void OnInput(TStateKey stateKey, Action<InputEvent> input) {
             _input ??= new Dictionary<TStateKey, Action<InputEvent>>();
             _input.Add(stateKey, input);
@@ -73,14 +75,14 @@ namespace Betauer.StateMachine {
         }
 
         public override void _Input(InputEvent e) {
-            if (_input != null && 
+            if (Available && _input != null && 
                 _input.TryGetValue(StateMachine.CurrentState.Key, out var input)) {
                 input(e);
             }
         }
 
         public override void _UnhandledInput(InputEvent e) {
-            if (_unhandledInput != null && 
+            if (Available && _unhandledInput != null && 
                 _unhandledInput.TryGetValue(StateMachine.CurrentState.Key, out var unhandledInput)) {
                 unhandledInput(e);
             }

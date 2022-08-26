@@ -16,6 +16,7 @@ namespace Betauer.StateMachine {
         public IState<TStateKey, TTransitionKey> CurrentState { get; }
         public void Enqueue(TTransitionKey name);
         public Task Execute(float delta);
+        public bool Available { get; }
     }
 
     public abstract class StateMachine {
@@ -51,6 +52,9 @@ namespace Betauer.StateMachine {
         private Change _nextChange;
         private readonly TStateKey _initialState;
         private bool _disposed = false;
+        private TTransitionKey _nextTransition;
+        private bool _nextTransitionDefined = false;
+        private readonly object _lockObject = new object();
 
         public readonly Logger Logger;
         public readonly string? Name;
@@ -58,6 +62,7 @@ namespace Betauer.StateMachine {
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
         public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
         public bool IsState(TStateKey state) => CurrentState != null && state.Equals(CurrentState.Key);
+        public bool Available { get; private set; } = true;
 
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
@@ -92,27 +97,25 @@ namespace Betauer.StateMachine {
             States[state.Key] = state;
         }
 
-        private TTransitionKey _nextTransition;
-        private bool _nextTransitionDefined = false;
         public void Enqueue(TTransitionKey name) {
             lock (this) {
                 _nextTransition = name;
                 _nextTransitionDefined = true;
             }
         }
-
-        public bool Available { get; private set; } = true;
+        
         public async Task Execute(float delta) {
             if (_disposed) return;
             if (!Available) return;
-            try {
+            lock (_lockObject) {
+                if (!Available) return;
                 Available = false;
-                lock (this) {
-                    if (_nextTransitionDefined) {
-                        _nextTransitionDefined = false;
-                        var triggerTransition = GetTransitionFromTrigger(_nextTransition);
-                        _nextChange = CreateChange(triggerTransition);
-                    }
+            }
+            try {
+                if (_nextTransitionDefined) {
+                    _nextTransitionDefined = false;
+                    var triggerTransition = GetTransitionFromTrigger(_nextTransition);
+                    _nextChange = CreateChange(triggerTransition);
                 }
                 var change = CurrentState == null && _nextChange.State == null
                     ? new Change(States[_initialState], TransitionType.Set)
@@ -124,10 +127,10 @@ namespace Betauer.StateMachine {
 
                 var transition = await DoExecute(delta);
                 _nextChange = CreateChange(transition);
-            } catch (Exception e) {
-                throw e;
             } finally {
-                Available = true;
+                lock (_lockObject) {
+                    Available = true;
+                }
             }
         }
 
