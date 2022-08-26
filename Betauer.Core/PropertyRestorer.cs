@@ -27,6 +27,12 @@ namespace Betauer {
             "rect_scale",
             "rect_rotation",
             "rect_pivot_offset",
+            "focus_mode",
+        }).ToArray();
+
+        // BaseButton -> Control -> CanvasItem -> Node
+        public static readonly string[] BaseButtonProperties = ControlProperties.Concat(new [] {
+            "disabled",
         }).ToArray();
 
 
@@ -45,6 +51,7 @@ namespace Betauer {
             return node switch {
                 Sprite sprite => new PropertyRestorer(node, SpriteProperties),
                 Node2D node2D => new PropertyRestorer(node, Node2DProperties),
+                BaseButton button => new PropertyRestorer(node, BaseButtonProperties),
                 Control control => new PropertyRestorer(node, ControlProperties),
                 _ => DummyRestorer.Instance
             };
