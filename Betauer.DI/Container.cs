@@ -164,21 +164,17 @@ namespace Betauer.DI {
         public T Resolve<T>() => (T)Resolve(typeof(T));
         public object Resolve(Type type) {
             var context = new ResolveContext(this);
-            try {
-                return Resolve(type, context);
-            } finally {
-                context.End();
-            }
+            var instance = Resolve(type, context);
+            context.End();
+            return instance;
         }
 
         public T Resolve<T>(string name) => (T)Resolve(name);
         public object Resolve(string name) {
             var context = new ResolveContext(this);
-            try {
-                return Resolve(name, context);
-            } finally {
-                context.End();
-            }
+            var instance = Resolve(name, context);
+            context.End();
+            return instance;
         }
 
         public T ResolveOr<T>(Func<T> or) {
@@ -248,11 +244,8 @@ namespace Betauer.DI {
 
         public void InjectServices(object o) {
             var context = new ResolveContext(this);
-            try {
-                InjectServices(o, context);
-            } finally {
-                context.End();
-            }
+            InjectServices(o, context);
+            context.End();
         }
 
         internal void InjectServices(object o, ResolveContext context) {

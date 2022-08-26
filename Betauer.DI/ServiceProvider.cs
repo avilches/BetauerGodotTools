@@ -89,11 +89,9 @@ namespace Betauer.DI {
         public override object Get(Container container) {
             if (IsInstanceCreated) return Instance!;
             var context = new ResolveContext(container);
-            try {
-                return Get(context);
-            } finally {
-                context.End();
-            }
+            var instance = Get(context);
+            context.End();
+            return instance;
         }
 
         public override object Get(ResolveContext context) {
@@ -123,11 +121,9 @@ namespace Betauer.DI {
 
         public override object Get(Container container) {
             var context = new ResolveContext(container);
-            try {
-                return Get(context);
-            } finally {
-                context.End();
-            }
+            var instance = Get(context);
+            context.End();
+            return instance;
         }
 
         public override object Get(ResolveContext context) {
