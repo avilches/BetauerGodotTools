@@ -10,14 +10,15 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
     public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<GameManager.State> {
-        [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1; 
-        [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2; 
-        [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3; 
+        [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1;
+        [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2;
+        [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3;
         [OnReady("HBoxContainer/ActionHint4")] private ActionHint _actionHint4;
         private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiStart { get; set; }
+        [Inject] private InputAction UiLeft { get; set; }
 
 
         public override void _Ready() {
@@ -32,16 +33,10 @@ namespace Veronenger.Game.Controller.Menu {
             return this;
         }
 
-        public MainMenuBottomBar AddButton(string? label1, string animation, string? label2) {
+        public MainMenuBottomBar AddButton(string? label1, InputAction inputAction, bool isAxis, string? label2,
+            bool animate = true) {
             ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible);
-            hint.Labels(label1, label2).InputAction(animation, true);
-            hint.Visible = true;
-            return this;
-        }
-
-        public MainMenuBottomBar AddButton(string? label1, InputAction inputAction, string? label2, bool animate = false) {
-            ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible);
-            hint.Labels(label1, label2).InputAction(inputAction, animate);
+            hint.Labels(label1, label2).InputAction(inputAction, isAxis, animate);
             hint.Visible = true;
             return this;
         }
@@ -49,26 +44,26 @@ namespace Veronenger.Game.Controller.Menu {
         // TODO: i18n
         public void ConfigureMenuAcceptBack() {
             HideAll()
-                .AddButton(null, UiAccept, "Accept")
-                .AddButton(null, UiCancel, "Back");
+                .AddButton(null, UiAccept, false, "Accept")
+                .AddButton(null, UiCancel, false, "Back");
         }
 
         public void ConfigureModalAcceptCancel() {
             HideAll()
-                .AddButton(null, UiAccept, "Accept")
-                .AddButton(null, UiCancel, "Cancel");
+                .AddButton(null, UiAccept, false, "Accept")
+                .AddButton(null, UiCancel, false, "Cancel");
         }
 
         public void ConfigureSettingsChangeBack() {
             HideAll()
-                .AddButton(null, UiAccept, "Change")
-                .AddButton(null, UiCancel, "Back");
-        }                             
+                .AddButton(null, UiAccept, false, "Change")
+                .AddButton(null, UiCancel, false, "Back");
+        }
 
         public void ConfigureSettingsResolution() {
             HideAll()
-                .AddButton(null, "left lateral", "Change resolution")
-                .AddButton(null, UiCancel, "Back");
+                .AddButton(null, UiLeft, true, "Change")
+                .AddButton(null, UiCancel, false, "Back");
         }
 
         public void OnEnter(GameManager.State state, GameManager.State from) {

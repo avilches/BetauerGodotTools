@@ -10,14 +10,14 @@ namespace Veronenger.Game.Controller.UI {
         [OnReady("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("HBox/Key")] private Label _keyLabel;
         
-        public InputAction InputAction;
-        public string _actionName;
+        public InputAction? InputAction;
+        public string ActionName;
         public bool IsKey { get; private set; }
         public bool IsButton => !IsKey;
 
         public void SetInputAction(string actionName, InputAction inputAction, bool key) {
             InputAction = inputAction;
-            _actionName = " "+actionName;
+            ActionName = " " + actionName;
             IsKey = key;
         }
 
@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.UI {
 
         public void Refresh() {
             if (InputAction == null) return;
-            _actionNameLabel.Text = _actionName;
+            _actionNameLabel.Text = ActionName;
             if (IsKey) {
                 // _consoleButton.Visible = false;
                 // _keyLabel.Visible = true;
@@ -42,7 +42,7 @@ namespace Veronenger.Game.Controller.UI {
             } else {
                 // _consoleButton.Visible = true;
                 // _keyLabel.Visible = false;
-                _consoleButton.InputAction(InputAction);
+                _consoleButton.InputAction(false, InputAction, ConsoleButton.State.Normal);
             }
         }
     }

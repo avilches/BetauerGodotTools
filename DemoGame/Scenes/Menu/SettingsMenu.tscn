@@ -226,7 +226,7 @@ margin_right = 260.0
 margin_bottom = 124.0
 rect_min_size = Vector2( 0, 15 )
 
-[node name="ActionLabel2" type="Label" parent="Panel/RedefineBox"]
+[node name="ActionName" type="Label" parent="Panel/RedefineBox"]
 margin_top = 128.0
 margin_right = 260.0
 margin_bottom = 158.0

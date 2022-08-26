@@ -226,9 +226,6 @@ namespace Veronenger.Game.Controller.Character {
         
         [Inject] private InputAction UiStart { get; set; }
 
-
-        [Inject] private InputActionsContainer InputActionsContainer { get; set; }
-
         public override void _Input(InputEvent e) {
             // var action = InputActionsContainer.FindAction(e);
             // if (action != null) {
@@ -236,7 +233,7 @@ namespace Veronenger.Game.Controller.Character {
                     // $"{action.Name} | JustPressed:{action.JustPressed()} Pressed:{action.Pressed()} Released:{action.Released()} {action.Strength()}");
             // }
             if (e is InputEventJoypadButton button) {
-                _consoleButton.ShowButton((JoystickList)button.ButtonIndex, button.Pressed);
+                _consoleButton.SetButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {
                     _launcher.Stop();
                     _launcher.Play(Template.FadeOut, _consoleButton, 0, 0.6f);

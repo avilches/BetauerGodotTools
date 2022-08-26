@@ -71,7 +71,7 @@ namespace Veronenger.Game.Controller.Menu {
             var startMenu = mainMenu.GetStartMenu();
             startMenu.AddButton("Start", "Start").OnPressed(() => _gameManager.TriggerStartGame()).Unwatch();
             startMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings()).Unwatch();
-            startMenu.AddButton("Exit", "Exit").OnPressed(() => _gameManager.TriggerModalBoxConfirmExitDesktop()).Unwatch();
+            startMenu.AddButton("Exit", "Exit").OnPressed(() => _gameManager.TriggerExitDesktop()).Unwatch();
             return mainMenu;
         }
 

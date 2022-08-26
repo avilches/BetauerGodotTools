@@ -52,9 +52,11 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Panel/RedefineBox/Message")] 
         private Label _redefineActionMessage;
 
+        [OnReady("Panel/RedefineBox/ActionName")] 
+        private Label _redefineActionName;
+
         [Inject] private GameManager _gameManager { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
-        [Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -245,6 +247,8 @@ namespace Veronenger.Game.Controller.Menu {
             _redefineButtonSelected = button;
             _redefineBox.Show();
             _settingsBox.Hide();
+            _redefineActionName.Text = button.ActionName;
+            // TODO: i18n
             _redefineActionMessage.Text = button.IsKey ? "Press key for..." : "Press button for...";
             _gameManager.MainMenuBottomBarScene.HideAll();
         }

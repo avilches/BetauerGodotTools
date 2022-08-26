@@ -20,7 +20,8 @@ namespace Veronenger.Game.Managers {
             Settings,
             StartGame,
             ModalBoxConfirmExitDesktop,
-            ModalBoxConfirmQuitGame
+            ModalBoxConfirmQuitGame,
+            ExitDesktop
         }
 
         public enum State {
@@ -176,11 +177,11 @@ namespace Veronenger.Game.Managers {
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async (context) => {
                     var result = await ShowModalBox("Exit game?");
-                    return result ? context.Push(State.ExitDesktop) : context.Pop();
+                    return result ? context.Set(State.ExitDesktop) : context.Pop();
                 })
                 .Build();
                 
-
+            On(Transition.ExitDesktop, context => context.Set(State.ExitDesktop));
             CreateState(State.ExitDesktop)
                 .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest))
                 .Build();
@@ -208,6 +209,10 @@ namespace Veronenger.Game.Managers {
 
         public void TriggerModalBoxConfirmQuitGame() {
             Enqueue(Transition.ModalBoxConfirmQuitGame);
+        }
+
+        public void TriggerExitDesktop() {
+            Enqueue(Transition.ExitDesktop);
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
