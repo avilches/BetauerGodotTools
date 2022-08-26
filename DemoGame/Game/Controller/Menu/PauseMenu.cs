@@ -15,8 +15,8 @@ namespace Veronenger.Game.Controller.Menu {
         private static readonly SequenceTemplate PartialFadeOut = TemplateBuilder.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Property.Opacity)
-            .KeyframeTo(0f, 0f)
-            .KeyframeTo(1f, 0.8f)
+            .From(0)
+            .KeyframeTo(1f, 0.4f)
             .EndAnimate()
             .BuildTemplate();
 
@@ -43,7 +43,7 @@ namespace Veronenger.Game.Controller.Menu {
         public override void _Ready() {
             _launcher.WithParent(this);
             _menuContainer = BuildMenu();
-            HidePauseMenu();
+            _container.Hide();;
         }
 
         public async Task ShowPauseMenu() {

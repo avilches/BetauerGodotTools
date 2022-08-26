@@ -14,6 +14,8 @@ script = ExtResource( 1 )
 [node name="BackgroundFader" type="ColorRect" parent="Node2D"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_right = 2000.0
+margin_bottom = 2000.0
 color = Color( 0, 0, 0, 1 )
 
 [node name="BlackBar" type="ColorRect" parent="Node2D"]

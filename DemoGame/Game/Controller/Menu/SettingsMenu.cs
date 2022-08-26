@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
@@ -75,6 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
         private readonly Launcher _launcher = new Launcher();
+        private Restorer _restorer;
 
         public override void _Ready() {
             _launcher.WithParent(this);
@@ -91,7 +92,24 @@ namespace Veronenger.Game.Controller.Menu {
             _resolutionButton.SetFocusDisabled(_screenSettingsManager.Fullscreen);
             UpdateResolutionButton();
 
-            HideSettingsMenu();
+            _panel.Hide();
+            _restorer = _panel.CreateRestorer().Save(); 
+        }
+
+        public async Task ShowSettingsMenu() {
+            _panel.Show();
+            _settingsBox.Show();
+            _scrollContainer.ScrollVertical = 0;
+            _redefineBox.Hide();
+            await _launcher.Play(Template.BounceIn, _panel, 0f, 0.2f).Await();
+            _fullscreenButtonWrapper.GrabFocus();
+        }
+
+        public async Task HideSettingsMenu() {
+            await _launcher.Play(Template.BounceOut, _panel, 0f, 0.2f).Await();
+            _launcher.RemoveAll();
+            _panel.Hide();
+            _restorer.Restore();
         }
 
         private void ConfigureScreenSettingsButtons() {
@@ -284,18 +302,6 @@ namespace Veronenger.Game.Controller.Menu {
             _settingsBox.Show();
             _redefineButtonSelected!.GrabFocus();
             _redefineButtonSelected = null;
-        }
-
-        public void ShowSettingsMenu() {
-            _panel.Show();
-            _settingsBox.Show();
-            _redefineBox.Hide();
-            _fullscreenButtonWrapper.GrabFocus();
-        }
-
-        public void HideSettingsMenu() {
-            _launcher.RemoveAll();
-            _panel.Hide();
         }
     }
 }

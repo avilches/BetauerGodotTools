@@ -54,8 +54,6 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        private readonly Launcher _launcher = new Launcher();
-
         [Inject] private StageManager StageManager { get; set; }
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
@@ -83,7 +81,6 @@ namespace Veronenger.Game.Managers {
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
-                    _launcher.WithParent(SceneTree.Root);
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
