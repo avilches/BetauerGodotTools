@@ -10,7 +10,7 @@ namespace Veronenger.Game.Controller.UI {
         [OnReady("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("HBox/Key")] private Label _keyLabel;
         
-        public InputAction? InputAction;
+        public InputAction InputAction;
         public string ActionName;
         public bool IsKey { get; private set; }
         public bool IsButton => !IsKey;
