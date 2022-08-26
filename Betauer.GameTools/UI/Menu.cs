@@ -72,22 +72,28 @@ namespace Betauer.UI {
         public bool IsStartMenuActive() => IsMenuActive(null);
         public bool IsMenuActive(string name) => ActiveMenu.Name == name;
 
+        private readonly object _lockObject = new object();
         public async Task Start(string? startMenuButtonName = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
-            try {
+            lock (_lockObject) {
+                if (!Available) return;
                 Available = false;
+            }
+            try {
                 var fromMenu = ActiveMenu;
                 var toMenu = GetStartMenu();
                 BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
-                lock (_navigationState) _navigationState.Clear();
+                _navigationState.Clear();
                 var transition = new MenuTransition(fromMenu, null, toMenu, toButton);
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, null, newMenuAnimation);
             } catch (Exception e) {
                 throw e;
             } finally {
-                Available = true;
+                lock (_lockObject) {
+                    Available = true;
+                }
             }
         }
 
@@ -170,15 +176,17 @@ namespace Betauer.UI {
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
-            try {
+            lock (_lockObject) {
+                if (!Available) return;
                 Available = false;
+            }
+            try {
                 var fromButton = fromButtonName != null
                     ? ActiveMenu.GetControl<BaseButton>(fromButtonName)
                     : ActiveMenu.GetChildFocused();
                 Menu toMenu = GetMenu(toMenuName);
                 if (!replace)
-                    lock (_navigationState)
-                        _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
+                    _navigationState.AddLast(new MenuState(ActiveMenu, fromButton));
                 var toButton = toButtonName != null ? toMenu.GetControl<BaseButton>(toButtonName) : null;
                 var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
                 goodbyeAnimation ??= ActiveMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
@@ -187,7 +195,9 @@ namespace Betauer.UI {
             } catch (Exception e) {
                 throw e;
             } finally {
-                Available = true;
+                lock (_lockObject) {
+                    Available = true;
+                }
             }
         }
 
@@ -195,21 +205,22 @@ namespace Betauer.UI {
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
             if (!Available) return;
-            try {
+            lock (_lockObject) {
+                if (!Available) return;
                 Available = false;
+            }
+            try {
                 Menu toMenu;
                 BaseButton? toButton;
-                lock (_navigationState) {
-                    if (backToStartMenu) {
-                        _navigationState.Clear();
-                        toMenu = GetStartMenu();
-                        toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
-                    } else {
-                        MenuState lastState = _navigationState.Last();
-                        _navigationState.RemoveLast();
-                        toMenu = lastState.Menu;
-                        toButton = lastState.Button;
-                    }
+                if (backToStartMenu) {
+                    _navigationState.Clear();
+                    toMenu = GetStartMenu();
+                    toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
+                } else {
+                    MenuState lastState = _navigationState.Last();
+                    _navigationState.RemoveLast();
+                    toMenu = lastState.Menu;
+                    toButton = lastState.Button;
                 }
                 var fromButton = fromButtonName != null ? ActiveMenu.GetControl<BaseButton>(fromButtonName) : ActiveMenu.GetChildFocused();
                 var transition = new MenuTransition(ActiveMenu, fromButton, toMenu, toButton);
@@ -219,7 +230,9 @@ namespace Betauer.UI {
             } catch (Exception e) {
                 throw e;
             } finally {
-                Available = true;
+                lock (_lockObject) {
+                    Available = true;
+                }
             }
         }
 
