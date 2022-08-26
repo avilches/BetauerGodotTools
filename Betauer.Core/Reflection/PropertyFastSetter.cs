@@ -25,6 +25,9 @@ namespace Betauer.Reflection {
         public override string ToString() => _toString ?? base.ToString();
         
         public static Action<object, object> CreateLambdaSetter(PropertyInfo propertyInfo) {
+            if (!propertyInfo.CanWrite || propertyInfo.SetMethod == null) {
+                throw new Exception("Property " + propertyInfo.Name + " can't be readonly");
+            }
             var instanceParam = Expression.Parameter(typeof(object));
             var valueParam = Expression.Parameter(typeof(object));
             var body = Expression.Call

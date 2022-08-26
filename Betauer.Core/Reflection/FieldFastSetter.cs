@@ -23,6 +23,9 @@ namespace Betauer.Reflection {
         public override string ToString() => _toString ?? base.ToString();
 
         public static Action<object, object> CreateLambdaSetter(FieldInfo fieldInfo) {
+            if (fieldInfo.IsInitOnly) {
+                throw new Exception("Field " + fieldInfo.Name + " can't be readonly");
+            }
             var sourceParam = Expression.Parameter(typeof(object));
             var valueParam = Expression.Parameter(typeof(object));
             var convertedValueExpr = Expression.Convert(valueParam, fieldInfo.FieldType);
