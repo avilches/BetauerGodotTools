@@ -56,7 +56,7 @@ namespace DemoAnimation.Game.Managers {
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
                 .Execute(async context => {
-                    if (UiCancel.JustPressed()) {
+                    if (UiCancel.IsJustPressed()) {
                         await _mainMenuScene.BackMenu();
                     }
                     return context.None();
