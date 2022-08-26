@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Godot;
-using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
@@ -50,7 +49,9 @@ namespace Veronenger.Game.Managers {
 
         [Scene("res://Scenes/Menu/ModalBoxConfirm.tscn")]
         private Func<ModalBoxConfirm> CreateModalBoxConfirm;
-        
+
+        [Scene("res://Scenes/DebugOverlay.tscn")] private DebugOverlay _debugOverlay;
+
         private Node _currentGameScene;
         private Node2D _playerScene;
 
@@ -59,7 +60,6 @@ namespace Veronenger.Game.Managers {
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
-        [Inject] private InputAction PixelPerfectInputAction { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiStart { get; set; }
@@ -72,15 +72,17 @@ namespace Veronenger.Game.Managers {
             CreateState(State.Init)
                 .Execute(async (ctx) => {
                     MainResourceLoader.OnProgress += context => {
-                        // GD.Print(context.TotalLoadedPercent.ToString("P") + " = " + context.TotalLoadedSize + " / " +
+                        // GD.Print(context.LoadPercent.ToString("P") + " = " + context.LoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     };
-                    await MainResourceLoader.Bind(this).Load();
+                    await MainResourceLoader.Load(this);
+                    MainResourceLoader.From(_debugOverlay);
                     ScreenSettingsManager.Setup();
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
+                    SceneTree.Root.AddChild(_debugOverlay);
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
@@ -120,11 +122,7 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             OnInput(State.Gaming, (e) => {
-                if (PixelPerfectInputAction.IsEventPressed(e)) {
-                    ScreenSettingsManager.SetPixelPerfect(!ScreenSettingsManager.PixelPerfect);
-                    GetTree().SetInputAsHandled();
-                    
-                } else if (UiStart.IsEventJustPressed(e)) {
+                if (UiStart.IsEventJustPressed(e)) {
                     Enqueue(Transition.Pause);
                     GetTree().SetInputAsHandled();
                 }

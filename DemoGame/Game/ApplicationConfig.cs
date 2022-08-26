@@ -139,7 +139,7 @@ namespace Veronenger.Game {
             .Build();
 
         [Service]
-        private InputAction PixelPerfectInputAction => InputAction.Create("PixelPerfect")
+        private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
             .Keys(KeyList.F9)
             .Build();
 
