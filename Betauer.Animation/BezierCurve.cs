@@ -1,8 +1,10 @@
+using System;
 using Godot;
 
 namespace Betauer.Animation {
     public abstract class Easing {
         public readonly string Name;
+        public abstract float GetY(float t);
         public static Easing LinearIn = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.In);
         public static Easing LinearOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.Out);
         public static Easing LinearInOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.InOut);
@@ -60,6 +62,17 @@ namespace Betauer.Animation {
             base($"{transitionType}{easeType}") {
             TransitionType = transitionType;
             EaseType = easeType;
+        }
+
+        public override float GetY(float t) {
+            if (EaseType == Tween.EaseType.In) {
+                return NewTransitionType.EaseIn(t, TransitionType);
+            } else if (EaseType == Tween.EaseType.Out) {
+                return NewTransitionType.EaseOut(t, TransitionType);
+            } else if (EaseType == Tween.EaseType.InOut) {
+                return NewTransitionType.EaseInOut(t, TransitionType);
+            }
+            throw new NotImplementedException();
         }
     }
 
@@ -122,7 +135,7 @@ namespace Betauer.Animation {
             return new Vector2(resX, resY);
         }
 
-        public float GetY(float t) => ay * t * t * t + by * t * t + cy * t + p0y;
+        public override float GetY(float t) => ay * t * t * t + by * t * t + cy * t + p0y;
 
         public static BezierCurve Create(Vector2 p1, Vector2 p2) {
             return Create(0, 0, p1.x, p1.y, p2.x, p2.y, 1, 1);

@@ -155,7 +155,7 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(AnimationContext<TProperty> context, TweenActionCallback tween,
+        protected TweenActionCallback.TweenExecution RunStep(AnimationContext<TProperty> context, TweenActionCallback tween,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing? easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
@@ -167,45 +167,16 @@ namespace Betauer.Animation {
                         " to " + end.ToString("F") +
                         " (+" + duration.ToString("F") + ") " + easing.Name);
 
-            if (easing is GodotEasing godotEasing) {
-                RunEasingStep(context, tween, property, from, to, start, duration, godotEasing);
-            } else if (easing is BezierCurve bezierCurve) {
-                RunCurveBezierStep(context, tween, property, from, to, start, duration, bezierCurve);
-            }
-            if (DebugSteps != null) {
-                DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
-            }
-        }
-
-        private static void RunCurveBezierStep(AnimationContext<TProperty> context, TweenActionCallback tween,
-            IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
-            tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
-                (float linearY) => {
-                    var curveY = bezierCurve.GetY(linearY);
-                    var value = (TProperty)VariantHelper.LerpVariant(@from, to, curveY);
+            var x = new TweenActionCallback.InterpolateMethodAction<TProperty>(@from, to, duration, easing, start,
+                (value) => {
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                    // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
                     context.Value = value;
                     property.SetValue(context);
                 });
-        }
-
-        private static void RunEasingStep(AnimationContext<TProperty> context, TweenActionCallback tween,
-            IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
-            var target = context.Target;
-            if (property is IIndexedProperty<TProperty> basicProperty) {
-                tween.InterpolateProperty(target, basicProperty.GetIndexedPropertyName(target), @from, to, duration,
-                    godotEasing.TransitionType, godotEasing.EaseType, start);
-            } else {
-                tween.InterpolateAction(@from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start,
-                    (TProperty value) => {
-                        // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                        context.Value = value;
-                        property.SetValue(context);
-                    });
+            if (DebugSteps != null) {
+                DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
             }
+            return x;
         }
     }
 
@@ -275,6 +246,7 @@ namespace Betauer.Animation {
             var percentStart = 0f;
             var i = 0;
             AnimationContext<TProperty> context = new AnimationContext<TProperty>(target, initialValue, duration);
+            var e = new List<TweenActionCallback.TweenExecution>();
             foreach (var step in Steps) {
                 var to = step.GetTo(target, RelativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * allStepsDuration;
@@ -287,7 +259,7 @@ namespace Betauer.Animation {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
                         from = to;
                     }
-                    RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing);
+                    e.Add(RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing));
                 }
                 if (step.CallbackNode != null) {
                     tween.ScheduleCallback(start, () => step.CallbackNode(target));
@@ -297,6 +269,7 @@ namespace Betauer.Animation {
                 startTime = endTime;
                 i++;
             }
+            tween.Add(new TweenActionCallback.TweenExecutionChain(e));
             return allStepsDuration;
         }
     }

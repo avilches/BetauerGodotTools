@@ -17,72 +17,125 @@ namespace Betauer.Animation {
     /// </summary>
     public class TweenActionCallback : Tween {
         private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
-        private readonly HashSet<Object> _interpolateMethodActionSet = new HashSet<Object>();
-        public const float ExtraDelayToFinish = 0.01f;
+        public List<TweenExecution> e = new List<TweenExecution>();
 
         public void ScheduleCallback(float delay, Action callback) {
-            var actionId = callback.GetHashCode();
-            _actions[actionId] = callback;
-            base.InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
+            e.Add(new TweenExecutionCallback(delay, callback));
         }
 
-        private void ActionTweenCallback(int actionId) {
-            Action action = _actions[actionId];
-            _actions.Remove(actionId);
-            action.Invoke();
+        public void Add(TweenExecution runStep) {
+            e.Add(runStep);
         }
 
-        public void InterpolateAction<T>(T @from, T to, float duration, TransitionType transitionType,
-            EaseType easeType, float delay, Action<T> action) {
-            var actionWrapper = new InterpolateMethodAction<T>(action, _interpolateMethodActionSet);
-            _interpolateMethodActionSet.Add(actionWrapper);
-            base.InterpolateMethod(actionWrapper, nameof(InterpolateMethodAction<T>.CallFromGodot), @from, to, duration,
-                transitionType, easeType, delay);
-            ScheduleCallback(delay + duration + ExtraDelayToFinish, actionWrapper.Finish);
+        public override void _PhysicsProcess(float delta) {
+            foreach (var tweenExecution in e) tweenExecution.Update(delta);
+            e.RemoveAll(execution => execution.IsFinished());
         }
 
-        public HashSet<Object> GetPendingObjects() {
-            return _interpolateMethodActionSet;
-        }
-
-        public List<Action> GetPendingActions() {
-            return _actions.Values.ToList();
-        }
-
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            if (disposing) {
-                foreach (var @object in _interpolateMethodActionSet) {
-                    try {
-                        @object.Free();
-                    } catch (Exception e) {
-                        Console.WriteLine(e);
-                    }
-                }
+        public class TweenExecution {
+            public enum TweenState {
+                Play,
+                Stop,
+                End
             }
+
+            protected float Time = 0;
+            protected float Delay;
+
+            public TweenState State = TweenState.Play;
+
+            public virtual void Update(float delta) {
+            }
+
+            public bool IsFinished() => State == TweenState.End;
         }
 
-        /// <summary>
-        /// Temporal Godot object to allow be called with Tween.InterpolateMethod() which accepts only
-        /// godot objects and the method name as string.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private class InterpolateMethodAction<T> : Object {
-            private readonly Action<T> _action;
-            private readonly HashSet<Object> _interpolateMethodActionSet;
+        public class TweenExecutionCallback : TweenExecution {
+            private Action _action;
 
-            public InterpolateMethodAction(Action<T> action, HashSet<Object> interpolateMethodActionSet) {
+            public TweenExecutionCallback(float delay, Action action) {
+                Delay = delay;
                 _action = action;
-                _interpolateMethodActionSet = interpolateMethodActionSet;
             }
 
-            public void CallFromGodot(T value) {
-                _action(value);
+            public override void Update(float delta) {
+                if (State != TweenState.Play) return;
+                Time += delta;
+                if (Time < Delay) return;
+                _action.Invoke();
+                State = TweenState.End;
+            }
+        }
+
+        public class InterpolateMethodAction<T> : TweenExecution {
+            private T _from;
+            private T _to;
+            private float _duration;
+            private float _endTime;
+            private Easing _easing;
+            private readonly Action<T> _action;
+
+            public InterpolateMethodAction(T from, T to, float duration, Easing easing, float delay, Action<T> action) {
+                _from = from;
+                _to = to;
+                _duration = duration;
+                _easing = easing;
+                Delay = delay;
+                _action = action;
+                _endTime = duration + delay;
             }
 
-            public void Finish() {
-                _interpolateMethodActionSet.Remove(this);
-                Free();
+            public override void Update(float delta) {
+                if (State != TweenState.Play) {
+                    // Console.WriteLine($"{State} From/To: {_from}/{_to} | Delta:+{delta} From/To: {Delay}/{_endTime} Time:{Time} | "+State);             
+                    return;
+                }
+                Time += delta;
+                if (Time < Delay) {
+                    // Console.WriteLine($"{State}  From/To: {_from}/{_to} | Delta:+{delta} From/To: {Delay}/{_endTime} Time:{Time} | Waiting until time > Delay {Delay}");             
+                    return;
+                }
+                if (Time > _endTime) {
+                    State = TweenState.End;
+                    Time = _endTime;
+                    // 0  20
+                    // Time = 5,   0.25
+                }
+                var animationTime = Time - Delay;
+                var weight = animationTime / _duration;
+                var t = Mathf.Lerp(0, _duration, weight);
+                var y = _easing.GetY(t);
+                var value = (T)VariantHelper.LerpVariant(_from, _to, y);
+                // Console.WriteLine($"Lerp(0, {_duration}, {weight}) = {t}. y = {y}. Value {value}");
+                
+                Console.WriteLine($"{State}  From/To: {_from}/{_to} | Delta:+{delta:0.00} From/To: {Delay:0.00}/{_endTime:0.00} (duration: {_duration:0.00} Time:{Time:0.00} | t:{t} y:{y} Value: {value}");             
+                
+                _action.Invoke(value);
+            }
+        }
+
+        public class TweenExecutionChain : TweenExecution {
+            private readonly List<TweenExecution> _tweenExecutions;
+            public TweenExecutionChain(List<TweenExecution> tweenExecutions) {
+                _tweenExecutions = tweenExecutions;
+            }
+
+            private int _pos = 0;
+            private float _accumulated = 0;
+            private float _nextAccumulated = 0;
+            public override void Update(float delta) {
+                if (_pos >= _tweenExecutions.Count) {
+                    State = TweenState.End;
+                    return;
+                }
+                _nextAccumulated += delta;
+                var te = _tweenExecutions[_pos];
+                te.Update(_accumulated + delta);
+                if (te.IsFinished()) {
+                    _pos++;
+                    _accumulated = _nextAccumulated;
+                    _nextAccumulated = 0;
+                }
             }
         }
     }
