@@ -11,7 +11,6 @@ namespace Generator {
         public static void WriteAllActionClasses(List<GodotClass> classes) {
             var n = 0;
             classes.Where(godotClass => godotClass.AllSignals.Count > 0 &&
-                                        !godotClass.IsEditor &&
                                         !godotClass.IsStatic &&
                                         !godotClass.IsAbstract)
                 .ToList()
@@ -30,7 +29,7 @@ namespace Generator {
         private static string CreateActionClass(GodotClass godotClass) {
             var methods = godotClass.AllSignals.Where(signal=>!signal.GodotClass.IsAbstract).Select(CreateSignalMethod);
             var className = godotClass.GeneratedClassName;
-            var extends = godotClass.FullClassName;
+            var extends = godotClass.ClassName;
             return $@"using System;
 using Godot;
 using System.Collections.Generic;

@@ -200,6 +200,9 @@ namespace Betauer.GodotAction {
         public static HBoxContainerAction GetProxy(this HBoxContainer target) => 
                 GetOrCreateProxy<HBoxContainerAction>(target);
 
+        public static HFlowContainerAction GetProxy(this HFlowContainer target) => 
+                GetOrCreateProxy<HFlowContainerAction>(target);
+
         public static HingeJointAction GetProxy(this HingeJoint target) => 
                 GetOrCreateProxy<HingeJointAction>(target);
 
@@ -235,6 +238,9 @@ namespace Betauer.GodotAction {
 
         public static LabelAction GetProxy(this Label target) => 
                 GetOrCreateProxy<LabelAction>(target);
+
+        public static Label3DAction GetProxy(this Label3D target) => 
+                GetOrCreateProxy<Label3DAction>(target);
 
         public static Light2DAction GetProxy(this Light2D target) => 
                 GetOrCreateProxy<Light2DAction>(target);
@@ -281,8 +287,20 @@ namespace Betauer.GodotAction {
         public static Navigation2DAction GetProxy(this Navigation2D target) => 
                 GetOrCreateProxy<Navigation2DAction>(target);
 
+        public static NavigationAgentAction GetProxy(this NavigationAgent target) => 
+                GetOrCreateProxy<NavigationAgentAction>(target);
+
+        public static NavigationAgent2DAction GetProxy(this NavigationAgent2D target) => 
+                GetOrCreateProxy<NavigationAgent2DAction>(target);
+
         public static NavigationMeshInstanceAction GetProxy(this NavigationMeshInstance target) => 
                 GetOrCreateProxy<NavigationMeshInstanceAction>(target);
+
+        public static NavigationObstacleAction GetProxy(this NavigationObstacle target) => 
+                GetOrCreateProxy<NavigationObstacleAction>(target);
+
+        public static NavigationObstacle2DAction GetProxy(this NavigationObstacle2D target) => 
+                GetOrCreateProxy<NavigationObstacle2DAction>(target);
 
         public static NavigationPolygonInstanceAction GetProxy(this NavigationPolygonInstance target) => 
                 GetOrCreateProxy<NavigationPolygonInstanceAction>(target);
@@ -496,6 +514,9 @@ namespace Betauer.GodotAction {
 
         public static VehicleWheelAction GetProxy(this VehicleWheel target) => 
                 GetOrCreateProxy<VehicleWheelAction>(target);
+
+        public static VFlowContainerAction GetProxy(this VFlowContainer target) => 
+                GetOrCreateProxy<VFlowContainerAction>(target);
 
         public static VideoPlayerAction GetProxy(this VideoPlayer target) => 
                 GetOrCreateProxy<VideoPlayerAction>(target);

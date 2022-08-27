@@ -11,7 +11,6 @@ namespace Generator {
         public static void WriteGodotActionExtensionsClass(List<GodotClass> classes) {
             var allMethods = classes
                 .Where(godotClass => godotClass.IsNode &&
-                                     !godotClass.IsEditor &&
                                      !godotClass.IsStatic &&
                                      !godotClass.IsAbstract)
                 .Select(CreateGodotActionExtensionsMethod)
@@ -23,18 +22,18 @@ namespace Generator {
 
         private static string CreateGodotActionExtensionsMethod(GodotClass godotClass) {
             return $@"
-        public static {godotClass.GeneratedClassName} GetProxy(this {godotClass.FullClassName} target) => 
+        public static {godotClass.GeneratedClassName} GetProxy(this {godotClass.ClassName} target) => 
                 GetOrCreateProxy<{godotClass.GeneratedClassName}>(target);";
         }
 /*
         private static string CreateGodotActionExtensionsMethod(Signal signal) {
             return $@"
-        public static {signal.GodotClass.FullClassName} On{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
+        public static {signal.GodotClass.ClassName} On{signal.MethodName}(this {signal.GodotClass.ClassName} target, Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
             GetProxy<{signal.GodotClass.GeneratedClassName}>(target).On{signal.MethodName}(action, oneShot, deferred);
             return target;
         }}
 
-        public static {signal.GodotClass.FullClassName} RemoveOn{signal.MethodName}(this {signal.GodotClass.FullClassName} target, Action{signal.Generics()} action) {{
+        public static {signal.GodotClass.ClassName} RemoveOn{signal.MethodName}(this {signal.GodotClass.ClassName} target, Action{signal.Generics()} action) {{
             GetProxy<{signal.GodotClass.GeneratedClassName}>(target).RemoveOn{signal.MethodName}(action);
             return target;
         }}";

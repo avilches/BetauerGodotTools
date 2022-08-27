@@ -8,6 +8,38 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class RichTextLabelAction : ProxyNode {
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public RichTextLabelAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public RichTextLabelAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private RichTextLabelAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public RichTextLabelAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public RichTextLabelAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private RichTextLabelAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action>? _onDrawAction; 
         public RichTextLabelAction OnDraw(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDrawAction, "draw", nameof(_GodotSignalDraw), action, oneShot, deferred);

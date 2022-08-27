@@ -9,8 +9,7 @@ namespace Generator {
 
         public static void WriteSignalConstantsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
-                .Where(godotClass => godotClass.Signals.Count > 0 &&
-                                     !godotClass.IsEditor)
+                .Where(godotClass => godotClass.Signals.Count > 0)
                 .SelectMany(godotClass => godotClass.Signals)
                 .Select(CreateSignalConstantField)
                 .ToList();
@@ -25,7 +24,7 @@ namespace Generator {
 
         private static string CreateSignalConstantsClass(IEnumerable<string> methods) {
             return $@"using System;
-namespace Betauer {{
+namespace Betauer.Signal {{
     public static partial class SignalConstants {{
 {string.Join("\n", methods)}
     }}

@@ -8,6 +8,38 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class NavigationAction : ProxyNode {
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public NavigationAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private NavigationAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public NavigationAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private NavigationAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action>? _onGameplayEnteredAction; 
         public NavigationAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
@@ -37,6 +69,22 @@ namespace Betauer.GodotAction.Proxy {
 
         private NavigationAction _GodotSignalGameplayExited() {
             ExecuteSignal(_onGameplayExitedAction);
+            return this;
+        }
+
+        private List<Action<RID>>? _onMapChangedAction; 
+        public NavigationAction OnMapChanged(Action<RID> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onMapChangedAction, "map_changed", nameof(_GodotSignalMapChanged), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationAction RemoveOnMapChanged(Action<RID> action) {
+            RemoveSignal(_onMapChangedAction, "map_changed", nameof(_GodotSignalMapChanged), action);
+            return this;
+        }
+
+        private NavigationAction _GodotSignalMapChanged(RID map) {
+            ExecuteSignal(_onMapChangedAction, map);
             return this;
         }
 

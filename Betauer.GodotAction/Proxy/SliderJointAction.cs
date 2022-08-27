@@ -8,6 +8,38 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class SliderJointAction : ProxyNode {
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public SliderJointAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public SliderJointAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private SliderJointAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public SliderJointAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public SliderJointAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private SliderJointAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action>? _onGameplayEnteredAction; 
         public SliderJointAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);

@@ -8,6 +8,38 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class HSplitContainerAction : ProxyNode {
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public HSplitContainerAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public HSplitContainerAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private HSplitContainerAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public HSplitContainerAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public HSplitContainerAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private HSplitContainerAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action<int>>? _onDraggedAction; 
         public HSplitContainerAction OnDragged(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onDraggedAction, "dragged", nameof(_GodotSignalDragged), action, oneShot, deferred);

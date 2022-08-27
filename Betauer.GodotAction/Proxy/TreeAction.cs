@@ -40,6 +40,38 @@ namespace Betauer.GodotAction.Proxy {
             return this;
         }
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public TreeAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public TreeAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private TreeAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public TreeAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public TreeAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private TreeAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action<int>>? _onColumnTitlePressedAction; 
         public TreeAction OnColumnTitlePressed(Action<int> action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onColumnTitlePressedAction, "column_title_pressed", nameof(_GodotSignalColumnTitlePressed), action, oneShot, deferred);

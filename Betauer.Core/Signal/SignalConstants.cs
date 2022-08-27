@@ -1,3 +1,4 @@
+using System;
 namespace Betauer.Signal {
     public static partial class SignalConstants {
         public const string AcceptDialog_ConfirmedSignal = "confirmed";
@@ -54,6 +55,7 @@ namespace Betauer.Signal {
         public const string CanvasItem_HideSignal = "hide";
         public const string CanvasItem_ItemRectChangedSignal = "item_rect_changed";
         public const string CanvasItem_VisibilityChangedSignal = "visibility_changed";
+        public const string CanvasLayer_VisibilityChangedSignal = "visibility_changed";
         public const string CollisionObject_InputEventSignal = "input_event";
         public const string CollisionObject_MouseEnteredSignal = "mouse_entered";
         public const string CollisionObject_MouseExitedSignal = "mouse_exited";
@@ -110,6 +112,7 @@ namespace Betauer.Signal {
         public const string ItemList_MultiSelectedSignal = "multi_selected";
         public const string ItemList_NothingSelectedSignal = "nothing_selected";
         public const string ItemList_RmbClickedSignal = "rmb_clicked";
+        public const string JavaScript_JavaScriptPwaUpdateAvailableSignal = "pwa_update_available";
         public const string LineEdit_TextChangedSignal = "text_changed";
         public const string LineEdit_TextChangeRejectedSignal = "text_change_rejected";
         public const string LineEdit_TextEnteredSignal = "text_entered";
@@ -123,12 +126,28 @@ namespace Betauer.Signal {
         public const string MultiplayerAPI_NetworkPeerDisconnectedSignal = "network_peer_disconnected";
         public const string MultiplayerAPI_NetworkPeerPacketSignal = "network_peer_packet";
         public const string MultiplayerAPI_ServerDisconnectedSignal = "server_disconnected";
+        public const string Navigation_MapChangedSignal = "map_changed";
+        public const string Navigation2DServer_Navigation2DServerMapChangedSignal = "map_changed";
+        public const string NavigationAgent_NavigationFinishedSignal = "navigation_finished";
+        public const string NavigationAgent_PathChangedSignal = "path_changed";
+        public const string NavigationAgent_TargetReachedSignal = "target_reached";
+        public const string NavigationAgent_VelocityComputedSignal = "velocity_computed";
+        public const string NavigationAgent2D_NavigationFinishedSignal = "navigation_finished";
+        public const string NavigationAgent2D_PathChangedSignal = "path_changed";
+        public const string NavigationAgent2D_TargetReachedSignal = "target_reached";
+        public const string NavigationAgent2D_VelocityComputedSignal = "velocity_computed";
+        public const string NavigationMeshInstance_BakeFinishedSignal = "bake_finished";
+        public const string NavigationMeshInstance_NavigationMeshChangedSignal = "navigation_mesh_changed";
+        public const string NavigationServer_NavigationServerMapChangedSignal = "map_changed";
+        public const string NetworkedMultiplayerCustom_PacketGeneratedSignal = "packet_generated";
         public const string NetworkedMultiplayerPeer_ConnectionFailedSignal = "connection_failed";
         public const string NetworkedMultiplayerPeer_ConnectionSucceededSignal = "connection_succeeded";
         public const string NetworkedMultiplayerPeer_PeerConnectedSignal = "peer_connected";
         public const string NetworkedMultiplayerPeer_PeerDisconnectedSignal = "peer_disconnected";
         public const string NetworkedMultiplayerPeer_ServerDisconnectedSignal = "server_disconnected";
         public const string NinePatchRect_TextureChangedSignal = "texture_changed";
+        public const string Node_ChildEnteredTreeSignal = "child_entered_tree";
+        public const string Node_ChildExitingTreeSignal = "child_exiting_tree";
         public const string Node_ReadySignal = "ready";
         public const string Node_RenamedSignal = "renamed";
         public const string Node_TreeEnteredSignal = "tree_entered";
@@ -143,6 +162,7 @@ namespace Betauer.Signal {
         public const string PopupMenu_IdFocusedSignal = "id_focused";
         public const string PopupMenu_IdPressedSignal = "id_pressed";
         public const string PopupMenu_IndexPressedSignal = "index_pressed";
+        public const string ProjectSettings_ProjectSettingsProjectSettingsChangedSignal = "project_settings_changed";
         public const string ProximityGroup_BroadcastSignal = "broadcast";
         public const string Range_ChangedSignal = "changed";
         public const string Range_ValueChangedSignal = "value_changed";
@@ -176,11 +196,16 @@ namespace Betauer.Signal {
         public const string SceneTree_ServerDisconnectedSignal = "server_disconnected";
         public const string SceneTree_TreeChangedSignal = "tree_changed";
         public const string SceneTreeTimer_TimeoutSignal = "timeout";
+        public const string SceneTreeTween_FinishedSignal = "finished";
+        public const string SceneTreeTween_LoopFinishedSignal = "loop_finished";
+        public const string SceneTreeTween_StepFinishedSignal = "step_finished";
         public const string ScrollBar_ScrollingSignal = "scrolling";
         public const string ScrollContainer_ScrollEndedSignal = "scroll_ended";
         public const string ScrollContainer_ScrollStartedSignal = "scroll_started";
         public const string Skeleton_SkeletonUpdatedSignal = "skeleton_updated";
         public const string Skeleton2D_BoneSetupChangedSignal = "bone_setup_changed";
+        public const string Slider_DragEndedSignal = "drag_ended";
+        public const string Slider_DragStartedSignal = "drag_started";
         public const string Spatial_GameplayEnteredSignal = "gameplay_entered";
         public const string Spatial_GameplayExitedSignal = "gameplay_exited";
         public const string Spatial_VisibilityChangedSignal = "visibility_changed";
@@ -228,6 +253,7 @@ namespace Betauer.Signal {
         public const string Tween_TweenCompletedSignal = "tween_completed";
         public const string Tween_TweenStartedSignal = "tween_started";
         public const string Tween_TweenStepSignal = "tween_step";
+        public const string Tweener_FinishedSignal = "finished";
         public const string UndoRedo_VersionChangedSignal = "version_changed";
         public const string VideoPlayer_FinishedSignal = "finished";
         public const string Viewport_GuiFocusChangedSignal = "gui_focus_changed";

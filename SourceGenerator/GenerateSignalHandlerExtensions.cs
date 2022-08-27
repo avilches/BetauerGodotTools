@@ -9,8 +9,7 @@ namespace Generator {
 
         public static void WriteSignalHandlerExtensionsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
-                .Where(godotClass => godotClass.Signals.Count > 0 &&
-                                     !godotClass.IsEditor)
+                .Where(godotClass => godotClass.Signals.Count > 0)
                 .SelectMany(godotClass => godotClass.Signals)
                 .Select(CreateSignalHandlerExtensionsMethod)
                 .ToList();
@@ -22,7 +21,7 @@ namespace Generator {
         private static string CreateSignalHandlerExtensionsMethod(Signal signal) {
             var targetParam = signal.GodotClass.IsStatic
                 ? ""
-                : $"this {signal.GodotClass.FullClassName} target, ";
+                : $"this {signal.GodotClass.ClassName} target, ";
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
         public static SignalHandler On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>

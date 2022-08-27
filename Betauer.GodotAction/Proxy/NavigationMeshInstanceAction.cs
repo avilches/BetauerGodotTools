@@ -8,6 +8,54 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class NavigationMeshInstanceAction : ProxyNode {
 
+        private List<Action>? _onBakeFinishedAction; 
+        public NavigationMeshInstanceAction OnBakeFinished(Action action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onBakeFinishedAction, "bake_finished", nameof(_GodotSignalBakeFinished), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationMeshInstanceAction RemoveOnBakeFinished(Action action) {
+            RemoveSignal(_onBakeFinishedAction, "bake_finished", nameof(_GodotSignalBakeFinished), action);
+            return this;
+        }
+
+        private NavigationMeshInstanceAction _GodotSignalBakeFinished() {
+            ExecuteSignal(_onBakeFinishedAction);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public NavigationMeshInstanceAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationMeshInstanceAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private NavigationMeshInstanceAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public NavigationMeshInstanceAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationMeshInstanceAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private NavigationMeshInstanceAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action>? _onGameplayEnteredAction; 
         public NavigationMeshInstanceAction OnGameplayEntered(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onGameplayEnteredAction, "gameplay_entered", nameof(_GodotSignalGameplayEntered), action, oneShot, deferred);
@@ -37,6 +85,22 @@ namespace Betauer.GodotAction.Proxy {
 
         private NavigationMeshInstanceAction _GodotSignalGameplayExited() {
             ExecuteSignal(_onGameplayExitedAction);
+            return this;
+        }
+
+        private List<Action>? _onNavigationMeshChangedAction; 
+        public NavigationMeshInstanceAction OnNavigationMeshChanged(Action action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onNavigationMeshChangedAction, "navigation_mesh_changed", nameof(_GodotSignalNavigationMeshChanged), action, oneShot, deferred);
+            return this;
+        }
+
+        public NavigationMeshInstanceAction RemoveOnNavigationMeshChanged(Action action) {
+            RemoveSignal(_onNavigationMeshChangedAction, "navigation_mesh_changed", nameof(_GodotSignalNavigationMeshChanged), action);
+            return this;
+        }
+
+        private NavigationMeshInstanceAction _GodotSignalNavigationMeshChanged() {
+            ExecuteSignal(_onNavigationMeshChangedAction);
             return this;
         }
 

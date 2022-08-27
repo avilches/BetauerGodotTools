@@ -8,6 +8,38 @@ using Object = Godot.Object;
 namespace Betauer.GodotAction.Proxy {
     public class ParallaxBackgroundAction : ProxyNode {
 
+        private List<Action<Node>>? _onChildEnteredTreeAction; 
+        public ParallaxBackgroundAction OnChildEnteredTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public ParallaxBackgroundAction RemoveOnChildEnteredTree(Action<Node> action) {
+            RemoveSignal(_onChildEnteredTreeAction, "child_entered_tree", nameof(_GodotSignalChildEnteredTree), action);
+            return this;
+        }
+
+        private ParallaxBackgroundAction _GodotSignalChildEnteredTree(Node node) {
+            ExecuteSignal(_onChildEnteredTreeAction, node);
+            return this;
+        }
+
+        private List<Action<Node>>? _onChildExitingTreeAction; 
+        public ParallaxBackgroundAction OnChildExitingTree(Action<Node> action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action, oneShot, deferred);
+            return this;
+        }
+
+        public ParallaxBackgroundAction RemoveOnChildExitingTree(Action<Node> action) {
+            RemoveSignal(_onChildExitingTreeAction, "child_exiting_tree", nameof(_GodotSignalChildExitingTree), action);
+            return this;
+        }
+
+        private ParallaxBackgroundAction _GodotSignalChildExitingTree(Node node) {
+            ExecuteSignal(_onChildExitingTreeAction, node);
+            return this;
+        }
+
         private List<Action>? _onReadyAction; 
         public ParallaxBackgroundAction OnReady(Action action, bool oneShot = false, bool deferred = false) {
             AddSignal(ref _onReadyAction, "ready", nameof(_GodotSignalReady), action, oneShot, deferred);
@@ -101,6 +133,22 @@ namespace Betauer.GodotAction.Proxy {
 
         private ParallaxBackgroundAction _GodotSignalTreeExiting() {
             ExecuteSignal(_onTreeExitingAction);
+            return this;
+        }
+
+        private List<Action>? _onVisibilityChangedAction; 
+        public ParallaxBackgroundAction OnVisibilityChanged(Action action, bool oneShot = false, bool deferred = false) {
+            AddSignal(ref _onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action, oneShot, deferred);
+            return this;
+        }
+
+        public ParallaxBackgroundAction RemoveOnVisibilityChanged(Action action) {
+            RemoveSignal(_onVisibilityChangedAction, "visibility_changed", nameof(_GodotSignalVisibilityChanged), action);
+            return this;
+        }
+
+        private ParallaxBackgroundAction _GodotSignalVisibilityChanged() {
+            ExecuteSignal(_onVisibilityChangedAction);
             return this;
         }
     }

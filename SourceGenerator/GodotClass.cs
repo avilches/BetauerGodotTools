@@ -52,31 +52,6 @@ namespace Generator {
                 { "object", "@object" },
             };
 
-        private static readonly List<string> ClassStatic = new List<string> {
-            "AudioServer",
-            "ARVRServer",
-            "CameraServer",
-            "Input",
-            "VisualServer",
-            "VisualScriptEditor"
-        };
-
-        private static readonly List<string> EditorClasses = new List<string> {
-            "EditorFileDialog",
-            "EditorFileSystem",
-            "EditorInspector",
-            "EditorSelection",
-            "EditorSettings",
-            "EditorPlugin",
-            "EditorProperty",
-            "EditorResourcePreview",
-            "EditorResourcePicker",
-            "FileSystemDock",
-            "ScriptEditor",
-            "ScriptCreateDialog",
-            "VisualScriptEditor"
-        };
-
         private static readonly System.Collections.Generic.Dictionary<int, string> TypeMap =
             new System.Collections.Generic.Dictionary<int, string> {
                 { 0, "object" },
@@ -111,10 +86,8 @@ namespace Generator {
 
         public readonly string class_name;
         public readonly string ClassName;
-        public readonly string FullClassName;
         public readonly string GeneratedClassName;
         public readonly bool IsStatic;
-        public readonly bool IsEditor;
         public readonly bool IsAbstract;
         public readonly bool IsValid;
         public readonly bool IsNode;
@@ -127,14 +100,12 @@ namespace Generator {
             var camelCase = Tools.CamelCase(className);
             ClassName = ClassMap.ContainsKey(camelCase) ? ClassMap[camelCase] : camelCase;
             GeneratedClassName = ClassName + "Action";
-            IsStatic = ClassStatic.Contains(ClassName);
-            IsEditor = EditorClasses.Contains(ClassName);
-            FullClassName = ClassName;
             IsValid = ClassDB.IsClassEnabled(className);
-            if (IsValid && !IsEditor && !IsStatic) {
+            if (IsValid) {
                 var godotSharpAssemblyName = typeof(Node).Assembly.GetName().Name;
                 Type = Type.GetType("Godot." + ClassName + ", " + godotSharpAssemblyName);
                 if (Type != null) {
+                    IsStatic = Type.IsAbstract && Type.IsSealed;
                     IsAbstract = Type.IsAbstract;
                     IsNode = Type.IsSubclassOf(typeof(Node));
                 } else {

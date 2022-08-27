@@ -169,6 +169,9 @@ namespace Betauer.Signal {
         public static SignalHandler OnVisibilityChanged(this CanvasItem target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "visibility_changed", action, oneShot, deferred);
 
+        public static SignalHandler OnVisibilityChanged(this CanvasLayer target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "visibility_changed", action, oneShot, deferred);
+
         public static SignalHandler OnInputEvent(this CollisionObject target, Action<InputEvent, Node, Vector3, Vector3, int> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "input_event", action, oneShot, deferred);
 
@@ -265,7 +268,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnCopyNodesRequest(this GraphEdit target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "copy_nodes_request", action, oneShot, deferred);
 
-        public static SignalHandler OnDeleteNodesRequest(this GraphEdit target, Action action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnDeleteNodesRequest(this GraphEdit target, Action<Godot.Collections.Array> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "delete_nodes_request", action, oneShot, deferred);
 
         public static SignalHandler OnDisconnectionRequest(this GraphEdit target, Action<string, int, string, int> action, bool oneShot = false, bool deferred = false) =>
@@ -337,6 +340,9 @@ namespace Betauer.Signal {
         public static SignalHandler OnRmbClicked(this ItemList target, Action<Vector2> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "rmb_clicked", action, oneShot, deferred);
 
+        public static SignalHandler OnJavaScriptPwaUpdateAvailable(Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(JavaScript.Singleton, "pwa_update_available", action, oneShot, deferred);
+
         public static SignalHandler OnTextChanged(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "text_changed", action, oneShot, deferred);
 
@@ -376,6 +382,48 @@ namespace Betauer.Signal {
         public static SignalHandler OnServerDisconnected(this MultiplayerAPI target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "server_disconnected", action, oneShot, deferred);
 
+        public static SignalHandler OnMapChanged(this Navigation target, Action<RID> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "map_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnNavigation2DServerMapChanged(Action<RID> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(Navigation2DServer.Singleton, "map_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnNavigationFinished(this NavigationAgent target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "navigation_finished", action, oneShot, deferred);
+
+        public static SignalHandler OnPathChanged(this NavigationAgent target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "path_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnTargetReached(this NavigationAgent target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "target_reached", action, oneShot, deferred);
+
+        public static SignalHandler OnVelocityComputed(this NavigationAgent target, Action<Vector3> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "velocity_computed", action, oneShot, deferred);
+
+        public static SignalHandler OnNavigationFinished(this NavigationAgent2D target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "navigation_finished", action, oneShot, deferred);
+
+        public static SignalHandler OnPathChanged(this NavigationAgent2D target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "path_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnTargetReached(this NavigationAgent2D target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "target_reached", action, oneShot, deferred);
+
+        public static SignalHandler OnVelocityComputed(this NavigationAgent2D target, Action<Vector2> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "velocity_computed", action, oneShot, deferred);
+
+        public static SignalHandler OnBakeFinished(this NavigationMeshInstance target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "bake_finished", action, oneShot, deferred);
+
+        public static SignalHandler OnNavigationMeshChanged(this NavigationMeshInstance target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "navigation_mesh_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnNavigationServerMapChanged(Action<RID> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(NavigationServer.Singleton, "map_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnPacketGenerated(this NetworkedMultiplayerCustom target, Action<byte[], int, int> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "packet_generated", action, oneShot, deferred);
+
         public static SignalHandler OnConnectionFailed(this NetworkedMultiplayerPeer target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "connection_failed", action, oneShot, deferred);
 
@@ -393,6 +441,12 @@ namespace Betauer.Signal {
 
         public static SignalHandler OnTextureChanged(this NinePatchRect target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "texture_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnChildEnteredTree(this Node target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "child_entered_tree", action, oneShot, deferred);
+
+        public static SignalHandler OnChildExitingTree(this Node target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "child_exiting_tree", action, oneShot, deferred);
 
         public static SignalHandler OnReady(this Node target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "ready", action, oneShot, deferred);
@@ -435,6 +489,9 @@ namespace Betauer.Signal {
 
         public static SignalHandler OnIndexPressed(this PopupMenu target, Action<int> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "index_pressed", action, oneShot, deferred);
+
+        public static SignalHandler OnProjectSettingsProjectSettingsChanged(Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(ProjectSettings.Singleton, "project_settings_changed", action, oneShot, deferred);
 
         public static SignalHandler OnBroadcast(this ProximityGroup target, Action<string, Godot.Collections.Array> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "broadcast", action, oneShot, deferred);
@@ -535,6 +592,15 @@ namespace Betauer.Signal {
         public static SignalHandler OnTimeout(this SceneTreeTimer target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "timeout", action, oneShot, deferred);
 
+        public static SignalHandler OnFinished(this SceneTreeTween target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "finished", action, oneShot, deferred);
+
+        public static SignalHandler OnLoopFinished(this SceneTreeTween target, Action<int> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "loop_finished", action, oneShot, deferred);
+
+        public static SignalHandler OnStepFinished(this SceneTreeTween target, Action<int> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "step_finished", action, oneShot, deferred);
+
         public static SignalHandler OnScrolling(this ScrollBar target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "scrolling", action, oneShot, deferred);
 
@@ -549,6 +615,12 @@ namespace Betauer.Signal {
 
         public static SignalHandler OnBoneSetupChanged(this Skeleton2D target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "bone_setup_changed", action, oneShot, deferred);
+
+        public static SignalHandler OnDragEnded(this Slider target, Action<bool> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "drag_ended", action, oneShot, deferred);
+
+        public static SignalHandler OnDragStarted(this Slider target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "drag_started", action, oneShot, deferred);
 
         public static SignalHandler OnGameplayEntered(this Spatial target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "gameplay_entered", action, oneShot, deferred);
@@ -690,6 +762,9 @@ namespace Betauer.Signal {
 
         public static SignalHandler OnTweenStep(this Tween target, Action<Object, float, NodePath, Object> action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "tween_step", action, oneShot, deferred);
+
+        public static SignalHandler OnFinished(this Tweener target, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, "finished", action, oneShot, deferred);
 
         public static SignalHandler OnVersionChanged(this UndoRedo target, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, "version_changed", action, oneShot, deferred);

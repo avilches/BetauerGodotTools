@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Godot;
 
@@ -10,12 +12,14 @@ namespace Generator {
      */
     public class GeneratorScript : SceneTree {
         public override void _Initialize() {
+            var stopwatch = Stopwatch.StartNew();
             while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
             var classes = LoadGodotClasses();
             GenerateGodotActionClasses.WriteAllActionClasses(classes);
             GenerateSignalHandlerExtensions.WriteSignalHandlerExtensionsClass(classes);
             GenerateGodotActionsExtensions.WriteGodotActionExtensionsClass(classes);
             GenerateSignalConstants.WriteSignalConstantsClass(classes);
+            Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
             Quit(0);
         }
 
