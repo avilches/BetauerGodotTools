@@ -41,21 +41,8 @@ namespace Veronenger.Game.Managers {
 		[OnReady("PanelContainer/Label")] private Label? _label;
 		[Inject] private InputAction DebugOverlayAction { get; set; }
 
-		private bool _visible = false;
-		public bool Visible {
-			get => _visible;
-			set {
-				_visible = value;
-				SetProcess(value);
-				if (_panelContainer != null) {
-					if (_visible) _panelContainer.Show();
-					else _panelContainer.Hide();
-				}
-			}
-		}
-
 		public override void _Ready() {
-			Visible = false;
+			Disable();
 		}
 
 		public Monitor Add(string label, Node node, string property) {
@@ -74,9 +61,19 @@ namespace Veronenger.Game.Managers {
 			if (DebugOverlayAction.IsEventPressed(@event)) Visible = !Visible;
 		}
 
+		public void Enable() {
+			Visible = true;
+			SetProcess(true);
+		}
+
+		public void Disable() {
+			Visible = false;
+			SetProcess(false);
+		}
+
 		public override void _Process(float delta) {
-			if (!_visible) {
-				SetProcess(false);
+			if (!Visible) {
+				Disable();
 				return;
 			}
 			var labelText = "";

@@ -108,7 +108,7 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
+            // LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);
