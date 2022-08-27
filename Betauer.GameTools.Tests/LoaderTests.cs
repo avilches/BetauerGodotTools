@@ -40,7 +40,7 @@ namespace Betauer.GameTools.Tests {
             var r1 = new ResourcesLoaderMetadataOk();
             var x1 = new AdditionalResource();
             var x2 = new AdditionalResource();
-            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).Bind(x1).Load(x2);
+            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).From(x1).Load(x2);
             Assert.That(r1.Texture, Is.EqualTo(r1.StreamTexture));
             Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataTexture.Resource));
             Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataStreamTexture.Resource));
@@ -100,7 +100,7 @@ namespace Betauer.GameTools.Tests {
             var r1 = new ResourcesLoaderMetadataSceneOk();
             var x1 = new AdditionalScene();
             var x2 = new AdditionalScene();
-            await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).Bind(x1).Load(x2);
+            await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).From(x1).Load(x2);
             var node2DCreated1 = r1.Node2dFactory.Invoke();
             var node2DCreated2 = r1.Node2dFactory.Invoke();
             Assert.That(node2DCreated1, Is.Not.Null);
