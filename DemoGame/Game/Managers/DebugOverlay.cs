@@ -11,7 +11,7 @@ namespace Veronenger.Game.Managers {
 		internal readonly Node Node;
 		internal readonly Func<string> Delegate;
 		internal bool IsEnabled  => _isEnabled && Node.IsInsideTree();
-		internal bool IsDestroyed => _isDestroyed || Godot.Object.IsInstanceValid(Node);
+		internal bool IsDestroyed => _isDestroyed || !Godot.Object.IsInstanceValid(Node);
 		private bool _isEnabled = true;
 		private bool _isDestroyed = false;
 		internal readonly string _label;

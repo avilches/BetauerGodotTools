@@ -18,7 +18,7 @@ namespace Betauer.Nodes {
             internal readonly Node Node;
             internal readonly T Delegate;
             internal bool IsEnabled  => _isEnabled && Node.IsInsideTree();
-            internal bool IsDestroyed => _isDestroyed || IsInstanceValid(Node);
+            internal bool IsDestroyed => _isDestroyed || !IsInstanceValid(Node);
             private bool _isEnabled = true;
             private bool _isDestroyed = false;
             public NodeEvent(Node node, T @delegate) {
