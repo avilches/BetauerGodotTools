@@ -7,7 +7,7 @@ on: push
 
 
 env:
-  GODOT_VERSION: 3.3.4
+  GODOT_VERSION: 3.5
   GODOT_VERSION_MODIFIER: "stable.mono"
   EXPORT_NAME: veronenger
   GAME_SUBDIRECTORY: project.godot
@@ -19,7 +19,7 @@ jobs:
 
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:mono-3.4.4
+      image: barichello/godot-ci:mono-${GODOT_VERSION}
 
     steps:
 

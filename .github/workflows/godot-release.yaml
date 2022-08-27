@@ -7,7 +7,7 @@ on:
     branches: [ export ]
 
 env:
-  GODOT_VERSION: 3.4.2
+  GODOT_VERSION: 3.5
   GODOT_VERSION_MODIFIER: "stable.mono"
   EXPORT_NAME: veronenger
   GAME_SUBDIRECTORY: project.godot
@@ -19,7 +19,7 @@ jobs:
     name: Windows Export
     runs-on: ubuntu-latest
     container:
-      image: barichello/godot-ci:3.4.2
+      image: barichello/godot-ci:${GODOT_VERSION}
 
     steps:
       - name: Checkout
