@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Godot;
 using Object = Godot.Object;
@@ -167,11 +168,11 @@ namespace Betauer.Animation {
                         " to " + end.ToString("F") +
                         " (+" + duration.ToString("F") + ") " + easing.Name);
 
-            if (easing is GodotEasing godotEasing) {
-                RunEasingStep(context, tween, property, from, to, start, duration, godotEasing);
-            } else if (easing is BezierCurve bezierCurve) {
-                RunCurveBezierStep(context, tween, property, from, to, start, duration, bezierCurve);
-            }
+            // if (easing is GodotEasing godotEasing) {
+                // RunEasingStep(context, tween, property, from, to, start, duration, godotEasing);
+            // } else if (easing is BezierCurve bezierCurve) {
+                RunCurveBezierStep(context, tween, property, from, to, start, duration, easing);
+            // }
             if (DebugSteps != null) {
                 DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
             }
@@ -179,15 +180,19 @@ namespace Betauer.Animation {
 
         private static void RunCurveBezierStep(AnimationContext<TProperty> context, TweenActionCallback tween,
             IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
+            TProperty from, TProperty to, float start, float duration, Easing bezierCurve) {
+            var x = Stopwatch.StartNew();
+            var x2 = Stopwatch.StartNew();
             tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
                 (float linearY) => {
                     var curveY = bezierCurve.GetY(linearY);
                     var value = (TProperty)VariantHelper.LerpVariant(@from, to, curveY);
                     // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
+                    Console.WriteLine($"Play  From/To: {from}/{to} | Delta:+{(float)x.ElapsedMilliseconds/1000:0.0000} From/To: 0.00/{duration:0.00} (duration: {duration:0.00} Time:{((float)x2.ElapsedMilliseconds)/1000:0.0000} | t:{linearY:0.0000} y:{curveY:0000} Value: {value}");
                     // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
                     context.Value = value;
                     property.SetValue(context);
+                    x.Restart();
                 });
         }
 
