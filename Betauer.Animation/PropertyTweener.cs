@@ -259,7 +259,7 @@ namespace Betauer.Animation {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
                         from = to;
                     }
-                    e.Add(RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing));
+                    tween.Add(RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing));
                 }
                 if (step.CallbackNode != null) {
                     tween.ScheduleCallback(start, () => step.CallbackNode(target));
@@ -269,7 +269,7 @@ namespace Betauer.Animation {
                 startTime = endTime;
                 i++;
             }
-            tween.Add(new TweenActionCallback.TweenExecutionChain(e));
+            // tween.Add(new TweenActionCallback.TweenExecutionChain(e));
             return allStepsDuration;
         }
     }

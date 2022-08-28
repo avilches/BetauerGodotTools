@@ -102,13 +102,12 @@ namespace Betauer.Animation {
                     // Time = 5,   0.25
                 }
                 var animationTime = Time - Delay;
-                var weight = animationTime / _duration;
-                var t = Mathf.Lerp(0, _duration, weight);
+                var t = animationTime / _duration;
                 var y = _easing.GetY(t);
                 var value = (T)VariantHelper.LerpVariant(_from, _to, y);
                 // Console.WriteLine($"Lerp(0, {_duration}, {weight}) = {t}. y = {y}. Value {value}");
                 
-                Console.WriteLine($"{State}  From/To: {_from}/{_to} | Delta:+{delta:0.00} From/To: {Delay:0.00}/{_endTime:0.00} (duration: {_duration:0.00} Time:{Time:0.00} | t:{t} y:{y} Value: {value}");             
+                Console.WriteLine($"{State}  From/To: {_from}/{_to} | Delta:+{delta:0.0000} From/To: {Delay:0.00}/{_endTime:0.00} (duration: {_duration:0.00} Time:{Time:0.0000} | t:{t:0.0000} y:{y:0.0000} Value: {value:0.0000}");             
                 
                 _action.Invoke(value);
             }
