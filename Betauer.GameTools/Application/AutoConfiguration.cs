@@ -17,11 +17,12 @@ namespace Betauer.Application {
 
         [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
-        [Service] public SceneTree SceneTree => GetTree();
+        [Service] public SceneTree SceneTree => SceneTreeHolder.SceneTree;
 
         public bool AddSingletonNodesToTree = true;
         
         public override void _EnterTree() {
+            SceneTreeHolder.SceneTree = GetTree();
             PauseMode = PauseModeEnum.Process;
             Container = new Container();
             if (AddSingletonNodesToTree) {

@@ -15,9 +15,13 @@ namespace Generator {
             var stopwatch = Stopwatch.StartNew();
             while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
             var classes = LoadGodotClasses();
+            // GodotAction classes
             GenerateGodotActionClasses.WriteAllActionClasses(classes);
-            GenerateSignalHandlerExtensions.WriteSignalHandlerExtensionsClass(classes);
             GenerateGodotActionsExtensions.WriteGodotActionExtensionsClass(classes);
+
+            // Signal extensions
+            GenerateSignalHandlerExtensions.WriteExtensionsClass(classes);
+            GenerateAwaitExtensions.WriteExtensionsClass(classes);
             GenerateSignalConstants.WriteSignalConstantsClass(classes);
             Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
             Quit(0);

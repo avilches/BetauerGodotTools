@@ -16,20 +16,20 @@ namespace Betauer.TestRunner {
     }
 
     public static class TestExtensions {
-        public static SignalAwaiter AwaitPhysicsFrame(this Node node) {
-            return AwaitPhysicsFrame(node.GetTree());
-        }
+        public static SceneTree SceneTree;
 
-        public static SignalAwaiter AwaitIdleFrame(this Node node) {
-            return AwaitIdleFrame(node.GetTree());
-        }
-        public static SignalAwaiter AwaitPhysicsFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, "physics_frame");
-        }
+        public static SignalAwaiter AwaitPhysicsFrame(this object _) =>
+            AwaitPhysicsFrame();
+        
+        public static SignalAwaiter AwaitPhysicsFrame() =>
+            SceneTree.ToSignal(SceneTree, "physics_frame");
 
-        public static SignalAwaiter AwaitIdleFrame(this SceneTree sceneTree) {
-            return sceneTree.ToSignal(sceneTree, "idle_frame");
-        }
+        public static SignalAwaiter AwaitIdleFrame(this object _) =>
+            AwaitIdleFrame();
+        
+        public static SignalAwaiter AwaitIdleFrame() =>
+            SceneTree.ToSignal(SceneTree, "idle_frame");
+        
     }
 
     public class TestRunner {
@@ -107,7 +107,7 @@ namespace Betauer.TestRunner {
                             if (next is Task coTask) {
                                 await coTask;
                             } else {
-                                await sceneTree.AwaitIdleFrame();
+                                await TestExtensions.AwaitIdleFrame();
                             }
                         }
                     }
@@ -124,7 +124,7 @@ namespace Betauer.TestRunner {
                 }
                 if (FixtureInstance is Node node2) {
                     node2.QueueFree();
-                    await sceneTree.AwaitIdleFrame();
+                    await TestExtensions.AwaitIdleFrame();
                 }
                 Stopwatch.Stop();
             }
@@ -133,6 +133,7 @@ namespace Betauer.TestRunner {
 
         public async Task Run(SceneTree sceneTree, Action<TestMethod>? startCallback = null,
             Action<TestMethod>? resultCallback = null) {
+            TestExtensions.SceneTree = sceneTree;
             TestsFailedResults.Clear();
             TestsFailed = 0;
             TestsPassed = 0;

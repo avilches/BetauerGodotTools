@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 
 namespace Generator {
-    public class GenerateSignalHandlerExtensions {
-        private const string Filename = "../Betauer.Core/Signal/SignalHandlerExtensions.cs";
+    public class GenerateAwaitExtensions {
+        private const string Filename = "../Betauer.Core/Signal/AwaitExtensions.cs";
 
         public static void WriteExtensionsClass(List<GodotClass> classes) {
             List<string> allMethods = classes
@@ -19,11 +19,11 @@ namespace Generator {
         }
 
         private static string CreateExtensionMethod(Signal signal) {
-            var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target, ";
+            var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target";
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
-        public static SignalHandler On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
-            SignalFactory.Create({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
+        public static SignalAwaiter Await{signal.MethodName}({targetParam}) =>
+            {target}.ToSignal({target}, ""{signal.signal_name}"");";
         }
 
         private static string CreateExtensionsClass(IEnumerable<string> methods) {
@@ -34,7 +34,7 @@ using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 
 namespace Betauer.Signal {{
-    public static partial class SignalExtensions {{
+    public static partial class AwaitExtensions {{
       {string.Join("\n", methods)}
     }}
 }}";

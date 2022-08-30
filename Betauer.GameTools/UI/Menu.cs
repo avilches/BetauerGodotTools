@@ -267,7 +267,7 @@ namespace Betauer.UI {
                     /*
                      * 2) Wait one frame, so the container can arrange the children positions safely.
                      */ 
-                    await Parent.AwaitIdleFrame();
+                    await SceneTreeHolder.AwaitIdleFrame();
                     /*
                      * 3) Restore the old modulates and start the animation.
                      */
