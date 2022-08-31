@@ -54,7 +54,6 @@ namespace DemoAnimation.Game.Controller.Menu {
         private MenuContainer _demoMenu;
 
         [Inject] private GameManager _gameManager { get; set; }
-        private readonly Launcher _launcher = new Launcher();
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -68,7 +67,6 @@ namespace DemoAnimation.Game.Controller.Menu {
             .ToList();
 
         public override void _Ready() {
-            _launcher.WithParent(this);
             _animationsRestorer = new MultiRestorer(_labelToAnimate, _logo, _texture).Save();
             _menuContainer = BuildMenu();
             _menuLabel.Text = "Click the options to see animations";
@@ -115,13 +113,13 @@ namespace DemoAnimation.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuContainer.Start();
-            await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            await Template.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await _launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
+            await Template.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -206,7 +204,8 @@ namespace DemoAnimation.Game.Controller.Menu {
                     var buttonRestorer = button.CreateRestorer().Save();
                     button.Disabled = true;
                     var targets = new Node[] { button, _labelToAnimate, _texture, _logo };
-                    await _launcher.MultiPlay(Template.Get(name), targets, 0.5f, 0f, MenuEffectTime).Await();
+                    // TODO: kill the previous
+                    await Template.Get(name).MultiPlay(targets, 0.5f, 0f, MenuEffectTime).AwaitFinished();
                     await this.AwaitIdleFrame();
                     button.Disabled = false;
                     buttonRestorer.Restore();
@@ -216,11 +215,11 @@ namespace DemoAnimation.Game.Controller.Menu {
         }
 
         public void DimOut() {
-            _launcher.Play(Template.FadeOut, this, 0f, 1f).Await();
+            Template.FadeOut.Play(this, 0f, 1f);
         }
 
         public void RollbackDimOut() {
-            _launcher.RemoveAll();
+            // _launcher.RemoveAll();
             Modulate = Colors.White;
         }
 
@@ -239,7 +238,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
                 ? AllMenuEffectTime / children.Count
                 : DelayPerTarget;
-            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
 
@@ -251,7 +250,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
                 ? AllMenuEffectTime / children.Count
                 : DelayPerTarget;
-            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
 
@@ -264,7 +263,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
                 ? AllMenuEffectTime / children.Count
                 : DelayPerTarget;
-            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
 
@@ -276,7 +275,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
                 ? AllMenuEffectTime / children.Count
                 : DelayPerTarget;
-            await _launcher.MultiPlay(Template.Get(effect), children, delayPerTarget, 0f, MenuEffectTime).Await();
+            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
     }

@@ -10,41 +10,37 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
 
-        private SingleSequencePlayer _multipleSequencePlayer1;
-        private SingleSequencePlayer _multipleSequencePlayer2;
-        private MultipleSequencePlayer _multipleSequencePlayer3;
+        // private SingleSequencePlayer _multipleSequencePlayer1;
+        // private SingleSequencePlayer _multipleSequencePlayer2;
+        // private MultipleSequencePlayer _multipleSequencePlayer3;
 
         public override void _Ready() {
-            _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
-            _multipleSequencePlayer1
-                .CreateSequence()
-                .AnimateKeys<float>(body1, Property.Scale2DY, Easing.SineInOut)
+            // _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
+            // _multipleSequencePlayer1
+            SequenceBuilder.Create(body1)
+                .AnimateKeys<float>(Property.Scale2DY, Easing.SineInOut)
                 .From(1f)
                 .Duration(1)
                 .KeyframeTo(0.5f, 1.5f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate()
-                .EndSequence()
                 .SetInfiniteLoops()
-                .Play();
+                .PlayForever();
 
             BezierCurve curve = BezierCurve.Create(0.37f, 0.0f, 0.63f, 1f);
             // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            _multipleSequencePlayer2 = new SingleSequencePlayer().WithParent(this)
-                .CreateSequence()
-                .AnimateStepsBy(body2, Property.PositionX, curve)
+            SequenceBuilder.Create(body2)
+                .AnimateStepsBy(Property.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
                 .EndAnimate()
-                .EndSequence()
                 .SetInfiniteLoops()
-                .Play();
+                .PlayForever();
 
-            _multipleSequencePlayer3 = new MultipleSequencePlayer().WithParent(this)
-                .CreateSequence()
-                .AnimateKeys<float>(body3, Property.Scale2DY)
+            SequenceBuilder.Create(body3)
+                .AnimateKeys<float>(Property.Scale2DY)
                 .From(1)
                 .Duration(2f)
                 .KeyframeTo(0.20f, 1)
@@ -56,9 +52,8 @@ namespace Veronenger.Game.Controller.Animation {
                 .KeyframeTo(0.90f, 1.02f)
                 .KeyframeTo(1, 1f)
                 .EndAnimate()
-                .EndSequence()
                 .SetInfiniteLoops()
-                .Play();
+                .PlayForever();
         }
     }
 }

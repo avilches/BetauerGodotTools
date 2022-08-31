@@ -6,20 +6,18 @@ using Godot;
 
 namespace DemoAnimation.Game.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
-        private readonly Launcher _launcher = new Launcher();
         public override void _Ready() {
             this.DisableAllNotifications();
-            _launcher.WithParent(this);
         }
 
-        public Task<MultipleSequencePlayer> AnimateGrid(Node node) {
+        public Task AnimateGrid(Node node) {
             GD.Print(node.GetType());
             var offsetAccumulated = 0;
             var offset = 0.5;
 
             int n = 0;
             foreach (var child in node.GetChildren()) {
-                _launcher.Play(1, Template.FadeIn, child as Node, 0.1f * n);
+                Template.FadeIn.Play(child as Node, 0.1f * n);
                 n++;
             }
             return null;
@@ -33,7 +31,7 @@ namespace DemoAnimation.Game.Managers.Autoload {
                 animation = animation.ReplaceN("bouncing", "bounce");
 
                 // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
-                _launcher.Play(Template.Get(animation, 1000f), node, 0, duration);
+                Template.Get(animation, 1000f).Play(node, 0, duration);
             } catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);

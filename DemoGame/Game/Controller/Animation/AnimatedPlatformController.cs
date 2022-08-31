@@ -1,59 +1,73 @@
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.DI;
+using Betauer.Signal;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
     public class AnimatedPlatformController : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
-        [Export] public bool Enabled = true;
         [Inject] public PlatformManager PlatformManager { get; set;}
-
+        private SceneTreeTween _sceneTreeTween;
+        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(AnimatedPlatformController));
 
         private Vector2 _original;
         public Vector2 follow;
-        private MultipleSequencePlayer _sequencePlayer;
 
         public override void _Ready() {
             Configure();
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (!Enabled) return;
             UpdatePosition();
         }
 
-        public void Configure() {
+        public async Task Configure() {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
-
             _original = Position;
 
-            _sequencePlayer = new MultipleSequencePlayer().WithParent(this);
-
             Stopwatch x = Stopwatch.StartNew();
-            SequenceBuilder seq = SequenceBuilder.Create();
-
-            seq.Callback(() => x = Stopwatch.StartNew());
-
-            seq.AnimateStepsBy(this, new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(100, 0), 1, Easing.LinearInOut)
-                .Offset(new Vector2(-50, 0), 1)
-                .EndAnimate();
-
-            seq.Callback(() =>
-                LoggerFactory.GetLogger(typeof(AnimatedPlatformController)).Debug("Llegó! esperamos 1..."));
-            seq.Pause(1);
-
-            seq.AnimateSteps(this, Property.Modulate)
-                .To(new Color(1, 0, 0, 1f), 1, Easing.CubicInOut)
+            SequenceBuilder seq = SequenceBuilder
+                .Create(this)
+                .Callback(() => {
+                    x = Stopwatch.StartNew();
+                    _logger.Debug("Start");
+                })
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
+                .Offset(new Vector2(100, 0), 0.25f, Easing.LinearInOut)
+                .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
-                .AnimateSteps(this, Property.Modulate).To(new Color(1, 1, 1, 1), 1, Easing.CubicInOut)
-                .EndAnimate();
+                .AnimateSteps(Property.Modulate)
+                .To(new Color(1, 0, 0, 1f), 0.25f, Easing.CubicInOut)
+                .EndAnimate()
+                .AnimateSteps(Property.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easing.CubicInOut)
+                .EndAnimate()
+                .Callback(() =>
+                    _logger.Debug("End "+(x.ElapsedMilliseconds)+"ms"))
+                .SetLoops(1);
 
-            _sequencePlayer.AddSequence(seq);
-            _sequencePlayer.SetInfiniteLoops();
+            SequenceBuilder seq2 = SequenceBuilder
+                .Create(this)
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
+                .Offset(new Vector2(0, 50), 0.25f, Easing.LinearInOut)
+                .Offset(new Vector2(0, -50), 0.25f)
+                .EndAnimate()
+                .SetLoops(2);
+
+            try {
+                while (true) {
+                    _sceneTreeTween = seq.Play(this);
+                    await _sceneTreeTween.AwaitFinished().Timeout(3);
+                    _sceneTreeTween = seq2.Play(this);
+                    await _sceneTreeTween.AwaitFinished().Timeout(3);
+                }
+            } catch (TimeoutException e) {
+                Console.WriteLine(e);
+            }
         }
 
         public void UpdatePosition() {
@@ -61,13 +75,16 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Start() {
-            _sequencePlayer.Play();
+            _sceneTreeTween.Play();
         }
 
         public void Pause() {
             follow = Vector2.Zero;
             Modulate = new Color(1, 1, 1, 1);
-            _sequencePlayer.Reset();
+            // TODO: this will trigger the timeout, resulting in a non-expected behaviour (the idea behind the timeout
+            // TODO: is avoid a never-ending await when the scene is changed and the "finished" signal from the tween
+            // TODO: is never sent
+            _sceneTreeTween.Stop();
         }
     }
 }

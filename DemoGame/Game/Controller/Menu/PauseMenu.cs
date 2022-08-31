@@ -38,22 +38,19 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiStart { get; set; }
 
-        private readonly Launcher _launcher = new Launcher();
-
         public override void _Ready() {
-            _launcher.WithParent(this);
             _menuContainer = BuildMenu();
             _container.Hide();;
         }
 
         public async Task ShowPauseMenu() {
             _container.Show();
-            _launcher.Play(PartialFadeOut, _backgroundFader, 0f, 0.5f);
+            PartialFadeOut.Play(_backgroundFader, 0f, 0.5f);
             await _menuContainer.Start();
         }
 
         public void HidePauseMenu() {
-            _launcher.RemoveAll();
+            // _launcher.RemoveAll();
             _container.Hide();
         }
 

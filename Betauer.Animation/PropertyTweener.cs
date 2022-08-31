@@ -1,70 +1,57 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ITweener {
-        float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float duration);
-        public Node Target { get; }
+        float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration);
     }
 
     internal class CallbackTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly Action _callback;
         private readonly float _delay;
-        public Node? Target { get; } // Not needed, not used!
 
         internal CallbackTweener(float delay, Action callback) {
             _delay = delay;
             _callback = callback;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node? ignoredDefaultTarget,
-            float ignoredDuration) {
-            if (!Object.IsInstanceValid(tween)) {
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node ignoredTarget, float ignoredDuration) {
+            if (!Object.IsInstanceValid(sceneTreeTween)) {
                 Logger.Warning("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
                 return 0;
             }
             var start = _delay + initialDelay;
             Logger.Info("Adding anonymous callback with " + _delay + "s delay. Scheduled: " + start.ToString("F"));
-            tween.ScheduleCallback(start, _callback);
+            var callbackTweener = sceneTreeTween
+                .Parallel()
+                .TweenCallbackAction(_callback)
+                .SetDelay(start);
             return _delay;
         }
     }
-
     internal class MethodCallbackTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly string _methodName;
         private readonly float _delay;
-        private readonly object? _p1;
-        private readonly object? _p2;
-        private readonly object? _p3;
-        private readonly object? _p4;
-        private readonly object? _p5;
+        private readonly object[]? _binds;
+        private readonly Node? _target;
 
-        public Node? Target { get; }
-
-        public MethodCallbackTweener(float delay, Node? target, string methodName, object? p1 = null, object? p2 = null,
-            object? p3 = null, object? p4 = null, object? p5 = null) {
-            Target = target;
+        public MethodCallbackTweener(float delay, Node? target, string methodName, params object[] binds) {
+            _target = target;
             _methodName = methodName;
             _delay = delay;
-            _p1 = p1;
-            _p2 = p2;
-            _p3 = p3;
-            _p4 = p4;
-            _p5 = p5;
+            _binds = binds;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float ignoredDuration) {
-            if (!Object.IsInstanceValid(tween)) {
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float ignoredDuration) {
+            if (!Object.IsInstanceValid(sceneTreeTween)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
                 return 0;
             }
-            var target = Target ?? defaultTarget;
             if (!Object.IsInstanceValid(target)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " using a freed target instance");
                 return 0;
@@ -72,7 +59,10 @@ namespace Betauer.Animation {
             var start = _delay + initialDelay;
             Logger.Info("Adding method callback " + _methodName + "with " + _delay + "s delay. Scheduled: " +
                         start.ToString("F"));
-            tween.InterpolateCallback(target, start, _methodName, _p1, _p2, _p3, _p4, _p5);
+            var methodTweener = sceneTreeTween
+                .Parallel()
+                .TweenCallback(_target ?? target, _methodName, _binds != null && _binds.Length > 0 ? new Godot.Collections.Array(_binds) : null)
+                .SetDelay(start);
             return _delay;
         }
     }
@@ -80,13 +70,12 @@ namespace Betauer.Animation {
     internal class PauseTweener : ITweener {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
         private readonly float _delay;
-        public Node? Target { get; } // Not needed, not used!
 
         internal PauseTweener(float delay) {
             _delay = delay;
         }
 
-        public float Start(TweenActionCallback tween, float initialDelay, Node? ignoredDefaultTarget,
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node? ignoredDefaultTarget,
             float ignoredDuration) {
             var delayEndTime = _delay + initialDelay;
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + " to " +
@@ -118,7 +107,6 @@ namespace Betauer.Animation {
     }
     
     public abstract class PropertyTweener<TProperty> : PropertyTweener, ITweener {
-        public Node? Target { get; }
         protected readonly IProperty<TProperty> Property;
         protected readonly Easing? DefaultEasing;
 
@@ -128,13 +116,12 @@ namespace Betauer.Animation {
 
         protected List<DebugStep<TProperty>>? DebugSteps = null;
 
-        internal PropertyTweener(Node? target, IProperty<TProperty> property, Easing? defaultEasing) {
-            Target = target;
+        internal PropertyTweener(IProperty<TProperty> property, Easing? defaultEasing) {
             Property = property;
             DefaultEasing = defaultEasing;
         }
 
-        public abstract float Start(TweenActionCallback tween, float initialDelay, Node? defaultTarget, float duration);
+        public abstract float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration);
 
         protected bool Validate(int count, Node target, IProperty<TProperty> property) {
             if (count == 0) {
@@ -156,7 +143,7 @@ namespace Betauer.Animation {
             return true;
         }
 
-        protected void RunStep(AnimationContext<TProperty> context, TweenActionCallback tween,
+        protected void RunStep(SceneTreeTween sceneTreeTween, AnimationContext<TProperty> context,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing? easing) {
             easing ??= DefaultEasing ?? Easing.LinearInOut;
@@ -168,48 +155,61 @@ namespace Betauer.Animation {
                         " to " + end.ToString("F") +
                         " (+" + duration.ToString("F") + ") " + easing.Name);
 
-            // if (easing is GodotEasing godotEasing) {
-                // RunEasingStep(context, tween, property, from, to, start, duration, godotEasing);
-            // } else if (easing is BezierCurve bezierCurve) {
-                RunCurveBezierStep(context, tween, property, from, to, start, duration, easing);
-            // }
+            if (easing is GodotEasing godotEasing) {
+                RunEasingStep(sceneTreeTween, context, property, from, to, start, duration, godotEasing);
+            } else if (easing is BezierCurve bezierCurve) {
+                RunCurveBezierStep(sceneTreeTween, context, property, from, to, start, duration, easing);
+            }
             if (DebugSteps != null) {
                 DebugSteps.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
             }
         }
 
-        private static void RunCurveBezierStep(AnimationContext<TProperty> context, TweenActionCallback tween,
+        private static void RunCurveBezierStep(SceneTreeTween sceneTreeTween, AnimationContext<TProperty> context,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, Easing bezierCurve) {
-            var x = Stopwatch.StartNew();
-            var x2 = Stopwatch.StartNew();
-            tween.InterpolateAction(0f, 1f, duration, Tween.TransitionType.Linear, Tween.EaseType.InOut, start,
-                (float linearY) => {
-                    var curveY = bezierCurve.GetY(linearY);
-                    var value = (TProperty)VariantHelper.LerpVariant(@from, to, curveY);
-                    // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                    Console.WriteLine($"Play  From/To: {from}/{to} | Delta:+{(float)x.ElapsedMilliseconds/1000:0.0000} From/To: 0.00/{duration:0.00} (duration: {duration:0.00} Time:{((float)x2.ElapsedMilliseconds)/1000:0.0000} | t:{linearY:0.0000} y:{curveY:0000} Value: {value}");
-                    // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
-                    context.Value = value;
-                    property.SetValue(context);
-                    x.Restart();
-                });
+
+            Action<float> action = linearY => {
+                var curveY = bezierCurve.GetY(linearY);
+                var value = (TProperty)VariantHelper.LerpVariant(from, to, curveY);
+                // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
+                // Console.WriteLine($"Play  From/To: {from}/{to} | Delta:+{(float)x.ElapsedMilliseconds/1000:0.0000} From/To: 0.00/{duration:0.00} (duration: {duration:0.00} Time:{((float)x2.ElapsedMilliseconds)/1000:0.0000} | t:{linearY:0.0000} y:{curveY:0000} Value: {value}");
+                // TODO: there are no tests with bezier curves. No need to test the curve, need to test if the value is set
+                context.Value = value;
+                property.SetValue(context);
+            };
+            var methodTweener = sceneTreeTween
+                .Parallel()
+                .TweenInterpolateAction(0f, 1f, duration, action)
+                .SetTrans(Tween.TransitionType.Linear)
+                .SetEase(Tween.EaseType.InOut)
+                .SetDelay(start);
         }
 
-        private static void RunEasingStep(AnimationContext<TProperty> context, TweenActionCallback tween,
+        private static void RunEasingStep(SceneTreeTween sceneTreeTween, AnimationContext<TProperty> context,
             IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             var target = context.Target;
             if (property is IIndexedProperty<TProperty> basicProperty) {
-                tween.InterpolateProperty(target, basicProperty.GetIndexedPropertyName(target), @from, to, duration,
-                    godotEasing.TransitionType, godotEasing.EaseType, start);
+                var propertyTweener = sceneTreeTween
+                    .Parallel()
+                    .TweenProperty(target, basicProperty.GetIndexedPropertyName(target), to, duration)
+                    .From(@from)
+                    .SetTrans(godotEasing.TransitionType)
+                    .SetEase(godotEasing.EaseType)
+                    .SetDelay(start);
             } else {
-                tween.InterpolateAction(@from, to, duration, godotEasing.TransitionType, godotEasing.EaseType, start,
-                    (TProperty value) => {
-                        // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
-                        context.Value = value;
-                        property.SetValue(context);
-                    });
+                Action<TProperty> action = value => {
+                    // Logger.Debug(target.Name + "." + property + ": " + typeof(TProperty).Name + " t:" + value + " y:" + value);
+                    context.Value = value;
+                    property.SetValue(context);
+                };
+                var methodTweener = sceneTreeTween
+                    .Parallel()
+                    .TweenInterpolateAction(@from, to, duration, action)
+                    .SetTrans(godotEasing.TransitionType)
+                    .SetEase(godotEasing.EaseType)
+                    .SetDelay(start);
             }
         }
     }
@@ -220,12 +220,11 @@ namespace Betauer.Animation {
 
         public List<AnimationKeyStep<TProperty>> CreateStepList() => new List<AnimationKeyStep<TProperty>>(_steps);
 
-        internal PropertyKeyStepTweener(Node? target, IProperty<TProperty> property, Easing? defaultEasing) :
-            base(target, property, defaultEasing) {
+        internal PropertyKeyStepTweener(IProperty<TProperty> property, Easing? defaultEasing) :
+            base(property, defaultEasing) {
         }
 
-        public override float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration) {
-            var target = Target ?? defaultTarget;
+        public override float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration) {
             if (!Validate(_steps.Count, target, Property)) return 0;
             // TODO: duration is ignored. It should be % or absolute or nothing
             TProperty initialValue = Property.IsCompatibleWith(target) ? Property.GetValue(target) : default;
@@ -241,10 +240,13 @@ namespace Betauer.Animation {
                 // var percentEnd = (startTime + duration) / totalDuration;
                 var start = initialDelay + startTime;
                 if (durationStep > 0 && !from.Equals(to) && Property.IsCompatibleWith(target)) {
-                    RunStep(context, tween, Property, from, to, start, durationStep, step.Easing);
+                    RunStep(sceneTreeTween, context, Property, from, to, start, durationStep, step.Easing);
                 }
                 if (step.CallbackNode != null) {
-                    tween.ScheduleCallback(start, () => step.CallbackNode(target));
+                    var callbackTweener = sceneTreeTween
+                        .Parallel()
+                        .TweenCallbackAction(() => step.CallbackNode(target))
+                        .SetDelay(start);
                 }
                 from = to;
                 startTime += durationStep;
@@ -262,12 +264,11 @@ namespace Betauer.Animation {
 
         public float AllStepsDuration = 0;
 
-        internal PropertyKeyPercentTweener(Node target, IProperty<TProperty> property, Easing? defaultEasing) :
-            base(target, property, defaultEasing) {
+        internal PropertyKeyPercentTweener(IProperty<TProperty> property, Easing? defaultEasing) :
+            base(property, defaultEasing) {
         }
 
-        public override float Start(TweenActionCallback tween, float initialDelay, Node defaultTarget, float duration) {
-            var target = Target ?? defaultTarget;
+        public override float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration) {
             var allStepsDuration = duration > 0 ? duration : AllStepsDuration;
             if (allStepsDuration <= 0)
                 throw new Exception("Keyframe animation duration should be more than 0");
@@ -292,10 +293,13 @@ namespace Betauer.Animation {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
                         from = to;
                     }
-                    RunStep(context, tween, Property, from, to, start, keyDuration, step.Easing);
+                    RunStep(sceneTreeTween, context, Property, from, to, start, keyDuration, step.Easing);
                 }
                 if (step.CallbackNode != null) {
-                    tween.ScheduleCallback(start, () => step.CallbackNode(target));
+                    var callbackTweener = sceneTreeTween
+                        .Parallel()
+                        .TweenCallbackAction(() => step.CallbackNode(target))
+                        .SetDelay(start);
                 }
                 from = to;
                 // percentStart = percentEnd;
@@ -311,8 +315,8 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyStepToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node? target, IProperty<TProperty> property, Easing? defaultEasing) :
-            base(target, property, defaultEasing) {
+            IProperty<TProperty> property, Easing? defaultEasing) :
+            base(property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 
@@ -357,8 +361,8 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyStepOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node? defaultTarget, IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
-            base(defaultTarget, property, defaultEasing) {
+            IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
+            base(property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
         }
@@ -401,8 +405,8 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyPercentToBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node defaultTarget, IProperty<TProperty> property, Easing defaultEasing) :
-            base(defaultTarget, property, defaultEasing) {
+            IProperty<TProperty> property, Easing defaultEasing) :
+            base(property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
         }
 
@@ -453,8 +457,8 @@ namespace Betauer.Animation {
         private readonly AbstractSequenceBuilder<TBuilder> _abstractSequenceBuilder;
 
         internal PropertyKeyPercentOffsetBuilder(AbstractSequenceBuilder<TBuilder> abstractSequenceBuilder,
-            Node defaultTarget, IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
-            base(defaultTarget, property, defaultEasing) {
+            IProperty<TProperty> property, Easing? defaultEasing, bool relativeToFrom) :
+            base(property, defaultEasing) {
             _abstractSequenceBuilder = abstractSequenceBuilder;
             RelativeToFrom = relativeToFrom;
         }

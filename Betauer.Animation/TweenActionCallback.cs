@@ -1,11 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Godot;
+using Array = Godot.Collections.Array;
 using Object = Godot.Object;
 
 namespace Betauer.Animation {
+
+    public class DefaultTweenCallbackManager {
+        public static TweenCallbackManager Instance = new TweenCallbackManager();
+    }
+    
+    public static class SceneTreeTweenExtensions {
+        public static MethodTweener TweenInterpolateAction<T>(this SceneTreeTween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
+            return DefaultTweenCallbackManager.Instance.TweenInterpolateAction(sceneTreeTween, @from, to, duration, action);
+        }
+
+        public static Godot.CallbackTweener TweenCallbackAction(this SceneTreeTween sceneTreeTween, Action action) {
+            return DefaultTweenCallbackManager.Instance.TweenCallbackAction(sceneTreeTween, action);
+        }
+    }
+    
     /// <summary>
     /// A Tween compatible with C# lambdas, aka, Actions.
     /// Instead of Tween.InterpolateCallback(object, 0f, "method") you can use:
@@ -15,30 +30,29 @@ namespace Betauer.Animation {
     /// InterpolateAction(0, 12, ..., (val) => { })
     /// 
     /// </summary>
-    public class TweenActionCallback : Tween {
+    public class TweenCallbackManager : Object {
         private readonly Dictionary<int, Action> _actions = new Dictionary<int, Action>();
         private readonly HashSet<Object> _interpolateMethodActionSet = new HashSet<Object>();
-        public const float ExtraDelayToFinish = 0.01f;
 
-        public void ScheduleCallback(float delay, Action callback) {
+        public Godot.CallbackTweener TweenCallbackAction(SceneTreeTween sceneTreeTween, Action callback) {
             var actionId = callback.GetHashCode();
             _actions[actionId] = callback;
-            base.InterpolateCallback(this, delay, nameof(ActionTweenCallback), actionId);
+            // TODO: Use IObjectWatcher
+            var callbackTweener = sceneTreeTween
+                .TweenCallback(this, nameof(GodotTweenCallbackMethod), new Array { actionId });
+            return callbackTweener;
         }
 
-        private void ActionTweenCallback(int actionId) {
+        private void GodotTweenCallbackMethod(int actionId) {
             Action action = _actions[actionId];
-            _actions.Remove(actionId);
             action.Invoke();
         }
 
-        public void InterpolateAction<T>(T @from, T to, float duration, TransitionType transitionType,
-            EaseType easeType, float delay, Action<T> action) {
+        public MethodTweener TweenInterpolateAction<T>(SceneTreeTween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
             var actionWrapper = new InterpolateMethodAction<T>(action, _interpolateMethodActionSet);
             _interpolateMethodActionSet.Add(actionWrapper);
-            base.InterpolateMethod(actionWrapper, nameof(InterpolateMethodAction<T>.CallFromGodot), @from, to, duration,
-                transitionType, easeType, delay);
-            ScheduleCallback(delay + duration + ExtraDelayToFinish, actionWrapper.Finish);
+            return sceneTreeTween
+                .TweenMethod(actionWrapper, nameof(InterpolateMethodAction<T>.CallFromGodot), @from, to, duration);
         }
 
         public HashSet<Object> GetPendingObjects() {
@@ -78,11 +92,6 @@ namespace Betauer.Animation {
 
             public void CallFromGodot(T value) {
                 _action(value);
-            }
-
-            public void Finish() {
-                _interpolateMethodActionSet.Remove(this);
-                Free();
             }
         }
     }

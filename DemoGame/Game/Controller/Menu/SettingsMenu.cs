@@ -74,12 +74,9 @@ namespace Veronenger.Game.Controller.Menu {
         
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
-        private readonly Launcher _launcher = new Launcher();
         private Restorer _restorer;
 
         public override void _Ready() {
-            _launcher.WithParent(this);
-
             ConfigureScreenSettingsButtons();
             ConfigureControls();
 
@@ -101,13 +98,12 @@ namespace Veronenger.Game.Controller.Menu {
             _settingsBox.Show();
             _scrollContainer.ScrollVertical = 0;
             _redefineBox.Hide();
-            await _launcher.Play(Template.BounceIn, _panel, 0f, 0.2f).Await();
+            await Template.BounceIn.Play(_panel, 0f, 0.2f).AwaitFinished();
             _fullscreenButtonWrapper.GrabFocus();
         }
 
         public async Task HideSettingsMenu() {
-            await _launcher.Play(Template.BounceOut, _panel, 0f, 0.2f).Await();
-            _launcher.RemoveAll();
+            await Template.BounceOut.Play(_panel, 0f, 0.2f).AwaitFinished();
             _panel.Hide();
             _restorer.Restore();
         }

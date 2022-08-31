@@ -154,9 +154,6 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = true
-IsMovingPlatform = null
-Speed = null
-Enabled = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/FallMovSlopeFollow"]
 position = Vector2( 150, 1 )
@@ -233,7 +230,6 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = true
-IsMovingPlatform = null
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform1"]
 scale = Vector2( 4, 0.434 )
@@ -250,8 +246,6 @@ script = ExtResource( 10 )
 __meta__ = {
 "_edit_group_": true
 }
-IsFallingPlatform = null
-IsMovingPlatform = null
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform2"]
 scale = Vector2( 2.24, 0.434 )
@@ -267,8 +261,6 @@ script = ExtResource( 12 )
 __meta__ = {
 "_edit_group_": true
 }
-IsFallingPlatform = null
-Enabled = null
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform/Body"]
 scale = Vector2( 2.24, 0.434 )
@@ -336,8 +328,6 @@ __meta__ = {
 }
 IsFallingPlatform = true
 Radius = Vector2( 10, 10 )
-RotationDuration = null
-Enabled = null
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/Pivot/Circular"]
 scale = Vector2( 2.24, 0.434 )
@@ -353,7 +343,6 @@ __meta__ = {
 "_edit_group_": true
 }
 IsFallingPlatform = true
-Radius = null
 RotationDuration = 10.0
 
 [node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
@@ -391,7 +380,6 @@ script = ExtResource( 11 )
 __meta__ = {
 "_edit_group_": true
 }
-IsFallingPlatform = null
 Radius = 60.0
 RotationDuration = 1.0
 

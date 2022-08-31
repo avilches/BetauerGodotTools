@@ -24,7 +24,6 @@ namespace Veronenger.Game.Controller.Menu {
         private MenuContainer _menuContainer;
 
         [Inject] private GameManager _gameManager { get; set; }
-        private readonly Launcher _launcher = new Launcher();
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -32,7 +31,6 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override void _Ready() {
             _version.Text = AppInfo.Version + " - Betauer 2022";
-            _launcher.WithParent(this);
             _menuContainer = BuildMenu();
         }
 
@@ -43,13 +41,13 @@ namespace Veronenger.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuContainer.Start();
-            await _launcher.Play(Template.FadeIn, this, 0f, FadeMainMenuEffectTime).Await();
+            await Template.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await _launcher.Play(Template.FadeOut, this, 0f, FadeMainMenuEffectTime).Await();
+            await Template.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -75,12 +73,15 @@ namespace Veronenger.Game.Controller.Menu {
             return mainMenu;
         }
 
+        private SceneTreeTween _sceneTreeTween;
         public void DimOut() {
-            _launcher.Play(Template.FadeOut, this, 0f, 1f).Await();
+            _sceneTreeTween?.Kill();
+            _sceneTreeTween = Template.FadeOut.Play(this, 0f, 1f);
         }
 
         public void RollbackDimOut() {
-            _launcher.RemoveAll();
+            _sceneTreeTween?.Kill();
+            _sceneTreeTween = null;
             Modulate = Colors.White;
         }
 

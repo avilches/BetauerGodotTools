@@ -10,7 +10,6 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
-        [Export] public bool Enabled = true;
         [Inject] public PlatformManager PlatformManager { get; set;}
         private float _angle = 0;
         private float _speed;
@@ -20,7 +19,6 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (!Enabled) return;
             UpdateAngle(delta);
             UpdatePosition();
         }

@@ -18,7 +18,8 @@ namespace Veronenger.Game.Controller.Animation {
         [Inject] public PlatformManager PlatformManager { get; set;}
 
         private List<PhysicsBody2D> _platforms;
-        private readonly SingleSequencePlayer _sequence = new SingleSequencePlayer();
+        private SequenceBuilder _sequence;
+        private SceneTreeTween _tween;
 
         public override void _Ready() {
             Configure();
@@ -26,29 +27,28 @@ namespace Veronenger.Game.Controller.Animation {
 
         private void RotateAligned(float angle) => RotateAligned(_platforms, angle, Radius);
 
+        private SceneTreeTween _sceneTreeTween;
         private void Configure() {
-            _sequence.WithParent(this)
-                .CreateSequence(this)
+            _sequence = SequenceBuilder.Create(this)
                 .AnimateSteps<float>(RotateAligned)
                 .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easing.QuadInOut)
                 .EndAnimate()
                 .AnimateSteps<float>(RotateAligned)
                 .From(CLOCK_THREE).To(CLOCK_NINE, 1, Easing.QuadInOut)
                 .EndAnimate()
-                .SetInfiniteLoops()
-                .EndSequence()
-                .Play();
+                .SetInfiniteLoops();
+            _sceneTreeTween = _sequence.PlayForever();
 
             _platforms = this.GetChildren<PhysicsBody2D>();
             PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
         }
 
         public void Start() {
-            _sequence.Play();
+            _sceneTreeTween.Play();
         }
 
         public void Pause() {
-            _sequence.Stop();
+            _sceneTreeTween.Pause();
         }
 
         /*

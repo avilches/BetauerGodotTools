@@ -11,6 +11,7 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Memory;
 using Betauer.StateMachine;
+using Veronenger.Game.Controller.Animation;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
 using Container = Betauer.DI.Container;
@@ -90,6 +91,8 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Bootstrap logs, all always :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(TaskExtensions), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(AnimatedPlatformController), TraceLevel.All);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
@@ -104,11 +107,6 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
 
             // Animation
-            LoggerFactory.SetTraceLevel(typeof(Launcher), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(MultipleSequencePlayer), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(SingleSequencePlayer), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(RepeatablePlayer<>), TraceLevel.Error);
-            // LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);

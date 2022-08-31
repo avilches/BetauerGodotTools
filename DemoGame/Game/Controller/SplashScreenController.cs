@@ -22,7 +22,6 @@ namespace Veronenger.Game.Controller {
         [OnReady("ColorRect/CenterContainer/TextureRect")]
         private TextureRect _sprite;
 
-        private readonly Launcher _launcher = new Launcher();
         private Vector2 _baseResolutionSize;
         private bool _loadFinished = false;
         
@@ -43,15 +42,13 @@ namespace Veronenger.Game.Controller {
             _mainResourceLoader.OnProgress += context => {
                 // GD.Print("SPLASH " + context.TotalLoadedPercent);
             };
-            _launcher.WithParent(this)
-                .Play(SequenceBuilder
-                        .Create(_sprite)
-                        .SetInfiniteLoops()
-                        .AnimateSteps(null, Property.Modulate)
-                        .From(Colors.White)
-                        .To(Colors.Red, 0.2f)
-                        .EndAnimate()
-                    , _sprite);
+            SequenceBuilder
+                .Create(_sprite)
+                .SetInfiniteLoops()
+                .AnimateSteps(Property.Modulate)
+                .From(Colors.White)
+                .To(Colors.Red, 0.2f)
+                .EndAnimate().Play(_sprite);
         }
 
         public override void _Process(float delta) {

@@ -24,11 +24,10 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
-        private readonly Launcher _launcher = new Launcher();
 
-        private SceneTree _sceneTree;
         private IFlipper _flippers;
 
+        [Inject] private SceneTree _sceneTree { get; set; }
         [Inject] private GameManager _gameManager { get; set; }
         [Inject] private PlatformManager _platformManager { get; set; }
         [Inject] private CharacterManager _characterManager { get; set; }
@@ -66,9 +65,6 @@ namespace Veronenger.Game.Controller.Character {
         private AnimationStack _tweenStack;
 
         public override void _Ready() {
-            _sceneTree = GetTree();
-            _launcher.WithParent(this);
-
             _animationStack = new AnimationStack(_name, _animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
@@ -77,7 +73,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _tweenStack = new AnimationStack(_name, _animationPlayer, new SingleSequencePlayer().WithParent(this));
+            _tweenStack = new AnimationStack(_name, _animationPlayer);
             PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
             DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
             ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());
@@ -132,8 +128,8 @@ namespace Veronenger.Game.Controller.Character {
 
 
         private ISequence CreateReset() {
-            var seq = SequenceBuilder.Create()
-                .AnimateSteps<Color>(_mainSprite, Property.Modulate)
+            var seq = SequenceBuilder.Create(_mainSprite)
+                .AnimateSteps<Color>(Property.Modulate)
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -143,15 +139,15 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreatePulsate() {
-            var seq = SequenceBuilder.Create()
-                .AnimateKeys<Color>(_mainSprite, Property.Modulate)
+            var seq = SequenceBuilder.Create(_mainSprite)
+                .AnimateKeys<Color>(Property.Modulate)
                 .Duration(0.5f)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
                 .KeyframeTo(0.75f, new Color(1, 1, 1, 0.5f))
                 .KeyframeTo(1f, new Color(1, 1, 1, 1))
                 .EndAnimate()
                 .Parallel()
-                .AnimateSteps<Vector2>(this, Property.Scale2D)
+                .AnimateSteps<Vector2>(Property.Scale2D)
                 .To(new Vector2(1.4f, 1f), 0.5f)
                 .To(new Vector2(1f, 1f), 0.5f)
                 .EndAnimate();
@@ -161,8 +157,8 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreateDanger() {
-            var seq = SequenceBuilder.Create()
-                .AnimateSteps<Color>(_mainSprite, Property.Modulate, Easing.CubicInOut)
+            var seq = SequenceBuilder.Create(_mainSprite)
+                .AnimateSteps<Color>(Property.Modulate, Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -170,8 +166,8 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreateSqueeze() {
-            var seq = SequenceBuilder.Create()
-                .AnimateSteps<Vector2>(this, Property.Scale2D, Easing.SineInOut)
+            var seq = SequenceBuilder.Create(this)
+                .AnimateSteps<Vector2>(Property.Scale2D, Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()
@@ -235,8 +231,7 @@ namespace Veronenger.Game.Controller.Character {
             if (e is InputEventJoypadButton button) {
                 _consoleButton.SetButton((JoystickList)button.ButtonIndex, button.Pressed);
                 if (button.Pressed == false) {
-                    _launcher.Stop();
-                    _launcher.Play(Template.FadeOut, _consoleButton, 0, 0.6f);
+                    Template.FadeOut.Play(_consoleButton, 0, 0.6f);
                 } else {
                     _consoleButton.Modulate = Colors.White;
                 }

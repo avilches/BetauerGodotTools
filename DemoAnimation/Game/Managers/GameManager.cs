@@ -29,8 +29,6 @@ namespace DemoAnimation.Game.Managers {
         private MainMenu _mainMenuScene;
         private Node _currentGameScene;
 
-        private readonly Launcher _launcher = new Launcher();
-
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
         [Inject] private SceneTree _sceneTree { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
@@ -42,7 +40,6 @@ namespace DemoAnimation.Game.Managers {
             CreateState(State.Init)
                 .Enter(() => {
                     _screenSettingsManager.Setup();
-                    _launcher.WithParent(_sceneTree.Root);
                     _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn")
                         .Instance();
                     _sceneTree.Root.AddChild(_mainMenuScene);
