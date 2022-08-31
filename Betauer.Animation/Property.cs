@@ -78,7 +78,7 @@ namespace Betauer.Animation {
     }
 
     public interface IIndexedProperty<TProperty> : IProperty<TProperty> {
-        public string GetIndexedPropertyName(Node node);
+        public NodePath GetIndexedPropertyName(Node node);
         public void SetValue(Node target, TProperty value);
     }
 
@@ -258,9 +258,9 @@ namespace Betauer.Animation {
 
         public static implicit operator string(IndexedProperty<TProperty> from) => from._propertyName;
 
-        private readonly string _propertyName;
+        private readonly NodePath _propertyName;
 
-        public IndexedProperty(string propertyName) {
+        public IndexedProperty(NodePath propertyName) {
             _propertyName = propertyName;
         }
 
@@ -278,7 +278,7 @@ namespace Betauer.Animation {
             target.SetIndexed(GetIndexedPropertyName(target), value);
         }
 
-        public virtual string GetIndexedPropertyName(Node node) {
+        public virtual NodePath GetIndexedPropertyName(Node node) {
             return _propertyName;
         }
 
@@ -288,10 +288,10 @@ namespace Betauer.Animation {
     }
 
     public class ControlOrNode2DIndexedProperty<TProperty> : IIndexedProperty<TProperty> {
-        private readonly string _node2DProperty;
-        private readonly string _controlProperty;
+        private readonly NodePath _node2DProperty;
+        private readonly NodePath _controlProperty;
 
-        public ControlOrNode2DIndexedProperty(string node2DProperty, string controlProperty) {
+        public ControlOrNode2DIndexedProperty(NodePath node2DProperty, NodePath controlProperty) {
             _node2DProperty = node2DProperty;
             _controlProperty = controlProperty;
         }
@@ -314,7 +314,7 @@ namespace Betauer.Animation {
             return false;
         }
 
-        public string GetIndexedPropertyName(Node node) {
+        public NodePath GetIndexedPropertyName(Node node) {
             return node switch {
                 Control control => _controlProperty,
                 Node2D node2D => _node2DProperty,
