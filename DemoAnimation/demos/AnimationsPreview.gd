@@ -60,8 +60,8 @@ func _on_animation_button_pressed(button: Button) -> void:
 
 	var duration = float(durationEdit.text)
 
-	_play_animation($HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest, get_node("/root/Node2D/Node2D2/SpriteContainer/Control2/SpriteTest"), button)
-	_play_animation($HBoxContainer/VBoxContainer/ControlContainer/ControlTest, get_node("/root/Node2D/Node2D2/ControlContainer/ControlTest"), button)
+	_play_animation($HBoxContainer/VBoxContainer/SpriteContainer/Control2/SpriteTest, get_node("../../Node2D2/ControlContainer/ControlTest"), button)
+	_play_animation($HBoxContainer/VBoxContainer/ControlContainer/ControlTest, get_node("../../Node2D2/SpriteContainer/Control2/SpriteTest"), button)
 
 func _play_animation(animaNode: Node, node: Node, button: Button):
 	var script_name: String = button.get_meta('script')
