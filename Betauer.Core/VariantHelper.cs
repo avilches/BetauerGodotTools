@@ -60,7 +60,7 @@ namespace Betauer {
                     return Mathf.Lerp(fromFloat, toFloat, t);
 
                 case int fromInt when op2 is int toInt:
-                    return (int)Mathf.Lerp(fromInt, toInt, t);
+                    return Mathf.RoundToInt(Mathf.Lerp(fromInt, toInt, t));
 
                 case bool fromBool when op2 is bool toBool:
                     return Lerp(fromBool, toBool, t);
