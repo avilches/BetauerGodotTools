@@ -18,7 +18,7 @@ namespace Veronenger.Game.Controller.Animation {
         [Inject] public PlatformManager PlatformManager { get; set;}
 
         private List<PhysicsBody2D> _platforms;
-        private SequenceBuilder _sequence;
+        private Sequence _sequence;
         private SceneTreeTween _tween;
 
         public override void _Ready() {
@@ -29,7 +29,7 @@ namespace Veronenger.Game.Controller.Animation {
 
         private SceneTreeTween _sceneTreeTween;
         private void Configure() {
-            _sequence = SequenceBuilder.Create(this)
+            _sequence = Sequence.Create(this)
                 .AnimateSteps<float>(RotateAligned)
                 .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easing.QuadInOut)
                 .EndAnimate()

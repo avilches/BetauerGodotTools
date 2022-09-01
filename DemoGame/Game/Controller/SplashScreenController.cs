@@ -42,7 +42,7 @@ namespace Veronenger.Game.Controller {
             _mainResourceLoader.OnProgress += context => {
                 // GD.Print("SPLASH " + context.TotalLoadedPercent);
             };
-            SequenceBuilder
+            Sequence
                 .Create(_sprite)
                 .SetInfiniteLoops()
                 .AnimateSteps(Property.Modulate)

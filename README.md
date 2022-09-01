@@ -52,7 +52,7 @@ With just adding the container as Autoload. Dependency injection is well tested,
 - [Betauer.Animation](Betauer.Animation): a port to C# of the well known [Anima library](https://github.com/ceceppa/anima). It include up to 77 different animations from https://animate.style. This is a lot better way to use Tween to create complex and reusable animations for your scene elements. It can be used to create effects or to move and schedule rotations or translation in your platforms or characters.
 ```C#
 // This one of the 77 animations called `RollOutLeft`
-return TemplateBuilder.Create()
+return Sequence.Create()
     .SetDuration(0.5f)
     .AnimateRelativeKeys(Property.PositionBySizeX)
        .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())

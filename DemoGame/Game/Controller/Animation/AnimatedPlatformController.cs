@@ -31,7 +31,7 @@ namespace Veronenger.Game.Controller.Animation {
             _original = Position;
 
             Stopwatch x = Stopwatch.StartNew();
-            SequenceBuilder seq = SequenceBuilder
+            Sequence seq = Sequence
                 .Create(this)
                 .Callback(() => {
                     x = Stopwatch.StartNew();
@@ -50,7 +50,7 @@ namespace Veronenger.Game.Controller.Animation {
                     _logger.Debug("End "+(x.ElapsedMilliseconds)+"ms"))
                 .SetLoops(1);
 
-            SequenceBuilder seq2 = SequenceBuilder
+            Sequence seq2 = Sequence
                 .Create(this)
                 .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
                 .Offset(new Vector2(0, 50), 0.25f, Easing.LinearInOut)

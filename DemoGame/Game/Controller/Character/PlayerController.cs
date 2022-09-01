@@ -128,7 +128,7 @@ namespace Veronenger.Game.Controller.Character {
 
 
         private ISequence CreateReset() {
-            var seq = SequenceBuilder.Create(_mainSprite)
+            var seq = Sequence.Create(_mainSprite)
                 .AnimateSteps<Color>(Property.Modulate)
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
@@ -139,7 +139,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreatePulsate() {
-            var seq = SequenceBuilder.Create(_mainSprite)
+            var seq = Sequence.Create(_mainSprite)
                 .AnimateKeys<Color>(Property.Modulate)
                 .Duration(0.5f)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
@@ -157,7 +157,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreateDanger() {
-            var seq = SequenceBuilder.Create(_mainSprite)
+            var seq = Sequence.Create(_mainSprite)
                 .AnimateSteps<Color>(Property.Modulate, Easing.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
@@ -166,7 +166,7 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         private ISequence CreateSqueeze() {
-            var seq = SequenceBuilder.Create(this)
+            var seq = Sequence.Create(this)
                 .AnimateSteps<Vector2>(Property.Scale2D, Easing.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)

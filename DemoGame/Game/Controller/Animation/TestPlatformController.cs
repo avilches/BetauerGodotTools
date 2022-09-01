@@ -17,7 +17,7 @@ namespace Veronenger.Game.Controller.Animation {
         public override void _Ready() {
             // _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
             // _multipleSequencePlayer1
-            SequenceBuilder.Create(body1)
+            Sequence.Create(body1)
                 .AnimateKeys<float>(Property.Scale2DY, Easing.SineInOut)
                 .From(1f)
                 .Duration(1)
@@ -31,7 +31,7 @@ namespace Veronenger.Game.Controller.Animation {
             // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            SequenceBuilder.Create(body2)
+            Sequence.Create(body2)
                 .AnimateStepsBy(Property.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
@@ -39,7 +39,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .SetInfiniteLoops()
                 .PlayForever();
 
-            SequenceBuilder.Create(body3)
+            Sequence.Create(body3)
                 .AnimateKeys<float>(Property.Scale2DY)
                 .From(1)
                 .Duration(2f)
