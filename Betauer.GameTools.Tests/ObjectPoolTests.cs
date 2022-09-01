@@ -223,13 +223,13 @@ namespace Betauer.GameTools.Tests {
 
             objectPool.ReturnAll();
             r1.Free();
-            Assert.That(Object.IsInstanceValid(r1), Is.EqualTo(false));
+            Assert.That(Object.IsInstanceValid(r1), Is.False);
             Assert.That(objectPool.GetAvailable().Count, Is.EqualTo(1));
             Assert.That(objectPool.GetInUse().Count, Is.EqualTo(0));
 
             GR r1r = objectPool.Get();
             Assert.That(GR.Created, Is.EqualTo(2));
-            Assert.That(Object.IsInstanceValid(r1r), Is.EqualTo(true));
+            Assert.That(Object.IsInstanceValid(r1r), Is.True);
             Assert.That(objectPool.GetAvailable().Count, Is.EqualTo(0));
             Assert.That(objectPool.GetInUse().Count, Is.EqualTo(1));
         }

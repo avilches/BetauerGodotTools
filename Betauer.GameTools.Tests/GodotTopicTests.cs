@@ -110,8 +110,8 @@ namespace Betauer.GameTools.Tests {
             await this.AwaitPhysicsFrame();
 
             // They are not colliding
-            Assert.That(overlap, Is.EqualTo(false));
-            Assert.That(status.IsOverlapping, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
+            Assert.That(status.IsOverlapping, Is.False);
             Assert.That(enterCalls, Is.EqualTo(0));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -119,8 +119,8 @@ namespace Betauer.GameTools.Tests {
             body.Position = area2D.Position = Vector2.Zero;
             await this.AwaitPhysicsFrame();
 
-            Assert.That(overlap, Is.EqualTo(true));
-            Assert.That(status.IsOverlapping, Is.EqualTo(true));
+            Assert.That(overlap, Is.True);
+            Assert.That(status.IsOverlapping, Is.True);
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -128,20 +128,20 @@ namespace Betauer.GameTools.Tests {
             area2D.Position = new Vector2(2000, 2000);
             await this.AwaitPhysicsFrame();
 
-            Assert.That(overlap, Is.EqualTo(false));
-            Assert.That(status.IsOverlapping, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
+            Assert.That(status.IsOverlapping, Is.False);
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
 
             body.Dispose();
             await this.AwaitPhysicsFrame();
 
-            Assert.That(status.IsDisposed(), Is.EqualTo(true));
+            Assert.That(status.IsDisposed(), Is.True);
             foreach (var listener in topic.EnterTopic.EventListeners) {
-                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+                Assert.That(listener.IsDisposed(), Is.True);
             }
             foreach (var listener in topic.ExitTopic.EventListeners) {
-                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+                Assert.That(listener.IsDisposed(), Is.True);
             }
         }
 
@@ -172,8 +172,8 @@ namespace Betauer.GameTools.Tests {
             await this.AwaitPhysicsFrame();
 
             // They are not colliding
-            Assert.That(overlap, Is.EqualTo(false));
-            Assert.That(status.IsOverlapping, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
+            Assert.That(status.IsOverlapping, Is.False);
             Assert.That(enterCalls, Is.EqualTo(0));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -181,8 +181,8 @@ namespace Betauer.GameTools.Tests {
             from.Position = area2D.Position = Vector2.Zero;
             await this.AwaitPhysicsFrame();
 
-            Assert.That(overlap, Is.EqualTo(true));
-            Assert.That(status.IsOverlapping, Is.EqualTo(true));
+            Assert.That(overlap, Is.True);
+            Assert.That(status.IsOverlapping, Is.True);
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -190,20 +190,20 @@ namespace Betauer.GameTools.Tests {
             area2D.Position = new Vector2(2000, 2000);
             await this.AwaitPhysicsFrame();
 
-            Assert.That(overlap, Is.EqualTo(false));
-            Assert.That(status.IsOverlapping, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
+            Assert.That(status.IsOverlapping, Is.False);
             Assert.That(enterCalls, Is.EqualTo(1));
             Assert.That(exitCalls, Is.EqualTo(1));
 
             from.Dispose();
             await this.AwaitPhysicsFrame();
 
-            Assert.That(status.IsDisposed(), Is.EqualTo(true));
+            Assert.That(status.IsDisposed(), Is.True);
             foreach (var listener in topic.EnterTopic.EventListeners) {
-                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+                Assert.That(listener.IsDisposed(), Is.True);
             }
             foreach (var listener in topic.ExitTopic.EventListeners) {
-                Assert.That(listener.IsDisposed(), Is.EqualTo(true));
+                Assert.That(listener.IsDisposed(), Is.True);
             }
         }
 
@@ -239,7 +239,7 @@ namespace Betauer.GameTools.Tests {
             await this.AwaitPhysicsFrame();
 
             // They are not colliding
-            Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
             Assert.That(enterCalls, Is.EqualTo(0));
             Assert.That(exitCalls, Is.EqualTo(0));
 
@@ -248,7 +248,7 @@ namespace Betauer.GameTools.Tests {
             await this.AwaitPhysicsFrame();
 
             // The area2D has two shapes
-            Assert.That(overlap, Is.EqualTo(true));
+            Assert.That(overlap, Is.True);
             Assert.That(enterCalls, Is.EqualTo(2));
             Assert.That(exitCalls, Is.EqualTo(0));
             Assert.That(enteredOriginShapes, Contains.Item(0));
@@ -259,7 +259,7 @@ namespace Betauer.GameTools.Tests {
             area2D.Position = new Vector2(2000, 2000);
             await this.AwaitPhysicsFrame();
 
-            Assert.That(overlap, Is.EqualTo(false));
+            Assert.That(overlap, Is.False);
             Assert.That(enterCalls, Is.EqualTo(2));
             Assert.That(exitCalls, Is.EqualTo(2));
             Assert.That(exitedOriginShapes, Contains.Item(0));
