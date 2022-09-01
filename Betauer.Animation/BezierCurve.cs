@@ -5,9 +5,7 @@ namespace Betauer.Animation {
     public abstract class Easing {
         public readonly string Name;
         public abstract float GetY(float t);
-        public static Easing LinearIn = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.In);
-        public static Easing LinearOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.Out);
-        public static Easing LinearInOut = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.InOut);
+        public static Easing Linear = new GodotEasing(Tween.TransitionType.Linear, Tween.EaseType.InOut);
 
         public static Easing SineIn = new GodotEasing(Tween.TransitionType.Sine, Tween.EaseType.In);
         public static Easing SineOut = new GodotEasing(Tween.TransitionType.Sine, Tween.EaseType.Out);
