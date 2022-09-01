@@ -31,7 +31,7 @@ namespace Veronenger.Game.Controller.Animation {
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence = Sequence.Create(this)
                 .AnimateSteps<float>(RotateSpaced)
-                .From(0).To(Mathf.Tau, 4, Easing.LinearInOut)
+                .From(0).To(Mathf.Tau, 4, Easing.Linear)
                 .EndAnimate()
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.PlayForever();

@@ -38,7 +38,7 @@ namespace Veronenger.Game.Controller.Animation {
                     _logger.Debug("Start");
                 })
                 .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(100, 0), 0.25f, Easing.LinearInOut)
+                .Offset(new Vector2(100, 0), 0.25f, Easing.Linear)
                 .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
                 .AnimateSteps(Property.Modulate)
@@ -53,7 +53,7 @@ namespace Veronenger.Game.Controller.Animation {
             Sequence seq2 = Sequence
                 .Create(this)
                 .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(0, 50), 0.25f, Easing.LinearInOut)
+                .Offset(new Vector2(0, 50), 0.25f, Easing.Linear)
                 .Offset(new Vector2(0, -50), 0.25f)
                 .EndAnimate()
                 .SetLoops(2);
