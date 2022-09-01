@@ -214,12 +214,15 @@ namespace DemoAnimation.Game.Controller.Menu {
             }
         }
 
+        private SceneTreeTween _sceneTreeTween;
         public void DimOut() {
-            Template.FadeOut.Play(this, 0f, 1f);
+            _sceneTreeTween?.Kill();
+            _sceneTreeTween = Template.FadeOut.Play(this, 0f, 1f);
         }
 
         public void RollbackDimOut() {
-            // _launcher.RemoveAll();
+            _sceneTreeTween?.Kill();
+            _sceneTreeTween = null;
             Modulate = Colors.White;
         }
 
