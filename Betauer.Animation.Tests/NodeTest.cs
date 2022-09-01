@@ -23,13 +23,6 @@ namespace Betauer.Animation.Tests {
             return sprite;
         }
 
-        public async Task<TweenActionCallback> CreateTween() {
-            var tween = new TweenActionCallback();
-            AddChild(tween);
-            await this.AwaitIdleFrame();
-            return tween;
-        }
-
         public async Task<Node2D> CreateNode2D() {
             Node2D node2D = new Node2D();
             node2D.Position = new Vector2(100, 100);

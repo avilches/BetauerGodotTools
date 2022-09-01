@@ -159,7 +159,7 @@ namespace Betauer.Animation {
             var by = 3 * (p2y - p1y) - cy;
             var ax = p3x - p0x - cx - bx;
             var ay = p3y - p0y - cy - by;
-            var name = $"({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
+            var name = $"Bezier({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
             /*
            // https://godotengine.org/qa/80633/using-curve2d-to-draw-a-bezier-curve
            // https://www.reddit.com/r/godot/comments/igkbjv/using_curve2d_to_draw_a_bezier_curve/
