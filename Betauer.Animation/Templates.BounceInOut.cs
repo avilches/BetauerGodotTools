@@ -6,9 +6,9 @@ namespace Betauer.Animation {
         private const float BounceInNoDirectionDuration = 0.75f; // Animate.css: 0.75f
         private const float BounceEntranceDuration = 1f; // Animate.css: 1f
 
-        internal static SequenceTemplate BounceIn() {
+        internal static Sequence BounceIn() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -25,13 +25,12 @@ namespace Betauer.Animation {
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(0.60f, 1.0f)
                 .KeyframeTo(1.00f, 1.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceInUp(float distance = 0) {
+        internal static Sequence BounceInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInUp.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -55,13 +54,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceInDown(float distance = 0) {
+        internal static Sequence BounceInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInDown.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -85,13 +83,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceInLeft(float distance = 0) {
+        internal static Sequence BounceInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInLeft.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -115,13 +112,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceInRight(float distance = 0) {
+        internal static Sequence BounceInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceInRight.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -145,16 +141,15 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
 
 
 
-        internal static SequenceTemplate BounceOut() {
+        internal static Sequence BounceOut() {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceIn.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceInNoDirectionDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -168,13 +163,12 @@ namespace Betauer.Animation {
                 .KeyframeTo(0.00f, 1f)
                 .KeyframeTo(0.55f, 1f)
                 .KeyframeTo(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceOutUp(float distance = 0) {
+        internal static Sequence BounceOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -196,13 +190,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.40f, 20f)
                 .KeyframeOffset(0.45f, 20f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceOutDown(float distance = 0) {
+        internal static Sequence BounceOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutUp.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(Property.Scale2DY)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -224,13 +217,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.40f, -20f)
                 .KeyframeOffset(0.45f, -20f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceOutLeft(float distance = 0) {
+        internal static Sequence BounceOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -248,13 +240,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 20f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BounceOutRight(float distance = 0) {
+        internal static Sequence BounceOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/bouncing_entrances/bounceOutRight.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BounceEntranceDuration)
                 .AnimateKeys(Property.Scale2DX)
                 .KeyframeTo(0.00f, 1f, null, node => node.SetRotateOriginToCenter())
@@ -272,8 +263,7 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, -20f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
 

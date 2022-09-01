@@ -7,20 +7,19 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/fading_entrances
 
-        internal static SequenceTemplate FadeIn() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeIn() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInUp() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInUp() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -32,12 +31,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInUpBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInUpBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -49,12 +47,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInDown() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInDown() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -66,12 +63,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInDownBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInDownBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -83,12 +79,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -100,12 +95,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInLeftBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInLeftBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -117,12 +111,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInRight() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -134,12 +127,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInRightBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInRightBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -151,13 +143,12 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
 
-        internal static SequenceTemplate FadeInTopLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInTopLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -169,12 +160,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInTopRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInTopRight() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -186,12 +176,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInBottomLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInBottomLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -203,12 +192,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeInBottomRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeInBottomRight() {
+            return Sequence.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -220,8 +208,7 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
     }
 }

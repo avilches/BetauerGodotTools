@@ -9,8 +9,8 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/specials
 
-        internal static SequenceTemplate Hinge() {
-            return TemplateBuilder.Create()
+        internal static Sequence Hinge() {
+            return Sequence.Create()
                 .SetDuration(HingeDuration)
                 .AnimateRelativeKeys(Property.PositionY) // TODO: try this one instead,Easing.QuadInOut)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToTopLeft())
@@ -31,12 +31,11 @@ namespace Betauer.Animation {
                 .KeyframeTo(0.0f, 1.0f)
                 .KeyframeTo(0.80f, 1.0f)
                 .KeyframeTo(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate JackInTheBox() {
-            return TemplateBuilder.Create()
+        internal static Sequence JackInTheBox() {
+            return Sequence.Create()
                 .SetDuration(JackInTheBoxDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -55,12 +54,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate RollInLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence RollInLeft() {
+            return Sequence.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -77,12 +75,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate RollInRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence RollInRight() {
+            return Sequence.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -99,12 +96,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate RollOutLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence RollOutLeft() {
+            return Sequence.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -121,12 +117,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate RollOutRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence RollOutRight() {
+            return Sequence.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
@@ -141,8 +136,7 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
     }
 }

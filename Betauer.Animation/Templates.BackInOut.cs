@@ -5,9 +5,9 @@ namespace Betauer.Animation {
     internal static partial class Templates {
         private const float BackInOutDuration = 0.75f; // Animate.css: 1f
 
-        internal static SequenceTemplate BackInUp(float distance = 0) {
+        internal static Sequence BackInUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInUp.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -27,13 +27,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .KeyframeOffset(0.80f, 0f)
                 .KeyframeOffset(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackInDown(float distance = 0) {
+        internal static Sequence BackInDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInDown.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .SetDuration(BackInOutDuration)
@@ -53,13 +52,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .KeyframeOffset(0.80f, 0f)
                 .KeyframeOffset(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackInLeft(float distance = 0) {
+        internal static Sequence BackInLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInLeft.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -79,13 +77,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .KeyframeOffset(0.80f, 0f)
                 .KeyframeOffset(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackInRight(float distance = 0) {
+        internal static Sequence BackInRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backInRight.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -105,13 +102,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .KeyframeOffset(0.80f, 0f)
                 .KeyframeOffset(1.00f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackOutUp(float distance = 0) {
+        internal static Sequence BackOutUp(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutUp.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -129,13 +125,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackOutDown(float distance = 0) {
+        internal static Sequence BackOutDown(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutDown.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -153,13 +148,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackOutLeft(float distance = 0) {
+        internal static Sequence BackOutLeft(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutLeft.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -177,13 +171,12 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate BackOutRight(float distance = 0) {
+        internal static Sequence BackOutRight(float distance = 0) {
             // https://github.com/animate-css/animate.css/blob/main/source/back_entrances/backOutRight.css
-            return TemplateBuilder.Create()
+            return Sequence.Create()
                 .SetDuration(BackInOutDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -201,8 +194,7 @@ namespace Betauer.Animation {
                 .KeyframeOffset(0.00f, 0f)
                 .KeyframeOffset(0.20f, 0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
     }
 }

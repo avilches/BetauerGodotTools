@@ -7,18 +7,17 @@ namespace Betauer.Animation {
 
         // https://github.com/animate-css/animate.css/tree/main/source/fading_exits
 
-        internal static SequenceTemplate FadeOut() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOut() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutUp() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutUp() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
@@ -28,12 +27,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutUpBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutUpBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(Property.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
@@ -43,12 +41,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutDown() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutDown() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
@@ -58,12 +55,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutDownBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutDownBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(Property.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
@@ -73,12 +69,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
@@ -88,12 +83,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutLeftBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutLeftBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(Property.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
@@ -103,12 +97,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutRight() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
@@ -118,12 +111,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutRightBig(float distance = 0) {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutRightBig(float distance = 0) {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateRelativeKeys(Property.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
@@ -133,13 +125,12 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
 
-        internal static SequenceTemplate FadeOutTopLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutTopLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
@@ -149,12 +140,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutTopRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutTopRight() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
@@ -164,12 +154,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutBottomLeft() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutBottomLeft() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
@@ -179,12 +168,11 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
-        internal static SequenceTemplate FadeOutBottomRight() {
-            return TemplateBuilder.Create()
+        internal static Sequence FadeOutBottomRight() {
+            return Sequence.Create()
                 .SetDuration(FadeOutDuration)
                 .AnimateKeys(Property.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
@@ -194,8 +182,7 @@ namespace Betauer.Animation {
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
-                .EndAnimate()
-                .BuildTemplate();
+                .EndAnimate();
         }
 
 

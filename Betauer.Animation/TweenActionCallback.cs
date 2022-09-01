@@ -24,7 +24,7 @@ namespace Betauer.Animation {
     /// <summary>
     /// A Tween compatible with C# lambdas, aka, Actions.
     /// Instead of Tween.InterpolateCallback(object, 0f, "method") you can use:
-    /// ScheduleCallback(0f, () => {})
+    /// TweenCallbackAction(0f, () => {})
     ///
     /// Instead of Tween.InterpolateMethod(object, "method", 0, 12, ...) you can use:
     /// InterpolateAction(0, 12, ..., (val) => { })
