@@ -1,86 +1,121 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Nodes;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Memory {
     public interface IObjectWatched {
-        public bool MustBeFreed();
-        public Object Object { get; }
+        public bool Process(bool force);
     }
 
-    public class ObjectWatcherNode : Node {
-        private readonly IObjectWatcher? _objectWatcher;
-        private IObjectWatcher ObjectWatcher => _objectWatcher ?? DefaultObjectWatcher.Instance;
-        private readonly float _seconds;
-        private float _timeElapsed = 0;
+    /// <summary>
+    /// If any of the Watching objects is not valid, it will free (deferred or immediately) the targets 
+    /// </summary>
+    public class WatchAndFree : IObjectWatched {
+        public readonly Object[] Targets;
+        public readonly Object[] Watching;
+        public readonly bool Deferred;
 
-        public ObjectWatcherNode(float seconds = 10, IObjectWatcher? objectWatcher = null) {
-            _seconds = seconds;
-            _objectWatcher = objectWatcher;
-            PauseMode = PauseModeEnum.Process;
+        public WatchAndFree(Object[] targets, Object[] watching, bool deferred) {
+            Targets = targets;
+            Watching = watching;
+            Deferred = deferred;
         }
 
-        public override void _Ready() {
-            this.DisableAllNotifications();
-            SetProcess(true);
+        public WatchAndFree(Object target, Object watching, bool deferred) :
+            this(new[] { target }, watching, deferred) {
         }
 
-        public override void _Process(float delta) {
-            _timeElapsed += delta;
-            if (_timeElapsed < _seconds) return;
-            _timeElapsed -= _seconds;
-            ObjectWatcher.Process();
+        public WatchAndFree(Object target, Object[] watching, bool deferred) :
+            this(new[] { target }, watching, deferred) {
         }
 
-        protected override void Dispose(bool disposing) {
-            ObjectWatcher.Dispose();
+        public WatchAndFree(Object[] target, Object watching, bool deferred) :
+            this(target, new[] { watching }, deferred) {
+        }
+
+        public bool Process(bool force) {
+            if (force) {
+                FreeNow();
+                OnFree(true);
+                return true;
+            }
+            if (IsWatchedValid()) {
+                return false; // All watching objects are ok
+            }
+            // At least one watching object is not valid, free!
+            if (Deferred) FreeDeferred();
+            else FreeNow();
+            OnFree(false);
+            return true;
+        }
+
+        private void FreeNow() {
+            Targets.Where(Object.IsInstanceValid).ForEach(o => o.Free());
+        }
+
+        private void FreeDeferred() {
+            foreach (var target in Targets.Where(Object.IsInstanceValid)) {
+                if (target is Node node) node.QueueFree();
+                else target.CallDeferred("free");
+            }
+        }
+
+        public virtual void OnFree(bool force) {
+        }
+
+        public virtual bool IsWatchedValid() {
+            return Watching.All(Object.IsInstanceValid);
         }
     }
 
     public class DefaultObjectWatcher {
-        public static IObjectWatcher Instance = new ObjectWatcher();
+        public static ObjectWatcherRunner Instance = new ObjectWatcherRunner();
     }
 
-    public interface IObjectWatcher : IDisposable {
-        public void Watch(IObjectWatched o);
-        public void Unwatch(IObjectWatched o);
-        public void Process();
-        public int WatchingCount { get; }
+    public class ObjectWatcher {
+        private readonly List<IObjectWatched> _queue = new List<IObjectWatched>();
+
+        public int WatchingCount => _queue.Count;
+
+        public List<IObjectWatched> ToList() {
+            lock (_queue) return new List<IObjectWatched>(_queue);
+        }
+
+        public int Process(bool force = false) {
+            lock (_queue) return _queue.RemoveAll(e => e.Process(force));
+        }
+
+        public void Watch(IObjectWatched o) {
+            lock (_queue) _queue.Add(o);
+        }
+
+        public void Unwatch(IObjectWatched o) {
+            lock (_queue) _queue.RemoveAll(x => x == o);
+        }
+
+        public virtual void Dispose() {
+            Process(true);
+        }
     }
 
-    public class ObjectWatcher : IObjectWatcher {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ObjectWatcher));
-        private readonly ConditionalConsumer<IObjectWatched> _watcher;
+    public class ObjectWatcherRunner : ObjectWatcher {
+        public readonly GodotScheduler Scheduler;
 
-        public ObjectWatcher() {
-            _watcher = new ConditionalConsumer<IObjectWatched>(
-                o => o.MustBeFreed() || !Object.IsInstanceValid(o.Object),
-                objects => {
-                    foreach (var o in objects.Select(o => o.Object).Where(Object.IsInstanceValid)) {
-                        o.CallDeferred("free");
-                    }
-                });
+        public ObjectWatcherRunner() {
+            // The Runner should run even if the SceneTree is paused
+            Scheduler = new GodotScheduler(_OnSchedule, false);
         }
 
-        public void Watch(IObjectWatched o) => _watcher.Add(o);
-        public void Unwatch(IObjectWatched o) => _watcher.Remove(o);
-
-        public int WatchingCount => _watcher.Size;
-
-        public void Process() {
-            var freed = _watcher.Consume();
-#if DEBUG
-            if (freed > 0) {
-                Logger.Debug($"Watching:{_watcher.Size} (-{freed})");
-            }
-#endif
+        public GodotScheduler Start(float seconds = 10f) {
+            return Scheduler.Start(seconds);
         }
 
-        public void Dispose() {
-            _watcher.ForceConsumeAll();
+        private void _OnSchedule() => Process(false);
+
+        public override void Dispose() {
+            base.Dispose();
+            Scheduler.Stop();
         }
     }
 }
