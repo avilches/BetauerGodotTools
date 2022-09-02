@@ -34,6 +34,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Lambda with value only property")]
         public async Task LambdaValueProperty() {
+            Engine.TimeScale = 1;
             var spritePlayer = await CreateSprite();
             List<int> values1s = new List<int>();
             List<int> values1sb = new List<int>();
@@ -45,7 +46,7 @@ namespace Betauer.Animation.Tests {
             await Sequence.Create(spritePlayer)
                 // values1 animation
                 .AnimateSteps((int x) => values1s.Add(x))
-                .From(8).To(10, 0.2f).EndAnimate()
+                .From(8).To(14, 0.2f).EndAnimate()
                 .AnimateStepsBy((int x) => values1sb.Add(x))
                 .From(9).Offset(10, 0.2f).EndAnimate()
                 .AnimateRelativeSteps((int x) => values1rs.Add(x))
@@ -66,7 +67,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(values1kb[0], Is.EqualTo(12));
             Assert.That(values1rk[0], Is.EqualTo(13));
 
-            Assert.That(values1s.Last(), Is.EqualTo(10));
+            Assert.That(values1s.Last(), Is.EqualTo(14));
             Assert.That(values1sb.Last(), Is.EqualTo(19));
             Assert.That(values1rs.Last(), Is.EqualTo(20));
             Assert.That(values1k.Last(), Is.EqualTo(15));
@@ -76,6 +77,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Lambda with node and value property")]
         public async Task LambdaNodeValueProperty() {
+            Engine.TimeScale = 1;
             var spriteAnimation = await CreateSprite();
             List<int> values1s = new List<int>();
             List<int> values1sb = new List<int>();
@@ -90,7 +92,7 @@ namespace Betauer.Animation.Tests {
                     Assert.That(node, Is.EqualTo(spriteAnimation));
                     values1s.Add(x);
                 })
-                .From(8).To(10, 0.2f).EndAnimate()
+                .From(8).To(14, 0.2f).EndAnimate()
                 .AnimateStepsBy((Node node, int x) => {
                     Assert.That(node, Is.EqualTo(spriteAnimation));
                     values1sb.Add(x);
@@ -126,7 +128,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(values1kb[0], Is.EqualTo(12));
             Assert.That(values1rk[0], Is.EqualTo(13));
 
-            Assert.That(values1s.Last(), Is.EqualTo(10));
+            Assert.That(values1s.Last(), Is.EqualTo(14));
             Assert.That(values1sb.Last(), Is.EqualTo(19));
             Assert.That(values1rs.Last(), Is.EqualTo(20));
             Assert.That(values1k.Last(), Is.EqualTo(15));
