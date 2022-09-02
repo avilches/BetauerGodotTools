@@ -4,92 +4,6 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Signal {
-
-    public static class SignalFactory {
-        public static SignalHandler Create(Object origin, string signal, Action action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-        
-        public static SignalHandler Create<T>(Object origin, string signal, Action<T> action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction<T>(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-        
-        public static SignalHandler Create<T1, T2>(Object origin, string signal, Action<T1, T2> action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction<T1, T2>(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-        
-        public static SignalHandler Create<T1, T2, T3>(Object origin, string signal, Action<T1, T2, T3> action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction<T1, T2, T3>(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-        
-        public static SignalHandler Create<T1, T2, T3, T4>(Object origin, string signal, Action<T1, T2, T3, T4> action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction<T1, T2, T3, T4>(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-        
-        public static SignalHandler Create<T1, T2, T3, T4, T5>(Object origin, string signal, Action<T1, T2, T3, T4, T5> action, bool oneShot, bool deferred) {
-            Object target;
-            string methodName;
-            if (action.Target is Object obj) {
-                target = obj;
-                methodName = action.Method.Name;
-            } else {
-                target = new SignalObjectTargetAction<T1, T2, T3, T4, T5>(origin, action, oneShot);
-                methodName = nameof(SignalObjectTargetAction.GodotCall);
-
-            } 
-            return new SignalHandler(origin, signal, target, methodName, oneShot, deferred);
-        }
-    }
-    
     public static class SignalTools {
         public static uint SignalFlags(bool oneShot, bool deferred = false) =>
             (oneShot ? (uint)Object.ConnectFlags.Oneshot : 0) +
@@ -97,212 +11,221 @@ namespace Betauer.Signal {
             0;
     }
 
-    public class SignalHandler {
+    public abstract class SignalHandler : Object {
         public readonly Object Origin;
         public readonly string Signal;
-        public readonly Object Target;
-        public readonly string TargetMethodName;
         public readonly bool OneShot;
         public readonly bool Deferred;
-        private string? _targetName;
-        public SignalHandler(Object origin, string signal, Object target, string targetMethodName, bool oneShot = false, bool deferred = false) {
+        private bool _deferredWatchCall = true;
+        private bool _watched = false;
+        private WatchAndFree? _signalHandlerWatched;
+        protected readonly Delegate Delegate; 
+
+        protected SignalHandler(Object origin, string signal, Delegate @delegate, bool oneShot = false, bool deferred = false) {
             Origin = origin;
             Signal = signal;
-            Target = target;
-            TargetMethodName = targetMethodName;
+            Delegate = @delegate;
             OneShot = oneShot;
             Deferred = deferred;
-            _targetName = Target is Node node ? node.Name : null;
             Connect();
+            Watch();
+        }
+        
+        public SignalHandler Watch() {
+            if (_signalHandlerWatched == null) {
+                var watching = Delegate.Target is Object o ? new [] { o, Origin } : new[] { Origin }; 
+                _signalHandlerWatched = new WatchAndFree(this, watching, true);
+                DefaultObjectWatcher.Instance.Watch(_signalHandlerWatched);
+            }
+            return this;
         }
 
-        public bool IsValid() => Object.IsInstanceValid(Target) && Object.IsInstanceValid(Origin);
+        public SignalHandler Unwatch() {
+            if (_signalHandlerWatched != null) {
+                DefaultObjectWatcher.Instance.Unwatch(_signalHandlerWatched);
+                _signalHandlerWatched = null;
+            }
+            return this;
+        }
+
 
         public void Connect() {
-            if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
-            Error err = Origin.Connect(Signal, Target, TargetMethodName, null, SignalTools.SignalFlags(OneShot, Deferred));
+            if (!IsInstanceValid(Origin)) 
+                throw new Exception($"Can't connect '{Signal}' from a freed {Origin.GetType().Name}");
+            
+            var flags = SignalTools.SignalFlags(OneShot, Deferred);
+            Error err = Origin.Connect(Signal, this, nameof(SignalObjectTargetAction.GodotCall), null, flags);
+            
             if (err != Error.Ok) {
-                throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
+                var name = $"{Origin.GetType().Name} '{(Origin is Node node ? node.Name : null)}'";
+                throw new Exception($"Connecting signal '{Signal}' from {name} failed: {err}");
             }
         }
 
         public bool IsConnected() {
-            return IsValid() && Origin.IsConnected(Signal, Target, TargetMethodName);
+            return IsInstanceValid(Origin) && Origin.IsConnected(Signal, this, nameof(SignalObjectTargetAction.GodotCall));
         }
 
         public void Disconnect() {
-            if (IsConnected()) Origin.Disconnect(Signal, Target, TargetMethodName);
-        }
-
-        public void Dispose() {
-            if (Target is SignalObjectTarget a) a.Dispose();
-        }
-
-        public void Unwatch() {
-            if (Target is SignalObjectTarget a) a.Unwatch();
-        }
-    }
-
-    internal abstract class SignalObjectTarget : DisposableGodotObject, IObjectWatched {
-        public readonly Object Origin;
-        public readonly bool OneShot;
-
-        protected SignalObjectTarget(Object origin, bool oneShot) {
-            Origin = origin;
-            OneShot = oneShot;
-            DefaultObjectWatcher.Instance.Watch(this);
+            if (IsConnected()) Origin.Disconnect(Signal, this, nameof(SignalObjectTargetAction.GodotCall));
         }
 
         protected void AfterCall() {
             if (OneShot) CallDeferred("free");
         }
 
-        public bool MustBeFreed() => !IsInstanceValid(Origin);
-
-        public Object Object => this;
-
-        public void Unwatch() {
-            DefaultObjectWatcher.Instance.Unwatch(this);
+        public bool IsValid() {
+            return IsInstanceValid(Origin);
         }
     }
 
-    internal abstract class SignalObjectTarget<T> : SignalObjectTarget {
-        protected readonly T Action;
+    internal class SignalObjectTargetAction : SignalHandler {
+        private readonly Action _action;
 
-        protected SignalObjectTarget(Object origin, T action, bool oneShot): base(origin, oneShot) {
-            Action = action;
-        }
-    }
-
-    internal class SignalObjectTargetAction : SignalObjectTarget<Action> {
-        public SignalObjectTargetAction(Object origin, Action action, bool oneShot) : base(origin, action, oneShot) {
+        public SignalObjectTargetAction(Object origin, string signal, Action action, bool oneShot = false,
+            bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall() {
             try {
-                Action();
-            } catch (Exception e) {
-                throw e;
+                _action();
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1> : SignalObjectTarget<Action<T1>> {
-        public SignalObjectTargetAction(Object origin, Action<T1> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1> : SignalHandler {
+        private readonly Action<T1> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1> action, bool oneShot = false,
+            bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1) {
             try {
-                Action(v1);
-            } catch (Exception e) {
-                throw e;
+                _action(v1);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2> : SignalObjectTarget<Action<T1, T2>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2> : SignalHandler {
+        private readonly Action<T1, T2> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2> action, bool oneShot = false,
+            bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2) {
             try {
-                Action(v1, v2);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2, T3> : SignalObjectTarget<Action<T1, T2, T3>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2, T3> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2, T3> : SignalHandler {
+        private readonly Action<T1, T2, T3> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2, T3> action, bool oneShot = false,
+            bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3) {
             try {
-                Action(v1, v2, v3);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2, T3, T4> : SignalObjectTarget<Action<T1, T2, T3, T4>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2, T3, T4> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2, T3, T4> : SignalHandler {
+        private readonly Action<T1, T2, T3, T4> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2, T3, T4> action, 
+            bool oneShot = false, bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3, T4 v4) {
             try {
-                Action(v1, v2, v3, v4);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3, v4);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5> : SignalObjectTarget<Action<T1, T2, T3, T4, T5>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2, T3, T4, T5> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5> : SignalHandler {
+        private readonly Action<T1, T2, T3, T4, T5> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2, T3, T4, T5> action,
+            bool oneShot = false, bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5) {
             try {
-                Action(v1, v2, v3, v4, v5);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3, v4, v5);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5, T6> : SignalObjectTarget<Action<T1, T2, T3, T4, T5, T6>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5, T6> : SignalHandler {
+        private readonly Action<T1, T2, T3, T4, T5, T6> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2, T3, T4, T5, T6> action,
+            bool oneShot = false, bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6) {
             try {
-                Action(v1, v2, v3, v4, v5, v6);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3, v4, v5, v6);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5, T6, T7> : SignalObjectTarget<Action<T1, T2, T3, T4, T5, T6, T7>> {
-        public SignalObjectTargetAction(Object origin, Action<T1, T2, T3, T4, T5, T6, T7> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTargetAction<T1, T2, T3, T4, T5, T6, T7> : SignalHandler {
+        private readonly Action<T1, T2, T3, T4, T5, T6, T7> _action;
+
+        public SignalObjectTargetAction(Object origin, string signal, Action<T1, T2, T3, T4, T5, T6, T7> action,
+            bool oneShot = false, bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7) {
             try {
-                Action(v1, v2, v3, v4, v5, v6, v7);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3, v4, v5, v6, v7);
             } finally {
                 AfterCall();
             }
         }
     }
 
-    internal class SignalObjectTarget<T1, T2, T3, T4, T5, T6, T7, T8> : SignalObjectTarget<Action<T1, T2, T3, T4, T5, T6, T7, T8>> {
-        public SignalObjectTarget(Object origin, Action<T1, T2, T3, T4, T5, T6, T7, T8> action, bool oneShot) : base(origin, action, oneShot) {
+    internal class SignalObjectTarget<T1, T2, T3, T4, T5, T6, T7, T8> : SignalHandler {
+        private readonly Action<T1, T2, T3, T4, T5, T6, T7, T8> _action;
+
+        public SignalObjectTarget(Object origin, string signal, Action<T1, T2, T3, T4, T5, T6, T7, T8> action, 
+            bool oneShot = false, bool deferred = false) : base(origin, signal, action, oneShot, deferred) {
+            _action = action;
         }
 
         public void GodotCall(T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8) {
             try {
-                Action(v1, v2, v3, v4, v5, v6, v7, v8);
-            } catch (Exception e) {
-                throw e;
+                _action(v1, v2, v3, v4, v5, v6, v7, v8);
             } finally {
                 AfterCall();
             }

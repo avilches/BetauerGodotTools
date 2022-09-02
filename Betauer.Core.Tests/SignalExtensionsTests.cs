@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.Memory;
 using Betauer.Signal;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Object = Godot.Object;
 
 namespace Betauer.Tests {
     [TestFixture]
@@ -17,65 +15,87 @@ namespace Betauer.Tests {
             LoggerFactory.SetTraceLevel(typeof(ObjectWatcher), TraceLevel.All);
         }
 
-        private int _executed1 = 0;
-        public void Pressed1() {
-            _executed1++;
+        [Test(Description = "Unwatch/watch")]
+        public async Task UnwatchWatch() {
+            var b1 = new CheckButton();
+            AddChild(b1);
+            await this.AwaitIdleFrame();
+            
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+
+            SignalHandler p1 = b1.OnPressed(() => { });
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+
+            // Another Watch is ignored
+            p1.Watch();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            
+            p1.Unwatch();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+
+            // Another Unwatch is ignored
+            p1.Unwatch();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+
+            p1.Watch();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
         }
 
-        [Test(Description = "Signal connect and disconnect (with method)")]
+        public class Dummy : Object {
+            public int Executed1 = 0;
+            public void Pressed1() {
+                Executed1++;
+            }
+            
+        }
+        [Test(Description = "Signal method works + watch owner")]
         public async Task SignalToMethodTest() {
             var b1 = new CheckButton();
             AddChild(b1);
             await this.AwaitIdleFrame();
 
-            SignalHandler p1 = b1.OnPressed(Pressed1);
-            Assert.That(p1.IsValid(), Is.True);
-            Assert.That(p1.IsConnected(), Is.True);
-            Assert.That(p1.Target, Is.EqualTo(this));
-
+            var o = new Dummy();
+            b1.OnPressed(o.Pressed1);
             b1.EmitSignal("pressed");
-            Assert.That(_executed1, Is.EqualTo(1));
+            Assert.That(o.Executed1, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+
+            // Watch object still there
+            DefaultObjectWatcher.Instance.Process();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
             
-            p1.Disconnect();
-            Assert.That(p1.IsValid(), Is.True);
-            Assert.That(p1.IsConnected(), Is.False);
+            // When method owner is freed, watch object is disposed
+            o.Free();
+            DefaultObjectWatcher.Instance.Process();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
 
-            b1.EmitSignal("pressed");
-            Assert.That(_executed1, Is.EqualTo(1));
-
-            p1.Connect();
-            Assert.That(p1.IsValid(), Is.True);
-            Assert.That(p1.IsConnected(), Is.True);
-
-            b1.EmitSignal("pressed");
-            b1.EmitSignal("pressed");
-            Assert.That(_executed1, Is.EqualTo(3));
-            
-            b1.Free();
-            Assert.That(p1.IsValid(), Is.False);
-            Assert.That(p1.IsConnected(), Is.False);
         }
 
-        [Test(Description = "Signal with object method is not watched")]
-        public async Task SignalToMethodIsNotWatchedTests() {
+        [Test(Description = "Signal lambda works + watch signal origin")]
+        public async Task SignalLambdaWorksAndWatchTest() {
             var b1 = new CheckButton();
             AddChild(b1);
             await this.AwaitIdleFrame();
+            var executed1 = 0;
+
+            SignalHandler p1 = b1.OnPressed(() => executed1++);
+            b1.EmitSignal("pressed");
+            Assert.That(executed1, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+
+            // Watch object still there
+            DefaultObjectWatcher.Instance.Process();
+            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
             
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
-            
-            SignalHandler p1 = b1.OnPressed(Pressed1);
-            Assert.That(p1.IsValid(), Is.True);
-            Assert.That(p1.IsConnected(), Is.True);
-            Assert.That(p1.Target, Is.EqualTo(this));
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
-            
-            p1.Unwatch();
+            // When signal origin is freed, watch object is disposed
+            b1.Free();
+            DefaultObjectWatcher.Instance.Process();
             Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
         }
 
-        [Test(Description = "Signal connect and disconnect (with lambda)")]
-        public async Task SignalToLambdaTest() {
+
+        [Test(Description = "Signal connect and disconnect")]
+        public async Task ConnectAndDisconnect() {
             var b1 = new CheckButton();
             AddChild(b1);
             await this.AwaitIdleFrame();
@@ -84,7 +104,6 @@ namespace Betauer.Tests {
             SignalHandler p1 = b1.OnPressed(() => executed1 ++);
             Assert.That(p1.IsValid(), Is.True);
             Assert.That(p1.IsConnected(), Is.True);
-            Assert.That(p1.Target, Is.InstanceOf<IObjectWatched>());
 
             b1.EmitSignal("pressed");
             Assert.That(executed1, Is.EqualTo(1));
@@ -105,7 +124,6 @@ namespace Betauer.Tests {
             Assert.That(executed1, Is.EqualTo(3));
             
             b1.Free();
-            Assert.That(p1.IsValid(), Is.False);
             Assert.That(p1.IsConnected(), Is.False);
         }
 
@@ -117,7 +135,6 @@ namespace Betauer.Tests {
             var executed1 = 0;
 
             SignalHandler p1 = b1.OnPressed(() => executed1 ++, true);
-            Assert.That(p1.Target, Is.InstanceOf<IObjectWatched>());
 
             b1.EmitSignal("pressed");
             Assert.That(executed1, Is.EqualTo(1));
@@ -128,15 +145,13 @@ namespace Betauer.Tests {
             Assert.That(executed1, Is.EqualTo(1));
 
             // It's not marked as freed because the origin is still alive
-            Assert.That(p1.Target is IObjectWatched ww1 && ww1.MustBeFreed(), Is.False);
             Assert.That(p1.IsConnected(), Is.False);
             // It's still valid because the free is called with deferred
-            Assert.That(IsInstanceValid(p1.Target), Is.True);
+            Assert.That(IsInstanceValid(p1), Is.True);
 
             // freed in the next frame
             await this.AwaitIdleFrame();
-            Assert.That(p1.Target is IObjectWatched ww2 && ww2.MustBeFreed(), Is.False);
-            Assert.That(IsInstanceValid(p1.Target), Is.False);
+            Assert.That(IsInstanceValid(p1), Is.False);
         }
 
         [Test(Description = "Signal lambda deferred should work next frame")]
@@ -147,7 +162,6 @@ namespace Betauer.Tests {
             var executed1 = 0;
 
             SignalHandler p1 = b1.OnPressed(() => executed1 ++, false, true);
-            Assert.That(p1.Target, Is.InstanceOf<IObjectWatched>());
 
             b1.EmitSignal("pressed");
             b1.EmitSignal("pressed");
@@ -166,7 +180,6 @@ namespace Betauer.Tests {
             var executed1 = 0;
 
             SignalHandler p1 = b1.OnPressed(() => executed1 ++, true, true);
-            Assert.That(p1.Target, Is.InstanceOf<IObjectWatched>());
 
             b1.EmitSignal("pressed");
             b1.EmitSignal("pressed");
@@ -176,21 +189,8 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             Assert.That(executed1, Is.EqualTo(1));
             // Use CallDeferred() in an idle frame is called immediately, not in the next one
-            Assert.That(IsInstanceValid(p1.Target), Is.False);
+            Assert.That(IsInstanceValid(p1), Is.False);
 
-        }
-
-        [Test(Description = "Signal lambda is marked as mustBeFreed = true if origin is free or disposed")]
-        public async Task SignalToLambdaMarkedAsMustBeFreedTest() {
-            var b1 = new CheckButton();
-            AddChild(b1);
-            await this.AwaitIdleFrame();
-
-            SignalHandler p1 = b1.OnPressed(() => { }, true);
-            Assert.That(p1.Target is IObjectWatched www2 && www2.MustBeFreed(), Is.False);
-            
-            b1.Dispose();
-            Assert.That(p1.Target is IObjectWatched www3 && www3.MustBeFreed(), Is.True);
         }
 
         [Test(Description = "Signal lambda is watched and unwatched")]
