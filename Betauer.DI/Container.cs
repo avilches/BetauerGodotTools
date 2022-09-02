@@ -66,12 +66,11 @@ namespace Betauer.DI {
         public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
 
         public Container Build(ICollection<IProvider> providers) {
-            foreach (var provider in providers) AddToRegistry(provider);
-            foreach (var provider in providers) {
-                if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
-                    provider.Get(this);
-                }
-            }
+            providers
+                .ForEach(provider => AddToRegistry(provider));
+            providers
+                .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
+                .ForEach(provider => provider.Get(this));
             return this;
         }
 

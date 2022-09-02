@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Betauer.Reflection;
 
@@ -98,21 +99,20 @@ namespace Betauer.DI {
             return this;
         }
 
-        public ContainerBuilder Scan(IEnumerable<Assembly> assemblies, Predicate<Type>? predicate = null) {
-            foreach (var assembly in assemblies) Scan(assembly, predicate);
+        public ContainerBuilder Scan(IEnumerable<Assembly> assemblies, Func<Type, bool>? predicate = null) {
+            assemblies.ForEach(assembly => Scan(assembly, predicate));
             return this;
         }
 
-        public ContainerBuilder Scan(Assembly assembly, Predicate<Type>? predicate = null) {
+        public ContainerBuilder Scan(Assembly assembly, Func<Type, bool>? predicate = null) {
             _logger.Info("Scanning " + assembly);
             Scan(assembly.GetTypes(), predicate);
             return this;
         }
 
-        public ContainerBuilder Scan(IEnumerable<Type> types, Predicate<Type>? predicate = null) {
-            foreach (Type type in types) {
-                if (predicate?.Invoke(type) ?? true) Scan(type);
-            }
+        public ContainerBuilder Scan(IEnumerable<Type> types, Func<Type, bool>? predicate = null) {
+            if (predicate != null) types = types.Where(predicate);
+            types.ForEach(type => Scan(type));
             return this;
         }
 
@@ -125,9 +125,9 @@ namespace Betauer.DI {
             foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
-                foreach (var typeToImport in importAttribute.Types) {
-                    if (!stack.Contains(typeToImport)) _Scan(typeToImport, stack);
-                }
+                importAttribute.Types
+                    .Where(typeToImport => !stack.Contains(typeToImport))
+                    .ForEach(typeToImport => _Scan(typeToImport, stack));
             }
             
             // Look up for [Service]
@@ -148,7 +148,7 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder ScanConfiguration(params object[] instances) {
-            foreach (var instance in instances) RegisterConfigurationServices(instance.GetType(), instance);
+            instances.ForEach(instance => RegisterConfigurationServices(instance.GetType(), instance));
             return this;
         }
 

@@ -204,12 +204,12 @@ namespace Betauer.Input {
         }
 
         public InputAction AddKeys(params KeyList[] keys) {
-            foreach (var key in keys) AddKey(key);
+            keys.ForEach(key => AddKey(key));
             return this;
         }
 
         public InputAction AddButtons(params JoystickList[] buttons) {
-            foreach (var button in buttons) AddButton(button);
+            buttons.ForEach(button => AddButton(button));
             return this;
         }
 
@@ -313,12 +313,12 @@ namespace Betauer.Input {
             } 
 
             public TBuilder Keys(params KeyList[] keys) {
-                foreach (var key in keys) _keys.Add(key);
+                keys.ForEach(key => _keys.Add(key));
                 return this as TBuilder;
             }
 
             public TBuilder Buttons(params JoystickList[] buttons) {
-                foreach (var button in buttons) _buttons.Add(button);
+                buttons.ForEach(button => _buttons.Add(button));
                 return this as TBuilder;
             }
         }

@@ -29,7 +29,7 @@ namespace Betauer.Loader {
         }
 
         public void Unload() {
-            foreach (var resourceMetadata in _registry.Values) resourceMetadata.Resource.Dispose();
+            _registry.Values.ForEach(resourceMetadata => resourceMetadata.Resource.Dispose());
             _registry.Clear();
         }
     }
