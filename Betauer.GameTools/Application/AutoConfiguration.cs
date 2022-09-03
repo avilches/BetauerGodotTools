@@ -15,17 +15,22 @@ namespace Betauer.Application {
     public abstract class AutoConfiguration : Node {
         protected Container Container;
 
-        [Service] public ObjectWatcherNode ObjectWatcherNode => new ObjectWatcherNode();
+        [Service] public Consumer Consumer => DefaultObjectWatcherRunner.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => SceneTreeHolder.SceneTree;
 
-        public bool AddSingletonNodesToTree = true;
-        
+        private bool _addSingletonNodesToTree = true;
+        private float _watchTimer = 10f;
+
+        public void EnableAddSingletonNodesToTree(bool enabled) => _addSingletonNodesToTree = enabled;
+        public void SetWatchTimer(float watchTimer) => _watchTimer = watchTimer;
+
         public override void _EnterTree() {
             SceneTreeHolder.SceneTree = GetTree();
+            DefaultObjectWatcherRunner.Instance.Start(_watchTimer);
             PauseMode = PauseModeEnum.Process;
             Container = new Container();
-            if (AddSingletonNodesToTree) {
+            if (_addSingletonNodesToTree) {
                 Container.OnCreate += (lifetime, o) => {
                     if (lifetime == Lifetime.Singleton && o is Node node) AddChild(node);
                 };
@@ -34,6 +39,7 @@ namespace Betauer.Application {
                 .Scan(GetType().Assembly)
                 .ScanConfiguration(this)
                 .Build();
+            
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);
         }
 
