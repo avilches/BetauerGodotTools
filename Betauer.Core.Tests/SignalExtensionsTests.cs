@@ -11,8 +11,8 @@ namespace Betauer.Tests {
     public class SignalExtensionsTests : Node {
         [SetUp]
         public void Setup() {
-            DefaultObjectWatcher.Instance.Dispose();
-            LoggerFactory.SetTraceLevel(typeof(ObjectWatcher), TraceLevel.All);
+            DefaultObjectWatcherRunner.Instance.Dispose();
+            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.All);
         }
 
         [Test(Description = "Unwatch/watch")]
@@ -21,24 +21,24 @@ namespace Betauer.Tests {
             AddChild(b1);
             await this.AwaitIdleFrame();
             
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
 
             SignalHandler p1 = b1.OnPressed(() => { });
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
             // Another Watch is ignored
             p1.Watch();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
             
             p1.Unwatch();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
 
             // Another Unwatch is ignored
             p1.Unwatch();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
 
             p1.Watch();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
         }
 
         public class Dummy : Object {
@@ -58,16 +58,16 @@ namespace Betauer.Tests {
             b1.OnPressed(o.Pressed1);
             b1.EmitSignal("pressed");
             Assert.That(o.Executed1, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
             // Watch object still there
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            DefaultObjectWatcherRunner.Instance.Consume();
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
             
             // When method owner is freed, watch object is disposed
             o.Free();
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            DefaultObjectWatcherRunner.Instance.Consume();
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
 
         }
 
@@ -81,16 +81,16 @@ namespace Betauer.Tests {
             SignalHandler p1 = b1.OnPressed(() => executed1++);
             b1.EmitSignal("pressed");
             Assert.That(executed1, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
             // Watch object still there
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            DefaultObjectWatcherRunner.Instance.Consume();
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
             
             // When signal origin is freed, watch object is disposed
             b1.Free();
-            DefaultObjectWatcher.Instance.Process();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            DefaultObjectWatcherRunner.Instance.Consume();
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
         }
 
 
@@ -199,12 +199,12 @@ namespace Betauer.Tests {
             AddChild(b1);
             await this.AwaitIdleFrame();
 
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
             SignalHandler p1 = b1.OnPressed(() => { }, true);
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
             
             p1.Unwatch();
-            Assert.That(DefaultObjectWatcher.Instance.WatchingCount, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
         }
 
         [Test(Description = "Signal with 1 parameter")]

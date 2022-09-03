@@ -18,7 +18,7 @@ namespace Betauer.Signal {
         public readonly bool Deferred;
         private bool _deferredWatchCall = true;
         private bool _watched = false;
-        private WatchAndFree? _signalHandlerWatched;
+        private WatchObjectAndFree? _signalHandlerWatched;
         protected readonly Delegate Delegate; 
 
         protected SignalHandler(Object origin, string signal, Delegate @delegate, bool oneShot = false, bool deferred = false) {
@@ -33,16 +33,17 @@ namespace Betauer.Signal {
         
         public SignalHandler Watch() {
             if (_signalHandlerWatched == null) {
-                var watching = Delegate.Target is Object o ? new [] { o, Origin } : new[] { Origin }; 
-                _signalHandlerWatched = new WatchAndFree(this, watching, true);
-                DefaultObjectWatcher.Instance.Watch(_signalHandlerWatched);
+                var watching = Delegate.Target is Object o ? new [] { o, Origin } : new[] { Origin };
+                _signalHandlerWatched = new WatchObjectAndFree(true)
+                    .Watch(watching).Free(this)
+                    .AddToDefaultObjectWatcher();
             }
             return this;
         }
 
         public SignalHandler Unwatch() {
             if (_signalHandlerWatched != null) {
-                DefaultObjectWatcher.Instance.Unwatch(_signalHandlerWatched);
+                DefaultObjectWatcherRunner.Instance.Remove(_signalHandlerWatched);
                 _signalHandlerWatched = null;
             }
             return this;
