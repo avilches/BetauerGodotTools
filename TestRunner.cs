@@ -9,12 +9,12 @@ public class TestRunner : SceneTree {
         LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
         SceneTreeHolder.SceneTree = this;
         var assemblies = new[] {
-            "Betauer.Animation.Tests",
             "Betauer.Core.Tests",
             "Betauer.DI.Tests",
             "Betauer.GameTools.Tests",
             "Betauer.GodotAction.Tests",
             "Betauer.StateMachine.Tests",
+            "Betauer.Animation.Tests",
         }.Select(Assembly.Load).ToArray();
         await ConsoleTestRunner.RunTests(this, assemblies);
     }
