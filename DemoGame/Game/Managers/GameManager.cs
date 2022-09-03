@@ -1,10 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Animation;
 using Godot;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
+using Betauer.Memory;
 using Betauer.Signal;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Menu;
@@ -50,7 +52,7 @@ namespace Veronenger.Game.Managers {
         [Scene("res://Scenes/Menu/ModalBoxConfirm.tscn")]
         private Func<ModalBoxConfirm> CreateModalBoxConfirm;
 
-        [Scene("res://Scenes/DebugOverlay.tscn")] private DebugOverlay _debugOverlay;
+        [Scene("res://Scenes/DebugOverlay.tscn")] public DebugOverlay DebugOverlay;
 
         private Node _currentGameScene;
         private Node2D _playerScene;
@@ -77,12 +79,12 @@ namespace Veronenger.Game.Managers {
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     };
                     await MainResourceLoader.Load(this);
-                    MainResourceLoader.From(_debugOverlay);
                     ScreenSettingsManager.Setup();
+                    ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
-                    SceneTree.Root.AddChild(_debugOverlay);
+                    SceneTree.Root.AddChild(DebugOverlay);
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
@@ -91,7 +93,13 @@ namespace Veronenger.Game.Managers {
                     return ctx.Set(State.MainMenu);
                 }).Build();
         }
-        
+
+        private void ConfigureDebugOverlays() {
+            DebugOverlay.Add("ObjectWatcher").Do(() => DefaultObjectWatcherRunner.Instance.Count.ToString());
+            DebugOverlay.Add("SceneTreeTween")
+                .Do(() => DefaultTweenCallbackManager.Instance.ActionsPerSceneTree.Count.ToString());
+        }
+
         private void ConfigureStates() {
             AddListener(MainMenuBottomBarScene);
 
@@ -229,7 +237,7 @@ namespace Veronenger.Game.Managers {
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
         }
-
+        
         private void AddPlayerToScene(Node nextScene) {
             _playerScene = MainResourceLoader.CreatePlayer();
             nextScene.AddChild(_playerScene);

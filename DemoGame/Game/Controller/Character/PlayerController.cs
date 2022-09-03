@@ -2,6 +2,7 @@ using System;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Easing;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Bus;
@@ -99,6 +100,11 @@ namespace Veronenger.Game.Controller.Character {
 
             _platformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerAction(Name, this, this, _OnFallingPlatformExit));
+
+            _gameManager.DebugOverlay.Add("Player")
+                .Bind(this)
+                .Do(() => StateMachineNode.CurrentState.Key.ToString());
+
         }
 
 
@@ -158,7 +164,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private ISequence CreateDanger() {
             var seq = Sequence.Create(_mainSprite)
-                .AnimateSteps<Color>(Property.Modulate, Easing.CubicInOut)
+                .AnimateSteps<Color>(Property.Modulate, Easings.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -167,7 +173,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private ISequence CreateSqueeze() {
             var seq = Sequence.Create(this)
-                .AnimateSteps<Vector2>(Property.Scale2D, Easing.SineInOut)
+                .AnimateSteps<Vector2>(Property.Scale2D, Easings.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()

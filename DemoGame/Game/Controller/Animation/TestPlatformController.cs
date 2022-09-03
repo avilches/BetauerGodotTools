@@ -1,6 +1,7 @@
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Easing;
 using Betauer.DI;
 using Betauer.OnReady;
 
@@ -18,7 +19,7 @@ namespace Veronenger.Game.Controller.Animation {
             // _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
             // _multipleSequencePlayer1
             Sequence.Create(body1)
-                .AnimateKeys<float>(Property.Scale2DY, Easing.SineInOut)
+                .AnimateKeys<float>(Property.Scale2DY, Easings.SineInOut)
                 .From(1f)
                 .Duration(1)
                 .KeyframeTo(0.5f, 1.5f)

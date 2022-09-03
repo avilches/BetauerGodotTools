@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Easing;
 using Betauer.DI;
 using Betauer.Signal;
 using Veronenger.Game.Managers;
@@ -37,14 +38,14 @@ namespace Veronenger.Game.Controller.Animation {
                     x = Stopwatch.StartNew();
                     _logger.Debug("Start");
                 })
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(100, 0), 0.25f, Easing.Linear)
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easings.CubicInOut)
+                .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
                 .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
                 .AnimateSteps(Property.Modulate)
-                .To(new Color(1, 0, 0, 1f), 0.25f, Easing.CubicInOut)
+                .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
                 .EndAnimate()
-                .AnimateSteps(Property.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easing.CubicInOut)
+                .AnimateSteps(Property.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
                 .EndAnimate()
                 .Callback(() =>
                     _logger.Debug("End "+(x.ElapsedMilliseconds)+"ms"))
@@ -52,8 +53,8 @@ namespace Veronenger.Game.Controller.Animation {
 
             Sequence seq2 = Sequence
                 .Create(this)
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easing.CubicInOut)
-                .Offset(new Vector2(0, 50), 0.25f, Easing.Linear)
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easings.CubicInOut)
+                .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
                 .Offset(new Vector2(0, -50), 0.25f)
                 .EndAnimate()
                 .SetLoops(2);

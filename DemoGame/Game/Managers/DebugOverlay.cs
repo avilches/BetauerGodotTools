@@ -8,29 +8,47 @@ using Godot;
 
 namespace Veronenger.Game.Managers {
 	public class Monitor {
-		internal readonly Node Node;
-		internal readonly Func<string> Delegate;
-		internal bool IsEnabled  => _isEnabled && Node.IsInsideTree();
-		internal bool IsDestroyed => _isDestroyed || !Godot.Object.IsInstanceValid(Node);
 		private bool _isEnabled = true;
 		private bool _isDestroyed = false;
-		internal readonly string _label;
-		public Monitor(string label, Node node, Func<string> @delegate) {
-			_label = label;
-			Node = node;
-			Delegate = @delegate;
+
+		public string Label;
+		public Godot.Object? Target;
+		public Func<string> Delegate;
+
+		public bool IsEnabled => _isEnabled && (Target is Node n ? n.IsInsideTree() : true);
+		public bool IsDestroyed => _isDestroyed || (Target != null && !Godot.Object.IsInstanceValid(Target));
+		
+		public Monitor(string label) {
+			Label = label;
+		}
+
+		public Monitor Bind(Godot.Object node) {
+			Target = node;
+			return this;
+		}
+
+		public Monitor Do(Node node, NodePath property) {
+			return Bind(node)
+				.Do(() => node.GetIndexed(property).ToString());
+		}
+
+		public Monitor Do(Func<string> action) {
+			Delegate = action;
+			return this;
 		}
 
 		public override string ToString() {
 			try {
-				return $"{_label}: {Delegate()}";
+				return $"{Label}: {Delegate()}";
 			} catch (Exception e) {
-				return $"{_label}: {e.Message}";
+				return $"{Label}: {e.Message}";
 			}
 		}
 
 		public void Disable() => _isEnabled = false;
+
 		public void Enable() => _isEnabled = true;
+
 		public void Destroy() => _isDestroyed = true;
 	}
 
@@ -45,30 +63,29 @@ namespace Veronenger.Game.Managers {
 			Disable();
 		}
 
-		public Monitor Add(string label, Node node, string property) {
-			var monitor = new Monitor(label, node, ()=> node.GetIndexed(property).ToString());
+		public Monitor Add(string label) {
+			var monitor = new Monitor(label);
 			_monitors.Add(monitor);
 			return monitor;
 		}
 
-		public Monitor Add(string label, Node node, Func<string> action) {
-			var monitor = new Monitor(label, node, action);
+		public Monitor Add(string label, Func<string> action) {
+			var monitor = new Monitor(label).Do(action);
 			_monitors.Add(monitor);
 			return monitor;
 		}
 
 		public override void _Input(InputEvent @event) {
-			if (DebugOverlayAction.IsEventPressed(@event)) Visible = !Visible;
+			if (DebugOverlayAction.IsEventPressed(@event)) Enable(!Visible);
 		}
 
-		public void Enable() {
-			Visible = true;
-			SetProcess(true);
+		public void Enable(bool enabled = true) {
+			Visible = enabled;
+			SetProcess(enabled);
 		}
 
 		public void Disable() {
-			Visible = false;
-			SetProcess(false);
+			Enable(false);
 		}
 
 		public override void _Process(float delta) {

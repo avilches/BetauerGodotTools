@@ -24,7 +24,8 @@ namespace Veronenger.Game.Managers.Autoload {
         public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
         
         public Bootstrap() {
-            AddSingletonNodesToTree = true;
+            EnableAddSingletonNodesToTree(true);
+            SetWatchTimer(1f);
             
             if (FeatureFlags.IsExported()) {
                 AppDomain.CurrentDomain.UnhandledException += (o, args) => {

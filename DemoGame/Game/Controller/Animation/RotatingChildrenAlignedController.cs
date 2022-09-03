@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Easing;
 using Betauer.DI;
 using Betauer.Nodes;
 using Veronenger.Game.Managers;
@@ -31,10 +32,10 @@ namespace Veronenger.Game.Controller.Animation {
         private void Configure() {
             _sequence = Sequence.Create(this)
                 .AnimateSteps<float>(RotateAligned)
-                .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easing.QuadInOut)
+                .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easings.QuadInOut)
                 .EndAnimate()
                 .AnimateSteps<float>(RotateAligned)
-                .From(CLOCK_THREE).To(CLOCK_NINE, 1, Easing.QuadInOut)
+                .From(CLOCK_THREE).To(CLOCK_NINE, 1, Easings.QuadInOut)
                 .EndAnimate()
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.PlayForever();

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Easing;
 using Betauer.DI;
 using Betauer.Nodes;
 using Veronenger.Game.Managers;
@@ -31,7 +32,7 @@ namespace Veronenger.Game.Controller.Animation {
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence = Sequence.Create(this)
                 .AnimateSteps<float>(RotateSpaced)
-                .From(0).To(Mathf.Tau, 4, Easing.Linear)
+                .From(0).To(Mathf.Tau, 4, Easings.Linear)
                 .EndAnimate()
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.PlayForever();
