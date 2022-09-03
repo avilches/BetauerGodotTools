@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Animation.Easing;
 using Betauer.Signal;
 using Godot;
 using NUnit.Framework;
@@ -60,12 +61,12 @@ namespace Betauer.Animation.Tests {
                 .Execute()
                 .AwaitFinished();
 
-            Assert.That(values1s[0], Is.EqualTo(8));
-            Assert.That(values1sb[0], Is.EqualTo(9));
-            Assert.That(values1rs[0], Is.EqualTo(10));
-            Assert.That(values1k[0], Is.EqualTo(11));
-            Assert.That(values1kb[0], Is.EqualTo(12));
-            Assert.That(values1rk[0], Is.EqualTo(13));
+            Assert.That(values1s[0], Is.EqualTo(8).Within(1));
+            Assert.That(values1sb[0], Is.EqualTo(9).Within(1));
+            Assert.That(values1rs[0], Is.EqualTo(10).Within(1));
+            Assert.That(values1k[0], Is.EqualTo(11).Within(1));
+            Assert.That(values1kb[0], Is.EqualTo(12).Within(1));
+            Assert.That(values1rk[0], Is.EqualTo(13).Within(1));
 
             Assert.That(values1s.Last(), Is.EqualTo(14));
             Assert.That(values1sb.Last(), Is.EqualTo(19));
@@ -121,12 +122,12 @@ namespace Betauer.Animation.Tests {
                 .Execute()
                 .AwaitFinished();
 
-            Assert.That(values1s[0], Is.EqualTo(8));
-            Assert.That(values1sb[0], Is.EqualTo(9));
-            Assert.That(values1rs[0], Is.EqualTo(10));
-            Assert.That(values1k[0], Is.EqualTo(11));
-            Assert.That(values1kb[0], Is.EqualTo(12));
-            Assert.That(values1rk[0], Is.EqualTo(13));
+            Assert.That(values1s[0], Is.EqualTo(8).Within(1));
+            Assert.That(values1sb[0], Is.EqualTo(9).Within(1));
+            Assert.That(values1rs[0], Is.EqualTo(10).Within(1));
+            Assert.That(values1k[0], Is.EqualTo(11).Within(1));
+            Assert.That(values1kb[0], Is.EqualTo(12).Within(1));
+            Assert.That(values1rk[0], Is.EqualTo(13).Within(1));
 
             Assert.That(values1s.Last(), Is.EqualTo(14));
             Assert.That(values1sb.Last(), Is.EqualTo(19));
@@ -492,7 +493,7 @@ namespace Betauer.Animation.Tests {
                 .AnimateSteps(property)
                 .SetDebugSteps(steps)
                 .From(from)
-                .To(to, 0.1f, Easing.BackIn)
+                .To(to, 0.1f, Easings.BackIn)
                 .EndAnimate();
 
             // With Play()
@@ -500,14 +501,14 @@ namespace Betauer.Animation.Tests {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
 
             Assert.That(steps.Count, Is.EqualTo(1));
-            AssertStep(steps[0], from, to, 0f, 0.1f, Easing.BackIn);
+            AssertStep(steps[0], from, to, 0f, 0.1f, Easings.BackIn);
             Assert.That(property.GetValue(node), Is.EqualTo(to));
         }
 
         private async Task CreateIncompatibleNodeTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
             var e = Assert.Throws<Exception>(() => Sequence.Create()
                 .AnimateSteps(property)
-                .To(to, 0.1f, Easing.BackIn)
+                .To(to, 0.1f, Easings.BackIn)
                 .EndAnimate()
                 .Play(node));
 
@@ -538,7 +539,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
         }
 
-        private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, Easing easing) {
+        private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
             Assert.That(step.From, Is.EqualTo(from).Within(0.0000001f));
             Assert.That(step.To, Is.EqualTo(to).Within(0.0000001f));
             Assert.That(step.Start, Is.EqualTo(start));

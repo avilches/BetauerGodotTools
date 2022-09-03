@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Animation.Easing;
 using Betauer.Signal;
 using Betauer.TestRunner;
 using Godot;
@@ -28,8 +29,8 @@ namespace Betauer.Animation.Tests {
             var t = Sequence.Create(sprite)
                 .Pause(1f)
                 .AnimateSteps(Property.Opacity)
-                .To(12, 0.1f, Easing.BackIn)
-                .To(12, 0.1f, Easing.BackIn)
+                .To(12, 0.1f, Easings.BackIn)
+                .To(12, 0.1f, Easings.BackIn)
                 .EndAnimate()
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
                 .Execute();
@@ -67,14 +68,14 @@ namespace Betauer.Animation.Tests {
         public void TweenSequenceSteps() {
             var sequence = Sequence.Create(new Sprite())
                 .AnimateSteps(Property.PositionX)
-                .To(120, 0.1f, Easing.BackIn)
+                .To(120, 0.1f, Easings.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate();
 
             var tweener = GetTweener<PropertyKeyStepTweener<float>>(sequence, 0);
             var steps = tweener.CreateStepList();
             Assert.That(steps[0].Duration, Is.EqualTo(0.1f));
-            Assert.That(steps[0].Easing, Is.EqualTo(Easing.BackIn));
+            Assert.That(steps[0].Easing, Is.EqualTo(Easings.BackIn));
             Assert.That(steps[1].Duration, Is.EqualTo(0.2f));
             Assert.That(steps[1].Easing, Is.Null);
         }
@@ -84,7 +85,7 @@ namespace Betauer.Animation.Tests {
             var sequence = Sequence.Create(new Sprite())
                 .AnimateKeys(Property.PositionX)
                 .Duration(0.5f)
-                .KeyframeTo(0.1f, 120f, Easing.BackIn)
+                .KeyframeTo(0.1f, 120f, Easings.BackIn)
                 .KeyframeTo(0.6f, -90f)
                 .EndAnimate();
 
@@ -93,7 +94,7 @@ namespace Betauer.Animation.Tests {
 
             var steps = tweener.CreateStepList();
             Assert.That(steps[0].Percent, Is.EqualTo(0.1f));
-            Assert.That(steps[0].Easing, Is.EqualTo(Easing.BackIn));
+            Assert.That(steps[0].Easing, Is.EqualTo(Easings.BackIn));
 
             Assert.That(steps[1].Percent, Is.EqualTo(0.6f));
             Assert.That(steps[1].Easing, Is.Null);

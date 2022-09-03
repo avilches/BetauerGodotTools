@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Betauer.Animation.Easing;
 
 namespace Betauer.Animation {
     internal static partial class Templates {

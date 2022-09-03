@@ -1,3 +1,4 @@
+using Betauer.Animation.Easing;
 using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
