@@ -1,22 +1,20 @@
 using System;
 using Godot;
 
-namespace Betauer.Animation {
-    public class NewTransitionType {
+namespace Betauer.Animation.Easing {
+    public static class EasingFunctions {
         // Adapted from source : http://www.robertpenner.com/TransitionType/
 
-        public static float Ease(double linearStep, float acceleration, Tween.TransitionType type) {
-            float easedStep = acceleration > 0 ? EaseIn(linearStep, type) :
-                acceleration < 0 ? EaseOut(linearStep, type) :
-                (float)linearStep;
+        public static float Ease(float linearStep, float acceleration, Tween.TransitionType type) {
+            var easedStep = acceleration > 0 ? EaseIn(linearStep, type) :
+                acceleration < 0 ? EaseOut(linearStep, type) : linearStep;
 
-            return MathHelper.Lerp(linearStep, easedStep, Math.Abs(acceleration));
+            return Mathf.Lerp(linearStep, easedStep, Math.Abs(acceleration));
         }
 
-        public static float EaseIn(double linearStep, Tween.TransitionType type) {
+        public static float EaseIn(float linearStep, Tween.TransitionType type) {
             switch (type) {
-                // case Tween.TransitionType.Step:       return linearStep < 0.5 ? 0 : 1;
-                case Tween.TransitionType.Linear: return (float)linearStep;
+                case Tween.TransitionType.Linear: return linearStep;
                 case Tween.TransitionType.Sine: return Sine.EaseIn(linearStep);
                 case Tween.TransitionType.Quad: return Power.EaseIn(linearStep, 2);
                 case Tween.TransitionType.Cubic: return Power.EaseIn(linearStep, 3);
@@ -32,10 +30,9 @@ namespace Betauer.Animation {
             throw new NotImplementedException();
         }
 
-        public static float EaseOut(double linearStep, Tween.TransitionType type) {
+        public static float EaseOut(float linearStep, Tween.TransitionType type) {
             switch (type) {
-                // case Tween.TransitionType.Step:       return linearStep < 0.5 ? 0 : 1;
-                case Tween.TransitionType.Linear: return (float)linearStep;
+                case Tween.TransitionType.Linear: return linearStep;
                 case Tween.TransitionType.Sine: return Sine.EaseOut(linearStep);
                 case Tween.TransitionType.Quad: return Power.EaseOut(linearStep, 2);
                 case Tween.TransitionType.Cubic: return Power.EaseOut(linearStep, 3);
@@ -51,14 +48,13 @@ namespace Betauer.Animation {
             throw new NotImplementedException();
         }
 
-        public static float EaseInOut(double linearStep, Tween.TransitionType easeIn, Tween.TransitionType easeOut) {
+        public static float EaseInOut(float linearStep, Tween.TransitionType easeIn, Tween.TransitionType easeOut) {
             return linearStep < 0.5 ? EaseInOut(linearStep, easeIn) : EaseInOut(linearStep, easeOut);
         }
 
-        public static float EaseInOut(double linearStep, Tween.TransitionType type) {
+        public static float EaseInOut(float linearStep, Tween.TransitionType type) {
             switch (type) {
-                // case Tween.TransitionType.Step:       return linearStep < 0.5 ? 0 : 1;
-                case Tween.TransitionType.Linear: return (float)linearStep;
+                case Tween.TransitionType.Linear: return linearStep;
                 case Tween.TransitionType.Sine: return Sine.EaseInOut(linearStep);
                 case Tween.TransitionType.Quad: return Power.EaseInOut(linearStep, 2);
                 case Tween.TransitionType.Cubic: return Power.EaseInOut(linearStep, 3);
@@ -75,44 +71,37 @@ namespace Betauer.Animation {
         }
 
         static class Sine {
-            public static float EaseIn(double s) {
-                return (float)Math.Sin(s * MathHelper.HalfPi - MathHelper.HalfPi) + 1;
+            private const float HalfPi = Mathf.Pi / 2;
+
+            public static float EaseIn(float s) {
+                return (float)Math.Sin(s * HalfPi - HalfPi) + 1;
             }
 
-            public static float EaseOut(double s) {
-                return (float)Math.Sin(s * MathHelper.HalfPi);
+            public static float EaseOut(float s) {
+                return (float)Math.Sin(s * HalfPi);
             }
 
-            public static float EaseInOut(double s) {
-                return (float)(Math.Sin(s * MathHelper.Pi - MathHelper.HalfPi) + 1) / 2;
+            public static float EaseInOut(float s) {
+                return (float)(Math.Sin(s * Mathf.Pi - HalfPi) + 1) / 2;
             }
         }
 
         static class Power {
-            public static float EaseIn(double s, int power) {
+            public static float EaseIn(float s, int power) {
                 return (float)Math.Pow(s, power);
             }
 
-            public static float EaseOut(double s, int power) {
+            public static float EaseOut(float s, int power) {
                 var sign = power % 2 == 0 ? -1 : 1;
                 return (float)(sign * (Math.Pow(s - 1, power) + sign));
             }
 
-            public static float EaseInOut(double s, int power) {
+            public static float EaseInOut(float s, int power) {
                 s *= 2;
                 if (s < 1) return EaseIn(s, power) / 2;
                 var sign = power % 2 == 0 ? -1 : 1;
                 return (float)(sign / 2.0 * (Math.Pow(s - 2, power) + sign * 2));
             }
-        }
-    }
-
-    public static class MathHelper {
-        public const float Pi = (float)Math.PI;
-        public const float HalfPi = (float)(Math.PI / 2);
-
-        public static float Lerp(double from, double to, double step) {
-            return (float)((to - from) * step + from);
         }
     }
 }
