@@ -5,6 +5,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
+using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Signal;
 using Veronenger.Game.Managers;

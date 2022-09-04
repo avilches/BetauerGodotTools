@@ -1,7 +1,6 @@
-using System;
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     internal static partial class Templates {
         private const float HingeDuration = 1.5f;
         private const float JackInTheBoxDuration = 0.5f;

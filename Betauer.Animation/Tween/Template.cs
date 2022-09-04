@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     public static class Template {
         public static Sequence Get(string name) => Factories[name.ToLower()].Get();
 

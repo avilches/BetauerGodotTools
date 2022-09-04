@@ -4,13 +4,14 @@ using System.Linq;
 using Betauer.Animation.Easing;
 using Godot;
 
-namespace Betauer.Animation {
+
+namespace Betauer.Animation.Tween {
     public interface ISequence {
         public ICollection<ICollection<ITweener>> TweenList { get; }
         public Node? DefaultTarget { get; }
         public float Speed { get; }
         public float Duration { get; }
-        public Tween.TweenProcessMode ProcessMode { get; }
+        public Godot.Tween.TweenProcessMode ProcessMode { get; }
         public SceneTreeTween Execute(float initialDelay = 0, Node? target = null, float duration = -1);
         public Action<Node>? StartAction { get; }
     }
@@ -23,7 +24,7 @@ namespace Betauer.Animation {
         public Action<Node> StartAction { get; protected set; }
 
         public float Speed { get; protected set; } = 1.0f;
-        public Tween.TweenProcessMode ProcessMode { get; protected set; } = Tween.TweenProcessMode.Idle;
+        public Godot.Tween.TweenProcessMode ProcessMode { get; protected set; } = Godot.Tween.TweenProcessMode.Idle;
         protected bool _parallel = false;
 
         internal Sequence() {
@@ -86,7 +87,7 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public Sequence SetProcessMode(Tween.TweenProcessMode processMode) {
+        public Sequence SetProcessMode(Godot.Tween.TweenProcessMode processMode) {
             ProcessMode = processMode;
             return this;
         }

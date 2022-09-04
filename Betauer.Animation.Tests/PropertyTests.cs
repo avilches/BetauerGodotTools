@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
+using Betauer.Animation.Tween;
 using Betauer.Signal;
 using Godot;
 using NUnit.Framework;

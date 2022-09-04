@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     internal static partial class Templates {
         private const float FadeOutDuration = 0.75f; // Animate.css: 0.75f
 

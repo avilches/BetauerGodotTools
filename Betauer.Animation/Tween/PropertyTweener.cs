@@ -5,7 +5,7 @@ using Betauer.Animation.Easing;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     public interface ITweener {
         float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration);
     }
@@ -182,8 +182,8 @@ namespace Betauer.Animation {
             return sceneTreeTween
                 .Parallel()
                 .TweenInterpolateAction(0f, 1f, duration, action)
-                .SetTrans(Tween.TransitionType.Linear)
-                .SetEase(Tween.EaseType.InOut)
+                .SetTrans(Godot.Tween.TransitionType.Linear)
+                .SetEase(Godot.Tween.EaseType.InOut)
                 .SetDelay(start);
         }
 

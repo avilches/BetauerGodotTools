@@ -2,7 +2,7 @@ using System;
 using Betauer.Animation.Easing;
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     public abstract class AnimationKey<TProperty> {
         public readonly IEasing? Easing;
         public readonly Action<Node>? CallbackNode;

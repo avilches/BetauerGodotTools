@@ -1,5 +1,6 @@
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;

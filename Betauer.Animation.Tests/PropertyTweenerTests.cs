@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
+using Betauer.Animation.Tween;
 using Godot;
 using NUnit.Framework;
 using Betauer.Signal;
@@ -26,7 +27,7 @@ namespace Betauer.Animation.Tests {
         public async Task CallbackMultipleExecutions() {
             var x = 0;
             Sequence sequence = Sequence.Create(this)
-                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
                 .Callback(() => x++);
 
             await sequence.Play(this).AwaitFinished();
@@ -70,7 +71,7 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "Callback with method name")]
         public async Task MethodCallbackWithOverloadAndParameters() {
             Sequence sequence = Sequence.Create(this)
-                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
                 .Callback(this, nameof(Method))
                 .Callback(this, nameof(Method), 0, X,V,S1,S2,S3);
 
@@ -87,7 +88,7 @@ namespace Betauer.Animation.Tests {
         public async Task MethodCallback() {
             int called = 0;
             Sequence sequence = Sequence.Create(this)
-                .SetProcessMode(Tween.TweenProcessMode.Idle)
+                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
                 .Callback(() => called++);
 
             await sequence.Play(this).AwaitFinished();

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     internal static partial class Templates {
         private static readonly Dictionary<string, BezierCurve> CurveBeziersCache = new Dictionary<string, BezierCurve>();
 

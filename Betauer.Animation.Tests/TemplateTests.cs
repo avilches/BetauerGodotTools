@@ -1,3 +1,4 @@
+using Betauer.Animation.Tween;
 using Godot;
 using NUnit.Framework;
 using Betauer.TestRunner;

@@ -41,9 +41,11 @@ namespace Betauer.Tests.Memory {
             DefaultObjectWatcherRunner.Instance.Consume();
             Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
-            // Add the same again is ok
+            // Add the same again is ignored
             DefaultObjectWatcherRunner.Instance.Add(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(2));
+            DefaultObjectWatcherRunner.Instance.Add(watch);
+            DefaultObjectWatcherRunner.Instance.Add(watch);
+            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
             // Unwatch removes the element
             DefaultObjectWatcherRunner.Instance.Remove(watch);

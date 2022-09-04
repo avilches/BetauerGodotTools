@@ -3,6 +3,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
+using Betauer.Animation.Tween;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Bus;

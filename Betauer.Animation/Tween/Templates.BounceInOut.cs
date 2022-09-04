@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     internal static partial class Templates {
         private const float BounceInNoDirectionDuration = 0.75f; // Animate.css: 0.75f
         private const float BounceEntranceDuration = 1f; // Animate.css: 1f

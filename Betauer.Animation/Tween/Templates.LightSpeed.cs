@@ -1,8 +1,6 @@
-using System;
 using Betauer.Animation.Easing;
-using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     internal static partial class Templates {
         private const float LightSpeedDuration = 1f; // Animate.css: 1f
 

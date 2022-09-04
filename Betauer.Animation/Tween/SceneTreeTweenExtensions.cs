@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
     public static class SceneTreeTweenExtensions {
         public static MethodTweener TweenInterpolateAction<T>(this SceneTreeTween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
             return DefaultTweenCallbackManager.Instance.TweenInterpolateAction(sceneTreeTween, @from, to, duration, action);

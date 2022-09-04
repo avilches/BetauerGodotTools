@@ -5,7 +5,7 @@ using Godot;
 using Array = Godot.Collections.Array;
 using Object = Godot.Object;
 
-namespace Betauer.Animation {
+namespace Betauer.Animation.Tween {
 
     public class DefaultTweenCallbackManager {
         public static TweenCallbackManager Instance = new TweenCallbackManager();

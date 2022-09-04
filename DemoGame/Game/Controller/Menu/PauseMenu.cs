@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;

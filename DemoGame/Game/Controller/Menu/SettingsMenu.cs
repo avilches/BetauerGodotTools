@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;

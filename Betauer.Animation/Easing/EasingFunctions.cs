@@ -5,67 +5,67 @@ namespace Betauer.Animation.Easing {
     public static class EasingFunctions {
         // Adapted from source : http://www.robertpenner.com/TransitionType/
 
-        public static float Ease(float linearStep, float acceleration, Tween.TransitionType type) {
+        public static float Ease(float linearStep, float acceleration, Godot.Tween.TransitionType type) {
             var easedStep = acceleration > 0 ? EaseIn(linearStep, type) :
                 acceleration < 0 ? EaseOut(linearStep, type) : linearStep;
 
             return Mathf.Lerp(linearStep, easedStep, Math.Abs(acceleration));
         }
 
-        public static float EaseIn(float linearStep, Tween.TransitionType type) {
+        public static float EaseIn(float linearStep, Godot.Tween.TransitionType type) {
             switch (type) {
-                case Tween.TransitionType.Linear: return linearStep;
-                case Tween.TransitionType.Sine: return Sine.EaseIn(linearStep);
-                case Tween.TransitionType.Quad: return Power.EaseIn(linearStep, 2);
-                case Tween.TransitionType.Cubic: return Power.EaseIn(linearStep, 3);
-                case Tween.TransitionType.Quart: return Power.EaseIn(linearStep, 4);
-                case Tween.TransitionType.Quint: return Power.EaseIn(linearStep, 5);
+                case Godot.Tween.TransitionType.Linear: return linearStep;
+                case Godot.Tween.TransitionType.Sine: return Sine.EaseIn(linearStep);
+                case Godot.Tween.TransitionType.Quad: return Power.EaseIn(linearStep, 2);
+                case Godot.Tween.TransitionType.Cubic: return Power.EaseIn(linearStep, 3);
+                case Godot.Tween.TransitionType.Quart: return Power.EaseIn(linearStep, 4);
+                case Godot.Tween.TransitionType.Quint: return Power.EaseIn(linearStep, 5);
 
-                // case Tween.TransitionType.Expo:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Elastic:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Circ:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Bounce:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Back:    return Power.EaseIn(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Expo:    return Power.EaseIn(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseIn(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Circ:    return Power.EaseIn(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseIn(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Back:    return Power.EaseIn(linearStep, 5); // MAL!!!!
             }
             throw new NotImplementedException();
         }
 
-        public static float EaseOut(float linearStep, Tween.TransitionType type) {
+        public static float EaseOut(float linearStep, Godot.Tween.TransitionType type) {
             switch (type) {
-                case Tween.TransitionType.Linear: return linearStep;
-                case Tween.TransitionType.Sine: return Sine.EaseOut(linearStep);
-                case Tween.TransitionType.Quad: return Power.EaseOut(linearStep, 2);
-                case Tween.TransitionType.Cubic: return Power.EaseOut(linearStep, 3);
-                case Tween.TransitionType.Quart: return Power.EaseOut(linearStep, 4);
-                case Tween.TransitionType.Quint: return Power.EaseOut(linearStep, 5);
+                case Godot.Tween.TransitionType.Linear: return linearStep;
+                case Godot.Tween.TransitionType.Sine: return Sine.EaseOut(linearStep);
+                case Godot.Tween.TransitionType.Quad: return Power.EaseOut(linearStep, 2);
+                case Godot.Tween.TransitionType.Cubic: return Power.EaseOut(linearStep, 3);
+                case Godot.Tween.TransitionType.Quart: return Power.EaseOut(linearStep, 4);
+                case Godot.Tween.TransitionType.Quint: return Power.EaseOut(linearStep, 5);
 
-                // case Tween.TransitionType.Expo:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Elastic:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Circ:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Bounce:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Back:    return Power.EaseOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Expo:    return Power.EaseOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Circ:    return Power.EaseOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Back:    return Power.EaseOut(linearStep, 5); // MAL!!!!
             }
             throw new NotImplementedException();
         }
 
-        public static float EaseInOut(float linearStep, Tween.TransitionType easeIn, Tween.TransitionType easeOut) {
+        public static float EaseInOut(float linearStep, Godot.Tween.TransitionType easeIn, Godot.Tween.TransitionType easeOut) {
             return linearStep < 0.5 ? EaseInOut(linearStep, easeIn) : EaseInOut(linearStep, easeOut);
         }
 
-        public static float EaseInOut(float linearStep, Tween.TransitionType type) {
+        public static float EaseInOut(float linearStep, Godot.Tween.TransitionType type) {
             switch (type) {
-                case Tween.TransitionType.Linear: return linearStep;
-                case Tween.TransitionType.Sine: return Sine.EaseInOut(linearStep);
-                case Tween.TransitionType.Quad: return Power.EaseInOut(linearStep, 2);
-                case Tween.TransitionType.Cubic: return Power.EaseInOut(linearStep, 3);
-                case Tween.TransitionType.Quart: return Power.EaseInOut(linearStep, 4);
-                case Tween.TransitionType.Quint: return Power.EaseInOut(linearStep, 5);
+                case Godot.Tween.TransitionType.Linear: return linearStep;
+                case Godot.Tween.TransitionType.Sine: return Sine.EaseInOut(linearStep);
+                case Godot.Tween.TransitionType.Quad: return Power.EaseInOut(linearStep, 2);
+                case Godot.Tween.TransitionType.Cubic: return Power.EaseInOut(linearStep, 3);
+                case Godot.Tween.TransitionType.Quart: return Power.EaseInOut(linearStep, 4);
+                case Godot.Tween.TransitionType.Quint: return Power.EaseInOut(linearStep, 5);
 
-                // case Tween.TransitionType.Expo:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Elastic:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Circ:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Bounce:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Tween.TransitionType.Back:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Expo:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Circ:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
+                // case Godot.Tween.TransitionType.Back:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
             }
             throw new NotImplementedException();
         }

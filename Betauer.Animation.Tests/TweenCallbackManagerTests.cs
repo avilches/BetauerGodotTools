@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Animation.Tween;
 using Betauer.Memory;
 using Betauer.Signal;
 using Betauer.TestRunner;
