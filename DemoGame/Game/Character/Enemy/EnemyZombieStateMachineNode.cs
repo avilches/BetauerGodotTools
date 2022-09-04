@@ -1,6 +1,8 @@
+using System;
 using Betauer;
 using Betauer.DI;
 using Betauer.StateMachine;
+using Betauer.Time;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
@@ -29,13 +31,13 @@ namespace Veronenger.Game.Character.Enemy {
         private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
 
         // State sharad between states
-        private Timer _patrolTimer;
-        private Timer _stateTimer;
+        private GodotStopwatch _patrolTimer;
+        private GodotStopwatch _stateTimer;
 
         public void Configure(EnemyZombieController enemyZombie, string name) {
             _enemyZombieController = enemyZombie;
-            _patrolTimer = new AutoTimer(enemyZombie);
-            _stateTimer = new AutoTimer(enemyZombie);
+            _patrolTimer = new GodotStopwatch();
+            _stateTimer = new GodotStopwatch();
             enemyZombie.AddChild(this);
 
             var events = new StateMachineEvents<State>();
@@ -46,7 +48,8 @@ namespace Veronenger.Game.Character.Enemy {
             On(Transition.Attacked, context => context.Set(State.Destroy));
             CreateState(State.Idle)
                 .Enter(() => {
-                    _stateTimer.Reset().Start().SetAlarm(2f);
+                    // Console.WriteLine(DateTime.Now+": Idle, waiting 2 seconds...");
+                    _stateTimer.Restart().SetAlarm(2f);
                     _enemyZombieController.AnimationIdle.PlayLoop();
                 })
                 .Execute(context => {
@@ -63,7 +66,8 @@ namespace Veronenger.Game.Character.Enemy {
 
                     Body.MoveSnapping();
                     if (_stateTimer.IsAlarm()) {
-                        _patrolTimer.SetAlarm(4).Reset().Start();
+                        // Console.WriteLine(DateTime.Now+": Alarm! Idle 2 seconds done! Go to PatrolStep for 4 seconds...");
+                        _patrolTimer.Restart().SetAlarm(4);
                         return context.Set(State.PatrolStep);
                     }
                     return context.None();
@@ -86,6 +90,7 @@ namespace Veronenger.Game.Character.Enemy {
                     }
 
                     if (_patrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
+                        // Console.WriteLine(DateTime.Now+": Alarm! Patrol for 4 seconds done! Go to idle");
                         // Stop slowly and go to idle
                         if (Body.Motion.x == 0) {
                             return context.Set(State.Idle);
@@ -111,7 +116,8 @@ namespace Veronenger.Game.Character.Enemy {
 
             CreateState(State.PatrolWait)
                 .Enter(() => {
-                    _stateTimer.Reset().Start().SetAlarm(0.3f);
+                    // Console.WriteLine(DateTime.Now+": Set PatrolWait for 1 second...");
+                    _stateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(context => {
                     if (!_enemyZombieController.IsOnFloor()) {
@@ -120,6 +126,9 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
+                    // if (_stateTimer.IsAlarm()) {
+                        // Console.WriteLine(DateTime.Now+": Alarm! PatrolWait for 1 second done! Go to PatrolStep");
+                    // }
                     return _stateTimer.IsAlarm() ? context.Set(State.PatrolStep) : context.None();
                 })
                 .Build();

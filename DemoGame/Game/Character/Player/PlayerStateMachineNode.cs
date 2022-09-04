@@ -3,19 +3,15 @@ using Betauer.DI;
 using Betauer.Input;
 
 using Betauer.StateMachine;
+using Betauer.Time;
 using Godot;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
-using Timer = Betauer.Timer;
 
 namespace Veronenger.Game.Character.Player {
     [Service(Lifetime.Transient)]
     public class PlayerStateMachineNode : StateMachineNode<PlayerStateMachineNode.State, PlayerStateMachineNode.Transition> {
-        private Logger _loggerJumpHelper;
-        private Logger _loggerCoyoteJump;
         private Logger _loggerJumpVelocity;
-        private void DebugJumpHelper(string message) => _loggerJumpHelper.Debug(message);
-        private void DebugCoyoteJump(string message) => _loggerCoyoteJump.Debug(message);
         private void DebugJump(string message) => _loggerJumpVelocity.Debug(message);
 
         public enum Transition {
@@ -32,6 +28,7 @@ namespace Veronenger.Game.Character.Player {
         public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
         }
 
+        [Inject] private GameManager _gameManager { get; set;}
         [Inject] private PlatformManager _platformManager { get; set;}
         [Inject] private PlayerConfig _playerConfig { get; set;}
         private AxisAction LateralMotion => Left.AxisAction;
@@ -56,17 +53,17 @@ namespace Veronenger.Game.Character.Player {
 
         // State sharad between states
         private bool _coyoteJumpEnabled = false;
-        private Timer _fallingJumpTimer;
-        private Timer _fallingTimer;
+        private GodotStopwatch _jumpHelperTimer;
+        private GodotStopwatch _fallingTimer;
 
+        private string _coyoteJumpState = "";
+        private string _jumpHelperState = "";
 
         public void Configure(PlayerController playerController, string name) {
-            _loggerJumpHelper = LoggerFactory.GetLogger("JumpHelper", name);
-            _loggerCoyoteJump = LoggerFactory.GetLogger("CoyoteJump", name);
             _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity", name);
             _player = playerController;
-            _fallingJumpTimer = new AutoTimer(playerController).Stop();
-            _fallingTimer = new AutoTimer(playerController).Stop();
+            _jumpHelperTimer = new GodotStopwatch();
+            _fallingTimer = new GodotStopwatch();
 
             playerController.AddChild(this);
 
@@ -76,8 +73,13 @@ namespace Veronenger.Game.Character.Player {
             AddListener(events);
             GroundStates();
             AirStates();
+
+            _gameManager.DebugOverlay.Add("JumpHelperTimer").Do(() => _jumpHelperTimer.ToString()).Bind(this);
+            _gameManager.DebugOverlay.Add("JumpHelperState").Do(() => _jumpHelperState).Bind(this);
+            _gameManager.DebugOverlay.Add("FallingTimer").Do(() => _fallingTimer.ToString()).Bind(this);
+            _gameManager.DebugOverlay.Add("CoyoteState").Do(() => _coyoteJumpState).Bind(this);
         }
-        
+
         public void GroundStates() {
             bool CheckGroundAttack() {
                 if (!Attack.IsJustPressed()) return false;
@@ -103,7 +105,9 @@ namespace Veronenger.Game.Character.Player {
             }
 
             CreateState(State.Idle)
-                .Enter(() => { _player.AnimationIdle.PlayLoop(); })
+                .Enter(() => {
+                    _player.AnimationIdle.PlayLoop();
+                })
                 .Execute(context => {
                     CheckGroundAttack();
 
@@ -179,33 +183,33 @@ namespace Veronenger.Game.Character.Player {
                 
         }
 
-        public void AirStates() {
-            ExecuteTransition<State, Transition> CheckLanding(ExecuteContext<State, Transition> context) {
-                if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
+        private ExecuteTransition<State, Transition> CheckLanding(ExecuteContext<State, Transition> context) {
+            if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
-                _platformManager.BodyStopFallFromPlatform(_player);
+            _platformManager.BodyStopFallFromPlatform(_player);
 
-                // Check helper jump
-                if (!_fallingJumpTimer.Stopped) {
-                    _fallingJumpTimer.Stop();
-                    if (_fallingJumpTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                        DebugJumpHelper($"{_fallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!");
-                        return context.Set(State.Jump);
-                    }
-                    DebugJumpHelper(
-                        $"{_fallingJumpTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME");
+            // Check helper jump
+            if (_jumpHelperTimer.IsRunning) {
+                _jumpHelperTimer.Stop();
+                if (_jumpHelperTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
+                    _jumpHelperState = $"{_jumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!";
+                    return context.Set(State.Jump);
                 }
-
-                // Debug("Just grounded!");
-                if (XInput == 0) {
-                    if (Body.IsOnSlope()) {
-                        // Evita resbalarse hacia abajo al caer sobre un slope
-                        Body.SetMotionX(0);
-                    }
-                    return context.Set(State.Idle);
-                }
-                return context.Set(State.Run);
+                _jumpHelperState = $"{_jumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME";
             }
+
+            // Debug("Just grounded!");
+            if (XInput == 0) {
+                if (Body.IsOnSlope()) {
+                    // Evita resbalarse hacia abajo al caer sobre un slope
+                    Body.SetMotionX(0);
+                }
+                return context.Set(State.Idle);
+            }
+            return context.Set(State.Run);
+        }
+
+        public void AirStates() {
 
             bool CheckAirAttack() {
                 if (!Attack.IsJustPressed()) return false;
@@ -217,12 +221,15 @@ namespace Veronenger.Game.Character.Player {
             bool CheckCoyoteJump() {
                 if (!Jump.IsJustPressed()) return false;
                 // Jump was pressed
-                _fallingJumpTimer.Reset().Start();
-                if (_fallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                    DebugCoyoteJump($"{_fallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!");
-                    return true;
+                _jumpHelperTimer.Restart(); // Alarm(PlayerConfig.JumpHelperTime);
+                if (_fallingTimer.IsRunning) {
+                    if (_fallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
+                        // if (!_fallingTimer.IsAlarm()) {
+                        _coyoteJumpState = $"{_fallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!";
+                        return true;
+                    }
+                    _coyoteJumpState = $"{_fallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime} TOO LATE";
                 }
-                DebugCoyoteJump($"{_fallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime} TOO LATE");
                 return false;
             }
 
@@ -259,7 +266,7 @@ namespace Veronenger.Game.Character.Player {
                 .Enter(() => {
                     // Only if the state comes from running -> fall, the Coyote jump is enabled
                     // Other cases (State.State comes from idle or jump), the coyote is not enabled
-                    _fallingTimer.Reset().Start();
+                    _fallingTimer.Restart(); // Alarm(PlayerConfig.CoyoteJumpTime);
                 })
                 .Execute(context => {
                     CheckAirAttack();
@@ -285,10 +292,10 @@ namespace Veronenger.Game.Character.Player {
 
             CreateState(State.FallLong)
                 .Enter(() => {
-                    if (_fallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
-                        DebugCoyoteJump(
-                            $"Coyote jump will never happen in FallLong state: {_fallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime}");
-                    }
+                    _fallingTimer.Stop();
+                    // if (_fallingTimer.Elapsed > PlayerConfig.CoyoteJumpTime) {
+                        // _coyoteJumpState = $"Coyote jump will never happen in FallLong state: {_fallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime}";
+                    // }
                     _player.AnimationFall.PlayLoop();
                 })
                 .Execute(context => {

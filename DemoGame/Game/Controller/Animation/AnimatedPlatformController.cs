@@ -67,7 +67,7 @@ namespace Veronenger.Game.Controller.Animation {
                     await _sceneTreeTween.AwaitFinished().Timeout(3);
                 }
             } catch (TimeoutException e) {
-                Console.WriteLine(e);
+                // Console.WriteLine(e);
             }
         }
 
