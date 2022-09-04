@@ -8,7 +8,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class SignalExtensionsTests : Node {
         [SetUp]
         public void Setup() {
