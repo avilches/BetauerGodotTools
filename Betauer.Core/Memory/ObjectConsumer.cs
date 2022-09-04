@@ -6,7 +6,7 @@ namespace Betauer.Memory {
     }
 
     public class Consumer {
-        private readonly List<IObjectConsumer> _objects = new List<IObjectConsumer>();
+        private readonly HashSet<IObjectConsumer> _objects = new HashSet<IObjectConsumer>();
 
         public int Count => _objects.Count;
 
@@ -15,7 +15,7 @@ namespace Betauer.Memory {
         }
 
         public int Consume(bool force = false) {
-            lock (_objects) return _objects.RemoveAll(e => e.Consume(force));
+            lock (_objects) return _objects.RemoveWhere(e => e.Consume(force));
         }
 
         public void Add(IObjectConsumer o) {
@@ -23,7 +23,7 @@ namespace Betauer.Memory {
         }
 
         public void Remove(IObjectConsumer o) {
-            lock (_objects) _objects.RemoveAll(x => x == o);
+            lock (_objects) _objects.RemoveWhere(x => x == o);
         }
 
         public virtual void Dispose() {
