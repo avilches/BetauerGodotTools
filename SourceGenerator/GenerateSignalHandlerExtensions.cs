@@ -23,7 +23,7 @@ namespace Generator {
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
         public static SignalHandler On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
-            new SignalObjectTargetAction{signal.Generics()}({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
+            SignalFactory.Create({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
         }
 
         private static string CreateExtensionsClass(IEnumerable<string> methods) {

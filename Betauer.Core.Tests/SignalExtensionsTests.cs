@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class SignalExtensionsTests : Node {
         [SetUp]
         public void Setup() {
@@ -26,7 +27,7 @@ namespace Betauer.Tests {
             SignalHandler p1 = b1.OnPressed(() => { });
             Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
 
-            // Another Watch is ignored
+            // Another identical Watch is added...
             p1.Watch();
             Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
             
@@ -58,16 +59,8 @@ namespace Betauer.Tests {
             b1.OnPressed(o.Pressed1);
             b1.EmitSignal("pressed");
             Assert.That(o.Executed1, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
-
-            // Watch object still there
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
-            
-            // When method owner is freed, watch object is disposed
-            o.Free();
-            DefaultObjectWatcherRunner.Instance.Consume();
             Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+
 
         }
 
@@ -94,8 +87,8 @@ namespace Betauer.Tests {
         }
 
 
-        [Test(Description = "Signal connect and disconnect")]
-        public async Task ConnectAndDisconnect() {
+        [Test(Description = "Signal connect and disconnect from origin (using lambda)")]
+        public async Task ConnectAndDisconnectLambdaTests() {
             var b1 = new CheckButton();
             AddChild(b1);
             await this.AwaitIdleFrame();
@@ -127,6 +120,60 @@ namespace Betauer.Tests {
             Assert.That(p1.IsConnected(), Is.False);
         }
 
+        [Test(Description = "Signal connect and disconnect from origin (method)")]
+        public async Task ConnectAndDisconnectMethodTests() {
+            var b1 = new CheckButton();
+            AddChild(b1);
+            await this.AwaitIdleFrame();
+
+            var o = new Dummy();
+            SignalHandler p1 = b1.OnPressed(o.Pressed1);
+            Assert.That(p1.IsValid(), Is.True);
+            Assert.That(p1.IsConnected(), Is.True);
+
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(1));
+
+            p1.Disconnect();
+            Assert.That(p1.IsValid(), Is.True);
+            Assert.That(p1.IsConnected(), Is.False);
+
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(1));
+
+            p1.Connect();
+            Assert.That(p1.IsValid(), Is.True);
+            Assert.That(p1.IsConnected(), Is.True);
+
+            b1.EmitSignal("pressed");
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(3));
+
+            b1.Free();
+            Assert.That(p1.IsConnected(), Is.False);
+
+        }
+        [Test(Description = "Signal connect and disconnect when owner method is freed")]
+        public async Task ConnectAndDisconnectMethodFreeTargetTests() {
+            var b1 = new CheckButton();
+            AddChild(b1);
+            await this.AwaitIdleFrame();
+
+            var o = new Dummy();
+            SignalHandler p1 = b1.OnPressed(o.Pressed1);
+            Assert.That(p1.Target, Is.EqualTo(o));
+            Assert.That(p1.IsValid(), Is.True);
+            Assert.That(p1.IsConnected(), Is.True);
+
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(1));
+            
+            o.Free();
+            Assert.That(p1.IsConnected(), Is.False);
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(1));
+        }
+
         [Test(Description = "Signal lambda oneShot should only work one and auto freed")]
         public async Task SignalToLambdaOneShotTest() {
             var b1 = new CheckButton();
@@ -147,11 +194,11 @@ namespace Betauer.Tests {
             // It's not marked as freed because the origin is still alive
             Assert.That(p1.IsConnected(), Is.False);
             // It's still valid because the free is called with deferred
-            Assert.That(IsInstanceValid(p1), Is.True);
+            Assert.That(IsInstanceValid(p1.Target), Is.True);
 
             // freed in the next frame
             await this.AwaitIdleFrame();
-            Assert.That(IsInstanceValid(p1), Is.False);
+            Assert.That(IsInstanceValid(p1.Target), Is.False);
         }
 
         [Test(Description = "Signal lambda deferred should work next frame")]
@@ -189,7 +236,7 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             Assert.That(executed1, Is.EqualTo(1));
             // Use CallDeferred() in an idle frame is called immediately, not in the next one
-            Assert.That(IsInstanceValid(p1), Is.False);
+            Assert.That(IsInstanceValid(p1.Target), Is.False);
 
         }
 
