@@ -25,14 +25,21 @@ namespace Betauer.Application {
         public void EnableAddSingletonNodesToTree(bool enabled) => _addSingletonNodesToTree = enabled;
         public void SetWatchTimer(float watchTimer) => _watchTimer = watchTimer;
 
+        // It needs to be in _EnterTree because the _Ready() is called after the the main scene _Ready(), so the main
+        // scene will not have
+        private bool _ready = false;
         public override void _EnterTree() {
             SceneTreeHolder.SceneTree = GetTree();
             DefaultObjectWatcherRunner.Instance.Start(_watchTimer);
             PauseMode = PauseModeEnum.Process;
             Container = new Container();
+            this.OnReady(() => _ready = true, true);
             if (_addSingletonNodesToTree) {
                 Container.OnCreate += (lifetime, o) => {
-                    if (lifetime == Lifetime.Singleton && o is Node node) AddChild(node);
+                    if (lifetime == Lifetime.Singleton && o is Node node) {
+                        if (_ready) GetTree().Root.AddChild(node);
+                        else GetTree().Root.CallDeferred("add_child", node);
+                    }
                 };
             }
             Container.CreateBuilder()
