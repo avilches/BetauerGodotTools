@@ -15,7 +15,7 @@ namespace Betauer.Tests.Memory {
         public void Setup() {
             DefaultObjectWatcherRunner.Instance.Dispose();
             Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
-            DefaultObjectWatcherRunner.Instance = new ConsumerRunner();
+            DefaultObjectWatcherRunner.Instance = new ObjectWatcherRunner();
         }
 
         [Test]
