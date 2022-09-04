@@ -1,25 +1,29 @@
 using System;
 using Betauer.Signal;
+using Godot;
 
-namespace Betauer {
+namespace Betauer.Time {
+    /// <summary>
+    /// Execute a lambda periodically. It uses internally the "timeout" signal from a SceneTree timer,
+    /// so it's affected by the Engine.Timescale and the SceneTree.Pause state.
+    ///
+    /// Usage:
+    /// <code>
+    /// var gs = new GodotScheduler(() => {});
+    /// gs.Start(10f);
+    /// 
+    /// </code> 
+    /// </summary>
     public class GodotScheduler {
         private readonly Action _action;
-        private readonly bool _pauseIfSceneTreeIsPaused = false;
+        public readonly Node.PauseModeEnum PauseMode;
         private bool _paused = false;
         private bool _requestStop = false;
         private bool _running = false;
 
-        /// <summary>
-        /// Execute a lambda periodically. It uses the "timeout" signal from SceneTree.CreateTimer()  
-        /// </summary>
-        /// <param name="action">lambda to execute</param>
-        /// <param name="pauseIfSceneTreeIsPaused">
-        /// true: the timer will pause along with the SceneTree
-        /// false: ignore the pause, and the timer run always
-        /// </param>
-        public GodotScheduler(Action action, bool pauseIfSceneTreeIsPaused) {
+        public GodotScheduler(Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
             _action = action;
-            _pauseIfSceneTreeIsPaused = pauseIfSceneTreeIsPaused;
+            PauseMode = pauseMode;
         }
 
         public GodotScheduler Start(float seconds) {
@@ -34,7 +38,8 @@ namespace Betauer {
         private async void _Start(float seconds) {
             _paused = false;
             while (true) {
-                await SceneTreeHolder.SceneTree.CreateTimer(seconds, _pauseIfSceneTreeIsPaused).AwaitTimeout();
+                var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
+                await SceneTreeHolder.SceneTree.CreateTimer(seconds, pauseModeProcess).AwaitTimeout();
                 if (_requestStop) {
                     _requestStop = false;
                     break;
