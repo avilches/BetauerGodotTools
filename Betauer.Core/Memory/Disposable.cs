@@ -67,7 +67,9 @@ namespace Betauer.Memory {
 #endif
                 OnDispose(disposing);
             } catch (Exception e) {
+#if DEBUG
                 GD.PushError(e.ToString());
+#endif
             } finally {
                 base.Dispose(disposing);
             }
@@ -77,25 +79,27 @@ namespace Betauer.Memory {
         }
 
      }
-#if DEBUG
 
-    public static class DisposeTools {
+     public static class DisposeTools {
         public static bool ShowMessageOnNewInstance = false;
         public static bool ShowWarningOnShutdownDispose = false;
         public static bool ShowMessageOnDispose = false;
 
         internal static void LogNewInstance(object o) {
+#if DEBUG
             if (ShowMessageOnNewInstance) 
                 GD.Print($"New instance: {o.GetType().Name}: {o}");
+#endif
         }
 
         internal static void LogDispose(bool disposing, object o) {
+#if DEBUG
             if (disposing) {
-                if (ShowMessageOnDispose) GD.Print($"Dispose(): {o.GetType()}: {o}");
+                if (ShowMessageOnDispose) GD.Print($"{o.GetType().FullName}.Dispose(false): \"{o}\" ({o.GetHashCode():x8})");
             } else {
-                if (ShowWarningOnShutdownDispose) GD.PushWarning($"Disposing on shutdown: {o.GetType()}: {o}");
+                if (ShowWarningOnShutdownDispose) GD.PushWarning($"Shutdown. {o.GetType().FullName}.Dispose(true): \"{o}\" ({o.GetHashCode():x8})");
             }
+#endif
         }
     }
-#endif
 }
