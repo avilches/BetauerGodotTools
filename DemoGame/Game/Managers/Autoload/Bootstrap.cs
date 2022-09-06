@@ -93,7 +93,7 @@ namespace Veronenger.Game.Managers.Autoload {
             // Bootstrap logs, all always :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(TaskExtensions), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(AnimatedPlatformController), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.All);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
@@ -138,16 +138,13 @@ namespace Veronenger.Game.Managers.Autoload {
          * Detect quit app (by ALT+F4, Command+Q or user menu)
          */
         public override void _Notification(int what) {
+            base._Notification(what);
+            Console.WriteLine("_Notification: " + what);
             if (what == MainLoop.NotificationWmQuitRequest) {
-                Exit();
+                var timespan = Uptime;
+                var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
+                Logger.Info("User requested exit the application. Uptime: " + elapsed);
             }
-        }
-
-        private void Exit() {
-            var timespan = Uptime;
-            var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
-            Logger.Info("User requested exit the application. Uptime: " + elapsed);
-            LoggerFactory.Dispose(); // Please, do this the last so previous disposing operation can log
         }
     }
 }
