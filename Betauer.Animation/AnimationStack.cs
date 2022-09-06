@@ -125,17 +125,17 @@ namespace Betauer.Animation {
         }
 
         private class LoopTween : LoopStatus {
-            private readonly ISequence _sequence;
+            private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
-            public LoopTween(AnimationStack animationStack, Logger logger, string name, ISequence sequence) : base(
+            public LoopTween(AnimationStack animationStack, Logger logger, string name, IAnimation animation) : base(
                 animationStack, logger, name) {
-                _sequence = sequence;
+                _animation = animation;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sceneTreeTween = _sequence.Execute().SetLoops();
+                _sceneTreeTween = _animation.Play().SetLoops();
             }
 
             internal override void ExecuteOnEnd() {
@@ -146,18 +146,18 @@ namespace Betauer.Animation {
         }
 
         private class OnceTween : OnceStatus {
-            private readonly ISequence _sequence;
+            private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
             public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
-                bool killPrevious, ISequence sequence) :
+                bool killPrevious, IAnimation animation) :
                 base(animationStack, logger, name, canBeInterrupted, killPrevious) {
-                _sequence = sequence;
+                _animation = animation;
             }
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sceneTreeTween = _sequence.Execute();
+                _sceneTreeTween = _animation.Play();
                 // .OnFinished(OnTweenPlayerFinishAll);
             }
 
@@ -257,15 +257,15 @@ namespace Betauer.Animation {
             return onceAnimationStatus;
         }
 
-        public ILoopStatus AddLoopTween(string name, ISequence sequence) {
-            var loopTweenStatus = new LoopTween(this, _logger, name, sequence);
+        public ILoopStatus AddLoopTween(string name, IAnimation animation) {
+            var loopTweenStatus = new LoopTween(this, _logger, name, animation);
             _loopAnimations.Add(name, loopTweenStatus);
             return loopTweenStatus;
         }
 
-        public IOnceStatus AddOnceTween(string name, ISequence sequence, bool canBeInterrupted = false,
+        public IOnceStatus AddOnceTween(string name, IAnimation animation, bool canBeInterrupted = false,
             bool killPrevious = false) {
-            var onceTweenStatus = new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, sequence);
+            var onceTweenStatus = new OnceTween(this, _logger, name, canBeInterrupted, killPrevious, animation);
             _onceAnimations.Add(name, onceTweenStatus);
             return onceTweenStatus;
         }

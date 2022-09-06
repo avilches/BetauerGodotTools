@@ -5,7 +5,8 @@ namespace Betauer.Animation.Tween {
         public readonly Node Target;
         public readonly TProperty InitialValue;
         public readonly float Duration;
-        public TProperty Value;
+
+        public TProperty Value { get; private set; }
 
         public AnimationContext(Node target, TProperty initialValue, float duration) {
             Target = target;
@@ -13,9 +14,10 @@ namespace Betauer.Animation.Tween {
             Duration = duration;
         }
 
-        public AnimationContext(Node target, TProperty initialValue, float duration, TProperty value) :
-            this(target, initialValue, duration) {
+        // Used by the tween to update the value in the context, then c
+        internal void UpdateValue(IProperty<TProperty> property, TProperty value) {
             Value = value;
+            property.SetValue(this);
         }
     }
 }

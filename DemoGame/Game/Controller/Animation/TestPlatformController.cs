@@ -19,32 +19,32 @@ namespace Veronenger.Game.Controller.Animation {
         public override void _Ready() {
             // _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
             // _multipleSequencePlayer1
-            Sequence.Create(body1)
-                .AnimateKeys<float>(Property.Scale2DY, Easings.SineInOut)
+            KeyframeAnimation.Create(body1)
+                .SetDuration(1)
+                .AnimateKeys(Property.Scale2DY, Easings.SineInOut)
                 .From(1f)
-                .Duration(1)
                 .KeyframeTo(0.5f, 1.5f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate()
                 .SetInfiniteLoops()
-                .PlayForever();
+                .Play();
 
             BezierCurve curve = BezierCurve.Create(0.37f, 0.0f, 0.63f, 1f);
             // https://css-tricks.com/snippets/sass/easing-map-get-function/
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
-            Sequence.Create(body2)
+            SequenceAnimation.Create(body2)
                 .AnimateStepsBy(Property.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
                 .EndAnimate()
                 .SetInfiniteLoops()
-                .PlayForever();
+                .Play();
 
-            Sequence.Create(body3)
-                .AnimateKeys<float>(Property.Scale2DY)
+            KeyframeAnimation.Create(body3)
+                .SetDuration(2f)
+                .AnimateKeys(Property.Scale2DY)
                 .From(1)
-                .Duration(2f)
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
                 .KeyframeTo(0.43f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))
@@ -55,7 +55,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .KeyframeTo(1, 1f)
                 .EndAnimate()
                 .SetInfiniteLoops()
-                .PlayForever();
+                .Play();
         }
     }
 }

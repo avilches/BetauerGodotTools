@@ -1,12 +1,12 @@
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    internal static partial class Templates {
+    internal static partial class TemplateFactories {
         private const float AttentionSeekerDuration = 0.75f; // Animate.css: 1f
 
-        internal static Sequence Bounce() {
+        internal static KeyframeAnimation Bounce() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.PositionY)
                 .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
@@ -19,8 +19,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.9f, -4)
                 .KeyframeOffset(1, 0, Bezier(0.215f, 0.61f, 0.355f, 1))
                 .EndAnimate()
-                .Parallel()
-                .AnimateKeys(Property.Scale2DY)
+                .AnimateKeys(Property.Scale2Dy)
                 .KeyframeTo(0.20f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.4f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
                 .KeyframeTo(0.43f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
@@ -32,9 +31,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Flash() {
+        internal static KeyframeAnimation Flash() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateKeys(Property.Opacity)
                 .From(1)
@@ -45,9 +44,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence HeadShake() {
+        internal static KeyframeAnimation HeadShake() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.PositionX)
                 .KeyframeOffset(0.065f, -6)
@@ -57,7 +56,6 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.500f, 0)
                 .KeyframeOffset(1.000f, 0)
                 .EndAnimate()
-                .Parallel()
                 .AnimateRelativeKeys(Property.Rotate2D)
                 .KeyframeOffset(0.000f, 0, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(0.065f, -9)
@@ -69,9 +67,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence HeartBeat() {
+        internal static KeyframeAnimation HeartBeat() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -83,10 +81,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Jello() {
+        internal static KeyframeAnimation Jello() {
             // Ported from the Ceceppa/Anima animation:
             // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.Skew2DX)
                 .KeyframeOffset(0.111f, 0f)
@@ -99,7 +97,6 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.888f, -0.00828125f)
                 .KeyframeOffset(1.000f, 0f) // a relative offset 0 returns to the original value
                 .EndAnimate()
-                .Parallel()
                 .AnimateRelativeKeys(Property.Skew2DY)
                 .KeyframeOffset(0.111f, 0f)
                 .KeyframeOffset(0.222f, -0.3f)
@@ -113,9 +110,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Pulse() {
+        internal static KeyframeAnimation Pulse() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.0f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -124,9 +121,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence RubberBand() {
+        internal static KeyframeAnimation RubberBand() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -139,9 +136,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Shake() {
+        internal static KeyframeAnimation Shake() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.Position2D)
                 .KeyframeOffset(0.10f, new Vector2(-10f, -10f))
@@ -157,9 +154,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence ShakeX() {
+        internal static KeyframeAnimation ShakeX() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeX.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.PositionX)
                 .KeyframeOffset(0.10f, -10f)
@@ -175,9 +172,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence ShakeY() {
+        internal static KeyframeAnimation ShakeY() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeY.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.PositionY)
                 .KeyframeOffset(0.10f, -10f)
@@ -193,10 +190,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Swing() {
+        internal static KeyframeAnimation Swing() {
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control, not Node2D as RotateCenter is validatin
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.Rotate2D)
                 .KeyframeOffset(0.0f, 0, null, node => node.SetRotateOriginToTopCenter())
@@ -208,9 +205,9 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Tada() {
+        internal static KeyframeAnimation Tada() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/tada.css
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.0f, Vector2.One, null, node => node.SetRotateOriginToCenter())
@@ -218,7 +215,6 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.3f, new Vector2(1.1f, 1.1f))
                 .KeyframeTo(1.0f, Vector2.One)
                 .EndAnimate()
-                .Parallel()
                 .AnimateRelativeKeys(Property.Rotate2D)
                 .KeyframeOffset(0.1f, -3f)
                 .KeyframeOffset(0.2f, -3f)
@@ -233,10 +229,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence Wobble() {
+        internal static KeyframeAnimation Wobble() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/wobble.css
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control (not really needed because PositionXCenter already validate it...)
-            return Sequence.Create()
+            return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, +0.00f, null, node => node.SetRotateOriginToTopCenter())
@@ -247,7 +243,6 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.75f, -0.05f)
                 .KeyframeOffset(1.00f, +0.00f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateRelativeKeys(Property.Rotate2D)
                 .KeyframeOffset(0.15f, -5f)
                 .KeyframeOffset(0.30f, +3f)

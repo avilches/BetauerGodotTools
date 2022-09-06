@@ -18,7 +18,7 @@ namespace DemoAnimation.Game.Managers.Autoload {
 
             int n = 0;
             foreach (var child in node.GetChildren()) {
-                Template.FadeIn.Play(child as Node, 0.1f * n);
+                Templates.FadeIn.Play(child as Node, 0.1f * n);
                 n++;
             }
             return null;
@@ -31,15 +31,15 @@ namespace DemoAnimation.Game.Managers.Autoload {
                 animation = animation.ReplaceN("_", "");
                 animation = animation.ReplaceN("bouncing", "bounce");
 
-                // TODo: should a Template.Get() fail, or it's better to return an empty sequence?
-                Template.Get(animation, 1000f).Play(node, 0, duration);
+                // TODo: should a Templates.Get() fail, or it's better to return an empty sequence?
+                Templates.Get<float, KeyframeAnimation>(animation, 1000f)!.Play(node, 0, duration);
             } catch (Exception e) {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
 
             // TweenPlayer tweenPlayer = new TweenPlayer().NewTween(this)
-            //     .ImportTemplate(Template.bounce, node)
+            //     .ImportTemplate(Templates.bounce, node)
             //     .Parallel()
             //     .AnimateSteps<Color>(node, "modulate")
             //     .From(Colors.Aqua)

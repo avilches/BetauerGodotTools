@@ -2,54 +2,44 @@ using Godot;
 
 namespace Betauer.Animation.Easing {
     // Got from https://www.icode.com/c-function-for-a-bezier-curve/
-    public class BezierCurve : IEasing {
-        public readonly float p0x;
-        public readonly float p0y;
-        public readonly float cx;
-        public readonly float cy;
-        public readonly float bx;
-        public readonly float by;
-        public readonly float ax;
-        public readonly float ay;
-        public readonly Curve2D curve;
+    public readonly struct BezierCurve : IEasing {
+        public readonly float P0X;
+        public readonly float P0Y;
+        public readonly float Cx;
+        public readonly float Cy;
+        public readonly float Bx;
+        public readonly float By;
+        public readonly float Ax;
+        public readonly float Ay;
 
-        public string Name { get; }
-
-        public BezierCurve(string name,
-            float p0x, float p0y, float cx, float cy, float bx, float by, float ax, float ay, Curve2D curve) {
-            Name = name;
-            this.p0x = p0x;
-            this.p0y = p0y;
-            this.cx = cx;
-            this.cy = cy;
-            this.bx = bx;
-            this.by = by;
-            this.ax = ax;
-            this.ay = ay;
-            this.curve = curve;
+        public BezierCurve(float p0X, float p0Y, float cx, float cy, float bx, float by, float ax, float ay) {
+            P0X = p0X;
+            P0Y = p0Y;
+            Cx = cx;
+            Cy = cy;
+            Bx = bx;
+            By = by;
+            Ax = ax;
+            Ay = ay;
         }
 
         public float GetY(float t) {
-            return ay * t * t * t + by * t * t + cy * t + p0y;
+            return Ay * t * t * t + By * t * t + Cy * t + P0Y;
         }
 
         public Vector2 GetPoint(float t) {
             var cube = t * t * t;
             var square = t * t;
-            var resX = (ax * cube) + (bx * square) + (cx * t) + p0x;
-            var resY = (ay * cube) + (by * square) + (cy * t) + p0y;
+            var resX = (Ax * cube) + (Bx * square) + (Cx * t) + P0X;
+            var resY = (Ay * cube) + (By * square) + (Cy * t) + P0Y;
             return new Vector2(resX, resY);
         }
 
-        public override string ToString() {
-            return Name;
-        }
-
         public bool Equals(BezierCurve other) {
-            return p0x.Equals(other.p0x) && p0y.Equals(other.p0y) && 
-                   cx.Equals(other.cx) && cy.Equals(other.cy) && 
-                   bx.Equals(other.bx) && by.Equals(other.by) && 
-                   ax.Equals(other.ax) && ay.Equals(other.ay);
+            return P0X.Equals(other.P0X) && P0Y.Equals(other.P0Y) && 
+                   Cx.Equals(other.Cx) && Cy.Equals(other.Cy) && 
+                   Bx.Equals(other.Bx) && By.Equals(other.By) && 
+                   Ax.Equals(other.Ax) && Ay.Equals(other.Ay);
         }
 
         public override bool Equals(object? obj) {
@@ -61,14 +51,14 @@ namespace Betauer.Animation.Easing {
 
         public override int GetHashCode() {
             unchecked {
-                var hashCode = p0x.GetHashCode();
-                hashCode = (hashCode * 397) ^ p0y.GetHashCode();
-                hashCode = (hashCode * 397) ^ cx.GetHashCode();
-                hashCode = (hashCode * 397) ^ cy.GetHashCode();
-                hashCode = (hashCode * 397) ^ bx.GetHashCode();
-                hashCode = (hashCode * 397) ^ by.GetHashCode();
-                hashCode = (hashCode * 397) ^ ax.GetHashCode();
-                hashCode = (hashCode * 397) ^ ay.GetHashCode();
+                var hashCode = P0X.GetHashCode();
+                hashCode = (hashCode * 397) ^ P0Y.GetHashCode();
+                hashCode = (hashCode * 397) ^ Cx.GetHashCode();
+                hashCode = (hashCode * 397) ^ Cy.GetHashCode();
+                hashCode = (hashCode * 397) ^ Bx.GetHashCode();
+                hashCode = (hashCode * 397) ^ By.GetHashCode();
+                hashCode = (hashCode * 397) ^ Ax.GetHashCode();
+                hashCode = (hashCode * 397) ^ Ay.GetHashCode();
                 return hashCode;
             }
         }
@@ -82,21 +72,19 @@ namespace Betauer.Animation.Easing {
             return Create(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
         }
 
-        public static BezierCurve Create(float p1x, float p1y, float p2x, float p2y) {
-            return Create(0, 0, p1x, p1y, p2x, p2y, 1, 1);
+        public static BezierCurve Create(float p1X, float p1Y, float p2X, float p2Y) {
+            return Create(0, 0, p1X, p1Y, p2X, p2Y, 1, 1);
         }
 
 
-        public static BezierCurve Create(
-            float p0x, float p0y, float p1x, float p1y,
-            float p2x, float p2y, float p3x, float p3y) {
-            var cx = 3 * (p1x - p0x);
-            var cy = 3 * (p1y - p0y);
-            var bx = 3 * (p2x - p1x) - cx;
-            var by = 3 * (p2y - p1y) - cy;
-            var ax = p3x - p0x - cx - bx;
-            var ay = p3y - p0y - cy - by;
-            var name = $"Bezier({p0x},{p0y}) ({p1x},{p1y}) ({p2x},{p2y}) ({p3x},{p3y})";
+        public static BezierCurve Create(float p0X, float p0Y, float p1X, float p1Y,
+            float p2X, float p2Y, float p3X, float p3Y) {
+            var cx = 3 * (p1X - p0X);
+            var cy = 3 * (p1Y - p0Y);
+            var bx = 3 * (p2X - p1X) - cx;
+            var by = 3 * (p2Y - p1Y) - cy;
+            var ax = p3X - p0X - cx - bx;
+            var ay = p3Y - p0Y - cy - by;
             /*
            // https://godotengine.org/qa/80633/using-curve2d-to-draw-a-bezier-curve
            // https://www.reddit.com/r/godot/comments/igkbjv/using_curve2d_to_draw_a_bezier_curve/
@@ -113,7 +101,7 @@ namespace Betauer.Animation.Easing {
            curve.AddPoint(p1_vertex, p1_in-p1_vertex, p1_out);
            */
 
-            return new BezierCurve(name, p0x, p0y, cx, cy, bx, by, ax, ay, null);
+            return new BezierCurve(p0X, p0Y, cx, cy, bx, by, ax, ay);
         }
 
         // Slower version using Godot LinearInterpolate function.

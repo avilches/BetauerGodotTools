@@ -9,8 +9,11 @@ namespace Betauer.Animation.Tween {
             _delay = delay;
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node? ignoredDefaultTarget,
-            float ignoredDuration) {
+        public bool IsCompatibleWith(Node node) {
+            return true;
+        }
+
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node? ignoredDefaultTarget) {
             var delayEndTime = _delay + initialDelay;
 #if DEBUG
             Logger.Info("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + "s to " +

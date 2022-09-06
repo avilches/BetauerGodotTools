@@ -13,7 +13,7 @@ using Container = Godot.Container;
 
 namespace Veronenger.Game.Controller.Menu {
     public class PauseMenu : CanvasLayer {
-        private static readonly Sequence PartialFadeOut = Sequence.Create()
+        private static readonly KeyframeAnimation PartialFadeOut = KeyframeAnimation.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Property.Opacity)
             .From(0)

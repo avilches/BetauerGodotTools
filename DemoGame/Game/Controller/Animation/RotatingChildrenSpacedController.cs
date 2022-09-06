@@ -17,7 +17,7 @@ namespace Veronenger.Game.Controller.Animation {
 
 
         private List<PhysicsBody2D> _platforms;
-        private Sequence _sequence;
+        private SequenceAnimation _sequence;
         private SceneTreeTween _sceneTreeTween;
 
         public override void _Ready() {
@@ -31,12 +31,12 @@ namespace Veronenger.Game.Controller.Animation {
         private void Configure() {
             _platforms = this.GetChildren<PhysicsBody2D>();
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
-            _sequence = Sequence.Create(this)
+            _sequence = SequenceAnimation.Create(this)
                 .AnimateSteps<float>(RotateSpaced)
                 .From(0).To(Mathf.Tau, 4, Easings.Linear)
                 .EndAnimate()
                 .SetInfiniteLoops();
-            _sceneTreeTween = _sequence.PlayForever();
+            _sceneTreeTween = _sequence.Play();
         }
 
         /*

@@ -99,12 +99,12 @@ namespace Veronenger.Game.Controller.Menu {
             _settingsBox.Show();
             _scrollContainer.ScrollVertical = 0;
             _redefineBox.Hide();
-            await Template.BounceIn.Play(_panel, 0f, 0.2f).AwaitFinished();
+            await Templates.BounceIn.Play(_panel, 0f, 0.2f).AwaitFinished();
             _fullscreenButtonWrapper.GrabFocus();
         }
 
         public async Task HideSettingsMenu() {
-            await Template.BounceOut.Play(_panel, 0f, 0.2f).AwaitFinished();
+            await Templates.BounceOut.Play(_panel, 0f, 0.2f).AwaitFinished();
             _panel.Hide();
             _restorer.Restore();
         }

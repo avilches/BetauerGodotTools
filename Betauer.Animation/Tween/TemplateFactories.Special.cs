@@ -1,22 +1,21 @@
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    internal static partial class Templates {
+    internal static partial class TemplateFactories {
         private const float HingeDuration = 1.5f;
         private const float JackInTheBoxDuration = 0.5f;
         private const float RollDuration = 0.5f;
 
         // https://github.com/animate-css/animate.css/tree/main/source/specials
 
-        internal static Sequence Hinge() {
-            return Sequence.Create()
+        internal static KeyframeAnimation Hinge() {
+            return KeyframeAnimation.Create()
                 .SetDuration(HingeDuration)
                 .AnimateRelativeKeys(Property.PositionY) // TODO: try this one instead,Easing.QuadInOut)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToTopLeft())
                 .KeyframeOffset(0.80f, 0.0f)
                 .KeyframeOffset(1.00f, 700f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(0.20f, 80.0f) // TODO: try this one instead, Easing.QuadInOut)
@@ -25,7 +24,6 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.80f, 60.0f)
                 .KeyframeTo(1.00f, 0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1.0f)
                 .KeyframeTo(0.80f, 1.0f)
@@ -33,8 +31,8 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate();
         }
 
-        internal static Sequence JackInTheBox() {
-            return Sequence.Create()
+        internal static KeyframeAnimation JackInTheBox() {
+            return KeyframeAnimation.Create()
                 .SetDuration(JackInTheBoxDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -44,20 +42,18 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.70f, 3)
                 .KeyframeTo(1.00f, 0)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Scale2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(0.50f, Vector2.One)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate();
         }
 
-        internal static Sequence RollInLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RollInLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -65,20 +61,18 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.00f, -1.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, -120)
                 .KeyframeTo(1.00f, 0)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate();
         }
 
-        internal static Sequence RollInRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RollInRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -86,20 +80,18 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.00f, 1.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, -120)
                 .KeyframeTo(1.00f, 0)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate();
         }
 
-        internal static Sequence RollOutLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RollOutLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RollDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -107,31 +99,27 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, -1.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0)
                 .KeyframeTo(1.00f, 120)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate();
         }
 
-        internal static Sequence RollOutRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RollOutRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RollDuration)
                 .AnimateRelativeKeys(Property.PositionBySizeX)
                 .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(1.00f, 1.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0)
                 .KeyframeTo(1.00f, 120)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)

@@ -8,6 +8,10 @@ namespace Betauer.Animation.Tween {
         private readonly object[]? _binds;
         private readonly Node? _target;
 
+        public bool IsCompatibleWith(Node node) {
+            return true;
+        }
+
         public MethodCallbackTweener(float delay, Node? target, string methodName, params object[] binds) {
             _target = target;
             _methodName = methodName;
@@ -15,7 +19,7 @@ namespace Betauer.Animation.Tween {
             _binds = binds;
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float ignoredDuration) {
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
             if (!Object.IsInstanceValid(sceneTreeTween)) {
 #if DEBUG
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");

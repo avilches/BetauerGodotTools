@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
@@ -62,7 +64,7 @@ namespace DemoAnimation.Game.Controller.Menu {
         private Restorer _animationsRestorer;
         private Restorer _menuRestorer;
 
-        private readonly List<TemplateFactory> _templateFactories = Template.GetAllTemplates()
+        private readonly List<TemplateFactory> _templateFactories = Templates.GetAllTemplates()
             .OrderBy(factory => (factory.Category ?? "0") + "-" + factory.Category + "-" + factory.Name)
             .ToList();
 
@@ -76,8 +78,8 @@ namespace DemoAnimation.Game.Controller.Menu {
                 _demoMenu.Start();
             });
             string oldCategory = null;
-            const string animationForExit = nameof(Template.BackOutDown);
-            const string animationForEnter = nameof(Template.BounceInRight);
+            const string animationForExit = nameof(Templates.BackOutDown);
+            const string animationForEnter = nameof(Templates.BounceInRight);
             var idx = 0;
             foreach (var templateFactory in _templateFactories) {
                 var name = templateFactory.Name;
@@ -113,13 +115,13 @@ namespace DemoAnimation.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuContainer.Start();
-            await Template.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
+            await Templates.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await Template.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
+            await Templates.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -185,6 +187,8 @@ namespace DemoAnimation.Game.Controller.Menu {
             return mainMenu;
         }
 
+        private SceneTreeTween? _effectsMenuSceneTreeTween;
+        private Action? _effectsMenuOnFinish;
         private void CreateEffectsMenu(Betauer.UI.Menu effectsMenu) {
             string oldCategory = null;
 
@@ -201,28 +205,39 @@ namespace DemoAnimation.Game.Controller.Menu {
 
                 Button button = effectsMenu.AddButton(name, name);
                 button.OnPressed(async () => {
+                    if (_effectsMenuSceneTreeTween != null) {
+                        _effectsMenuSceneTreeTween.Kill();
+                        _effectsMenuOnFinish();
+                    }
                     var buttonRestorer = button.CreateRestorer().Save();
                     button.Disabled = true;
-                    var targets = new Node[] { button, _labelToAnimate, _texture, _logo };
-                    // TODO: kill the previous
-                    await Template.Get(name).MultiPlay(targets, 0.5f, 0f, MenuEffectTime).AwaitFinished();
-                    await this.AwaitIdleFrame();
-                    button.Disabled = false;
-                    buttonRestorer.Restore();
-                    _animationsRestorer.Restore();
+                    var animation = Templates.Get(name)!;
+                    var targets = new Node[] {
+                            button, _labelToAnimate, _texture, _logo
+                        }.Where(node => animation.IsCompatibleWith(node));
+                    _effectsMenuOnFinish = () => {
+                        button.Disabled = false;
+                        buttonRestorer.Restore();
+                        _animationsRestorer.Restore();
+                        _effectsMenuSceneTreeTween = null;
+                        _effectsMenuOnFinish = null;
+                    };
+                    _effectsMenuSceneTreeTween = animation.Play(targets, 0.2f, 0f, MenuEffectTime);
+                    _effectsMenuSceneTreeTween.AwaitFinished().OnCompleted(_effectsMenuOnFinish);
                 });
             }
         }
 
-        private SceneTreeTween _sceneTreeTween;
+
+        private SceneTreeTween _sceneTreeTweenDimEffect;
         public void DimOut() {
-            _sceneTreeTween?.Kill();
-            _sceneTreeTween = Template.FadeOut.Play(this, 0f, 1f);
+            _sceneTreeTweenDimEffect?.Kill();
+            _sceneTreeTweenDimEffect = Templates.FadeOut.Play(this, 0f, 1f);
         }
 
         public void RollbackDimOut() {
-            _sceneTreeTween?.Kill();
-            _sceneTreeTween = null;
+            _sceneTreeTweenDimEffect?.Kill();
+            _sceneTreeTweenDimEffect = null;
             Modulate = Colors.White;
         }
 
@@ -241,7 +256,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
                 ? AllMenuEffectTime / children.Count
                 : DelayPerTarget;
-            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
+            await Templates.Get(effect)!.Play(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
 
@@ -250,24 +265,15 @@ namespace DemoAnimation.Game.Controller.Menu {
             if (effect == null) return;
             _menuLabel.Text = "Enter menu: playing " + effect + "...";
             var children = transition.ToMenu.GetChildren();
-            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
-                ? AllMenuEffectTime / children.Count
-                : DelayPerTarget;
-            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
-            _menuLabel.Text = "";
+            await MenuAnimation(children, effect);
         }
-
 
         private async Task BackGoodbyeAnimation(MenuTransition transition) {
             var effect = _optionButtonExit.GetItemText(_optionButtonExit.GetSelectedId());
             if (effect == null) return;
             _menuLabel.Text = "Exit menu: playing " + effect + "...";
             var children = transition.FromMenu.GetVisibleControl();
-            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
-                ? AllMenuEffectTime / children.Count
-                : DelayPerTarget;
-            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
-            _menuLabel.Text = "";
+            await MenuAnimation(children, effect);
         }
 
         private async Task BackNewMenuAnimation(MenuTransition transition) {
@@ -275,10 +281,13 @@ namespace DemoAnimation.Game.Controller.Menu {
             if (effect == null) return;
             _menuLabel.Text = "Enter menu: playing " + effect + "...";
             var children = transition.ToMenu.GetChildren();
-            var delayPerTarget = DelayPerTarget * children.Count > AllMenuEffectTime
-                ? AllMenuEffectTime / children.Count
-                : DelayPerTarget;
-            await Template.Get(effect).MultiPlay(children, delayPerTarget, 0f, MenuEffectTime).AwaitFinished();
+            await MenuAnimation(children, effect);
+        }
+
+        private async Task MenuAnimation(List<Control> children, string effect) {
+            var animation = Templates.Get(effect)!;
+            children = children.Where(node => animation.IsCompatibleWith(node)).ToList();
+            await animation.Play(children, DelayPerTarget, 0f, MenuEffectTime, AllMenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
     }

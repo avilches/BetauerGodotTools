@@ -42,13 +42,13 @@ namespace Veronenger.Game.Controller.Menu {
             modulate.a = 0;
             Modulate = modulate;
             await _menuContainer.Start();
-            await Template.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
+            await Templates.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             GetTree().Root.GuiDisableInput = false;
         }
 
         public async Task HideMainMenu() {
             GetTree().Root.GuiDisableInput = true;
-            await Template.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
+            await Templates.FadeOut.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
             Visible = false;
             GetTree().Root.GuiDisableInput = false;
         }
@@ -77,7 +77,7 @@ namespace Veronenger.Game.Controller.Menu {
         private SceneTreeTween _sceneTreeTween;
         public void DimOut() {
             _sceneTreeTween?.Kill();
-            _sceneTreeTween = Template.FadeOut.Play(this, 0f, 1f);
+            _sceneTreeTween = Templates.FadeOut.Play(this, 0f, 1f);
         }
 
         public void RollbackDimOut() {

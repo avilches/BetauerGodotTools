@@ -15,14 +15,12 @@ namespace Betauer.Animation.Easing {
         }
 
         public float GetY(float t) {
-            if (EaseType == Godot.Tween.EaseType.In) {
-                return EasingFunctions.EaseIn(t, TransitionType);
-            } else if (EaseType == Godot.Tween.EaseType.Out) {
-                return EasingFunctions.EaseOut(t, TransitionType);
-            } else if (EaseType == Godot.Tween.EaseType.InOut) {
-                return EasingFunctions.EaseInOut(t, TransitionType);
-            }
-            throw new NotImplementedException();
+            return EaseType switch {
+                Godot.Tween.EaseType.In => EasingFunctions.EaseIn(t, TransitionType),
+                Godot.Tween.EaseType.Out => EasingFunctions.EaseOut(t, TransitionType),
+                Godot.Tween.EaseType.InOut => EasingFunctions.EaseInOut(t, TransitionType),
+                Godot.Tween.EaseType.OutIn => throw new NotImplementedException(),
+            };
         }
     }
 }

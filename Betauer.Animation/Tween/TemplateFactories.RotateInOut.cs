@@ -1,11 +1,11 @@
 namespace Betauer.Animation.Tween {
-    internal static partial class Templates {
+    internal static partial class TemplateFactories {
         private const float RotateDuration = 1f; // Animate.css: 1f
 
         // https://github.com/animate-css/animate.css/tree/main/source/rotating_entrances
 
-        internal static Sequence RotateIn() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateIn() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -13,14 +13,13 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.00f, 200, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(1.0f, 1f)
                 .EndAnimate();
         }
-        internal static Sequence RotateInDownLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateInDownLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -28,14 +27,13 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(1.0f, 1f)
                 .EndAnimate();
         }
-        internal static Sequence RotateInDownRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateInDownRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -43,14 +41,13 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(1.0f, 1f)
                 .EndAnimate();
         }
-        internal static Sequence RotateInUpLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateInUpLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -58,14 +55,13 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.00f, 45, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(1.0f, 1f)
                 .EndAnimate();
         }
-        internal static Sequence RotateInUpRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateInUpRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
                 .OnStart(target => Property.Opacity.SetValue(target, 0f))
@@ -73,73 +69,67 @@ namespace Betauer.Animation.Tween {
                 .KeyframeTo(0.00f, -45, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(1.0f, 1f)
                 .EndAnimate();
         }
 
-        internal static Sequence RotateOut() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateOut() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(1.00f, 200f)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1f)
                 .KeyframeTo(1.0f, 0f)
                 .EndAnimate();
         }
-        internal static Sequence RotateOutDownLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateOutDownLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, -45)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1f)
                 .KeyframeTo(1.0f, 0f)
                 .EndAnimate();
         }
-        internal static Sequence RotateOutDownRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateOutDownRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, 45)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1f)
                 .KeyframeTo(1.0f, 0f)
                 .EndAnimate();
         }
-        internal static Sequence RotateOutUpLeft() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateOutUpLeft() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomLeft())
                 .KeyframeTo(1.00f, 45)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1f)
                 .KeyframeTo(1.0f, 0f)
                 .EndAnimate();
         }
-        internal static Sequence RotateOutUpRight() {
-            return Sequence.Create()
+        internal static KeyframeAnimation RotateOutUpRight() {
+            return KeyframeAnimation.Create()
                 .SetDuration(RotateDuration)
                 .AnimateKeys(Property.Rotate2D)
                 .KeyframeTo(0.00f, 0.0f, null, node => node.SetRotateOriginToBottomRight())
                 .KeyframeTo(1.00f, -45)
                 .EndAnimate()
-                .Parallel()
                 .AnimateKeys(Property.Opacity)
                 .KeyframeTo(0.0f, 1f)
                 .KeyframeTo(1.0f, 0f)

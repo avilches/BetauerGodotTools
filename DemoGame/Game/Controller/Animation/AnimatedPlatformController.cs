@@ -32,8 +32,8 @@ namespace Veronenger.Game.Controller.Animation {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
-            Stopwatch x = Stopwatch.StartNew();
-            Sequence seq = Sequence
+            var x = Stopwatch.StartNew();
+            var seq = SequenceAnimation
                 .Create(this)
                 .Callback(() => {
                     x = Stopwatch.StartNew();
@@ -52,7 +52,7 @@ namespace Veronenger.Game.Controller.Animation {
                     _logger.Debug("End "+(x.ElapsedMilliseconds)+"ms"))
                 .SetLoops(1);
 
-            Sequence seq2 = Sequence
+            var seq2 = SequenceAnimation
                 .Create(this)
                 .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easings.CubicInOut)
                 .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)

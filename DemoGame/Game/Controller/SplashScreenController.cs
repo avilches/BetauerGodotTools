@@ -43,13 +43,14 @@ namespace Veronenger.Game.Controller {
             _mainResourceLoader.OnProgress += context => {
                 // GD.Print("SPLASH " + context.TotalLoadedPercent);
             };
-            Sequence
+            SequenceAnimation
                 .Create(_sprite)
-                .SetInfiniteLoops()
                 .AnimateSteps(Property.Modulate)
                 .From(Colors.White)
                 .To(Colors.Red, 0.2f)
-                .EndAnimate().Play(_sprite);
+                .EndAnimate()
+                .SetInfiniteLoops()
+                .Play();
         }
 
         public override void _Process(float delta) {
