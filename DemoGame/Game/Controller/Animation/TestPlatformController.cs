@@ -12,16 +12,10 @@ namespace Veronenger.Game.Controller.Animation {
         [OnReady("Body2")] private KinematicBody2D body2;
         [OnReady("Body3")] private KinematicBody2D body3;
 
-        // private SingleSequencePlayer _multipleSequencePlayer1;
-        // private SingleSequencePlayer _multipleSequencePlayer2;
-        // private MultipleSequencePlayer _multipleSequencePlayer3;
-
         public override void _Ready() {
-            // _multipleSequencePlayer1 = new SingleSequencePlayer().WithParent(this);
-            // _multipleSequencePlayer1
             KeyframeAnimation.Create(body1)
                 .SetDuration(1)
-                .AnimateKeys(Property.Scale2DY, Easings.SineInOut)
+                .AnimateKeys(Property.Scale2Dy, Easings.SineInOut)
                 .From(1f)
                 .KeyframeTo(0.5f, 1.5f)
                 .KeyframeTo(1f, 1f)
@@ -43,7 +37,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             KeyframeAnimation.Create(body3)
                 .SetDuration(2f)
-                .AnimateKeys(Property.Scale2DY)
+                .AnimateKeys(Property.Scale2Dy)
                 .From(1)
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))

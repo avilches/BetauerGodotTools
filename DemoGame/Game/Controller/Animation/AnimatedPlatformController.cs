@@ -15,10 +15,9 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         private SceneTreeTween _sceneTreeTween;
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(AnimatedPlatformController));
 
         private Vector2 _original;
-        public Vector2 follow;
+        public Vector2 Follow;
 
         public override void _Ready() {
             Configure();
@@ -37,9 +36,8 @@ namespace Veronenger.Game.Controller.Animation {
                 .Create(this)
                 .Callback(() => {
                     x = Stopwatch.StartNew();
-                    _logger.Debug("Start");
                 })
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easings.CubicInOut)
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(Follow)), Easings.CubicInOut)
                 .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
                 .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
@@ -48,13 +46,11 @@ namespace Veronenger.Game.Controller.Animation {
                 .EndAnimate()
                 .AnimateSteps(Property.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
                 .EndAnimate()
-                .Callback(() =>
-                    _logger.Debug("End "+(x.ElapsedMilliseconds)+"ms"))
                 .SetLoops(1);
 
             var seq2 = SequenceAnimation
                 .Create(this)
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(follow)), Easings.CubicInOut)
+                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(Follow)), Easings.CubicInOut)
                 .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
                 .Offset(new Vector2(0, -50), 0.25f)
                 .EndAnimate()
@@ -73,7 +69,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void UpdatePosition() {
-            Position = _original + follow;
+            Position = _original + Follow;
         }
 
         public void Start() {
@@ -81,7 +77,7 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Pause() {
-            follow = Vector2.Zero;
+            Follow = Vector2.Zero;
             Modulate = new Color(1, 1, 1, 1);
             // TODO: this will trigger the timeout, resulting in a non-expected behaviour (the idea behind the timeout
             // TODO: is avoid a never-ending await when the scene is changed and the "finished" signal from the tween
