@@ -3,7 +3,7 @@ using Betauer.Memory;
 using Object = Godot.Object;
 
 namespace Betauer.Signal {
-    internal abstract class SignalObjectTarget : Object, IObjectConsumer {
+    internal abstract class SignalObjectTarget : DisposableGodotObject, IObjectConsumer {
         public readonly Object Origin;
         public readonly bool OneShot;
 
@@ -38,6 +38,10 @@ namespace Betauer.Signal {
 
         protected SignalObjectTarget(Object origin, T action, bool oneShot): base(origin, oneShot) {
             Action = action;
+        }
+
+        public override string ToString() {
+            return "Watching: " + (IsInstanceValid(Origin) ? Origin.ToString(): "(disposed)");
         }
     }
 

@@ -71,6 +71,11 @@ namespace Betauer.Memory {
         public override bool MustBeFreed() {
             return Watching?.All(Object.IsInstanceValid) ?? false;
         }
+        
+        public override string ToString() {
+            return "Watching: " + string.Join(",", 
+                Watching?.Select(o => Object.IsInstanceValid(o) ? o.ToString(): "(disposed)"));
+        }
     }
 
     public class WatchTweenAndFree : FreeConsumer<WatchTweenAndFree> {
@@ -86,6 +91,11 @@ namespace Betauer.Memory {
         
         public override bool MustBeFreed() {
             return Watching?.All(tween => tween.IsValid()) ?? false;
+        }
+
+        public override string ToString() {
+            return "Watching: " + string.Join(",", 
+                Watching?.Select(o => Object.IsInstanceValid(o) ? o.ToString(): "(disposed)"));
         }
     }
 }

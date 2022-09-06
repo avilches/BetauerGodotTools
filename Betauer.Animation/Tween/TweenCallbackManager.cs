@@ -103,6 +103,10 @@ namespace Betauer.Animation.Tween {
                 DefaultObjectWatcherRunner.Instance.Add(this);
                 return this;
             }
+
+            public override string ToString() {
+                return "Watching: " + (IsInstanceValid(_sceneTreeTweenWatching) ? _sceneTreeTweenWatching.ToString(): "(disposed)");
+            }
         }
         
     }
