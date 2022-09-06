@@ -214,8 +214,8 @@ namespace Betauer {
             return result;
         }
 
-        public static void Dispose() {
-            foreach (ITextWriter writer in Instance._writers) writer.Dispose();
+        public static void EnableAutoFlush() {
+            foreach (ITextWriter writer in Instance._writers) writer.EnableAutoFlush();
         }
     }
 
@@ -346,12 +346,12 @@ namespace Betauer {
     public interface ITextWriter {
         void WriteLine(string line);
         void Flush();
-        void Dispose();
+        void EnableAutoFlush();
     }
 
-    public class TextWriterWrapper : ITextWriter, IDisposable {
+    public class TextWriterWrapper : ITextWriter {
         private readonly TextWriter _writer;
-        private bool _disposed = false;
+        private bool _autoFlush = false;
 
         public TextWriterWrapper(TextWriter writer) {
             _writer = writer;
@@ -359,18 +359,16 @@ namespace Betauer {
 
         public void WriteLine(string line) {
             _writer.WriteLine(line);
-            if (_disposed) {
-                _writer.Flush();
-            }
+            if (_autoFlush) _writer.Flush();
         }
 
         public void Flush() {
             _writer.Flush();
         }
 
-        public void Dispose() {
-            if (_disposed) return;
-            _disposed = true;
+        public void EnableAutoFlush() {
+            if (_autoFlush) return;
+            _autoFlush = true;
             _writer.Flush();
         }
     }
