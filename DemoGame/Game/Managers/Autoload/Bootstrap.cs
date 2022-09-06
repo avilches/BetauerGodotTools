@@ -71,6 +71,11 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
+            MainLoopNotificationHandler.OnWmQuitRequest += () => {
+                var timespan = Uptime;
+                var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
+                Logger.Info("User requested exit the application. Uptime: " + elapsed);
+            };
         }
 
         private static void ExportConfig() {
@@ -132,19 +137,6 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Enemy.Zombie:*", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Motion", "Enemy.Zombie:*", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Collision", "Enemy.Zombie:*", TraceLevel.Error);
-        }
-
-        /**
-         * Detect quit app (by ALT+F4, Command+Q or user menu)
-         */
-        public override void _Notification(int what) {
-            base._Notification(what);
-            Console.WriteLine("_Notification: " + what);
-            if (what == MainLoop.NotificationWmQuitRequest) {
-                var timespan = Uptime;
-                var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
-                Logger.Info("User requested exit the application. Uptime: " + elapsed);
-            }
         }
     }
 }

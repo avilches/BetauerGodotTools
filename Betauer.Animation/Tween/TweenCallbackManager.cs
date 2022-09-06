@@ -20,7 +20,7 @@ namespace Betauer.Animation.Tween {
     /// InterpolateAction(0, 12, ..., (val) => { })
     /// 
     /// </summary>
-    public class TweenCallbackManager : Object {
+    public class TweenCallbackManager : DisposableGodotObject {
         private const string GodotTweenCallbackMethodName = nameof(GodotTweenCallbackMethod);
 
         public readonly Dictionary<int, List<Action>> ActionsPerSceneTree =
@@ -66,7 +66,7 @@ namespace Betauer.Animation.Tween {
         /// godot objects and the method name as string.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        private class InterpolateMethodAction<T> : Object {
+        private class InterpolateMethodAction<T> : DisposableGodotObject {
             private readonly Action<T> _action;
 
             public InterpolateMethodAction(Action<T> action) {
