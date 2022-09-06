@@ -62,5 +62,15 @@ namespace Betauer.Application {
                 }
             }
         }
+        
+        /**
+         * Detect quit app (by ALT+F4, Command+Q or user menu)
+         */
+        public override void _Notification(int what) {
+            if (what == MainLoop.NotificationWmQuitRequest) {
+                LoggerFactory.EnableAutoFlush();
+                DefaultObjectWatcherRunner.Instance.Consume(true);
+            }
+        }
     }
 }
