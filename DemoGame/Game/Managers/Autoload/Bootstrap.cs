@@ -71,7 +71,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            MainLoopNotificationHandler.OnWmQuitRequest += () => {
+            MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 var timespan = Uptime;
                 var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
                 Logger.Info("User requested exit the application. Uptime: " + elapsed);

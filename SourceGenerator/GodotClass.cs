@@ -18,7 +18,7 @@ namespace Generator {
             GodotClass = godotClass;
             signal_name = name; // "on_button_pressed"
             // Some signals include a "on_" prefix. The camel case version will not include it
-            SignalName = Tools.CamelCase(name.StartsWith("on") ? name.Substring(2) : name); // "ButtonPressed"
+            SignalName = (name.StartsWith("on") ? name.Substring(2) : name).CamelCase(); // "ButtonPressed"
             // IsStatic "VirtualServerButtonPressed"
             // !IsStatic "ButtonPressed"
             MethodName = GodotClass.IsStatic ? $"{GodotClass.ClassName}{SignalName}" : SignalName;
@@ -97,7 +97,7 @@ namespace Generator {
 
         public GodotClass(string className) {
             class_name = className;
-            var camelCase = Tools.CamelCase(className);
+            var camelCase = className.CamelCase();
             ClassName = ClassMap.ContainsKey(camelCase) ? ClassMap[camelCase] : camelCase;
             GeneratedClassName = ClassName + "Action";
             IsValid = ClassDB.IsClassEnabled(className);
@@ -137,13 +137,6 @@ namespace Generator {
             }
             return signals.OrderBy(signal => signal.SignalName).ToList();
         }
-    }
-
-    public class Tools {
-        public static string CamelCase(string name) =>
-            name.Split(new[] { "_" }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
-                .Aggregate(string.Empty, (s1, s2) => s1 + s2);
     }
 
     public class SignalArg {

@@ -2,7 +2,8 @@ using System;
 using Godot;
 
 namespace Betauer.Application {
-    public class MainLoopNotificationHandler {
+    public class MainLoopNotificationsHandler {
+
         public event Action OnWmMouseEnter;
         public event Action OnWmMouseExit;
         public event Action OnWmFocusIn;
@@ -17,6 +18,8 @@ namespace Betauer.Application {
         public event Action OnOsImeUpdate;
         public event Action OnAppResumed;
         public event Action OnAppPaused;
+        public event Action OnPostinitialize;
+        public event Action OnPredelete;
 
         public void Execute(int what) {
             switch (what) {
@@ -62,7 +65,14 @@ namespace Betauer.Application {
                 case MainLoop.NotificationAppPaused:
                     OnAppPaused?.Invoke();
                     break;
+                case MainLoop.NotificationPostinitialize:
+                    OnPostinitialize?.Invoke();
+                    break;
+                case MainLoop.NotificationPredelete:
+                    OnPredelete?.Invoke();
+                    break;
             }
-        }
+        }  
+
     }
 }

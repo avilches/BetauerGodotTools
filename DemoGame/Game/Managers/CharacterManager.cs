@@ -12,7 +12,7 @@ using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Service]
-    public class CharacterManager : Object /* needed to receive signals TODO: it shouldn't be! */{
+    public class CharacterManager : DisposableGodotObject /* needed to receive signals TODO: it shouldn't be! */{
         private const string GROUP_ENEMY = "enemy";
 
         public PlayerController PlayerController { get; private set; }

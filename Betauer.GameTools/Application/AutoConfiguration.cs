@@ -13,12 +13,12 @@ namespace Betauer.Application {
      */
     public abstract class AutoConfiguration : Node {
         protected readonly Container Container = new Container();
-        protected readonly MainLoopNotificationHandler MainLoopNotificationHandler = new MainLoopNotificationHandler();
+        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
 
         [Service] public Consumer Consumer => DefaultObjectWatcherRunner.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => SceneTreeHolder.SceneTree;
-        [Service] public MainLoopNotificationHandler MainLoopNotificationHandlerFactory => MainLoopNotificationHandler;
+        [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
         
         private bool _addSingletonNodesToTree = true;
         private float _watchTimer = 10f;
@@ -34,7 +34,7 @@ namespace Betauer.Application {
             SceneTreeHolder.SceneTree = GetTree();
             StartContainer();
 
-            MainLoopNotificationHandler.OnWmQuitRequest += () => {
+            MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 LoggerFactory.EnableAutoFlush();
                 DefaultObjectWatcherRunner.Instance.Consume(true);
             };
@@ -74,7 +74,7 @@ namespace Betauer.Application {
         }
 
         public override void _Notification(int what) {
-            MainLoopNotificationHandler.Execute(what);
+            MainLoopNotificationsHandler.Execute(what);
         }
     }
 }
