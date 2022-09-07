@@ -13,7 +13,7 @@
 extents = Vector2( 7, 20 )
 
 [sub_resource type="Animation" id=3]
-length = 10.0
+length = 0.3
 step = 0.02
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:texture")
@@ -418,39 +418,39 @@ margin_right = 69.0
 margin_bottom = 105.0
 
 [node name="StopIdle" type="Button" parent="PlayerBody/VBoxContainer"]
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 20.0
 text = "Stop Idle"
 
 [node name="StartIdle" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 24.0
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 44.0
 text = "Start Idle"
 
 [node name="StopModulate" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 48.0
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 68.0
 text = "Stop Modulate"
 
 [node name="StartModulate" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 72.0
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 92.0
-text = "Start Modulate"
+text = "Once Modulate"
 
 [node name="StopSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 96.0
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 116.0
 text = "Stop Squeeze"
 
 [node name="StartSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
 margin_top = 120.0
-margin_right = 105.0
+margin_right = 127.0
 margin_bottom = 140.0
-text = "Start Squeeze"
+text = "Once kill Squeeze"
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -491,7 +491,6 @@ anims/Run = SubResource( 8 )
 
 [node name="ConsoleButton" parent="PlayerBody" instance=ExtResource( 8 )]
 position = Vector2( -28, 3 )
-frame = 67
 
 [node name="RayCasts" type="Node2D" parent="PlayerBody"]
 
