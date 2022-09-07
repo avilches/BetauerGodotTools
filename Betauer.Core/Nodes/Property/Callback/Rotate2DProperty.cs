@@ -1,8 +1,10 @@
-using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Nodes.Property.Callback {
     public class Rotate2DProperty : Property<float> {
+        internal Rotate2DProperty() {
+        }
+
         public override float GetValue(Node node) {
             return node switch {
                 Node2D node2D => node2D.RotationDegrees,

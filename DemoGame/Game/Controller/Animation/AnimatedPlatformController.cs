@@ -37,7 +37,7 @@ namespace Veronenger.Game.Controller.Animation {
                 .Callback(() => {
                     x = Stopwatch.StartNew();
                 })
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(Follow)), Easings.CubicInOut)
+                .AnimateStepsBy(nameof(Follow), Easings.CubicInOut)
                 .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
                 .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
@@ -50,7 +50,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             var seq2 = SequenceAnimation
                 .Create(this)
-                .AnimateStepsBy(new IndexedProperty<Vector2>(nameof(Follow)), Easings.CubicInOut)
+                .AnimateStepsBy(nameof(Follow), Easings.CubicInOut)
                 .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
                 .Offset(new Vector2(0, -50), 0.25f)
                 .EndAnimate()

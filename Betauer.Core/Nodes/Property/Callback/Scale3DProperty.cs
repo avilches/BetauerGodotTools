@@ -1,8 +1,10 @@
-using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Nodes.Property.Callback {
     public class Scale3DProperty : Property<Vector3> {
+        internal Scale3DProperty() {
+        }
+
         public override Vector3 GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale,

@@ -1,8 +1,10 @@
-using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Nodes.Property.Callback {
     public class ScaleZProperty : Property<float> {
+        internal ScaleZProperty() {
+        }
+
         public override float GetValue(Node node) {
             return node switch {
                 Spatial spatial => spatial.Scale.z,
@@ -20,7 +22,7 @@ namespace Betauer.Nodes.Property {
         }
 
         public override string ToString() {
-            return "ScaleYProperty<float>(spatial: \"scale:z\")";
+            return "ScaleZProperty<float>(spatial: \"scale:z\")";
         }
     }
 }

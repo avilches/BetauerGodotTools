@@ -1,8 +1,10 @@
-using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Nodes.Property.Callback {
     public class Scale2DProperty : Property<Vector2> {
+        internal Scale2DProperty() {
+        }
+
         public override Vector2 GetValue(Node node) {
             return node switch {
                 Node2D node2D => node2D.Scale,
