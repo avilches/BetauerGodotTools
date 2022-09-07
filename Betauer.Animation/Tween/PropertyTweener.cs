@@ -91,10 +91,10 @@ namespace Betauer.Animation.Tween {
             SceneTreeTween sceneTreeTween,
             Node target, IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
-            if (property is IIndexedProperty<TProperty> basicProperty) {
+            if (property is IIndexedProperty indexedProperty) {
                 return sceneTreeTween
                     .Parallel()
-                    .TweenProperty(target, basicProperty.GetIndexedPropertyName(target), to, duration)
+                    .TweenProperty(target, indexedProperty.GetIndexedPropertyName(target), to, duration)
                     .From(@from)
                     .SetTrans(godotEasing.TransitionType)
                     .SetEase(godotEasing.EaseType)

@@ -1,7 +1,8 @@
 using System;
+using Betauer.Nodes.Property;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Animation.Tween {
     public class CallbackProperty<TProperty> : IProperty<TProperty> {
         private readonly Action<TProperty> _action;
 
