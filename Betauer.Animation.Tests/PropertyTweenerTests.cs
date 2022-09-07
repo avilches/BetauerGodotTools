@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Nodes.Property;
 using Godot;
 using NUnit.Framework;
 using Betauer.Signal;
@@ -61,9 +62,9 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "sequence empty should fail")]
         public async Task SequenceEmptyShouldFail() {
             var sprite = await CreateSprite();
-            var e = Assert.Throws<Exception>(() =>
+            var e = Assert.Throws<InvalidAnimationException>(() =>
                 SequenceAnimation.Create(sprite)
-                    .AnimateSteps(Property.PositionX)
+                    .AnimateSteps(Properties.PositionX)
                     .EndAnimate());
             Assert.That(e.Message, Is.EqualTo("Animation without steps"));
         }
@@ -101,12 +102,12 @@ namespace Betauer.Animation.Tests {
 
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sequence = SequenceAnimation.Create(this)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easings.BackIn)
                 .To(-90, 0.2f)
                 .EndAnimate()
-                .AnimateSteps(Property.PositionY)
+                .AnimateSteps(Properties.PositionY)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easings.BackIn)
                 .To(-90, 0.2f)
@@ -125,7 +126,7 @@ namespace Betauer.Animation.Tests {
 
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sequence = SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easings.BackIn)
                 .To(-90, 0.2f)
@@ -147,7 +148,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sequence = SequenceAnimation.Create()
                 .SetDefaultTarget(spriteSequence)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easings.BackIn)
                 .To(-90, 0.2f)
@@ -168,7 +169,7 @@ namespace Betauer.Animation.Tests {
             var executed1 = false;
             var executed2 = false;
             await SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, Easings.BackIn)
                 // Add the same absolute step is allowed, it can be used as pause and as a callback
@@ -195,7 +196,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .To(120, 0.1f, Easings.BackIn)
@@ -216,7 +217,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(1180)
                 .To(80, 0f, Easings.BackIn)
@@ -243,7 +244,7 @@ namespace Betauer.Animation.Tests {
             var executed1 = false;
             var executed2 = false;
             await SequenceAnimation.Create(sprite)
-                .AnimateStepsBy(Property.PositionX)
+                .AnimateStepsBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .Offset(120, 0.1f, Easings.BackIn)
                 // Offset 0 and duration is like a pause with the callback is executed
@@ -270,7 +271,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateStepsBy(Property.PositionX)
+                .AnimateStepsBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .Offset(120, 0.1f, Easings.BackIn)
@@ -291,7 +292,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateStepsBy(Property.PositionX)
+                .AnimateStepsBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .Offset(-30, 0f, Easings.BackIn)
@@ -316,7 +317,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateRelativeSteps(Property.PositionX)
+                .AnimateRelativeSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .Offset(120, 0.1f, Easings.BackIn)
                 .Offset(-90, 0.2f)
@@ -336,7 +337,7 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await SequenceAnimation.Create(sprite)
-                .AnimateRelativeSteps(Property.PositionX)
+                .AnimateRelativeSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .Offset(120, 0.1f, Easings.BackIn)
@@ -360,7 +361,7 @@ namespace Betauer.Animation.Tests {
             var executed2 = false;
 
             await SequenceAnimation.Create(sprite)
-                .AnimateRelativeSteps(Property.PositionX)
+                .AnimateRelativeSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .Offset(120, 0.1f, Easings.BackIn)
@@ -390,7 +391,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .KeyframeTo(0.5f, 120, Easings.BackIn)
                 .KeyframeTo(0.8f, -90)
@@ -410,7 +411,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(20)
                 .KeyframeTo(0.5f, 120, Easings.BackIn)
@@ -435,7 +436,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(1f)
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(0.7f)
                 .KeyframeTo(0.00f, 0.7f)
@@ -457,7 +458,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(20) // from is overriden with the Keyframe 0
                 .KeyframeTo(0f, 30, Easings.CubicOut) // easing is ignored
@@ -483,7 +484,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeysBy(Property.PositionX)
+                .AnimateKeysBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
                 .KeyframeOffset(0.8f, -90)
@@ -503,7 +504,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeysBy(Property.PositionX)
+                .AnimateKeysBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
@@ -524,7 +525,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeysBy(Property.PositionX)
+                .AnimateKeysBy(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(30) // from is overriden with the Keyframe 0
                 .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
@@ -552,7 +553,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
                 .KeyframeOffset(0.8f, -90)
@@ -574,7 +575,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80)
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
@@ -597,7 +598,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .From(80) // from is overriden with the Keyframe 0
                 // .KeyframeOffset(0f, 80, Easing.CubicOut) // easing is ignored
@@ -623,7 +624,7 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
             await SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps)
                 .To(120, 0.1f, BezierCurve.Create(Vector2.One, Vector2.One))
                 // Add the same absolute step is allowed, it can be used as pause and as a callback

@@ -1,4 +1,6 @@
 using Betauer.Animation.Easing;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 
 namespace Betauer.Animation.Tween {
     internal static partial class TemplateFactories {
@@ -10,16 +12,16 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(LightSpeedDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(0.60f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(0.6f, 1f)
                 .EndAnimate()
-                .AnimateKeys(Property.Skew2DX)
+                .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, 1f)
                 .KeyframeTo(0.60f, -0.8f)
                 .KeyframeTo(0.80f, 0.16f)
@@ -31,16 +33,16 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(LightSpeedDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(0.60f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.0f, 0f)
                 .KeyframeTo(0.6f, 1f)
                 .EndAnimate()
-                .AnimateKeys(Property.Skew2DX)
+                .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, -1f)
                 .KeyframeTo(0.60f, 0.8f)
                 .KeyframeTo(0.80f, +0.16f)
@@ -51,15 +53,15 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation LightSpeedOutLeft() {
             return KeyframeAnimation.Create()
                 .SetDuration(LightSpeedDuration)
-                .AnimateKeys(Property.PositionBySizeX)
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, -1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Skew2DX)
+                .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, 0f)
                 .KeyframeTo(1.00f, -1f, Easings.CircOut)
                 .EndAnimate();
@@ -68,15 +70,15 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation LightSpeedOutRight() {
             return KeyframeAnimation.Create()
                 .SetDuration(LightSpeedDuration)
-                .AnimateKeys(Property.PositionBySizeX)
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Skew2DX)
+                .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, 0f)
                 .KeyframeTo(1.00f, 1f, Easings.CircOut)
                 .EndAnimate();

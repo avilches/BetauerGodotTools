@@ -54,11 +54,11 @@ namespace Betauer.Animation.Tween {
         
         protected (Node, SceneTreeTween) CreateSceneTreeTween(Node? target) {
             var realTarget = target ?? DefaultTarget ??
-                throw new Exception("Sequence has no target and Execute() method does not provide a target");
+                throw new InvalidAnimationException("Sequence has no target and Execute() method does not provide a target");
             
             SceneTreeTween? sceneTreeTween = realTarget.CreateTween();
             if (sceneTreeTween == null)
-                throw new Exception("Tween created from node " + realTarget.GetType().Name + " \'" + realTarget.Name +
+                throw new InvalidAnimationException("Tween created from node " + realTarget.GetType().Name + " \'" + realTarget.Name +
                                     "\' is null: add it to the scene tree.");
             return (realTarget, sceneTreeTween);
         }

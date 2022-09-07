@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -15,7 +16,7 @@ namespace Betauer.Animation.Tween {
         }
 
         public override SceneTreeTween Play(Node? target, float initialDelay = 0) {
-            if (TweenList.Count == 0) throw new Exception("Can't start a sequence without animations");
+            if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
             var (realTarget, sceneTreeTween) = CreateSceneTreeTween(target);
             ExecuteTweenList(sceneTreeTween, initialDelay, realTarget);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
@@ -47,7 +48,7 @@ namespace Betauer.Animation.Tween {
         }
 
         public override bool IsCompatibleWith(Node node) {
-            return TweenList.All(list => list.All(t=> IsCompatibleWith(node)));
+            return TweenList.All(list => list.All(t=> t.IsCompatibleWith(node)));
         }
 
         protected void AddTweener(ITweener tweener) {
@@ -91,7 +92,7 @@ namespace Betauer.Animation.Tween {
          */
         public PropertyStepAbsoluteTweener<TProperty> AnimateSteps<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
-            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, new CallbackProperty<TProperty>(property), easing);
+            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
@@ -99,21 +100,28 @@ namespace Betauer.Animation.Tween {
         public PropertyStepAbsoluteTweener<TProperty> AnimateSteps<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepAbsoluteTweener<TProperty>(this, new NodeCallbackProperty<TProperty>(property), easing);
+                new PropertyStepAbsoluteTweener<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyStepAbsoluteTweener<TProperty> AnimateSteps<TProperty>(
             string property, IEasing? easing = null) {
-            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, new IndexedProperty<TProperty>(property), easing);
+            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyStepAbsoluteTweener<TProperty> AnimateSteps<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
-            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, property, easing);
+            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, (_) => property, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyStepAbsoluteTweener<TProperty> AnimateSteps<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener = new PropertyStepAbsoluteTweener<TProperty>(this, propertyFactory, easing);
             AddTweener(tweener);
             return tweener;
         }
@@ -125,7 +133,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateStepsBy<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new CallbackProperty<TProperty>(property), easing,
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing,
                     false);
             AddTweener(tweener);
             return tweener;
@@ -134,7 +142,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateStepsBy<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new NodeCallbackProperty<TProperty>(property), easing,
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property), easing,
                     false);
             AddTweener(tweener);
             return tweener;
@@ -143,7 +151,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateStepsBy<TProperty>(
             string property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new IndexedProperty<TProperty>(property), easing, false);
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing, false);
             AddTweener(tweener);
             return tweener;
         }
@@ -151,7 +159,15 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateStepsBy<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, property, easing, false);
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => property, easing, false);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyStepOffsetBuilder<TProperty> AnimateStepsBy<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener =
+                new PropertyStepOffsetBuilder<TProperty>(this, propertyFactory, easing, false);
             AddTweener(tweener);
             return tweener;
         }
@@ -163,7 +179,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateRelativeSteps<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new CallbackProperty<TProperty>(property), easing, true);
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
             return tweener;
         }
@@ -171,7 +187,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateRelativeSteps<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new NodeCallbackProperty<TProperty>(property), easing,
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property), easing,
                     true);
             AddTweener(tweener);
             return tweener;
@@ -180,7 +196,7 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateRelativeSteps<TProperty>(
             string property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, new IndexedProperty<TProperty>(property), easing, true);
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing, true);
             AddTweener(tweener);
             return tweener;
         }
@@ -188,7 +204,15 @@ namespace Betauer.Animation.Tween {
         public PropertyStepOffsetBuilder<TProperty> AnimateRelativeSteps<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyStepOffsetBuilder<TProperty>(this, property, easing, true);
+                new PropertyStepOffsetBuilder<TProperty>(this, (_) => property, easing, true);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyStepOffsetBuilder<TProperty> AnimateRelativeSteps<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener =
+                new PropertyStepOffsetBuilder<TProperty>(this, propertyFactory, easing, true);
             AddTweener(tweener);
             return tweener;
         }

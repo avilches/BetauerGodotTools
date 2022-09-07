@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
     public class PropertyStepAbsoluteTweener<TProperty> : PropertyStepTweener<TProperty> {
         private readonly SequenceAnimation _animation;
 
-        internal PropertyStepAbsoluteTweener(SequenceAnimation animation, IProperty<TProperty> property, IEasing? defaultEasing) :
-            base(property, defaultEasing) {
+        internal PropertyStepAbsoluteTweener(SequenceAnimation animation, Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+            base(propertyFactory, defaultEasing) {
             _animation = animation;
         }
 
@@ -42,7 +43,7 @@ namespace Betauer.Animation.Tween {
 
         public SequenceAnimation EndAnimate() {
             if (Steps == null || Steps.Count == 0) { //
-                throw new Exception("Animation without steps");
+                throw new InvalidAnimationException("Animation without steps");
             }
             return _animation;
         }

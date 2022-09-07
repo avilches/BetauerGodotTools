@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -8,8 +9,8 @@ namespace Betauer.Animation.Tween {
         private readonly SequenceAnimation _animation;
 
         internal PropertyStepOffsetBuilder(SequenceAnimation animation,
-            IProperty<TProperty> property, IEasing? defaultEasing, bool relativeToFrom) :
-            base(property, defaultEasing) {
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
+            base(propertyFactory, defaultEasing) {
             _animation = animation;
             RelativeToFrom = relativeToFrom;
         }
@@ -44,7 +45,7 @@ namespace Betauer.Animation.Tween {
 
         public SequenceAnimation EndAnimate() {
             if (Steps == null || Steps.Count == 0) { //
-                throw new Exception("Animation without steps");
+                throw new InvalidAnimationException("Animation without steps");
             }
             return _animation;
         }

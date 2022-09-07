@@ -1,3 +1,5 @@
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -8,7 +10,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.PositionY)
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeOffset(0.4f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
@@ -19,7 +21,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.9f, -4)
                 .KeyframeOffset(1, 0, Bezier(0.215f, 0.61f, 0.355f, 1))
                 .EndAnimate()
-                .AnimateKeys(Property.Scale2Dy)
+                .AnimateKeys(Properties.Scale2Dy)
                 .KeyframeTo(0.20f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
                 .KeyframeTo(0.4f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
                 .KeyframeTo(0.43f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
@@ -35,7 +37,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/flash.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .From(1)
                 .KeyframeTo(0.25f, 0)
                 .KeyframeTo(0.50f, 1)
@@ -48,7 +50,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.065f, -6)
                 .KeyframeOffset(0.185f, +5)
                 .KeyframeOffset(0.315f, -3)
@@ -56,7 +58,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.500f, 0)
                 .KeyframeOffset(1.000f, 0)
                 .EndAnimate()
-                .AnimateRelativeKeys(Property.Rotate2D)
+                .AnimateRelativeKeys(Properties.Rotate2D)
                 .KeyframeOffset(0.000f, 0, null, node => node.SetRotateOriginToCenter())
                 .KeyframeOffset(0.065f, -9)
                 .KeyframeOffset(0.185f, +7)
@@ -71,7 +73,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/headShake.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateKeys(Property.Scale2D)
+                .AnimateKeys(Properties.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.14f, new Vector2(1.3f, 1.3f))
                 .KeyframeTo(0.28f, Vector2.One)
@@ -86,7 +88,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/ceceppa/anima/blob/master/addons/anima/animations/attention_seeker/jello.gd
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.Skew2DX)
+                .AnimateRelativeKeys(Properties.Skew2DX)
                 .KeyframeOffset(0.111f, 0f)
                 .KeyframeOffset(0.222f, -0.3f)
                 .KeyframeOffset(0.333f, +0.265f)
@@ -97,7 +99,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.888f, -0.00828125f)
                 .KeyframeOffset(1.000f, 0f) // a relative offset 0 returns to the original value
                 .EndAnimate()
-                .AnimateRelativeKeys(Property.Skew2DY)
+                .AnimateRelativeKeys(Properties.Skew2DY)
                 .KeyframeOffset(0.111f, 0f)
                 .KeyframeOffset(0.222f, -0.3f)
                 .KeyframeOffset(0.333f, +0.265f)
@@ -114,7 +116,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/pulse.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateKeys(Property.Scale2D)
+                .AnimateKeys(Properties.Scale2D)
                 .KeyframeTo(0.0f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.5f, new Vector2(1.05f, 1.05f))
                 .KeyframeTo(1.0f, Vector2.One)
@@ -125,7 +127,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/rubberBand.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateKeys(Property.Scale2D)
+                .AnimateKeys(Properties.Scale2D)
                 .KeyframeTo(0.00f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.30f, new Vector2(1.25f, 0.75f))
                 .KeyframeTo(0.40f, new Vector2(0.75f, 1.25f))
@@ -140,7 +142,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shake.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.Position2D)
+                .AnimateRelativeKeys(Properties.Position2D)
                 .KeyframeOffset(0.10f, new Vector2(-10f, -10f))
                 .KeyframeOffset(0.20f, new Vector2(+10f, +10f))
                 .KeyframeOffset(0.30f, new Vector2(-10f, -10f))
@@ -158,7 +160,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeX.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.10f, -10f)
                 .KeyframeOffset(0.20f, +10f)
                 .KeyframeOffset(0.30f, -10f)
@@ -176,7 +178,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/shakeY.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.PositionY)
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.10f, -10f)
                 .KeyframeOffset(0.20f, +10f)
                 .KeyframeOffset(0.30f, -10f)
@@ -195,7 +197,7 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/swing.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.Rotate2D)
+                .AnimateRelativeKeys(Properties.Rotate2D)
                 .KeyframeOffset(0.0f, 0, null, node => node.SetRotateOriginToTopCenter())
                 .KeyframeOffset(0.2f, +15)
                 .KeyframeOffset(0.4f, -10)
@@ -209,13 +211,13 @@ namespace Betauer.Animation.Tween {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/tada.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateKeys(Property.Scale2D)
+                .AnimateKeys(Properties.Scale2D)
                 .KeyframeTo(0.0f, Vector2.One, null, node => node.SetRotateOriginToCenter())
                 .KeyframeTo(0.1f, new Vector2(0.9f, 0.9f))
                 .KeyframeTo(0.3f, new Vector2(1.1f, 1.1f))
                 .KeyframeTo(1.0f, Vector2.One)
                 .EndAnimate()
-                .AnimateRelativeKeys(Property.Rotate2D)
+                .AnimateRelativeKeys(Properties.Rotate2D)
                 .KeyframeOffset(0.1f, -3f)
                 .KeyframeOffset(0.2f, -3f)
                 .KeyframeOffset(0.3f, +3f)
@@ -234,7 +236,7 @@ namespace Betauer.Animation.Tween {
             // TODO: it uses SetPivotTopCenter, so it's only compatible with Sprite and Control (not really needed because PositionXCenter already validate it...)
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
-                .AnimateRelativeKeys(Property.PositionBySizeX)
+                .AnimateRelativeKeys(Properties.PositionBySizeX)
                 .KeyframeOffset(0.00f, +0.00f, null, node => node.SetRotateOriginToTopCenter())
                 .KeyframeOffset(0.15f, -0.25f)
                 .KeyframeOffset(0.30f, +0.20f)
@@ -243,7 +245,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(0.75f, -0.05f)
                 .KeyframeOffset(1.00f, +0.00f)
                 .EndAnimate()
-                .AnimateRelativeKeys(Property.Rotate2D)
+                .AnimateRelativeKeys(Properties.Rotate2D)
                 .KeyframeOffset(0.15f, -5f)
                 .KeyframeOffset(0.30f, +3f)
                 .KeyframeOffset(0.45f, -3f)

@@ -1,4 +1,6 @@
 using System;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -10,7 +12,7 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOut() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -19,11 +21,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutUp() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySizeY)
+                .AnimateKeys(Properties.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, -1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -32,11 +34,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutUpBig(float distance = 0) {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateRelativeKeys(Property.PositionY)
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -45,11 +47,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutDown() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySizeY)
+                .AnimateKeys(Properties.PositionBySizeY)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -58,11 +60,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutDownBig(float distance = 0) {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateRelativeKeys(Property.PositionY)
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, 0.0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -71,11 +73,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutLeft() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySizeX)
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, -1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -84,11 +86,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutLeftBig(float distance = 0) {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -97,11 +99,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutRight() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySizeX)
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 0.0f)
                 .KeyframeTo(1.00f, 1.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -110,11 +112,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutRightBig(float distance = 0) {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateRelativeKeys(Property.PositionX)
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, 0.0f)
                 .KeyframeOffset(1.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -124,11 +126,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutTopLeft() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySize2D)
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(-1f, -1))
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -137,11 +139,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutTopRight() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySize2D)
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(1f, -1))
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -150,11 +152,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutBottomLeft() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySize2D)
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(-1f, 1))
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();
@@ -163,11 +165,11 @@ namespace Betauer.Animation.Tween {
         internal static KeyframeAnimation FadeOutBottomRight() {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeOutDuration)
-                .AnimateKeys(Property.PositionBySize2D)
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, Vector2.Zero)
                 .KeyframeTo(1.00f, new Vector2(1f, 1f))
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 1f)
                 .KeyframeTo(1f, 0f)
                 .EndAnimate();

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -8,8 +10,8 @@ namespace Betauer.Animation.Tween {
         private readonly KeyframeAnimation _animation;
 
         internal PropertyKeyframeOffsetTweener(KeyframeAnimation animation,
-            IProperty<TProperty> property, IEasing? defaultEasing, bool relativeToFrom) :
-            base(property, defaultEasing) {
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
+            base(propertyFactory, defaultEasing) {
             _animation = animation;
             RelativeToFrom = relativeToFrom;
         }
@@ -46,7 +48,7 @@ namespace Betauer.Animation.Tween {
 
         public KeyframeAnimation EndAnimate() {
             if (Keyframes == null || Keyframes.Count == 0) { //
-                throw new Exception("Animation without offset keyframes");
+                throw new InvalidAnimationException("Animation without offset keyframes");
             }
             return _animation;
         }

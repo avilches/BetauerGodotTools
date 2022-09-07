@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Animation {
+namespace Betauer.Nodes {
     /**
      * Special thanks to Alessandro Senese (Ceceppa)
      *
@@ -10,7 +10,7 @@ namespace Betauer.Animation {
      * Thank you man! :)
      * Code from: https://github.com/ceceppa/anima/blob/master/addons/anima/utils/node_properties.gd
      */
-    public static class PropertyTools {
+    public static class NodePropertyExtensions {
         public static Vector2 GetSpriteSize(this Sprite sprite) => sprite.Texture.GetSize() * sprite.Scale;
 
         public static float GetOutOfScreenRight(this Node node) {
@@ -23,7 +23,7 @@ namespace Betauer.Animation {
 
         public static float GetOutOfScreenLeft(this Node node) {
             var offset = node switch {
-                Control control => control.RectSize.x,
+                Control control => control.RectSize.x,      
                 Sprite sprite => sprite.GetSpriteSize().x,
                 _ => 0
             };

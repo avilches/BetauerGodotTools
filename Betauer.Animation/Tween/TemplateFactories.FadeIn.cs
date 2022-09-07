@@ -1,4 +1,6 @@
 using System;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -11,8 +13,8 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.Opacity)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -22,12 +24,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeY)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeY)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -37,12 +39,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateRelativeKeys(Property.PositionY)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -52,12 +54,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeY)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeY)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -67,12 +69,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateRelativeKeys(Property.PositionY)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -82,12 +84,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, -1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -97,12 +99,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateRelativeKeys(Property.PositionX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -112,12 +114,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySizeX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySizeX)
                 .KeyframeTo(0.00f, 1.0f)
                 .KeyframeTo(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -127,12 +129,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateRelativeKeys(Property.PositionX)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
                 .KeyframeOffset(1.00f, 0.0f)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -143,12 +145,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySize2D)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, -1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -158,12 +160,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySize2D)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, -1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -173,12 +175,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySize2D)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(-1f, 1))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();
@@ -188,12 +190,12 @@ namespace Betauer.Animation.Tween {
             return KeyframeAnimation.Create()
                 .SetDuration(FadeInDuration)
                 // When position movement and fade in effects are combined, it's better to force start with Opacity zero 
-                .OnStart(target => Property.Opacity.SetValue(target, 0f))
-                .AnimateKeys(Property.PositionBySize2D)
+                .OnStart(target => Properties.Opacity.SetValue(target, 0f))
+                .AnimateKeys(Properties.PositionBySize2D)
                 .KeyframeTo(0.00f, new Vector2(1f, 1f))
                 .KeyframeTo(1.00f, Vector2.Zero)
                 .EndAnimate()
-                .AnimateKeys(Property.Opacity)
+                .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0f, 0f)
                 .KeyframeTo(1f, 1f)
                 .EndAnimate();

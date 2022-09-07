@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Betauer.Signal;
 using Betauer.TestRunner;
 using Godot;
@@ -32,7 +34,7 @@ namespace Betauer.Animation.Tests {
                 .Pause(1f)
                 .OnStart(target => x ++)
                 .SetLoops(2)
-                .AnimateSteps(Property.Opacity)
+                .AnimateSteps(Properties.Opacity)
                 .To(12, 0.1f, Easings.BackIn)
                 .To(12, 0.1f, Easings.BackIn)
                 .EndAnimate()
@@ -74,13 +76,13 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "Error if sequence is empty")]
         public async Task SequenceEmptyTests() {
             var sprite = await CreateSprite();
-            var ke = Assert.ThrowsAsync<Exception>(async () => await KeyframeAnimation.Create(sprite)
+            var ke = Assert.ThrowsAsync<InvalidAnimationException>(async () => await KeyframeAnimation.Create(sprite)
                 .SetDuration(1)
                 .Play()
                 .AwaitFinished());
             Assert.That(ke.Message, Contains.Substring("Can't start a keyframe animation without animations"));
 
-            var se = Assert.ThrowsAsync<Exception>(async () => await SequenceAnimation.Create(sprite)
+            var se = Assert.ThrowsAsync<InvalidAnimationException>(async () => await SequenceAnimation.Create(sprite)
                 .Play()
                 .AwaitFinished());
             Assert.That(se.Message, Contains.Substring("Can't start a sequence without animations"));
@@ -89,15 +91,15 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "Error if keyframe animations without keyframes")]
         public async Task KeyframeSequenceWithoutAnimationTests() {
             var sprite = await CreateSprite();
-            var kea = Assert.Throws<Exception>(() => KeyframeAnimation.Create(sprite)
+            var kea = Assert.Throws<InvalidAnimationException>(() => KeyframeAnimation.Create(sprite)
                 .SetDuration(1)
-                .AnimateKeys(Property.Modulate)
+                .AnimateKeys(Properties.Modulate)
                 .EndAnimate());
             Assert.That(kea.Message, Contains.Substring("Animation without absolute keyframes"));
 
-            var seao = Assert.Throws<Exception>(() => KeyframeAnimation.Create(sprite)
+            var seao = Assert.Throws<InvalidAnimationException>(() => KeyframeAnimation.Create(sprite)
                 .SetDuration(1)
-                .AnimateKeysBy(Property.Modulate)
+                .AnimateKeysBy(Properties.Modulate)
                 .EndAnimate());
             Assert.That(seao.Message, Contains.Substring("Animation without offset keyframes"));
         }
@@ -105,13 +107,13 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "Error if step animations without steps")]
         public async Task StepSequenceWithoutAnimationTests() {
             var sprite = await CreateSprite();
-            var seaa = Assert.Throws<Exception>(() => SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.Modulate)
+            var seaa = Assert.Throws<InvalidAnimationException>(() => SequenceAnimation.Create(sprite)
+                .AnimateSteps(Properties.Modulate)
                 .EndAnimate());
             Assert.That(seaa.Message, Contains.Substring("Animation without steps"));
 
-            var seab = Assert.Throws<Exception>(() => SequenceAnimation.Create(sprite)
-                .AnimateStepsBy(Property.Modulate)
+            var seab = Assert.Throws<InvalidAnimationException>(() => SequenceAnimation.Create(sprite)
+                .AnimateStepsBy(Properties.Modulate)
                 .EndAnimate());
             Assert.That(seab.Message, Contains.Substring("Animation without steps"));
         }
@@ -119,8 +121,8 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "Keyframe without duration fails")]
         public async Task AnimationKeyMustHaveDurationTests() {
             var sprite = await CreateSprite();
-            var e = Assert.ThrowsAsync<Exception>(async () => await KeyframeAnimation.Create(sprite)
-                .AnimateKeys(Property.PositionX)
+            var e = Assert.ThrowsAsync<InvalidAnimationException>(async () => await KeyframeAnimation.Create(sprite)
+                .AnimateKeys(Properties.PositionX)
                 .From(80).KeyframeTo(1f, 100)
                 .EndAnimate()
                 .Play()
@@ -135,13 +137,13 @@ namespace Betauer.Animation.Tests {
             var sprite = await CreateSprite();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps1)
                 .From(80)
                 .KeyframeTo(0.6f, 100)
                 .KeyframeTo(1f, 200)
                 .EndAnimate()
-                .AnimateKeys(Property.PositionY)
+                .AnimateKeys(Properties.PositionY)
                 .SetDebugSteps(steps2)
                 .From(80)
                 .KeyframeTo(0.5f, 100)
@@ -164,13 +166,13 @@ namespace Betauer.Animation.Tests {
             List<DebugStep<float>> steps2 = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
             await KeyframeAnimation.Create()
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps1)
                 .From(80)
                 .KeyframeTo(0.6f, 100)
                 .KeyframeTo(1f, 200)
                 .EndAnimate()
-                .AnimateKeys(Property.PositionY)
+                .AnimateKeys(Properties.PositionY)
                 .SetDebugSteps(steps2)
                 .From(80)
                 .KeyframeTo(0.5f, 100)
@@ -193,13 +195,13 @@ namespace Betauer.Animation.Tests {
             var sprite1 = await CreateSprite();
             var sprite2 = await CreateSprite();
             await KeyframeAnimation.Create()
-                .AnimateKeys(Property.PositionX)
+                .AnimateKeys(Properties.PositionX)
                 .SetDebugSteps(steps1)
                 .From(80)
                 .KeyframeTo(0.6f, 100)
                 .KeyframeTo(1f, 200)
                 .EndAnimate()
-                .Play(new [] { sprite1, sprite2 }, delayBetweenNodes:0.5f, initialDelay: 1, duration: 2f)
+                .Play(new [] { sprite1, sprite2 }, delayPerTarget:0.5f, initialDelay: 1, durationPerTarget: 2f)
                 .AwaitFinished();
 
             AssertStepTime(steps1[0], 1f, 1.2f);
@@ -217,7 +219,7 @@ namespace Betauer.Animation.Tests {
             var sprite1 = await CreateSprite();
             var sprite2 = await CreateSprite();
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps1)
                 .From(80)
                 .To(100, 1.2f)
@@ -244,14 +246,14 @@ namespace Betauer.Animation.Tests {
             var steps3 = new List<DebugStep<float>>();
             var sprite = await CreateSprite();
             await SequenceAnimation.Create(sprite)
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps1)
                 .From(80).To(100, 0.6f)
                 .EndAnimate()
                 
                 // No Parallel() by default, so next animation will be chained
                 
-                .AnimateRelativeSteps(Property.PositionX)
+                .AnimateRelativeSteps(Properties.PositionX)
                 .SetDebugSteps(steps2a)
                 .From(80).Offset(0.5f, 0.4f)
                 .EndAnimate()
@@ -259,14 +261,14 @@ namespace Betauer.Animation.Tests {
                 // Activate Parallel()
                 
                 .Parallel()
-                .AnimateStepsBy(Property.PositionX)
+                .AnimateStepsBy(Properties.PositionX)
                 .SetDebugSteps(steps2b)
                 .From(80).Offset(0.5f, 0.5f)
                 .EndAnimate()
                 
                 // Next will be parallel too
                 
-                .AnimateRelativeSteps(Property.PositionX)
+                .AnimateRelativeSteps(Properties.PositionX)
                 .SetDebugSteps(steps2c)
                 .From(80).Offset(0.5f, 0.4f)
                 .EndAnimate()
@@ -275,7 +277,7 @@ namespace Betauer.Animation.Tests {
                 
                 .Chain()
                 
-                .AnimateSteps(Property.PositionX)
+                .AnimateSteps(Properties.PositionX)
                 .SetDebugSteps(steps3)
                 .From(80).To(0.5f, 1.4f)
                 .EndAnimate()

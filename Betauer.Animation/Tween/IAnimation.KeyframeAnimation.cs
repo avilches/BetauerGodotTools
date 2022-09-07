@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -12,7 +13,7 @@ namespace Betauer.Animation.Tween {
         public ICollection<IPropertyKeyframeTweener> TweenList { get; protected set; } =
             new List<IPropertyKeyframeTweener>();
 
-        public static KeyframeAnimation Create(Node target = null) {
+        public static KeyframeAnimation Create(Node? target = null) {
             var sequenceBuilder = new KeyframeAnimation().SetDefaultTarget(target);
             return sequenceBuilder;
         }
@@ -54,8 +55,8 @@ namespace Betauer.Animation.Tween {
         }
 
         private (Node, SceneTreeTween) ValidateAndCreateSceneTreeTween(Node? target, float duration) {
-            if (TweenList.Count == 0) throw new Exception("Can't start a keyframe animation without animations");
-            if (duration <= 0) throw new Exception("Keyframe animation duration should be more than 0");
+            if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a keyframe animation without animations");
+            if (duration <= 0) throw new InvalidAnimationException("Keyframe animation duration should be more than 0");
             return CreateSceneTreeTween(target);
         }
 
@@ -79,7 +80,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeAbsoluteTweener<TProperty> AnimateKeys<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeAbsoluteTweener<TProperty>(this, new CallbackProperty<TProperty>(property), easing);
+                new PropertyKeyframeAbsoluteTweener<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
@@ -88,7 +89,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeAbsoluteTweener<TProperty> AnimateKeys<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeAbsoluteTweener<TProperty>(this, new NodeCallbackProperty<TProperty>(property),
+                new PropertyKeyframeAbsoluteTweener<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property),
                     easing);
             AddTweener(tweener);
             return tweener;
@@ -98,14 +99,21 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeAbsoluteTweener<TProperty> AnimateKeys<TProperty>(
             string property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeAbsoluteTweener<TProperty>(this, new IndexedProperty<TProperty>(property), easing);
+                new PropertyKeyframeAbsoluteTweener<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing);
             AddTweener(tweener);
             return tweener;
         }
 
         public PropertyKeyframeAbsoluteTweener<TProperty> AnimateKeys<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
-            var tweener = new PropertyKeyframeAbsoluteTweener<TProperty>(this, property, easing);
+            var tweener = new PropertyKeyframeAbsoluteTweener<TProperty>(this, (_) => property, easing);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyframeAbsoluteTweener<TProperty> AnimateKeys<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener = new PropertyKeyframeAbsoluteTweener<TProperty>(this, propertyFactory, easing);
             AddTweener(tweener);
             return tweener;
         }
@@ -117,7 +125,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateKeysBy<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new CallbackProperty<TProperty>(property), easing,
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing,
                     false);
             AddTweener(tweener);
             return tweener;
@@ -126,7 +134,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateKeysBy<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new NodeCallbackProperty<TProperty>(property),
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property),
                     easing, false);
             AddTweener(tweener);
             return tweener;
@@ -135,7 +143,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateKeysBy<TProperty>(
             string property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new IndexedProperty<TProperty>(property), easing,
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing,
                     false);
             AddTweener(tweener);
             return tweener;
@@ -144,7 +152,15 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateKeysBy<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, property, easing, false);
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => property, easing, false);
+            AddTweener(tweener);
+            return tweener;
+        }
+
+        public PropertyKeyframeOffsetTweener<TProperty> AnimateKeysBy<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener =
+                new PropertyKeyframeOffsetTweener<TProperty>(this, propertyFactory, easing, false);
             AddTweener(tweener);
             return tweener;
         }
@@ -156,7 +172,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateRelativeKeys<TProperty>(
             Action<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new CallbackProperty<TProperty>(property), easing,
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new CallbackProperty<TProperty>(property), easing,
                     true);
             AddTweener(tweener);
             return tweener;
@@ -165,7 +181,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateRelativeKeys<TProperty>(
             Action<Node, TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new NodeCallbackProperty<TProperty>(property),
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new NodeCallbackProperty<TProperty>(property),
                     easing, true);
             AddTweener(tweener);
             return tweener;
@@ -174,7 +190,7 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateRelativeKeys<TProperty>(
             string property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, new IndexedProperty<TProperty>(property), easing,
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => new IndexedProperty<TProperty>(property), easing,
                     true);
             AddTweener(tweener);
             return tweener;
@@ -183,7 +199,15 @@ namespace Betauer.Animation.Tween {
         public PropertyKeyframeOffsetTweener<TProperty> AnimateRelativeKeys<TProperty>(
             IProperty<TProperty> property, IEasing? easing = null) {
             var tweener =
-                new PropertyKeyframeOffsetTweener<TProperty>(this, property, easing, true);
+                new PropertyKeyframeOffsetTweener<TProperty>(this, (_) => property, easing, true);
+            AddTweener(tweener);
+            return tweener;
+        }
+        
+        public PropertyKeyframeOffsetTweener<TProperty> AnimateRelativeKeys<TProperty>(
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? easing = null) {
+            var tweener =
+                new PropertyKeyframeOffsetTweener<TProperty>(this, propertyFactory, easing, true);
             AddTweener(tweener);
             return tweener;
         }

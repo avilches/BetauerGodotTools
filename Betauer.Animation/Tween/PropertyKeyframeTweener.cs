@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -11,18 +13,18 @@ namespace Betauer.Animation.Tween {
     public abstract class PropertyKeyframeTweener<TProperty> : PropertyTweener<TProperty>, IPropertyKeyframeTweener {
         public readonly List<AnimationKeyframe<TProperty>> Keyframes = new List<AnimationKeyframe<TProperty>>();
 
-        protected PropertyKeyframeTweener(IProperty<TProperty> property, IEasing? defaultEasing) :
-            base(property, defaultEasing) {
+        protected PropertyKeyframeTweener(Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+            base(propertyFactory, defaultEasing) {
         }
 
         public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration) {
-            if (!Validate(Keyframes.Count, target, Property)) return 0;
-            var initialValue = Property.GetValue(target);
+            var property = PropertyFactory(target);
+            if (!Validate(Keyframes.Count, target, property)) return 0;
+            var initialValue = property.GetValue(target);
             var from = FromFunction != null ? FromFunction(target) : initialValue;
             var initialFrom = from;
             var startTime = 0f;
             var idx = 0;
-            var context = new AnimationContext<TProperty>(target, initialValue, duration);
             foreach (var step in Keyframes) {
                 var to = step.GetTo(target, RelativeToFrom ? initialFrom : from);
                 var endTime = step.Percent * duration;
@@ -35,7 +37,7 @@ namespace Betauer.Animation.Tween {
                         // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
                         from = to;
                     }
-                    RunStep(sceneTreeTween, context, Property, from, to, start, keyDuration, step.Easing);
+                    RunStep(sceneTreeTween, target, property, from, to, start, keyDuration, step.Easing);
                 }
                 if (step.CallbackNode != null) {
                     sceneTreeTween
@@ -51,7 +53,7 @@ namespace Betauer.Animation.Tween {
         }
         
         public bool IsCompatibleWith(Node node) {
-            return Property.IsCompatibleWith(node);
+            return PropertyFactory(node).IsCompatibleWith(node);
         }
     }
 }

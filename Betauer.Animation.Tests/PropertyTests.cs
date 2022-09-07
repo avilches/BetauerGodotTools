@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Nodes;
+using Betauer.Nodes.Property;
 using Betauer.Signal;
 using Godot;
 using NUnit.Framework;
@@ -205,7 +207,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
-            foreach (var property in new IProperty<float>[] { Property.Rotate2D, Property.Rotate2DByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Rotate2D, Properties.Rotate2DByCallback }) {
                 const float from = 1f;
                 const float to = 3f;
                 var node2D = await CreateNode2D();
@@ -226,19 +228,20 @@ namespace Betauer.Animation.Tests {
 
             var node2D = await CreateNode2D();
 
-            await CreateTweenPropertyVariants(node2D, Property.PositionX, from, to);
-            await CreateTweenPropertyVariants(node2D, Property.PositionY, from, to);
+            await CreateTweenPropertyVariants(node2D, Properties.PositionX, from, to);
+            await CreateTweenPropertyVariants(node2D, Properties.PositionY, from, to);
 
             var control = await CreateLabel();
-            await CreateTweenPropertyVariants(control, Property.PositionX, from, to);
-            await CreateTweenPropertyVariants(control, Property.PositionY, from, to);
+            await CreateTweenPropertyVariants(control, Properties.PositionX, from, to);
+            await CreateTweenPropertyVariants(control, Properties.PositionY, from, to);
 
             var node = await CreateNode();
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.PositionX, from, to);
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.PositionY, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionX, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionY, from, to);
         }
 
         [Test(Description = "Property PositionBySizeX, PositionBySizeY")]
+        [Only]
         public async Task TweenPropertyPositionPercentX_Y() {
             const float percentFrom = 0f;
             const float percentTo = 0.1f;
@@ -249,7 +252,7 @@ namespace Betauer.Animation.Tests {
             var spriteX = await CreateSprite(width);
             spriteX.Position = new Vector2(initialPosition, 0);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySizeX)
+                .AnimateSteps(Properties.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -261,7 +264,7 @@ namespace Betauer.Animation.Tests {
             var spriteY = await CreateSprite(width);
             spriteY.Position = new Vector2(0, initialPosition);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySizeY)
+                .AnimateSteps(Properties.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -273,7 +276,7 @@ namespace Betauer.Animation.Tests {
             var sprite2D = await CreateSprite(width);
             sprite2D.Position = new Vector2(initialPosition, initialPosition);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySize2D)
+                .AnimateSteps(Properties.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
@@ -287,7 +290,7 @@ namespace Betauer.Animation.Tests {
             var controlX = await CreateLabel(width);
             controlX.RectPosition = new Vector2(initialPosition, 0);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySizeX)
+                .AnimateSteps(Properties.PositionBySizeX)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -299,7 +302,7 @@ namespace Betauer.Animation.Tests {
             var controlY = await CreateLabel(width);
             controlY.RectPosition = new Vector2(0, initialPosition);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySizeY)
+                .AnimateSteps(Properties.PositionBySizeY)
                 .From(percentFrom)
                 .To(percentTo, 0.1f)
                 .To(percentTo * 2, 0.1f)
@@ -311,7 +314,7 @@ namespace Betauer.Animation.Tests {
             var control2D = await CreateLabel(width);
             control2D.RectPosition = new Vector2(initialPosition, initialPosition);
             await SequenceAnimation.Create()
-                .AnimateSteps(Property.PositionBySize2D)
+                .AnimateSteps(Properties.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
                 .To(new Vector2(percentTo, percentTo), 0.1f)
                 .To(new Vector2(percentTo * 2, percentTo * 2), 0.1f)
@@ -322,21 +325,21 @@ namespace Betauer.Animation.Tests {
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var node = await CreateNode();
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.PositionBySizeX, percentFrom, percentTo);
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.PositionBySizeY, percentFrom, percentTo);
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.PositionBySize2D, Vector2.One, Vector2.Zero);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionBySizeX, percentFrom, percentTo);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionBySizeY, percentFrom, percentTo);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionBySize2D, Vector2.One, Vector2.Zero);
 
             var node2D = await CreateNode2D();
-            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Property.PositionBySizeX, percentFrom, percentTo);
-            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Property.PositionBySizeY, percentFrom, percentTo);
-            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Property.PositionBySize2D, Vector2.One, Vector2.Zero);
+            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Properties.PositionBySizeX, percentFrom, percentTo);
+            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Properties.PositionBySizeY, percentFrom, percentTo);
+            await CreateIncompatibleNodeTweenPropertyVariants(node2D, Properties.PositionBySize2D, Vector2.One, Vector2.Zero);
         }
 
         [Test(Description = "Property Scale2DX, Scale2DXByCallback, Scale2DY, Scale2DYByCallback")]
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
             const float to = 1.2f;
-            foreach (var property in new IProperty<float>[] { Property.Scale2DX, Property.Scale2DXByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Scale2Dx, Properties.Scale2DxByCallback }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -347,7 +350,7 @@ namespace Betauer.Animation.Tests {
                 await CreateIncompatibleNodeTweenPropertyVariants(node, property, from, to);
             }
 
-            foreach (var property in new IProperty<float>[] { Property.Scale2DY, Property.Scale2DYByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Scale2Dy, Properties.Scale2DyByCallback }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -365,16 +368,16 @@ namespace Betauer.Animation.Tests {
             const float to = 1.2f;
 
             var node2D = await CreateNode2D();
-            await CreateTweenPropertyVariants(node2D, Property.Skew2DX, from, to);
-            await CreateTweenPropertyVariants(node2D, Property.Skew2DY, from, to);
+            await CreateTweenPropertyVariants(node2D, Properties.Skew2DX, from, to);
+            await CreateTweenPropertyVariants(node2D, Properties.Skew2DY, from, to);
 
             var label = await CreateLabel();
-            await CreateIncompatibleNodeTweenPropertyVariants(label, Property.Skew2DX, from, to);
-            await CreateIncompatibleNodeTweenPropertyVariants(label, Property.Skew2DY, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(label, Properties.Skew2DX, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(label, Properties.Skew2DY, from, to);
 
             var node = await CreateNode();
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.Skew2DX, from, to);
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.Skew2DY, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.Skew2DX, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.Skew2DY, from, to);
         }
 
         [Test(Description = "Property Position2D")]
@@ -383,19 +386,19 @@ namespace Betauer.Animation.Tests {
             var to = new Vector2(23f, -12f);
 
             var node2D = await CreateNode2D();
-            await CreateTweenPropertyVariants(node2D, Property.Position2D, from, to);
+            await CreateTweenPropertyVariants(node2D, Properties.Position2D, from, to);
 
             var control = await CreateLabel();
-            await CreateTweenPropertyVariants(control, Property.Position2D, from, to);
+            await CreateTweenPropertyVariants(control, Properties.Position2D, from, to);
 
             var node = await CreateNode();
-            await CreateIncompatibleNodeTweenPropertyVariants(node, Property.Position2D, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.Position2D, from, to);
         }
 
 
         [Test(Description = "Property Scale2D")]
         public async Task TweenPropertyScale2d() {
-            foreach (var property in new IProperty<Vector2>[] { Property.Scale2D, Property.Scale2DByCallback }) {
+            foreach (var property in new IProperty<Vector2>[] { Properties.Scale2D, Properties.Scale2DByCallback }) {
                 var from = Vector2.One;
                 var to = new Vector2(23f, -12f);
 
@@ -420,31 +423,31 @@ namespace Betauer.Animation.Tests {
             var to = new Color(1f, 1f, 1f, 1f);
 
             foreach (var node in new CanvasItem[] { await CreateNode2D(), await CreateSprite(), await CreateLabel() }) {
-                await CreateTweenPropertyVariants(node, Property.Modulate, from, to);
+                await CreateTweenPropertyVariants(node, Properties.Modulate, from, to);
                 Assert.That(node.Modulate, Is.EqualTo(to));
 
                 node.Modulate = from;
-                await CreateTweenPropertyVariants(node, Property.ModulateR, 0f, 1f);
+                await CreateTweenPropertyVariants(node, Properties.ModulateR, 0f, 1f);
                 Assert.That(node.Modulate, Is.EqualTo(fromR));
 
                 node.Modulate = from;
-                await CreateTweenPropertyVariants(node, Property.ModulateG, 0f, 1f);
+                await CreateTweenPropertyVariants(node, Properties.ModulateG, 0f, 1f);
                 Assert.That(node.Modulate, Is.EqualTo(fromG));
 
                 node.Modulate = from;
-                await CreateTweenPropertyVariants(node, Property.ModulateB, 0f, 1f);
+                await CreateTweenPropertyVariants(node, Properties.ModulateB, 0f, 1f);
                 Assert.That(node.Modulate, Is.EqualTo(fromB));
 
                 node.Modulate = from;
-                await CreateTweenPropertyVariants(node, Property.Opacity, 0f, 1f);
+                await CreateTweenPropertyVariants(node, Properties.Opacity, 0f, 1f);
                 Assert.That(node.Modulate, Is.EqualTo(fromA));
             }
 
-            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Property.Modulate, from, to);
-            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Property.ModulateR, 0f, 1f);
-            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Property.ModulateG, 0f, 1f);
-            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Property.ModulateB, 0f, 1f);
-            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Property.Opacity, 0f, 1f);
+            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Properties.Modulate, from, to);
+            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Properties.ModulateR, 0f, 1f);
+            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Properties.ModulateG, 0f, 1f);
+            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Properties.ModulateB, 0f, 1f);
+            await CreateIncompatibleNodeTweenPropertyVariants(await CreateNode(), Properties.Opacity, 0f, 1f);
         }
 
 
@@ -489,9 +492,9 @@ namespace Betauer.Animation.Tests {
                 return true;
             }
 
-            public void SetValue(AnimationContext<float> context) {
+            public void SetValue(Node target, float value) {
                 Calls++;
-                context.Target.SetIndexed("position:x", context.Value);
+                target.SetIndexed("position:x", value);
             }
 
             public string GetPropertyName(Node node) {
@@ -500,7 +503,7 @@ namespace Betauer.Animation.Tests {
         }
 
         private async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
-            property.SetValue(new AnimationContext<T>(node, from, -1, from));
+            property.SetValue(node, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
             var sequence = SequenceAnimation.Create()
@@ -519,14 +522,65 @@ namespace Betauer.Animation.Tests {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
         }
 
+        private async Task CreateKeyframePropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
+            property.SetValue(node, from);
+            Assert.That(property.GetValue(node), Is.EqualTo(from));
+            List<DebugStep<T>> steps = new List<DebugStep<T>>();
+            var sequence = KeyframeAnimation.Create()
+                .SetDuration(1f)
+                .AnimateKeys(property)
+                .From(from)
+                .KeyframeTo(0.1f, to, Easings.BackIn)
+                .SetDebugSteps(steps)
+                .EndAnimate();
+
+            // With Play()
+            await sequence.Play(node).AwaitFinished();
+            Assert.That(property.GetValue(node), Is.EqualTo(to));
+
+            Assert.That(steps.Count, Is.EqualTo(1));
+            AssertStep(steps[0], from, to, 0f, 0.1f, Easings.BackIn);
+            Assert.That(property.GetValue(node), Is.EqualTo(to));
+        }
+
         private async Task CreateIncompatibleNodeTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
-            var e = Assert.Throws<Exception>(() => SequenceAnimation.Create()
+            var seq = SequenceAnimation.Create()
                 .AnimateSteps(property)
                 .To(to, 0.1f, Easings.BackIn)
-                .EndAnimate()
-                .Play(node));
+                .EndAnimate();
+            Assert.That(seq.IsCompatibleWith(node), Is.False);
+            
+            var e = Assert.Throws<NodeNotCompatibleWithPropertyException>(() => seq.Play(node));
 
-            Assert.That(e.Message, Contains.Substring("not compatible"));
+            var keyf = KeyframeAnimation.Create()
+                .SetDuration(1f)
+                .AnimateKeys(property)
+                .From(from)
+                .KeyframeTo(0.1f, to, Easings.BackIn)
+                .EndAnimate();
+            Assert.That(keyf.IsCompatibleWith(node), Is.False);
+            
+            var e2 = Assert.Throws<NodeNotCompatibleWithPropertyException>(() => keyf.Play(node));
+        }
+
+        private async Task CreateIncompatibleNodeTweenPropertyVariants<T>(Node node, Func<Node, IProperty<T>> property, T from, T to) {
+            var seq = SequenceAnimation.Create()
+                .AnimateSteps(property)
+                .To(to, 0.1f, Easings.BackIn)
+                .EndAnimate();
+            Assert.That(seq.IsCompatibleWith(node), Is.False);
+
+            var e = Assert.Throws<NodeNotCompatibleWithPropertyException>(() => seq.Play(node));
+            
+            var keyf = KeyframeAnimation.Create()
+                .SetDuration(1f)
+                .AnimateKeys(property)
+                .From(from)
+                .KeyframeTo(0.1f, to, Easings.BackIn)
+                .EndAnimate();
+            Assert.That(keyf.IsCompatibleWith(node), Is.False);
+            
+            var e2 = Assert.Throws<NodeNotCompatibleWithPropertyException>(() => keyf.Play(node));
         }
 
         [Test]

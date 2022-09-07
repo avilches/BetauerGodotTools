@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
@@ -8,8 +9,8 @@ namespace Betauer.Animation.Tween {
         private readonly KeyframeAnimation _animation;
 
         internal PropertyKeyframeAbsoluteTweener(KeyframeAnimation animation,
-            IProperty<TProperty> property, IEasing defaultEasing) :
-            base(property, defaultEasing) {
+            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+            base(propertyFactory, defaultEasing) {
             _animation = animation;
         }
 
@@ -47,7 +48,7 @@ namespace Betauer.Animation.Tween {
 
         public KeyframeAnimation EndAnimate() {
             if (Keyframes == null || Keyframes.Count == 0) {//
-                throw new Exception("Animation without absolute keyframes");
+                throw new InvalidAnimationException("Animation without absolute keyframes");
             }
             return _animation;
         }

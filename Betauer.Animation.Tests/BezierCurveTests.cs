@@ -7,11 +7,11 @@ namespace Betauer.Animation.Tests {
         [Test]
         public void BezierCurveTest() {
             // Two identical curves, but different instances
-            var a = new BezierCurve(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f);
-            var b = new BezierCurve(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f);
+            var a = BezierCurve.Create(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f);
+            var b = BezierCurve.Create(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f);
 
             // Different
-            var c = new BezierCurve(0f, 1f, 2f, 3f, 4f, 5f, 6f, 0f);
+            var c = BezierCurve.Create(0f, 1f, 2f, 3f, 4f, 5f, 6f, 0f);
 
             Assert.That(a.Equals(b));
             Assert.That(b.Equals(a));
