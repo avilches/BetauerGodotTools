@@ -60,9 +60,9 @@ namespace Veronenger.Game.Controller.Animation {
             try {
                 while (true) {
                     _sceneTreeTween = seq.Play(this);
-                    await _sceneTreeTween.AwaitFinished().Timeout(3);
+                    await _sceneTreeTween.AwaitFinished().Timeout(GetTree(), 3);
                     _sceneTreeTween = seq2.Play(this);
-                    await _sceneTreeTween.AwaitFinished().Timeout(3);
+                    await _sceneTreeTween.AwaitFinished().Timeout(GetTree(), 3);
                 }
             } catch (TimeoutException e) {
                 // Console.WriteLine(e);

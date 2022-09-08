@@ -26,20 +26,20 @@ namespace Betauer.Time {
             PauseMode = pauseMode;
         }
 
-        public GodotScheduler Start(float seconds) {
+        public GodotScheduler Start(SceneTree sceneTree, float seconds) {
             lock (this) {
                 if (_running) return this;
                 _running = true;
             }
-            _Start(seconds);
+            _Start(sceneTree, seconds);
             return this;
         }
 
-        private async void _Start(float seconds) {
+        private async void _Start(SceneTree sceneTree, float seconds) {
             _paused = false;
             while (true) {
                 var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-                await SceneTreeHolder.SceneTree.CreateTimer(seconds, pauseModeProcess).AwaitTimeout();
+                await sceneTree.CreateTimer(seconds, pauseModeProcess).AwaitTimeout();
                 if (_requestStop) {
                     _requestStop = false;
                     break;

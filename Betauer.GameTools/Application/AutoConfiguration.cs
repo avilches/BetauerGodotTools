@@ -1,9 +1,11 @@
 using System;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
 using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.Signal;
+using Betauer.Time;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -17,9 +19,12 @@ namespace Betauer.Application {
 
         [Service] public Consumer Consumer => DefaultObjectWatcherRunner.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
-        [Service] public SceneTree SceneTree => SceneTreeHolder.SceneTree;
+        [Service] public SceneTree SceneTree => GetTree();
         [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
         
+        [Service(Lifetime.Transient)]
+        public GodotStopwatch GodotStopwatch => new GodotStopwatch(GetTree());
+
         private bool _addSingletonNodesToTree = true;
         private float _watchTimer = 10f;
         private bool _isReady = false;
@@ -28,17 +33,16 @@ namespace Betauer.Application {
         public void SetWatchTimer(float watchTimer) => _watchTimer = watchTimer;
 
         public override void _EnterTree() {
-            // It can't be called before _EnterTree because the SceneTree is exposed as a service using SceneTreeHolder
+            // It can't be called before _EnterTree because the SceneTree is exposed as a service using GetTree()
             // It needs to be called in _EnterTree because the _Ready() is called after the the main scene _Ready(), so the main
             // scene will not have services injected.
-            SceneTreeHolder.SceneTree = GetTree();
             StartContainer();
 
             MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 LoggerFactory.EnableAutoFlush();
                 DefaultObjectWatcherRunner.Instance.Consume(true);
             };
-            DefaultObjectWatcherRunner.Instance.Start(_watchTimer);
+            DefaultObjectWatcherRunner.Instance.Start(GetTree(), _watchTimer);
             PauseMode = PauseModeEnum.Process;
             this.OnReady(() => _isReady = true, true);
         }

@@ -3,28 +3,40 @@ using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Time {
+    public static class GodotTimeoutExtensions {
+        public static GodotTimeout OnTimeout(this SceneTree sceneTree, float timeout, Action action,
+            Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+            return new GodotTimeout(sceneTree, timeout, action, pauseMode);
+        }
+    }
+    
+    
     /// <summary>
-    /// A Timeout with Start/Stop and Reset.
-    /// It uses internal SceneTreeTimer, so it's affected by the Engine.Timescale and the SceneTree.Pause (things that
-    /// C# System.Diagnostics.Stopwatch can not do)
-    ///
-    /// Executes the action after the timeout 
+    /// Executes an action after the timeout in seconds.
+    ///  
+    /// Wrapper object for a SceneTreeTimeout created with SceneTree.CreateTimer() with these differences:
+    /// 
+    /// - It has Start/Stop and Reset.
+    /// - When created, it doesn't start automatically (so you need to call to Start())
+    /// - It can be used more than once, changing the timeout and the action to execute.
+    /// 
     /// </summary>
     public class GodotTimeout {
+        private readonly SceneTree _sceneTree;
         private SceneTreeTimer? _sceneTreeTimer;
         private bool _paused = true;
         private bool _running = false;
         private float _timeLeft = 0;
-        public float Timeout { get; private set; } = 0;
         private Action _action;
 
+        public float Timeout { get; private set; } = 0;
         public readonly Node.PauseModeEnum PauseMode;
         public bool IsRunning => _running && !_paused;
 
-        public GodotTimeout(float timeout, Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotTimeout(SceneTree sceneTree, float timeout, Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+            _sceneTree = sceneTree;
             PauseMode = pauseMode;
-            Timeout = timeout;
-            _timeLeft = timeout;
+            Timeout = _timeLeft = timeout;
             _action = action;
         }
 
@@ -104,8 +116,7 @@ namespace Betauer.Time {
 
         private SceneTreeTimer CreateTimer(float timeout) {
             var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer =
-                SceneTreeHolder.SceneTree.CreateTimer(timeout, pauseModeProcess);
+            var sceneTreeTimer =_sceneTree.CreateTimer(timeout, pauseModeProcess);
             var sceneTreeTimerId = sceneTreeTimer.GetHashCode();
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (_sceneTreeTimer != null && _sceneTreeTimer.GetHashCode() == sceneTreeTimerId) {

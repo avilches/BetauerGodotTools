@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class TimeTests {
+    public class TimeTests : Node {
 
         [SetUp]
         public void SetUp() {
@@ -23,8 +23,8 @@ namespace Betauer.Tests {
             Assert.That(godotScheduler.IsPaused(), Is.False);
 
             // Start every 0.1s, ignore the second start
-            godotScheduler.Start(0.1f);
-            godotScheduler.Start(0.0001f);
+            godotScheduler.Start(GetTree(), 0.1f);
+            godotScheduler.Start(GetTree(), 0.0001f);
             Assert.That(godotScheduler.IsRunning(), Is.True);
             Assert.That(godotScheduler.IsPaused(), Is.False);
             await Task.Delay(TimeSpan.FromSeconds(0.55));
@@ -59,7 +59,7 @@ namespace Betauer.Tests {
             Assert.That(steps, Is.EqualTo(0));
 
             // Start again every 0.1s, same behaviour
-            godotScheduler.Start(0.1f);
+            godotScheduler.Start(GetTree(), 0.1f);
             Assert.That(godotScheduler.IsRunning(), Is.True);
             Assert.That(godotScheduler.IsPaused(), Is.False);
             await Task.Delay(TimeSpan.FromSeconds(0.55));
@@ -70,7 +70,7 @@ namespace Betauer.Tests {
 
         [Test]
         public async Task StopwatchAlarmTests() {
-            var x = new GodotStopwatch().Start();
+            var x = new GodotStopwatch(GetTree()).Start();
             await this.AwaitIdleFrame();
             await this.AwaitIdleFrame();
             await this.AwaitIdleFrame();
@@ -92,9 +92,24 @@ namespace Betauer.Tests {
             Assert.That(x.IsAlarm(), Is.False);
         }
 
+        [Test(Description = "Ensure that a GodotStopwatch starts stopped")]
+        public async Task GodotStopwatchStartsStoppedTests() {
+            var x = new GodotStopwatch(GetTree());
+            // It starts and stays stopped for 0.5s
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
+            Assert.That(x.Elapsed, Is.EqualTo(0));
+            Assert.That(x.IsRunning, Is.False);
+            
+            // Start and wait 0.5s
+            x.Start();
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
+            Assert.That(x.Elapsed, Is.EqualTo(0.5f).Within(0.1f));
+            Assert.That(x.IsRunning, Is.True);
+        }
+
         [Test]
         public async Task GodotStopwatchTests() {
-            var x = new GodotStopwatch();
+            var x = new GodotStopwatch(GetTree());
             // It starts stopped
             Assert.That(x.Elapsed, Is.EqualTo(0));
             Assert.That(x.IsRunning, Is.False);
@@ -202,9 +217,24 @@ namespace Betauer.Tests {
         }
 
         [Test]
+        public async Task GodotTimeoutMultipleExecutionsTests() {
+            var timeouts = 0;
+            var x = new GodotTimeout(GetTree(), 0.1f, () => timeouts ++).Start();
+            await Task.Delay(TimeSpan.FromSeconds(0.3));
+            Assert.That(x.IsRunning, Is.False);
+            Assert.That(timeouts, Is.EqualTo(1));
+
+            x.Start();
+            Assert.That(x.IsRunning, Is.True);
+            await Task.Delay(TimeSpan.FromSeconds(0.2));
+            Assert.That(x.IsRunning, Is.False);
+            Assert.That(timeouts, Is.EqualTo(2));
+        }
+        
+        [Test]
         public async Task GodotTimeoutTests() {
             var timeout = false;
-            var x = new GodotTimeout(1f, () => timeout = true);
+            var x = new GodotTimeout(GetTree(), 1f, () => timeout = true);
             // It starts stopped
             Assert.That(x.TimeLeft, Is.EqualTo(1f));
             Assert.That(x.IsRunning, Is.False);

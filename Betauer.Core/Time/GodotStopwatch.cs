@@ -3,14 +3,16 @@ using Godot;
 
 namespace Betauer.Time {
     /// <summary>
-    /// A Stopwatch with Start/Stop and Reset.
-    /// It uses internal SceneTreeTimer, so it's affected by the Engine.Timescale and the SceneTree.Pause (things that
-    /// C# System.Diagnostics.Stopwatch can not do)
+    /// A Stopwatch to measure elapsed time since start. It has Start/Stop and Reset.
+    /// 
+    /// It uses internal SceneTreeTimer with SceneTree.CreateTimer(), so it's affected by the Engine.Timescale and the
+    /// SceneTree.Pause state (these things C# System.Diagnostics.Stopwatch can not do)
     /// </summary>
     public class GodotStopwatch {
         // 3600 is one hour. With bigger numbers, the Timer doesn't work. If the 
         private const float InternalStartTime = 3600f; 
 
+        private readonly SceneTree _sceneTree;
         private SceneTreeTimer _sceneTreeTimer;
         private float _elapsed = 0;
         private float _accumulated = 0;
@@ -19,17 +21,18 @@ namespace Betauer.Time {
         private bool _running = false;
 
         public readonly Node.PauseModeEnum PauseMode;
-        
         public bool IsRunning => _running && !_paused;
 
         /// <summary>
         /// Creates a new Stopwatch not running, so it needs to be started with Start() 
         /// </summary>
+        /// <param name="sceneTree"></param>
         /// <param name="pauseMode">
         /// PauseModeEnum.Inherit or PauseModeEnum.Stop: the timer will pause along with the SceneTree
         /// PauseModeEnum.Process: timer run always, ignoring the SceneTree.Pause state 
         /// </param>
-        public GodotStopwatch(Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotStopwatch(SceneTree sceneTree, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+            _sceneTree = sceneTree;
             PauseMode = pauseMode;
             _sceneTreeTimer = CreateTimer();
             // Not running when it starts
@@ -116,8 +119,7 @@ namespace Betauer.Time {
 
         private SceneTreeTimer CreateTimer() {
             var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer =
-                SceneTreeHolder.SceneTree.CreateTimer(InternalStartTime, pauseModeProcess);
+            var sceneTreeTimer = _sceneTree.CreateTimer(InternalStartTime, pauseModeProcess);
             // With this trick will create another timer if the current one finishes.
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (!_paused) _accumulated += InternalStartTime;

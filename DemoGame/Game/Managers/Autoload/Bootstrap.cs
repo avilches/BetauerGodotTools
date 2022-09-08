@@ -7,6 +7,7 @@ using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
 using Betauer.Pool;
 using Betauer.StateMachine;
@@ -100,8 +101,8 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.All);
 
             // DI
-            LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(FactoryProvider), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(TransientFactoryProvider), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 

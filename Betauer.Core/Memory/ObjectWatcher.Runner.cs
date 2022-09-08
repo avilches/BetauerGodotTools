@@ -14,8 +14,8 @@ namespace Betauer.Memory {
             Scheduler = new GodotScheduler(_OnSchedule, Node.PauseModeEnum.Process);
         }
 
-        public GodotScheduler Start(float seconds = 10f) {
-            return Scheduler.Start(seconds);
+        public GodotScheduler Start(SceneTree sceneTree, float seconds = 10f) {
+            return Scheduler.Start(sceneTree, seconds);
         }
 
         private void _OnSchedule() => Consume(false);
