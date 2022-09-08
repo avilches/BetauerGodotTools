@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Memory {
+namespace Betauer.Pool {
     public interface IRecyclable {
         string GetToken();
         int GetUsages();

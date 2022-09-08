@@ -5,13 +5,11 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Screen;
-using Betauer.Application.Settings;
 using Betauer.Bus;
 using Betauer.DI;
-using Betauer.Input;
 using Betauer.Memory;
+using Betauer.Pool;
 using Betauer.StateMachine;
-using Veronenger.Game.Controller.Animation;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
 using Container = Betauer.DI.Container;
@@ -66,7 +64,8 @@ namespace Veronenger.Game.Managers.Autoload {
                     "mono/unhandled_exception_policy.standalone",
                     "application/config/version"
                 }.ToList()
-                .ForEach(property => Logger.Info(property + ": " + ProjectSettings.GetSetting(property)));
+                .Where(ProjectSettings.HasSetting)
+                .ForEach(property => Logger.Info($"- {property}: {ProjectSettings.GetSetting(property)}"));
         }
 
         public override void _Ready() {
@@ -97,8 +96,8 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Bootstrap logs, all always :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(TaskExtensions), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.All);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Error);
@@ -110,7 +109,6 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
 
             // Animation
 

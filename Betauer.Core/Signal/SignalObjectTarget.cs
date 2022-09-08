@@ -3,13 +3,15 @@ using Betauer.Memory;
 using Object = Godot.Object;
 
 namespace Betauer.Signal {
-    internal abstract class SignalObjectTarget : DisposableGodotObject, IObjectConsumer {
+    internal abstract class SignalObjectTarget : DisposableGodotObject {
         public readonly Object Origin;
         public readonly bool OneShot;
+        private readonly WatchObjectAndFree _watcher;
 
         protected SignalObjectTarget(Object origin, bool oneShot) {
             Origin = origin;
             OneShot = oneShot;
+            _watcher = new WatchObjectAndFree().Watch(Origin).Free(this);
             Watch();
         }
 
@@ -26,11 +28,11 @@ namespace Betauer.Signal {
         }
 
         public void Unwatch() {
-            DefaultObjectWatcherRunner.Instance.Remove(this);
+            DefaultObjectWatcherRunner.Instance.Remove(_watcher);
         }
 
         public void Watch() {
-            DefaultObjectWatcherRunner.Instance.Add(this);
+            _watcher.AddToDefaultObjectWatcher();
         }
     }
         internal abstract class SignalObjectTarget<T> : SignalObjectTarget {
@@ -38,10 +40,6 @@ namespace Betauer.Signal {
 
         protected SignalObjectTarget(Object origin, T action, bool oneShot): base(origin, oneShot) {
             Action = action;
-        }
-
-        public override string ToString() {
-            return "Watching: " + (IsInstanceValid(Origin) ? Origin.ToString(): "(disposed)");
         }
     }
 

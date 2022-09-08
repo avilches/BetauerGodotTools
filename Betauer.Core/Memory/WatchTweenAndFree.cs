@@ -2,21 +2,21 @@ using System.Linq;
 using Godot;
 
 namespace Betauer.Memory {
-    public class WatchObjectAndFree : FreeConsumer<WatchObjectAndFree> {
-        public Object[]? Watching;
+    public class WatchTweenAndFree : FreeConsumer<WatchTweenAndFree> {
+        public SceneTreeTween[]? Watching;
 
-        public WatchObjectAndFree(bool deferred = true) : base(deferred) {
+        public WatchTweenAndFree(bool deferred = true) : base(deferred) {
         }
 
-        public WatchObjectAndFree Watch(params Object[] watching) {
+        public WatchTweenAndFree Watch(params SceneTreeTween[] watching) {
             Watching = watching;
             return this;
         }
-
-        public override bool MustBeFreed() {
-            return Watching?.All(Object.IsInstanceValid) ?? false;
-        }
         
+        public override bool MustBeFreed() {
+            return Watching?.All(tween => tween.IsValid()) ?? false;
+        }
+
         public override string ToString() {
             var watching = string.Join(",", Watching.Select(o => o.ToStringSafe()));
             var targets = string.Join(",", Targets.Select(o => o.ToStringSafe()));

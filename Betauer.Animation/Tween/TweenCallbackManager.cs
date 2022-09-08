@@ -105,7 +105,7 @@ namespace Betauer.Animation.Tween {
             }
 
             public override string ToString() {
-                return "Watching: " + (IsInstanceValid(_sceneTreeTweenWatching) ? _sceneTreeTweenWatching.ToString(): "(disposed)");
+                return $"Watching: {_sceneTreeTweenWatching.ToStringSafe()} | Freeing linked callback actions";
             }
         }
         

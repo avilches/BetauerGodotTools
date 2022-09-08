@@ -22,8 +22,7 @@ namespace Betauer.Memory {
                     var consumed = o.Consume(force);
 #if DEBUG
                     if (consumed) {
-                        Logger.Debug(
-                            $"Count: {_objects.Count - 1} | - {o.GetType().Name}@{o.GetHashCode():x8} Consumed");
+                        Logger.Debug($"Count: {_objects.Count - 1} | - {o}");
                     }
 #endif
                     return consumed;
@@ -34,7 +33,7 @@ namespace Betauer.Memory {
         public void Add(IObjectConsumer o) {
             lock (_objects) {
 #if DEBUG
-                Logger.Debug($"Count: {_objects.Count + 1} | + {o.GetType().Name}@{o.GetHashCode():x8} {o}");
+                Logger.Debug($"Count: {_objects.Count + 1} | + {o}");
 #endif
                 _objects.Add(o);
             }
@@ -46,7 +45,7 @@ namespace Betauer.Memory {
                     var matches = x == o;
 #if DEBUG
                     if (matches) {
-                        Logger.Debug($"Count: {_objects.Count - 1} | - {o.GetType().Name}@{o.GetHashCode():x8}");
+                        Logger.Debug($"Count: {_objects.Count - 1} | - {o}");
                     }
 #endif
                     return matches;

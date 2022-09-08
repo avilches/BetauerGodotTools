@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
+using Betauer.Memory;
 using Object = Godot.Object;
 
-namespace Betauer.Memory {
+namespace Betauer.Pool {
 
     public interface IObjectPool {
         bool Return(IRecyclable o);
@@ -90,14 +90,20 @@ namespace Betauer.Memory {
                     item = _available.Dequeue();
                     if (item is Object o && !Object.IsInstanceValid(o)) {
                         item = _factory();
+#if DEBUG
                         ObjectPool.Logger.Debug(
-                            "Detected invalid Godot.Object, creating new instance of type " + typeof(T) + ": " + item);
+                            $"Detected invalid Godot.Object, creating new instance of type {typeof(T)}: {item}");
+#endif                        
                     } else {
-                        ObjectPool.Logger.Debug("Getting instance from pool " + typeof(T) + ": " + item);
+#if DEBUG
+                        ObjectPool.Logger.Debug($"Getting instance from pool {typeof(T)}: {item}");
+#endif                        
                     }
                 } else {
                     item = _factory();
-                    ObjectPool.Logger.Debug("Creating new instance of type " + typeof(T) + ": " + item);
+#if DEBUG
+                    ObjectPool.Logger.Debug($"Creating new instance of type {typeof(T)}: {item}");
+#endif                    
                 }
                 item.SetPool(this);
                 _using[item.GetHashCode()] = item;
@@ -109,11 +115,14 @@ namespace Betauer.Memory {
             lock (this) {
                 var item = (T)rec;
                 if (_available.Contains(item)) {
-                    ObjectPool.Logger.Warning("Returning ignored: instance is already in the pool " + typeof(T) + ": " +
-                                              item);
+#if DEBUG
+                    ObjectPool.Logger.Warning($"Returning ignored: instance is already in the pool {typeof(T)}: {item}");
+#endif                    
                     return false;
                 }
-                ObjectPool.Logger.Debug("Returning instance to pool " + typeof(T) + ": " + item);
+#if DEBUG
+                ObjectPool.Logger.Debug($"Returning instance to pool {typeof(T)}: {item}");
+#endif                    
                 _using.Remove(item.GetHashCode());
                 _available.Enqueue(item);
                 return true;
