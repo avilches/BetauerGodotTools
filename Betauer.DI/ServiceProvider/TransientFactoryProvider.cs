@@ -1,10 +1,13 @@
 using System;
 
 namespace Betauer.DI.ServiceProvider {
-    public class TransientFactoryProvider : FactoryProvider {
+    public class TransientFactoryProvider : BaseProvider {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SingletonFactoryProvider));
+        private readonly Func<object> _factory;
         public override Lifetime Lifetime => Lifetime.Transient;
 
-        public TransientFactoryProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, factory, name, primary) {
+        public TransientFactoryProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
+            _factory = factory;
         }
 
         public override object Get(Container container) {
@@ -16,14 +19,21 @@ namespace Betauer.DI.ServiceProvider {
 
         public override object Get(ResolveContext context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (context.TryGetFromCache(RegisterType, Name, out var transient)) {
-                Logger.Debug("Get from context " + Lifetime + " " + transient.GetType().Name + " exposed as " +
-                             RegisterType.Name + ": " + transient.GetHashCode().ToString("X"));
-            } else {
-                transient = CreateNewInstance(Lifetime, context);
-                context.Container.InjectServices(transient, context);
-            }
-            return transient;
+            context.StartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
+            var instance = _factory.Invoke();
+            if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.Name} {Name}");
+            #if DEBUG
+                Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");
+            #endif
+            context.AddTransient(instance);
+            context.Container.InjectServices(instance, context);
+            context.EndTransient();
+            return instance;
+        }
+    }
+
+    public class CircularDependencyException : Exception {
+        public CircularDependencyException(string message) : base(message) {
         }
     }
 }

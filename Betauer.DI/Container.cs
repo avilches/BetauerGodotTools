@@ -9,9 +9,9 @@ using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class Container {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
         private readonly Dictionary<Type, IProvider> _fallbackByType = new Dictionary<Type, IProvider>();
         private readonly Dictionary<string, IProvider> _registry = new Dictionary<string, IProvider>();
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Container));
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
         public event Action<Lifetime, object> OnCreate;
@@ -56,23 +56,20 @@ namespace Betauer.DI {
                     _registry[name] = provider;
                     if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
                         _fallbackByType[provider.RegisterType] = provider;
-#if DEBUG
-                        _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
-                                     " | Name: " + name + " | Added fallback: " + provider.RegisterType.FullName);
-#endif
+                        #if DEBUG
+                            Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name} | Added fallback: {provider.RegisterType.FullName}");
+                        #endif
                     } else {
-#if DEBUG
-                        _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
-                                     " | Name: " + name);
-#endif                        
+                        #if DEBUG
+                            Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name}");
+                        #endif                        
                     }
             } else {
                 if (_registry.ContainsKey(provider.RegisterType.FullName)) throw new DuplicateServiceException(provider.RegisterType);
                 _registry[provider.RegisterType.FullName] = provider;
-#if DEBUG
-                _logger.Info("Registered " + provider.Lifetime + ":" + provider.ProviderType +
-                             ". Name: " + provider.RegisterType.FullName);
-#endif                
+                #if DEBUG
+                    Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType}. Name: {provider.RegisterType.FullName}");
+                #endif                
             }
             return provider;
         }

@@ -7,7 +7,6 @@ using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class ContainerBuilder {
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(ContainerBuilder));
         private readonly LinkedList<IProvider> _pendingToBuild = new LinkedList<IProvider>();
         private readonly Container _container;
 
@@ -106,7 +105,6 @@ namespace Betauer.DI {
         }
 
         public ContainerBuilder Scan(Assembly assembly, Func<Type, bool>? predicate = null) {
-            _logger.Info("Scanning " + assembly);
             Scan(assembly.GetTypes(), predicate);
             return this;
         }

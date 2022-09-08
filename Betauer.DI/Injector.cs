@@ -21,7 +21,7 @@ namespace Betauer.DI {
     }
 
     public class Injector {
-        private readonly Logger _logger = LoggerFactory.GetLogger(typeof(Injector));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Injector));
         private readonly Container _container;
 
         private const BindingFlags InjectFlags =
@@ -33,9 +33,9 @@ namespace Betauer.DI {
 
         public void InjectServices(object target, ResolveContext context) {
             if (target is Delegate) return;
-#if DEBUG
-            _logger.Debug("Injecting fields in " + target.GetType() + ": " + target.GetHashCode().ToString("X"));
-#endif
+            #if DEBUG
+                Logger.Debug($"Injecting fields in {target.GetType()}: {target.GetHashCode():x8}");
+            #endif
             var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
             foreach (var setter in members)
                 InjectMember(target, context, setter);
@@ -55,9 +55,9 @@ namespace Betauer.DI {
             if (name != null) {
                 name = name.Trim();
                 if (_container.Contains(name)) {
-#if DEBUG
-                    _logger.Debug(target.GetType().FullName + " (" + target.GetHashCode()+") | " + setter + " | Name in [Inject(\""+name+"\")");
-#endif
+                    #if DEBUG
+                        Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name in [Inject(\"{name}\")");
+                    #endif
                     InjectFieldByName(target, context, setter, name);
                     return;
                 }
@@ -69,9 +69,9 @@ namespace Betauer.DI {
             } 
             
             if (_container.Contains(setter.Name)) {
-#if DEBUG
-                _logger.Debug(target.GetType().FullName + " (" + target.GetHashCode()+") | " + setter + " | Member name: "+setter.Name);
-#endif
+                #if DEBUG
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Member name: {setter.Name}");
+                #endif
                 InjectFieldByName(target, context, setter, setter.Name);
                 return;
             }
@@ -80,9 +80,9 @@ namespace Betauer.DI {
                 ? setter.Type.GetGenericArguments()[0]
                 : setter.Type;
             if (_container.CreateIfNotFound || _container.Contains(realType)) {
-#if DEBUG
-                _logger.Debug(target.GetType().FullName + " (" + target.GetHashCode()+") | " + setter + " | Member type: "+realType);
-#endif
+                #if DEBUG
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Member type: {realType}");
+                #endif
                 InjectFieldByType(target, context, setter);
                 return;
             }

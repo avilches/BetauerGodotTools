@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Betauer.DI.ServiceProvider;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
@@ -368,16 +370,11 @@ namespace Betauer.DI.Tests {
             MySingleton.Created = 0;
 
             di.Scan<EmptyTransient>();
-            // Order matters: MySingleton contains SingletonWith2Transients, so register SingletonWith2Transients first
-            // will create 1 EmptyTransient. Then resolve the MySingleton will create a new context, so it will create
-            // another EmptyTransient, 2 in total.
-            // So, registering MySingleton first will create only one EmptyTransient, because it contains
-            // SingletonWith2Transients
             di.Scan<SingletonWith2Transients>();
             di.Scan<MySingleton>();
             var c = di.Build();
 
-            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
             Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
             Assert.That(MySingleton.Created, Is.EqualTo(1));
 
@@ -394,8 +391,8 @@ namespace Betauer.DI.Tests {
             Assert.That(ms2.singleton1, Is.EqualTo(s1));
             Assert.That(ms2.singleton2, Is.EqualTo(s1));
 
-            // Transient are different between the transient in MyService and the transients in SingletonWith2Transients
-            Assert.That(s1.et1, Is.EqualTo(s1.et2));
+            // Transient are always different
+            Assert.That(s1.et1, Is.Not.EqualTo(s1.et2));
             Assert.That(s1.et1, Is.Not.EqualTo(ms1.et));
             Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
         }
@@ -426,17 +423,17 @@ namespace Betauer.DI.Tests {
             var c = di.Build();
             var s1 = c.Resolve<SingletonWith2Transients>();
 
-            Assert.That(EmptyTransient.Created, Is.EqualTo(1));
-            Assert.That(s1.et1, Is.EqualTo(s1.et2));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(2)); // SingletonWith2Transients has 2 instances of it
+            Assert.That(s1.et1, Is.Not.EqualTo(s1.et2));
 
             var ts1 = c.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(1));
-            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
             Assert.That(s1.et1, Is.Not.EqualTo(ts1.et));
 
             var ts2 = c.Resolve<TransientService>();
             Assert.That(TransientService.Created, Is.EqualTo(2));
-            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
+            Assert.That(EmptyTransient.Created, Is.EqualTo(4));
             Assert.That(ts1.et, Is.Not.EqualTo(ts2.et));
 
             Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
@@ -466,8 +463,8 @@ namespace Betauer.DI.Tests {
             [Inject(Name = "M2")] internal IMultipleImpByName mul21 { get; set; }
             [Inject(Name = "M2")] internal IMultipleImpByName mul22 { get; set; }
             
-            [Inject(Name = "M3")] internal IMultipleImpByName mul31 { get; set; }
-            [Inject(Name = "M3")] internal IMultipleImpByName mul32 { get; set; }
+            [Inject(Name = "M3")] internal IMultipleImpByName mul31t { get; set; }
+            [Inject(Name = "M3")] internal IMultipleImpByName mul32t { get; set; }
         }
 
         [Service]
@@ -478,13 +475,13 @@ namespace Betauer.DI.Tests {
             [Inject(Name = "M2")] internal IMultipleImpByName mul21 { get; set; }
             [Inject(Name = "M2")] internal IMultipleImpByName mul22 { get; set; }
             
-            [Inject(Name = "M3")] internal IMultipleImpByName mul31 { get; set; }
-            [Inject(Name = "M3")] internal IMultipleImpByName mul32 { get; set; }
+            [Inject(Name = "M3")] internal IMultipleImpByName mul31t { get; set; }
+            [Inject(Name = "M3")] internal IMultipleImpByName mul32t { get; set; }
         }
-
         [Test(Description = "When an interface has multiple implementations, register by name")]
         public void InterfaceWithMultipleImplementations() {
             var di = new ContainerBuilder();
+            MultipleImpl3ByName.Created = 0;
             di.Scan<MultipleImpl1ByName>();
             di.Scan<MultipleImpl2ByName>();
             di.Scan<MultipleImpl3ByName>();
@@ -493,23 +490,26 @@ namespace Betauer.DI.Tests {
             var c = di.Build();
             var i1 = c.Resolve<IMultipleImpByName>("M1");
             var i2 = c.Resolve<IMultipleImpByName>("M2");
-            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(2));            
+            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(4)); // M3 is injected 2 times in 2 services: ServiceWithMultipleImpl1 and ServiceWithMultipleImpl2             
             var s1 = c.Resolve<ServiceWithMultipleImpl1>();
             var s2 = c.Resolve<ServiceWithMultipleImpl2>();
-            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(2));            
+            Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(4));            
 
             Assert.That(s1.mul11, Is.EqualTo(i1));
             Assert.That(s1.mul12, Is.EqualTo(i1));
             Assert.That(s1.mul21, Is.EqualTo(i2));
             Assert.That(s1.mul22, Is.EqualTo(i2));
+
             Assert.That(s2.mul11, Is.EqualTo(i1));
             Assert.That(s2.mul12, Is.EqualTo(i1));
             Assert.That(s2.mul21, Is.EqualTo(i2));
             Assert.That(s2.mul22, Is.EqualTo(i2));
-            Assert.That(s1.mul31, Is.EqualTo(s1.mul32));
-            Assert.That(s2.mul31, Is.EqualTo(s2.mul32));
             
-            Assert.That(s1.mul31, Is.Not.EqualTo(s2.mul31));
+            Assert.That(s1.mul31t, Is.Not.EqualTo(s1.mul32t));
+            Assert.That(s2.mul31t, Is.Not.EqualTo(s2.mul32t));
+            
+            Assert.That(s1.mul31t, Is.Not.EqualTo(s2.mul31t));
+            Assert.That(s1.mul32t, Is.Not.EqualTo(s2.mul32t));
         }
 
         public interface IMultipleImpByType {}
@@ -689,22 +689,22 @@ namespace Betauer.DI.Tests {
             
             Assert.That(s1.h1.Name, Is.EqualTo("1"));
             Assert.That(s1.Hold1.Name, Is.EqualTo("1"));
-            Assert.That(s1.Hold1, Is.EqualTo(s1.h1)); // Same context, so the 2 transients are the same
-            Assert.That(s2.Hold1, Is.Not.EqualTo(s1.h1)); // Different context, different transient instances
+            Assert.That(s1.Hold1, Is.Not.EqualTo(s1.h1)); 
+            Assert.That(s2.Hold1, Is.Not.EqualTo(s1.h1));
             
             Assert.That(s1.h2.Name, Is.EqualTo("2"));
             Assert.That(s1.Hold2.Name, Is.EqualTo("2"));
-            Assert.That(s1.Hold2, Is.EqualTo(s1.h2));
+            Assert.That(s1.Hold2, Is.Not.EqualTo(s1.h2));
             Assert.That(s2.Hold2, Is.Not.EqualTo(s1.h2));
             
             Assert.That(s1.h3.Name, Is.EqualTo("3"));
             Assert.That(s1.Hold3.Name, Is.EqualTo("3"));
-            Assert.That(s1.Hold3, Is.EqualTo(s1.h3));
+            Assert.That(s1.Hold3, Is.Not.EqualTo(s1.h3));
             Assert.That(s2.Hold3, Is.Not.EqualTo(s1.h3));
             
             Assert.That(s1.h4.Name, Is.EqualTo("4"));
             Assert.That(s1.Hold4.Name, Is.EqualTo("4"));
-            Assert.That(s1.Hold4, Is.EqualTo(s1.h4));
+            Assert.That(s1.Hold4, Is.Not.EqualTo(s1.h4));
             Assert.That(s2.Hold4, Is.Not.EqualTo(s1.h4));
         }
 
@@ -1000,7 +1000,6 @@ namespace Betauer.DI.Tests {
                 Called++;
             }
         }
-
 
         [Test(Description = "Inject transient on singletons, test OnCreate when a singleton creates a transient")]
         public void OnCreateTests() {

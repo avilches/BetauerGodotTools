@@ -4,35 +4,50 @@ using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        internal Dictionary<string, (Lifetime, object)>? ObjectsCache;
+        internal readonly Dictionary<string, object> SingletonCache = new Dictionary<string, object>();
+        internal readonly List<object> Transients = new List<object>();
+        internal readonly Stack<string> TransientNameStack = new Stack<string>();
         internal readonly Container Container;
 
         public ResolveContext(Container container) {
             Container = container;
         }
 
-        internal bool TryGetFromCache(Type type, string? name, out object? instanceFound) {
+        internal bool TryGetSingletonFromCache(Type type, string? name, out object? instanceFound) {
             var key = name ?? type.FullName;
-            if (ObjectsCache?.ContainsKey(key) ?? false) {
-                var (l, o) = ObjectsCache[key];
-                instanceFound = o;
-                return true;
-            }
-            instanceFound = null;
-            return false;
+            return SingletonCache.TryGetValue(key, out instanceFound);
         }
 
-        internal void AddInstanceToCache(Type type, Lifetime lifetime, object o, string? name) {
+        internal void AddSingleton(Type type, object instance, string? name) {
             var key = name ?? type.FullName;
-            ObjectsCache ??= new Dictionary<string, (Lifetime, object)>();
-            ObjectsCache[key] = (lifetime, o);
+            SingletonCache[key] = instance;
+        }
+
+        // This stack avoid circular dependencies between transients
+        internal void StartTransient(Type type, string? name) {
+            var key = name ?? type.FullName;
+            if (TransientNameStack.Contains(key)) {
+                throw new CircularDependencyException(string.Join("\n", TransientNameStack));
+            }
+            TransientNameStack.Push(key);
+        }
+
+        internal void AddTransient(object instance) {
+            Transients.Add(instance);
+        }
+
+        internal void EndTransient() {
+            TransientNameStack.Pop();
         }
 
         internal void End() {
-            if (ObjectsCache == null) return;
-            foreach (var (lifetime, instance) in ObjectsCache.Values) {
+            foreach (var instance in SingletonCache.Values) {
                 Container.ExecutePostCreateMethods(instance);
-                Container.ExecuteOnCreate(lifetime, instance);
+                Container.ExecuteOnCreate(Lifetime.Singleton, instance);
+            }
+            foreach (var instance in Transients) {
+                Container.ExecutePostCreateMethods(instance);
+                Container.ExecuteOnCreate(Lifetime.Transient, instance);
             }
         }
     }
