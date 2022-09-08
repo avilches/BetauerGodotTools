@@ -6,6 +6,7 @@ using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
+using Betauer.Nodes.Property.Callback;
 using Betauer.Signal;
 using Godot;
 using NUnit.Framework;
@@ -207,7 +208,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Property Rotate")]
         public async Task TweenPropertyRotate() {
-            foreach (var property in new IProperty<float>[] { Properties.Rotate2D, Properties.Rotate2DByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Rotate2D, CallbackProperties.Rotate2D }) {
                 const float from = 1f;
                 const float to = 3f;
                 var node2D = await CreateNode2D();
@@ -241,7 +242,6 @@ namespace Betauer.Animation.Tests {
         }
 
         [Test(Description = "Property PositionBySizeX, PositionBySizeY")]
-        [Only]
         public async Task TweenPropertyPositionPercentX_Y() {
             const float percentFrom = 0f;
             const float percentTo = 0.1f;
@@ -339,7 +339,7 @@ namespace Betauer.Animation.Tests {
         public async Task TweenPropertyScaleX_Y() {
             const float from = 0.9f;
             const float to = 1.2f;
-            foreach (var property in new IProperty<float>[] { Properties.Scale2Dx, Properties.Scale2DxByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Scale2Dx, CallbackProperties.Scale2Dx }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -350,7 +350,7 @@ namespace Betauer.Animation.Tests {
                 await CreateIncompatibleNodeTweenPropertyVariants(node, property, from, to);
             }
 
-            foreach (var property in new IProperty<float>[] { Properties.Scale2Dy, Properties.Scale2DyByCallback }) {
+            foreach (var property in new IProperty<float>[] { Properties.Scale2Dy, CallbackProperties.Scale2Dy }) {
                 var node2D = await CreateNode2D();
                 await CreateTweenPropertyVariants(node2D, property, from, to);
 
@@ -398,7 +398,7 @@ namespace Betauer.Animation.Tests {
 
         [Test(Description = "Property Scale2D")]
         public async Task TweenPropertyScale2d() {
-            foreach (var property in new IProperty<Vector2>[] { Properties.Scale2D, Properties.Scale2DByCallback }) {
+            foreach (var property in new IProperty<Vector2>[] { Properties.Scale2D, CallbackProperties.Scale2D }) {
                 var from = Vector2.One;
                 var to = new Vector2(23f, -12f);
 
@@ -453,16 +453,21 @@ namespace Betauer.Animation.Tests {
 
         public Vector2 follow;
 
-        [Test(Description = "Custom IndexedProperty")]
+        [Test(Description = "Custom IndexedProperty + test cache")]
         public async Task TweenPropertyBasicPropertyString() {
+            
+            IndexedSingleProperty.Cache.Clear();
+            
             follow = Vector2.Zero;
-            await CreateTweenPropertyVariants(this, (IndexedProperty<Vector2>)"follow", Vector2.Zero, Vector2.Up);
+            await CreateTweenPropertyVariants(this, (IndexedSingleProperty<Vector2>)"follow", Vector2.Zero, Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
 
             follow = Vector2.Zero;
-            await CreateTweenPropertyVariants(this, new IndexedProperty<Vector2>(nameof(follow)), Vector2.Zero,
+            await CreateTweenPropertyVariants(this, IndexedSingleProperty.Create<Vector2>(nameof(follow)), Vector2.Zero,
                 Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
+            
+            Assert.That(IndexedSingleProperty.Cache.Count, Is.EqualTo(1));
         }
 
         /**
