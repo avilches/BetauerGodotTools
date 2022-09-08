@@ -10,8 +10,8 @@ namespace Betauer.Nodes.Property {
         internal IndexedMultipleProperty(Type[] types, NodePath[] propertyNames) {
             _types = types;
             _propertyNames = propertyNames;
-            if (types.Length != propertyNames.Length || types.Length == 0) {
-                throw new Exception("types and propertyNames parameters should have the same size");
+            if (types == null || propertyNames == null || types.Length != propertyNames.Length || types.Length == 0) {
+                throw new Exception("types and propertyNames parameters should have more than 0 elements and same size");
             }
         }
 
