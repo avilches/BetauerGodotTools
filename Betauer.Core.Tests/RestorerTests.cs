@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Betauer.Nodes.Property;
 using Betauer.Restorer;
 using Betauer.TestRunner;
 using Godot;
@@ -9,7 +10,57 @@ namespace Betauer.Tests {
     public class RestorerTests : Node {
 
         [Test]
-        public async Task ControlRestoreTests() {
+        public async Task PropertyNameRestoreTests() {
+            var control = new Control();
+            var node2D = new Node2D();
+            AddChild(control);
+            AddChild(node2D);
+            await this.AwaitIdleFrame();
+            var original = new Vector2(2f, 2f);
+            control.RectScale = original;
+            node2D.Scale = original;
+            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(node2D.Scale, Is.EqualTo(original));
+
+            var status = control.CreateRestorer("rect_scale").Add(node2D.CreateRestorer("scale"));
+            status.Save();
+            control.RectScale = Vector2.One;
+            node2D.Scale = Vector2.One;;
+            Assert.That(control.RectScale, Is.EqualTo(Vector2.One));
+            Assert.That(node2D.Scale, Is.EqualTo(Vector2.One));
+
+            status.Restore();
+            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(node2D.Scale, Is.EqualTo(original));
+        }
+        
+        [Test]
+        public async Task PropertyRestoreTests() {
+            var control = new Control();
+            var node2D = new Node2D();
+            AddChild(control);
+            AddChild(node2D);
+            await this.AwaitIdleFrame();
+            var original = new Vector2(2f, 2f);
+            control.RectScale = original;
+            node2D.Scale = original;
+            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(node2D.Scale, Is.EqualTo(original));
+
+            var status = new Node[] { control, node2D }.CreateMultiRestorer(Properties.Scale2D);
+            status.Save();
+            control.RectScale = Vector2.One;
+            node2D.Scale = Vector2.One;;
+            Assert.That(control.RectScale, Is.EqualTo(Vector2.One));
+            Assert.That(node2D.Scale, Is.EqualTo(Vector2.One));
+
+            status.Restore();
+            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(node2D.Scale, Is.EqualTo(original));
+        }
+
+        [Test]
+        public async Task DefaultControlRestoreTests() {
             var control = new Control();
             AddChild(control);
             await this.AwaitIdleFrame();
@@ -156,8 +207,5 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             return sprite;
         }
-
-
-
     }
 }

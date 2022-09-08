@@ -4,7 +4,10 @@ using Betauer.Animation;
 using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes.Property;
+using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
+using Betauer.Restorer;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;
@@ -15,7 +18,7 @@ namespace Veronenger.Game.Controller.Menu {
     public class PauseMenu : CanvasLayer {
         private static readonly KeyframeAnimation PartialFadeOut = KeyframeAnimation.Create()
             .SetDuration(0.3f)
-            .AnimateKeys(Property.Opacity)
+            .AnimateKeys(Properties.Opacity)
             .From(0)
             .KeyframeTo(1f, 0.4f)
             .EndAnimate();

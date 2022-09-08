@@ -6,6 +6,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Godot;
 using Veronenger.Game.Managers;
@@ -25,7 +26,6 @@ namespace Veronenger.Game.Controller {
 
         private Vector2 _baseResolutionSize;
         private bool _loadFinished = false;
-        
 
         public override void _Ready() {
             _baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
@@ -45,7 +45,7 @@ namespace Veronenger.Game.Controller {
             };
             SequenceAnimation
                 .Create(_sprite)
-                .AnimateSteps(Property.Modulate)
+                .AnimateSteps(Properties.Modulate)
                 .From(Colors.White)
                 .To(Colors.Red, 0.2f)
                 .EndAnimate()

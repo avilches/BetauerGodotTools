@@ -7,6 +7,7 @@ using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.DI;
+using Betauer.Nodes.Property;
 using Betauer.Signal;
 using Veronenger.Game.Managers;
 
@@ -37,20 +38,20 @@ namespace Veronenger.Game.Controller.Animation {
                 .Callback(() => {
                     x = Stopwatch.StartNew();
                 })
-                .AnimateStepsBy(nameof(Follow), Easings.CubicInOut)
+                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
                 .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
                 .Offset(new Vector2(-100, 0), 0.25f)
                 .EndAnimate()
-                .AnimateSteps(Property.Modulate)
+                .AnimateSteps(Properties.Modulate)
                 .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
                 .EndAnimate()
-                .AnimateSteps(Property.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
+                .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
                 .EndAnimate()
                 .SetLoops(1);
 
             var seq2 = SequenceAnimation
                 .Create(this)
-                .AnimateStepsBy(nameof(Follow), Easings.CubicInOut)
+                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
                 .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
                 .Offset(new Vector2(0, -50), 0.25f)
                 .EndAnimate()

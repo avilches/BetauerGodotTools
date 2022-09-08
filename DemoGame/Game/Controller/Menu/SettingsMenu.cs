@@ -10,6 +10,7 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.OnReady;
+using Betauer.Restorer;
 using Betauer.Signal;
 using Godot;
 using Veronenger.Game.Controller.UI;
@@ -91,7 +92,8 @@ namespace Veronenger.Game.Controller.Menu {
             UpdateResolutionButton();
 
             _panel.Hide();
-            _restorer = _panel.CreateRestorer().Save(); 
+            _restorer = _panel.CreateRestorer();
+            _restorer.Save(); 
         }
 
         public async Task ShowSettingsMenu() {

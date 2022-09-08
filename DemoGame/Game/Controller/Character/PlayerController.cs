@@ -9,7 +9,10 @@ using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes.Property;
+using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
+using Betauer.Restorer;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI.Consoles;
@@ -51,9 +54,8 @@ namespace Veronenger.Game.Controller.Character {
         public IOnceStatus AnimationAttack { get; private set; }
         public IOnceStatus AnimationJumpAttack { get; private set; }
 
-        public ILoopStatus PulsateTween;
+        public IOnceStatus PulsateTween;
         public ILoopStatus DangerTween;
-        public ILoopStatus ResetTween;
         public IOnceStatus SqueezeTween;
 
         /**
@@ -65,9 +67,10 @@ namespace Veronenger.Game.Controller.Character {
         private BodyOnArea2DStatus _slopeStairsUp;
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
+        private Restorer _restorer;
 
         public override void _Ready() {
-            _animationStack = new AnimationStack(_name, _animationPlayer);
+            _animationStack = new AnimationStack(_name, this).SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
             AnimationJump = _animationStack.AddLoopAnimation("Jump");
@@ -75,11 +78,15 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _tweenStack = new AnimationStack(_name, _animationPlayer);
-            PulsateTween = _tweenStack.AddLoopTween("Pulsate", CreatePulsate());
-            DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger());
-            ResetTween = _tweenStack.AddLoopTween("Reset", CreateReset());
-            SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze());
+            _tweenStack = new AnimationStack(_name, this);
+            _restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)
+                .Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
+                
+            _restorer.Save();
+            Action restorePlayer = () => _restorer.Restore();
+            PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(restorePlayer);
+            DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorePlayer);
+            SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
 
             _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             KinematicPlatformMotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
@@ -122,21 +129,20 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void StartModulate() {
-            PulsateTween.PlayLoop();
+            PulsateTween.PlayOnce();
         }
 
         public void StopSqueeze() {
-            SqueezeTween.Stop(true);
+            SqueezeTween.Stop();
         }
 
         public void StartSqueeze() {
             SqueezeTween.PlayOnce(true);
         }
 
-
         private IAnimation CreateReset() {
             var seq = SequenceAnimation.Create(_mainSprite)
-                .AnimateSteps<Color>(Property.Modulate)
+                .AnimateSteps<Color>(Properties.Modulate)
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -145,15 +151,15 @@ namespace Veronenger.Game.Controller.Character {
             return seq;
         }
 
-        private IAnimation CreatePulsate() {
+        private IAnimation CreateMoveLeft() {
             var seq = KeyframeAnimation.Create(_mainSprite)
-                .SetDuration(0.5f)
-                .AnimateKeys<Color>(Property.Modulate)
+                .SetDuration(2f)
+                .AnimateKeys<Color>(Properties.Modulate)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
                 .KeyframeTo(0.75f, new Color(1, 1, 1, 0.5f))
                 .KeyframeTo(1f, new Color(1, 1, 1, 1))
                 .EndAnimate()
-                .AnimateKeys<Vector2>(Property.Scale2D)
+                .AnimateKeys<Vector2>(Properties.Scale2D)
                 .KeyframeTo(0.5f, new Vector2(1.4f, 1f))
                 .KeyframeTo(1f, new Vector2(1f, 1f))
                 .EndAnimate();
@@ -164,7 +170,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private IAnimation CreateDanger() {
             var seq = SequenceAnimation.Create(_mainSprite)
-                .AnimateSteps<Color>(Property.Modulate, Easings.CubicInOut)
+                .AnimateSteps<Color>(Properties.Modulate, Easings.CubicInOut)
                 .To(new Color(1, 0, 0, 1), 1)
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -173,7 +179,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private IAnimation CreateSqueeze() {
             var seq = SequenceAnimation.Create(this)
-                .AnimateSteps<Vector2>(Property.Scale2D, Easings.SineInOut)
+                .AnimateSteps<Vector2>(Properties.Scale2D, Easings.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()

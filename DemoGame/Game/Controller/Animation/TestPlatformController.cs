@@ -4,6 +4,8 @@ using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.DI;
+using Betauer.Nodes.Property;
+using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
 
 namespace Veronenger.Game.Controller.Animation {
@@ -15,7 +17,7 @@ namespace Veronenger.Game.Controller.Animation {
         public override void _Ready() {
             KeyframeAnimation.Create(body1)
                 .SetDuration(1)
-                .AnimateKeys(Property.Scale2Dy, Easings.SineInOut)
+                .AnimateKeys(Properties.Scale2Dy, Easings.SineInOut)
                 .From(1f)
                 .KeyframeTo(0.5f, 1.5f)
                 .KeyframeTo(1f, 1f)
@@ -28,7 +30,7 @@ namespace Veronenger.Game.Controller.Animation {
             BezierCurve curveBourbon = BezierCurve.Create(0.445f, 0.050f, 0.550f, 0.950f);
 
             SequenceAnimation.Create(body2)
-                .AnimateStepsBy(Property.PositionX, curve)
+                .AnimateStepsBy(Properties.PositionX, curve)
                 .Offset(50f, 0.5f)
                 .Offset(-50f, 0.5f)
                 .EndAnimate()
@@ -37,7 +39,7 @@ namespace Veronenger.Game.Controller.Animation {
 
             KeyframeAnimation.Create(body3)
                 .SetDuration(2f)
-                .AnimateKeys(Property.Scale2Dy)
+                .AnimateKeys(Properties.Scale2Dy)
                 .From(1)
                 .KeyframeTo(0.20f, 1)
                 .KeyframeTo(0.40f, 1.1f, BezierCurve.Create(0.7555f, 0.5f, 0.8555f, 0.06f))

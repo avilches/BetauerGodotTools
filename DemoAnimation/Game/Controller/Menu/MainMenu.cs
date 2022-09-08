@@ -8,6 +8,7 @@ using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
+using Betauer.Restorer;
 using Betauer.Signal;
 using Betauer.UI;
 using DemoAnimation.Game.Managers;
@@ -69,7 +70,8 @@ namespace DemoAnimation.Game.Controller.Menu {
             .ToList();
 
         public override void _Ready() {
-            _animationsRestorer = new MultiRestorer(_labelToAnimate, _logo, _texture).Save();
+            _animationsRestorer = _labelToAnimate.CreateRestorer().Add(_logo.CreateRestorer()).Add(_texture.CreateRestorer());
+            _animationsRestorer.Save();
             _menuContainer = BuildMenu();
             _menuLabel.Text = "Click the options to see animations";
             _resetMenu.OnPressed(() => {
@@ -209,7 +211,8 @@ namespace DemoAnimation.Game.Controller.Menu {
                         _effectsMenuSceneTreeTween.Kill();
                         _effectsMenuOnFinish();
                     }
-                    var buttonRestorer = button.CreateRestorer().Save();
+                    var buttonRestorer = button.CreateRestorer();
+                    buttonRestorer.Save();
                     button.Disabled = true;
                     var animation = Templates.Get(name)!;
                     var targets = new Node[] {
