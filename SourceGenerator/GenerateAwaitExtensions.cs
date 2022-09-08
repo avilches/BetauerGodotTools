@@ -35,6 +35,14 @@ using Environment = Godot.Environment;
 
 namespace Betauer.Signal {{
     public static partial class AwaitExtensions {{
+
+        // SceneTree signal shortcuts for Node
+        public static SignalAwaiter AwaitPhysicsFrame(this Node target) => 
+            target.ToSignal(target.GetTree(), ""idle_frame"");
+
+        // SceneTree signal shortcut for Node
+        public static SignalAwaiter AwaitIdleFrame(this Node target) => 
+            target.ToSignal(target.GetTree(), ""physics_frame"");
       {string.Join("\n", methods)}
     }}
 }}";
