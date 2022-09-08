@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Nodes;
+using Betauer.Restorer;
 using Betauer.Signal;
 using Godot;
 
@@ -245,7 +246,8 @@ namespace Betauer.UI {
 
                 if (transition.FromMenu != null) {
                     if (goodbyeAnimation != null) {
-                        var saver = new MultiRestorer(transition.FromMenu.GetChildren()).Save();
+                        var saver = transition.FromMenu.GetChildren().CreateMultiRestorer();
+                        saver.Save();
                         await goodbyeAnimation(transition);
                         saver.Restore();
                     }
@@ -262,7 +264,8 @@ namespace Betauer.UI {
                      * 1) show the children with their modulates to Color(0,0,0,0) so they will be invisible for
                      * human eye, but "visible" for the container and it can arrange them.
                      */
-                    var saver = new MultiRestorer(transition.ToMenu.GetChildren(), "modulate").Save();
+                    var saver = transition.ToMenu.GetChildren().CreateMultiRestorer("modulate");
+                    saver.Save();
                     transition.ToMenu.GetChildren().ForEach(e => e.Modulate = ModulateInvisible);
                     /*
                      * 2) Wait one frame, so the container can arrange the children positions safely.
@@ -414,7 +417,7 @@ namespace Betauer.UI {
             return Container.GetVisibleControl<Control>();
         }
 
-        public Restorer DisableButtons(bool storeFocus = true) {
+        public Restorer.Restorer DisableButtons(bool storeFocus = true) {
             return Container.DisableButtons(storeFocus);
         }
     }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Betauer.Restorer;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -21,7 +22,8 @@ namespace Betauer.Tests {
             control.RectPosition = original;
             control.RectRotation = 3f;
 
-            var status = control.CreateRestorer().Save();
+            var status = control.CreateRestorer();
+            status.Save();
             control.RectPivotOffset = Vector2.Zero;
             control.Modulate = new Color(0.1f,0.2f,0.3f);
             control.SelfModulate = new Color(0.1f,0.2f,0.3f);
@@ -52,7 +54,8 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             Assert.That(container.GetFocusOwner(), Is.EqualTo(b1));
 
-            var r = container.CreateFocusRestorer().Save();
+            var r = container.CreateFocusOwnerRestorer();
+            r.Save();
             b2.GrabFocus();
             await this.AwaitIdleFrame();
             Assert.That(container.GetFocusOwner(), Is.EqualTo(b2));
@@ -81,7 +84,8 @@ namespace Betauer.Tests {
             sprite.FlipH = true;
             sprite.FlipV = true;
 
-            var status = sprite.CreateRestorer().Save();
+            var status = sprite.CreateRestorer();
+            status.Save();
             sprite.Offset = Vector2.Zero;
             sprite.GlobalPosition = Vector2.Zero;
             sprite.Modulate = new Color(0.1f,0.2f,0.3f);
@@ -122,7 +126,8 @@ namespace Betauer.Tests {
             sprite.Position = original;
             sprite.Rotation = 3f;
 
-            var status = sprite.CreateRestorer().Save();
+            var status = sprite.CreateRestorer();
+            status.Save();
             sprite.GlobalPosition = Vector2.Zero;
             sprite.Modulate = new Color(0.1f,0.2f,0.3f);
             sprite.SelfModulate = new Color(0.1f,0.2f,0.3f);

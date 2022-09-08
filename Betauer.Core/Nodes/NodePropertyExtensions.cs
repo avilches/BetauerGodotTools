@@ -1,3 +1,4 @@
+using Betauer.Restorer;
 using Godot;
 
 namespace Betauer.Nodes {
@@ -39,14 +40,16 @@ namespace Betauer.Nodes {
             return -(node.GetOutOfScreenBottom() + offset);
         }
 
-        public static Restorer SetControlPivot(this Control control, Vector2 offset) {
-            var restorer = new RectPivotOffsetRestorer(control).Save();
+        public static Restorer.Restorer SetControlPivot(this Control control, Vector2 offset) {
+            var restorer = new RectPivotOffsetRestorer(control);
+            restorer.Save();
             control.RectPivotOffset = offset;
             return restorer;
         }
 
-        public static Restorer SetSpritePivot(this Sprite sprite, Vector2 offset) {
-            var restorer = new SpritePivotOffsetRestorer(sprite).Save();
+        public static Restorer.Restorer SetSpritePivot(this Sprite sprite, Vector2 offset) {
+            var restorer = new SpritePivotOffsetRestorer(sprite);
+            restorer.Save();
             var position = sprite.GlobalPosition;
             sprite.Offset = offset;
             sprite.GlobalPosition = position - sprite.Offset;
@@ -55,7 +58,7 @@ namespace Betauer.Nodes {
 
         // TODO: TopRight, CenterRight, CenterLeft.
         // TODO: Create a Visual UI to check the behavior (rotate with different origin)
-        public static Restorer SetRotateOriginToTopCenter(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToTopCenter(this Node node) {
             return node switch {
                 // node.set_pivot_offset(Vector2(size.x / 2, 0))
                 Control control => control.SetControlPivot(new Vector2(control.RectSize.x / 2, 0)),
@@ -65,7 +68,7 @@ namespace Betauer.Nodes {
             };
         }
 
-        public static Restorer SetRotateOriginToTopLeft(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToTopLeft(this Node node) {
             return node switch {
                 // node.set_pivot_offset(Vector2(0, 0))
                 Control control => SetControlPivot(control, Vector2.Zero),
@@ -75,7 +78,7 @@ namespace Betauer.Nodes {
             };
         }
 
-        public static Restorer SetRotateOriginToCenter(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToCenter(this Node node) {
             return node switch {
                 // node.set_pivot_offset(size / 2)
                 Control control => SetControlPivot(control, control.RectSize / 2),
@@ -83,7 +86,7 @@ namespace Betauer.Nodes {
             };
         }
 
-        public static Restorer SetRotateOriginToBottomCenter(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToBottomCenter(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
                 case Control control: {
@@ -98,7 +101,7 @@ namespace Betauer.Nodes {
             }
         }
 
-        public static Restorer SetRotateOriginToBottomLeft(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToBottomLeft(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(0, size.y))
                 case Control control:
@@ -113,7 +116,7 @@ namespace Betauer.Nodes {
             }
         }
 
-        public static Restorer SetRotateOriginToBottomRight(this Node node) {
+        public static Restorer.Restorer SetRotateOriginToBottomRight(this Node node) {
             switch (node) {
                 // node.set_pivot_offset(Vector2(size.x, size.y / 2))
                 case Control control: {

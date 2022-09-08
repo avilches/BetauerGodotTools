@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Restorer;
 using Godot;
 
 namespace Betauer.Nodes {
@@ -69,14 +70,12 @@ namespace Betauer.Nodes {
         /// <returns></returns>
         public static MultiRestorer DisableButtons(this Container container, bool storeFocus = true) {
             var buttons = container.GetChildren().OfType<BaseButton>();
-            MultiRestorer restorer = new MultiRestorer(buttons, "disabled", "focus_mode");
+            MultiRestorer restorer = buttons.CreateMultiRestorer("disabled", "focus_mode");
             if (storeFocus) {
-                restorer.AddChildFocusRestorer(container);
+                restorer.Add(container.CreateChildFocusedRestorer());
             }
             restorer.Save();
-            foreach (var child in container.GetChildren().OfType<BaseButton>()) {
-                if (child is BaseButton button) button.SetFocusDisabled(true);
-            }
+            container.GetChildren().OfType<BaseButton>().ForEach(button => button.SetFocusDisabled(true));
             return restorer;
         }
 
