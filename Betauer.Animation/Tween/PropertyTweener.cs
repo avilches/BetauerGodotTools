@@ -29,15 +29,12 @@ namespace Betauer.Animation.Tween {
             if (!property.IsCompatibleWith(target))
                 throw new NodeNotCompatibleWithPropertyException($"Property {property} is not compatible with target type {target.GetType().Name}");
             
-            if (!(property is CallbackProperty<TProperty>)) {
-                // Callbacks properties don't need target
-                if (target == null) throw new InvalidAnimationException("No target defined for the animation");
-                if (!Object.IsInstanceValid(target)) {
+            if (target == null) throw new InvalidAnimationException("No target defined for the animation");
+            if (!Object.IsInstanceValid(target)) {
 #if DEBUG
-                    Logger.Warning($"Can't start {GetType()} using a freed target instance");
+                Logger.Warning($"Can't start {GetType()} using a freed target instance");
 #endif
-                    return false;
-                }
+                return false;
             }
             return true;
         }
