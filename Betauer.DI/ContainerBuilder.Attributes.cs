@@ -1,4 +1,5 @@
 using System;
+using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI {
     [AttributeUsage(AttributeTargets.Class)]
