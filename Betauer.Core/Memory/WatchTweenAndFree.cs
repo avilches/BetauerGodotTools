@@ -18,8 +18,8 @@ namespace Betauer.Memory {
         }
 
         public override string ToString() {
-            var watching = string.Join(",", Watching.Select(o => o.ToStringSafe()));
-            var targets = string.Join(",", Targets.Select(o => o.ToStringSafe()));
+            var watching = Watching != null ? Watching.Length == 1 ? Watching[0].ToStringSafe() : string.Join(",", Watching.Select(o => o.ToStringSafe())) : "null";
+            var targets = Targets != null ? Targets.Length == 1 ? Targets[0].ToStringSafe() : string.Join(",", Targets.Select(o => o.ToStringSafe())) : "null";
             return $"Watching: {watching} | Freeing: {targets}";
         }
     }
