@@ -1,7 +1,6 @@
 using System;
 using Godot;
 
-
 namespace Betauer.Animation.Tween {
     public interface IAnimation {
         public Node? DefaultTarget { get; }

@@ -37,18 +37,18 @@ namespace Betauer.Animation {
             public string Name { get; }
             public bool Playing { get; private set; }
 
-            protected readonly Logger Logger;
-            private protected Action _onStart;
-            private protected Action _onEnd;
+            private readonly Logger _logger;
+            protected Action? _onStart;
+            protected Action? _onEnd;
 
-            public Status(Logger logger, string name) {
-                Logger = logger;
+            protected Status(Logger logger, string name) {
+                _logger = logger;
                 Name = name;
             }
 
             internal virtual void ExecuteOnStart() {
 #if DEBUG
-                Logger.Debug("Start " + GetType().Name + " \"" + Name + "\"");
+                _logger.Debug("Start " + GetType().Name + " \"" + Name + "\"");
 #endif
                 Playing = true;
                 _onStart?.Invoke();
@@ -56,7 +56,7 @@ namespace Betauer.Animation {
 
             internal virtual void ExecuteOnEnd() {
 #if DEBUG
-                Logger.Debug("End " + GetType().Name + " \"" + Name + "\"");
+                _logger.Debug("End " + GetType().Name + " \"" + Name + "\"");
 #endif
                 _onEnd?.Invoke();
                 Playing = false;
@@ -64,13 +64,13 @@ namespace Betauer.Animation {
         }
 
         private abstract class OnceStatus : Status, IOnceStatus {
-            private readonly AnimationStack _animationStack;
+            protected readonly AnimationStack AnimationStack;
             public bool CanBeInterrupted { get; set; }
             public bool KillPrevious { get; set; }
 
             protected OnceStatus(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
                 bool killPrevious) : base(logger, name) {
-                _animationStack = animationStack;
+                AnimationStack = animationStack;
                 CanBeInterrupted = canBeInterrupted;
                 KillPrevious = killPrevious;
             }
@@ -86,12 +86,12 @@ namespace Betauer.Animation {
             }
 
             public void PlayOnce(bool killPrevious = false) {
-                _animationStack.PlayOnce(this, killPrevious);
+                AnimationStack.PlayOnce(this, killPrevious);
             }
 
             public void Stop(bool killPrevious = false) {
-                if (_animationStack.IsPlayingOnce(Name)) {
-                    _animationStack.StopPlayingOnce(killPrevious);
+                if (AnimationStack.IsPlayingOnce(Name)) {
+                    AnimationStack.StopPlayingOnce(killPrevious);
                 }
             }
         }
@@ -128,7 +128,7 @@ namespace Betauer.Animation {
             private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
-            public LoopTween(AnimationStack animationStack, Logger logger, string name, IAnimation animation) : base(
+            internal LoopTween(AnimationStack animationStack, Logger logger, string name, IAnimation animation) : base(
                 animationStack, logger, name) {
                 _animation = animation;
             }
@@ -149,7 +149,7 @@ namespace Betauer.Animation {
             private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
-            public OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
+            internal OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
                 bool killPrevious, IAnimation animation) :
                 base(animationStack, logger, name, canBeInterrupted, killPrevious) {
                 _animation = animation;
@@ -157,8 +157,8 @@ namespace Betauer.Animation {
 
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
-                _sceneTreeTween = _animation.Play();
-                // .OnFinished(OnTweenPlayerFinishAll);
+                _sceneTreeTween = _animation.Play().SetLoops(1);
+                _sceneTreeTween.OnFinished(AnimationStack.OnTweenPlayerFinishAll);
             }
 
             internal override void ExecuteOnEnd() {
@@ -171,7 +171,7 @@ namespace Betauer.Animation {
         private class LoopAnimation : LoopStatus {
             private readonly AnimationPlayer _animationPlayer;
 
-            public LoopAnimation(AnimationStack animationStack, Logger logger, string name,
+            internal LoopAnimation(AnimationStack animationStack, Logger logger, string name,
                 AnimationPlayer animationPlayer) : base(animationStack,
                 logger, name) {
                 _animationPlayer = animationPlayer;
@@ -191,7 +191,7 @@ namespace Betauer.Animation {
         private class OnceAnimation : OnceStatus {
             private readonly AnimationPlayer _animationPlayer;
 
-            public OnceAnimation(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
+            internal OnceAnimation(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
                 bool killPrevious, AnimationPlayer animationPlayer) : base(animationStack, logger, name,
                 canBeInterrupted, killPrevious) {
                 _animationPlayer = animationPlayer;
@@ -208,7 +208,7 @@ namespace Betauer.Animation {
             }
         }
 
-        public AnimationPlayer AnimationPlayer { get; }
+        public AnimationPlayer AnimationPlayer { get; private set; }
 
         private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations =
             new System.Collections.Generic.Dictionary<string, LoopStatus>();
@@ -221,12 +221,16 @@ namespace Betauer.Animation {
         private static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(AnimationStack));
         private readonly Logger _logger;
 
-        public AnimationStack(string name, AnimationPlayer animationPlayer) {
+        public AnimationStack(string? name, Node node) {
             _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
+            new WatchObjectAndFree().Watch(node).Free(this).AddToDefaultObjectWatcher();
+        }
 
+        public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
             AnimationPlayer = animationPlayer;
             AnimationPlayer?.Connect(SignalConstants.AnimationPlayer_AnimationFinishedSignal, this,
                 nameof(OnceAnimationFinished));
+            return this;
         }
 
         public ILoopStatus AddLoopAnimation(string name) {
