@@ -233,36 +233,41 @@ namespace Betauer.StateMachine {
         }
 
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {
-            try {
-                _listeners?.ForEach(listener => listener.OnTransition(from.Key, to.Key));
-            } catch (Exception e) {
-                Console.WriteLine(e);
-                throw;
-            }
-            Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key}");
+            _listeners?.ForEach(listener => listener.OnTransition(from.Key, to.Key));
+            #if DEBUG
+                Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key}");
+            #endif
         }
 
         private async Task Exit(IState<TStateKey, TTransitionKey> state, TStateKey to) {
             _listeners?.ForEach(listener => listener.OnExit(state.Key, to));
-            Logger.Debug($"Exit: \"{state.Key}\"(to:{to})\"");
+            #if DEBUG
+                Logger.Debug($"Exit: \"{state.Key}\"(to:{to})\"");
+            #endif
             await state.Exit(to);
         }
 
         private async Task Suspend(IState<TStateKey, TTransitionKey> state, TStateKey to) {
             _listeners?.ForEach(listener => listener.OnSuspend(state.Key, to));
-            Logger.Debug($"Suspend: \"{state.Key}\"(to:{to})");
+            #if DEBUG
+                Logger.Debug($"Suspend: \"{state.Key}\"(to:{to})");
+            #endif
             await state.Suspend(to);
         }
 
         private async Task Awake(IState<TStateKey, TTransitionKey> state, TStateKey from) {
             _listeners?.ForEach(listener => listener.OnAwake(state.Key, from));
-            Logger.Debug($"Awake: \"{state.Key}\"(from:{from})");
+            #if DEBUG
+                Logger.Debug($"Awake: \"{state.Key}\"(from:{from})");
+            #endif
             await state.Awake(from);
         }
 
         private async Task Enter(IState<TStateKey, TTransitionKey> state, TStateKey from) {
             _listeners?.ForEach(listener => listener.OnEnter(state.Key, from));
-            Logger.Debug($"Enter: \"{state.Key}\"(from:{from})");
+            #if DEBUG
+                Logger.Debug($"Enter: \"{state.Key}\"(from:{from})");
+            #endif
             await state.Enter(from);
         }
 
