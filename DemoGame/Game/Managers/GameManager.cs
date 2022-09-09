@@ -38,22 +38,22 @@ namespace Veronenger.Game.Managers {
             ExitDesktop,
         }
 
-        [Scene("res://Scenes/Menu/MainMenu.tscn")]
+        [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
 
-        [Scene("res://Scenes/Menu/MainMenuBottomBar.tscn")]
+        [Load("res://Scenes/Menu/MainMenuBottomBar.tscn")]
         public MainMenuBottomBar MainMenuBottomBarScene;
 
-        [Scene("res://Scenes/Menu/PauseMenu.tscn")]
+        [Load("res://Scenes/Menu/PauseMenu.tscn")]
         private PauseMenu _pauseMenuScene;
 
-        [Scene("res://Scenes/Menu/SettingsMenu.tscn")]
+        [Load("res://Scenes/Menu/SettingsMenu.tscn")]
         private SettingsMenu _settingsMenuScene;
 
-        [Scene("res://Scenes/Menu/ModalBoxConfirm.tscn")]
+        [Load("res://Scenes/Menu/ModalBoxConfirm.tscn")]
         private Func<ModalBoxConfirm> CreateModalBoxConfirm;
 
-        [Scene("res://Scenes/DebugOverlay.tscn")] public DebugOverlay DebugOverlay;
+        [Load("res://Scenes/DebugOverlay.tscn")] public DebugOverlay DebugOverlay;
 
         private Node _currentGameScene;
         private Node2D _playerScene;
@@ -79,7 +79,7 @@ namespace Veronenger.Game.Managers {
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
                         // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
                     };
-                    await MainResourceLoader.Load(this);
+                    await MainResourceLoader.From(this).Load();
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!

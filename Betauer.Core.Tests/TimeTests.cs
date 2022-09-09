@@ -63,8 +63,7 @@ namespace Betauer.Tests {
             Assert.That(godotScheduler.IsRunning(), Is.True);
             Assert.That(godotScheduler.IsPaused(), Is.False);
             await Task.Delay(TimeSpan.FromSeconds(0.55));
-            Assert.That(steps, Is.GreaterThanOrEqualTo(5));
-            Assert.That(steps, Is.LessThan(7));
+            Assert.That(steps, Is.EqualTo(5).Within(2));
             godotScheduler.Stop();
         }
 

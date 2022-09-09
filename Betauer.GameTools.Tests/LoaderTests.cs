@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Loader;
 using Betauer.TestRunner;
@@ -9,143 +10,257 @@ namespace Betauer.GameTools.Tests {
     [TestFixture]
     public class LoaderTests : Node {
         internal class ResourcesLoaderMetadataOk : ResourceLoaderContainer {
-            [Resource("res://test-resources/1x1.png")]
-            public Texture Texture; // parent type
-            [Resource("res://test-resources/1x1.png")]
+            [Load("res://test-resources/1x1.png")]
             public StreamTexture StreamTexture; // real type
-            [Resource("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/1x1.png")]
+            public Texture Texture; // parent type
+            [Load("res://test-resources/MyScene.tscn")]
             public PackedScene PackedScene;
 
-            [Resource("res://test-resources/1x1.png")]
+            [Load("res://test-resources/1x1.png")]
             public ResourceMetadata<StreamTexture> ResourceMetadataTexture;
-            [Resource("res://test-resources/1x1.png")]
+            [Load("res://test-resources/1x1.png")]
             public ResourceMetadata<StreamTexture> ResourceMetadataStreamTexture;
-            [Resource("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public ResourceMetadata<PackedScene> ResourceMetadataPackedScene;
 
-            [Resource("res://test-resources/1x1.png")]
+            [Load("res://test-resources/1x1.png")]
             public ResourceMetadata ResourceMetadata;
-            [Resource("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public ResourceMetadata ResourceMetadataScene;
         }
 
-        internal class AdditionalResource {
-            [Resource("res://test-resources/1x1.png")]
-            public ResourceMetadata ResourceMetadata;
-        }
-
         [Test(Description = "Resource load ok")]
-        [Ignore("It fails in github actions")]
+        // [Ignore("It fails in github actions")]
         public async Task ResourcesOkTests() {
-            var r1 = new ResourcesLoaderMetadataOk();
-            var x1 = new AdditionalResource();
-            var x2 = new AdditionalResource();
-            await r1.SetAwaiter(async () => this.AwaitIdleFrame()).From(x1).Load(x2);
-            Assert.That(r1.Texture, Is.EqualTo(r1.StreamTexture));
-            Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataTexture.Resource));
-            Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadataStreamTexture.Resource));
-            Assert.That(r1.Texture, Is.EqualTo(r1.ResourceMetadata.Resource));
-            Assert.That(r1.PackedScene, Is.EqualTo(r1.ResourceMetadataPackedScene.Resource));
-            Assert.That(r1.PackedScene, Is.EqualTo(r1.ResourceMetadataScene.Resource));
-            
-            Assert.That(x1.ResourceMetadata.Resource, Is.EqualTo(r1.ResourceMetadata.Resource));
+            var r = new ResourcesLoaderMetadataOk();
+            await r.SetAwaiter(async () => this.AwaitIdleFrame()).Load();
+            Assert.That(r.Texture, Is.EqualTo(r.StreamTexture));
+            Assert.That(r.Texture, Is.EqualTo(r.ResourceMetadataTexture.Resource));
+            Assert.That(r.Texture, Is.EqualTo(r.ResourceMetadataStreamTexture.Resource));
+            Assert.That(r.Texture, Is.EqualTo(r.ResourceMetadata.Resource));
+            Assert.That(r.PackedScene, Is.EqualTo(r.ResourceMetadataPackedScene.Resource));
+            Assert.That(r.PackedScene, Is.EqualTo(r.ResourceMetadataScene.Resource));
+        }
+        
+        internal class ResourceHolder1 {
+            [Load("res://test-resources/1x1.png")]
+            public Texture Texture;
         }
 
-        internal class WrongType1 : ResourceLoaderContainer {
-            [Resource("res://test-resources/MyScene.tscn")]
-            public Texture PackedScene;
+        internal class ResourceHolder2 {
+            [Load("res://test-resources/1x1.png")]
+            public ResourceMetadata<StreamTexture> ResourceMetadataTexture;
         }
 
-        internal class WrongMetadataType : ResourceLoaderContainer {
-            [Resource("res://test-resources/MyScene.tscn")]
-            public ResourceMetadata<Texture> ResourceMetadataTexture;
-        }
-
-        internal class NotGodotType : ResourceLoaderContainer {
-            [Resource("res://test-resources/MyScene.tscn")]
-            public List Resource;
-        }
-
-        [Test(Description = "Resource load error")]
-        public async Task WrongTypeTests() {
-            var e1 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new WrongType1().SetAwaiter(async () => { }).Load());
-            var e2 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new WrongMetadataType().SetAwaiter(async () => { }).Load());
-            var e3 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new NotGodotType().SetAwaiter(async () => { }).Load());
+        [Test(Description = "Resource load From other resources")]
+        // [Ignore("It fails in github actions")]
+        public async Task ResourcesLoadFromTests() {
+            var c = new ResourceLoaderContainer(GetTree());
+            var r1 = new ResourceHolder1();
+            var r2 = new ResourceHolder2();
+            await c.From(r1, r2).Load();
+            Assert.That(r1.Texture, Is.EqualTo(r2.ResourceMetadataTexture.Resource));
         }
 
         internal class ResourcesLoaderMetadataSceneOk : ResourceLoaderContainer {
-            [Scene("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public Func<Node2D> Node2dFactory;
 
-            [Scene("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public Func<Node> NodeFactory;
 
-            [Scene("res://test-resources/MyScene.tscn")]
-            public Node2D Node2d;
+            [Load("res://test-resources/MyScene.tscn")]
+            public Node2D Node2d; // parent type
 
-            [Scene("res://test-resources/MyScene.tscn")]
-            public Node Node;
+            [Load("res://test-resources/MyScene.tscn")]
+            public Node Node; // real type
         }
 
-        internal class AdditionalScene {
-            [Scene("res://test-resources/MyScene.tscn")]
-            public Node Node;
-        }
-        
-        [Test(Description = "PackedScene to Scene ok")]
-        public async Task ResourcesSceneOkTests() {
-            var r1 = new ResourcesLoaderMetadataSceneOk();
-            var x1 = new AdditionalScene();
-            var x2 = new AdditionalScene();
-            await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).From(x1).Load(x2);
-            var node2DCreated1 = r1.Node2dFactory.Invoke();
-            var node2DCreated2 = r1.Node2dFactory.Invoke();
+        [Test(Description = "Test PackedScene resources")]
+        public async Task PackedSceneResourceTests() {
+            var r = new ResourcesLoaderMetadataSceneOk();
+            await r.SetAwaiter(async () => await this.AwaitIdleFrame()).Load();
+            var node2DCreated1 = r.Node2dFactory.Invoke();
+            var node2DCreated2 = r.Node2dFactory.Invoke();
             Assert.That(node2DCreated1, Is.Not.Null);
             Assert.That(node2DCreated2, Is.Not.Null);
-            Assert.That(r1.Node2d, Is.Not.Null);
-            Assert.That(r1.Node2d, Is.Not.EqualTo(node2DCreated1));
-            Assert.That(r1.Node2d, Is.Not.EqualTo(node2DCreated2));
+            Assert.That(r.Node2d, Is.Not.Null);
+            Assert.That(r.Node2d, Is.Not.EqualTo(node2DCreated1));
+            Assert.That(r.Node2d, Is.Not.EqualTo(node2DCreated2));
             Assert.That(node2DCreated1, Is.Not.EqualTo(node2DCreated2));
             
-            Assert.That(r1.Node, Is.TypeOf(typeof(Node2D)));
-            Assert.That(r1.NodeFactory.Invoke(), Is.TypeOf(typeof(Node2D)));
-            
-            Assert.That(x1.Node, Is.TypeOf(typeof(Node2D)));
-            Assert.That(x2.Node, Is.TypeOf(typeof(Node2D)));
-            Assert.That(node2DCreated1, Is.Not.EqualTo(node2DCreated2));
-            Assert.That(node2DCreated1, Is.Not.EqualTo(x1));
-            Assert.That(node2DCreated1, Is.Not.EqualTo(x2));
-
-
+            Assert.That(r.Node, Is.TypeOf(typeof(Node2D)));
+            Assert.That(r.NodeFactory.Invoke(), Is.TypeOf(typeof(Node2D)));
         }
+
+        internal class ResourceWithNameDefinition {
+            [Load("1x1-1", "res://test-resources/1x1.png")]
+            public StreamTexture StreamTexture;
+            
+            // Different name, same resource
+            [Load("1x1-2", "res://test-resources/1x1.png")]
+            public Texture Texture;
+            
+            [Load("MyScene","res://test-resources/MyScene.tscn")]
+            public Node2D Node2d;
+        }
+
+        internal class ResourceWithName {
+            [Resource("1x1-1")]
+            public Texture Texture1;
+            
+            [Resource("1x1-2")]
+            public Texture Texture2;
+            
+            [Resource("res://test-resources/1x1.png")]
+            public Texture Texture3;
+            
+            [Resource("MyScene")]
+            public Node MyScene1;
+            
+            [Resource("res://test-resources/MyScene.tscn")]
+            public Node MyScene2;
+
+            [Load("x", "b")]
+            public object ignored;
+        }
+
+        [Test(Description = "Test load with [Resource]")]
+        public async Task ResourceWithNameDefinitionTests() {
+            var c = new ResourceLoaderContainer(GetTree());
+            var r = new ResourceWithNameDefinition();
+            await c.From(r).Load();
+
+            Assert.That(c.Contains("res://test-resources/1x1.png"), Is.True);
+            Assert.That(c.Contains("1x1-1"), Is.True);
+            Assert.That(c.Contains("1x1-2"), Is.True);
+            Assert.That(c.Contains("NOPE"), Is.False);
+
+            Assert.That(c.Resource<Texture>("1x1-1"), Is.EqualTo(r.Texture));
+            Assert.That(c.Resource<Texture>("1x1-2"), Is.EqualTo(r.Texture));
+            Assert.That(c.Scene<Node>("MyScene"), Is.TypeOf<Node2D>());
+
+            Assert.Throws<InvalidCastException>(() => c.Resource<Node2D>("1x1-1"));
+            Assert.Throws<InvalidCastException>(() => c.Scene<Spatial>("MyScene"));
+            
+            Assert.Throws<KeyNotFoundException>(() => c.Resource<Texture>("NOT FOUND"));
+            Assert.Throws<KeyNotFoundException>(() => c.Scene<Node>("NOT FOUND"));
+
+            var x1 = new ResourceWithName();
+            c.Inject(x1);
+            Assert.That(x1.Texture1, Is.EqualTo(r.StreamTexture));
+            Assert.That(x1.Texture2, Is.EqualTo(r.StreamTexture));
+            Assert.That(x1.Texture3, Is.EqualTo(r.StreamTexture));
+            Assert.That(x1.ignored, Is.Null);
+            
+            Assert.That(x1.MyScene1, Is.TypeOf<Node2D>());
+            Assert.That(x1.MyScene2, Is.TypeOf<Node2D>());
+            Assert.That(r.Node2d, Is.Not.EqualTo(x1.MyScene1));
+            Assert.That(r.Node2d, Is.Not.EqualTo(x1.MyScene2));
+        }
+
+        internal class ResourcesNotFound : ResourceLoaderContainer {
+            [Load("res://test-resources/notfound.x")]
+            public Node node;
+        }
+        
         internal class ResourcesLoaderMetadataSceneWrong : ResourceLoaderContainer {
-            [Scene("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public Spatial Spatial;
         }
         
         internal class ResourcesLoaderMetadataFuncTypeSceneWrong : ResourceLoaderContainer {
-            [Scene("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public Func<Node, Node> SpatialFactory;
         }
         
+        internal class NoPackedSceneOrNodeType : ResourceLoaderContainer {
+            [Load("res://test-resources/MyScene.tscn")]
+            public Texture PackedScene;
+        }
+
+        internal class NoPackedSceneInResourceMetadataType : ResourceLoaderContainer {
+            [Load("res://test-resources/MyScene.tscn")]
+            public ResourceMetadata<Texture> ResourceMetadataTexture;
+        }
+
+        internal class NoNodeInPackedSceneType : ResourceLoaderContainer {
+            [Load("res://test-resources/MyScene.tscn")]
+            public List PackedScene;
+        }
+
+        internal class WrongResourceType : ResourceLoaderContainer {
+            [Load("res://test-resources/1x1.png")]
+            public Node Texture;
+        }
+
+        internal class FuncNotAllowedInResourcesType : ResourceLoaderContainer {
+            [Load("res://test-resources/1x1.png")]
+            public Func<Texture> Texture;
+        }
+
+        internal class DuplicateResourceName : ResourceLoaderContainer{
+            [Load("a", "res://test-resources/1x1.png")]
+            public Texture Texture1;
+
+            [Load("a", "res://test-resources/1x1.png")]
+            public Texture Texture2;
+        }
+
+
+        [Test]
+        public async Task WrongResourcesDefinitionTests() {
+            async Task Load(ResourceLoaderContainer o) => await o.SetAwaiter(async () => { }).Load();
+
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await new ResourceLoaderContainer().Load());
+            
+            Assert.ThrowsAsync<Exception>(async () => await Load(new ResourcesNotFound()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new ResourcesLoaderMetadataSceneWrong()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new ResourcesLoaderMetadataFuncTypeSceneWrong()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new NoPackedSceneOrNodeType()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new NoPackedSceneInResourceMetadataType()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new NoNodeInPackedSceneType()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new WrongResourceType()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new FuncNotAllowedInResourcesType()));
+            Assert.ThrowsAsync<ResourceLoaderException>(async () => await Load(new DuplicateResourceName()));
+        }
+
         internal class ResourcesLoaderMetadataSceneFuncWrong : ResourceLoaderContainer {
-            [Scene("res://test-resources/MyScene.tscn")]
+            [Load("res://test-resources/MyScene.tscn")]
             public Func<Spatial> SpatialFactory;
         }
-        
-        [Test]
-        public async Task ResourcesSceneWrongTests() {
-            var e1 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new ResourcesLoaderMetadataSceneWrong().SetAwaiter(async () => { }).Load());
-            var e2 = Assert.ThrowsAsync<ResourceLoaderException>(async () =>
-                await new ResourcesLoaderMetadataFuncTypeSceneWrong().SetAwaiter(async () => { }).Load());
-            
+
+        [Test(Description = "The PackedScene is a Node2D. The function return Func<Spatial>. This fails only at runtime")]
+        public async Task WrongPackedSceneFunctionReturnType() {
             var r1 = new ResourcesLoaderMetadataSceneFuncWrong();
             await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).Load();
             Assert.Throws<InvalidCastException>(() => r1.SpatialFactory());
+        }
+
+        internal class ResourceNameNotFound {
+            [Resource("NOT FOUND")] public Texture Texture;
+        }
+
+        [Test(Description = "Try to inject a missing resource name: not found")]
+        public async Task ResourceNameNotFoundTest() {
+            var r = new ResourcesLoaderMetadataOk();
+            await r.SetAwaiter(async () => this.AwaitIdleFrame()).Load();
+            Assert.Throws<KeyNotFoundException>(() => r.Inject(new ResourceNameNotFound()));
+        }
+
+        [Test(Description = "No loads, registry null, methods should work properly")]
+        public async Task ContainsResourceAndSceneMethodWhenNoLoadTest() {
+            var c = new ResourceLoaderContainer(GetTree());
+            Assert.That(c.Contains("NOPE"), Is.False);
+            Assert.Throws<KeyNotFoundException>(() => c.Resource<Texture>("NOT FOUND"));
+            Assert.Throws<KeyNotFoundException>(() => c.Scene<Node>("NOT FOUND"));
+        }
+
+        [Test(Description = "Inject without Load fails")]
+        public async Task ResourceInjectWithoutLoad() {
+            var c = new ResourceLoaderContainer(GetTree());
+            Assert.Throws<KeyNotFoundException>(() => c.Inject(new ResourceWithName()));
         }
     }
 }
