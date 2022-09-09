@@ -260,13 +260,5 @@ namespace Veronenger.Game.Controller.Character {
         public void DeathZone(Area2D deathArea2D) {
             _logger.Debug("MUETO!!");
         }
-
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            if (disposing) {
-                _tweenStack?.Free(); // It's a GodotObject, it needs to be freed manually
-                _animationStack?.Free(); // It's a GodotObject, it needs to be freed manually
-            }
-        }
     }
 }

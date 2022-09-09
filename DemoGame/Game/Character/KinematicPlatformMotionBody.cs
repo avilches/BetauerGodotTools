@@ -3,6 +3,7 @@ using System.Text;
 using Godot;
 using Betauer;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Veronenger.Game.Managers;
 using TraceLevel = Betauer.TraceLevel;
 

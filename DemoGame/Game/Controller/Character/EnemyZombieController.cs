@@ -121,12 +121,5 @@ namespace Veronenger.Game.Controller.Character {
         public void AttackedByPlayer(PlayerController playerController) {
             StateMachineNode.TriggerAttacked();
         }
-
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            if (disposing) {
-                _animationStack?.Free(); // It's a GodotObject, it needs to be freed manually
-            }
-        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Betauer;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.StateMachine;
 using Betauer.Time;
 using Veronenger.Game.Controller.Character;

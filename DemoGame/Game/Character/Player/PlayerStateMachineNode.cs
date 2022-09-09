@@ -1,5 +1,6 @@
 using Betauer;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 
 using Betauer.StateMachine;
