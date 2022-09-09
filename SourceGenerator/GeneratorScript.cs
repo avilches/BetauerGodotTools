@@ -16,10 +16,6 @@ namespace Generator {
             while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
             var classes = LoadGodotClasses();
             
-            // GodotAction classes
-            GenerateGodotActionClasses.WriteAllActionClasses(classes);
-            GenerateGodotActionsExtensions.WriteGodotActionExtensionsClass(classes);
-
             // Notification
             GenerateNotificationHandler.WriteNotifications(classes.Find(c => c.ClassName == "Node"));
             GenerateNotificationHandler.WriteNotifications(classes.Find(c => c.ClassName == "MainLoop"));

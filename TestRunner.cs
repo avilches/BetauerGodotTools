@@ -10,7 +10,6 @@ public class TestRunner : SceneTree {
         var assemblies = new[] {
             "Betauer.DI.Tests",
             "Betauer.GameTools.Tests",
-            "Betauer.GodotAction.Tests",
             "Betauer.StateMachine.Tests",
             // These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
             // in the first seconds since start.
