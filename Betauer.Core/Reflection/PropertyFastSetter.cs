@@ -6,20 +6,22 @@ namespace Betauer.Reflection {
     public class PropertyFastSetter : ISetter {
         public Type Type { get; }
         public string Name { get; }
-        public Action<object, object> SetValue { get; }
         public MemberInfo MemberInfo { get; }
+        private readonly Action<object, object> _setValue;
         private readonly string? _toString;
+
+        public void SetValue(object instance, object value) => _setValue(instance, value);
 
         public PropertyFastSetter(PropertyInfo propertyInfo) {
             MemberInfo = propertyInfo;
             Type = propertyInfo.PropertyType;
             Name = propertyInfo.Name;
-            SetValue = CreateLambdaSetter(propertyInfo); // This is the slow version of property.SetValue;
-#if DEBUG
+            _setValue = CreateLambdaSetter(propertyInfo); // This is the slow version of property.SetValue;
+            #if DEBUG
             _toString = "Property " + Type.Name + " " + Name + " { " +
                         (propertyInfo.GetMethod.IsPrivate ? "private" : "public") + " get; " +
                         (propertyInfo.SetMethod.IsPrivate ? "private" : "public") + " set; }";
-#endif           
+            #endif           
         }
 
         public override string ToString() => _toString ?? base.ToString();

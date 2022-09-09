@@ -6,18 +6,20 @@ namespace Betauer.Reflection {
     public class FieldFastSetter : ISetter {
         public Type Type { get; }
         public string Name { get; }
-        public Action<object, object> SetValue { get; }
         public MemberInfo MemberInfo { get; }
+        private readonly Action<object, object> _setValue;
         private readonly string? _toString;
+
+        public void SetValue(object instance, object value) => _setValue(instance, value);
 
         public FieldFastSetter(FieldInfo fieldInfo) {
             MemberInfo = fieldInfo;
             Type = fieldInfo.FieldType;
             Name = fieldInfo.Name;
-            SetValue = CreateLambdaSetter(fieldInfo);
-#if DEBUG
-            _toString = "Field " + (fieldInfo.IsPrivate ? "private " : "public ") + Type.Name + " " + Name;
-#endif                
+            _setValue = CreateLambdaSetter(fieldInfo);
+            #if DEBUG
+                _toString = $"Field {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.Name} {Name}";
+            #endif                
         }
 
         public override string ToString() => _toString ?? base.ToString();

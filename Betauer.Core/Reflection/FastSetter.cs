@@ -1,19 +1,20 @@
 using System;
 using System.Reflection;
+using Godot;
 
 namespace Betauer.Reflection {
     public interface ISetter {
         public Type Type { get; }
         public string Name { get; }
-        public Action<object, object> SetValue { get; }
+        public void SetValue(object instance, object value);
         public MemberInfo MemberInfo { get; }
     }
 
-    public interface ISetter<T> : ISetter {
+    public interface ISetter<out T> : ISetter where T : Attribute {
         public T Attribute { get;  }
     }
 
-    public class FastSetter<T> : FastSetter, ISetter<T> {
+    public class FastSetter<T> : FastSetter, ISetter<T> where T : Attribute {
         public T Attribute { get; }
 
         public FastSetter(MemberInfo memberInfo, T attribute) : base(memberInfo) {
@@ -26,8 +27,8 @@ namespace Betauer.Reflection {
 
         public Type Type => _iSetter.Type;
         public string Name => _iSetter.Name;
-        public Action<object, object> SetValue => _iSetter.SetValue;
         public MemberInfo MemberInfo => _iSetter.MemberInfo;
+        public void SetValue(object instance, object value) => _iSetter.SetValue(instance, value);
         
         public FastSetter(MemberInfo memberInfo) {
             _iSetter = memberInfo switch {
@@ -37,8 +38,6 @@ namespace Betauer.Reflection {
                 _ => throw new ArgumentException("Member must be PropertyInfo, FieldInfo or MethodInfo")
             };
         }
-        
         public override string ToString() => _iSetter.ToString();
-
     }
 }

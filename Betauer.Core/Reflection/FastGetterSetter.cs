@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace Betauer.Reflection {
     public interface IGetterSetter : ISetter, IGetter {}
-    public interface IGetterSetter<T> : ISetter<T>, IGetter<T> {}
+    public interface IGetterSetter<out T> : ISetter<T>, IGetter<T> where T : Attribute {}
 
-    public class FastGetterSetter<T> : FastGetterSetter, IGetterSetter<T> {
+    public class FastGetterSetter<T> : FastGetterSetter, IGetterSetter<T> where T : Attribute {
         public T Attribute { get; }
 
         public FastGetterSetter(MemberInfo member, T attribute) : base(member) {
@@ -16,11 +16,12 @@ namespace Betauer.Reflection {
     public class FastGetterSetter : IGetterSetter {
         private readonly IGetter _iGetter;
         private readonly ISetter _iSetter;
+        
         public Type Type => _iGetter.Type;
         public string Name => _iGetter.Name;
-        public Action<object, object> SetValue => _iSetter.SetValue;
-        public Func<object, object> GetValue => _iGetter.GetValue;
         public MemberInfo MemberInfo => _iGetter.Type;
+        public void SetValue(object instance, object value) => _iSetter.SetValue(instance, value);
+        public object GetValue(object instance) => _iGetter.GetValue(instance);
         
         public FastGetterSetter(MemberInfo memberInfo) {
             if (memberInfo is PropertyInfo propertyInfo) {

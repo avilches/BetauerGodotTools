@@ -6,14 +6,16 @@ namespace Betauer.Reflection {
     public class PropertyFastGetter : IGetter {
         public Type Type { get; }
         public string Name { get; }
-        public Func<object, object> GetValue { get; }
         public MemberInfo MemberInfo { get; }
+        private readonly Func<object, object> _getValue;
+        
+        public object GetValue(object instance) => _getValue(instance);
 
         public PropertyFastGetter(PropertyInfo propertyInfo) {
             MemberInfo = propertyInfo;
             Type = propertyInfo.PropertyType;
             Name = propertyInfo.Name;
-            GetValue = CreateLambdaGetter(propertyInfo);
+            _getValue = CreateLambdaGetter(propertyInfo);
         }
         
         public static Func<object, object> CreateLambdaGetter(PropertyInfo propertyInfo) {
