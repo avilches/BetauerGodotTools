@@ -7,8 +7,6 @@ using NUnit.Framework;
 namespace Betauer.Tests {
     
     // TODO: test if a input event is processed, stop process it
-    // TODO: rename GodotAction to ProxyNode
-    // TODO: move to a Betauer.Node namespace
     
     [TestFixture]
     public class NodeActionExtensionsTests : Node {

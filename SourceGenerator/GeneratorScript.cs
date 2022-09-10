@@ -17,13 +17,13 @@ namespace Generator {
             var classes = LoadGodotClasses();
             
             // Notification
-            GenerateNotificationHandler.WriteNotifications(classes.Find(c => c.ClassName == "Node"));
-            GenerateNotificationHandler.WriteNotifications(classes.Find(c => c.ClassName == "MainLoop"));
+            GenerateNotificationHandler.Write(classes.Find(c => c.ClassName == "Node"));
+            GenerateNotificationHandler.Write(classes.Find(c => c.ClassName == "MainLoop"));
             
             // Signal extensions
-            GenerateSignalHandlerExtensions.WriteExtensionsClass(classes);
-            GenerateAwaitExtensions.WriteExtensionsClass(classes);
-            GenerateSignalConstants.WriteSignalConstantsClass(classes);
+            GenerateSignalHandlerExtensions.Write(classes);
+            GenerateAwaitExtensions.Write(classes);
+            GenerateSignalConstants.Write(classes);
             Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
             Quit(0);
         }

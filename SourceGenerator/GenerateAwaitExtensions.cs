@@ -5,20 +5,20 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateAwaitExtensions {
-        private const string Filename = "../Betauer.Core/Signal/AwaitExtensions.cs";
+        private const string FileName = "../Betauer.Core/Signal/AwaitExtensions.cs";
 
-        public static void WriteExtensionsClass(List<GodotClass> classes) {
+        public static void Write(List<GodotClass> classes) {
             List<string> allMethods = classes
                 .Where(godotClass => godotClass.Signals.Count > 0)
                 .SelectMany(godotClass => godotClass.Signals)
-                .Select(CreateExtensionMethod)
+                .Select(GenerateMethod)
                 .ToList();
-            var bodySignalExtensionsClass = CreateExtensionsClass(allMethods);
-            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(Filename)}");
-            File.WriteAllText(Filename, bodySignalExtensionsClass);
+            var bodySignalExtensionsClass = GenerateBodyClass(allMethods);
+            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(FileName)}");
+            File.WriteAllText(FileName, bodySignalExtensionsClass);
         }
 
-        private static string CreateExtensionMethod(Signal signal) {
+        private static string GenerateMethod(Signal signal) {
             var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target";
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
@@ -26,7 +26,7 @@ namespace Generator {
             {target}.ToSignal({target}, ""{signal.signal_name}"");";
         }
 
-        private static string CreateExtensionsClass(IEnumerable<string> methods) {
+        private static string GenerateBodyClass(IEnumerable<string> methods) {
             return $@"using System;
 using Godot;
 using Object = Godot.Object;

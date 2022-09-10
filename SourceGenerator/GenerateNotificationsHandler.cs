@@ -7,13 +7,13 @@ using Path = System.IO.Path;
 
 namespace Generator {
     public class GenerateNotificationHandler {
-        private static string GodotActionsExtensionsFile(string name) =>
+        private static string CreateFileName(string name) =>
             "../Betauer.GameTools/Application/" + name + "NotificationsHandler.cs";
 
-        public static void WriteNotifications(GodotClass clazz) {
+        public static void Write(GodotClass clazz) {
             var body = GenerateBodyClass(clazz);
-            Console.WriteLine($"Generated {Path.GetFullPath(GodotActionsExtensionsFile(clazz.ClassName))}");
-            File.WriteAllText(GodotActionsExtensionsFile(clazz.ClassName), body);
+            Console.WriteLine($"Generated {Path.GetFullPath(CreateFileName(clazz.ClassName))}");
+            File.WriteAllText(CreateFileName(clazz.ClassName), body);
         }
 
         private static string GenerateBodyClass(GodotClass clazz) {

@@ -21,7 +21,7 @@ help:
 	@echo "    clean           remove all .mono folders"
 	@echo "    test            run tests"
 	@echo "    editor          open Godot editor"
-	@echo "    generate        execute Generator project which creates all *.cs classes for GodotAction"
+	@echo "    generate        execute Generator project which creates all *.cs classes"
 	@echo "    build/debug     build all projects with Configuration='Debug'"
 	@echo "    build/release   build all projects with Configuration='ExportRelease'"
 	@echo "    export/dll      build Debug and ExportRelease + copy dlls to export folder"

@@ -5,24 +5,24 @@ using System.Linq;
 
 namespace Generator {
     public class GenerateSignalConstants {
-        private const string SignalConstantsFile = "../Betauer.Core/Signal/SignalConstants.cs";
+        private const string FileName = "../Betauer.Core/Signal/SignalConstants.cs";
 
-        public static void WriteSignalConstantsClass(List<GodotClass> classes) {
+        public static void Write(List<GodotClass> classes) {
             List<string> allMethods = classes
                 .Where(godotClass => godotClass.Signals.Count > 0)
                 .SelectMany(godotClass => godotClass.Signals)
-                .Select(CreateSignalConstantField)
+                .Select(GenerateConst)
                 .ToList();
-            var bodySignalConstantsClass = CreateSignalConstantsClass(allMethods);
-            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(SignalConstantsFile)}");
-            File.WriteAllText(SignalConstantsFile, bodySignalConstantsClass);
+            var bodySignalConstantsClass = GenerateBodyClass(allMethods);
+            Console.WriteLine($"Generated {System.IO.Path.GetFullPath(FileName)}");
+            File.WriteAllText(FileName, bodySignalConstantsClass);
         }
 
-        private static string CreateSignalConstantField(Signal signal) {
+        private static string GenerateConst(Signal signal) {
             return $@"        public const string {signal.SignalCsharpConstantName} = ""{signal.signal_name}"";";
         }
 
-        private static string CreateSignalConstantsClass(IEnumerable<string> methods) {
+        private static string GenerateBodyClass(IEnumerable<string> methods) {
             return $@"using System;
 namespace Betauer.Signal {{
     public static partial class SignalConstants {{
