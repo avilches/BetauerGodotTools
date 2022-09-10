@@ -1,10 +1,12 @@
 using System;
+using Betauer.Animation.Easing;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
     internal static partial class TemplateFactories {
+        private static readonly IEasing BounceInBezierCurve1 = Bezier(0.215f, 0.61f, 0.355f, 1f);
         private const float BounceInNoDirectionDuration = 0.75f; // Animate.css: 0.75f
         private const float BounceEntranceDuration = 1f; // Animate.css: 1f
 
@@ -16,11 +18,11 @@ namespace Betauer.Animation.Tween {
                 .OnStart(target => Properties.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Properties.Scale2D)
                 .KeyframeTo(0.00f, new Vector2(0.30f, 0.30f), null, node => node.SetRotateOriginToCenter())
-                .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.40f, new Vector2(0.90f, 0.90f), Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.60f, new Vector2(1.03f, 1.03f), Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.80f, new Vector2(0.97f, 0.97f), Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(1.00f, Vector2.One, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.20f, new Vector2(1.00f, 1.00f), BounceInBezierCurve1)
+                .KeyframeTo(0.40f, new Vector2(0.90f, 0.90f), BounceInBezierCurve1)
+                .KeyframeTo(0.60f, new Vector2(1.03f, 1.03f), BounceInBezierCurve1)
+                .KeyframeTo(0.80f, new Vector2(0.97f, 0.97f), BounceInBezierCurve1)
+                .KeyframeTo(1.00f, Vector2.One, BounceInBezierCurve1)
                 .EndAnimate()
                 .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
@@ -37,10 +39,10 @@ namespace Betauer.Animation.Tween {
                 .OnStart(target => Properties.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Properties.Scale2Dy)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
-                .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.60f, 0.900f, BounceInBezierCurve1)
+                .KeyframeTo(0.75f, 0.950f, BounceInBezierCurve1)
+                .KeyframeTo(0.90f, 0.985f, BounceInBezierCurve1)
+                .KeyframeTo(1.00f, 1.000f, BounceInBezierCurve1)
                 .EndAnimate()
                 .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
@@ -49,10 +51,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate()
                 .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenBottom())
-                .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeOffset(0.60f, -25f, BounceInBezierCurve1)
+                .KeyframeOffset(0.75f, 10f, BounceInBezierCurve1)
+                .KeyframeOffset(0.90f, -5f, BounceInBezierCurve1)
+                .KeyframeOffset(1.00f, 0f, BounceInBezierCurve1)
                 .EndAnimate();
         }
 
@@ -64,10 +66,10 @@ namespace Betauer.Animation.Tween {
                 .OnStart(target => Properties.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Properties.Scale2Dy)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
-                .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.60f, 0.900f, BounceInBezierCurve1)
+                .KeyframeTo(0.75f, 0.950f, BounceInBezierCurve1)
+                .KeyframeTo(0.90f, 0.985f, BounceInBezierCurve1)
+                .KeyframeTo(1.00f, 1.000f, BounceInBezierCurve1)
                 .EndAnimate()
                 .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
@@ -76,10 +78,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate()
                 .AnimateRelativeKeys(Properties.PositionY)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenTop())
-                .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeOffset(0.60f, 25f, BounceInBezierCurve1)
+                .KeyframeOffset(0.75f, -10f, BounceInBezierCurve1)
+                .KeyframeOffset(0.90f, 5f, BounceInBezierCurve1)
+                .KeyframeOffset(1.00f, 0f, BounceInBezierCurve1)
                 .EndAnimate();
         }
 
@@ -91,10 +93,10 @@ namespace Betauer.Animation.Tween {
                 .OnStart(target => Properties.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Properties.Scale2Dx)
                 .KeyframeTo(0.00f, 3.000f, null, node => node.SetRotateOriginToCenter())
-                .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.60f, 0.900f, BounceInBezierCurve1)
+                .KeyframeTo(0.75f, 0.950f, BounceInBezierCurve1)
+                .KeyframeTo(0.90f, 0.985f, BounceInBezierCurve1)
+                .KeyframeTo(1.00f, 1.000f, BounceInBezierCurve1)
                 .EndAnimate()
                 .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
@@ -103,10 +105,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate()
                 .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? -Math.Abs(distance) : node.GetOutOfScreenLeft())
-                .KeyframeOffset(0.60f, 25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.75f, -10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.90f, 5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeOffset(0.60f, 25f, BounceInBezierCurve1)
+                .KeyframeOffset(0.75f, -10f, BounceInBezierCurve1)
+                .KeyframeOffset(0.90f, 5f, BounceInBezierCurve1)
+                .KeyframeOffset(1.00f, 0f, BounceInBezierCurve1)
                 .EndAnimate();
         }
 
@@ -118,10 +120,10 @@ namespace Betauer.Animation.Tween {
                 .OnStart(target => Properties.Opacity.SetValue(target, 0f))
                 .AnimateKeys(Properties.Scale2Dx)
                 .KeyframeTo(0.00f, 3.000f, null,node => node.SetRotateOriginToCenter())
-                .KeyframeTo(0.60f, 0.900f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.75f, 0.950f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.90f, 0.985f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(1.00f, 1.000f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.60f, 0.900f, BounceInBezierCurve1)
+                .KeyframeTo(0.75f, 0.950f, BounceInBezierCurve1)
+                .KeyframeTo(0.90f, 0.985f, BounceInBezierCurve1)
+                .KeyframeTo(1.00f, 1.000f, BounceInBezierCurve1)
                 .EndAnimate()
                 .AnimateKeys(Properties.Opacity)
                 .KeyframeTo(0.00f, 0.0f)
@@ -130,10 +132,10 @@ namespace Betauer.Animation.Tween {
                 .EndAnimate()
                 .AnimateRelativeKeys(Properties.PositionX)
                 .KeyframeOffset(0.00f, node => distance != 0 ? Math.Abs(distance) : node.GetOutOfScreenRight())
-                .KeyframeOffset(0.60f, -25f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.75f, 10f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.90f, -5f, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(1.00f, 0f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeOffset(0.60f, -25f, BounceInBezierCurve1)
+                .KeyframeOffset(0.75f, 10f, BounceInBezierCurve1)
+                .KeyframeOffset(0.90f, -5f, BounceInBezierCurve1)
+                .KeyframeOffset(1.00f, 0f, BounceInBezierCurve1)
                 .EndAnimate();
         }
 

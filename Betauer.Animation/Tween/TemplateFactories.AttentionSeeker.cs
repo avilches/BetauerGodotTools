@@ -1,3 +1,4 @@
+using Betauer.Animation.Easing;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Godot;
@@ -6,30 +7,34 @@ namespace Betauer.Animation.Tween {
     internal static partial class TemplateFactories {
         private const float AttentionSeekerDuration = 0.75f; // Animate.css: 1f
 
+        private static readonly IEasing BounceBezierCurve1 = Bezier(0.215f, 0.61f, 0.355f, 1f);
+        private static readonly IEasing BounceBezierCurve2 = Bezier(0.755f, 0.05f, 0.855f, 0.06f);
+        private static readonly IEasing BounceBezierCurve3 = Bezier(0.215f, 0.61f, 0.355f, 1);
+        
         internal static KeyframeAnimation Bounce() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css
             return KeyframeAnimation.Create()
                 .SetDuration(AttentionSeekerDuration)
                 .AnimateRelativeKeys(Properties.PositionY)
-                .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.20f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.4f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeOffset(0.43f, -30, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeOffset(0.53f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeOffset(0.7f, -15, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeOffset(0.8f, 0, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeOffset(0.20f, 0, BounceBezierCurve1)
+                .KeyframeOffset(0.20f, 0, BounceBezierCurve1)
+                .KeyframeOffset(0.4f, -30, BounceBezierCurve2)
+                .KeyframeOffset(0.43f, -30, BounceBezierCurve2)
+                .KeyframeOffset(0.53f, 0, BounceBezierCurve1)
+                .KeyframeOffset(0.7f, -15, BounceBezierCurve2)
+                .KeyframeOffset(0.8f, 0, BounceBezierCurve1)
                 .KeyframeOffset(0.9f, -4)
-                .KeyframeOffset(1, 0, Bezier(0.215f, 0.61f, 0.355f, 1))
+                .KeyframeOffset(1, 0, BounceBezierCurve3)
                 .EndAnimate()
                 .AnimateKeys(Properties.Scale2Dy)
-                .KeyframeTo(0.20f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.4f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeTo(0.43f, 1.1f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeTo(0.53f, 1, Bezier(0.215f, 0.61f, 0.355f, 1f))
-                .KeyframeTo(0.7f, 1.05f, Bezier(0.755f, 0.05f, 0.855f, 0.06f))
-                .KeyframeTo(0.8f, 0.95f, Bezier(0.215f, 0.61f, 0.355f, 1f))
+                .KeyframeTo(0.20f, 1, BounceBezierCurve1)
+                .KeyframeTo(0.4f, 1.1f, BounceBezierCurve2)
+                .KeyframeTo(0.43f, 1.1f, BounceBezierCurve2)
+                .KeyframeTo(0.53f, 1, BounceBezierCurve1)
+                .KeyframeTo(0.7f, 1.05f, BounceBezierCurve2)
+                .KeyframeTo(0.8f, 0.95f, BounceBezierCurve1)
                 .KeyframeTo(0.9f, 1.02f)
-                .KeyframeTo(1, 1, Bezier(0.215f, 0.61f, 0.355f, 1))
+                .KeyframeTo(1, 1, BounceBezierCurve3)
                 .EndAnimate();
         }
 
