@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -10,8 +11,8 @@ namespace Betauer.Application.Monitor {
             return monitor;
         }
 
-        public Monitor Create() {
-            var monitor = new Monitor();
+        public T Create<T>() where T : IMonitor {
+            var monitor = Activator.CreateInstance<T>();
             Monitors.Add(monitor);
             return monitor;
         }

@@ -11,6 +11,7 @@ namespace Betauer.Application.Monitor {
     public class Monitor : IMonitor {
         private bool _isEnabled = true;
         private bool _isDestroyed = false;
+        private string _text = string.Empty;
 
         public string? Prefix;
         public Godot.Object? Target;
@@ -34,19 +35,21 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public string GetText() {
-            var label = Prefix != null ? Prefix + ": " : "";
-            try {
-                return $"{label}{Delegate?.Invoke()}";
-            } catch (Exception e) {
-                return $"{label}{e.Message}";
-            }
+        public void SetText(string text) {
+            _text = text;
         }
 
-        public void Disable() => _isEnabled = false;
+        public string GetText() {
+            var label = Prefix != null ? Prefix + ": " : "";
+            if (Delegate != null) {
+                try {
+                    return $"{label}{Delegate?.Invoke()}";
+                } catch (Exception e) {
+                    return $"{label}{e.Message}";
+                }
+            }
+            return $"{label}{_text}"; 
+        }
 
-        public void Enable() => _isEnabled = true;
-
-        public void Destroy() => _isDestroyed = true;
     }
 }

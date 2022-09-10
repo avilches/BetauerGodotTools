@@ -99,8 +99,8 @@ namespace Veronenger.Game.Managers {
 
         private void ConfigureDebugOverlays() {
             DebugOverlay.Panel.Theme = MyTheme;
-            DebugOverlay.AddFpsAndMemory();
-            DebugOverlay.AddObjectRunnerSize();
+            DebugOverlay.MonitorFpsAndMemory();
+            DebugOverlay.MonitorObjectRunnerSize();
             DebugOverlay.Create().WithPrefix("SceneTreeTween callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
         }
 

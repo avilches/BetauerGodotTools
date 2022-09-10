@@ -59,8 +59,8 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private GodotStopwatch FallingTimer { get; set; }
         [Inject] private DebugOverlay DebugOverlay { get; set; }
 
-        private string _coyoteJumpState = "";
-        private string _jumpHelperState = "";
+        private Monitor _coyoteJumpState;
+        private Monitor _jumpHelperState;
 
         public void Configure(PlayerController playerController, string name) {
             _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity", name);
@@ -76,9 +76,9 @@ namespace Veronenger.Game.Character.Player {
             AirStates();
 
             DebugOverlay.Create().WithPrefix("JumpHelperTimer").Bind(this).Show(() => JumpHelperTimer.ToString());
-            DebugOverlay.Create().WithPrefix("JumpHelperState").Bind(this).Show(() => _jumpHelperState);
+            _jumpHelperState = DebugOverlay.Create().WithPrefix("JumpHelperState").Bind(this);
             DebugOverlay.Create().WithPrefix("FallingTimer").Bind(this).Show(() => FallingTimer.ToString());
-            DebugOverlay.Create().WithPrefix("CoyoteState").Bind(this).Show(() => _coyoteJumpState);
+            _coyoteJumpState = DebugOverlay.Create().WithPrefix("CoyoteState").Bind(this);
         }
 
         public void GroundStates() {
@@ -193,10 +193,10 @@ namespace Veronenger.Game.Character.Player {
             if (JumpHelperTimer.IsRunning) {
                 JumpHelperTimer.Stop();
                 if (JumpHelperTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                    _jumpHelperState = $"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!";
+                    _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!");
                     return context.Set(State.Jump);
                 }
-                _jumpHelperState = $"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME";
+                _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME");
             }
 
             // Debug("Just grounded!");
@@ -225,10 +225,10 @@ namespace Veronenger.Game.Character.Player {
                 JumpHelperTimer.Restart();
                 if (FallingTimer.IsRunning) {
                     if (FallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                        _coyoteJumpState = $"{FallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!";
+                        _coyoteJumpState.SetText($"{FallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!");
                         return true;
                     }
-                    _coyoteJumpState = $"{FallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime} TOO LATE";
+                    _coyoteJumpState.SetText($"{FallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime} TOO LATE");
                 }
                 return false;
             }

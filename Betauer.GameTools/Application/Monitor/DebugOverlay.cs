@@ -51,7 +51,6 @@ namespace Betauer.Application.Monitor {
         }
 
         public IMonitor Add(IMonitor monitor) => MonitorList.Add(monitor);
-        public Monitor Create() => MonitorList.Create();
 
         public override void _PhysicsProcess(float delta) {
             if (!Visible) {

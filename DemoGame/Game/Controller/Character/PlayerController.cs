@@ -115,6 +115,19 @@ namespace Veronenger.Game.Controller.Character {
                 .Bind(this)
                 .Show(() => StateMachineNode.CurrentState.Key.ToString());
 
+            
+            DebugOverlay.Create().Bind(this).Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
+            DebugOverlay.Create().Bind(this).Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
+                                                        " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name);
+            DebugOverlay.Create().Bind(this).Show(() =>
+                _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
+            DebugOverlay.Create().Bind(this).Show(() =>
+                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
+            DebugOverlay.Create().Bind(this).Show(() =>
+                "Floor: " + IsOnFloor() + "\n" +
+                "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
+                "SlopeStairsDown: " + IsOnSlopeStairsDown());
+
         }
 
 
@@ -144,7 +157,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private IAnimation CreateReset() {
             var seq = SequenceAnimation.Create(_mainSprite)
-                .AnimateSteps<Color>(Properties.Modulate)
+                .AnimateSteps(Properties.Modulate)
                 .From(new Color(1, 1, 1, 0))
                 .To(new Color(1, 1, 1, 1), 1)
                 .EndAnimate();
@@ -156,7 +169,7 @@ namespace Veronenger.Game.Controller.Character {
         private IAnimation CreateMoveLeft() {
             var seq = KeyframeAnimation.Create(_mainSprite)
                 .SetDuration(2f)
-                .AnimateKeys<Color>(Properties.Modulate)
+                .AnimateKeys(Properties.Modulate)
                 .KeyframeTo(0.25f, new Color(1, 1, 1, 0))
                 .KeyframeTo(0.75f, new Color(1, 1, 1, 0.5f))
                 .KeyframeTo(1f, new Color(1, 1, 1, 1))
@@ -181,7 +194,7 @@ namespace Veronenger.Game.Controller.Character {
 
         private IAnimation CreateSqueeze() {
             var seq = SequenceAnimation.Create(this)
-                .AnimateSteps<Vector2>(Properties.Scale2D, Easings.SineInOut)
+                .AnimateSteps(Properties.Scale2D, Easings.SineInOut)
                 .To(new Vector2(1.4f, 1f), 0.25f)
                 .To(new Vector2(1f, 1f), 0.25f)
                 .EndAnimate()
@@ -216,24 +229,6 @@ namespace Veronenger.Game.Controller.Character {
         public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
 
 
-        // public override void _PhysicsProcess(float delta) {
-        public override void _Process(float delta) {
-            // Update();
-            // Label.Text = Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition());
-            // Label.BbcodeText = "Idle:" + AnimationIdle.Playing + " Attack:" + AnimationAttack.Playing + "\n" +
-            // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name;
-            Label.BbcodeText = _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name +
-                               "\n" +
-                               _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name;
-            /*
-                Label.Text = "Floor: " + IsOnFloor() + "\n" +
-                              "Slope: " + IsOnSlope() + "\n" +
-                              "Stair: " + IsOnSlopeStairs() + "\n" +
-                              "Moving: " + IsOnMovingPlatform() + "\n" +
-                              "Falling: " + IsOnFallingPlatform();
-                */
-        }
-        
         [Inject] private InputAction UiStart { get; set; }
 
         public override void _Input(InputEvent e) {
