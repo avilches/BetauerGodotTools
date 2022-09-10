@@ -14,7 +14,7 @@ namespace Betauer.Tests.Memory {
         [SetUp]
         public void Setup() {
             DefaultObjectWatcherRunner.Instance.Dispose();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
             DefaultObjectWatcherRunner.Instance = new ObjectWatcherRunner();
         }
 
@@ -23,37 +23,37 @@ namespace Betauer.Tests.Memory {
             new WatchObjectAndFree().AddToDefaultObjectWatcher();
             new WatchObjectAndFree().Free(new Object()).AddToDefaultObjectWatcher();
             new WatchObjectAndFree().Watch(new Object()).AddToDefaultObjectWatcher();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(3));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(3));
 
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
         }
 
         [Test]
         public async Task WatchAndUnwatchTest() {
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
             
             var watch = new WatchObjectAndFree().Watch(new Object()).Free(new Object()).AddToDefaultObjectWatcher();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
             // Nothing happens
             DefaultObjectWatcherRunner.Instance.Consume();
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
             // Add the same again is ignored
             DefaultObjectWatcherRunner.Instance.Add(watch);
             DefaultObjectWatcherRunner.Instance.Add(watch);
             DefaultObjectWatcherRunner.Instance.Add(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
             // Unwatch removes the element
             DefaultObjectWatcherRunner.Instance.Remove(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
 
             // Unwatch a non-existent elements does nothing
             DefaultObjectWatcherRunner.Instance.Remove(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
         }
 
         [Test]
@@ -63,9 +63,9 @@ namespace Betauer.Tests.Memory {
                 .Free(new Node(), new Object())
                 .AddToDefaultObjectWatcher();
 
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
             // Freed or disposed objects are removed from watching list
             freed1.Watching[0].Free();
@@ -73,7 +73,7 @@ namespace Betauer.Tests.Memory {
             Assert.That(IsInstanceValid(freed1.Targets[1]), Is.True);
             
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
             Assert.That(IsInstanceValid(freed1.Targets[0]), Is.False);
             Assert.That(IsInstanceValid(freed1.Targets[1]), Is.False);
         }
@@ -85,9 +85,9 @@ namespace Betauer.Tests.Memory {
                 .Free(new Node(), new Object())
                 .AddToDefaultObjectWatcher();
             
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
 
             // Freed or disposed objects are removed from watching list
@@ -97,7 +97,7 @@ namespace Betauer.Tests.Memory {
             Assert.That(IsInstanceValid(freed1.Targets[1]), Is.True);
 
             DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
 
             // Node is queued for deletion
             Assert.That(IsInstanceValid(freed1.Targets[0]), Is.True);
@@ -226,7 +226,7 @@ namespace Betauer.Tests.Memory {
             
             Assert.That(dummies3.Count, Is.EqualTo(50));
             Assert.That(dummies3.Sum(d => d.DisposedCalls), Is.LessThanOrEqualTo(50));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Count, Is.EqualTo(75));
+            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(75));
         }
     }
 }
