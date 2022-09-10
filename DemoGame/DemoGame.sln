@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "..\Betauer.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Betauer.GameTools\Betauer.GameTools.csproj", "{003326B0-6B7D-447D-A503-5A2542EF3CEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GodotAction", "..\Betauer.GodotAction\Betauer.GodotAction.csproj", "{666B87A7-DC58-43D8-94A7-81E43093FE75}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
 EndProject
 Global
@@ -59,12 +57,6 @@ Global
 		{003326B0-6B7D-447D-A503-5A2542EF3CEC}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{003326B0-6B7D-447D-A503-5A2542EF3CEC}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{003326B0-6B7D-447D-A503-5A2542EF3CEC}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
-		{666B87A7-DC58-43D8-94A7-81E43093FE75}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
