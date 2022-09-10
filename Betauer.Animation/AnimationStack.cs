@@ -124,7 +124,11 @@ namespace Betauer.Animation {
             }
         }
 
-        private class LoopTween : LoopStatus {
+        private interface IKillable {
+            void Kill();
+        }
+
+        private class LoopTween : LoopStatus, IKillable {
             private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
@@ -138,14 +142,18 @@ namespace Betauer.Animation {
                 _sceneTreeTween = _animation.Play().SetLoops();
             }
 
-            internal override void ExecuteOnEnd() {
-                base.ExecuteOnEnd();
+            public void Kill() {
                 _sceneTreeTween?.Kill();
                 _sceneTreeTween = null;
             }
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                Kill();
+            }
         }
 
-        private class OnceTween : OnceStatus {
+        private class OnceTween : OnceStatus, IKillable {
             private readonly IAnimation _animation;
             private SceneTreeTween _sceneTreeTween;
 
@@ -161,10 +169,15 @@ namespace Betauer.Animation {
                 _sceneTreeTween.OnFinished(AnimationStack.OnTweenPlayerFinishAll);
             }
 
-            internal override void ExecuteOnEnd() {
-                base.ExecuteOnEnd();
+            public void Kill() {
                 _sceneTreeTween?.Kill();
                 _sceneTreeTween = null;
+            }
+
+
+            internal override void ExecuteOnEnd() {
+                base.ExecuteOnEnd();
+                Kill();
             }
         }
 
@@ -223,7 +236,15 @@ namespace Betauer.Animation {
 
         public AnimationStack(string? name, Node node) {
             _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
-            new WatchObjectAndFree().Watch(node).Free(this).AddToDefaultObjectWatcher();
+            new WatchObjectAndFree()
+                .Watch(node)
+                .Free(this)
+                .AddToDefaultObjectWatcher();
+        }
+
+        protected override void OnDispose(bool disposing) {
+            if (_currentOnceAnimation is IKillable onceKillable) onceKillable.Kill();
+            else if (_currentLoopAnimation is IKillable loopKillable) loopKillable.Kill(); 
         }
 
         public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
