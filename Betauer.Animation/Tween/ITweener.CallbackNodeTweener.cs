@@ -3,21 +3,21 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Animation.Tween {
-    public class CallbackTweener : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(CallbackTweener));
-        private readonly Action _callback;
+    public class CallbackNodeTweener : ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(CallbackNodeTweener));
+        private readonly Action<Node> _callback;
         private readonly float _delay;
 
         public bool IsCompatibleWith(Node node) {
             return true;
         }
 
-        internal CallbackTweener(float delay, Action callback) {
+        internal CallbackNodeTweener(float delay, Action<Node> callback) {
             _delay = delay;
             _callback = callback;
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node ignoredTarget) {
+        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
             if (!Object.IsInstanceValid(sceneTreeTween)) {
 #if DEBUG
                 Logger.Warning("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
@@ -30,7 +30,7 @@ namespace Betauer.Animation.Tween {
 #endif
             var callbackTweener = sceneTreeTween
                 .Parallel()
-                .TweenCallbackAction(_callback)
+                .TweenCallbackAction(() =>_callback(target))
                 .SetDelay(start);
             return _delay;
         }

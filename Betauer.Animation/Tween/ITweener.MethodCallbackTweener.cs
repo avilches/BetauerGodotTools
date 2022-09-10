@@ -1,8 +1,8 @@
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    internal class MethodCallbackTweener : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
+    public class MethodCallbackTweener : ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ITweener));
         private readonly string _methodName;
         private readonly float _delay;
         private readonly object[]? _binds;

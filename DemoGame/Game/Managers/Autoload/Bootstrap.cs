@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Bus;
@@ -13,7 +14,9 @@ using Betauer.Pool;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
+using CallbackTweener = Betauer.Animation.Tween.CallbackTweener;
 using Container = Betauer.DI.Container;
+using PropertyTweener = Betauer.Animation.Tween.PropertyTweener;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Managers.Autoload {
@@ -112,6 +115,11 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
 
             // Animation
+            LoggerFactory.SetTraceLevel(typeof(CallbackNodeTweener), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(CallbackTweener), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(MethodCallbackTweener), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PauseTweener), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
             // Screen
             LoggerFactory.SetTraceLevel(typeof(FitToScreenResolutionService), TraceLevel.Error);

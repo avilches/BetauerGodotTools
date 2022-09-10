@@ -1,8 +1,8 @@
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    internal class PauseTweener : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener<>));
+    public class PauseTweener : ITweener {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PauseTweener));
         private readonly float _delay;
 
         internal PauseTweener(float delay) {

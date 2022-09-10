@@ -25,17 +25,25 @@ namespace Betauer.Animation.Tests {
         }
 
         [Test(Description = "A sequence callback can be executed many times")]
+        [Only]
         public async Task CallbackMultipleExecutions() {
             var x = 0;
+            var y = 0;
             var sequence = SequenceAnimation.Create(this)
                 .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
+                .Callback((node) => {
+                    Assert.That(node, Is.EqualTo(this));
+                    y++;
+                })
                 .Callback(() => x++);
 
             await sequence.Play(this).AwaitFinished();
             Assert.That(x, Is.EqualTo(1));
+            Assert.That(y, Is.EqualTo(1));
 
             await sequence.Play(this).SetLoops(5).AwaitFinished();
             Assert.That(x, Is.EqualTo(6));
+            Assert.That(y, Is.EqualTo(6));
         }
 
         private int _calls1 = 0;

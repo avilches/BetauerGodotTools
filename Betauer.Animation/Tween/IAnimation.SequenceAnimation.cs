@@ -83,9 +83,13 @@ namespace Betauer.Animation.Tween {
             return this;
         }
 
-        // TODO: create a callback Action<Node> receiving the defaultNode, useful for templates
         public SequenceAnimation Callback(Action callback, float delay = 0) {
             AddTweener(new CallbackTweener(delay, callback));
+            return this;
+        }
+
+        public SequenceAnimation Callback(Action<Node> callback, float delay = 0) {
+            AddTweener(new CallbackNodeTweener(delay, callback));
             return this;
         }
 
