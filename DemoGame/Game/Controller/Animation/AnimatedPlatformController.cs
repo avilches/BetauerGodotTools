@@ -32,41 +32,29 @@ namespace Veronenger.Game.Controller.Animation {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
-            var x = Stopwatch.StartNew();
-            var seq = SequenceAnimation
-                .Create(this)
-                .Callback(() => {
-                    x = Stopwatch.StartNew();
-                })
-                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
-                .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
-                .Offset(new Vector2(-100, 0), 0.25f)
-                .EndAnimate()
-                .AnimateSteps(Properties.Modulate)
-                .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
-                .EndAnimate()
-                .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
-                .EndAnimate()
-                .SetLoops(1);
-
-            var seq2 = SequenceAnimation
-                .Create(this)
-                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
-                .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
-                .Offset(new Vector2(0, -50), 0.25f)
-                .EndAnimate()
-                .SetLoops(2);
-
-            try {
-                while (true) {
-                    _sceneTreeTween = seq.Play(this);
-                    await _sceneTreeTween.AwaitFinished().Timeout(GetTree(), 3);
-                    _sceneTreeTween = seq2.Play(this);
-                    await _sceneTreeTween.AwaitFinished().Timeout(GetTree(), 3);
-                }
-            } catch (TimeoutException e) {
-                // Console.WriteLine(e);
-            }
+            _sceneTreeTween = SequenceAnimation.Create()
+                .Add(SequenceAnimation
+                    .Create()
+                    .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
+                    .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
+                    .Offset(new Vector2(-100, 0), 0.25f)
+                    .EndAnimate()
+                    .Parallel()
+                    .AnimateSteps(Properties.Modulate)
+                    .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
+                    .EndAnimate()
+                    .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
+                    .EndAnimate()
+                    .SetLoops(2))
+                .Add(SequenceAnimation
+                    .Create()
+                    .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
+                    .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
+                    .Offset(new Vector2(0, -50), 0.25f)
+                    .EndAnimate()
+                    .SetLoops(3))
+                .Play(this)
+                .SetLoops(3);
         }
 
         public void UpdatePosition() {
@@ -74,16 +62,11 @@ namespace Veronenger.Game.Controller.Animation {
         }
 
         public void Start() {
-            _sceneTreeTween.Play();
+            if (_sceneTreeTween.IsValid()) _sceneTreeTween.Play();
         }
 
         public void Pause() {
-            Follow = Vector2.Zero;
-            Modulate = new Color(1, 1, 1, 1);
-            // TODO: this will trigger the timeout, resulting in a non-expected behaviour (the idea behind the timeout
-            // TODO: is avoid a never-ending await when the scene is changed and the "finished" signal from the tween
-            // TODO: is never sent
-            _sceneTreeTween.Stop();
+            if (_sceneTreeTween.IsValid()) _sceneTreeTween.Pause();
         }
     }
 }

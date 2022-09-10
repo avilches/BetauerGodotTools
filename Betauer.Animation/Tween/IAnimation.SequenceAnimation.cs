@@ -18,6 +18,7 @@ namespace Betauer.Animation.Tween {
         public override SceneTreeTween Play(Node? target, float initialDelay = 0) {
             if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
             var (realTarget, sceneTreeTween) = CreateSceneTreeTween(target);
+            StartAction?.Invoke(realTarget);
             ExecuteTweenList(sceneTreeTween, initialDelay, realTarget);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;
@@ -27,6 +28,7 @@ namespace Betauer.Animation.Tween {
             if (TweenList.Count == 0) throw new Exception("Can't start a sequence without animations");
             var (_, sceneTreeTween) = CreateSceneTreeTween(nodes.First());
             nodes.ForEach(node => {
+                StartAction?.Invoke(node);
                 ExecuteTweenList(sceneTreeTween, initialDelay, node);
                 initialDelay += delayBetweenNodes;
             });
@@ -34,9 +36,8 @@ namespace Betauer.Animation.Tween {
             return sceneTreeTween;
         }
 
-        private void ExecuteTweenList(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+        protected float ExecuteTweenList(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
             float accumulatedDelay = 0;
-            StartAction?.Invoke(target);
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
                 foreach (var tweener in parallelGroup) {
@@ -45,12 +46,13 @@ namespace Betauer.Animation.Tween {
                 }
                 accumulatedDelay += longestTime;
             }
+            return accumulatedDelay;
         }
 
         public override bool IsCompatibleWith(Node node) {
             return TweenList.All(list => list.All(t=> t.IsCompatibleWith(node)));
         }
-
+        
         protected void AddTweener(ITweener tweener) {
             if (_parallel) {
                 TweenList.Last().Add(tweener);
@@ -73,6 +75,11 @@ namespace Betauer.Animation.Tween {
             if (delay > 0f) {
                 AddTweener(new PauseTweener(delay));
             }
+            return this;
+        }
+
+        public SequenceAnimation Add(SequenceAnimation sequence) {
+            AddTweener(new NestedSequenceAsTweener(sequence));
             return this;
         }
 
@@ -188,5 +195,35 @@ namespace Betauer.Animation.Tween {
             AddTweener(tweener);
             return tweener;
         }
+        
+        // TODO: missing tests of:
+        // - if loops is 0, it should fail
+        // - if no tweens, it should fail
+        // - test with loops
+        // - test StartAction is only executed once per target when loops > 0
+        private class NestedSequenceAsTweener : ITweener {
+            private readonly SequenceAnimation _sequenceAnimation;
+
+            public NestedSequenceAsTweener(SequenceAnimation sequenceAnimation) {
+                _sequenceAnimation = sequenceAnimation;
+            }
+
+            public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+                if (_sequenceAnimation.Loops == 0) throw new InvalidAnimationException("Nested sequence can not have infinite loops (0)");
+                if (_sequenceAnimation.TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
+                var accumulated = 0f;
+                _sequenceAnimation.StartAction?.Invoke(target);
+                for (var loop = 0; loop < _sequenceAnimation.Loops; loop++) {
+                    var time = _sequenceAnimation.ExecuteTweenList(sceneTreeTween, accumulated + initialDelay, target);
+                    accumulated += time;
+                }
+                return accumulated;
+            }
+
+            public bool IsCompatibleWith(Node node) {
+                return _sequenceAnimation.IsCompatibleWith(node);
+            }
+        }
+
     }
 }

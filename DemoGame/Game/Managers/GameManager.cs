@@ -88,7 +88,6 @@ namespace Veronenger.Game.Managers {
                     // Never pause the pause, settings and the state machine, because they will not work!
                     _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
-                    SceneTree.Root.AddChild(DebugOverlay);
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
