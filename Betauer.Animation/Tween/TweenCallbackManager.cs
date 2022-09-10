@@ -23,14 +23,13 @@ namespace Betauer.Animation.Tween {
     public class TweenCallbackManager : DisposableGodotObject {
         private const string GodotTweenCallbackMethodName = nameof(GodotTweenCallbackMethod);
 
-        public readonly Dictionary<int, List<Action>> ActionsPerSceneTree =
-            new Dictionary<int, List<Action>>();
+        public readonly Dictionary<int, List<Action>> ActionsByTween = new Dictionary<int, List<Action>>();
 
         public Godot.CallbackTweener TweenCallbackAction(SceneTreeTween sceneTreeTween, Action callback) {
             var sceneTreeTweenId = sceneTreeTween.GetHashCode();
             var actionId = callback.GetHashCode();
-            if (!ActionsPerSceneTree.TryGetValue(sceneTreeTweenId, out var actionList)) {
-                actionList = ActionsPerSceneTree[sceneTreeTweenId] = new List<Action>();
+            if (!ActionsByTween.TryGetValue(sceneTreeTweenId, out var actionList)) {
+                actionList = ActionsByTween[sceneTreeTweenId] = new List<Action>();
                 new WatchSceneTreeTweenCallbacks(this)
                     .Watch(sceneTreeTween)
                     .AddToDefaultObjectWatcher();
@@ -41,14 +40,14 @@ namespace Betauer.Animation.Tween {
         }
 
         private void GodotTweenCallbackMethod(int sceneTreeTweenId, int actionId) {
-            Action action = ActionsPerSceneTree[sceneTreeTweenId].Find(action => action.GetHashCode() == actionId);
+            Action action = ActionsByTween[sceneTreeTweenId].Find(action => action.GetHashCode() == actionId);
             action.Invoke();
         }
 
         // When a SceneTreeTween becomes invalid (IsValid() returns true), this method will be called from the 
         // DefaultObjectWatcherRunner
         public void RemoveActions(SceneTreeTween sceneTreeTweenId) {
-            ActionsPerSceneTree.Remove(sceneTreeTweenId.GetHashCode());
+            ActionsByTween.Remove(sceneTreeTweenId.GetHashCode());
         }
 
         public MethodTweener TweenInterpolateAction<T>(SceneTreeTween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
