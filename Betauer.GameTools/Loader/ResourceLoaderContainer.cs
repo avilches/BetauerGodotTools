@@ -13,7 +13,7 @@ namespace Betauer.Loader {
         public event Action<LoadingProgress> OnProgress;
         public Func<Task>? Awaiter { get; private set; }
         public float MaxTime  { get; private set; } = 0.100f;
-        protected Dictionary<string, ResourceMetadata>? RegistryByResource;
+        protected Dictionary<string, ResourceMetadata>? Registry;
         
         // Never change this private, the Container can't inject it if the current class inherits ResourceLoaderContainer 
         [Inject] protected SceneTree SceneTree { get; set; }
@@ -29,10 +29,10 @@ namespace Betauer.Loader {
             OnProgress += DoOnProgress;
         }
 
-        public bool Contains(string res) => RegistryByResource?.ContainsKey(res) ?? false;
+        public bool Contains(string res) => Registry?.ContainsKey(res) ?? false;
         public T Resource<T>(string res) where T : class => 
-            RegistryByResource != null ? 
-                (T)((object)RegistryByResource[res].Resource): 
+            Registry != null ? 
+                (T)((object)Registry[res].Resource): 
                 throw new KeyNotFoundException($"Resource with name {res} not found");
         
         public T? Scene<T>(string res) where T : class => Resource<PackedScene>(res).Instance<T>();
@@ -56,7 +56,7 @@ namespace Betauer.Loader {
         }
 
         public ResourceLoaderContainer Inject(object target) {
-            InjectResources(RegistryByResource, target);
+            InjectResources(Registry, target);
             return this;
         }
 
@@ -74,44 +74,45 @@ namespace Betauer.Loader {
         private const MemberTypes MemberFlags = MemberTypes.Field | MemberTypes.Property;
 
         public async Task Load() {
-            if (_sources == null || _sources.Count == 0) {
+            if (_sources == null || _sources.Count == 0)
                 throw new ResourceLoaderException("Can't load: no sources defines with From(...)");
-            }
-            Unload();
             
-            Func<Task> awaiter = Awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
             // Get all unique resource paths combined from all sources
             var resourcesPaths = _sources
                 .SelectMany(source => source.GetType().GetSettersCached<LoadAttribute>(MemberFlags, Flags))
                 .Select(setter => setter.Attribute.Path)
                 .ToHashSet();
             
-            // Create a resourcePath -> resourceMetadata Dictionary
-            RegistryByResource = 
-                (await Loader.Load(resourcesPaths, (context) => OnProgress?.Invoke(context), awaiter, MaxTime))
-                .ToDictionary(r => r.Path);
+            // Load resources
+            Func<Task> awaiter = Awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
+            Unload();
+            var resources =
+                await Loader.Load(resourcesPaths, progress => OnProgress?.Invoke(progress), awaiter, MaxTime);
+            
+            // Add resources to registry by Path                
+            Registry = resources.ToDictionary(r => r.Path);
 
             // Inject the sources and create the name -> resourceMetadata dictionary
             foreach (var source in _sources) {
                 var loadSetters = source.GetType().GetSettersCached<LoadAttribute>(MemberFlags, Flags);
                 foreach (var setter in loadSetters) {
-                    var resourceMetadata = RegistryByResource[setter.Attribute.Path];
+                    var resourceMetadata = Registry[setter.Attribute.Path];
                     var o = Convert(resourceMetadata, setter.Type);
                     setter.SetValue(source, o);
-                    if (setter.Attribute.ResourceName != null) {
-                        if (RegistryByResource.ContainsKey(setter.Attribute.ResourceName)) {
-                            throw new ResourceLoaderException(
-                                $"Duplicated resource name: {setter.Attribute.ResourceName}");
-                        }
-                        RegistryByResource[setter.Attribute.ResourceName] = resourceMetadata;
+                    var resourceName = setter.Attribute.ResourceName;
+                    if (resourceName != null) {
+                        if (Registry.ContainsKey(resourceName))
+                            throw new ResourceLoaderException($"Duplicated resource name: {resourceName}");
+                        // Add resources to registry by Name                
+                        Registry[resourceName] = resourceMetadata;
                     }
                 }
             }
         }
 
         public ResourceLoaderContainer Unload() {
-            RegistryByResource?.Values.ForEach(r => r.Dispose());
-            RegistryByResource?.Clear();
+            Registry?.Values.ForEach(r => r.Dispose());
+            Registry?.Clear();
             // Set to null all fields with attribute [Load]
             foreach (var source in _sources) {
                 var loadSetters = source.GetType().GetSettersCached<LoadAttribute>(MemberFlags, Flags);
