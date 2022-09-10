@@ -492,13 +492,14 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
+            // No From() + no 0% offset means it start from the current value, which is 100
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easings.BackIn);
             AssertStep(steps[1], 220f, 130f, 1f, 0.6f, Easings.Linear);
 
             Assert.That(sprite.Position.x, Is.EqualTo(130));
         }
 
-        [Test(Description = "keyframe offset with from")]
+        [Test(Description = "keyframe offset with From()")]
         public async Task SequenceKeysOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -513,21 +514,22 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
+            // From() + no 0% offset means it start from the from value (80) = 80
             AssertStep(steps[0], 80, 200, 0f, 1f, Easings.BackIn);
             AssertStep(steps[1], 200f, 110f, 1f, 0.6f, Easings.Linear);
 
             Assert.That(sprite.Position.x, Is.EqualTo(110));
         }
 
-        [Test(Description = "keyframe offset with key 0 (similar as from but adding the offset)")]
-        public async Task SequenceKeysOffsetWithKey0() {
+        [Test(Description = "keyframe offset with From() + key 0")]
+        public async Task SequenceKeysOffsetWithFromAndKey0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
                 .AnimateKeysBy(Properties.PositionX)
                 .SetDebugSteps(steps)
-                .From(30) // from is overriden with the Keyframe 0
+                .From(30)
                 .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
                 .KeyframeOffset(0.8f, -90)
@@ -536,12 +538,39 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
+            // From() + 0% offset means it start from the from value (30) + offset (80) = 110
             AssertStep(steps[0], 110, 110f, 0f, 0f, Easings.CubicOut);
             AssertStep(steps[1], 110, 230, 0f, 1f, Easings.BackIn);
             AssertStep(steps[2], 230f, 140f, 1f, 0.6f, Easings.Linear);
             Assert.That(sprite.Position.x, Is.EqualTo(140));
 
-            Assert.That(steps.Count, Is.EqualTo(3)); // Last offset 0 is ignored
+            Assert.That(steps.Count, Is.EqualTo(3)); // Last keyframe is ignored because the offset 0
+        }
+
+        [Test(Description = "keyframe offset with 0% keyframe only")]
+        public async Task SequenceKeysOffsetWithKey0() {
+            var sprite = await CreateSprite();
+            sprite.Position = new Vector2(100, 100);
+            List<DebugStep<float>> steps = new List<DebugStep<float>>();
+            await KeyframeAnimation.Create(sprite)
+                .SetDuration(2f)
+                .AnimateKeysBy(Properties.PositionX)
+                .SetDebugSteps(steps)
+                .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
+                .KeyframeOffset(0.5f, 120, Easings.BackIn)
+                .KeyframeOffset(0.8f, -90)
+                .KeyframeOffset(1f, 0)
+                .EndAnimate()
+                .Play()
+                .AwaitFinished();
+
+            // No From() + 0% offset means it start from the current value (which is 100) + offset = 180
+            AssertStep(steps[0], 180, 180f, 0f, 0f, Easings.CubicOut);
+            AssertStep(steps[1], 180, 300, 0f, 1f, Easings.BackIn);
+            AssertStep(steps[2], 300f, 210f, 1f, 0.6f, Easings.Linear);
+            Assert.That(sprite.Position.x, Is.EqualTo(210));
+
+            Assert.That(steps.Count, Is.EqualTo(3)); // Last keyframe is ignored because the offset 0
         }
 
         /**
@@ -550,6 +579,7 @@ namespace Betauer.Animation.Tests {
         [Test(Description = "keyframe relative offset")]
         public async Task SequenceKeysRelativeOffset() {
             var sprite = await CreateSprite();
+            sprite.Position = new Vector2(100, 100);
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
             await KeyframeAnimation.Create(sprite)
                 .SetDuration(2f)
@@ -562,14 +592,15 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
+            // No From() and no 0% offset means it start from the current value (which is 100)
             AssertStep(steps[0], 100f, 220f, 0f, 1f, Easings.BackIn);
             AssertStep(steps[1], 220f, 10f, 1f, 0.6f, Easings.Linear);
             AssertStep(steps[2], 10f, 100f, 1.6f, 0.4f, Easings.Linear);
 
-            Assert.That(sprite.Position.x, Is.EqualTo(100)); // returns to the original value
+            Assert.That(sprite.Position.x, Is.EqualTo(100)); // final 0 offset means it returns to the original value
         }
 
-        [Test(Description = "keyframe relative offset with from")]
+        [Test(Description = "keyframe relative offset with From()")]
         public async Task SequenceKeysRelativeOffsetWithFrom() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -585,14 +616,15 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
+            // From() and no 0% offset means it start from the from value (80) = 80
             AssertStep(steps[0], 80, 200, 0f, 1f, Easings.BackIn);
             AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easings.Linear);
             AssertStep(steps[2], -10f, 80, 1.6f, 0.4f, Easings.Linear);
 
-            Assert.That(sprite.Position.x, Is.EqualTo(80)); // returns to the original value
+            Assert.That(sprite.Position.x, Is.EqualTo(80));
         }
 
-        [Test(Description = "keyframe relative offset with key 0 (same as from)")]
+        [Test(Description = "keyframe relative offset with From() + keyframe 0%")]
         public async Task SequenceKeysRelativeOffsetWithKey0() {
             var sprite = await CreateSprite();
             List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -600,8 +632,8 @@ namespace Betauer.Animation.Tests {
                 .SetDuration(2f)
                 .AnimateRelativeKeys(Properties.PositionX)
                 .SetDebugSteps(steps)
-                .From(80) // from is overriden with the Keyframe 0
-                // .KeyframeOffset(0f, 80, Easing.CubicOut) // easing is ignored
+                .From(20)
+                .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
                 .KeyframeOffset(0.5f, 120, Easings.BackIn)
                 .KeyframeOffset(0.8f, -90)
                 .KeyframeOffset(1f, 0)
@@ -609,11 +641,14 @@ namespace Betauer.Animation.Tests {
                 .Play()
                 .AwaitFinished();
 
-            AssertStep(steps[0], 80, 200, 0f, 1f, Easings.BackIn);
-            AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easings.Linear);
-            AssertStep(steps[2], -10f, 80, 1.6f, 0.4f, Easings.Linear);
+            // From() + 0% offset means it start from the from value (20) + offset (80) = 100
+            AssertStep(steps[0], 100, 100, 0f, 0f, Easings.CubicOut);
+            
+            AssertStep(steps[1], 100, 140, 0f, 1f, Easings.BackIn);
+            AssertStep(steps[2], 140, -70f, 1f, 0.6f, Easings.Linear);
+            AssertStep(steps[3], -70f, 20, 1.6f, 0.4f, Easings.Linear);
 
-            Assert.That(sprite.Position.x, Is.EqualTo(80)); // returns to the original value
+            Assert.That(sprite.Position.x, Is.EqualTo(20));
         }
 
         /**

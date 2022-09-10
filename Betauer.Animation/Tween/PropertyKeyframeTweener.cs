@@ -30,11 +30,13 @@ namespace Betauer.Animation.Tween {
                 var endTime = step.Percent * duration;
                 var keyDuration = endTime - startTime;
                 var start = initialDelay + startTime;
+
+                // always run the first keyframe (idx==0), no matter if it's the 0% or bigger. Why? Because some
+                // animations start to move later (50% for example), so from 0% to 50% they stay still. This loop
+                // ignore tween where from==to, so a tween of 0s with from=to is generated for the first 0% step
                 if (idx == 0 || (keyDuration > 0 && !Equals(from, to))) {
-                    // always run the first keyframe, no matter if it's the 0% or any other, but avoid
-                    // keyframes where the from and to are the same (no changed) or the duration is 0
                     if (step.Percent == 0f) {
-                        // That means a 0s duration, so, it works like a set variable, no need to Lerp from..to
+                        // That means a 0s duration, so, it works like a set variable
                         from = to;
                     }
                     RunStep(sceneTreeTween, target, property, from, to, start, keyDuration, step.Easing);

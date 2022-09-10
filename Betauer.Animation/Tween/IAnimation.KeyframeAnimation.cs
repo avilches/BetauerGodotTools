@@ -111,6 +111,10 @@ namespace Betauer.Animation.Tween {
 
         /*
          * AnimateKeysBy
+         * All offsets start from the last value, so the real step is equals to the offset:
+         * 
+         * # 1st offset is 10: tween from initial value and 10 (a step of 10)
+         * # 2nd offset is -5: tween from 10 value and 5 (a step of -5)
          */
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateKeysBy<TProperty>(
@@ -145,6 +149,10 @@ namespace Betauer.Animation.Tween {
 
         /*
          * AnimateRelativeKeys
+         * All offsets start from zero, so the real step is bigger than the offset because it includes the previois value:
+         * 
+         * # 1st offset is 10: tween from initial value and 10 (a step of +10)
+         * # 2nd offset is -5: tween from 10 value and -5 (a step of -15)
          */
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateRelativeKeys<TProperty>(
