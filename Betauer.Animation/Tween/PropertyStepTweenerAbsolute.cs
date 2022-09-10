@@ -5,40 +5,38 @@ using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    public class PropertyStepOffsetBuilder<TProperty> : PropertyStepTweener<TProperty> {
+    public class PropertyStepTweenerAbsolute<TProperty> : PropertyStepTweener<TProperty> {
         private readonly SequenceAnimation _animation;
 
-        internal PropertyStepOffsetBuilder(SequenceAnimation animation,
-            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
+        internal PropertyStepTweenerAbsolute(SequenceAnimation animation, Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
-            RelativeToFrom = relativeToFrom;
         }
 
-        public PropertyStepOffsetBuilder<TProperty> From(Func<Node, TProperty> fromFunction) {
+        public PropertyStepTweenerAbsolute<TProperty> From(Func<Node, TProperty> fromFunction) {
             FromFunction = fromFunction;
             return this;
         }
 
-        public PropertyStepOffsetBuilder<TProperty> From(TProperty from) {
+        public PropertyStepTweenerAbsolute<TProperty> From(TProperty from) {
             FromFunction = node => from;
             return this;
         }
 
-        public PropertyStepOffsetBuilder<TProperty> Offset(TProperty offset, float duration,
+        public PropertyStepTweenerAbsolute<TProperty> To(TProperty to, float duration,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
-            return Offset(_ => offset, duration, easing, callbackNode);
+            return To(_ => to, duration, easing, callbackNode);
         }
 
-        public PropertyStepOffsetBuilder<TProperty> Offset(Func<Node, TProperty> offset, float duration,
+        public PropertyStepTweenerAbsolute<TProperty> To(Func<Node, TProperty> to, float duration,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
-                new AnimationStepOffset<TProperty>(offset, duration, easing, callbackNode);
+                new AnimationStepAbsolute<TProperty>(to, duration, easing, callbackNode);
             Steps.Add(animationStepPropertyTweener);
             return this;
         }
 
-        public PropertyStepOffsetBuilder<TProperty> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
+        public PropertyStepTweenerAbsolute<TProperty> SetDebugSteps(List<DebugStep<TProperty>> debugSteps) {
             DebugSteps = debugSteps;
             return this;
         }

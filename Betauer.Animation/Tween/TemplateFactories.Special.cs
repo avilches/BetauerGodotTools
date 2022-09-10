@@ -19,7 +19,7 @@ namespace Betauer.Animation.Tween {
                 .KeyframeOffset(1.00f, 700f)
                 .EndAnimate()
                 .AnimateKeys(Properties.Rotate2D)
-                .KeyframeTo(0.0f, 0f)
+                .From(0f)
                 .KeyframeTo(0.20f, 80.0f) // TODO: try this one instead, Easing.QuadInOut)
                 .KeyframeTo(0.40f, 60.0f) // TODO: try this one instead, Easing.QuadInOut)
                 .KeyframeTo(0.60f, 80.0f)

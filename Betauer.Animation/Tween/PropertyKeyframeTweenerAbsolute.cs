@@ -5,31 +5,31 @@ using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    public class PropertyKeyframeAbsoluteTweener<TProperty> : PropertyKeyframeTweener<TProperty> {
+    public class PropertyKeyframeTweenerAbsolute<TProperty> : PropertyKeyframeTweener<TProperty> {
         private readonly KeyframeAnimation _animation;
 
-        internal PropertyKeyframeAbsoluteTweener(KeyframeAnimation animation,
+        internal PropertyKeyframeTweenerAbsolute(KeyframeAnimation animation,
             Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
         }
 
-        public PropertyKeyframeAbsoluteTweener<TProperty> From(Func<Node, TProperty> fromFunction) {
+        public PropertyKeyframeTweenerAbsolute<TProperty> From(Func<Node, TProperty> fromFunction) {
             FromFunction = fromFunction;
             return this;
         }
 
-        public PropertyKeyframeAbsoluteTweener<TProperty> From(TProperty from) {
+        public PropertyKeyframeTweenerAbsolute<TProperty> From(TProperty from) {
             FromFunction = node => from;
             return this;
         }
 
-        public PropertyKeyframeAbsoluteTweener<TProperty> KeyframeTo(float percentage, TProperty to,
+        public PropertyKeyframeTweenerAbsolute<TProperty> KeyframeTo(float percentage, TProperty to,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             return KeyframeTo(percentage, _ => to, easing, callbackNode);
         }
 
-        public PropertyKeyframeAbsoluteTweener<TProperty> KeyframeTo(float percentage, Func<Node, TProperty> to,
+        public PropertyKeyframeTweenerAbsolute<TProperty> KeyframeTo(float percentage, Func<Node, TProperty> to,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
@@ -40,7 +40,7 @@ namespace Betauer.Animation.Tween {
             return this;
         }
 
-        public PropertyKeyframeAbsoluteTweener<TProperty> SetDebugSteps(
+        public PropertyKeyframeTweenerAbsolute<TProperty> SetDebugSteps(
             List<DebugStep<TProperty>> debugSteps) {
             DebugSteps = debugSteps;
             return this;

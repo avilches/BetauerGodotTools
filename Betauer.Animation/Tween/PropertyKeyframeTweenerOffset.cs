@@ -6,32 +6,32 @@ using Betauer.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation.Tween {
-    public class PropertyKeyframeOffsetTweener<TProperty> : PropertyKeyframeTweener<TProperty> {
+    public class PropertyKeyframeTweenerOffset<TProperty> : PropertyKeyframeTweener<TProperty> {
         private readonly KeyframeAnimation _animation;
 
-        internal PropertyKeyframeOffsetTweener(KeyframeAnimation animation,
+        internal PropertyKeyframeTweenerOffset(KeyframeAnimation animation,
             Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
             RelativeToFrom = relativeToFrom;
         }
         
-        public PropertyKeyframeOffsetTweener<TProperty> From(Func<Node, TProperty> fromFunction) {
+        public PropertyKeyframeTweenerOffset<TProperty> From(Func<Node, TProperty> fromFunction) {
             FromFunction = fromFunction;
             return this;
         }
 
-        public PropertyKeyframeOffsetTweener<TProperty> From(TProperty from) {
+        public PropertyKeyframeTweenerOffset<TProperty> From(TProperty from) {
             FromFunction = node => from;
             return this;
         }
 
-        public PropertyKeyframeOffsetTweener<TProperty> KeyframeOffset(float percentage, TProperty offset,
+        public PropertyKeyframeTweenerOffset<TProperty> KeyframeOffset(float percentage, TProperty offset,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             return KeyframeOffset(percentage, _ => offset, easing, callbackNode);
         }
 
-        public PropertyKeyframeOffsetTweener<TProperty> KeyframeOffset(float percentage,
+        public PropertyKeyframeTweenerOffset<TProperty> KeyframeOffset(float percentage,
             Func<Node, TProperty> offset,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
@@ -40,7 +40,7 @@ namespace Betauer.Animation.Tween {
             return this;
         }
 
-        public PropertyKeyframeOffsetTweener<TProperty> SetDebugSteps(
+        public PropertyKeyframeTweenerOffset<TProperty> SetDebugSteps(
             List<DebugStep<TProperty>> debugSteps) {
             DebugSteps = debugSteps;
             return this;
