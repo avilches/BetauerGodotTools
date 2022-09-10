@@ -16,7 +16,7 @@ namespace Betauer.Loader {
         protected Dictionary<string, ResourceMetadata>? Registry;
         
         // Never change this private, the Container can't inject it if the current class inherits ResourceLoaderContainer 
-        [Inject] protected SceneTree SceneTree { get; set; }
+        [Inject] protected SceneTree? SceneTree { get; set; }
 
         private readonly HashSet<object> _sources = new HashSet<object>();
 
@@ -84,7 +84,10 @@ namespace Betauer.Loader {
                 .ToHashSet();
             
             // Load resources
-            Func<Task> awaiter = Awaiter ?? (async () => await SceneTree.AwaitIdleFrame());
+            Func<Task> awaiter = Awaiter ?? (async () => {
+                if (SceneTree != null) await SceneTree.AwaitIdleFrame();
+                else await Task.Delay(10);
+            });
             Unload();
             var resources =
                 await Loader.Load(resourcesPaths, progress => OnProgress?.Invoke(progress), awaiter, MaxTime);
