@@ -5,6 +5,7 @@ using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.Application;
+using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
@@ -41,6 +42,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private PlayerStateMachineNode StateMachineNode { get; set; }
         [Inject] private PlayerConfig _playerConfig { get; set; }
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
+        [Inject] private DebugOverlay DebugOverlay { get; set; }
 
         public PlayerController() {
             _name = "Player:" + GetHashCode().ToString("x8");
@@ -109,9 +111,9 @@ namespace Veronenger.Game.Controller.Character {
             _platformManager.SubscribeFallingPlatformOut(
                 new BodyOnArea2DListenerAction(Name, this, this, _OnFallingPlatformExit));
 
-            _gameManager.DebugOverlay.Add("Player")
+            DebugOverlay.Create().WithPrefix("Player")
                 .Bind(this)
-                .Do(() => StateMachineNode.CurrentState.Key.ToString());
+                .Show(() => StateMachineNode.CurrentState.Key.ToString());
 
         }
 

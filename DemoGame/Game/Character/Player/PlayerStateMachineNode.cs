@@ -1,4 +1,5 @@
 using Betauer;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
@@ -56,6 +57,7 @@ namespace Veronenger.Game.Character.Player {
         private bool _coyoteJumpEnabled = false;
         [Inject] private GodotStopwatch JumpHelperTimer { get; set; }
         [Inject] private GodotStopwatch FallingTimer { get; set; }
+        [Inject] private DebugOverlay DebugOverlay { get; set; }
 
         private string _coyoteJumpState = "";
         private string _jumpHelperState = "";
@@ -73,10 +75,10 @@ namespace Veronenger.Game.Character.Player {
             GroundStates();
             AirStates();
 
-            _gameManager.DebugOverlay.Add("JumpHelperTimer").Do(() => JumpHelperTimer.ToString()).Bind(this);
-            _gameManager.DebugOverlay.Add("JumpHelperState").Do(() => _jumpHelperState).Bind(this);
-            _gameManager.DebugOverlay.Add("FallingTimer").Do(() => FallingTimer.ToString()).Bind(this);
-            _gameManager.DebugOverlay.Add("CoyoteState").Do(() => _coyoteJumpState).Bind(this);
+            DebugOverlay.Create().WithPrefix("JumpHelperTimer").Bind(this).Show(() => JumpHelperTimer.ToString());
+            DebugOverlay.Create().WithPrefix("JumpHelperState").Bind(this).Show(() => _jumpHelperState);
+            DebugOverlay.Create().WithPrefix("FallingTimer").Bind(this).Show(() => FallingTimer.ToString());
+            DebugOverlay.Create().WithPrefix("CoyoteState").Bind(this).Show(() => _coyoteJumpState);
         }
 
         public void GroundStates() {
@@ -220,10 +222,9 @@ namespace Veronenger.Game.Character.Player {
             bool CheckCoyoteJump() {
                 if (!Jump.IsJustPressed()) return false;
                 // Jump was pressed
-                JumpHelperTimer.Restart(); // Alarm(PlayerConfig.JumpHelperTime);
+                JumpHelperTimer.Restart();
                 if (FallingTimer.IsRunning) {
                     if (FallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                        // if (!_fallingTimer.IsAlarm()) {
                         _coyoteJumpState = $"{FallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!";
                         return true;
                     }
@@ -263,13 +264,13 @@ namespace Veronenger.Game.Character.Player {
 
             CreateState(State.FallShort)
                 .Enter(() => {
-                    // Only if the state comes from running -> fall, the Coyote jump is enabled
-                    // Other cases (State.State comes from idle or jump), the coyote is not enabled
-                    FallingTimer.Restart(); // Alarm(PlayerConfig.CoyoteJumpTime);
+                    FallingTimer.Restart();
                 })
                 .Execute(context => {
                     CheckAirAttack();
 
+                    // The flag _coyoteJumpEnabled is only enabled from Running -> fallShort
+                    // Other cases (from idle or jump), the coyote is not enabled 
                     if (_coyoteJumpEnabled && CheckCoyoteJump()) {
                         _coyoteJumpEnabled = false;
                         return context.Set(State.Jump);

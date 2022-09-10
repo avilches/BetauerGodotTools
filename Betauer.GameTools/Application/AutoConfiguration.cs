@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
@@ -21,6 +22,7 @@ namespace Betauer.Application {
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => GetTree();
         [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
+        [Service] public DebugOverlay DebugOverlay => new DebugOverlay();
         
         [Service(Lifetime.Transient)]
         public GodotStopwatch GodotStopwatch => new GodotStopwatch(GetTree());

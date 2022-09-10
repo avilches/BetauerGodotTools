@@ -1,10 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.Application;
+using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Loader;
 using Betauer.Signal;
 using Betauer.StateMachine;
 using DemoAnimation.Game.Controller.Menu;
@@ -26,10 +29,16 @@ namespace DemoAnimation.Game.Managers {
             ExitDesktop,
         }
     
-        private MainMenu _mainMenuScene;
         private Node _currentGameScene;
 
+        [Load("res://Assets/UI/my_theme.tres")]
+        private Theme MyTheme;
+
+        [Load("res://Scenes/Menu/MainMenu.tscn")]
+        private MainMenu _mainMenuScene;
+
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
+        [Inject] private DebugOverlay DebugOverlay { get; set; }
         [Inject] private SceneTree _sceneTree { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -38,11 +47,17 @@ namespace DemoAnimation.Game.Managers {
         public GameManager() : base(State.Init) {
             On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
             CreateState(State.Init)
-                .Enter(() => {
+                .Enter(async () => {
+                    await new ResourceLoaderContainer().From(this).Load();
                     _screenSettingsManager.Setup();
-                    _mainMenuScene = (MainMenu)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/MainMenu.tscn")
-                        .Instance();
                     _sceneTree.Root.AddChild(_mainMenuScene);
+
+                    DebugOverlay.Panel.Theme = MyTheme;
+                    DebugOverlay.DebugOverlayAction = InputAction.Create("Debug").Keys(KeyList.F9).Build();
+                    DebugOverlay.DebugOverlayAction.Setup();
+                    DebugOverlay.AddFpsAndMemory();
+                    DebugOverlay.AddObjectRunnerSize();
+                    DebugOverlay.Create().WithPrefix("SceneTreeTween callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
                 })
                 .Execute(context => context.Set(State.MainMenu))
                 .Build();

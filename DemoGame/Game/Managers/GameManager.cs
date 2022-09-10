@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
+using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
 using Betauer.DI;
@@ -53,7 +54,8 @@ namespace Veronenger.Game.Managers {
         [Load("res://Scenes/Menu/ModalBoxConfirm.tscn")]
         private Func<ModalBoxConfirm> CreateModalBoxConfirm;
 
-        [Load("res://Scenes/DebugOverlay.tscn")] public DebugOverlay DebugOverlay;
+        [Load("res://Assets/UI/my_theme.tres")]
+        private Theme MyTheme;
 
         private Node _currentGameScene;
         private Node2D _playerScene;
@@ -62,6 +64,7 @@ namespace Veronenger.Game.Managers {
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
+        [Inject] private DebugOverlay DebugOverlay { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -96,9 +99,10 @@ namespace Veronenger.Game.Managers {
         }
 
         private void ConfigureDebugOverlays() {
-            DebugOverlay.Add("ObjectWatcher").Do(() => DefaultObjectWatcherRunner.Instance.Count.ToString());
-            DebugOverlay.Add("SceneTreeTween")
-                .Do(() => DefaultTweenCallbackManager.Instance.ActionsPerSceneTree.Count.ToString());
+            DebugOverlay.Panel.Theme = MyTheme;
+            DebugOverlay.AddFpsAndMemory();
+            DebugOverlay.AddObjectRunnerSize();
+            DebugOverlay.Create().WithPrefix("SceneTreeTween callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
         }
 
         private void ConfigureStates() {
