@@ -14,7 +14,6 @@ using Betauer.Pool;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Controller.Stage;
-using CallbackTweener = Betauer.Animation.Tween.CallbackTweener;
 using Container = Betauer.DI.Container;
 using PropertyTweener = Betauer.Animation.Tween.PropertyTweener;
 using TraceLevel = Betauer.TraceLevel;

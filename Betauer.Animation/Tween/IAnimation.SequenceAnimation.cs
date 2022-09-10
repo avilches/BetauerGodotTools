@@ -84,8 +84,7 @@ namespace Betauer.Animation.Tween {
         }
 
         public SequenceAnimation Callback(Action callback, float delay = 0) {
-            AddTweener(new CallbackTweener(delay, callback));
-            return this;
+            return Callback((_) => callback(), delay);
         }
 
         public SequenceAnimation Callback(Action<Node> callback, float delay = 0) {
