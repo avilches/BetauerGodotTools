@@ -20,12 +20,13 @@ namespace Betauer.Bus {
 
         public override void Publish(T @event) {
             int deleted = DisposeListeners();
+            #if DEBUG
             if (deleted > 0) {
                 _logger.Debug($"Event published to {EventListeners.Count} listeners ({deleted} of {deleted+EventListeners.Count} have been disposed)");
             } else {
                 _logger.Debug($"Event published to {EventListeners.Count} listeners");
             }
-
+            #endif
             EventListeners.ForEach(listener => listener.OnEvent(@event));
         }
     }

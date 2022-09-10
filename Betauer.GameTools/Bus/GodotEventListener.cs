@@ -25,7 +25,9 @@ namespace Betauer.Bus {
         }
 
         public void Debug(string message) {
-            _logger.Debug($"Received: \"{Name}\" | {message}");
+            #if DEBUG
+                _logger.Debug($"Received: \"{Name}\" | {message}");
+            #endif
         }
 
         public virtual bool IsDisposed() {
