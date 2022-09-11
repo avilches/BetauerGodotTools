@@ -8,6 +8,8 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
     public class InputAction {
+        private const ButtonList InvalidMouseButton = ButtonList.MaskXbutton2;
+
         public static NormalBuilder Create(string name) => new NormalBuilder(name);
         public static NormalBuilder Create(string inputActionsContainerName, string name) => new NormalBuilder(inputActionsContainerName, name);
 
@@ -54,6 +56,7 @@ namespace Betauer.Input {
         [Inject] private Container Container { get; set; }
         private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
         private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
+        private ButtonList _mouseButton = InvalidMouseButton;
         private readonly string? _inputActionsContainerName;
         private readonly string? _settingsContainerName;
         private readonly string? _settingsSection;
@@ -77,7 +80,12 @@ namespace Betauer.Input {
             foreach (var inputEvent in InputMap.GetActionList(Name))
                 if (inputEvent is InputEventKey key) AddKey((KeyList)key.Scancode);
                 else if (inputEvent is InputEventJoypadButton button) AddButton((JoystickList)button.ButtonIndex);
-            // TODO: mouse, axis missing
+                else if (inputEvent is InputEventJoypadMotion motion) {
+                    // TODO: feature missing, not tested!!!
+                    SetAxis(motion.Axis);
+                    SetAxisValue((int)motion.AxisValue);
+                }
+                else if (inputEvent is InputEventMouseButton mouseButton) SetMouse((ButtonList)mouseButton.ButtonIndex);
         }
 
         [PostCreate]
@@ -133,6 +141,11 @@ namespace Betauer.Input {
                 e.Scancode = (uint)key;
                 events.Add(e);
             }
+            if (_mouseButton != InvalidMouseButton) {
+                var e = new InputEventMouseButton();
+                e.ButtonIndex = (int)_mouseButton;
+                events.Add(e);
+            }
             foreach (var button in _buttons) {
                 var e = new InputEventJoypadButton();
                 // e.Device = -1; // TODO: you can add a device id here
@@ -148,6 +161,16 @@ namespace Betauer.Input {
                 events.Add(axisEvent);
             }
             return events;
+        }
+
+        public InputAction SetMouse(ButtonList mouseButton) {
+            _mouseButton = mouseButton;
+            return this;
+        }
+
+        public InputAction ClearMouse() {
+            _mouseButton = InvalidMouseButton;
+            return this;
         }
 
         public InputAction SetDeadZone(float deadZone) {
@@ -278,6 +301,7 @@ namespace Betauer.Input {
             protected string? _oppositeActionName;
             protected float _deadZone = -1f;
             protected bool _keepProjectSettings = true;
+            protected ButtonList _mouseButton = InvalidMouseButton;
 
             internal Builder(string name) {
                 _name = name;
@@ -321,6 +345,11 @@ namespace Betauer.Input {
                 buttons.ForEach(button => _buttons.Add(button));
                 return this as TBuilder;
             }
+
+            public TBuilder Mouse(ButtonList mouseButton) {
+                _mouseButton = mouseButton;
+                return this as TBuilder;
+            }
         }
 
         public class NormalBuilder : Builder<NormalBuilder> {
@@ -338,6 +367,7 @@ namespace Betauer.Input {
                     .SetAxis(_axis)
                     .SetAxisValue(_axisValue)
                     .SetDeadZone(_deadZone)
+                    .SetMouse(_mouseButton)
                     .AddKeys(_keys.ToArray())
                     .AddButtons(_buttons.ToArray());
             }
@@ -370,6 +400,7 @@ namespace Betauer.Input {
                     .SetAxis(_axis)
                     .SetAxisValue(_axisValue)
                     .SetDeadZone(_deadZone)
+                    .SetMouse(_mouseButton)
                     .AddKeys(_keys.ToArray())
                     .AddButtons(_buttons.ToArray());
             }

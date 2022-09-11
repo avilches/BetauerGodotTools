@@ -158,5 +158,13 @@ namespace Betauer.Input {
         public static bool IsClickReleased(this InputEvent input, ButtonList button) {
             return input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && input.IsReleased();
         }
+
+        public static bool IsDoubleClick(this InputEvent input, ButtonList button) {
+            return input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && k.Doubleclick;
+        }
+
+        public static bool IsMouseMotion(this InputEvent input) {
+            return input is InputEventMouseMotion;
+        }
     }
 }
