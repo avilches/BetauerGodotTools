@@ -1,33 +1,44 @@
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Signal;
 using Godot;
+using Color = Godot.Color;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlay : CanvasLayer {
         public readonly MonitorList MonitorList = new MonitorList();
 
-        public PanelContainer Panel;
+        public PopupPanel Panel;
         public Label Label;
         
         [Inject(Nullable = true)]
         public InputAction? DebugOverlayAction { get; set; }
-        
-        public DebugOverlay() {
-            Layer = 1000;
-            Label = new Label();
-            Label.Name = "Label";
-            Label.MarginLeft = 7.0f;
-            Label.MarginTop = 7.0f;
-            Label.MarginRight = 98.0f;
-            Label.MarginBottom = 38.0f;
 
-            Panel = new PanelContainer();
+        [Inject(Nullable = true)]
+        public InputAction? LMB { get; set; }
+
+        private bool _mouseInsidePanel = false;
+        private Vector2? _startDragPosition = null;
+        private readonly Color _transparent = new Color(1, 1, 1, 0.490196f);
+        private readonly Color _solid = new Color(1, 1, 1);
+        public DebugOverlay() {
+            Name = "DebugOverlay";
+            Layer = 1000;
+
+            Panel = new PopupPanel();
+            Panel.MouseFilter = Control.MouseFilterEnum.Pass;
             Panel.Name = "PanelContainer";
             Panel.Modulate = new Color(1, 1, 1, 0.490196f);
-            Panel.MarginRight = 105f;
-            Panel.MarginBottom = 45;
-            Panel.AddChild(Label);
+            Panel.OnMouseEntered(() => _mouseInsidePanel = true).Unwatch();
+            Panel.OnMouseExited(() => _mouseInsidePanel = false).Unwatch();
             AddChild(Panel);
+
+            var vbox = new VBoxContainer();
+            Panel.AddChild(vbox);
+                
+            Label = new Label();
+            Label.Name = "Label";
+            vbox.AddChild(Label);
         }
 
         public override void _Ready() {
@@ -37,12 +48,29 @@ namespace Betauer.Application.Monitor {
 
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {
-                Enable(!Visible);
+                Enable(!Panel.Visible);
+                
+            } else if (@event.IsDoubleClick(ButtonList.Left)) {
+                Panel.Modulate = Panel.Modulate.a <= 0.9f ? _solid : _transparent;
+                
+            } else if (_mouseInsidePanel && @event.IsClick(ButtonList.Left)) {
+                if (@event.IsJustPressed()) {
+                    _startDragPosition = Panel.RectPosition - Panel.GetGlobalMousePosition();
+                } else {
+                    _startDragPosition = null;
+                }
+                
+            } else if (_mouseInsidePanel && _startDragPosition != null && @event.IsMouseMotion()) {
+                var newPosition = Panel.GetGlobalMousePosition() + _startDragPosition.Value;
+                newPosition = new Vector2(
+                    Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - 100),
+                    Mathf.Clamp(newPosition.y, 0, GetTree().Root.Size.y - 100));
+                Panel.SetPosition(newPosition);
             }
         }
 
         public void Enable(bool enabled = true) {
-            Visible = enabled;
+            Panel.Visible = enabled;
             SetProcess(enabled);
         }
 
@@ -52,12 +80,14 @@ namespace Betauer.Application.Monitor {
 
         public IMonitor Add(IMonitor monitor) => MonitorList.Add(monitor);
 
-        public override void _PhysicsProcess(float delta) {
-            if (!Visible) {
+        public override void _Process(float delta) {
+            if (!Panel.Visible) {
                 Disable();
                 return;
             }
             Label.Text = string.Join("\n", MonitorList.GetText());
+            // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
+            Panel.RectSize = Vector2.Zero;
         }
     }
 }

@@ -42,6 +42,33 @@ namespace Veronenger.Game {
     }
 
     [Configuration]
+    public class MouseActions {
+        [Service]
+        private InputAction LMB => InputAction.Create("LMB")
+            .KeepProjectSettings()
+            .Mouse(ButtonList.Left)
+            .Build();
+
+        [Service]
+        private InputAction RMB => InputAction.Create("RMB")
+            .KeepProjectSettings()
+            .Mouse(ButtonList.Right)
+            .Build();
+
+        [Service]
+        private InputAction MWU => InputAction.Create("MWU")
+            .KeepProjectSettings()
+            .Mouse(ButtonList.WheelUp)
+            .Build();
+
+        [Service]
+        private InputAction MWD => InputAction.Create("MWD")
+            .KeepProjectSettings()
+            .Mouse(ButtonList.WheelDown)
+            .Build();
+    }
+
+    [Configuration]
     public class UiActions {
         [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
         
