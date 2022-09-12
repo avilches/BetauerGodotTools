@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class SignalExtensionsTests : Node {
         [SetUp]
         public void Setup() {
@@ -46,21 +47,22 @@ namespace Betauer.Tests {
             public void Pressed1() {
                 Executed1++;
             }
-            
         }
-        [Test(Description = "Signal method works + watch owner")]
+        
+        [Test(Description = "Signal method works + no watch because owner method is already on Object")]
         public async Task SignalToMethodTest() {
             var b1 = new CheckButton();
             AddChild(b1);
             await this.AwaitIdleFrame();
 
             var o = new Dummy();
-            b1.OnPressed(o.Pressed1);
+            SignalHandler p1 =  b1.OnPressed(o.Pressed1);
+            Assert.That(p1.Target, Is.EqualTo(o));
+            
             b1.EmitSignal("pressed");
-            Assert.That(o.Executed1, Is.EqualTo(1));
+            b1.EmitSignal("pressed");
+            Assert.That(o.Executed1, Is.EqualTo(2));
             Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-
-
         }
 
         [Test(Description = "Signal lambda works + watch signal origin")]
@@ -72,7 +74,8 @@ namespace Betauer.Tests {
 
             SignalHandler p1 = b1.OnPressed(() => executed1++);
             b1.EmitSignal("pressed");
-            Assert.That(executed1, Is.EqualTo(1));
+            b1.EmitSignal("pressed");
+            Assert.That(executed1, Is.EqualTo(2));
             Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
 
             // Watch object still there
@@ -86,7 +89,7 @@ namespace Betauer.Tests {
         }
 
 
-        [Test(Description = "Signal connect and disconnect from origin (using lambda)")]
+        [Test(Description = "Signal connect and disconnect from origin (lambda)")]
         public async Task ConnectAndDisconnectLambdaTests() {
             var b1 = new CheckButton();
             AddChild(b1);
