@@ -1,62 +1,77 @@
 using System;
-using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Signal {
-    public static class SignalTools {
-        public static uint SignalFlags(bool oneShot, bool deferred = false) =>
-            (oneShot ? (uint)Object.ConnectFlags.Oneshot : 0) +
-            (deferred ? (uint)Object.ConnectFlags.Deferred : 0) +
-            0;
-    }
-
-    public class SignalHandler {
+    public abstract class SignalHandler {
+        public readonly SignalManager SignalManager;
         public readonly Object Origin;
         public readonly string Signal;
-        public readonly Object Target;
-        public readonly string TargetMethodName;
-        public readonly bool OneShot;
-        public readonly bool Deferred;
-        private string? _targetName;
-        public SignalHandler(Object origin, string signal, Object target, string targetMethodName, bool oneShot = false, bool deferred = false) {
+        public readonly bool OneShot = false;
+        public readonly bool Deferred = false;
+
+        protected SignalHandler(SignalManager signalManager, Object origin, string signal, bool oneShot, bool deferred) {
+            SignalManager = signalManager;
             Origin = origin;
             Signal = signal;
-            Target = target;
-            TargetMethodName = targetMethodName;
             OneShot = oneShot;
             Deferred = deferred;
-            _targetName = Target is Node node ? node.Name : null;
-            Connect();
         }
 
-        public bool IsValid() => Object.IsInstanceValid(Target) && Object.IsInstanceValid(Origin);
+        public bool IsConnected() => SignalManager.IsConnected(this);
+        public bool CheckOriginConnection() => SignalManager.CheckOriginConnection(this);
+        public SignalHandler Disconnect() => SignalManager.Disconnect(this);
+        public SignalHandler Connect() => SignalManager.Connect(this);
+    }
 
-        public void Connect() {
-            if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
-            Error err = Origin.Connect(Signal, Target, TargetMethodName, null, SignalTools.SignalFlags(OneShot, Deferred));
-            if (err != Error.Ok) {
-                throw new Exception($"Connecting signal '{Signal}' to ${Target} failed: '{err}'");
-            }
+    public abstract class SignalHandler<T> : SignalHandler {
+        internal readonly T Action;
+
+        protected SignalHandler(SignalManager signalManager, Object origin, string signal, T action, bool oneShot, bool deferred) : 
+            base(signalManager, origin, signal, oneShot, deferred) {
+            Action = action;
         }
 
-        public bool IsConnected() {
-            return IsValid() && Origin.IsConnected(Signal, Target, TargetMethodName);
-        }
+    }
 
-        public void Disconnect() {
-            if (IsConnected()) Origin.Disconnect(Signal, Target, TargetMethodName);
+    public class SignalHandler0P : SignalHandler<Action> {
+        public SignalHandler0P(SignalManager signalManager, Object origin, string signal, Action action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
         }
+    }
 
-        public void Dispose() {
-            if (Target is SignalObjectTarget a) a.Consume(true);
+    public class SignalHandler1P : SignalHandler<Action<object>> {
+        public SignalHandler1P(SignalManager signalManager, Object origin, string signal, Action<object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
         }
+    }
 
-        public void Unwatch() {
-            if (Target is SignalObjectTarget a) a.Unwatch();
+    public class SignalHandler2P : SignalHandler<Action<object, object>> {
+        public SignalHandler2P(SignalManager signalManager, Object origin, string signal, Action<object, object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
         }
+    }
 
-        public void Watch() {
-            if (Target is SignalObjectTarget a) a.Watch();
+    public class SignalHandler3P : SignalHandler<Action<object, object, object>> {
+        public SignalHandler3P(SignalManager signalManager, Object origin, string signal, Action<object, object, object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
+        }
+    }
+
+    public class SignalHandler4P : SignalHandler<Action<object, object, object, object>> {
+        public SignalHandler4P(SignalManager signalManager, Object origin, string signal, Action<object, object, object, object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
+        }
+    }
+
+    public class SignalHandler5P : SignalHandler<Action<object, object, object, object, object>> {
+        public SignalHandler5P(SignalManager signalManager, Object origin, string signal, Action<object, object, object, object, object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
+        }
+    }
+
+    public class SignalHandler6P : SignalHandler<Action<object, object, object, object, object, object>> {
+        public SignalHandler6P(SignalManager signalManager, Object origin, string signal, Action<object, object, object, object, object, object> action, bool oneShot, bool deferred) :
+            base(signalManager, origin, signal, action, oneShot, deferred) {
         }
     }
 }

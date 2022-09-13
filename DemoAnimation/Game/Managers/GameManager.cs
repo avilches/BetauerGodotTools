@@ -55,9 +55,10 @@ namespace DemoAnimation.Game.Managers {
                     DebugOverlay.Panel.Theme = MyTheme;
                     DebugOverlay.DebugOverlayAction = InputAction.Create("Debug").Keys(KeyList.F9).Build();
                     DebugOverlay.DebugOverlayAction.Setup();
-                    DebugOverlay.AddFpsAndMemory();
-                    DebugOverlay.AddObjectRunnerSize();
-                    DebugOverlay.Create().WithPrefix("SceneTreeTween callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+                    DebugOverlay.MonitorFpsAndMemory();
+                    DebugOverlay.MonitorObjectRunnerSize();
+                    DebugOverlay.Create().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+                    DebugOverlay.Create().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
                 })
                 .Execute(context => context.Set(State.MainMenu))
                 .Build();

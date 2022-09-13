@@ -115,18 +115,17 @@ namespace Veronenger.Game.Controller.Character {
                 .Bind(this)
                 .Show(() => StateMachineNode.CurrentState.Key.ToString());
 
-            
-            DebugOverlay.Create().Bind(this).Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
-            DebugOverlay.Create().Bind(this).Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
-                                                        " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name);
-            DebugOverlay.Create().Bind(this).Show(() =>
-                _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
-            DebugOverlay.Create().Bind(this).Show(() =>
-                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
-            DebugOverlay.Create().Bind(this).Show(() =>
-                "Floor: " + IsOnFloor() + "\n" +
-                "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
-                "SlopeStairsDown: " + IsOnSlopeStairsDown());
+            // DebugOverlay.Create().Bind(this).Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
+            // DebugOverlay.Create().Bind(this).Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
+                                                        // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name);
+            // DebugOverlay.Create().Bind(this).Show(() =>
+                // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
+            // DebugOverlay.Create().Bind(this).Show(() =>
+                // _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
+            // DebugOverlay.Create().Bind(this).Show(() =>
+                // "Floor: " + IsOnFloor() + "\n" +
+                // "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
+                // "SlopeStairsDown: " + IsOnSlopeStairsDown());
 
         }
 

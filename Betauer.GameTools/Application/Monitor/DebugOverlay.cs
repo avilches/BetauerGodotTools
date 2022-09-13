@@ -29,8 +29,8 @@ namespace Betauer.Application.Monitor {
             Panel.MouseFilter = Control.MouseFilterEnum.Pass;
             Panel.Name = "PanelContainer";
             Panel.Modulate = new Color(1, 1, 1, 0.490196f);
-            Panel.OnMouseEntered(() => _mouseInsidePanel = true).Unwatch();
-            Panel.OnMouseExited(() => _mouseInsidePanel = false).Unwatch();
+            Panel.OnMouseEntered(() => _mouseInsidePanel = true);
+            Panel.OnMouseExited(() => _mouseInsidePanel = false);
             AddChild(Panel);
 
             var vbox = new VBoxContainer();

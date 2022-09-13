@@ -25,7 +25,6 @@ namespace Betauer.Animation.Tests {
         }
 
         [Test(Description = "A sequence callback can be executed many times")]
-        [Only]
         public async Task CallbackMultipleExecutions() {
             var x = 0;
             var y = 0;

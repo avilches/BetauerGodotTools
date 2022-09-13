@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Animation;
 using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Godot;
@@ -8,7 +7,6 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
-using Betauer.Memory;
 using Betauer.Signal;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Menu;
@@ -101,7 +99,8 @@ namespace Veronenger.Game.Managers {
             DebugOverlay.Panel.Theme = MyTheme;
             DebugOverlay.MonitorFpsAndMemory();
             DebugOverlay.MonitorObjectRunnerSize();
-            DebugOverlay.Create().WithPrefix("SceneTreeTween callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+            DebugOverlay.Create().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+            DebugOverlay.Create().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
         }
 
         private void ConfigureStates() {

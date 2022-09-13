@@ -23,7 +23,7 @@ namespace Generator {
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
         public static SignalHandler On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
-            SignalFactory.Create({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
+            On({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
         }
 
         private static string GenerateBodyClass(IEnumerable<string> methods) {
@@ -35,6 +35,29 @@ using Environment = Godot.Environment;
 
 namespace Betauer.Signal {{
     public static partial class SignalExtensions {{
+
+        public static SignalManager SignalFactory => DefaultSignalManager.Instance;
+
+        public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T>(this Object target, string signal, Action<T> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T1, T2>(this Object target, string signal, Action<T1, T2> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T1, T2, T3>(this Object target, string signal, Action<T1, T2, T3> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T1, T2, T3, T4>(this Object target, string signal, Action<T1, T2, T3, T4> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T1, T2, T3, T4, T5>(this Object target, string signal, Action<T1, T2, T3, T4, T5> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
+
+        public static SignalHandler On<T1, T2, T3, T4, T5, T6>(this Object target, string signal, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot = false, bool deferred = false) =>
+            SignalFactory.Create(target, signal, action, oneShot, deferred);
       {string.Join("\n", methods)}
     }}
 }}";
