@@ -5,10 +5,19 @@ namespace Betauer {
     public static class ObjectExtensions {
 
         public static string ToStringSafe(this Object o) {
-            var extra = o is SceneTreeTween sceneTreeTween ? (sceneTreeTween.IsValid() ? "" : " (tween invalid)") : "";
-            return Object.IsInstanceValid(o) ?
-                $"{o.GetType().Name}@{o.GetHashCode():x8} ({o.GetInstanceId()}){extra}" :
-                $"{o.GetType().Name}@{o.GetHashCode():x8} (disposed)"; // "InstanceId:" + o.GetInstanceId()+ " Ptr:"+o.NativeInstance;
+            var typeName = o.GetType().Name;
+            var hashCode = o.GetHashCode();
+            if (!Object.IsInstanceValid(o)) {
+                return $"{typeName} @{hashCode:x8} (disposed)";
+            }
+            return o switch {
+                SceneTreeTween sceneTreeTween => 
+                    $"{typeName} @{hashCode:x8} ({o.GetInstanceId()}){(sceneTreeTween.IsValid() ? "" : " (invalid)")}",
+                Node node => 
+                    $"{typeName} \"{node.Name}\" @{hashCode:x8} ({o.GetInstanceId()})",
+                _ => 
+                    $"{typeName}@{hashCode:x8} ({o.GetInstanceId()})"
+            };
         }
     }
 }
