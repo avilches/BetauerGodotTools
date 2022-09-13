@@ -3,14 +3,14 @@ using Betauer.Time;
 using Godot;
 
 namespace Betauer.Memory {
-    public class DefaultObjectWatcherRunner {
-        public static ObjectWatcherRunner Instance = new ObjectWatcherRunner();
+    public class DefaultObjectWatcherTask {
+        public static ObjectWatcherTask Instance = new ObjectWatcherTask();
     }
 
-    public class ObjectWatcherRunner : Consumer {
+    public class ObjectWatcherTask : Consumer {
         public readonly GodotScheduler Scheduler;
 
-        public ObjectWatcherRunner() {
+        public ObjectWatcherTask() {
             // Process, because the Runner should run even if the SceneTree is paused
             Scheduler = new GodotScheduler(_OnSchedule, Node.PauseModeEnum.Process);
         }

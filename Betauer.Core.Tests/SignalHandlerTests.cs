@@ -14,9 +14,9 @@ namespace Betauer.Tests {
             LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(SignalManager), TraceLevel.All);
             foreach (var child in GetChildren().OfType<Node>()) child.Free();
-            DefaultObjectWatcherRunner.Instance.Dispose();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-            DefaultObjectWatcherRunner.Instance = new ObjectWatcherRunner();
+            DefaultObjectWatcherTask.Instance.Dispose();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance = new ObjectWatcherTask();
         }
 
         [Test(Description = "Signal works + watch signal origin")]
@@ -29,18 +29,18 @@ namespace Betauer.Tests {
             SignalHandler p1 = b1.OnPressed(() => executed1++);
             b1.EmitSignal("pressed");
             Assert.That(executed1, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(1));
 
             // SignalHandler object are still there
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(1));
             
             // When signal origin is freed, SignalHandler object is removed
             b1.Free();
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
         }
 
@@ -105,7 +105,7 @@ namespace Betauer.Tests {
             Assert.That(executed3, Is.EqualTo(1)); // one shot
             Assert.That(executed4, Is.EqualTo(3));
             
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(2));
 
             p2.Disconnect();
@@ -117,7 +117,7 @@ namespace Betauer.Tests {
             Assert.That(p2.CheckOriginConnection(), Is.True);
             Assert.That(p3.CheckOriginConnection(), Is.True);
             Assert.That(p4.CheckOriginConnection(), Is.True);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(1));
 
             p4.Disconnect();
@@ -129,8 +129,8 @@ namespace Betauer.Tests {
             Assert.That(p2.CheckOriginConnection(), Is.False);
             Assert.That(p3.CheckOriginConnection(), Is.False);
             Assert.That(p4.CheckOriginConnection(), Is.False);
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
             
             b1.EmitSignal("pressed");
@@ -333,13 +333,13 @@ namespace Betauer.Tests {
             SignalHandler p23 = b2.OnToggled((b) => x++);
             SignalHandler p24 = b2.OnToggled((b) => x++);
 
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(4));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(4));
 
             DefaultSignalManager.Instance.RemoveAndDisconnectAll(b1);
 
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(4));
 
@@ -392,26 +392,26 @@ namespace Betauer.Tests {
             Assert.That(executed12, Is.EqualTo(2));
             Assert.That(executed21, Is.EqualTo(3));
             Assert.That(executed23, Is.EqualTo(4));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(2));
 
             // SignalHandler object are still there
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(2));
             
             // When signal origin is freed, SignalHandler object is removed
             b1.Free();
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(2));
 
             b2.Free();
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(0));
         }

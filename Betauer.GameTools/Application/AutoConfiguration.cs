@@ -18,7 +18,7 @@ namespace Betauer.Application {
         protected readonly Container Container = new Container();
         protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
 
-        [Service] public Consumer Consumer => DefaultObjectWatcherRunner.Instance;
+        [Service] public Consumer Consumer => DefaultObjectWatcherTask.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => GetTree();
         [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
@@ -28,11 +28,11 @@ namespace Betauer.Application {
         public GodotStopwatch GodotStopwatch => new GodotStopwatch(GetTree());
 
         private bool _addSingletonNodesToTree = true;
-        private float _watchTimer = 10f;
+        private float _objectWatcherTimer = 10f;
         private bool _isReady = false;
 
         public void EnableAddSingletonNodesToTree(bool enabled) => _addSingletonNodesToTree = enabled;
-        public void SetWatchTimer(float watchTimer) => _watchTimer = watchTimer;
+        public void SetObjectWatcherTimer(float watchTimer) => _objectWatcherTimer = watchTimer;
 
         public override void _EnterTree() {
             // It can't be called before _EnterTree because the SceneTree is exposed as a service using GetTree()
@@ -42,9 +42,9 @@ namespace Betauer.Application {
 
             MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 LoggerFactory.EnableAutoFlush();
-                DefaultObjectWatcherRunner.Instance.Consume(true);
+                DefaultObjectWatcherTask.Instance.Consume(true);
             };
-            DefaultObjectWatcherRunner.Instance.Start(GetTree(), _watchTimer);
+            DefaultObjectWatcherTask.Instance.Start(GetTree(), _objectWatcherTimer);
             PauseMode = PauseModeEnum.Process;
             this.OnReady(() => _isReady = true, true);
         }

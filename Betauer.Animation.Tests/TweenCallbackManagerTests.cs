@@ -12,16 +12,16 @@ namespace Betauer.Animation.Tests {
     public class TweenCallbackManagerTests : NodeTest {
         [SetUp]
         public void Setup() {
-            DefaultObjectWatcherRunner.Instance.Dispose();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-            DefaultObjectWatcherRunner.Instance = new ObjectWatcherRunner();
+            DefaultObjectWatcherTask.Instance.Dispose();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance = new ObjectWatcherTask();
             Engine.TimeScale = 1;
         }
         
         [Test]
         public async Task TweenCallbackActionTests() {
             // All empty
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(0));
 
             // Add 3 tweens with 2 actions
@@ -34,15 +34,15 @@ namespace Betauer.Animation.Tests {
             tween.SetLoops(2);
             // There are 3 method tween, but only 2 different action
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // tween is not executed yet, so it's still valid and ...
             Assert.That(x, Is.EqualTo(0));
             Assert.That(tween.IsValid(), Is.True);
             // ... nothing happens if Consume() the watching
-            DefaultObjectWatcherRunner.Instance.Consume();
+            DefaultObjectWatcherTask.Instance.Consume();
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // execute tween
             await tween.AwaitFinished();
@@ -55,17 +55,17 @@ namespace Betauer.Animation.Tests {
             
             // Actions and watching are still there...
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // ...until Consume() clean them
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
         }
 
         [Test]
         public async Task TweenCallbackActionKillBeforeFinishTest() {
             // All empty
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(0));
 
             // Add 2 tweens in an infinite loop
@@ -77,7 +77,7 @@ namespace Betauer.Animation.Tests {
             tween.TweenInterval(0.1f);
             tween.SetLoops();
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // tween working as expected
             await Task.Delay(TimeSpan.FromSeconds(0.2f));
@@ -85,9 +85,9 @@ namespace Betauer.Animation.Tests {
             Assert.That(y, Is.LessThanOrEqualTo(5));
 
             // Consume() doesn't do anything because tween is working 
-            DefaultObjectWatcherRunner.Instance.Consume();
+            DefaultObjectWatcherTask.Instance.Consume();
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             
             // kill
             tween.Kill();
@@ -97,19 +97,19 @@ namespace Betauer.Animation.Tests {
 
             // Actions and watching are still there...
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(1));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // ...until Consume() clean them
-            DefaultObjectWatcherRunner.Instance.Consume();
+            DefaultObjectWatcherTask.Instance.Consume();
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(0));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
 
         }
 
         [Test]
         public async Task InterpolateActionTest() {
             // All empty
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultTweenCallbackManager.Instance.ActionsByTween.Count, Is.EqualTo(0));
 
             // Add 2 tweens in an infinite loop
@@ -118,11 +118,11 @@ namespace Betauer.Animation.Tests {
             var y = 0;
             tween.TweenInterpolateAction(0f, 1f, 0.1f, value => x++);
             tween.TweenInterpolateAction(0f, 1f, 0.1f, value => y++);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
             
             // ... nothing happens if Consume() the watching
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(2));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // execute tween
             await tween.AwaitFinished();
@@ -133,8 +133,8 @@ namespace Betauer.Animation.Tests {
             while (tween.IsValid()) {
                 await tween.AwaitIdleFrame();
             }
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
         }
     }
 }

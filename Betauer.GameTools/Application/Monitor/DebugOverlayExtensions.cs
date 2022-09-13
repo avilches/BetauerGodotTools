@@ -21,7 +21,7 @@ namespace Betauer.Application.Monitor {
             return overlay.MonitorList
                 .Create<Monitor>()
                 .WithPrefix("ObjectWatcher")
-                .Show(() => $"{DefaultObjectWatcherRunner.Instance.Size.ToString()}/{DefaultObjectWatcherRunner.Instance.PeakSize.ToString()}");
+                .Show(() => $"{DefaultObjectWatcherTask.Instance.Size.ToString()}/{DefaultObjectWatcherTask.Instance.PeakSize.ToString()}");
         }
 
         public static Monitor MonitorFpsAndMemory(this DebugOverlay overlay) {

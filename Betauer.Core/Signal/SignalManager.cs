@@ -282,7 +282,7 @@ namespace Betauer.Signal {
             }
 
             public WatchObjectSignalHandler AddToDefaultObjectWatcher() {
-                DefaultObjectWatcherRunner.Instance.Add(this);
+                DefaultObjectWatcherTask.Instance.Add(this);
                 return this;
             }
 

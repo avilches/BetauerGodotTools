@@ -236,10 +236,7 @@ namespace Betauer.Animation {
 
         public AnimationStack(string? name, Node node) {
             _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
-            new WatchObjectAndFree()
-                .Watch(node)
-                .Free(this)
-                .AddToDefaultObjectWatcher();
+            Watcher.IfInvalidInstance(node).Free(this);
         }
 
         protected override void OnDispose(bool disposing) {

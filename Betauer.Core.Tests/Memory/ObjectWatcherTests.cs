@@ -13,101 +13,59 @@ namespace Betauer.Tests.Memory {
     public class ObjectWatcherTests : Node {
         [SetUp]
         public void Setup() {
-            DefaultObjectWatcherRunner.Instance.Dispose();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-            DefaultObjectWatcherRunner.Instance = new ObjectWatcherRunner();
+            DefaultObjectWatcherTask.Instance.Dispose();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance = new ObjectWatcherTask();
         }
 
         [Test]
         public async Task NotValidTest() {
-            new WatchObjectAndFree().AddToDefaultObjectWatcher();
-            new WatchObjectAndFree().Free(new Object()).AddToDefaultObjectWatcher();
-            new WatchObjectAndFree().Watch(new Object()).AddToDefaultObjectWatcher();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(3));
+            var origin = new Object();
+            var target = new Object();
+            var targetDeferred = new Object();
+            Watcher.IfInvalidInstance(origin).Free(target, false);
+            Watcher.IfInvalidInstance(origin).Free(targetDeferred);
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
 
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
+            
+            origin.Free();
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
+            Assert.That(IsInstanceValid(target), Is.False);
+            Assert.That(IsInstanceValid(targetDeferred), Is.True);
+
+            await this.AwaitIdleFrame();
+            Assert.That(IsInstanceValid(targetDeferred), Is.False);
         }
 
         [Test]
         public async Task WatchAndUnwatchTest() {
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             
-            var watch = new WatchObjectAndFree().Watch(new Object()).Free(new Object()).AddToDefaultObjectWatcher();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            var origin = new Object();
+            var target = new Object();
+            var w = Watcher.IfInvalidInstance(origin).Free(target);
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // Nothing happens
-            DefaultObjectWatcherRunner.Instance.Consume();
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            DefaultObjectWatcherTask.Instance.Consume();
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // Add the same again is ignored
-            DefaultObjectWatcherRunner.Instance.Add(watch);
-            DefaultObjectWatcherRunner.Instance.Add(watch);
-            DefaultObjectWatcherRunner.Instance.Add(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
+            w.StartWatching();
+            w.StartWatching();
+            w.StartWatching();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
 
             // Unwatch removes the element
-            DefaultObjectWatcherRunner.Instance.Remove(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-
-            // Unwatch a non-existent elements does nothing
-            DefaultObjectWatcherRunner.Instance.Remove(watch);
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-        }
-
-        [Test]
-        public async Task FreeObjectsNoDeferredTest() {
-            var freed1 = new WatchObjectAndFree(false)
-                .Watch(new Object(), new Object())
-                .Free(new Node(), new Object())
-                .AddToDefaultObjectWatcher();
-
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
-
-            // Freed or disposed objects are removed from watching list
-            freed1.Watching[0].Free();
-            Assert.That(IsInstanceValid(freed1.Targets[0]), Is.True);
-            Assert.That(IsInstanceValid(freed1.Targets[1]), Is.True);
-            
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-            Assert.That(IsInstanceValid(freed1.Targets[0]), Is.False);
-            Assert.That(IsInstanceValid(freed1.Targets[1]), Is.False);
-        }
-
-        [Test]
-        public async Task FreeObjectsDefaultDeferredTest() {
-            var freed1 = new WatchObjectAndFree()
-                .Watch(new Object(), new Object())
-                .Free(new Node(), new Object())
-                .AddToDefaultObjectWatcher();
-            
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(1));
-
-
-            // Freed or disposed objects are removed from watching list
-            freed1.Watching[1].Free();
-            Assert.That(IsInstanceValid(freed1.Targets[0]), Is.True);
-            Assert.That(((Node)freed1.Targets[0]).IsQueuedForDeletion(), Is.False);
-            Assert.That(IsInstanceValid(freed1.Targets[1]), Is.True);
-
-            DefaultObjectWatcherRunner.Instance.Consume();
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(0));
-
-            // Node is queued for deletion
-            Assert.That(IsInstanceValid(freed1.Targets[0]), Is.True);
-            Assert.That(((Node)freed1.Targets[0]).IsQueuedForDeletion(), Is.True);
-            Assert.That(IsInstanceValid(freed1.Targets[1]), Is.True);
-
-            // Objects are deleted using CallDeferred("free") or QueueFree() so a new frame is needed
-            await this.AwaitIdleFrame();
-            Assert.That(IsInstanceValid(freed1.Targets[0]), Is.False);
-            Assert.That(IsInstanceValid(freed1.Targets[1]), Is.False);
+            w.StopWatching();
+            w.StopWatching();
+            w.StopWatching();
+            w.StopWatching();
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
         }
 
         private class Dummy : DisposableGodotObject, IObjectConsumer {
@@ -138,7 +96,7 @@ namespace Betauer.Tests.Memory {
                     for (var i = 0; i < 100; i++) {
                         var o = new Dummy();
                         dummies1.Add(o);
-                        DefaultObjectWatcherRunner.Instance.Add(o);
+                        DefaultObjectWatcherTask.Instance.Add(o);
                         await Task.Delay(5);
                         if (i % 2 == 0) {
                             o.MustBeFreed = true;
@@ -157,7 +115,7 @@ namespace Betauer.Tests.Memory {
             for (var i = 0; i < 50; i++) {
                 var o = new Dummy();
                 dummies2.Add(o);
-                DefaultObjectWatcherRunner.Instance.Add(o);
+                DefaultObjectWatcherTask.Instance.Add(o);
             }
             Task taskA2 = new Task(async () => {
                 try {
@@ -195,10 +153,10 @@ namespace Betauer.Tests.Memory {
                 try {
                     var loops = 0;
                     while (!stop1 || !stop2 || !stop3) {
-                        DefaultObjectWatcherRunner.Instance.Consume();
+                        DefaultObjectWatcherTask.Instance.Consume();
                         loops++;
                     }
-                    DefaultObjectWatcherRunner.Instance.Consume();
+                    DefaultObjectWatcherTask.Instance.Consume();
                     Console.WriteLine("Processed queue times: " + loops);
                 } catch (Exception e) {
                     errorProcess = e;
@@ -226,7 +184,7 @@ namespace Betauer.Tests.Memory {
             
             Assert.That(dummies3.Count, Is.EqualTo(50));
             Assert.That(dummies3.Sum(d => d.DisposedCalls), Is.LessThanOrEqualTo(50));
-            Assert.That(DefaultObjectWatcherRunner.Instance.Size, Is.EqualTo(75));
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(75));
         }
     }
 }
