@@ -26,7 +26,7 @@ namespace Veronenger.Game.Managers.Autoload {
         
         public Bootstrap() {
             EnableAddSingletonNodesToTree(true);
-            SetWatchTimer(1f);
+            SetObjectWatcherTimer(1f);
             
             if (FeatureFlags.IsExported()) {
                 AppDomain.CurrentDomain.UnhandledException += (o, args) => {
