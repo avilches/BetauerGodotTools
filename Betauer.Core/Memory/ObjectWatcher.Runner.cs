@@ -1,3 +1,4 @@
+using System;
 using Betauer.Time;
 using Godot;
 
@@ -15,6 +16,7 @@ namespace Betauer.Memory {
         }
 
         public GodotScheduler Start(SceneTree sceneTree, float seconds = 10f) {
+            if (Disposed) throw new Exception("Consumer disposed");
             return Scheduler.Start(sceneTree, seconds);
         }
 

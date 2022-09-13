@@ -9,6 +9,7 @@ namespace Betauer.Memory {
     public class Consumer {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Consumer));
         private readonly HashSet<IObjectConsumer> _objects = new HashSet<IObjectConsumer>();
+        protected bool Disposed = false;
 
         public int PeakSize { get; private set; }
         public int Size => _objects.Count;
@@ -18,6 +19,7 @@ namespace Betauer.Memory {
         }
 
         public int Consume(bool force = false) {
+            if (Disposed) throw new Exception("Consumer disposed");
             lock (_objects) {
                 return _objects.RemoveWhere(o => {
                     var consumed = o.Consume(force);
@@ -30,6 +32,7 @@ namespace Betauer.Memory {
         }
 
         public void Add(IObjectConsumer o) {
+            if (Disposed) throw new Exception("Consumer disposed");
             lock (_objects) {
                 #if DEBUG
                 Logger.Debug($"Size: {_objects.Count + 1} | + {o}");
@@ -40,6 +43,7 @@ namespace Betauer.Memory {
         }
 
         public void Remove(IObjectConsumer o) {
+            if (Disposed) throw new Exception("Consumer disposed");
             lock (_objects) {
                 _objects.RemoveWhere(x => {
                     var matches = x == o;
@@ -53,6 +57,7 @@ namespace Betauer.Memory {
 
         public virtual void Dispose() {
             Consume(true);
+            Disposed = true;
         }
     }
 }
