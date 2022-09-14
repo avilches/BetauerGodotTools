@@ -10,8 +10,9 @@ namespace Betauer.Memory {
         private string _debug = "";
 
         public static Watcher IfInvalidInstance(Object o) {
-            return new Watcher(() => !Object.IsInstanceValid(o))
-                .Debug($"If IsInstanceValid {o.ToStringSafe()} > ");
+            return new Watcher(() => !Object.IsInstanceValid(o) ||
+                                     (o is SceneTreeTween tween && !tween.IsValid()))
+                .Debug($"If not valid {o.ToStringSafe()} > ");
         }
 
         public static Watcher IfAllInvalidInstance(params Object[] os) {
@@ -20,11 +21,6 @@ namespace Betauer.Memory {
 
         public static Watcher IfAnyInvalidInstance(params Object[] os) {
             return new Watcher(() => os.Any(o => !Object.IsInstanceValid(o)));
-        }
-
-        public static Watcher IfInvalidTween(SceneTreeTween sceneTreeTween) {
-            return new Watcher(() => !sceneTreeTween.IsValid())
-                .Debug($"If IsValid {sceneTreeTween.ToStringSafe()} > ");
         }
 
         public Watcher(Func<bool> action) {
