@@ -19,11 +19,12 @@ namespace Betauer.Signal {
         public class ObjectSignals {
             internal readonly Object Origin;
             private readonly List<SignalHandler> _signals = new List<SignalHandler>();
+            public readonly Watcher Watcher;
 
             public ObjectSignals(SignalManager signalManager, Object origin) {
                 Origin = origin;
-                Watcher.IfInvalidInstance(origin)
-                    .Do(() => signalManager.RemoveAndDisconnectAll(origin), "Remove all signals");
+                Watcher = Watcher.IfInvalidInstance(origin)
+                    .Do(() => signalManager.DisconnectAll(origin), "Disconnect all signals");
             }
 
             public int Count {
@@ -79,6 +80,9 @@ namespace Betauer.Signal {
             }
         }
         
+        public int GetSignalCount(Object origin) =>
+            TryGetObjectSignals(origin.GetHashCode(), out var objectSignals) ? objectSignals.Count : 0;
+
         public SignalHandler Create(Object origin, string signal, Action action, bool oneShot = false, bool deferred = false) {
             return Connect(new SignalHandler0P(this, Validate(origin, signal), signal, action, oneShot, deferred));
         }
@@ -119,11 +123,11 @@ namespace Betauer.Signal {
             return origin;
         }
 
-        private bool TryGetObjectSignals(int objectId, out ObjectSignals objectSignals) {
-            lock (SignalsByObject) return SignalsByObject.TryGetValue(objectId, out objectSignals);
+        private bool TryGetObjectSignals(int objectHash, out ObjectSignals objectSignals) {
+            lock (SignalsByObject) return SignalsByObject.TryGetValue(objectHash, out objectSignals);
         }
 
-        internal SignalHandler Connect(SignalHandler signalHandler) {
+        public SignalHandler Connect(SignalHandler signalHandler) {
             if (!IsInstanceValid(signalHandler.Origin)) return signalHandler;
             AddSignalHandler(signalHandler);
             ConnectIfNotConnected(signalHandler);
@@ -148,7 +152,7 @@ namespace Betauer.Signal {
             }
         }
 
-        internal SignalHandler Disconnect(SignalHandler signalHandler) {
+        public SignalHandler Disconnect(SignalHandler signalHandler) {
             if (!IsConnected(signalHandler) ||
                 !TryGetObjectSignals(signalHandler.Origin.GetHashCode(), out var objectSignals)) return signalHandler;
             var alive = objectSignals.RemoveSignalAndGetSimilarAlive(signalHandler);
@@ -161,27 +165,16 @@ namespace Betauer.Signal {
             return signalHandler;
         }
 
-        public int GetSignalCount(Object origin) {
-            return TryGetObjectSignals(origin.GetHashCode(), out var objectSignals) ? objectSignals.Count : 0;
-        }
+        public bool CheckOriginConnection(SignalHandler signalHandler) =>
+            IsInstanceValid(signalHandler.Origin) &&
+            signalHandler.Origin.IsConnected(signalHandler.Signal, this, GetMethod(signalHandler));
 
-        private void OnExecuteSignals<T>(int originHash, string signal, Action<T> execute,
-            [CallerMemberName] string signalMethodName = "") where T : SignalHandler {
-            
-            if (!TryGetObjectSignals(originHash, out var objectSignals))
-                throw new KeyNotFoundException($"Signal {signal} not found for {originHash}/{signal} when executing");
-            
-            var alive = objectSignals.ExecuteAllSignalsAndGetAlive(signal, execute);
-            if (alive == 0) {
-                #if DEBUG
-                Logger.Debug(
-                    $"Executing signal. Disconnecting {objectSignals.Origin.ToStringSafe()} signal: \"{signal}\". Because this execution was the last OneShot and 0 alive");
-                #endif
-                objectSignals.Origin.Disconnect(signal, this, signalMethodName);
-            }
-        }
+        public bool IsConnected(SignalHandler signalHandler) =>
+            CheckOriginConnection(signalHandler) &&
+            TryGetObjectSignals(signalHandler.Origin.GetHashCode(), out var objectSignals) &&
+            objectSignals.Contains(signalHandler);
 
-        public void RemoveAndDisconnectAll(Object origin) {
+        public void DisconnectAll(Object origin) {
             if (IsInstanceValid(origin) && 
                 TryGetObjectSignals(origin.GetHashCode(), out var objectSignals)) {
                 
@@ -209,49 +202,46 @@ namespace Betauer.Signal {
             throw new Exception("Unknown SignalHandler type ");
         }
 
-        public bool CheckOriginConnection(SignalHandler signalHandler) {
-            return IsInstanceValid(signalHandler.Origin) &&
-                   signalHandler.Origin.IsConnected(signalHandler.Signal, this, GetMethod(signalHandler));
-        }
+        private static uint SignalFlags(SignalHandler signalHandler) =>
+            (signalHandler.Deferred ? (uint)ConnectFlags.Deferred : 0) +
+            // reference counted is needed to allow multiple connections to the same object + method name
+            (uint)ConnectFlags.ReferenceCounted; 
 
-        public bool IsConnected(SignalHandler signalHandler) {
-            return CheckOriginConnection(signalHandler) &&
-                   TryGetObjectSignals(signalHandler.Origin.GetHashCode(), out var objectSignals) &&
-                   objectSignals.Contains(signalHandler);
-        }
+        private void _GodotSignal0P(int originHash, string signal) =>
+            _GodotSignal<SignalHandler0P>(originHash, signal, sh => sh.Action());
 
-        private static uint SignalFlags(SignalHandler signalHandler) {
-            return (signalHandler.Deferred ? (uint)ConnectFlags.Deferred : 0) +
-                   (uint)ConnectFlags
-                       .ReferenceCounted; // reference counted is needed to allow multiple connections to the same object + method name
-        }
+        private void _GodotSignal1P(object p1, int originHash, string signal) =>
+            _GodotSignal<SignalHandler1P>(originHash, signal, sh => sh.Action(p1));
 
-        private void _GodotSignal0P(int originHash, string signal) {
-            OnExecuteSignals<SignalHandler0P>(originHash, signal, sh => sh.Action());
-        }
+        private void _GodotSignal2P(object p1, object p2, int originHash, string signal) =>
+            _GodotSignal<SignalHandler2P>(originHash, signal, sh => sh.Action(p1, p2));
 
-        private void _GodotSignal1P(object p1, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler1P>(originHash, signal, sh => sh.Action(p1));
-        }
+        private void _GodotSignal3P(object p1, object p2, object p3, int originHash, string signal) =>
+            _GodotSignal<SignalHandler3P>(originHash, signal, sh => sh.Action(p1, p2, p3));
 
-        private void _GodotSignal2P(object p1, object p2, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler2P>(originHash, signal, sh => sh.Action(p1, p2));
-        }
+        private void _GodotSignal4P(object p1, object p2, object p3, object p4, int originHash, string signal) =>
+            _GodotSignal<SignalHandler4P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4));
 
-        private void _GodotSignal3P(object p1, object p2, object p3, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler3P>(originHash, signal, sh => sh.Action(p1, p2, p3));
-        }
+        private void _GodotSignal5P(object p1, object p2, object p3, object p4, object p5, int originHash, string signal) =>
+            _GodotSignal<SignalHandler5P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4, p5));
 
-        private void _GodotSignal4P(object p1, object p2, object p3, object p4, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler4P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4));
-        }
-
-        private void _GodotSignal5P(object p1, object p2, object p3, object p4, object p5, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler5P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4, p5));
-        }
-
-        private void _GodotSignal6P(object p1, object p2, object p3, object p4, object p5, object p6, int originHash, string signal) {
-            OnExecuteSignals<SignalHandler6P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4, p5, p6));
+        private void _GodotSignal6P(object p1, object p2, object p3, object p4, object p5, object p6, int originHash, string signal) =>
+            _GodotSignal<SignalHandler6P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4, p5, p6));
+        
+        private void _GodotSignal<T>(int originHash, string signal, Action<T> execute,
+            [CallerMemberName] string signalMethodName = "") where T : SignalHandler {
+            
+            if (!TryGetObjectSignals(originHash, out var objectSignals))
+                throw new KeyNotFoundException($"Signal {signal} not found for {originHash}/{signal} when executing");
+            
+            var alive = objectSignals.ExecuteAllSignalsAndGetAlive(signal, execute);
+            if (alive == 0) {
+                #if DEBUG
+                Logger.Debug(
+                    $"Executing signal. Disconnecting {objectSignals.Origin.ToStringSafe()} signal: \"{signal}\". Because this execution was the last OneShot and 0 alive");
+                #endif
+                objectSignals.Origin.Disconnect(signal, this, signalMethodName);
+            }
         }
     }
 }
