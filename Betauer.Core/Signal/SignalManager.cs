@@ -22,9 +22,8 @@ namespace Betauer.Signal {
 
             public ObjectSignals(SignalManager signalManager, Object origin) {
                 Origin = origin;
-                new WatchObjectSignalHandler(signalManager)
-                    .Watch(origin)
-                    .AddToDefaultObjectWatcher();
+                Watcher.IfInvalidInstance(origin)
+                    .Do(() => signalManager.RemoveAndDisconnectAll(origin), "Remove all signals");
             }
 
             public int Count {
@@ -33,7 +32,6 @@ namespace Betauer.Signal {
                         return _signals.Count;
                     }
                 }
-
             }
 
             public void Add(SignalHandler signalHandler) {
@@ -254,41 +252,6 @@ namespace Betauer.Signal {
 
         private void _GodotSignal6P(object p1, object p2, object p3, object p4, object p5, object p6, int originHash, string signal) {
             OnExecuteSignals<SignalHandler6P>(originHash, signal, sh => sh.Action(p1, p2, p3, p4, p5, p6));
-        }
-
-        private class WatchObjectSignalHandler : IObjectConsumer {
-            private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Consumer));
-            private readonly SignalManager _signalManager;
-            private Object _watching;
-
-            public WatchObjectSignalHandler(SignalManager signalManager) {
-                _signalManager = signalManager;
-            }
-
-            public WatchObjectSignalHandler Watch(Object sceneTreeTweenWatching) {
-                _watching = sceneTreeTweenWatching;
-                return this;
-            }
-
-            public bool Consume(bool force) {
-                if (force || !IsInstanceValid(_watching)) {
-                    #if DEBUG
-                    Logger.Debug($"Consumed: {_watching.ToStringSafe()} {_signalManager.GetSignalCount(_watching).ToString()} signal actions");
-                    #endif
-                    _signalManager.RemoveAndDisconnectAll(_watching);
-                    return true;
-                }
-                return false;
-            }
-
-            public WatchObjectSignalHandler AddToDefaultObjectWatcher() {
-                DefaultObjectWatcherTask.Instance.Add(this);
-                return this;
-            }
-
-            public override string ToString() {
-                return $"Watching: {_watching.ToStringSafe()}";
-            }
         }
     }
 }

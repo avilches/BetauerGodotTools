@@ -4,29 +4,36 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Memory {
-
     public class Watcher : IObjectConsumer {
         private readonly Func<bool> _condition;
         public event Action? OnExecute;
+        private string _debug = "";
 
         public static Watcher IfInvalidInstance(Object o) {
-            return new Watcher(() => !Object.IsInstanceValid(o)).StartWatching();
+            return new Watcher(() => !Object.IsInstanceValid(o))
+                .Debug($"If IsInstanceValid {o.ToStringSafe()} > ");
         }
 
         public static Watcher IfAllInvalidInstance(params Object[] os) {
-            return new Watcher(() => os.All(o => !Object.IsInstanceValid(o))).StartWatching();
+            return new Watcher(() => os.All(o => !Object.IsInstanceValid(o)));
         }
 
         public static Watcher IfAnyInvalidInstance(params Object[] os) {
-            return new Watcher(() => os.Any(o => !Object.IsInstanceValid(o))).StartWatching();
+            return new Watcher(() => os.Any(o => !Object.IsInstanceValid(o)));
         }
 
         public static Watcher IfInvalidTween(SceneTreeTween sceneTreeTween) {
-            return new Watcher(() => !sceneTreeTween.IsValid());
+            return new Watcher(() => !sceneTreeTween.IsValid())
+                .Debug($"If IsValid {sceneTreeTween.ToStringSafe()} > ");
         }
 
         public Watcher(Func<bool> action) {
             _condition = action;
+        }
+
+        public Watcher Debug(string debug) {
+            _debug += debug;
+            return this;
         }
 
         public Watcher StartWatching() {
@@ -39,11 +46,6 @@ namespace Betauer.Memory {
             return this;
         }
 
-        public Watcher Do(Action? execute) {
-            OnExecute += execute;
-            return this;
-        }
-        
         public Watcher Free(Object target, bool deferred = true) {
             return Do(() => {
                 if (!Object.IsInstanceValid(target)) return;
@@ -53,7 +55,16 @@ namespace Betauer.Memory {
                 } else {
                     target.Free();
                 }
-            });
+            }, $"Free{(deferred ? " deferred: " : ": ")}{target.ToStringSafe()}");
+        }
+
+        public Watcher Do(Action? execute, string debug) {
+            OnExecute += execute;
+            return Debug(debug).StartWatching();
+        }
+
+        public override string ToString() {
+            return $"Watcher: {_debug}";
         }
 
         public bool Consume(bool force) {
