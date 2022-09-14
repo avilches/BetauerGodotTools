@@ -39,6 +39,8 @@ namespace Betauer.Tests {
             
             // When signal origin is freed, SignalHandler object is removed
             b1.Free();
+            Assert.That(p1.IsConnected(), Is.False);
+            Assert.That(p1.CheckOriginConnection(), Is.False);
             DefaultObjectWatcherTask.Instance.Consume();
             Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
@@ -137,6 +139,42 @@ namespace Betauer.Tests {
             Assert.That(p3.CheckOriginConnection(), Is.False);
         }
 
+
+        [Test(Description = "Signal auto disconnect on watching node")]
+        public async Task SignalAutoDisconnectTests() {
+            var b1 = new CheckButton();
+            var w = new Object();
+            var no = new Object();
+            AddChild(b1);
+            await this.AwaitIdleFrame();
+
+            SignalHandler p1 = b1.OnPressed(() => { });
+            SignalHandler p2 = b1.OnPressed(() => { });
+            
+            // Watch added but removed, nothing happens when it's freed
+            p1.DisconnectIfInvalid(no).StopWatching();
+            no.Free();
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(p1.IsConnected(), Is.True);
+            Assert.That(p2.IsConnected(), Is.True);
+            Assert.That(p1.CheckOriginConnection(), Is.True);
+            Assert.That(p2.CheckOriginConnection(), Is.True);
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(2));
+            
+            // Added a real watcher
+            p1.DisconnectIfInvalid(w);
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
+            
+            w.Free();
+            DefaultObjectWatcherTask.Instance.Consume();
+            Assert.That(p1.IsConnected(), Is.False);
+            Assert.That(p2.IsConnected(), Is.True);
+            Assert.That(p1.CheckOriginConnection(), Is.True);
+            Assert.That(p1.CheckOriginConnection(), Is.True);
+            Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(1));
+            Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(1));
+        }
 
         [Test(Description = "Signal connect and disconnect")]
         public async Task ConnectAndDisconnectLambdaTests() {

@@ -46,7 +46,7 @@ namespace Betauer.Animation.Tween {
             lock (ActionsByTween) {
                 if (!ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actionList)) {
                     actionList = ActionsByTween[sceneTreeTweenHash] = new List<Action<object>>();
-                    Watcher.IfInvalidTween(sceneTreeTween)
+                    Watcher.IfInvalidInstance(sceneTreeTween)
                         .Do(() => ActionsByTween.Remove(sceneTreeTweenHash), "Remove all callbacks");
                 }
                 actionList.Add(action);

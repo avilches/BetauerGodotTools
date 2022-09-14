@@ -1,4 +1,5 @@
 using System;
+using Betauer.Memory;
 using Object = Godot.Object;
 
 namespace Betauer.Signal {
@@ -17,6 +18,11 @@ namespace Betauer.Signal {
             Deferred = deferred;
         }
 
+        public Watcher DisconnectIfInvalid(Object watch) {
+            return Watcher.IfInvalidInstance(watch)
+                .Do(() => Disconnect(), $"Disconnect \"{Signal}\" from {Origin.ToStringSafe()}");
+        }
+
         public bool IsConnected() => SignalManager.IsConnected(this);
         public bool CheckOriginConnection() => SignalManager.CheckOriginConnection(this);
         public SignalHandler Disconnect() => SignalManager.Disconnect(this);
@@ -30,7 +36,6 @@ namespace Betauer.Signal {
             base(signalManager, origin, signal, oneShot, deferred) {
             Action = action;
         }
-
     }
 
     public class SignalHandler0P : SignalHandler<Action> {
