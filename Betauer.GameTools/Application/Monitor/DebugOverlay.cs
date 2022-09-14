@@ -14,10 +14,7 @@ namespace Betauer.Application.Monitor {
         [Inject(Nullable = true)]
         public InputAction? DebugOverlayAction { get; set; }
 
-        [Inject(Nullable = true)]
-        public InputAction? LMB { get; set; }
-
-        private bool _mouseInsidePanel = false;
+        private readonly MouseInsideControlStatus _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
         private readonly Color _transparent = new Color(1, 1, 1, 0.490196f);
         private readonly Color _solid = new Color(1, 1, 1);
@@ -29,9 +26,8 @@ namespace Betauer.Application.Monitor {
             Panel.MouseFilter = Control.MouseFilterEnum.Pass;
             Panel.Name = "PanelContainer";
             Panel.Modulate = new Color(1, 1, 1, 0.490196f);
-            Panel.OnMouseEntered(() => _mouseInsidePanel = true);
-            Panel.OnMouseExited(() => _mouseInsidePanel = false);
             AddChild(Panel);
+            _mouseInsidePanel = new MouseInsideControlStatus(Panel);
 
             var vbox = new VBoxContainer();
             Panel.AddChild(vbox);
@@ -53,14 +49,14 @@ namespace Betauer.Application.Monitor {
             } else if (@event.IsDoubleClick(ButtonList.Left)) {
                 Panel.Modulate = Panel.Modulate.a <= 0.9f ? _solid : _transparent;
                 
-            } else if (_mouseInsidePanel && @event.IsClick(ButtonList.Left)) {
+            } else if (_mouseInsidePanel.MouseInside && @event.IsClick(ButtonList.Left)) {
                 if (@event.IsJustPressed()) {
                     _startDragPosition = Panel.RectPosition - Panel.GetGlobalMousePosition();
                 } else {
                     _startDragPosition = null;
                 }
                 
-            } else if (_mouseInsidePanel && _startDragPosition != null && @event.IsMouseMotion()) {
+            } else if (_mouseInsidePanel.MouseInside && _startDragPosition != null && @event.IsMouseMotion()) {
                 var newPosition = Panel.GetGlobalMousePosition() + _startDragPosition.Value;
                 newPosition = new Vector2(
                     Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - 100),
