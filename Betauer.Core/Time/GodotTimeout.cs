@@ -53,7 +53,7 @@ namespace Betauer.Time {
 
         public float TimeLeft {
             get {
-                if (_running && !_paused) return _sceneTreeTimer.TimeLeft;
+                if (_running && !_paused) return _sceneTreeTimer!.TimeLeft;
                 return _timeLeft;
             }
         }
@@ -84,14 +84,14 @@ namespace Betauer.Time {
                 _timeLeft = Timeout;
             } else { 
                 // running and not paused 
-                _sceneTreeTimer.TimeLeft = Timeout;
+                _sceneTreeTimer!.TimeLeft = Timeout;
             }
             return this;
         }
 
         public GodotTimeout Restart() {
             if (_running && !_paused) {
-                _sceneTreeTimer.TimeLeft = Timeout;
+                _sceneTreeTimer!.TimeLeft = Timeout;
             } else {
                 // running and paused, or not running
                 _sceneTreeTimer = CreateTimer(Timeout);
@@ -107,7 +107,7 @@ namespace Betauer.Time {
         /// <returns></returns>
         public GodotTimeout Stop() {
             if (_running && !_paused) {
-                _timeLeft = _sceneTreeTimer.TimeLeft;
+                _timeLeft = _sceneTreeTimer!.TimeLeft;
                 _sceneTreeTimer = null;
                 _paused = true;
             }

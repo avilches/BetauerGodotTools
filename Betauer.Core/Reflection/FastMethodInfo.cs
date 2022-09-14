@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Betauer.Reflection {
     public class FastMethodInfo {
-        private delegate object ReturnValueDelegate(object instance, object[] arguments);
+        private delegate object? ReturnValueDelegate(object instance, object[] arguments);
         private delegate void VoidDelegate(object instance, object[] arguments);
 
         public FastMethodInfo(MethodInfo methodInfo) {
@@ -37,7 +37,7 @@ namespace Betauer.Reflection {
 
         private ReturnValueDelegate Delegate { get; }
 
-        public object Invoke(object instance, params object[] arguments) {
+        public object? Invoke(object instance, params object[] arguments) {
             return Delegate(instance, arguments);
         }
     }

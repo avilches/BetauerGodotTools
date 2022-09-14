@@ -10,7 +10,7 @@ namespace Betauer.Reflection {
         
         public static List<IGetterSetter<T>> GetGetterSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
             var key = (typeof(IGetterSetter<T>), type, memberFlags, bindingAttr);
-            if (Cache.TryGetValue(key, out var result)) return result as List<IGetterSetter<T>>; 
+            if (Cache.TryGetValue(key, out var result)) return (List<IGetterSetter<T>>)result; 
             return (List<IGetterSetter<T>>)(Cache[key] = type.GetGetterSetters<T>(memberFlags, bindingAttr));
         }
 
@@ -31,7 +31,7 @@ namespace Betauer.Reflection {
 
         public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
             var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
-            if (Cache.TryGetValue(key, out var result)) return result as List<ISetter<T>>;
+            if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
             return (List<ISetter<T>>)(Cache[key] = type.GetSetters<T>(memberFlags, bindingAttr));
         }
 
@@ -51,7 +51,7 @@ namespace Betauer.Reflection {
 
         public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
             var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
-            if (Cache.TryGetValue(key, out var result)) return result as List<ISetter<T>>; 
+            if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result; 
             return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
         }
 

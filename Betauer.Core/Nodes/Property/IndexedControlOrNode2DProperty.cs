@@ -6,7 +6,7 @@ namespace Betauer.Nodes.Property {
         private readonly NodePath? _node2DProperty;
         private readonly NodePath? _controlProperty;
 
-        public IndexedControlOrNode2DProperty(NodePath node2DProperty, NodePath controlProperty) {
+        public IndexedControlOrNode2DProperty(NodePath? node2DProperty, NodePath? controlProperty) {
             _node2DProperty = node2DProperty;
             _controlProperty = controlProperty;
         }

@@ -25,7 +25,7 @@ namespace Betauer {
             if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3)
                 return (T)(object)(fromVector3 + toVector3);
 
-            throw new Exception("Sum Variant " + op1.GetType().Name + " + " + op2.GetType().Name + " not implemented");
+            throw new Exception("Sum Variant " + op1?.GetType().Name + " + " + op2?.GetType().Name + " not implemented");
         }
 
         public static T SubtractVariant<T>(T op1, T op2) {
@@ -47,7 +47,7 @@ namespace Betauer {
             if (op1 is Vector3 fromVector3 && op2 is Vector3 toVector3)
                 return (T)(object)(fromVector3 - toVector3);
 
-            throw new Exception("Substract Variant " + op1.GetType().Name + " + " + op2.GetType().Name +
+            throw new Exception("Substract Variant " + op1?.GetType().Name + " + " + op2?.GetType().Name +
                                 " not implemented");
         }
 
@@ -88,7 +88,7 @@ namespace Betauer {
                     return Lerp(fromBasis, toBasis, t);
 
                 default:
-                    throw new Exception("Lerp from " + op1.GetType().Name + " to " + op2.GetType().Name +
+                    throw new Exception("Lerp from " + op1?.GetType().Name + " to " + op2?.GetType().Name +
                                         " not implemented");
             }
         }
