@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Betauer;
 using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Godot;
@@ -99,8 +101,22 @@ namespace Veronenger.Game.Managers {
             DebugOverlay.Panel.Theme = MyTheme;
             DebugOverlay.MonitorFpsAndMemory();
             DebugOverlay.MonitorObjectRunnerSize();
-            DebugOverlay.Create().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
-            DebugOverlay.Create().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
+            DebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+            DebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
+
+            var debugOverlay = new DebugOverlay();
+            debugOverlay.Panel.Theme = MyTheme;
+            debugOverlay.CreateMonitor().Show(() => {
+                var txt = "";
+                foreach (var objectSignals in DefaultSignalManager.Instance.SignalsByObject.Values) {
+                    txt += objectSignals.Emitter.ToStringSafe() + " (" + objectSignals.Signals.Count + "): " +
+                           string.Join(", ", objectSignals.Signals.Select(s => s.Signal)) + "\n";
+                }
+                
+                return txt;
+            });
+            SceneTree.Root.AddChild(debugOverlay);
+
         }
 
         private void ConfigureStates() {
