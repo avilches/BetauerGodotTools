@@ -375,7 +375,7 @@ namespace Betauer.Tests {
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(4));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b2), Is.EqualTo(4));
 
-            DefaultSignalManager.Instance.RemoveAndDisconnectAll(b1);
+            DefaultSignalManager.Instance.DisconnectAll(b1);
 
             Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(2));
             Assert.That(DefaultSignalManager.Instance.GetSignalCount(b1), Is.EqualTo(0));
