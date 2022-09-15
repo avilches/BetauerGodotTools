@@ -18,6 +18,9 @@ namespace Betauer.Application.Monitor {
         private Vector2? _startDragPosition = null;
         private readonly Color _transparent = new Color(1, 1, 1, 0.490196f);
         private readonly Color _solid = new Color(1, 1, 1);
+
+        private static int _count = 0;
+        
         public DebugOverlay() {
             Name = "DebugOverlay";
             Layer = 1000;
@@ -26,6 +29,8 @@ namespace Betauer.Application.Monitor {
             Panel.MouseFilter = Control.MouseFilterEnum.Pass;
             Panel.Name = "PanelContainer";
             Panel.Modulate = new Color(1, 1, 1, 0.490196f);
+            Panel.RectPosition = new Vector2(_count * 24, _count * 24);
+            _count++;
             AddChild(Panel);
             _mouseInsidePanel = new MouseInsideControlStatus(Panel);
 

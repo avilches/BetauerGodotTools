@@ -3,7 +3,7 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public static partial class DebugOverlayExtensions {
-        public static Monitor Create(this DebugOverlay overlay, string prefix = null) {
+        public static Monitor CreateMonitor(this DebugOverlay overlay, string prefix = null) {
             return overlay.MonitorList
                 .Create<Monitor>()
                 .WithPrefix(prefix);
