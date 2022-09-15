@@ -12,9 +12,9 @@ namespace Generator {
         public readonly string SignalCsharpConstantName;
         public readonly GodotClass GodotClass;
         public readonly string MethodName;
-        public List<SignalArg> Args = new List<SignalArg>();
+        public readonly List<SignalArg> Args;
 
-        public Signal(GodotClass godotClass, string name) {
+        public Signal(GodotClass godotClass, string name, List<SignalArg> args) {
             GodotClass = godotClass;
             signal_name = name; // "on_button_pressed"
             // Some signals include a "on_" prefix. The camel case version will not include it
@@ -24,6 +24,7 @@ namespace Generator {
             MethodName = GodotClass.IsStatic ? $"{GodotClass.ClassName}{SignalName}" : SignalName;
             // const VirtualServer_ButtonPressedSignal = "pressed_signal"
             SignalCsharpConstantName = $"{GodotClass.ClassName}_{MethodName}Signal";
+            Args = args;
         }
 
         public string GetParamNames() {
@@ -86,56 +87,58 @@ namespace Generator {
 
         public readonly string class_name;
         public readonly string ClassName;
-        public readonly string GeneratedClassName;
         public readonly bool IsStatic;
         public readonly bool IsAbstract;
         public readonly bool IsValid;
         public readonly bool IsNode;
         public readonly List<Signal> Signals;
         public readonly List<Signal> AllSignals;
-        public readonly Type Type;
+        public readonly Type? Type;
 
         public GodotClass(string className) {
             class_name = className;
             var camelCase = className.CamelCase();
             ClassName = ClassMap.ContainsKey(camelCase) ? ClassMap[camelCase] : camelCase;
-            GeneratedClassName = ClassName + "Action";
             IsValid = ClassDB.IsClassEnabled(className);
             if (IsValid) {
                 var godotSharpAssemblyName = typeof(Node).Assembly.GetName().Name;
-                Type = Type.GetType("Godot." + ClassName + ", " + godotSharpAssemblyName);
-                if (Type != null) {
+                var fullQualifiedName = $"Godot.{ClassName}, {godotSharpAssemblyName}";
+                Type = Type.GetType(fullQualifiedName);
+                if (Type == null) {
+                    IsValid = false;
+                } else {
                     IsStatic = Type.IsAbstract && Type.IsSealed;
                     IsAbstract = Type.IsAbstract;
                     IsNode = Type.IsSubclassOf(typeof(Node));
-                } else {
-                    IsValid = false;
                 }
             }
             if (IsValid) {
-                Signals = GetSignalsFromClass(ClassDB.ClassGetSignalList(class_name, true));
-                AllSignals = GetSignalsFromClass(ClassDB.ClassGetSignalList(class_name, false));
+                Signals = GetSignalsFromClass(true);
+                AllSignals = GetSignalsFromClass(false);
             }
         }
 
-        public List<Signal> GetSignalsFromClass(Array classDbSignals) {
-            List<Signal> signals = new List<Signal>();
+        public List<Signal> GetSignalsFromClass(bool noInheritance) {
+            var classDbSignals = ClassDB.ClassGetSignalList(class_name, noInheritance);
+            var signals = new List<Signal>();
             foreach (Dictionary signalData in classDbSignals) {
                 var signalName = (string)signalData["name"];
-                var signalArgs = (Array)signalData["args"];
-                var signal = new Signal(this, signalName);
-                var args = new List<SignalArg>();
-                foreach (Dictionary arg in signalArgs) {
-                    string? argClassName = (string)arg["class_name"];
-                    var argName = (string)arg["name"];
-                    var argType = TypeMap[(int)arg["type"]];
-                    argName = ReservedNames.ContainsKey(argName) ? ReservedNames[argName] : argName;
-                    args.Add(new SignalArg(argClassName?.Length > 0 ? argClassName : argType, argName));
-                }
-                signal.Args = args.OrderBy(arg => arg.ArgName).ToList();
-                signals.Add(signal);
+                var signalArgs = CreateSignalArgs((Array)signalData["args"]);
+                signals.Add(new Signal(this, signalName, signalArgs));
             }
             return signals.OrderBy(signal => signal.SignalName).ToList();
+        }
+
+        private static List<SignalArg> CreateSignalArgs(Array signalGodotArgs) {
+            var args = new List<SignalArg>();
+            foreach (Dictionary arg in signalGodotArgs) {
+                string? argClassName = (string)arg["class_name"];
+                var argName = (string)arg["name"];
+                var argType = TypeMap[(int)arg["type"]];
+                argName = ReservedNames.ContainsKey(argName) ? ReservedNames[argName] : argName;
+                args.Add(new SignalArg(argClassName?.Length > 0 ? argClassName : argType, argName));
+            }
+            return args;
         }
     }
 

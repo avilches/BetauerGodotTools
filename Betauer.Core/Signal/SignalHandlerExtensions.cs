@@ -8,7 +8,7 @@ namespace Betauer.Signal {
     public static partial class SignalExtensions {
 
         public static SignalManager SignalFactory => DefaultSignalManager.Instance;
-        
+
         public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, signal, action, oneShot, deferred);
 
@@ -81,10 +81,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnAreaExited(this Area target, Action<Area> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnAreaShapeEntered(this Area target, Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnAreaShapeEntered(this Area target, Action<RID, Area, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnAreaShapeExited(this Area target, Action<Area, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnAreaShapeExited(this Area target, Action<RID, Area, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnBodyEntered(this Area target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
@@ -93,10 +93,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnBodyExited(this Area target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeEntered(this Area target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeEntered(this Area target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeExited(this Area target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeExited(this Area target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnAreaEntered(this Area2D target, Action<Area2D> action, bool oneShot = false, bool deferred = false) =>
@@ -105,10 +105,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnAreaExited(this Area2D target, Action<Area2D> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnAreaShapeEntered(this Area2D target, Action<Area2D, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnAreaShapeEntered(this Area2D target, Action<RID, Area2D, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnAreaShapeExited(this Area2D target, Action<Area2D, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnAreaShapeExited(this Area2D target, Action<RID, Area2D, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "area_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnBodyEntered(this Area2D target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
@@ -117,10 +117,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnBodyExited(this Area2D target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeEntered(this Area2D target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeEntered(this Area2D target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeExited(this Area2D target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeExited(this Area2D target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnMeshUpdated(this ARVRAnchor target, Action<Mesh> action, bool oneShot = false, bool deferred = false) =>
@@ -141,10 +141,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnARVRServerInterfaceRemoved(Action<string> action, bool oneShot = false, bool deferred = false) =>
             On(ARVRServer.Singleton, "interface_removed", action, oneShot, deferred);
 
-        public static SignalHandler OnARVRServerTrackerAdded(Action<int, string, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnARVRServerTrackerAdded(Action<string, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(ARVRServer.Singleton, "tracker_added", action, oneShot, deferred);
 
-        public static SignalHandler OnARVRServerTrackerRemoved(Action<int, string, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnARVRServerTrackerRemoved(Action<string, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(ARVRServer.Singleton, "tracker_removed", action, oneShot, deferred);
 
         public static SignalHandler OnAudioServerBusLayoutChanged(Action action, bool oneShot = false, bool deferred = false) =>
@@ -195,7 +195,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnVisibilityChanged(this CanvasLayer target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "visibility_changed", action, oneShot, deferred);
 
-        public static SignalHandler OnInputEvent(this CollisionObject target, Action<InputEvent, Node, Vector3, Vector3, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnInputEvent(this CollisionObject target, Action<Node, InputEvent, Vector3, Vector3, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "input_event", action, oneShot, deferred);
 
         public static SignalHandler OnMouseEntered(this CollisionObject target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -204,7 +204,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnMouseExited(this CollisionObject target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "mouse_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnInputEvent(this CollisionObject2D target, Action<InputEvent, int, Node> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnInputEvent(this CollisionObject2D target, Action<Node, InputEvent, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "input_event", action, oneShot, deferred);
 
         public static SignalHandler OnMouseEntered(this CollisionObject2D target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -279,7 +279,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnBeginNodeMove(this GraphEdit target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "_begin_node_move", action, oneShot, deferred);
 
-        public static SignalHandler OnConnectionFromEmpty(this GraphEdit target, Action<Vector2, string, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnConnectionFromEmpty(this GraphEdit target, Action<string, int, Vector2> action, bool oneShot = false, bool deferred = false) =>
             On(target, "connection_from_empty", action, oneShot, deferred);
 
         public static SignalHandler OnConnectionRequest(this GraphEdit target, Action<string, int, string, int> action, bool oneShot = false, bool deferred = false) =>
@@ -339,16 +339,16 @@ namespace Betauer.Signal {
         public static SignalHandler OnCellSizeChanged(this GridMap target, Action<Vector3> action, bool oneShot = false, bool deferred = false) =>
             On(target, "cell_size_changed", action, oneShot, deferred);
 
-        public static SignalHandler OnRequestCompleted(this HTTPRequest target, Action<byte[], string[], int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnRequestCompleted(this HTTPRequest target, Action<int, int, string[], byte[]> action, bool oneShot = false, bool deferred = false) =>
             On(target, "request_completed", action, oneShot, deferred);
 
-        public static SignalHandler OnInputJoyConnectionChanged(Action<bool, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnInputJoyConnectionChanged(Action<int, bool> action, bool oneShot = false, bool deferred = false) =>
             On(Input.Singleton, "joy_connection_changed", action, oneShot, deferred);
 
         public static SignalHandler OnItemActivated(this ItemList target, Action<int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "item_activated", action, oneShot, deferred);
 
-        public static SignalHandler OnItemRmbSelected(this ItemList target, Action<Vector2, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnItemRmbSelected(this ItemList target, Action<int, Vector2> action, bool oneShot = false, bool deferred = false) =>
             On(target, "item_rmb_selected", action, oneShot, deferred);
 
         public static SignalHandler OnItemSelected(this ItemList target, Action<int> action, bool oneShot = false, bool deferred = false) =>
@@ -375,7 +375,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnTextEntered(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) =>
             On(target, "text_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnRequestPermissionsResult(this MainLoop target, Action<bool, string> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnRequestPermissionsResult(this MainLoop target, Action<string, bool> action, bool oneShot = false, bool deferred = false) =>
             On(target, "on_request_permissions_result", action, oneShot, deferred);
 
         public static SignalHandler OnAboutToShow(this MenuButton target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -444,7 +444,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnNavigationServerMapChanged(Action<RID> action, bool oneShot = false, bool deferred = false) =>
             On(NavigationServer.Singleton, "map_changed", action, oneShot, deferred);
 
-        public static SignalHandler OnPacketGenerated(this NetworkedMultiplayerCustom target, Action<byte[], int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnPacketGenerated(this NetworkedMultiplayerCustom target, Action<int, byte[], int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "packet_generated", action, oneShot, deferred);
 
         public static SignalHandler OnConnectionFailed(this NetworkedMultiplayerPeer target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -543,10 +543,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnBodyExited(this RigidBody target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeEntered(this RigidBody target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeEntered(this RigidBody target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeExited(this RigidBody target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeExited(this RigidBody target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnSleepingStateChanged(this RigidBody target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -558,10 +558,10 @@ namespace Betauer.Signal {
         public static SignalHandler OnBodyExited(this RigidBody2D target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_exited", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeEntered(this RigidBody2D target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeEntered(this RigidBody2D target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_entered", action, oneShot, deferred);
 
-        public static SignalHandler OnBodyShapeExited(this RigidBody2D target, Action<Node, RID, int, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnBodyShapeExited(this RigidBody2D target, Action<RID, Node, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "body_shape_exited", action, oneShot, deferred);
 
         public static SignalHandler OnSleepingStateChanged(this RigidBody2D target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -702,13 +702,13 @@ namespace Betauer.Signal {
         public static SignalHandler OnCursorChanged(this TextEdit target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "cursor_changed", action, oneShot, deferred);
 
-        public static SignalHandler OnInfoClicked(this TextEdit target, Action<string, int> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnInfoClicked(this TextEdit target, Action<int, string> action, bool oneShot = false, bool deferred = false) =>
             On(target, "info_clicked", action, oneShot, deferred);
 
         public static SignalHandler OnRequestCompletion(this TextEdit target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "request_completion", action, oneShot, deferred);
 
-        public static SignalHandler OnSymbolLookup(this TextEdit target, Action<int, int, string> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnSymbolLookup(this TextEdit target, Action<string, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "symbol_lookup", action, oneShot, deferred);
 
         public static SignalHandler OnTextChanged(this TextEdit target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -726,7 +726,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnReleased(this TouchScreenButton target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "released", action, oneShot, deferred);
 
-        public static SignalHandler OnButtonPressed(this Tree target, Action<int, int, TreeItem> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnButtonPressed(this Tree target, Action<TreeItem, int, int> action, bool oneShot = false, bool deferred = false) =>
             On(target, "button_pressed", action, oneShot, deferred);
 
         public static SignalHandler OnCellSelected(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -768,7 +768,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnItemSelected(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, "item_selected", action, oneShot, deferred);
 
-        public static SignalHandler OnMultiSelected(this Tree target, Action<int, TreeItem, bool> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnMultiSelected(this Tree target, Action<TreeItem, int, bool> action, bool oneShot = false, bool deferred = false) =>
             On(target, "multi_selected", action, oneShot, deferred);
 
         public static SignalHandler OnNothingSelected(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -783,7 +783,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnTweenStarted(this Tween target, Action<Object, NodePath> action, bool oneShot = false, bool deferred = false) =>
             On(target, "tween_started", action, oneShot, deferred);
 
-        public static SignalHandler OnTweenStep(this Tween target, Action<Object, float, NodePath, Object> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnTweenStep(this Tween target, Action<Object, NodePath, float, Object> action, bool oneShot = false, bool deferred = false) =>
             On(target, "tween_step", action, oneShot, deferred);
 
         public static SignalHandler OnFinished(this Tweener target, Action action, bool oneShot = false, bool deferred = false) =>
@@ -846,7 +846,7 @@ namespace Betauer.Signal {
         public static SignalHandler OnDataChannelReceived(this WebRTCPeerConnection target, Action<Object> action, bool oneShot = false, bool deferred = false) =>
             On(target, "data_channel_received", action, oneShot, deferred);
 
-        public static SignalHandler OnIceCandidateCreated(this WebRTCPeerConnection target, Action<int, string, string> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnIceCandidateCreated(this WebRTCPeerConnection target, Action<string, int, string> action, bool oneShot = false, bool deferred = false) =>
             On(target, "ice_candidate_created", action, oneShot, deferred);
 
         public static SignalHandler OnSessionDescriptionCreated(this WebRTCPeerConnection target, Action<string, string> action, bool oneShot = false, bool deferred = false) =>
