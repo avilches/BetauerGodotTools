@@ -17,38 +17,38 @@ namespace Betauer.Signal {
         public readonly Dictionary<int, ObjectSignals> SignalsByObject = new Dictionary<int, ObjectSignals>();
 
         public class ObjectSignals {
-            internal readonly Object Origin;
-            private readonly List<SignalHandler> _signals = new List<SignalHandler>();
+            public readonly Object Emitter;
+            public readonly List<SignalHandler> Signals = new List<SignalHandler>();
             public readonly Watcher Watcher;
 
-            public ObjectSignals(SignalManager signalManager, Object origin) {
-                Origin = origin;
-                Watcher = Watcher.IfInvalidInstance(origin)
-                    .Do(() => signalManager.DisconnectAll(origin), "Disconnect all signals");
+            public ObjectSignals(SignalManager signalManager, Object emitter) {
+                Emitter = emitter;
+                Watcher = Watcher.IfInvalidInstance(emitter)
+                    .Do(() => signalManager.DisconnectAll(emitter), "Disconnect all signals");
             }
 
             public int Count {
                 get {
-                    lock (_signals) {
-                        return _signals.Count;
+                    lock (Signals) {
+                        return Signals.Count;
                     }
                 }
             }
 
             public void Add(SignalHandler signalHandler) {
-                lock (_signals) _signals.Add(signalHandler);
+                lock (Signals) Signals.Add(signalHandler);
             }
 
             public bool Contains(SignalHandler signalHandler) {
-                lock (_signals) {
-                    return _signals.Contains(signalHandler);
+                lock (Signals) {
+                    return Signals.Contains(signalHandler);
                 }
             }
 
             public int RemoveSignalAndGetSimilarAlive(SignalHandler signalHandler) {
                 var alive = 0;
-                lock (_signals) {
-                    _signals.RemoveAll(sh => {
+                lock (Signals) {
+                    Signals.RemoveAll(sh => {
                         if (sh == signalHandler) return true; // the specific handler has been found, true = delete it
                         if (sh.Signal == signalHandler.Signal) alive++; // a signal of the same type 
                         return false; // ignore different type signals
@@ -59,8 +59,8 @@ namespace Betauer.Signal {
 
             public int ExecuteAllSignalsAndGetAlive<T>(string signal, Action<T> execute) {
                 var alive = 0;
-                lock (_signals) {
-                    _signals.RemoveAll(sh => {
+                lock (Signals) {
+                    Signals.RemoveAll(sh => {
                         if (sh is T signalHandler && sh.Signal == signal) {
                             execute(signalHandler);
                             if (sh.OneShot) return true; // delete all OneShot signals
@@ -73,8 +73,8 @@ namespace Betauer.Signal {
             }
 
             public IEnumerable<IGrouping<string, SignalHandler>> GroupBySignalName() {
-                lock (_signals) {
-                    return _signals.GroupBy(sh => sh.Signal);
+                lock (Signals) {
+                    return Signals.GroupBy(sh => sh.Signal);
 
                 }
             }
@@ -158,9 +158,9 @@ namespace Betauer.Signal {
             var alive = objectSignals.RemoveSignalAndGetSimilarAlive(signalHandler);
             if (alive == 0) {
                 #if DEBUG
-                Logger.Debug($"Specific disconnection {objectSignals.Origin.ToStringSafe()} signal: \"{signalHandler.Signal}\"");
+                Logger.Debug($"Specific disconnection {objectSignals.Emitter.ToStringSafe()} signal: \"{signalHandler.Signal}\"");
                 #endif
-                objectSignals.Origin.Disconnect(signalHandler.Signal, this, GetMethod(signalHandler));
+                objectSignals.Emitter.Disconnect(signalHandler.Signal, this, GetMethod(signalHandler));
             }
             return signalHandler;
         }
@@ -180,9 +180,9 @@ namespace Betauer.Signal {
                 
                 objectSignals.GroupBySignalName().ForEach(group => {
                     #if DEBUG
-                    Logger.Debug($"RemoveAll. Disconnecting {objectSignals.Origin.ToStringSafe()} signal: \"{group.Key}\"");
+                    Logger.Debug($"DisconnectAll {objectSignals.Emitter.ToStringSafe()} signal: \"{group.Key}\"");
                     #endif
-                    objectSignals.Origin.Disconnect(group.Key, this, GetMethod(group.First()));
+                    objectSignals.Emitter.Disconnect(group.Key, this, GetMethod(group.First()));
                 });
             }
             lock (SignalsByObject) SignalsByObject.Remove(origin.GetHashCode());
@@ -238,9 +238,9 @@ namespace Betauer.Signal {
             if (alive == 0) {
                 #if DEBUG
                 Logger.Debug(
-                    $"Executing signal. Disconnecting {objectSignals.Origin.ToStringSafe()} signal: \"{signal}\". Because this execution was the last OneShot and 0 alive");
+                    $"Executing signal. Disconnecting {objectSignals.Emitter.ToStringSafe()} signal: \"{signal}\". Because this execution was the last OneShot and 0 alive");
                 #endif
-                objectSignals.Origin.Disconnect(signal, this, signalMethodName);
+                objectSignals.Emitter.Disconnect(signal, this, signalMethodName);
             }
         }
     }
