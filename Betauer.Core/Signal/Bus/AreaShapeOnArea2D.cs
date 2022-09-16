@@ -1,21 +1,6 @@
 using Godot;
 
 
-/*
- *RigidBody2D
- * OnBodyEntered
- * OnAreaShapeEntered
- *
- *
- * CollisionObject2D Mouse_entered
- *
- *
- * VisibilityNotifier2D
- * screen_entered
- * viewport_entered
- *
- * 
- */
 namespace Betauer.Signal.Bus {
     public static class AreaShapeOnArea2D {
         public class Collection : SignalCollection<Area2D, (RID, Node, int, int), Node> {

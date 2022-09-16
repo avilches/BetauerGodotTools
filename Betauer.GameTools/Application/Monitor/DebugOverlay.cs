@@ -1,6 +1,7 @@
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Signal;
+using Betauer.Signal.Bus;
 using Godot;
 using Color = Godot.Color;
 
