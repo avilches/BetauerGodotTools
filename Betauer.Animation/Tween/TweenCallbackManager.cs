@@ -55,13 +55,17 @@ namespace Betauer.Animation.Tween {
         }
 
         private void _GodotTweenMethod(object value, int sceneTreeTweenHash, int actionHash) {
-            Action<object> action = ActionsByTween[sceneTreeTweenHash].Find(action => action.GetHashCode() == actionHash);
-            action.Invoke(value);
+            if (ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actions)) {
+                var action = actions.Find(action => action.GetHashCode() == actionHash);
+                action?.Invoke(value);
+            }
         }
 
         private void _GodotTweenCallback(int sceneTreeTweenHash, int actionHash) {
-            Action<object> action = ActionsByTween[sceneTreeTweenHash].Find(action => action.GetHashCode() == actionHash);
-            action.Invoke(null);
+            if (ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actions)) {
+                var action = actions.Find(action => action.GetHashCode() == actionHash);
+                action?.Invoke(null);
+            }
         }
     }
 }
