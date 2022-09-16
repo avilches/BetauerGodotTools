@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.Tests.Signal {
     public class BaseNodeTest : Node {
-        public Area2D CreateArea2D(string name, int x = 0, int y = 0) {
+        public Area2D CreateArea2D(string name = null, int x = 0, int y = 0) {
             var area2D = new Area2D();
             area2D.Position = new Vector2(x, y);
             area2D.Name = name;
