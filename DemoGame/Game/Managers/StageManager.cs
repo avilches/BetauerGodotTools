@@ -1,7 +1,7 @@
 using Godot;
 using Betauer;
-using Betauer.Bus;
 using Betauer.DI;
+using Betauer.Signal.Bus;
 using Veronenger.Game.Controller.Stage;
 using static Veronenger.Game.LayerConstants;
 
@@ -15,31 +15,27 @@ namespace Veronenger.Game.Managers {
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
 
-        private readonly Area2DShapeOnArea2DTopic _stageTopic = new Area2DShapeOnArea2DTopic("StageTopic");
+        private readonly AreaOnArea2DEntered.Unicast _enterStageTopic = new AreaOnArea2DEntered.Unicast("StageTopic");
+        private readonly AreaOnArea2DExited.Unicast _exitStageTopic = new AreaOnArea2DExited.Unicast("StageTopic");
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
             stageDetector.CollisionLayer = 0;
             stageDetector.CollisionMask = 0;
             stageDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
-            _stageTopic.Subscribe("StageDetector", stageDetector, stageDetector, OnEnterStage, OnExitStage);
+            _enterStageTopic.OnEventFilter(stageDetector, OnEnterStage);
+            _exitStageTopic.OnEventFilter(stageDetector, OnExitStage);
         }
 
         public void ConfigureStage(Area2D stageArea2D) {
-            _stageTopic.ListenSignalsOf(stageArea2D);
+            _enterStageTopic.Connect(stageArea2D);
+            _exitStageTopic.Connect(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
         }
 
-        public void Subscribe(GodotListener<Area2DShapeOnArea2D> enterListener,
-            GodotListener<Area2DShapeOnArea2D> exitListener = null) {
-            _stageTopic.Subscribe(enterListener, exitListener);
-        }
-
-        public void OnEnterStage(Area2DShapeOnArea2D e) {
-            Area2D stageEnteredArea2D = (Area2D)e.Origin;
-            Area2D stageDetector = e.Detected;
+        public void OnEnterStage(Area2D stageEnteredArea2D, Area2D stageDetector) {
             var stageToEnter = new Stage(stageEnteredArea2D);
             var stageDetectorName = stageDetector.Name;
             if (_currentStage == null) {
@@ -56,9 +52,7 @@ namespace Veronenger.Game.Managers {
             CheckChangeStage(stageDetectorName, false);
         }
 
-        public void OnExitStage(Area2DShapeOnArea2D e) {
-            Area2D stageExitedArea2D = (Area2D)e.Origin;
-            Area2D stageDetector = e.Detected;
+        public void OnExitStage(Area2D stageExitedArea2D, Area2D stageDetector) {
             var stageDetectorName = stageDetector.Name;
             var stageExitedName = stageExitedArea2D.Name;
             if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {

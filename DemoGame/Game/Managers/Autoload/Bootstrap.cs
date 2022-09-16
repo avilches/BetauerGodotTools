@@ -6,7 +6,6 @@ using Betauer.Animation;
 using Betauer.Animation.Tween;
 using Betauer.Application;
 using Betauer.Application.Screen;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
@@ -109,8 +108,6 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
             // GameTools
-            LoggerFactory.SetTraceLevel(typeof(GodotTopic<>), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(GodotListener<>), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
 
             // Animation

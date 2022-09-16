@@ -1,14 +1,12 @@
 using System;
 using Godot;
-using Betauer;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Memory;
 using Betauer.Signal;
+using Betauer.Signal.Bus;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
 using Array = Godot.Collections.Array;
-using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Service]
@@ -21,7 +19,7 @@ namespace Veronenger.Game.Managers {
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
         [Inject] public GameManager GameManager { get; set; }
 
-        private readonly Area2DOnArea2DTopic _playerAttackTopic = new Area2DOnArea2DTopic("PlayerAttack");
+        private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new AreaOnArea2DEntered.Unicast("PlayerAttack");
 
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
@@ -34,19 +32,12 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(playerController);
         }
 
-        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2DOnArea2D> enterMethod) {
+        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D> enterMethod) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
             attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
-            _playerAttackTopic.Subscribe("Player", attackArea2D, attackArea2D, enterMethod);
+            _playerAttackBus.OnEventFilter(attackArea2D, enterMethod);
         }
-
-        // public void ConfigurePlayerDamageArea2D(Area2D damageArea2D) {
-        // damageArea2D.CollisionMask = 0;
-        // damageArea2D.CollisionLayer = 0;
-        // damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
-        // _playerAttackTopic.AddArea2D(attackArea2D);
-        // }
 
         public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
@@ -56,18 +47,11 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(enemy);
         }
 
-        // public void ConfigureEnemyAttackArea2D(Area2D attackArea2D) {
-        // attackArea2D.CollisionMask = 0;
-        // attackArea2D.CollisionLayer = 0;
-        // attackArea2D.SetCollisionMaskBit(LayerPlayer, true);
-        // _playerAttackTopic.AddArea2D(attackArea2D);
-        // }
-
         public void ConfigureEnemyDamageArea2D(Area2D damageArea2D) {
             damageArea2D.CollisionMask = 0;
             damageArea2D.CollisionLayer = 0;
             damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
-            _playerAttackTopic.ListenSignalsOf(damageArea2D);
+            _playerAttackBus.Connect(damageArea2D);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

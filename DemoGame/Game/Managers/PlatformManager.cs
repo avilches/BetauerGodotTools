@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Godot;
 using Betauer;
-using Betauer.Bus;
 using Betauer.DI;
+using Betauer.Signal;
+using Betauer.Signal.Bus;
 using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {
@@ -73,16 +74,22 @@ namespace Veronenger.Game.Managers {
          * Platform falling & body out
          */
         // Provoca la caida del jugador desde la plataforma quitando la mascara
-        public void BodyFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, false);
+        public void BodyFallFromPlatform(KinematicBody2D kb2d) {
+            kb2d.SetCollisionMaskBit(LayerFallPlatform, false);
+        }
 
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(LayerFallPlatform);
         // Para la caida del jugador
 
-        public void BodyStopFallFromPlatform(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
-        private BodyOnArea2DTopic _platformBodyOutTopic = new BodyOnArea2DTopic("PlatformBodyOut");
-        private void AddArea2DFallingPlatformExit(Area2D area2D) => _platformBodyOutTopic.ListenSignalsOf(area2D);
+        public BodyOnArea2DEntered.Unicast PlatformBodyOutTopicBodyOnArea2D = new BodyOnArea2DEntered.Unicast("PlatformBodyOut");
+        
+        public void BodyStopFallFromPlatform(KinematicBody2D kb2d) {
+            kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
+        }
 
-        public void SubscribeFallingPlatformOut(GodotListener<BodyOnArea2D> enterListener) =>
-            _platformBodyOutTopic.Subscribe(enterListener);
+        private void AddArea2DFallingPlatformExit(Area2D area2D) => PlatformBodyOutTopicBodyOnArea2D.Connect(area2D);
+
+        public void SubscribeFallingPlatformOut(Node filter, Action<Area2D> action) =>
+            PlatformBodyOutTopicBodyOnArea2D.OnEventFilter(filter, action);
     }
 }

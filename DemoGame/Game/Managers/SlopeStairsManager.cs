@@ -1,7 +1,7 @@
+using System;
 using Godot;
-using Betauer;
-using Betauer.Bus;
 using Betauer.DI;
+using Betauer.Signal.Bus;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
 
@@ -12,10 +12,10 @@ namespace Veronenger.Game.Managers {
         [Inject] public PlatformManager PlatformManager { get; set;}
 
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
-        private readonly BodyOnArea2DTopic _downTopic = new BodyOnArea2DTopic("SlopeStairsDown");
-        private readonly BodyOnArea2DTopic _upTopic = new BodyOnArea2DTopic("SlopeStairsUp");
-        private readonly BodyOnArea2DTopic _enablerTopic = new BodyOnArea2DTopic("SlopeStairsEnabler");
-        private readonly BodyOnArea2DTopic _disablerTopic = new BodyOnArea2DTopic("SlopeStairsDisabler");
+        public readonly BodyOnArea2D.Collection DownTopic = new BodyOnArea2D.Collection("SlopeStairsDown");
+        public readonly BodyOnArea2D.Collection UpTopic = new BodyOnArea2D.Collection("SlopeStairsUp");
+        public readonly BodyOnArea2DEntered.Unicast EnablerTopic = new BodyOnArea2DEntered.Unicast("SlopeStairsEnabler");
+        public readonly BodyOnArea2DEntered.Unicast DisablerTopic = new BodyOnArea2DEntered.Unicast("SlopeStairsDisabler");
 
         public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
@@ -37,45 +37,38 @@ namespace Veronenger.Game.Managers {
 
         public void ConfigureSlopeStairsDown(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _downTopic.ListenSignalsOf(area2D);
+            DownTopic.Connect(area2D);
         }
 
         public void ConfigureSlopeStairsUp(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _upTopic.ListenSignalsOf(area2D);
+            UpTopic.Connect(area2D);
         }
 
         public void ConfigureSlopeStairsEnabler(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _enablerTopic.ListenSignalsOf(area2D);
+            EnablerTopic.Connect(area2D);
         }
 
         public void ConfigureSlopeStairsDisabler(Area2D area2D) {
             PlatformManager.ConfigureArea2DAsPlatform(area2D);
-            _disablerTopic.ListenSignalsOf(area2D);
+            DisablerTopic.Connect(area2D);
         }
 
-        public void SubscribeSlopeStairsDown(GodotListener<BodyOnArea2D> enterListener,
-            GodotListener<BodyOnArea2D> exitListener = null) {
-            _downTopic.Subscribe(enterListener, exitListener);
+        public bool UpOverlap(PlayerController playerController) {
+            return UpTopic.Contains(playerController);
         }
 
-        public BodyOnArea2DStatus CreateSlopeStairsUpStatusListener(string name, PlayerController playerController) {
-            return _upTopic.StatusSubscriber(name, playerController, playerController);
+        public bool DownOverlap(PlayerController playerController) {
+            return DownTopic.Contains(playerController);
         }
 
-        public BodyOnArea2DStatus CreateSlopeStairsDownStatusListener(string name, PlayerController playerController) {
-            return _downTopic.StatusSubscriber(name, playerController, playerController);
+        public void SubscribeSlopeStairsEnabler(Node filter, Action<Area2D> enterListener) {
+            EnablerTopic.OnEventFilter(filter, enterListener);
         }
 
-        public void SubscribeSlopeStairsEnabler(GodotListener<BodyOnArea2D> enterListener,
-            GodotListener<BodyOnArea2D> exitListener = null) {
-            _enablerTopic.Subscribe(enterListener, exitListener);
-        }
-
-        public void SubscribeSlopeStairsDisabler(GodotListener<BodyOnArea2D> enterListener,
-            GodotListener<BodyOnArea2D> exitListener = null) {
-            _disablerTopic.Subscribe(enterListener, exitListener);
+        public void SubscribeSlopeStairsDisabler(Node filter, Action<Area2D> enterListener) {
+            DisablerTopic.OnEventFilter(filter, enterListener);
         }
 
         public bool IsSlopeStairs(PhysicsBody2D platform) => platform.IsInGroup(GROUP_SLOPE_STAIRS);

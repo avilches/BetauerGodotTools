@@ -7,13 +7,14 @@ using Betauer.Animation.Tween;
 using Betauer.Application;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Nodes.Property;
 using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
 using Betauer.Restorer;
+using Betauer.Signal;
+using Betauer.Signal.Bus;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI.Consoles;
@@ -63,10 +64,8 @@ namespace Veronenger.Game.Controller.Character {
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
-        public bool IsOnSlopeStairsUp() => _slopeStairsUp.IsOverlapping;
-        public bool IsOnSlopeStairsDown() => _slopeStairsDown.IsOverlapping;
-        private BodyOnArea2DStatus _slopeStairsDown;
-        private BodyOnArea2DStatus _slopeStairsUp;
+        public bool IsOnSlopeStairsUp() => _slopeStairsManager.UpOverlap(this);
+        public bool IsOnSlopeStairsDown() => _slopeStairsManager.DownOverlap(this);
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
         private Restorer _restorer;
@@ -100,18 +99,14 @@ namespace Veronenger.Game.Controller.Character {
             _characterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
-            _slopeStairsUp = _slopeStairsManager.CreateSlopeStairsUpStatusListener(Name, this);
-            _slopeStairsDown = _slopeStairsManager.CreateSlopeStairsDownStatusListener(Name, this);
+            _slopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
+            _slopeStairsManager.SubscribeSlopeStairsDisabler(this, (area2D) => DisableSlopeStairs());
 
-            _slopeStairsManager.SubscribeSlopeStairsEnabler(
-                new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsEnablerEnter));
-            _slopeStairsManager.SubscribeSlopeStairsDisabler(
-                new BodyOnArea2DListenerAction(Name, this, this, _OnSlopeStairsDisablerEnter));
+            _platformManager.SubscribeFallingPlatformOut(this, (area2D) => {
+                _platformManager.BodyStopFallFromPlatform(this);
+            });
 
-            _platformManager.SubscribeFallingPlatformOut(
-                new BodyOnArea2DListenerAction(Name, this, this, _OnFallingPlatformExit));
-
-            DebugOverlay.Create().WithPrefix("Player")
+            DebugOverlay.CreateMonitor().WithPrefix("Player")
                 .Bind(this)
                 .Show(() => StateMachineNode.CurrentState.Key.ToString());
 
@@ -201,10 +196,10 @@ namespace Veronenger.Game.Controller.Character {
             return seq;
         }
 
-        private void _OnPlayerAttackedEnemy(Area2DOnArea2D @event) {
+        private void _OnPlayerAttackedEnemy(Area2D @event) {
             // LoggerFactory.GetLogger(GetType()).RemoveDuplicates = false;
             // LoggerFactory.GetLogger(GetType()).Debug("Collision from Origin:"+originParent.Name+"."+originParent.Name+" / Detected:"+@event.Detected.GetParent().Name+"."+@event.Detected.Name);
-            var originParent = @event.Origin.GetParent();
+            var originParent = @event.GetParent();
             if (originParent is EnemyZombieController zombieController) {
                 zombieController.AttackedByPlayer(this);
             }
@@ -219,14 +214,6 @@ namespace Veronenger.Game.Controller.Character {
             _slopeStairsManager.EnableSlopeStairsCoverForBody(this);
             _slopeStairsManager.DisableSlopeStairsForBody(this);
         }
-
-
-        public void _OnFallingPlatformExit(BodyOnArea2D evt) => _platformManager.BodyStopFallFromPlatform(this);
-
-        public void _OnSlopeStairsEnablerEnter(BodyOnArea2D evt) => EnableSlopeStairs();
-
-        public void _OnSlopeStairsDisablerEnter(BodyOnArea2D evt) => DisableSlopeStairs();
-
 
         [Inject] private InputAction UiStart { get; set; }
 

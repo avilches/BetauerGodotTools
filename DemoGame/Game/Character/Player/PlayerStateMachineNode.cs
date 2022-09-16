@@ -75,10 +75,10 @@ namespace Veronenger.Game.Character.Player {
             GroundStates();
             AirStates();
 
-            DebugOverlay.Create().WithPrefix("JumpHelperTimer").Bind(this).Show(() => JumpHelperTimer.ToString());
-            _jumpHelperState = DebugOverlay.Create().WithPrefix("JumpHelperState").Bind(this);
-            DebugOverlay.Create().WithPrefix("FallingTimer").Bind(this).Show(() => FallingTimer.ToString());
-            _coyoteJumpState = DebugOverlay.Create().WithPrefix("CoyoteState").Bind(this);
+            DebugOverlay.CreateMonitor().WithPrefix("JumpHelperTimer").Bind(this).Show(() => JumpHelperTimer.ToString());
+            _jumpHelperState = DebugOverlay.CreateMonitor().WithPrefix("JumpHelperState").Bind(this);
+            DebugOverlay.CreateMonitor().WithPrefix("FallingTimer").Bind(this).Show(() => FallingTimer.ToString());
+            _coyoteJumpState = DebugOverlay.CreateMonitor().WithPrefix("CoyoteState").Bind(this);
         }
 
         public void GroundStates() {
