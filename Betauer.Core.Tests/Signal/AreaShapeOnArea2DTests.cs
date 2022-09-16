@@ -8,7 +8,6 @@ using Object = Godot.Object;
 
 namespace Betauer.Tests.Signal {
     [TestFixture]
-    [Only]
     public class AreaShapeOnArea2DTests : BaseNodeTest {
         [SetUp]
         public void Setup() {

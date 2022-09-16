@@ -39,7 +39,7 @@ namespace Betauer.Tests.Signal {
             await this.AwaitIdleFrame();
             body.Position = area2D.Position = Vector2.Zero;
             var x = 0;
-            while (!CollideWith(area2D, body)) {
+            while (!CollideWith(area2D, body) && x < 60) {
                 await this.AwaitPhysicsFrame();
                 x++;
             }
@@ -57,7 +57,7 @@ namespace Betauer.Tests.Signal {
             area2D.Position = new Vector2(-2000, -2000);
             body.Position = new Vector2(2000, 2000);
             var x = 0;
-            while (CollideWith(area2D, body)) {
+            while (CollideWith(area2D, body) && x < 60) {
                 await this.AwaitPhysicsFrame();
                 x++;
             }
