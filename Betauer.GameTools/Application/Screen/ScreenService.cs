@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Memory;
-using Betauer.Signal;
 using Godot;
 using static Betauer.Application.Screen.AspectRatios;
 using static Betauer.Application.Screen.Resolutions;
 
 namespace Betauer.Application.Screen {
     public class ScreenConfiguration {
+        public Resolution DownScaledMinimumResolution { get; }
         public Resolution BaseResolution { get; }
         public List<Resolution> Resolutions { get; }
         public List<AspectRatio> AspectRatios { get; }
@@ -20,8 +20,9 @@ namespace Betauer.Application.Screen {
         public SceneTree.StretchAspect StretchAspect { get; }
         public float Zoom { get; }
 
-        public ScreenConfiguration(Resolution baseResolution, SceneTree.StretchMode stretchMode,
+        public ScreenConfiguration(Resolution downScaledMinimumResolution, Resolution baseResolution, SceneTree.StretchMode stretchMode,
             SceneTree.StretchAspect stretchAspect, List<Resolution>? resolutions = null, float zoom = 1f) {
+            DownScaledMinimumResolution = downScaledMinimumResolution;
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
             StretchAspect = stretchAspect;
@@ -54,6 +55,11 @@ namespace Betauer.Application.Screen {
             if (screenConfiguration == null) throw new ArgumentNullException(nameof(screenConfiguration));
             if (_currentScreenConfiguration != screenConfiguration || (strategy.HasValue && strategy.Value != strategy)) {
                 _currentScreenConfiguration = screenConfiguration;
+                // Enforce minimum resolution.
+                OS.MinWindowSize = _currentScreenConfiguration.DownScaledMinimumResolution.Size;
+                if (OS.WindowSize < OS.MinWindowSize) {
+                    OS.WindowSize = OS.MinWindowSize;
+                }
                 _currentStrategy = strategy ?? _currentStrategy;
                 ReconfigureService();
             }
@@ -97,6 +103,7 @@ namespace Betauer.Application.Screen {
     public abstract class BaseScreenResolutionService : DisposableObject {
         protected readonly SceneTree Tree;
         protected ScreenConfiguration ScreenConfiguration;
+        protected Resolution DownScaledMinimumResolution => ScreenConfiguration.DownScaledMinimumResolution;
         protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
 
         protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
@@ -125,8 +132,8 @@ namespace Betauer.Application.Screen {
                 SetFullscreen();
                 return;
             }
-            if (resolution.x < BaseResolution.x || resolution.y < BaseResolution.y) {
-                DoSetWindowed(BaseResolution);
+            if (resolution.x < DownScaledMinimumResolution.x || resolution.y < DownScaledMinimumResolution.y) {
+                DoSetWindowed(DownScaledMinimumResolution);
             } else {
                 DoSetWindowed(resolution);
             }
@@ -145,238 +152,6 @@ namespace Betauer.Application.Screen {
             // var centeredPos = (screenSize - windowSize) / 2;
             // OS.WindowPosition = centeredPos;
             // OS.CurrentScreen = currentScreen;
-        }
-    }
-
-    public class FitToScreenResolutionService : BaseScreenResolutionService, IScreenService {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(FitToScreenResolutionService));
-
-        public FitToScreenResolutionService(SceneTree tree) : base(tree) {
-        }
-
-        public void Enable(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            // Enforce minimum resolution.
-            OS.MinWindowSize = BaseResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
-            Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-        }
-
-        public void Disable() {
-        }
-
-        protected override void OnDispose(bool disposing) {
-        }
-
-        private class ScaledResolutionComparer : IEqualityComparer<ScaledResolution> {
-            public static readonly ScaledResolutionComparer Instance = new ScaledResolutionComparer();
-            public bool Equals(ScaledResolution x, ScaledResolution y) => x.Size.Equals(y.Size);
-            public int GetHashCode(ScaledResolution scaledResolution) => scaledResolution.Size.GetHashCode();
-        }
-
-        public List<ScaledResolution> GetResolutions() {
-            var screenSize = new Resolution(OS.GetScreenSize());
-            var resolutions = Resolutions
-                    .Where(resolution => resolution.x >= BaseResolution.x && 
-                                         resolution.x <= screenSize.x &&
-                                         resolution.y >= BaseResolution.y && 
-                                         resolution.y <= screenSize.y)
-                    .Select(resolution => 
-                        ExpandResolutionsByWidth(new ScaledResolution(BaseResolution.Size, resolution.Size), screenSize, AspectRatios))
-                .SelectMany(list => list)
-                .Distinct(ScaledResolutionComparer.Instance)
-                .OrderBy(x => x, Resolution.ComparerByHeight)
-                .ToList();
-            return resolutions;
-        }
-
-        public override void SetFullscreen() {
-            if (!OS.WindowFullscreen) {
-                OS.WindowBorderless = false;
-                OS.WindowFullscreen = true;
-            }
-        }
-
-        protected override void DoSetBorderless(bool borderless) {
-            if (OS.WindowBorderless == borderless) return;
-            OS.WindowBorderless = borderless;
-        }
-
-        protected override void DoSetWindowed(Resolution resolution) {
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
-            CenterWindow();
-        }
-    }
-
-    /**
-     * https://github.com/Yukitty/godot-addon-integer_resolution_handler
-     */
-    public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private readonly SignalHandler _signalHandlerAction;
-        private bool _enabled = false;
-
-        public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
-            _signalHandlerAction = Tree.OnScreenResized(SignalHandler);
-        }
-
-        public void SignalHandler() {
-            if (_enabled) ScaleResolutionViewport();
-        }
-        
-        protected override void OnDispose(bool disposing) {
-            _signalHandlerAction.Disconnect();
-        }
-
-        public void Enable(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            // Enforce minimum resolution.
-            OS.MinWindowSize = BaseResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
-            // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
-            // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
-
-            // Mode2D shows betters fonts
-            Tree.SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep, BaseResolution.Size,
-                1);
-            ScaleResolutionViewport();
-            _enabled = true;
-        }
-
-        public void Disable() {
-            _enabled = false;
-        }
-
-        public List<ScaledResolution> GetResolutions() {
-            var maxSize = new Resolution(OS.GetScreenSize());
-            return Betauer.Application.Screen.Resolutions.ExpandResolutionsByWidth(BaseResolution, maxSize, AspectRatios);
-        }
-
-        public override void SetFullscreen() {
-            if (!OS.WindowFullscreen) {
-                OS.WindowBorderless = false;
-                OS.WindowFullscreen = true;
-            }
-            ScaleResolutionViewport();
-        }
-
-        protected override void DoSetBorderless(bool borderless) {
-            if (OS.WindowBorderless == borderless) return;
-            OS.WindowBorderless = borderless;
-            ScaleResolutionViewport();
-        }
-
-        protected override void DoSetWindowed(Resolution resolution) {
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
-            CenterWindow();
-            ScaleResolutionViewport();
-        }
-
-        private void ScaleResolutionViewport() {
-            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            var maxScale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
-            var screenSize = BaseResolution.Size;
-            var viewportSize = screenSize * maxScale;
-            var overScan = ((windowSize - viewportSize) / maxScale).Floor();
-
-            switch (StretchAspect) {
-                case SceneTree.StretchAspect.KeepWidth: {
-                    screenSize.y += overScan.y;
-                    break;
-                }
-                case SceneTree.StretchAspect.KeepHeight: {
-                    screenSize.x += overScan.x;
-                    break;
-                }
-                case SceneTree.StretchAspect.Expand:
-                case SceneTree.StretchAspect.Ignore: {
-                    screenSize += overScan;
-                    break;
-                }
-                case SceneTree.StretchAspect.Keep:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            viewportSize = screenSize * maxScale;
-            var margin = (windowSize - viewportSize) / 2;
-            var margin2 = margin.Ceil();
-            margin = margin.Floor();
-
-            ChangeViewport(screenSize, margin, viewportSize, windowSize, margin2);
-        }
-
-        private void ChangeViewport(Vector2 screenSize, Vector2 margin, Vector2 viewportSize, Vector2 windowSize,
-            Vector2 margin2) {
-            Viewport rootViewport = Tree.Root;
-            switch (StretchMode) {
-                case SceneTree.StretchMode.Viewport: {
-                    rootViewport.Size = (screenSize / Zoom).Floor();
-                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    rootViewport.SizeOverrideStretch = false;
-                    rootViewport.SetSizeOverride(false);
-                    Logger.Debug("Mode: Viewport. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" +
-                                 windowSize.y);
-                    break;
-                }
-                case SceneTree.StretchMode.Mode2d:
-                case SceneTree.StretchMode.Disabled: {
-                    rootViewport.Size = (viewportSize / Zoom).Floor();
-                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    rootViewport.SizeOverrideStretch = true;
-                    rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
-                    Logger.Debug("Mode: 2D. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" + windowSize.y);
-                    break;
-                }
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            VisualServer.BlackBarsSetMargins(
-                Mathf.Max(0, (int)margin.x),
-                Mathf.Max(0, (int)margin.y),
-                Mathf.Max(0, (int)margin2.x),
-                Mathf.Max(0, (int)margin2.y));
-        }
-
-        public void LoadProjectSettings() {
-            var SETTING_BASE_WIDTH = "display/window/integer_resolution_handler/base_width";
-            var SETTING_BASE_HEIGHT = "display/window/integer_resolution_handler/base_height";
-
-            Vector2 base_resolution = Vector2.Zero;
-            if (ProjectSettings.HasSetting(SETTING_BASE_WIDTH) && ProjectSettings.HasSetting(SETTING_BASE_HEIGHT)) {
-                base_resolution.x = ProjectSettings.GetSetting(SETTING_BASE_WIDTH).ToString().ToInt();
-                base_resolution.y = ProjectSettings.GetSetting(SETTING_BASE_HEIGHT).ToString().ToInt();
-            }
-
-            /*
-            match ProjectSettings.GetSetting("display/window/stretch/mode"):
-            "2d":
-            stretch_mode = SceneTree.STRETCH_MODE_2D
-            "viewport":
-            stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
-            _:
-            stretch_mode = SceneTree.STRETCH_MODE_DISABLED
-
-            match ProjectSettings.GetSetting("display/window/stretch/aspect"):
-            "keep":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP
-            "keep_height":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP_HEIGHT
-            "keep_width":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP_WIDTH
-            "expand":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_EXPAND
-            _:
-            stretch_aspect = SceneTree.STRETCH_ASPECT_IGNORE
-            */
         }
     }
 }

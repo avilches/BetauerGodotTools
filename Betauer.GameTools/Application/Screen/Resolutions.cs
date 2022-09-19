@@ -64,15 +64,16 @@ namespace Betauer.Application.Screen {
             };
 
         /// <summary>
-        /// Create all possible resolutions:
-        /// - Scaling (x1, x2, x3) from "from" resolution up to "maxSize"
+        /// Using the "from" resolution as base, create all possible resolutions:
+        /// - Scaling (x1, x2, x3) from "from" resolution up to "maxSize" (or the screen size)
         /// - In all the aspectRatios, keeping the height and changing the width
         /// </summary>
         /// <param name="from"></param>
         /// <param name="maxSize"></param>
         /// <param name="aspectRatios"></param>
         /// <returns></returns>
-        public static List<ScaledResolution> ExpandResolutionsByWidth(Resolution from, Resolution maxSize, IEnumerable<AspectRatio> aspectRatios) {
+        public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
+            if (maxSize == null) maxSize = new Resolution(OS.GetScreenSize());
             var maxScale = Resolution.CalculateMaxScale(from.Size, maxSize.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
             for (var scale = 1; scale <= maxScale; scale++) {
@@ -113,5 +114,27 @@ namespace Betauer.Application.Screen {
             }
             return resolutions;
         }
+
+        public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min) {
+            return Clamp(resolutions, min, OS.GetScreenSize());
+        }
+
+        public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {
+            return resolutions.Where(resolution => resolution.x >= min.x &&
+                                                   resolution.x <= max.x &&
+                                                   resolution.y >= min.y &&
+                                                   resolution.y <= max.y);
+
+        }
+
+        public static IEnumerable<ScaledResolution> ExpandResolutions(this IEnumerable<Resolution> resolutions, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
+            return resolutions
+                .Select(resolution => new ScaledResolution(baseResolution.Size, resolution.Size).ExpandResolutionByWith(aspectRatios, maxSize))
+                .SelectMany(list => list)
+                .Distinct(ScaledResolution.ComparerByBaseSize)
+                .OrderBy(x => x, Resolution.ComparerByHeight)
+                .ToList();
+        }
+        
     }
 }
