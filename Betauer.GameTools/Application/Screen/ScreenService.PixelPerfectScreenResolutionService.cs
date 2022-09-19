@@ -7,21 +7,10 @@ namespace Betauer.Application.Screen {
     /**
      * https://github.com/Yukitty/godot-addon-integer_resolution_handler
      */
-    public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService {
+    public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService, IScreenResizeHandler {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
-        private readonly SignalHandler _signalHandlerAction;
-        private bool _enabled = false;
 
         public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
-            _signalHandlerAction = Tree.OnScreenResized(SignalHandler);
-        }
-
-        public void SignalHandler() {
-            if (_enabled) ScaleResolutionViewport();
-        }
-        
-        protected override void OnDispose(bool disposing) {
-            _signalHandlerAction.Disconnect();
         }
 
         public void Enable(ScreenConfiguration screenConfiguration) {
@@ -33,11 +22,13 @@ namespace Betauer.Application.Screen {
             Tree.SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep, BaseResolution.Size,
                 1);
             ScaleResolutionViewport();
-            _enabled = true;
         }
 
         public void Disable() {
-            _enabled = false;
+        }
+
+        public void OnScreenResized() {
+            ScaleResolutionViewport();
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -65,7 +56,6 @@ namespace Betauer.Application.Screen {
         protected override void DoSetWindowed(Resolution resolution) {
             if (OS.WindowFullscreen) OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
-            CenterWindow();
             ScaleResolutionViewport();
         }
 

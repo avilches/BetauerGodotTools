@@ -39,7 +39,6 @@ namespace Betauer.Application.Screen {
             if (OS.WindowFullscreen) OS.WindowFullscreen = false;
             OS.WindowSize = resolution.Size;
             Tree.SetScreenStretch(StretchMode, StretchAspect, resolution.Size, Zoom);
-            CenterWindow();
         }
     }
 }

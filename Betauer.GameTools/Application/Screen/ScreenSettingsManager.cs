@@ -87,8 +87,12 @@ namespace Betauer.Application.Screen {
         }
 
         public void SetFullscreen(bool fs, bool save = true) {
-            if (fs) ScreenService.SetFullscreen();
-            else SetWindowed(WindowedResolution, false); // Never save resolution because it has not changed
+            if (fs) {
+                ScreenService.SetFullscreen();
+            } else {
+                SetWindowed(WindowedResolution, false); // Never save resolution because it has not changed
+                CenterWindow();
+            }
             if (save) _fullscreen.Value = fs;
         }
 
