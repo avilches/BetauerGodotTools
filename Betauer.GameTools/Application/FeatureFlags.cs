@@ -33,6 +33,19 @@ namespace Betauer.Application {
             { "pvrtc", "Textures using PVRTC compression are supported" },
         };
 
+        public static bool IsHtml5() => OS.HasFeature("HTML5");
+        public static bool HasJavaScript() => OS.HasFeature("JavaScript");
+        
+        public static bool IsIOs() => OS.HasFeature("iOS");
+        public static bool IsAndroid() => OS.HasFeature("Android");
+        
+        public static bool IsMacOs() => OS.HasFeature("OSX");
+        public static bool IsWindows() => OS.HasFeature("Windows");
+        public static bool IsUwp() => OS.HasFeature("UWP");
+        public static bool IsLinux() => OS.HasFeature("X11");
+        public static bool IsServer() => OS.HasFeature("Server");
+        public static bool IsEditor() => OS.HasFeature("editor");
+
         public static IEnumerable<string> GetActiveList() {
             return Description.Values.Where(OS.HasFeature);
         }
