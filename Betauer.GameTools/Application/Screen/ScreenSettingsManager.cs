@@ -11,8 +11,10 @@ namespace Betauer.Application.Screen {
 
         private const bool DontSave = false;
 
-        public readonly ScreenConfiguration InitialScreenConfiguration;
-        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, InitialScreenConfiguration);
+        private readonly ScreenConfiguration _initialScreenConfiguration;
+        private ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration);
+        public ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
+
         private ScreenService? _service;
         
         private ISetting<bool> _pixelPerfect;
@@ -28,7 +30,7 @@ namespace Betauer.Application.Screen {
         public Resolution WindowedResolution => _windowedResolution.Value;
 
         public ScreenSettingsManager(ScreenConfiguration initialScreenConfiguration) {
-            InitialScreenConfiguration = initialScreenConfiguration;
+            _initialScreenConfiguration = initialScreenConfiguration;
         }
 
         [PostCreate]
@@ -46,7 +48,7 @@ namespace Betauer.Application.Screen {
                 () => Setting<bool>.Memory(AppTools.GetWindowBorderless()));
             
             _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution", 
-                () => Setting<Resolution>.Memory(InitialScreenConfiguration.BaseResolution));
+                () => Setting<Resolution>.Memory(_initialScreenConfiguration.BaseResolution));
         }
         
         public void Setup() {
@@ -60,8 +62,8 @@ namespace Betauer.Application.Screen {
             }
         }
 
-        public void ChangeScreenConfiguration(ScreenConfiguration screenConfiguration,
-            ScreenService.Strategy? strategy) {
+        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration,
+            ScreenService.ScreenStrategyKey? strategy = null) {
             ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
         }
 
@@ -70,8 +72,8 @@ namespace Betauer.Application.Screen {
 
         public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
             var strategy = pixelPerfect
-                ? ScreenService.Strategy.PixelPerfectScale
-                : ScreenService.Strategy.FitToScreen;
+                ? ScreenService.ScreenStrategyKey.IntegerScale
+                : ScreenService.ScreenStrategyKey.ViewportSize;
             ScreenService.SetStrategy(strategy);
             if (save) _pixelPerfect.Value = pixelPerfect;
         }

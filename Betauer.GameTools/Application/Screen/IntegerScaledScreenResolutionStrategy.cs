@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Application.Screen {
     /**
      * https://github.com/Yukitty/godot-addon-integer_resolution_handler
      */
-    public class PixelPerfectScreenResolutionService : BaseScreenResolutionService, IScreenService, IScreenResizeHandler {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PixelPerfectScreenResolutionService));
+    public class IntegerScaledScreenResolutionStrategy : BaseScreenResolutionService, IScreenStrategy, IScreenResizeHandler {
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(IntegerScaledScreenResolutionStrategy));
 
-        public PixelPerfectScreenResolutionService(SceneTree tree) : base(tree) {
+        public IntegerScaledScreenResolutionStrategy(SceneTree tree) : base(tree) {
         }
 
         public void Enable(ScreenConfiguration screenConfiguration) {
@@ -103,8 +102,6 @@ namespace Betauer.Application.Screen {
                     rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     rootViewport.SizeOverrideStretch = false;
                     rootViewport.SetSizeOverride(false);
-                    Logger.Debug("Mode: Viewport. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" +
-                                 windowSize.y);
                     break;
                 }
                 case SceneTree.StretchMode.Mode2d:
@@ -113,51 +110,18 @@ namespace Betauer.Application.Screen {
                     rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
                     rootViewport.SizeOverrideStretch = true;
                     rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
-                    Logger.Debug("Mode: 2D. Base:" + BaseResolution + " Viewport:" + windowSize.x + "x" + windowSize.y);
                     break;
                 }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            Logger.Debug($"IntegerScaled: {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}");
 
             VisualServer.BlackBarsSetMargins(
                 Mathf.Max(0, (int)margin.x),
                 Mathf.Max(0, (int)margin.y),
                 Mathf.Max(0, (int)margin2.x),
                 Mathf.Max(0, (int)margin2.y));
-        }
-
-        public void LoadProjectSettings() {
-            var SETTING_BASE_WIDTH = "display/window/integer_resolution_handler/base_width";
-            var SETTING_BASE_HEIGHT = "display/window/integer_resolution_handler/base_height";
-
-            Vector2 base_resolution = Vector2.Zero;
-            if (ProjectSettings.HasSetting(SETTING_BASE_WIDTH) && ProjectSettings.HasSetting(SETTING_BASE_HEIGHT)) {
-                base_resolution.x = ProjectSettings.GetSetting(SETTING_BASE_WIDTH).ToString().ToInt();
-                base_resolution.y = ProjectSettings.GetSetting(SETTING_BASE_HEIGHT).ToString().ToInt();
-            }
-
-            /*
-            match ProjectSettings.GetSetting("display/window/stretch/mode"):
-            "2d":
-            stretch_mode = SceneTree.STRETCH_MODE_2D
-            "viewport":
-            stretch_mode = SceneTree.STRETCH_MODE_VIEWPORT
-            _:
-            stretch_mode = SceneTree.STRETCH_MODE_DISABLED
-
-            match ProjectSettings.GetSetting("display/window/stretch/aspect"):
-            "keep":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP
-            "keep_height":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP_HEIGHT
-            "keep_width":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_KEEP_WIDTH
-            "expand":
-            stretch_aspect = SceneTree.STRETCH_ASPECT_EXPAND
-            _:
-            stretch_aspect = SceneTree.STRETCH_ASPECT_IGNORE
-            */
         }
     }
 }

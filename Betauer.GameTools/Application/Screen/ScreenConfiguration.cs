@@ -13,8 +13,8 @@ namespace Betauer.Application.Screen {
         // disabled: while the framebuffer will be resized to match the game window, nothing will be upscaled or downscaled (this includes GUIs).
         // 2d: the framebuffer is still resized, but GUIs can be upscaled or downscaled. This can result in blurry or pixelated fonts.
         // viewport: the framebuffer is resized, but computed at the original size of the project. The whole rendering will be pixelated. You generally do not want this, unless it's part of the game style.
-        public SceneTree.StretchMode StretchMode { get; }
-        public SceneTree.StretchAspect StretchAspect { get; }
+        public SceneTree.StretchMode StretchMode;
+        public SceneTree.StretchAspect StretchAspect;
         public float Zoom { get; }
 
         public ScreenConfiguration(Resolution downScaledMinimumResolution, Resolution baseResolution, SceneTree.StretchMode stretchMode,

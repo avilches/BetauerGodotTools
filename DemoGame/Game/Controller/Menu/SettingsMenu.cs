@@ -224,9 +224,9 @@ namespace Veronenger.Game.Controller.Menu {
             var prefix = pos > 0 ? "< " : "";
             var suffix = pos < resolutions.Count - 1 ? " >" : "";
             var res = scaledResolution.ToString();
-            if (scaledResolution.Size == _screenSettingsManager.InitialScreenConfiguration.BaseResolution.Size) {
+            if (scaledResolution.Size == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
                 res += " (Original)";
-            } else if (scaledResolution.Base == _screenSettingsManager.InitialScreenConfiguration.BaseResolution.Size &&
+            } else if (scaledResolution.Base == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size &&
                        scaledResolution.IsPixelPerfectScale()) {
                 res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
             }
