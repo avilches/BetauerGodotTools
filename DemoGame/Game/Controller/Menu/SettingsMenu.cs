@@ -132,8 +132,8 @@ namespace Veronenger.Game.Controller.Menu {
             });
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
             _pixelPerfectButtonWrapper.OnFocusEntered(_gameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
-            _pixelPerfectButtonWrapper.OnToggled(isChecked => {
-                _screenSettingsManager.SetPixelPerfect(isChecked);
+            _pixelPerfectButtonWrapper.OnPressed(() => {
+                _screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.Pressed);
                 CheckIfResolutionStillMatches();
             });
 
