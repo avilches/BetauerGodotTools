@@ -58,8 +58,8 @@ namespace Betauer.StateMachine {
             StateMachine.Enqueue(name);
         }
 
-        public async Task Execute(float delta) {
-            await StateMachine.Execute(delta);
+        public Task Execute(float delta) {
+            return StateMachine.Execute(delta);
         }
 
         public bool Available => StateMachine.Available; 
@@ -88,17 +88,17 @@ namespace Betauer.StateMachine {
             }
         }
 
-        public override async void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(float delta) {
             if (Mode == ProcessMode.Physics) {
-                await Execute(delta);
+                Execute(delta);
             } else {
                 SetPhysicsProcess(false);
             }
         }
 
-        public override async void _Process(float delta) {
+        public override void _Process(float delta) {
             if (Mode == ProcessMode.Idle) {
-                await Execute(delta);
+                Execute(delta);
             } else {
                 SetProcess(false);
             }

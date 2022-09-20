@@ -120,63 +120,46 @@ namespace Betauer.StateMachine {
                 var change = CurrentState == null && _nextChange.State == null
                     ? new Change(States[_initialState], TransitionType.Set)
                     : _nextChange;
-                if (change.Type == TransitionType.Pop) await DoPop(change);
-                else if (change.Type == TransitionType.Push) await DoPush(change);
-                else if (change.Type == TransitionType.PopPush) await DoPopPush(change);
-                else if (change.Type == TransitionType.Set) await DoSet(change);
-
-                var transition = await DoExecute(delta);
+                if (change.Type == TransitionType.Pop) {
+                    if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
+                    var newState = TransitionTo(change, out var oldState);
+                    await Awake(newState, oldState.Key);
+                } else if (change.Type == TransitionType.Push) {
+                    if (CurrentState != null) await Suspend(CurrentState, change.State!.Key);
+                    var newState = TransitionTo(change, out var oldState);
+                    _stack.Push(newState);
+                    await Enter(CurrentState, oldState.Key);
+                } else if (change.Type == TransitionType.PopPush) {
+                    if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
+                    var newState = TransitionTo(change, out var oldState);
+                    _stack.Push(newState);
+                    await Enter(CurrentState, oldState.Key);
+                } else if (change.Type == TransitionType.Set) {
+                    if (_stack.Count == 1) {
+                        await Exit(_stack.Pop(), change.State.Key);
+                    } else {
+                        // Special case: 
+                        // Exit from all the states from the stack, in order
+                        while (_stack.Count > 0) {
+                            var exitingState = _stack.Pop();
+                            var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
+                            await Exit(exitingState, to);
+                        }
+                    }
+                    var newState = TransitionTo(change, out var oldState);
+                    _stack.Push(newState);
+                    await Enter(CurrentState, oldState.Key);
+                }
+                _listeners?.ForEach(listener => listener.OnExecuteStart(delta, CurrentState.Key));
+                _executeContext.Delta = delta;
+                var transition = await CurrentState.Execute(_executeContext);
+                _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
                 _nextChange = CreateChange(transition);
             } finally {
                 lock (_lockObject) {
                     Available = true;
                 }
             }
-        }
-
-        private async Task DoPop(Change change) {
-            if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
-            var newState = TransitionTo(change, out var oldState);
-            await Awake(newState, oldState.Key);
-        }
-
-        private async Task DoPopPush(Change change) {
-            if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
-            var newState = TransitionTo(change, out var oldState);
-            _stack.Push(newState);
-            await Enter(CurrentState, oldState.Key);
-        }
-
-        private async Task DoPush(Change change) {
-            if (CurrentState != null) await Suspend(CurrentState, change.State!.Key);
-            var newState = TransitionTo(change, out var oldState);
-            _stack.Push(newState);
-            await Enter(CurrentState, oldState.Key);
-        }
-
-        private async Task DoSet(Change change) {
-            if (_stack.Count == 1) {
-                await Exit(_stack.Pop(), change.State.Key);
-            } else {
-                // Special case: 
-                // Exit from all the states from the stack, in order
-                while (_stack.Count > 0) {
-                    var exitingState = _stack.Pop();
-                    var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
-                    await Exit(exitingState, to);
-                }
-            } 
-            var newState = TransitionTo(change, out var oldState);
-            _stack.Push(newState);
-            await Enter(CurrentState, oldState.Key);
-        }
-
-        private async Task<ExecuteTransition<TStateKey, TTransitionKey>> DoExecute(float delta) {
-            _listeners?.ForEach(listener => listener.OnExecuteStart(delta, CurrentState.Key));
-            _executeContext.Delta = delta;
-            var transition = await CurrentState.Execute(_executeContext);
-            _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
-            return transition;
         }
 
         private IState<TStateKey, TTransitionKey> TransitionTo(Change change, out IState<TStateKey, TTransitionKey> oldState) {
@@ -239,36 +222,36 @@ namespace Betauer.StateMachine {
             #endif
         }
 
-        private async Task Exit(IState<TStateKey, TTransitionKey> state, TStateKey to) {
+        private Task Exit(IState<TStateKey, TTransitionKey> state, TStateKey to) {
             _listeners?.ForEach(listener => listener.OnExit(state.Key, to));
             #if DEBUG
                 Logger.Debug($"Exit: \"{state.Key}\"(to:{to})\"");
             #endif
-            await state.Exit(to);
+            return state.Exit(to);
         }
 
-        private async Task Suspend(IState<TStateKey, TTransitionKey> state, TStateKey to) {
+        private Task Suspend(IState<TStateKey, TTransitionKey> state, TStateKey to) {
             _listeners?.ForEach(listener => listener.OnSuspend(state.Key, to));
             #if DEBUG
                 Logger.Debug($"Suspend: \"{state.Key}\"(to:{to})");
             #endif
-            await state.Suspend(to);
+            return state.Suspend(to);
         }
 
-        private async Task Awake(IState<TStateKey, TTransitionKey> state, TStateKey from) {
+        private Task Awake(IState<TStateKey, TTransitionKey> state, TStateKey from) {
             _listeners?.ForEach(listener => listener.OnAwake(state.Key, from));
             #if DEBUG
                 Logger.Debug($"Awake: \"{state.Key}\"(from:{from})");
             #endif
-            await state.Awake(from);
+            return state.Awake(from);
         }
 
-        private async Task Enter(IState<TStateKey, TTransitionKey> state, TStateKey from) {
+        private Task Enter(IState<TStateKey, TTransitionKey> state, TStateKey from) {
             _listeners?.ForEach(listener => listener.OnEnter(state.Key, from));
             #if DEBUG
                 Logger.Debug($"Enter: \"{state.Key}\"(from:{from})");
             #endif
-            await state.Enter(from);
+            return state.Enter(from);
         }
 
         public void Dispose() {

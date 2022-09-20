@@ -23,21 +23,25 @@ namespace Betauer.StateMachine {
             Key = key;
         }
 
-        public virtual async Task Enter(TStateKey from) {
+        public virtual Task Enter(TStateKey from) {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task Awake(TStateKey from) {
+        public virtual Task Awake(TStateKey from) {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+        public virtual Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
             ExecuteContext<TStateKey, TTransitionKey> executeContext) {
-            return executeContext.None();
+            return Task.FromResult(executeContext.None());
         }
 
-        public virtual async Task Suspend(TStateKey to) {
+        public virtual Task Suspend(TStateKey to) {
+            return Task.CompletedTask;
         }
 
-        public virtual async Task Exit(TStateKey to) {
+        public virtual Task Exit(TStateKey to) {
+            return Task.CompletedTask;
         }
     }
 
@@ -68,36 +72,25 @@ namespace Betauer.StateMachine {
             _awake = awake;
         }
 
-        public override async Task Enter(TStateKey from) {
-            if (_enter != null) {
-                await _enter.Invoke(from);
-            }
+        public override Task Enter(TStateKey from) {
+            return _enter != null ? _enter.Invoke(from) : Task.CompletedTask;
         }
 
-        public override async Task Awake(TStateKey from) {
-            if (_awake != null) {
-                await _awake.Invoke(from);
-            }
+        public override Task Awake(TStateKey from) {
+            return _awake != null ? _awake.Invoke(from) : Task.CompletedTask;
         }
 
-        public override async Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+        public override Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
             ExecuteContext<TStateKey, TTransitionKey> executeContext) {
-            if (_execute != null) {
-                return await _execute.Invoke(executeContext);
-            }
-            return executeContext.None();
+            return _execute != null ? _execute.Invoke(executeContext) : Task.FromResult(executeContext.None());
         }
 
-        public override async Task Suspend(TStateKey to) {
-            if (_suspend != null) {
-                await _suspend.Invoke(to);
-            }
+        public override Task Suspend(TStateKey to) {
+            return _suspend != null ? _suspend.Invoke(to) : Task.CompletedTask;
         }
 
-        public override async Task Exit(TStateKey to) {
-            if (_exit != null) {
-                await _exit.Invoke(to);
-            }
+        public override Task Exit(TStateKey to) {
+            return _exit != null ? _exit.Invoke(to) : Task.CompletedTask;
         }
     }
 }
