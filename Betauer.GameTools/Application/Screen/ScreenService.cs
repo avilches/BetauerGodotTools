@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Betauer.Signal;
 using Godot;
 
@@ -22,9 +21,9 @@ namespace Betauer.Application.Screen {
 
         public ScreenService(SceneTree tree, ScreenConfiguration initialScreenConfiguration, ScreenStrategyKey? strategyKey = ScreenStrategyKey.ViewportSize) {
             _tree = tree;
-            _strategies[ScreenStrategyKey.ViewportSize] = new WindowSizeResolutionStrategy(_tree);
-            _strategies[ScreenStrategyKey.IntegerScale] = new ViewportResolutionStrategy(_tree);
-            _strategies[ScreenStrategyKey.WindowSize] = new IntegerScaledScreenResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.WindowSize] = new WindowSizeResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.ViewportSize] = new ViewportResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.IntegerScale] = new IntegerScaledScreenResolutionStrategy(_tree);
             SetScreenConfiguration(initialScreenConfiguration, strategyKey);
             tree.OnScreenResized(OnScreenResized);
         }
@@ -34,12 +33,9 @@ namespace Betauer.Application.Screen {
         }
 
         public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenStrategyKey? strategyKey = null) {
-            if (screenConfiguration == null) throw new ArgumentNullException(nameof(screenConfiguration));
-            if (ScreenConfiguration != screenConfiguration || (strategyKey.HasValue && strategyKey.Value != StrategyKey)) {
-                ScreenConfiguration = screenConfiguration;
-                StrategyKey = strategyKey ?? StrategyKey;
-                ReconfigureService();
-            }
+            ScreenConfiguration = screenConfiguration ?? throw new ArgumentNullException(nameof(screenConfiguration));
+            StrategyKey = strategyKey ?? StrategyKey;
+            ReconfigureService();
         }
 
         public void SetStrategy(ScreenStrategyKey screenStrategyKey) {
@@ -52,13 +48,8 @@ namespace Betauer.Application.Screen {
         private void ReconfigureService() {
             ScreenStrategyImpl?.Disable(); // can be null, but only the first time
             ScreenStrategyImpl = _strategies[StrategyKey];
-            ScreenStrategyImpl.Enable(ScreenConfiguration);
+            ScreenStrategyImpl.SetScreenConfiguration(ScreenConfiguration);
             
-            // Enforce minimum resolution.
-            OS.MinWindowSize = ScreenConfiguration.DownScaledMinimumResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
             OS.WindowResizable = ScreenConfiguration.IsResizeable;
         }
 

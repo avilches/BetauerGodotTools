@@ -9,50 +9,25 @@ namespace Betauer.Application.Screen {
     /// User interface container changes their size with the viewport (following StretchAspect) and
     /// controls (and fonts!) doesn't keep the aspect ratio (they shrink or expand)
     /// </summary>
-    public class WindowSizeResolutionStrategy : BaseScreenResolutionService, IScreenStrategy, IScreenResizeHandler {
+    public class WindowSizeResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(WindowSizeResolutionStrategy));
         public WindowSizeResolutionStrategy(SceneTree tree) : base(tree) {
-        }
-
-        public void Enable(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            Logger.Debug($"Regular: {StretchMode}/{StretchAspect} | Viewport {BaseResolution.x}x{BaseResolution.y}");
-        }
-
-        public void Disable() {
         }
 
         public List<ScaledResolution> GetResolutions() {
             return Resolutions.Clamp(DownScaledMinimumResolution.Size).ExpandResolutions(BaseResolution, AspectRatios).ToList();
         }
 
-        public override void SetFullscreen() {
-            if (!OS.WindowFullscreen) {
-                if (!FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
-                OS.WindowFullscreen = true;
+        protected override void Setup() {
+            // Enforce minimum resolution.
+            OS.MinWindowSize = ScreenConfiguration.DownScaledMinimumResolution.Size;
+            if (OS.WindowSize < OS.MinWindowSize) {
+                OS.WindowSize = OS.MinWindowSize;
             }
-        }
-
-        protected override void DoSetBorderless(bool borderless) {
-            if (!FeatureFlags.IsMacOs()) {
-                if (OS.WindowBorderless == borderless) return;
-                OS.WindowBorderless = borderless;
-            }
-        }
-
-        // El StretchAspect se usa
-        public void OnScreenResized() {
-            var resolution = OS.WindowSize;
+            OS.WindowResizable = ScreenConfiguration.IsResizeable;
+            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            Logger.Debug($"Regular: {StretchMode}/{StretchAspect} | WindowSize {resolution.x}x{resolution.y} | Viewport {BaseResolution.x}x{BaseResolution.y}");
-        }
-
-        protected override void DoSetWindowed(Resolution resolution) {
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
-            Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            Logger.Debug($"ScaleUi: {StretchMode}/{StretchAspect} | WindowSize {resolution.x}x{resolution.y} | Viewport {BaseResolution.x}x{BaseResolution.y}");
+            Logger.Debug($"{StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}");
         }
     }
 }

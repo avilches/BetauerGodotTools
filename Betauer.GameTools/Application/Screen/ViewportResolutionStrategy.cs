@@ -9,62 +9,34 @@ namespace Betauer.Application.Screen {
     /// - StretchAspect.KeepHeight: the viewport grows/shrink keeping the aspect ratio of base. Expand width only. The more width, the smaller the controls. Changing height keep aspect ratio of controls.
     /// - StretchAspect.KeepWidth: the viewport grows/shrink, but keeping the width aspect ratio of base. Expand height only. The more height, the smaller the controls. Changing width keep aspect ratio of controls.
     /// </summary>
-    public class ViewportResolutionStrategy : BaseScreenResolutionService, IScreenStrategy, IScreenResizeHandler {
+    public class ViewportResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ViewportResolutionStrategy));
         public ViewportResolutionStrategy(SceneTree tree) : base(tree) {
-        }
-
-        public void Enable(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            Logger.Debug($"Regular: {StretchMode}/{StretchAspect} | Viewport {BaseResolution.x}x{BaseResolution.y}");
-        }
-
-        public void Disable() {
         }
 
         public List<ScaledResolution> GetResolutions() {
             return Resolutions.Clamp(DownScaledMinimumResolution.Size).ExpandResolutions(BaseResolution, AspectRatios).ToList();
         }
 
-        public override void SetFullscreen() {
-            if (!OS.WindowFullscreen) {
-                if (!FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
-                OS.WindowFullscreen = true;
+        protected override void Setup() {
+            // Enforce minimum resolution.
+            OS.MinWindowSize = ScreenConfiguration.DownScaledMinimumResolution.Size;
+            if (OS.WindowSize < OS.MinWindowSize) {
+                OS.WindowSize = OS.MinWindowSize;
             }
-        }
-
-        protected override void DoSetBorderless(bool borderless) {
-            if (!FeatureFlags.IsMacOs()) {
-                if (OS.WindowBorderless == borderless) return;
-                OS.WindowBorderless = borderless;
-            }
-        }
-
-        public void OnScreenResized() {
-            var resolution = OS.WindowSize;
-            var keepRatio = KeepRatio(new Resolution(resolution));
+            OS.WindowResizable = ScreenConfiguration.IsResizeable;
+            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
+            var keepRatio = KeepRatio(new Resolution(windowSize));
             Tree.SetScreenStretch(StretchMode, StretchAspect, keepRatio.Size, Zoom);
-            Logger.Debug($"Regular: {StretchMode}/{StretchAspect} | WindowSize {resolution.x}x{resolution.y} | Viewport {keepRatio.x}x{keepRatio.y}");
-        }
-
-        protected override void DoSetWindowed(Resolution resolution) {
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
-            var keepRatio = KeepRatio(resolution);
-            Tree.SetScreenStretch(StretchMode, StretchAspect, keepRatio.Size, Zoom);
-            Logger.Debug($"Regular: {StretchMode}/{StretchAspect} | WindowSize {resolution.x}x{resolution.y} | Viewport {keepRatio.x}x{keepRatio.y}");
+            Logger.Debug($"{StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {keepRatio.x}x{keepRatio.y}");
         }
 
         public Resolution KeepRatio(Resolution resolution) {
-            if (StretchAspect == SceneTree.StretchAspect.KeepHeight) {
-                return new Resolution(resolution.x, (int)(resolution.x / BaseResolution.AspectRatio.Ratio));
-            }
-            if (StretchAspect == SceneTree.StretchAspect.KeepWidth) {
-                return new Resolution((int)(resolution.y * BaseResolution.AspectRatio.Ratio), resolution.y);
-            }
-            return resolution;
-
+            return StretchAspect switch {
+                SceneTree.StretchAspect.KeepHeight => new Resolution(resolution.x, (int)(resolution.x / BaseResolution.AspectRatio.Ratio)),
+                SceneTree.StretchAspect.KeepWidth => new Resolution((int)(resolution.y * BaseResolution.AspectRatio.Ratio), resolution.y),
+                _ => resolution
+            };
         }
     }
 }

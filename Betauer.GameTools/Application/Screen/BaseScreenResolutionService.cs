@@ -3,7 +3,7 @@ using Betauer.Memory;
 using Godot;
 
 namespace Betauer.Application.Screen {
-    public abstract class BaseScreenResolutionService : DisposableObject {
+    public abstract class BaseScreenResolutionService : DisposableObject, IScreenResizeHandler {
         protected readonly SceneTree Tree;
         protected ScreenConfiguration ScreenConfiguration;
         protected Resolution DownScaledMinimumResolution => ScreenConfiguration.DownScaledMinimumResolution;
@@ -19,33 +19,51 @@ namespace Betauer.Application.Screen {
             Tree = tree;
         }
 
-        public bool IsFullscreen() => OS.WindowFullscreen;
-        public abstract void SetFullscreen();
+        protected abstract void Setup();
 
-        public void SetBorderless(bool borderless) {
-            if (IsFullscreen()) return;
-            DoSetBorderless(borderless);
+        public virtual void Disable() {
         }
 
-        protected abstract void DoSetBorderless(bool borderless);
+        public virtual void SetScreenConfiguration(ScreenConfiguration screenConfiguration) {
+            ScreenConfiguration = screenConfiguration;
+            Setup();
+        }
 
-        public void SetWindowed(Resolution resolution) {
+        public virtual bool IsFullscreen() => OS.WindowFullscreen;
+
+        public virtual void SetFullscreen() {
+            if (OS.WindowFullscreen) return;
+            if (!FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
+            OS.WindowFullscreen = true;
+            Setup();
+        }
+
+        public virtual void SetBorderless(bool borderless) {
+            if (IsFullscreen() || FeatureFlags.IsMacOs() || OS.WindowBorderless == borderless) return;
+            OS.WindowBorderless = borderless;
+            Setup();
+        }
+
+        public virtual void SetWindowed(Resolution resolution) {
             var screenSize = OS.GetScreenSize();
             if (resolution.x > screenSize.x || resolution.y > screenSize.y) {
                 SetFullscreen();
                 return;
             }
-            if (resolution.x < DownScaledMinimumResolution.x || resolution.y < DownScaledMinimumResolution.y) {
-                DoSetWindowed(DownScaledMinimumResolution);
-            } else {
-                DoSetWindowed(resolution);
+            if (resolution.x < DownScaledMinimumResolution.x || 
+                resolution.y < DownScaledMinimumResolution.y) {
+                resolution = DownScaledMinimumResolution;
             }
+            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
+            OS.WindowSize = resolution.Size;
+            Setup();
         }
 
-        protected abstract void DoSetWindowed(Resolution resolution);
+        public virtual void OnScreenResized() {
+            Setup();
+        }
 
-
-        public void CenterWindow() {
+        public virtual void CenterWindow() {
             if (OS.WindowFullscreen) return;
             OS.CenterWindow();
             // TODO why this instead of OS.CenterWindow()

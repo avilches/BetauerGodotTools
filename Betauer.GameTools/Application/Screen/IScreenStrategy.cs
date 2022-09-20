@@ -8,7 +8,7 @@ namespace Betauer.Application.Screen {
         void SetWindowed(Resolution resolution);
         List<ScaledResolution> GetResolutions();
         void Disable();
-        void Enable(ScreenConfiguration screenConfiguration);
+        void SetScreenConfiguration(ScreenConfiguration screenConfiguration);
         void CenterWindow();
     }
 }

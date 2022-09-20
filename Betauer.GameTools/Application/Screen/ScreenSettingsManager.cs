@@ -62,8 +62,7 @@ namespace Betauer.Application.Screen {
             }
         }
 
-        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration,
-            ScreenService.ScreenStrategyKey? strategy = null) {
+        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.ScreenStrategyKey? strategy = null) {
             ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
         }
 

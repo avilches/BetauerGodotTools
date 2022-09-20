@@ -5,65 +5,37 @@ using Godot;
 namespace Betauer.Application.Screen {
     /**
      * https://github.com/Yukitty/godot-addon-integer_resolution_handler
+     *
+     * 
+     * 
      */
-    public class IntegerScaledScreenResolutionStrategy : BaseScreenResolutionService, IScreenStrategy, IScreenResizeHandler {
+    public class IntegerScaledScreenResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(IntegerScaledScreenResolutionStrategy));
-
         public IntegerScaledScreenResolutionStrategy(SceneTree tree) : base(tree) {
-        }
-
-        public void Enable(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
-            // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
-
-            // Mode2D shows betters fonts
-            Tree.SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep, BaseResolution.Size,
-                1);
-            ScaleResolutionViewport();
-        }
-
-        public void Disable() {
-        }
-
-        public void OnScreenResized() {
-            ScaleResolutionViewport();
         }
 
         public List<ScaledResolution> GetResolutions() {
             return BaseResolution.ExpandResolutionByWith(AspectRatios);
         }
+        
+        protected override void Setup() {
+            // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
+            // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
+            // Mode2D shows betters fonts
 
-        public override void SetFullscreen() {
-            if (!OS.WindowFullscreen) {
-                if (!FeatureFlags.IsMacOs()) {
-                    OS.WindowBorderless = false;
-                }
-                OS.WindowFullscreen = true;
+            // Enforce minimum resolution.
+            OS.MinWindowSize = ScreenConfiguration.BaseResolution.Size;
+            if (OS.WindowSize < OS.MinWindowSize) {
+                OS.WindowSize = OS.MinWindowSize;
             }
-            ScaleResolutionViewport();
-        }
-
-        protected override void DoSetBorderless(bool borderless) {
-            if (!FeatureFlags.IsMacOs()) {
-                if (OS.WindowBorderless == borderless) return;
-                OS.WindowBorderless = borderless;
-                ScaleResolutionViewport();
-            }
-        }
-
-        protected override void DoSetWindowed(Resolution resolution) {
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
-            ScaleResolutionViewport();
-        }
-
-        private void ScaleResolutionViewport() {
+            OS.WindowResizable = ScreenConfiguration.IsResizeable;
+            Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Ignore, BaseResolution.Size, 1);
+            var rootViewport = Tree.Root;
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            var maxScale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
+            var scale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
             var screenSize = BaseResolution.Size;
-            var viewportSize = screenSize * maxScale;
-            var overScan = ((windowSize - viewportSize) / maxScale).Floor();
+            var viewportSize = screenSize * scale;
+            var overScan = ((windowSize - viewportSize) / scale).Floor();
 
             switch (StretchAspect) {
                 case SceneTree.StretchAspect.KeepWidth: {
@@ -85,37 +57,25 @@ namespace Betauer.Application.Screen {
                     throw new ArgumentOutOfRangeException();
             }
 
-            viewportSize = screenSize * maxScale;
+            viewportSize = screenSize * scale;
             var margin = (windowSize - viewportSize) / 2;
             var margin2 = margin.Ceil();
             margin = margin.Floor();
-
-            ChangeViewport(screenSize, margin, viewportSize, windowSize, margin2);
-        }
-
-        private void ChangeViewport(Vector2 screenSize, Vector2 margin, Vector2 viewportSize, Vector2 windowSize,
-            Vector2 margin2) {
-            Viewport rootViewport = Tree.Root;
-            switch (StretchMode) {
-                case SceneTree.StretchMode.Viewport: {
-                    rootViewport.Size = (screenSize / Zoom).Floor();
-                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    rootViewport.SizeOverrideStretch = false;
-                    rootViewport.SetSizeOverride(false);
-                    break;
-                }
-                case SceneTree.StretchMode.Mode2d:
-                case SceneTree.StretchMode.Disabled: {
-                    rootViewport.Size = (viewportSize / Zoom).Floor();
-                    rootViewport.SetAttachToScreenRect(new Rect2(margin, viewportSize));
-                    rootViewport.SizeOverrideStretch = true;
-                    rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
-                    break;
-                }
-                default:
-                    throw new ArgumentOutOfRangeException();
+            var attachToScreenRect = new Rect2(margin, viewportSize);
+            
+            if (StretchMode == SceneTree.StretchMode.Viewport) {
+                rootViewport.Size = (screenSize / Zoom).Floor();
+                rootViewport.SetAttachToScreenRect(attachToScreenRect);
+                rootViewport.SizeOverrideStretch = false;
+                rootViewport.SetSizeOverride(false);
+            } else {
+                // Mode2d || Disabled
+                rootViewport.Size = (viewportSize / Zoom).Floor();
+                rootViewport.SetAttachToScreenRect(attachToScreenRect);
+                rootViewport.SizeOverrideStretch = true;
+                rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
             }
-            Logger.Debug($"IntegerScaled: {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}");
+            Logger.Debug($"{StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y} | AttachToScreenRect pos:{attachToScreenRect.Position.x}x{attachToScreenRect.Position.y} size:{attachToScreenRect.Size.x}x{attachToScreenRect.Size.y}");
 
             VisualServer.BlackBarsSetMargins(
                 Mathf.Max(0, (int)margin.x),
