@@ -25,6 +25,7 @@ namespace Betauer.GameTools.Tests {
         internal static ScreenConfiguration InitialScreenConfiguration =
             new ScreenConfiguration(
                 Resolutions.FULLHD,
+                Resolutions.FULLHD,
                 SceneTree.StretchMode.Mode2d, 
                 SceneTree.StretchAspect.KeepHeight);
 

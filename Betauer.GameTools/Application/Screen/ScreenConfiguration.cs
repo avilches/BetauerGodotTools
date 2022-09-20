@@ -18,7 +18,7 @@ namespace Betauer.Application.Screen {
         public float Zoom { get; }
 
         public ScreenConfiguration(Resolution downScaledMinimumResolution, Resolution baseResolution, SceneTree.StretchMode stretchMode,
-            SceneTree.StretchAspect stretchAspect, List<Resolution>? resolutions = null, bool isResizeable = true, float zoom = 1f) {
+            SceneTree.StretchAspect stretchAspect, List<Resolution>? resolutions = null, bool isResizeable = false, float zoom = 1f) {
             DownScaledMinimumResolution = downScaledMinimumResolution;
             BaseResolution = baseResolution;
             StretchMode = stretchMode;
