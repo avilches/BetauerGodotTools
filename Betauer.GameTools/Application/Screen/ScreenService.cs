@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Application.Screen {
     public class ScreenService {
         private readonly SceneTree _tree;
-        private readonly List<IScreenStrategy> _strategies = new List<IScreenStrategy>((int)ScreenStrategyKey.Count);
+
+        private readonly Dictionary<ScreenStrategyKey, IScreenStrategy> _strategies =
+            new Dictionary<ScreenStrategyKey, IScreenStrategy>();
         public IScreenStrategy? ScreenStrategyImpl { get; private set;  }
         public ScreenConfiguration ScreenConfiguration { get; private set; }
         public ScreenStrategyKey StrategyKey { get; private set; } = ScreenStrategyKey.ViewportSize;
@@ -15,14 +18,13 @@ namespace Betauer.Application.Screen {
             WindowSize = 0,
             ViewportSize = 1,
             IntegerScale = 2,
-            Count = 3,
         }
 
         public ScreenService(SceneTree tree, ScreenConfiguration initialScreenConfiguration, ScreenStrategyKey? strategyKey = ScreenStrategyKey.ViewportSize) {
             _tree = tree;
-            _strategies[(int)ScreenStrategyKey.ViewportSize] = new ViewportResolutionStrategy(_tree);
-            _strategies[(int)ScreenStrategyKey.IntegerScale] = new IntegerScaledScreenResolutionStrategy(_tree);
-            _strategies[(int)ScreenStrategyKey.WindowSize] = new WindowSizeResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.ViewportSize] = new WindowSizeResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.IntegerScale] = new ViewportResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.WindowSize] = new IntegerScaledScreenResolutionStrategy(_tree);
             SetScreenConfiguration(initialScreenConfiguration, strategyKey);
             tree.OnScreenResized(OnScreenResized);
         }
@@ -49,7 +51,7 @@ namespace Betauer.Application.Screen {
 
         private void ReconfigureService() {
             ScreenStrategyImpl?.Disable(); // can be null, but only the first time
-            ScreenStrategyImpl = _strategies[(int)StrategyKey];
+            ScreenStrategyImpl = _strategies[StrategyKey];
             ScreenStrategyImpl.Enable(ScreenConfiguration);
             
             // Enforce minimum resolution.
