@@ -51,8 +51,6 @@ namespace Betauer {
         internal bool IncludeTimestamp = true;
 
         public bool RemoveDuplicates { get; set; } = true;
-        internal string _lastLog = "";
-        internal int _lastLogTimes = 0;
 
         private TraceLevelConfig _defaultTraceLevelConfig =
             new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
@@ -287,18 +285,7 @@ namespace Betauer {
 
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
-            if (LoggerFactory.Instance.RemoveDuplicates && LoggerFactory.Instance._lastLog.Equals(message)) {
-                LoggerFactory.Instance._lastLogTimes++;
-                return;
-            }
             // New line is different
-            if (LoggerFactory.Instance._lastLogTimes > 1) {
-                // Print old lines + times
-                var timestamp = LoggerFactory.Instance.IncludeTimestamp ? "                       " : "";
-                WriteLog("x" + LoggerFactory.Instance._lastLogTimes, timestamp, LoggerFactory.Instance._lastLog);
-            }
-            LoggerFactory.Instance._lastLog = message;
-            LoggerFactory.Instance._lastLogTimes = 1;
             var fastDateFormat = LoggerFactory.Instance.IncludeTimestamp ? FastDateFormat() : "";
             WriteLog(level.ToString(),fastDateFormat, message);
         }
