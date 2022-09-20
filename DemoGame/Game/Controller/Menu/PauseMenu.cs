@@ -1,11 +1,8 @@
 using System.Threading.Tasks;
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation.Tween;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Nodes.Property;
-using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.Signal;
@@ -23,14 +20,16 @@ namespace Veronenger.Game.Controller.Menu {
             .KeyframeTo(1f, 0.4f)
             .EndAnimate();
 
-        [OnReady("Node2D")] private Node2D _container;
+        [OnReady("BackgroundFader")] private ColorRect _backgroundFader;
+        [OnReady("Node2D/BlackBar")] private ColorRect _blackBar;
 
-        [OnReady("Node2D/BackgroundFader")] private ColorRect _backgroundFader;
+        [OnReady("CenterContainer")]
+        private Container _centerContainer;
 
-        [OnReady("Node2D/CenterContainer/VBoxContainer/Menu")]
+        [OnReady("CenterContainer/VBoxContainer/Menu")]
         private Container _menuBase;
 
-        [OnReady("Node2D/CenterContainer/VBoxContainer/Title")]
+        [OnReady("CenterContainer/VBoxContainer/Title")]
         private Label _title;
 
         private MenuContainer _menuContainer;
@@ -43,18 +42,25 @@ namespace Veronenger.Game.Controller.Menu {
 
         public override void _Ready() {
             _menuContainer = BuildMenu();
-            _container.Hide();;
+            Hide();
+            GetTree().OnScreenResized(_BlackBarPosition).DisconnectIfInvalid(this);
         }
 
-        public async Task ShowPauseMenu() {
-            _container.Show();
+        public Task ShowPauseMenu() {
+            Show();
             PartialFadeOut.Play(_backgroundFader, 0f, 0.5f);
-            await _menuContainer.Start();
+            _blackBar.RectSize = new Vector2(20000, _blackBar.RectSize.y);
+            _BlackBarPosition();
+            return _menuContainer.Start();
+        }
+
+        private void _BlackBarPosition() {
+            _blackBar.RectPosition = new Vector2(-10000, _centerContainer.RectPosition.y);
         }
 
         public void HidePauseMenu() {
             // _launcher.RemoveAll();
-            _container.Hide();
+            Hide();
         }
 
         private Restorer _menuRestorer;
