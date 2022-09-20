@@ -15,34 +15,37 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = -591.0
 margin_top = -30.0
-margin_bottom = -100.0
 grow_horizontal = 0
 custom_constants/margin_right = 5
-custom_constants/margin_top = -5
+custom_constants/margin_top = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
-margin_top = -5.0
+margin_top = 10.0
 margin_right = 586.0
-margin_bottom = 11.0
+margin_bottom = 30.0
 theme = ExtResource( 2 )
 alignment = 2
 
 [node name="ActionHint1" parent="MarginContainer/HBoxContainer" instance=ExtResource( 3 )]
+unique_name_in_owner = true
 margin_left = 198.0
 margin_right = 292.0
-margin_bottom = 16.0
+margin_bottom = 20.0
 
 [node name="ActionHint2" parent="MarginContainer/HBoxContainer" instance=ExtResource( 3 )]
+unique_name_in_owner = true
 margin_left = 296.0
 margin_right = 390.0
-margin_bottom = 16.0
+margin_bottom = 20.0
 
 [node name="ActionHint3" parent="MarginContainer/HBoxContainer" instance=ExtResource( 3 )]
+unique_name_in_owner = true
 margin_left = 394.0
 margin_right = 488.0
-margin_bottom = 16.0
+margin_bottom = 20.0
 
 [node name="ActionHint4" parent="MarginContainer/HBoxContainer" instance=ExtResource( 3 )]
+unique_name_in_owner = true
 margin_left = 492.0
 margin_right = 586.0
-margin_bottom = 16.0
+margin_bottom = 20.0

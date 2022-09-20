@@ -10,17 +10,17 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
     public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<GameManager.State> {
-        [OnReady("HBoxContainer/ActionHint1")] private ActionHint _actionHint1;
-        [OnReady("HBoxContainer/ActionHint2")] private ActionHint _actionHint2;
-        [OnReady("HBoxContainer/ActionHint3")] private ActionHint _actionHint3;
-        [OnReady("HBoxContainer/ActionHint4")] private ActionHint _actionHint4;
+        [OnReady("%ActionHint1")] private ActionHint _actionHint1;
+        [OnReady("%ActionHint2")] private ActionHint _actionHint2;
+        [OnReady("%ActionHint3")] private ActionHint _actionHint3;
+        [OnReady("%ActionHint4")] private ActionHint _actionHint4;
         private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiStart { get; set; }
         [Inject] private InputAction UiLeft { get; set; }
 
-
+                    
         public override void _Ready() {
             _actionHintList.Add(_actionHint1);
             _actionHintList.Add(_actionHint2);
