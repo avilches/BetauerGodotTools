@@ -45,8 +45,10 @@ namespace Betauer.StateMachine {
         }
     }
 
-    public class State<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey>
+    public class State<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
+        public TStateKey Key { get; }
+
         private readonly Func<TStateKey, Task>? _enter;
         private readonly Func<TStateKey, Task>? _awake;
 
@@ -63,8 +65,8 @@ namespace Betauer.StateMachine {
                 execute = null,
             Func<TStateKey, Task>? exit = null,
             Func<TStateKey, Task>? suspend = null,
-            Func<TStateKey, Task>? awake = null) :
-            base(key) {
+            Func<TStateKey, Task>? awake = null) {
+            Key = key;
             _enter = enter;
             _execute = execute;
             _exit = exit;
@@ -72,24 +74,25 @@ namespace Betauer.StateMachine {
             _awake = awake;
         }
 
-        public override Task Enter(TStateKey from) {
+
+        public Task Enter(TStateKey from) {
             return _enter != null ? _enter.Invoke(from) : Task.CompletedTask;
         }
 
-        public override Task Awake(TStateKey from) {
+        public Task Awake(TStateKey from) {
             return _awake != null ? _awake.Invoke(from) : Task.CompletedTask;
         }
 
-        public override Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+        public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
             ExecuteContext<TStateKey, TTransitionKey> executeContext) {
             return _execute != null ? _execute.Invoke(executeContext) : Task.FromResult(executeContext.None());
         }
 
-        public override Task Suspend(TStateKey to) {
+        public Task Suspend(TStateKey to) {
             return _suspend != null ? _suspend.Invoke(to) : Task.CompletedTask;
         }
 
-        public override Task Exit(TStateKey to) {
+        public Task Exit(TStateKey to) {
             return _exit != null ? _exit.Invoke(to) : Task.CompletedTask;
         }
     }
