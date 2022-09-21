@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.Loader {
+    // TODO: Exported binaries doesn't include the binaries only the ".import" version of resources, so it's not trivial
+    // to get the file size to figure out the total size.
+    // Godot 4 will replace the interactive loader by a new one, so fix this will not be useful
     public static class Loader {
+        private const int FakeSize = 100;
         public static async Task<IEnumerable<ResourceMetadata>> Load(IEnumerable<string> resourcesToLoad,
             Action<LoadingProgress>? progress = null, Func<Task>? awaiter = null, float maxTime = 0.100f) {
-            var (resources, totalSize) = CreateQueue(resourcesToLoad);
+            var resources = resourcesToLoad.Select(resourcePath => new ResourceMetadata(resourcePath, FakeSize)).ToList();
+            var totalSize = FakeSize * resources.Count;
             var totalLoadedSize = 0;
             var stopwatch = Stopwatch.StartNew();
             foreach (var resource in resources) {
@@ -16,24 +22,6 @@ namespace Betauer.Loader {
                 totalLoadedSize += resource.Size;
             }
             return resources;
-        }
-
-        private static (IEnumerable<ResourceMetadata>, int) CreateQueue(IEnumerable<string> resourcesToLoad) {
-            var totalSizeToLoad = 0;
-            var godotFileHandler = new File();
-            var queue = new List<ResourceMetadata>();
-            foreach (var resourcePath in resourcesToLoad) {
-                Error error = godotFileHandler.Open(resourcePath, File.ModeFlags.Read);
-                if (error != Error.Ok) {
-                    throw new Exception($"Error getting resource size {resourcePath}: {error}");
-                }
-                var resourceSize = (int)godotFileHandler.GetLen();
-                totalSizeToLoad += resourceSize;
-                queue.Add(new ResourceMetadata(resourcePath, resourceSize));
-            }
-            godotFileHandler.Close();
-            godotFileHandler.Dispose();
-            return (queue, totalSizeToLoad);
         }
 
         private static async Task Load(Stopwatch stopwatch, ResourceMetadata resourceMetadata, 
