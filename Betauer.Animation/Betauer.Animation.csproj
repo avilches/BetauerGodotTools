@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
-        <LangVersion>8</LangVersion>
+        <LangVersion>preview</LangVersion>
         <RootNamespace>Betauer.Animation</RootNamespace>
         <PackageId>Betauer.Animation</PackageId>
         <AssemblyName>Betauer.Animation</AssemblyName>

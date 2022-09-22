@@ -1,10 +1,11 @@
 <Project Sdk="Godot.NET.Sdk/3.3.0">
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <RootNamespace>Veronenger</RootNamespace>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Game/**" />
@@ -25,22 +26,22 @@
     </ItemGroup>
     <ItemGroup>
       <Reference Include="Betauer.Animation">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.Animation.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.Animation.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.Core">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.Core.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.Core.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.DI">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.DI.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.DI.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.GameTools">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.GameTools.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.GameTools.dll</HintPath>
       </Reference>
       <Reference Include="Betauer.StateMachine">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.StateMachine.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.StateMachine.dll</HintPath>
       </Reference>
       <Reference Condition="'$(Configuration)' == 'Debug'" Include="Betauer.TestRunner">
-        <HintPath>..\export\releases\0.1.0\ExportRelease\Betauer.TestRunner.dll</HintPath>
+        <HintPath>../export/releases/0.1.0/ExportRelease/Betauer.TestRunner.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>

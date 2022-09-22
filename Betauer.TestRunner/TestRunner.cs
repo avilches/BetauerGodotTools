@@ -161,10 +161,10 @@ namespace Betauer.TestRunner {
             var cleanNotOnly = false;
             var fixtures = new List<TestFixture>();
             foreach (var assembly in assemblies) {
-                GD.Print("Scanning assembly "+assembly);
+                GD.Print($"Scanning assembly {assembly}...");
                 foreach (Type type in assembly.GetTypes()) {
                     if (IsTestFixture(type)) {
-                        GD.Print("Scanning class "+type);
+                        GD.Print($"+ Fixture {type}");
                         var testFixture = CreateFixture(type);
                         fixtures.Add(testFixture);
                         cleanNotOnly = cleanNotOnly || testFixture.Only;

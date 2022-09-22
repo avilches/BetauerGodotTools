@@ -3,6 +3,7 @@ using Godot;
 using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
+using Range = Godot.Range;
 
 namespace Betauer.Signal {
     public static partial class AwaitExtensions {
