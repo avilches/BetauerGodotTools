@@ -88,17 +88,17 @@ namespace Betauer.StateMachine {
             }
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override async void _PhysicsProcess(float delta) {
             if (Mode == ProcessMode.Physics) {
-                Execute(delta);
+                await Execute(delta);
             } else {
                 SetPhysicsProcess(false);
             }
         }
 
-        public override void _Process(float delta) {
+        public override async void _Process(float delta) {
             if (Mode == ProcessMode.Idle) {
-                Execute(delta);
+                await Execute(delta);
             } else {
                 SetProcess(false);
             }
