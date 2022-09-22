@@ -27,17 +27,11 @@ namespace Veronenger.Game.Managers.Autoload {
             EnableAddSingletonNodesToTree(true);
             SetObjectWatcherTimer(1f);
             
-            if (FeatureFlags.IsExported()) {
-                AppDomain.CurrentDomain.UnhandledException += (o, args) => {
-                    Logger.Error($"Got unhandled exception: {args.ExceptionObject}");
-                    // TODO: test this!
-                    // LoggerFactory.Dispose();
-                    // GetTree().Quit();
-                };
-                ExportConfig();
-            } else {
+            #if DEBUG
                 DevelopmentConfig();
-            }
+            #else
+                ExportConfig();
+            #endif
             ShowConfig();
             Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
         }
@@ -98,7 +92,7 @@ namespace Veronenger.Game.Managers.Autoload {
 
             // Bootstrap logs, all always :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.All);
 
             // DI
