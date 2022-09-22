@@ -208,7 +208,6 @@ namespace Betauer.GameTools.Tests {
             public Texture Texture2;
         }
 
-
         [Test]
         public async Task WrongResourcesDefinitionTests() {
             async Task Load(ResourceLoaderContainer o) => await o.SetAwaiter(async () => { }).Load();

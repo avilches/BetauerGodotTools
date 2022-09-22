@@ -37,6 +37,9 @@ namespace Betauer.Loader {
             }
 
             using (var loader = ResourceLoader.LoadInteractive(resourcePath)) {
+                if (loader == null) {
+                    throw new Exception($"Resource not found: {resourcePath}");                    
+                }
                 var stages = loader.GetStageCount();
                 // Resource resource = null;
                 Error pollResult = Error.Ok;
