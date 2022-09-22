@@ -42,7 +42,14 @@ namespace Betauer.Application {
 
             MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 LoggerFactory.EnableAutoFlush();
-                DefaultObjectWatcherTask.Instance.Consume(true);
+            };
+            AppDomain.CurrentDomain.UnhandledException += (o, args) => {
+                var e = args.ExceptionObject;
+                GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} Unhandled Exception:\n{e}");
+                if (e is SystemException) {
+                    GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} {e.GetType().Name} was fatal. Ending game...");
+                    GetTree().Quit();
+                }
             };
             DefaultObjectWatcherTask.Instance.Start(GetTree(), _objectWatcherTimer);
             PauseMode = PauseModeEnum.Process;

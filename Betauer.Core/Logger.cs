@@ -58,7 +58,7 @@ namespace Betauer {
         private LoggerFactory() {
         }
 
-        public ConsoleOutput ConsoleOutput;
+        public ConsoleOutput ConsoleOutput = ConsoleOutput.GodotPrint;
 
         public static void Reset() {
             Instance.Loggers.Clear();
@@ -286,40 +286,14 @@ namespace Betauer {
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
             // New line is different
-            var fastDateFormat = LoggerFactory.Instance.IncludeTimestamp ? FastDateFormat() : "";
+            var fastDateFormat = LoggerFactory.Instance.IncludeTimestamp ? StringTools.FastFormatDateTime(DateTime.Now) : "";
             WriteLog(level.ToString(),fastDateFormat, message);
-        }
-
-        // TODO: Use https://github.com/Cysharp/ZString to improve performance
-        private static string FastDateFormat() {
-            // return ""; //DateTime.Now.ToString(TimeFormat);
-            var now = DateTime.Now;
-            var hour = now.Hour;
-            var minute = now.Minute;
-            var seconds = now.Second;
-            var millis = now.Millisecond;
-            StringBuilder date = new StringBuilder()
-                .Append(now.Year)
-                .Append("-")
-                .Append(now.Month > 9 ? now.Month.ToString() : "0" + now.Month)
-                .Append("-")
-                .Append(now.Day > 9 ? now.Day.ToString() : "0" + now.Day)
-                .Append(" ")
-                .Append(hour > 9 ? hour.ToString() : "0" + hour)
-                .Append(":")
-                .Append(minute > 9 ? minute.ToString() : "0" + minute)
-                .Append(":")
-                .Append(seconds > 9 ? seconds.ToString() : "0" + seconds)
-                .Append(".")
-                .Append(millis > 99 ? millis.ToString() : "0" + (millis > 9 ? millis.ToString() : "0" + millis)
-            );
-            return date.ToString();
         }
 
         private void WriteLog(string level, string timestamp, string message) {
             var logLine = timestamp + (LoggerFactory.Instance.IncludeTimestamp ? " " : "") +
                           string.Format(TraceFormat, Engine.GetIdleFrames().ToString(),
-                              level.Length > 5 ? level.Substring(0, 5) : level, _title, message);
+                              level.Length > 5 ? level[..5] : level, _title, message);
             foreach (ITextWriter writer in LoggerFactory.Writers) {
                 writer.WriteLine(logLine);
                 writer.Flush();
