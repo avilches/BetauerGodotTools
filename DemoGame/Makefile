@@ -23,7 +23,7 @@ help:
 	@echo "    test           run tests"
 	@echo "    run            run the game"
 	@echo "    editor         open the Godot editor"
-	@echo "    build/debug    build project"
+	@echo "    build          build with Configuration='Debug'"
 	@echo "    release        run Release.cs, it uses the [application.properties] file to bump version and fixes the project"
 	@echo "    export/osx     create binary for osx"
 	@echo "    export/win     create binary for Windows"
@@ -47,11 +47,11 @@ clean:
 
 
 	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-#	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
+	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
 	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
-#	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
+	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
 	
-.PHONY: build/debug
+.PHONY: build
 build:
 	#msbuild "${ROOT_FOLDER}/Veronenger.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 	dotnet build "${ROOT_FOLDER}/Veronenger.sln" --configuration Debug 
@@ -72,7 +72,8 @@ editor:
 export/osx: check-version
 	mkdir -p ${EXPORT_OSX} 
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Mac OSX" "${EXPORT_OSX}/${NAME}-${VERSION}.zip" 2>&1 | tee "${EXPORT_OSX}/../osx.log"
-	unzip "${EXPORT_OSX}/${NAME}-${VERSION}.zip" -d "${EXPORT_OSX}" 
+	unzip "${EXPORT_OSX}/${NAME}-${VERSION}.zip" -d "${EXPORT_OSX}"
+	open "${EXPORT_OSX}" 
 
 .PHONY: export/win
 export/win: check-version
