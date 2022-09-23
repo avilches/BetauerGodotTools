@@ -17,12 +17,14 @@ namespace Betauer.Application {
     public abstract class AutoConfiguration : Node {
         protected readonly Container Container = new Container();
         protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
+        protected readonly DebugOverlayManager DebugOverlayManagerInstance = new DebugOverlayManager();
 
         [Service] public Consumer Consumer => DefaultObjectWatcherTask.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => GetTree();
         [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
-        [Service] public DebugOverlay DebugOverlay => new DebugOverlay();
+        [Service] public DebugOverlayManager DebugOverlayManager => DebugOverlayManagerInstance;
+        [Service] public DebugOverlay DefaultDebugOverlay => DebugOverlayManagerInstance.CreateOverlay();
         
         [Service(Lifetime.Transient)]
         public GodotStopwatch GodotStopwatch => new GodotStopwatch(GetTree());

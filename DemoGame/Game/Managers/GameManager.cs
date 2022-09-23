@@ -65,7 +65,8 @@ namespace Veronenger.Game.Managers {
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
-        [Inject] private DebugOverlay DebugOverlay { get; set; }
+        [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -99,18 +100,18 @@ namespace Veronenger.Game.Managers {
         }
 
         private void ConfigureDebugOverlays() {
-            DebugOverlay.Panel.Theme = MyTheme;
-            DebugOverlay.MonitorFpsAndMemory();
-            DebugOverlay.MonitorObjectRunnerSize();
-            DebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
-            DebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
-            DebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString());
-            // SceneTree.Root.AddChild(CreateSignalManagerDebugOverlay());
+            DefaultDebugOverlay.Theme = MyTheme;
+            DefaultDebugOverlay.MonitorFpsAndMemory();
+            DefaultDebugOverlay.MonitorObjectRunnerSize();
+            DefaultDebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
+            DefaultDebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
+            DefaultDebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString());
+            // CreateSignalManagerDebugOverlay();
         }
 
         private DebugOverlay CreateSignalManagerDebugOverlay() {
-            var debugOverlay = new DebugOverlay();
-            debugOverlay.Panel.Theme = MyTheme;
+            var debugOverlay = DebugOverlayManager.CreateOverlay();
+            debugOverlay.Theme = MyTheme;
             debugOverlay.CreateMonitor().Show(() => {
                 var txt = "";
                 foreach (var objectSignals in DefaultSignalManager.Instance.SignalsByObject.Values) {
