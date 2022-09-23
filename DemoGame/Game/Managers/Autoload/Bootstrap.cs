@@ -88,12 +88,12 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine); // No GD.Print means no logs
 
             // All enabled, then disabled one by one, so developers can enable just one 
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Error);
+            LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 
             // Bootstrap logs, all always :)
-            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
@@ -112,29 +112,17 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
             // Screen
-            LoggerFactory.SetTraceLevel(typeof(ViewportResolutionStrategy), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(IntegerScaledScreenResolutionStrategy), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(WindowSizeResolutionStrategy), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.Error);
 
             // Managers
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
 
-            LoggerFactory.SetTraceLevel(typeof(StateMachine), "GameManager", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Error);
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PlayerController), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(StateMachine), "Player:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Player:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Motion", "Player:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Collision", "Player:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("JumpVelocity", "Player:*", TraceLevel.Error);
-
-            LoggerFactory.SetTraceLevel(typeof(StateMachine), "Enemy.Zombie:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(AnimationStack), "Enemy.Zombie:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Motion", "Enemy.Zombie:*", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Collision", "Enemy.Zombie:*", TraceLevel.Error);
         }
     }
 }

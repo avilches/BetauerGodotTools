@@ -234,8 +234,8 @@ namespace Betauer.Animation {
         private static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(AnimationStack));
         private readonly Logger _logger;
 
-        public AnimationStack(string? name, Node node) {
-            _logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
+        public AnimationStack(Object node, string? name = null) {
+            _logger = name == null ? StaticLogger : LoggerFactory.GetLogger($"{name}.{nameof(AnimationStack)}");
             Watcher.IfInvalidInstance(node).Free(this);
         }
 

@@ -18,53 +18,42 @@ namespace Betauer {
         Debug = 5,
         All = 5,
     }
-
+    
     public enum ConsoleOutput {
         GodotPrint,
         ConsoleWriteLine,
         Off
     }
 
-    internal class TraceLevelConfig {
-        internal string Type { get; }
-        internal string Name { get; }
-        internal TraceLevel TraceLevel;
-
-        public TraceLevelConfig(string type, string? name, TraceLevel traceLevel) {
-            Type = type.ToLower();
-            Name = name != null ? name.ToLower() : "";
-            TraceLevel = traceLevel;
-        }
-
-        public bool Equals(string type, string? name) {
-            return type.ToLower().Equals(Type) && (name != null ? name.ToLower() : "").Equals(Name);
-        }
-    }
-
     public class LoggerFactory {
+        internal static readonly string[] TraceLevelAsString = new[] {
+            string.Empty,
+            "[Fatal]",
+            "[Error]",
+            "[Warn ]",
+            "[Info ]",
+            "[Debug]",
+        };
+
+
         public static LoggerFactory Instance { get; } = new LoggerFactory();
-        internal static IEnumerable<ITextWriter> Writers => Instance._writers;
+        internal static ITextWriter[] Writers => Instance._writers;
 
         public Dictionary<string, Logger> Loggers { get; } = new Dictionary<string, Logger>();
-        private readonly List<TraceLevelConfig> _traceLevelConfig = new List<TraceLevelConfig>();
         private ITextWriter[] _writers = { };
         internal bool IncludeTimestamp = true;
 
-        public bool RemoveDuplicates { get; set; } = true;
-
-        private TraceLevelConfig _defaultTraceLevelConfig =
-            new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
+        public TraceLevel DefaultTraceLevelConfig = TraceLevel.Error;
+        public ConsoleOutput ConsoleOutput = ConsoleOutput.GodotPrint;
 
         private LoggerFactory() {
         }
 
-        public ConsoleOutput ConsoleOutput = ConsoleOutput.GodotPrint;
-
         public static void Reset() {
+            Instance.DefaultTraceLevelConfig = TraceLevel.Error;
+            Instance.ConsoleOutput = ConsoleOutput.GodotPrint;
             Instance.Loggers.Clear();
-            Instance._traceLevelConfig.Clear();
             Instance._writers = Array.Empty<ITextWriter>();
-            Instance._defaultTraceLevelConfig = new TraceLevelConfig("<default>", "<default>", TraceLevel.Info);
         }
 
         public static LoggerFactory SetConsoleOutput(ConsoleOutput consoleOutput) {
@@ -81,7 +70,11 @@ namespace Betauer {
         }
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
-            SetTraceLevel(type.GetNameWithoutGenerics(), "*", traceLevel);
+            return SetTraceLevel(type.GetNameWithoutGenerics(), traceLevel);
+        }
+
+        public static LoggerFactory SetTraceLevel(string type, TraceLevel traceLevel) {
+            GetLogger(type).SetTraceLevel(traceLevel);
             return Instance;
         }
 
@@ -90,55 +83,34 @@ namespace Betauer {
             return Instance;
         }
 
-        public static LoggerFactory SetTraceLevel(Type type, string name, TraceLevel traceLevel) {
-            SetTraceLevel(type.GetNameWithoutGenerics(), name, traceLevel);
-            return Instance;
-        }
-
-        public static LoggerFactory SetTraceLevel(string type, TraceLevel traceLevel) {
-            SetTraceLevel(type, "*", traceLevel);
-            return Instance;
-        }
-
-        private static string WildCardToRegular(string value) {
-            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
-            // If you want to implement "*" only
-            // return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
-        }
-
         public static LoggerFactory SetDefaultTraceLevel(TraceLevel traceLevel) {
-            Instance._defaultTraceLevelConfig.TraceLevel = traceLevel;
+            Instance.DefaultTraceLevelConfig = traceLevel;
             return Instance;
         }
 
         public static LoggerFactory OverrideTraceLevel(TraceLevel traceLevel) {
             SetDefaultTraceLevel(traceLevel);
-            foreach (var logger in Instance._traceLevelConfig) {
-                logger.TraceLevel = traceLevel;
-            }
+            Instance.Loggers.Values.ForEach(l => {
+                if (l.HasMaxTraceLevel) l.SetTraceLevel(traceLevel);
+            });
             return Instance;
         }
 
-        public static LoggerFactory SetTraceLevel(string type, string name, TraceLevel traceLevel) {
-            name ??= "*";
-            TraceLevelConfig traceLevelConfig =
-                Instance._traceLevelConfig.FirstOrDefault(tlc => tlc.Equals(type, name));
-            if (traceLevelConfig != null) {
-                traceLevelConfig.TraceLevel = traceLevel;
-            } else {
-                Instance._traceLevelConfig.Add(new TraceLevelConfig(type, name, traceLevel));
-            }
-            RefreshTraceLevelLoggers();
-            return Instance;
+        public static Logger GetLogger(Type type) {
+            return GetLogger(type.GetNameWithoutGenerics());
         }
 
-        private static void RefreshTraceLevelLoggers() {
-            foreach (var logger in Instance.Loggers.Values) {
-                TraceLevelConfig traceLevelConfig = FindTraceLevelConfig(logger.Type, logger.Name);
-                if (traceLevelConfig != null) {
-                    logger.TraceLevelConfig = traceLevelConfig;
-                }
+        public static Logger GetLogger(string type) {
+            var key = type.ToLower();
+            if (!Instance.Loggers.TryGetValue(key, out var logger)) {
+                logger = new Logger(type);
+                Instance.Loggers.Add(key, logger);
             }
+            return logger;
+        }
+
+        public static void EnableAutoFlush() {
+            foreach (ITextWriter writer in Instance._writers) writer.EnableAutoFlush();
         }
 
         private LoggerFactory AddTextWriter(ITextWriter textWriter) {
@@ -148,107 +120,21 @@ namespace Betauer {
             _writers = writers;
             return this;
         }
-
-        public static Logger GetLogger(Type type) {
-            return GetLogger(type, null);
-        }
-
-        public static Logger GetLogger(Type type, string? name) {
-            return GetLogger(type.GetNameWithoutGenerics(), name);
-        }
-
-        public static Logger GetLogger(string type) {
-            return GetLogger(type, null);
-        }
-
-        public static Logger GetLogger(string type, string? name) {
-            var key = _CreateLoggerKey(type, name);
-            Instance.Loggers.TryGetValue(key, out Logger logger);
-            return logger ?? _CreateNewLogger(key, type, name);
-        }
-
-        private static Logger _CreateNewLogger(string key, string type, string? name) {
-            TraceLevelConfig traceLevelConfig = FindTraceLevelConfig(type, name) ?? Instance._defaultTraceLevelConfig;
-            Logger logger = new Logger(type, name, traceLevelConfig);
-            Instance.Loggers.Add(key, logger);
-            return logger;
-        }
-
-        private static string _CreateLoggerKey(string type, string? name) {
-            var result = type;
-            if (name != null) {
-                result += $".{name}";
-            }
-            return result.ToLower();
-        }
-
-        private static TraceLevelConfig? FindTraceLevelConfig(string type, string? name) {
-            type = type.ToLower();
-            name = name == null ? "" : name.ToLower();
-
-            int maxScore = 0;
-            TraceLevelConfig result = null;
-            foreach (TraceLevelConfig levelConfig in Instance._traceLevelConfig) {
-                int score = 0;
-                if (type.Equals(levelConfig.Type)) {
-                    score += 10000000;
-                } else if (Regex.IsMatch(type, WildCardToRegular(levelConfig.Type))) {
-                    score += levelConfig.Type.Length * 1000;
-                }
-                if (score > 0) {
-                    if (name.Equals(levelConfig.Name)) {
-                        score += 100;
-                    } else if (Regex.IsMatch(name, WildCardToRegular(levelConfig.Name))) {
-                        score += levelConfig.Name.Length;
-                    } else {
-                        score = 0;
-                    }
-                    if (score > maxScore) {
-                        maxScore = score;
-                        result = levelConfig;
-                    }
-                }
-            }
-            return result;
-        }
-
-        public static void EnableAutoFlush() {
-            foreach (ITextWriter writer in Instance._writers) writer.EnableAutoFlush();
-        }
     }
 
     public class Logger {
-        public TraceLevel MaxTraceLevel => TraceLevelConfig.TraceLevel;
-        public bool Enabled { get; set; } = true;
+        public TraceLevel MaxTraceLevel => HasMaxTraceLevel ? _loggerMaxTraceLevel : LoggerFactory.Instance.DefaultTraceLevelConfig;
         public readonly string Type;
-        public readonly string? Name;
-        public readonly string TraceFormat;
+        public bool HasMaxTraceLevel { get; private set; } = false;
+        public bool Enabled { get; set; } = true;
 
-        internal TraceLevelConfig TraceLevelConfig { get; set; }
+        private TraceLevel _loggerMaxTraceLevel;
         private readonly string _title;
 
-        internal Logger(string type, string? name, TraceLevelConfig traceLevelConfig,
-            string traceFormat = "[{0,4}] {1,5} {2} {3}") {
+        internal Logger(string type) {
             Type = type;
-            Name = name;
-            _title = _CreateLoggerString(type, name);
-            TraceLevelConfig = traceLevelConfig;
-            TraceFormat = traceFormat;
+            _title = $"[{type}]";
         }
-
-        private static string _CreateLoggerString(string type, string? name) {
-            var result = $"[{type}]";
-            if (name != null) {
-                result += $" [{name}";
-                result += "]";
-            }
-            return result;
-        }
-
-        public Logger GetSubLogger(string name) {
-            return LoggerFactory.GetLogger(Type, name);
-        }
-
 
         public void Fatal(Exception e) => Log(TraceLevel.Fatal, e);
         public void Error(Exception e) => Log(TraceLevel.Error, e);
@@ -275,28 +161,34 @@ namespace Betauer {
             return Enabled;
         }
 
+        public Logger SetTraceLevel(TraceLevel traceLevel) {
+            _loggerMaxTraceLevel = traceLevel;
+            HasMaxTraceLevel = true;
+            return this;
+        }
+
         public bool IsEnabled(TraceLevel level) {
             return Enabled && level <= MaxTraceLevel;
         }
 
         private void Log(TraceLevel level, Exception e) {
-            Log(level, e.GetType() + ": " + e.Message + "\n" + e.StackTrace);
+            Log(level, $"{e.GetType()}: {e.Message}\n{e.StackTrace}");
         }
 
         private void Log(TraceLevel level, string message) {
             if (!IsEnabled(level)) return;
-            // New line is different
-            var fastDateFormat = LoggerFactory.Instance.IncludeTimestamp ? StringTools.FastFormatDateTime(DateTime.Now) : "";
-            WriteLog(level.ToString(),fastDateFormat, message);
-        }
+            
+            var levelAsString = LoggerFactory.TraceLevelAsString[(int)level];
+            var data = LoggerFactory.Instance.IncludeTimestamp
+                ? new [] { StringTools.FastFormatDateTime(DateTime.Now), " ", levelAsString, " ", Engine.GetIdleFrames().ToString(), " ", _title, " ", message }
+                : new [] { levelAsString, _title, message };
+            var logLine = StringTools.JoinString(data);
 
-        private void WriteLog(string level, string timestamp, string message) {
-            var logLine = timestamp + (LoggerFactory.Instance.IncludeTimestamp ? " " : "") +
-                          string.Format(TraceFormat, Engine.GetIdleFrames().ToString(),
-                              level.Length > 5 ? level[..5] : level, _title, message);
-            foreach (ITextWriter writer in LoggerFactory.Writers) {
-                writer.WriteLine(logLine);
-                writer.Flush();
+            if (LoggerFactory.Writers.Length > 0) {
+                foreach (ITextWriter writer in LoggerFactory.Writers) {
+                    writer.WriteLine(logLine);
+                    writer.Flush();
+                }
             }
 
             if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.GodotPrint) GD.Print(logLine);

@@ -67,7 +67,7 @@ namespace Betauer.StateMachine {
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
             Name = name;
-            Logger = name == null ? StaticLogger : StaticLogger.GetSubLogger(name);
+            Logger = name == null ? StaticLogger : LoggerFactory.GetLogger($"{name}.{nameof(StateMachine)}");
         }
 
         public void On(TTransitionKey transitionKey, 

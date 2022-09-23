@@ -123,7 +123,7 @@ namespace Veronenger.export {
         }
 
 
-        Dictionary<string, string> ReadProperties(string propertiesFile) {
+        private static Dictionary<string, string> ReadProperties(string propertiesFile) {
             var data = new Dictionary<string, string>();
             var lines = File.ReadAllLines(propertiesFile)
                 .Where(line => !string.IsNullOrEmpty(line))

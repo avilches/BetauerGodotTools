@@ -9,6 +9,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
+using Betauer.Nodes;
 using Betauer.Signal;
 using Betauer.StateMachine;
 using Veronenger.Game.Controller.Menu;
@@ -74,7 +75,7 @@ namespace Veronenger.Game.Managers {
             PauseMode = PauseModeEnum.Process;
         }
 
-        public GameManager() : base(State.Init) {
+        public GameManager() : base(State.Init, "GameManager") {
             CreateState(State.Init)
                 .Execute(async (ctx) => {
                     MainResourceLoader.OnProgress += context => {
@@ -103,7 +104,11 @@ namespace Veronenger.Game.Managers {
             DebugOverlay.MonitorObjectRunnerSize();
             DebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
             DebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
+            DebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString());
+            // SceneTree.Root.AddChild(CreateSignalManagerDebugOverlay());
+        }
 
+        private DebugOverlay CreateSignalManagerDebugOverlay() {
             var debugOverlay = new DebugOverlay();
             debugOverlay.Panel.Theme = MyTheme;
             debugOverlay.CreateMonitor().Show(() => {
@@ -112,14 +117,69 @@ namespace Veronenger.Game.Managers {
                     txt += objectSignals.Emitter.ToStringSafe() + " (" + objectSignals.Signals.Count + "): " +
                            string.Join(", ", objectSignals.Signals.Select(s => s.Signal)) + "\n";
                 }
-                
+
                 return txt;
             });
-            SceneTree.Root.AddChild(debugOverlay);
-
+            return debugOverlay;
         }
 
         private void ConfigureStates() {
+            #if DEBUG
+            this.OnInput((e) => {
+                if (e.IsKeyPressed(KeyList.Q)) {
+                    _settingsMenuScene.Scale -= new Vector2(0.1f, 0.1f);
+                }
+                if (e.IsKeyPressed(KeyList.W)) {
+                    _settingsMenuScene.Scale = new Vector2(1, 1);
+                }
+                if (e.IsKeyPressed(KeyList.E)) {
+                    _settingsMenuScene.Scale += new Vector2(0.1f, 0.1f);
+                }
+                if (e.IsKeyPressed(KeyList.Key1)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key2)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Keep;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key3)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepHeight;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key4)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepWidth;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key6)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Viewport;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key7)) {
+                    ScreenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Mode2d;
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key8)) {
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.IntegerScale);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key9)) {               
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+                if (e.IsKeyPressed(KeyList.Key0)) {
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.WindowSize);
+                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
+                }
+            }, PauseModeEnum.Process);
+            #endif
+            
             AddListener(MainMenuBottomBarScene);
 
             OnInput(State.MainMenu, _mainMenuScene.OnInput);

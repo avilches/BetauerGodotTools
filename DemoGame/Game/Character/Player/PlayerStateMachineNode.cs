@@ -27,7 +27,7 @@ namespace Veronenger.Game.Character.Player {
             Jump,
         }
         
-        public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
+        public PlayerStateMachineNode() : base(State.Idle, "Player.StateMachine", ProcessMode.Physics) {
         }
 
         [Inject] private GameManager _gameManager { get; set;}
@@ -63,7 +63,7 @@ namespace Veronenger.Game.Character.Player {
         private Monitor _jumpHelperState;
 
         public void Configure(PlayerController playerController, string name) {
-            _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity", name);
+            _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
             _player = playerController;
 
             playerController.AddChild(this);

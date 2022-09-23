@@ -10,12 +10,13 @@ using TraceLevel = Betauer.TraceLevel;
 namespace Veronenger.Game.Character {
     [Service(Lifetime.Transient)]
     public class KinematicPlatformMotionBody : IFlipper {
+        private static readonly Logger LoggerCollision = LoggerFactory.GetLogger("Player.Motion");
+        private static readonly Logger LoggerMotion = LoggerFactory.GetLogger("Player.Motion");
+
         private KinematicBody2D _body;
         private string _name;
         private IFlipper _flippers;
         private MotionConfig _motionConfig;
-        private Logger _loggerCollision;
-        private Logger _loggerMotion;
         private RayCast2D _floorDetector;
 
         private Vector2 _lastMotion = Vector2.Zero;
@@ -32,8 +33,6 @@ namespace Veronenger.Game.Character {
             _name = name;
             _flippers = flippers;
             _motionConfig = motionConfig;
-            _loggerCollision = LoggerFactory.GetLogger("Collision", _name);
-            _loggerMotion = LoggerFactory.GetLogger("Motion", _name);
             _floorDetector = _body.GetNode<RayCast2D>("RayCasts/SlopeDetector");
         }
 
@@ -57,7 +56,7 @@ namespace Veronenger.Game.Character {
 
         public void EndFrame() {
             if (Motion != _lastMotion) {
-                _loggerMotion.Debug($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
+                LoggerMotion.Debug($"Motion:{Motion} (diff {(_lastMotion - Motion)})");
             }
         }
 
@@ -180,7 +179,7 @@ namespace Veronenger.Game.Character {
         private KinematicPlatformMotionBody UpdateFloorCollisions() {
             ResetCollisionFlags();
             if (!_body.IsOnFloor()) {
-                _loggerCollision.Debug(
+                LoggerCollision.Debug(
                     $"UpdateFloorCollisions end: floor/falling: {_body.IsOnFloor()}/{_isOnFallingPlatform} (0 checks: air?)");
                 return this;
             }
@@ -197,7 +196,7 @@ namespace Veronenger.Game.Character {
             CheckCollisionsWithFloorDetector(ref __colliderNormal, ref __isOnSlope, ref __isOnFallingPlatform,
                 ref __isOnMovingPlatform, ref __isOnSlopeStairs, ref __isOnSlopeUpRight);
 
-            if (_loggerCollision.IsEnabled(TraceLevel.Debug)) {
+            if (LoggerCollision.IsEnabled(TraceLevel.Debug)) {
                 if (_isOnSlope != __isOnSlope ||
                     _isOnSlopeStairs != __isOnSlopeStairs ||
                     _isOnFallingPlatform != __isOnFallingPlatform ||
@@ -223,7 +222,7 @@ namespace Veronenger.Game.Character {
                     // diff.Append(" Normal:" + _colliderNormal + "/" + __colliderNormal);
                     // }
                     if (diff.Length > 0) {
-                        _loggerCollision.Debug("Diff in collisions:" + diff.ToString());
+                        LoggerCollision.Debug("Diff in collisions:" + diff.ToString());
                     }
                 }
             }
@@ -235,7 +234,7 @@ namespace Veronenger.Game.Character {
             _isOnSlopeStairs |= __isOnSlopeStairs;
             _colliderNormal = _colliderNormal != Vector2.Zero ? _colliderNormal : __colliderNormal;
 
-            _loggerCollision.Debug(
+            LoggerCollision.Debug(
                 $"UpdateFloorCollisions({slideCount}). Floor:{_body.IsOnFloor()} Slope:{_isOnSlope} Stairs:{_isOnSlopeStairs} Falling:{_isOnFallingPlatform} Moving:{_isOnMovingPlatform} Normal:{_colliderNormal}");
             // FloorDetector.IsColliding()
 
