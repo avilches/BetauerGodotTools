@@ -27,7 +27,7 @@ namespace Veronenger.Game.Character.Player {
             Jump,
         }
         
-        public PlayerStateMachineNode() : base(State.Idle, "Player.StateMachine", ProcessMode.Physics) {
+        public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
         }
 
         [Inject] private GameManager _gameManager { get; set;}

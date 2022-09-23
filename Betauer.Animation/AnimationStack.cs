@@ -32,7 +32,7 @@ namespace Betauer.Animation {
         public IOnceStatus OnEnd(Action callback);
     }
 
-    public class AnimationStack : DisposableGodotObject /* needed to listen signals */ {
+    public class AnimationStack {
         private class Status {
             public string Name { get; }
             public bool Playing { get; private set; }
@@ -221,7 +221,7 @@ namespace Betauer.Animation {
             }
         }
 
-        public AnimationPlayer AnimationPlayer { get; private set; }
+        public AnimationPlayer? AnimationPlayer { get; private set; }
 
         private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations =
             new System.Collections.Generic.Dictionary<string, LoopStatus>();
@@ -234,20 +234,13 @@ namespace Betauer.Animation {
         private static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(AnimationStack));
         private readonly Logger _logger;
 
-        public AnimationStack(Object node, string? name = null) {
+        public AnimationStack(string? name = null) {
             _logger = name == null ? StaticLogger : LoggerFactory.GetLogger($"{name}.{nameof(AnimationStack)}");
-            Watcher.IfInvalidInstance(node).Free(this);
-        }
-
-        protected override void OnDispose(bool disposing) {
-            if (_currentOnceAnimation is IKillable onceKillable) onceKillable.Kill();
-            else if (_currentLoopAnimation is IKillable loopKillable) loopKillable.Kill(); 
         }
 
         public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
             AnimationPlayer = animationPlayer;
-            AnimationPlayer?.Connect(SignalConstants.AnimationPlayer_AnimationFinishedSignal, this,
-                nameof(OnceAnimationFinished));
+            AnimationPlayer.OnAnimationFinished(OnceAnimationFinished);
             return this;
         }
 
