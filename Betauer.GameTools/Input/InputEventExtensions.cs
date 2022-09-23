@@ -16,6 +16,22 @@ namespace Betauer.Input {
         public static bool IsJustPressed(this InputEvent input) => input.IsPressed() && !input.IsEcho();
         
         public static bool IsReleased(this InputEvent input) => !input.IsPressed() && !input.IsEcho();
+
+        public static bool HasShift(this InputEvent input) =>
+            input is InputEventWithModifiers { Shift: true };
+
+        public static bool HasControl(this InputEvent input) =>
+            input is InputEventWithModifiers { Control: true };
+
+        public static bool HasAlt(this InputEvent input) =>
+            input is InputEventWithModifiers { Alt: true };
+
+        public static bool HasCommand(this InputEvent input) =>
+            input is InputEventWithModifiers { Command: true };
+
+        public static bool HasMeta(this InputEvent input) =>
+            input is InputEventWithModifiers { Meta: true };
+
         
         // Joystick axis
         public static bool IsAnyAxis(this InputEvent input, int deviceId = -1) =>
