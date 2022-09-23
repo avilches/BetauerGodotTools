@@ -76,9 +76,12 @@ namespace Veronenger.Game.Managers.Autoload {
         private static void ExportConfig() {
             LoggerFactory.SetConsoleOutput(ConsoleOutput.GodotPrint); // GD.Print means it appears in the user data logs
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Warning);
+
+            // Bootstrap logs, always log everything :)
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
+            LoggerFactory.SetTraceLevel("GameManager.StateMachine", TraceLevel.All);
         }
 
         private static void DevelopmentConfig() {
@@ -90,10 +93,9 @@ namespace Veronenger.Game.Managers.Autoload {
             // All enabled, then disabled one by one, so developers can enable just one 
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 
-            // Bootstrap logs, all always :)
-            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
+            // Bootstrap logs, always log everything :)
+            LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
 
             // DI
             LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
@@ -102,27 +104,30 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
             // GameTools
-            LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Error);
 
             // Animation
+            LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(CallbackNodeTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(CallbackTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(MethodCallbackTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PauseTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
-            // Screen
-            LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.Error);
-
-            // Managers
+            // Game
+            LoggerFactory.SetTraceLevel("GameManager.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(GameManager), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.Error);
-
-            LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Error);
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(StageCameraController), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PlayerController), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Player.StateMachine", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Player.Collision", TraceLevel.Error);
+            LoggerFactory.SetTraceLevel("Player.Motion", TraceLevel.Error);
         }
     }
 }

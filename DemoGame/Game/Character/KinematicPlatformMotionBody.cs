@@ -10,7 +10,7 @@ using TraceLevel = Betauer.TraceLevel;
 namespace Veronenger.Game.Character {
     [Service(Lifetime.Transient)]
     public class KinematicPlatformMotionBody : IFlipper {
-        private static readonly Logger LoggerCollision = LoggerFactory.GetLogger("Player.Motion");
+        private static readonly Logger LoggerCollision = LoggerFactory.GetLogger("Player.Collision");
         private static readonly Logger LoggerMotion = LoggerFactory.GetLogger("Player.Motion");
 
         private KinematicBody2D _body;
