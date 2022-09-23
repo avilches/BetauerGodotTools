@@ -69,7 +69,7 @@ namespace Veronenger.Game.Managers {
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
-        [Inject] private InputAction UiStart { get; set; }
+        [Inject] private InputAction ControllerStart { get; set; }
 
         public override void _Ready() {
             PauseMode = PauseModeEnum.Process;
@@ -209,7 +209,7 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             OnInput(State.Gaming, (e) => {
-                if (UiStart.IsEventJustPressed(e)) {
+                if (ControllerStart.IsEventJustPressed(e)) {
                     Enqueue(Transition.Pause);
                     GetTree().SetInputAsHandled();
                 }

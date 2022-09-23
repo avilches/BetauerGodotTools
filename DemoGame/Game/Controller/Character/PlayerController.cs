@@ -215,8 +215,6 @@ namespace Veronenger.Game.Controller.Character {
             _slopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
-        [Inject] private InputAction UiStart { get; set; }
-
         public override void _Input(InputEvent e) {
             // var action = InputActionsContainer.FindAction(e);
             // if (action != null) {

@@ -38,7 +38,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
-        [Inject] private InputAction UiStart { get; set; }
+        [Inject] private InputAction ControllerStart { get; set; }
 
         public override void _Ready() {
             _menuContainer = BuildMenu();
@@ -95,7 +95,7 @@ namespace Veronenger.Game.Controller.Menu {
                 }
                 GetTree().SetInputAsHandled();
 
-            } else if (UiStart.IsJustPressed()) {
+            } else if (ControllerStart.IsJustPressed()) {
                 _gameManager.TriggerBack();
                 GetTree().SetInputAsHandled();
                 

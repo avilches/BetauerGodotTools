@@ -17,7 +17,6 @@ namespace Veronenger.Game.Controller.Menu {
         private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
-        [Inject] private InputAction UiStart { get; set; }
         [Inject] private InputAction UiLeft { get; set; }
 
                     

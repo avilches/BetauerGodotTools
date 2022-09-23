@@ -62,7 +62,6 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
-        [Inject] private InputAction UiStart { get; set; }
         [Inject] private InputAction UiLeft { get; set; }
         [Inject] private InputAction UiRight { get; set; }
 

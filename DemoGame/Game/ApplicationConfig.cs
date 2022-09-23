@@ -103,10 +103,43 @@ namespace Veronenger.Game {
             .DeadZone(0.5f)
             .Build();
 
-        // ui_select, ui_focus_next, ui_focus_prev, ui_page_up, ui_page_down, ui_home, ui_end
-        
         [Service]
         private InputAction UiAccept => InputAction.Create("ui_accept")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiSelect => InputAction.Create("ui_select")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiFocusNext => InputAction.Create("ui_focus_next")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiFocusPrev => InputAction.Create("ui_focus_prev")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiPageUp => InputAction.Create("ui_page_up")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiPageDown => InputAction.Create("ui_page_down")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiHome => InputAction.Create("ui_home")
+            .KeepProjectSettings()
+            .Build();
+
+        [Service]
+        private InputAction UiEnd => InputAction.Create("ui_end")
             .KeepProjectSettings()
             .Build();
 
@@ -116,13 +149,13 @@ namespace Veronenger.Game {
             .Build();
 
         [Service]
-        private InputAction UiSelect => InputAction.Create("select")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.XboxB)
+        private InputAction ControllerSelect => InputAction.Create("select")
+            .Keys(KeyList.Tab)
+            .Buttons(JoystickList.Select)
             .Build();
 
         [Service]
-        private InputAction UiStart => InputAction.Create("start")
+        private InputAction ControllerStart => InputAction.Create("start")
             .Keys(KeyList.Escape)
             .Buttons(JoystickList.Start)
             .Build();
