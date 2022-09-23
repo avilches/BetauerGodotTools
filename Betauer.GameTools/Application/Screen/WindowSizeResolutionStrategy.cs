@@ -10,7 +10,6 @@ namespace Betauer.Application.Screen {
     /// controls (and fonts!) doesn't keep the aspect ratio (they shrink or expand)
     /// </summary>
     public class WindowSizeResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(WindowSizeResolutionStrategy));
         public WindowSizeResolutionStrategy(SceneTree tree) : base(tree) {
         }
 
@@ -27,7 +26,11 @@ namespace Betauer.Application.Screen {
             OS.WindowResizable = ScreenConfiguration.IsResizeable;
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            Logger.Debug($"{StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}");
+            _state = $"{nameof(WindowSizeResolutionStrategy)} {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}";
+            Logger.Debug(_state);
         }
+        
+        private string _state;
+        public string GetStateAsString() => _state;
     }
 }

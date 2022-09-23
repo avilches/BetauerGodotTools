@@ -106,6 +106,10 @@ namespace Betauer.Application.Screen {
             ScreenService.CenterWindow();
         }
 
+        public string GetStateAsString() {
+            return ScreenService.GetStateAsString();
+        }
+
         /*
         private int _currentScreen = -1;
         private Vector2 _screenSize = Vector2.Zero;

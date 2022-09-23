@@ -10,7 +10,6 @@ namespace Betauer.Application.Screen {
      * 
      */
     public class IntegerScaledScreenResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(IntegerScaledScreenResolutionStrategy));
         public IntegerScaledScreenResolutionStrategy(SceneTree tree) : base(tree) {
         }
 
@@ -75,13 +74,17 @@ namespace Betauer.Application.Screen {
                 rootViewport.SizeOverrideStretch = true;
                 rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
             }
-            Logger.Debug($"{StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y} | AttachToScreenRect pos:{attachToScreenRect.Position.x}x{attachToScreenRect.Position.y} size:{attachToScreenRect.Size.x}x{attachToScreenRect.Size.y}");
-
             VisualServer.BlackBarsSetMargins(
                 Mathf.Max(0, (int)margin.x),
                 Mathf.Max(0, (int)margin.y),
                 Mathf.Max(0, (int)margin2.x),
                 Mathf.Max(0, (int)margin2.y));
+
+            _state = $"{nameof(IntegerScaledScreenResolutionStrategy)} {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y} | AttachToScreenRect pos:{attachToScreenRect.Position.x}x{attachToScreenRect.Position.y} size:{attachToScreenRect.Size.x}x{attachToScreenRect.Size.y}";
+            Logger.Debug(_state);
         }
+        
+        private string _state;
+        public string GetStateAsString() => _state;
     }
 }

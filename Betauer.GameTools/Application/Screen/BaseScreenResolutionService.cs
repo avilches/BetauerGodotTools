@@ -4,6 +4,7 @@ using Godot;
 
 namespace Betauer.Application.Screen {
     public abstract class BaseScreenResolutionService : DisposableObject, IScreenResizeHandler {
+        protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(BaseScreenResolutionService));
         protected readonly SceneTree Tree;
         protected ScreenConfiguration ScreenConfiguration;
         protected Resolution DownScaledMinimumResolution => ScreenConfiguration.DownScaledMinimumResolution;

@@ -10,5 +10,6 @@ namespace Betauer.Application.Screen {
         void Disable();
         void SetScreenConfiguration(ScreenConfiguration screenConfiguration);
         void CenterWindow();
+        string GetStateAsString();
     }
 }

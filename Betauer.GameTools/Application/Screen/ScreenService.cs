@@ -52,6 +52,8 @@ namespace Betauer.Application.Screen {
             
             OS.WindowResizable = ScreenConfiguration.IsResizeable;
         }
+        
+        public string GetStateAsString() => ScreenStrategyImpl.GetStateAsString();
 
         public bool IsFullscreen() => ScreenStrategyImpl.IsFullscreen();
         public void SetFullscreen() => ScreenStrategyImpl.SetFullscreen();
