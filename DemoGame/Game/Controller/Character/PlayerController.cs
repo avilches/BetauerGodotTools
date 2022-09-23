@@ -71,7 +71,7 @@ namespace Veronenger.Game.Controller.Character {
         private Restorer _restorer;
 
         public override void _Ready() {
-            _animationStack = new AnimationStack(this, _name).SetAnimationPlayer(_animationPlayer);
+            _animationStack = new AnimationStack(_name).SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
             AnimationJump = _animationStack.AddLoopAnimation("Jump");
@@ -79,7 +79,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _tweenStack = new AnimationStack(this, _name);
+            _tweenStack = new AnimationStack(_name);
             _restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)
                 .Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
                 

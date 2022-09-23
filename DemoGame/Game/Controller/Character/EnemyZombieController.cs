@@ -42,7 +42,7 @@ namespace Veronenger.Game.Controller.Character {
         private AnimationStack _animationStack;
 
         public override void _Ready() {
-            _animationStack = new AnimationStack(this, _name).SetAnimationPlayer(_animationPlayer);
+            _animationStack = new AnimationStack(_name).SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationStep = _animationStack.AddOnceAnimation("Step");
             AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
