@@ -8,10 +8,13 @@ using Godot;
 namespace Veronenger.Game {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
-            Resolutions.FULLHD_DIV3,
-            SceneTree.StretchMode.Mode2d,
+            Resolutions.FULLHD_DIV2,
+            Resolutions.FULLHD,
+            SceneTree.StretchMode.Mode2d, // (viewport is blur)
             SceneTree.StretchAspect.Keep,
-            Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
+            Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9), 
+            true,
+            2f);
     }
 
     [Configuration]
@@ -100,11 +103,17 @@ namespace Veronenger.Game {
             .DeadZone(0.5f)
             .Build();
 
+        // ui_select, ui_focus_next, ui_focus_prev, ui_page_up, ui_page_down, ui_home, ui_end
+        
         [Service]
-        private InputAction UiAccept => InputAction.Create("ui_accept").KeepProjectSettings().Build();
+        private InputAction UiAccept => InputAction.Create("ui_accept")
+            .KeepProjectSettings()
+            .Build();
 
         [Service]
-        private InputAction UiCancel => InputAction.Create("ui_cancel").KeepProjectSettings().Build();
+        private InputAction UiCancel => InputAction.Create("ui_cancel")
+            .KeepProjectSettings()
+            .Build();
 
         [Service]
         private InputAction UiSelect => InputAction.Create("select")
