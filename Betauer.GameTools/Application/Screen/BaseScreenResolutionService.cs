@@ -3,7 +3,7 @@ using Betauer.Memory;
 using Godot;
 
 namespace Betauer.Application.Screen {
-    public abstract class BaseScreenResolutionService : DisposableObject, IScreenResizeHandler {
+    public abstract class BaseScreenResolutionService : IScreenResizeHandler {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(BaseScreenResolutionService));
         protected readonly SceneTree Tree;
         protected ScreenConfiguration ScreenConfiguration;
