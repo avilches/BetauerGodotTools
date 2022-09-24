@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class LoggerTests {
         [SetUp]
         public void Setup() {

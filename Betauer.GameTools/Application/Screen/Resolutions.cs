@@ -72,12 +72,12 @@ namespace Betauer.Application.Screen {
         /// <param name="maxSize"></param>
         /// <param name="aspectRatios"></param>
         /// <returns></returns>
-        public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
+        public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
             if (maxSize == null) maxSize = new Resolution(OS.GetScreenSize());
             var maxScale = Resolution.CalculateMaxScale(from.Size, maxSize.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
             for (var scale = 1; scale <= maxScale; scale++) {
-                var scaledResolution = new ScaledResolution(from.Size, from.Size * scale);
+                var scaledResolution = new ScaledResolution(baseResolution.Size, from.Size * scale);
                 foreach (var aspectRatio in aspectRatios) {
                     if (aspectRatio.Matches(from.AspectRatio)) {
                         // Add the baseResolution x scale
@@ -93,7 +93,7 @@ namespace Betauer.Application.Screen {
                             var newWidth = scaledResolution.y * aspectRatio.Ratio;
                             if (newWidth <= maxSize.x) {
                                 var newResolution = new Vector2(newWidth, scaledResolution.y);
-                                var scaledResolutionUpdated = new ScaledResolution(from.Size, newResolution);
+                                var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
                         } else {
@@ -105,7 +105,7 @@ namespace Betauer.Application.Screen {
                             var newHeight = scaledResolution.x / aspectRatio.Ratio;
                             if (newHeight <= maxSize.y) {
                                 var newResolution = new Vector2(scaledResolution.x, newHeight);
-                                var scaledResolutionUpdated = new ScaledResolution(from.Size, newResolution);
+                                var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
                         }
@@ -129,7 +129,7 @@ namespace Betauer.Application.Screen {
 
         public static IEnumerable<ScaledResolution> ExpandResolutions(this IEnumerable<Resolution> resolutions, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
             return resolutions
-                .Select(resolution => new ScaledResolution(baseResolution.Size, resolution.Size).ExpandResolutionByWith(aspectRatios, maxSize))
+                .Select(resolution => resolution.ExpandResolutionByWith(baseResolution, aspectRatios, maxSize))
                 .SelectMany(list => list)
                 .Distinct(ScaledResolution.ComparerByBaseSize)
                 .OrderBy(x => x, Resolution.ComparerByHeight)

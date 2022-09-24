@@ -14,7 +14,7 @@ namespace Betauer.Application.Screen {
         }
 
         public List<ScaledResolution> GetResolutions() {
-            return BaseResolution.ExpandResolutionByWith(AspectRatios);
+            return BaseResolution.ExpandResolutionByWith(BaseResolution, AspectRatios);
         }
         
         protected override void Setup() {
