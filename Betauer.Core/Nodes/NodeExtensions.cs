@@ -8,6 +8,16 @@ namespace Betauer.Nodes {
             return parent.GetChildren().OfType<T>().First();
         }
 
+        public static Node AddChildDeferred(this Node parent, Node child) {
+            parent.CallDeferred("add_child", child);
+            return parent;
+        }
+
+        public static Node RemoveChildDeferred(this Node parent, Node child) {
+            parent.CallDeferred("remove_child", child);
+            return parent;
+        }
+
         public static List<T> GetChildren<T>(this Node parent) where T : class {
             return parent.GetChildren().OfType<T>().ToList();
         }

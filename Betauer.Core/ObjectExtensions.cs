@@ -4,6 +4,11 @@ using Godot;
 namespace Betauer {
     public static class ObjectExtensions {
 
+        public static Object FreeDeferred(this Object o) {
+            o.CallDeferred("free");
+            return o;
+        }
+
         public static string ToStringSafe(this Object o) {
             var typeName = o.GetType().Name;
             var hashCode = o.GetHashCode();

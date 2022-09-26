@@ -79,7 +79,7 @@ namespace Betauer.Tests.Memory {
 
             public bool Consume(bool force) {
                 if (force || MustBeFreed) {
-                    CallDeferred("free");
+                    this.FreeDeferred();
                 }
                 return force || MustBeFreed;
             }
@@ -172,7 +172,7 @@ namespace Betauer.Tests.Memory {
             if (errorAdd2 != null) throw errorAdd2;
             if (errorAdd3 != null) throw errorAdd3;
 
-            // An idle frame is needed to ensure CallDeferred("queue") is called for all the objects
+            // An idle frame is needed to ensure CallDeferred("free") is called for all the objects
             await this.AwaitIdleFrame();
             await this.AwaitIdleFrame();
 

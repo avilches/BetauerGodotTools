@@ -47,7 +47,7 @@ namespace Betauer.Memory {
                 if (!Object.IsInstanceValid(target)) return;
                 if (deferred) {
                     if (target is Node node) node.QueueFree();
-                    else target.CallDeferred("free");
+                    else target.FreeDeferred();
                 } else {
                     target.Free();
                 }

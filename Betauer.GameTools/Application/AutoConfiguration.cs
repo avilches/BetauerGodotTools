@@ -62,7 +62,7 @@ namespace Betauer.Application {
                     if (lifetime == Lifetime.Singleton && o is Node node && node.GetParent() == null) {
                         if (string.IsNullOrEmpty(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
                         if (_isReady) GetTree().Root.AddChild(node);
-                        else GetTree().Root.CallDeferred("add_child", node);
+                        else GetTree().Root.AddChildDeferred(node);
                     }
                 };
             }
