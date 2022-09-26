@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.TestRunner;
 using Godot;
@@ -55,7 +54,7 @@ namespace Betauer.StateMachine.Tests {
          * Error cases
          */
         [Test(Description = "InitialState not found on start")]
-        public async Task WrongStartStates() {
+        public void WrongStartStates() {
             var sm = new StateMachine<State, Trans>(State.Global);
             sm.CreateState(State.A).Build();
 
@@ -64,6 +63,7 @@ namespace Betauer.StateMachine.Tests {
                 await sm.Execute(0);
             });
         }
+        
         [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
         public async Task WrongStartWithTriggering() {
             var sm = new StateMachine<State, Trans>(State.Global);
@@ -76,7 +76,7 @@ namespace Betauer.StateMachine.Tests {
         }
         
         [Test(Description = "Error when a state changes to a not found state: Replace")]
-        public async Task WrongStatesUnknownStateSet() {
+        public void WrongStatesUnknownStateSet() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Execute(context => context.Set(State.Debug)).Build();
 
@@ -84,7 +84,7 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error when a state changes to a not found state: PopPush")]
-        public async Task WrongStatesUnknownStatePushPop() {
+        public void WrongStatesUnknownStatePushPop() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Execute(context => context.PopPush(State.NotFound)).Build();
 
@@ -92,7 +92,7 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error when a state changes to a not found state: Push")]
-        public async Task WrongStatesUnknownStatePushPush() {
+        public void WrongStatesUnknownStatePushPush() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Execute(context => context.Push(State.NotFound)).Build();
 
@@ -100,7 +100,7 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error when a state triggers a not found transition")]
-        public async Task WrongStatesTriggerUnknownTransition() {
+        public void WrongStatesTriggerUnknownTransition() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Execute(context => context.Trigger(Trans.NotFound)).Build();
 
@@ -108,7 +108,7 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error not found transition")]
-        public async Task WrongUnknownTransition() {
+        public void WrongUnknownTransition() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Build();
 
@@ -117,7 +117,7 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
-        public async Task WrongStatesPopWhenEmptyStack() {
+        public void WrongStatesPopWhenEmptyStack() {
             var sm = new StateMachine<State, Trans>(State.A);
             sm.CreateState(State.A).Execute(context => context.Pop()).Build();
 
@@ -623,11 +623,9 @@ namespace Betauer.StateMachine.Tests {
             sm.CreateState(State.End).Build();
             
             // 1-Error when state machine is not initialized
-            Assert.That(sm.CurrentState, Is.Null);
             sm.Enqueue(Trans.Debug);
             Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
             // It returns to non-initialized state (state = null)
-            Assert.That(sm.CurrentState, Is.Null);
             Assert.That(throws, Is.EqualTo(1));
             throws = 0;
 

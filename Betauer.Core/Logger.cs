@@ -96,6 +96,10 @@ namespace Betauer {
             return Instance;
         }
 
+        public static Logger GetLogger<T>() {
+            return GetLogger(typeof(T));
+        }
+
         public static Logger GetLogger(Type type) {
             return GetLogger(type.GetNameWithoutGenerics());
         }
@@ -172,7 +176,7 @@ namespace Betauer {
         }
 
         private void Log(TraceLevel level, Exception e) {
-            Log(level, $"{e.GetType()}: {e.Message}\n{e.StackTrace}");
+            Log(level, e.ToString());
         }
 
         private void Log(TraceLevel level, string message) {

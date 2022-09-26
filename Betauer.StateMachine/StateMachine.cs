@@ -17,6 +17,7 @@ namespace Betauer.StateMachine {
         public void Enqueue(TTransitionKey name);
         public Task Execute(float delta);
         public bool Available { get; }
+        public string? Name { get; }
     }
 
     public abstract class StateMachine {
@@ -45,18 +46,19 @@ namespace Betauer.StateMachine {
         private Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> _onError; 
         private Change _nextChange;
         private readonly TStateKey _initialState;
+        private bool _initialized = false;
         private bool _disposed = false;
         private TTransitionKey _nextTransition;
         private bool _nextTransitionDefined = false;
         private readonly object _lockObject = new();
 
         public readonly Logger Logger;
-        public readonly string? Name;
         public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new();
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
         public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
-        public bool IsState(TStateKey state) => CurrentState != null && state.Equals(CurrentState.Key);
+        public bool IsState(TStateKey state) => state.Equals(CurrentState.Key);
         public bool Available { get; private set; } = true;
+        public string? Name { get; }
 
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
@@ -89,6 +91,7 @@ namespace Betauer.StateMachine {
         public void AddState(IState<TStateKey, TTransitionKey> state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
             States[state.Key] = state;
+            if (state.Key.Equals(_initialState)) CurrentState = state;
         }
 
         public void Enqueue(TTransitionKey name) {
@@ -112,22 +115,23 @@ namespace Betauer.StateMachine {
                     _nextTransitionDefined = false;
                     var triggerTransition = GetTransitionFromTrigger(_nextTransition);
                     change = CreateChange(triggerTransition);
-                } else if (CurrentState == null && _nextChange.State == null) {
-                    change = new Change(FindState(_initialState), TransitionType.Set);
+                } else if (!_initialized) {
+                    var state = FindState(_initialState); // Call to ensure initial state exists
+                    change = new Change(state, TransitionType.Set);
                 } else {
                     change = _nextChange;
                 }
                 if (change.Type == TransitionType.Pop) {
-                    if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
+                    await Exit(_stack.Pop(), change.State.Key);
                     CurrentState = TransitionTo(change, out var oldState);
                     await Awake(CurrentState, oldState.Key);
                 } else if (change.Type == TransitionType.Push) {
-                    if (CurrentState != null) await Suspend(CurrentState, change.State!.Key);
+                    await Suspend(CurrentState, change.State!.Key);
                     CurrentState = TransitionTo(change, out var oldState);
                     _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
                 } else if (change.Type == TransitionType.PopPush) {
-                    if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
+                    await Exit(_stack.Pop(), change.State.Key);
                     CurrentState = TransitionTo(change, out var oldState);
                     _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
@@ -152,6 +156,7 @@ namespace Betauer.StateMachine {
                 var transition = await CurrentState.Execute(_executeContext);
                 _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
                 _nextChange = CreateChange(transition);
+                _initialized = true;
             } catch (Exception e) {
                 _nextChange = NoChange;
                 CurrentState = currentStateBackup;

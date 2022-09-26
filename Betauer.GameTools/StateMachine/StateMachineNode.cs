@@ -15,10 +15,17 @@ namespace Betauer.StateMachine {
         /// </summary>
         Idle,
     }
-    public class StateMachineNode<TStateKey, TTransitionKey> : Node, IStateMachine<TStateKey, TTransitionKey> 
+
+    public abstract class StateMachineNode : Node {
+        protected static Logger Logger = LoggerFactory.GetLogger<StateMachineNode>();
+    }
+
+    public class StateMachineNode<TStateKey, TTransitionKey> : StateMachineNode, IStateMachine<TStateKey, TTransitionKey> 
         where TStateKey : Enum where TTransitionKey : Enum {
         public readonly IStateMachine<TStateKey, TTransitionKey> StateMachine;
         public IState<TStateKey, TTransitionKey> CurrentState => StateMachine.CurrentState;
+        public bool Available => StateMachine.Available;
+        public string? Name => StateMachine.Name; 
         public ProcessMode Mode { get; set; }
         public bool IsState(TStateKey state) => StateMachine.IsState(state);
 
@@ -62,7 +69,6 @@ namespace Betauer.StateMachine {
             return StateMachine.Execute(delta);
         }
 
-        public bool Available => StateMachine.Available; 
 
         public void OnInput(TStateKey stateKey, Action<InputEvent> input) {
             _input ??= new Dictionary<TStateKey, Action<InputEvent>>();
@@ -76,32 +82,31 @@ namespace Betauer.StateMachine {
 
         public override void _Input(InputEvent e) {
             if (Available && _input != null && 
-                _input.TryGetValue(StateMachine.CurrentState.Key, out var input)) {
+                _input.TryGetValue(CurrentState.Key, out var input)) {
                 input(e);
             }
         }
 
         public override void _UnhandledInput(InputEvent e) {
             if (Available && _unhandledInput != null && 
-                _unhandledInput.TryGetValue(StateMachine.CurrentState.Key, out var unhandledInput)) {
+                _unhandledInput.TryGetValue(CurrentState.Key, out var unhandledInput)) {
                 unhandledInput(e);
             }
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) {
-                Execute(delta).ThrowUnhandledException();
-            } else {
-                SetPhysicsProcess(false);
-            }
+            if (Mode == ProcessMode.Physics) Process(delta);
+            else SetPhysicsProcess(false);
         }
 
         public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) {
-                Execute(delta).ThrowUnhandledException();
-            } else {
-                SetProcess(false);
-            }
+            if (Mode == ProcessMode.Idle) Process(delta);
+            else SetProcess(false);
+        }
+
+        private void Process(float delta) {
+            Execute(delta)
+                .OnException((ex) => Logger.Error($"Name: {Name} | State: {CurrentState.Key}\n{ex}"));
         }
     }
 }
