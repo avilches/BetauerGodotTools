@@ -24,7 +24,7 @@ namespace Betauer.StateMachine {
     }
 
     public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
-        internal readonly struct Change {
+        private readonly struct Change {
             internal readonly IState<TStateKey, TTransitionKey>? State;
             internal readonly TransitionType Type;
             internal Change(IState<TStateKey, TTransitionKey>? state, TransitionType type) {
@@ -33,15 +33,8 @@ namespace Betauer.StateMachine {
                     throw new ArgumentException("Change type can't be a trigger");
                 Type = type;
             }
-            internal bool IsPop() => Type == TransitionType.Pop;
-            internal bool IsPopPush() => Type == TransitionType.PopPush;
-            internal bool IsPush() => Type == TransitionType.Push;
-            internal bool IsSet() => Type == TransitionType.Set;
-            internal bool IsChange(TStateKey key) {
-                return Type == TransitionType.Set && State != null && EqualityComparer<TStateKey>.Default.Equals(State.Key, key);
-            }
-            internal bool IsNone() => Type == TransitionType.None;
         }
+        private static readonly Change NoChange = new(null, TransitionType.None);
 
         private readonly Stack<IState<TStateKey, TTransitionKey>> _stack = new();
         private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new();
@@ -49,12 +42,13 @@ namespace Betauer.StateMachine {
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
         private List<IStateMachineListener<TStateKey>>? _listeners;
+        private Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> _onError; 
         private Change _nextChange;
         private readonly TStateKey _initialState;
         private bool _disposed = false;
         private TTransitionKey _nextTransition;
         private bool _nextTransitionDefined = false;
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
 
         public readonly Logger Logger;
         public readonly string? Name;
@@ -111,28 +105,31 @@ namespace Betauer.StateMachine {
                 if (!Available) return;
                 Available = false;
             }
+            var currentStateBackup = CurrentState;
             try {
+                var change = NoChange;
                 if (_nextTransitionDefined) {
                     _nextTransitionDefined = false;
                     var triggerTransition = GetTransitionFromTrigger(_nextTransition);
-                    _nextChange = CreateChange(triggerTransition);
+                    change = CreateChange(triggerTransition);
+                } else if (CurrentState == null && _nextChange.State == null) {
+                    change = new Change(FindState(_initialState), TransitionType.Set);
+                } else {
+                    change = _nextChange;
                 }
-                var change = CurrentState == null && _nextChange.State == null
-                    ? new Change(States[_initialState], TransitionType.Set)
-                    : _nextChange;
                 if (change.Type == TransitionType.Pop) {
                     if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
-                    var newState = TransitionTo(change, out var oldState);
-                    await Awake(newState, oldState.Key);
+                    CurrentState = TransitionTo(change, out var oldState);
+                    await Awake(CurrentState, oldState.Key);
                 } else if (change.Type == TransitionType.Push) {
                     if (CurrentState != null) await Suspend(CurrentState, change.State!.Key);
-                    var newState = TransitionTo(change, out var oldState);
-                    _stack.Push(newState);
+                    CurrentState = TransitionTo(change, out var oldState);
+                    _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
                 } else if (change.Type == TransitionType.PopPush) {
                     if (CurrentState != null) await Exit(_stack.Pop(), change.State.Key);
-                    var newState = TransitionTo(change, out var oldState);
-                    _stack.Push(newState);
+                    CurrentState = TransitionTo(change, out var oldState);
+                    _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
                 } else if (change.Type == TransitionType.Set) {
                     if (_stack.Count == 1) {
@@ -146,8 +143,8 @@ namespace Betauer.StateMachine {
                             await Exit(exitingState, to);
                         }
                     }
-                    var newState = TransitionTo(change, out var oldState);
-                    _stack.Push(newState);
+                    CurrentState = TransitionTo(change, out var oldState);
+                    _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
                 }
                 _listeners?.ForEach(listener => listener.OnExecuteStart(delta, CurrentState.Key));
@@ -155,6 +152,10 @@ namespace Betauer.StateMachine {
                 var transition = await CurrentState.Execute(_executeContext);
                 _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
                 _nextChange = CreateChange(transition);
+            } catch (Exception e) {
+                _nextChange = NoChange;
+                CurrentState = currentStateBackup;
+                throw e;
             } finally {
                 lock (_lockObject) {
                     Available = true;
@@ -162,10 +163,14 @@ namespace Betauer.StateMachine {
             }
         }
 
+        private IState<TStateKey, TTransitionKey> FindState(TStateKey stateKey) {
+            return States.TryGetValue(stateKey, out var state) ? state : 
+                throw new KeyNotFoundException($"State {stateKey} not found. Please add it to the StateMachine");
+        }
+
         private IState<TStateKey, TTransitionKey> TransitionTo(Change change, out IState<TStateKey, TTransitionKey> oldState) {
             var newState = change.State;
             oldState = CurrentState ?? newState;
-            CurrentState = newState;
             Transition(change, oldState, newState);
             return newState;
         }
@@ -175,7 +180,7 @@ namespace Betauer.StateMachine {
                 candidate = GetTransitionFromTrigger(candidate.TransitionKey);
             }
             if (CurrentState != null && candidate.IsSet(CurrentState.Key)) {
-                return new Change(CurrentState, TransitionType.None);
+                return NoChange;
             }
             if (candidate.IsPop()) {
                 if (_stack.Count <= 1) {
@@ -187,9 +192,9 @@ namespace Betauer.StateMachine {
                 return transition;
             }
             if (candidate.IsNone()) {
-                return new Change(CurrentState, TransitionType.None);
+                return NoChange;
             }
-            IState<TStateKey, TTransitionKey> newState = States[candidate.StateKey];
+            IState<TStateKey, TTransitionKey> newState = FindState(candidate.StateKey);
             return new Change(newState, candidate.Type);
         }
 
@@ -209,7 +214,7 @@ namespace Betauer.StateMachine {
                 found = true;
             }
             if (!found) {
-                throw new KeyNotFoundException("Transition " + name + " not found");
+                throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");
             }
             var transition = triggerTransition.ToTransition<TTransitionKey>();
             return transition;

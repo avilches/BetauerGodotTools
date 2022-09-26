@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.StateMachine.Tests {
     [TestFixture]
@@ -33,6 +34,7 @@ namespace Betauer.StateMachine.Tests {
             Audio,
             Local,
             Global,
+            End,
             Back,
             Debug,
             Start,
@@ -48,22 +50,7 @@ namespace Betauer.StateMachine.Tests {
             var sm3 = new StateMachine<State, Trans>(State.A);
             Assert.That(sm3.Name, Is.Null);
         }
-             /*
-        [Test(Description = "Constructor")]
-        public void StateMachineNodeConstructors() {
-            var sm1 = new StateMachineNode<State, Trans>(State.A, "X");
-            Assert.That(((StateMachine<State, Trans>)sm1.StateMachine).Name, Is.EqualTo("X"));
-            Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
-
-            var sm2 = new StateMachineNode<State, Trans>(State.A, null, ProcessMode.Physics);
-            Assert.That(((StateMachine<State, Trans>)sm2.StateMachine).Name, Is.Null);
-            Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
-
-            var sm3 = new StateMachineNode<State, Trans>(State.A);
-            Assert.That(((StateMachine<State, Trans>)sm3.StateMachine).Name, Is.Null);
-            Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
-        }
-           */
+            
         /*
          * Error cases
          */
@@ -589,69 +576,96 @@ namespace Betauer.StateMachine.Tests {
 
 
         }
-         /*
-        [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
-        public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var stateMachine = new StateMachineNode<State, Trans>(State.Start, null, ProcessMode.Idle);
-            var builder = stateMachine;
 
-            var x = 0;
+        [Test]
+        public async Task ErrorChangingState() {
+            var sm = new StateMachine<State, Trans>(State.Start);
+
             List<string> states = new List<string>();
-
-            builder.CreateState(State.Start)
-                .Execute(async context => {
-                    states.Add("Start");
-                    await this.AwaitIdleFrame();
-                    return context.Set(State.Idle);
-                });
-
-            builder.CreateState(State.Idle)
-                .Enter(async () => {
-                    await this.AwaitIdleFrame();
-                    x = 0;
+            var throws = 0;
+            sm.On(Trans.Debug, context => context.Set(State.Debug));
+            sm.CreateState(State.Debug)
+                .Enter(() => {
+                    throws++;                    
+                    throw new NullReferenceException();
                 })
-                .Execute(async context => {
-                    await this.AwaitIdleFrame();
-                    x++;
-                    await this.AwaitIdleFrame();
-                    states.Add("IdleExecute(" + x + ")");
-                    if (x == 2) {
-                        return context.Set(State.Attack);
-                    }
-
-                    return context.Set(State.Idle);
+                .Execute(ctx => {
+                    states.Add("Debug:Execute");
+                    return ctx.Set(State.End);
                 })
-                .Exit(async () => {
-                    await this.AwaitIdleFrame();
-                    states.Add("IdleExit(" + x + ")");
-                });
+                .Build();
 
-            builder.CreateState(State.Attack)
-                .Execute(async context => {
-                    x++;
-                    states.Add("AttackExecute(" + x + ")");
-                    return context.Set(State.End);
-                });
-
-            builder.CreateState(State.End)
-                .Execute(async context => {
-                    x++;
-                    states.Add("End(" + x + ")");
-                    await this.AwaitIdleFrame();
+            sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
+            sm.CreateState(State.MainMenu)
+                .Enter(() => states.Add("MainMenu:Enter"))
+                .Execute(context => {
+                    throws++;                    
+                    throw new NullReferenceException();
                     return context.None();
-                });
+                })
+                .Build();
 
-            builder.Build();
-            AddChild(stateMachine);
+            sm.On(Trans.Global, context => context.Set(State.Global));
+            sm.CreateState(State.Global)
+                .Enter(() => states.Add("Global:Enter"))
+                .Execute(context => {
+                    states.Add("Global:Execute");
+                    return context.Set(State.End);
+                })
+                .Exit(() => {
+                    throws++;                    
+                    throw new NullReferenceException();
+                })
+                .Build();
+
+            sm.On(Trans.End, context => context.Set(State.End));
+            sm.CreateState(State.Start).Build();
+            sm.CreateState(State.End).Build();
             
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            while (stateMachine.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
-                await this.AwaitIdleFrame();
-                
-            }
-            Assert.That(string.Join(",", states),
-                Is.EqualTo("Start,IdleExecute(1),IdleExecute(2),IdleExit(2),AttackExecute(3),End(4)"));
-         
-        }  */
+            // 1-Error when state machine is not initialized
+            Assert.That(sm.CurrentState, Is.Null);
+            sm.Enqueue(Trans.Debug);
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            // It returns to non-initialized state (state = null)
+            Assert.That(sm.CurrentState, Is.Null);
+            Assert.That(throws, Is.EqualTo(1));
+            throws = 0;
+
+            // Run again, the SM enters in the initial state "Start"
+            await sm.Execute(0f);
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            Assert.That(throws, Is.EqualTo(0));
+
+            // 2-Error when state machine has state. Error in Enter
+            sm.Enqueue(Trans.Debug);
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            // It returns to Start state
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            Assert.That(throws, Is.EqualTo(1));
+            throws = 0;
+
+            // 3-Error when state machine has state. Error in Execute
+            sm.Enqueue(Trans.MainMenu);
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            // It returns to Start state
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            Assert.That(throws, Is.EqualTo(1));
+            throws = 0;
+
+            // 4-Error when state machine has state. Error in Exit
+            sm.Enqueue(Trans.Global);
+            await sm.Execute(0f);
+            sm.Enqueue(Trans.End);
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            // It returns to Start state
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
+            Assert.That(throws, Is.EqualTo(1));
+            throws = 0;
+
+            Assert.That(string.Join(",", states), Is.EqualTo(
+                "MainMenu:Enter,Global:Enter,Global:Execute"));
+
+        }
+
     }
 }

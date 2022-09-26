@@ -26,10 +26,8 @@ namespace Betauer.StateMachine {
         public StateBuilder<T, TStateKey, TTransitionKey> On(
             TTransitionKey transitionKey,
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??=
-                new List<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
-            _events.Add(
-                new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey,
+            _events ??= new List<Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>>();
+            _events.Add(new Tuple<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>(transitionKey,
                     transition));
             return this;
         }
