@@ -34,12 +34,9 @@ namespace Veronenger.Game.Controller.Character {
 
         private IFlipper _flippers;
 
-        [Inject] private SceneTree _sceneTree { get; set; }
-        [Inject] private GameManager _gameManager { get; set; }
         [Inject] private PlatformManager _platformManager { get; set; }
         [Inject] private CharacterManager _characterManager { get; set; }
         [Inject] private SlopeStairsManager _slopeStairsManager { get; set; }
-        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
         [Inject] private PlayerStateMachineNode StateMachineNode { get; set; }
         [Inject] private PlayerConfig _playerConfig { get; set; }
         [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }

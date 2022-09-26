@@ -9,7 +9,7 @@ using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<GameManager.State> {
+    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<MenuFlowManager.State> {
         [OnReady("%ActionHint1")] private ActionHint _actionHint1;
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;
         [OnReady("%ActionHint3")] private ActionHint _actionHint3;
@@ -65,36 +65,36 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton(null, UiCancel, false, "Back");
         }
 
-        public void OnEnter(GameManager.State state, GameManager.State from) {
+        public void OnEnter(MenuFlowManager.State state, MenuFlowManager.State from) {
         }
 
-        public void OnAwake(GameManager.State state, GameManager.State from) {
+        public void OnAwake(MenuFlowManager.State state, MenuFlowManager.State from) {
         }
 
-        public void OnSuspend(GameManager.State state, GameManager.State to) {
+        public void OnSuspend(MenuFlowManager.State state, MenuFlowManager.State to) {
         }
 
-        public void OnExit(GameManager.State state, GameManager.State to) {
+        public void OnExit(MenuFlowManager.State state, MenuFlowManager.State to) {
         }
 
-        public void OnExecuteStart(float delta, GameManager.State state) {
+        public void OnExecuteStart(float delta, MenuFlowManager.State state) {
         }
 
-        public void OnExecuteEnd(GameManager.State state) {
+        public void OnExecuteEnd(MenuFlowManager.State state) {
         }
 
-        public void OnTransition(GameManager.State from, GameManager.State to) {
+        public void OnTransition(MenuFlowManager.State from, MenuFlowManager.State to) {
             switch (to) {
-                case GameManager.State.ModalExitDesktop:
-                case GameManager.State.ModalQuitGame:
+                case MenuFlowManager.State.ModalExitDesktop:
+                case MenuFlowManager.State.ModalQuitGame:
                     ConfigureModalAcceptCancel();
                     break;
-                case GameManager.State.MainMenu:
-                case GameManager.State.PauseMenu:
+                case MenuFlowManager.State.MainMenu:
+                case MenuFlowManager.State.PauseMenu:
                     ConfigureMenuAcceptBack();
                     break;
-                case GameManager.State.Gaming:
-                case GameManager.State.ExitDesktop:
+                case MenuFlowManager.State.Gaming:
+                case MenuFlowManager.State.ExitDesktop:
                     HideAll();
                     break;
             }

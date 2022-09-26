@@ -12,10 +12,10 @@ namespace Veronenger.Game.Managers {
         private const string GROUP_ENEMY = "enemy";
 
         public PlayerController PlayerController { get; private set; }
+        [Inject] private Game Game { get; set; }
 
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
-        [Inject] public GameManager GameManager { get; set; }
 
         private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new AreaOnArea2DEntered.Unicast("PlayerAttack");
 
@@ -70,7 +70,7 @@ namespace Veronenger.Game.Managers {
             sceneChangeArea2D.CollisionLayer = 0;
             sceneChangeArea2D.CollisionMask = 0;
             sceneChangeArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
-            sceneChangeArea2D.OnAreaEntered((player) => GameManager.QueueChangeSceneWithPlayer(scene));
+            sceneChangeArea2D.OnAreaEntered((player) => Game.QueueChangeSceneWithPlayer(scene));
         }
     }
 }

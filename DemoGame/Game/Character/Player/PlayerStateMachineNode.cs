@@ -30,7 +30,6 @@ namespace Veronenger.Game.Character.Player {
         public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
         }
 
-        [Inject] private GameManager _gameManager { get; set;}
         [Inject] private PlatformManager _platformManager { get; set;}
         [Inject] private PlayerConfig _playerConfig { get; set;}
         private AxisAction LateralMotion => Left.AxisAction;

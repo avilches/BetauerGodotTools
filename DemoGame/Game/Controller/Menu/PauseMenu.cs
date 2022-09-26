@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuContainer _menuContainer;
 
-        [Inject] private GameManager _gameManager { get; set; }
+        [Inject] private MenuFlowManager MenuFlowManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -80,23 +80,23 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetStartMenu();
-            startMenu.AddButton("Resume", "Resume").OnPressed(() => _gameManager.TriggerBack());
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => _gameManager.TriggerSettings());
-            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => _gameManager.TriggerModalBoxConfirmQuitGame());
+            startMenu.AddButton("Resume", "Resume").OnPressed(() => MenuFlowManager.TriggerBack());
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => MenuFlowManager.TriggerSettings());
+            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => MenuFlowManager.TriggerModalBoxConfirmQuitGame());
             return mainMenu;
         }
 
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) {
                 if (_menuContainer.IsStartMenuActive()) {
-                    _gameManager.TriggerBack();
+                    MenuFlowManager.TriggerBack();
                 } else {
                     _menuContainer.Back();
                 }
                 GetTree().SetInputAsHandled();
 
             } else if (ControllerStart.IsJustPressed()) {
-                _gameManager.TriggerBack();
+                MenuFlowManager.TriggerBack();
                 GetTree().SetInputAsHandled();
                 
             }

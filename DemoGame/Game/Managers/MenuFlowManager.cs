@@ -16,7 +16,7 @@ using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {
     [Service]
-    public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
+    public class MenuFlowManager : StateMachineNode<MenuFlowManager.State, MenuFlowManager.Transition> {
 
         public enum Transition {
             Back,
@@ -58,10 +58,8 @@ namespace Veronenger.Game.Managers {
         [Load("res://Assets/UI/my_theme.tres")]
         private Theme MyTheme;
 
-        private Node _currentGameScene;
-        private Node2D _playerScene;
+        [Inject] private Game Game { get; set; }
 
-        [Inject] private StageManager StageManager { get; set; }
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
@@ -76,7 +74,7 @@ namespace Veronenger.Game.Managers {
             PauseMode = PauseModeEnum.Process;
         }
 
-        public GameManager() : base(State.Init, "GameManager") {
+        public MenuFlowManager() : base(State.Init, "GameManager") {
             CreateState(State.Init)
                 .Execute(async (ctx) => {
                     MainResourceLoader.OnProgress += context => {
@@ -128,13 +126,13 @@ namespace Veronenger.Game.Managers {
             #if DEBUG
             this.OnInput((e) => {
                 if (e.IsKeyPressed(KeyList.Q)) {
-                    _settingsMenuScene.Scale -= new Vector2(0.1f, 0.1f);
+                    _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
                 }
                 if (e.IsKeyPressed(KeyList.W)) {
                     _settingsMenuScene.Scale = new Vector2(1, 1);
                 }
                 if (e.IsKeyPressed(KeyList.E)) {
-                    _settingsMenuScene.Scale += new Vector2(0.1f, 0.1f);
+                    _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
                 }
                 if (e.IsKeyPressed(KeyList.Key1)) {
                     ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;
@@ -202,9 +200,7 @@ namespace Veronenger.Game.Managers {
             CreateState(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    _currentGameScene = MainResourceLoader.CreateWorld1();
-                    await AddSceneDeferred(_currentGameScene);
-                    AddPlayerToScene(_currentGameScene);
+                    await Game.Start();
                 })
                 .Execute(context => context.Set(State.Gaming))
                 .Build();
@@ -219,9 +215,7 @@ namespace Veronenger.Game.Managers {
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
                 .Exit(() => {
-                    _currentGameScene.PrintStrayNodes();
-                    _currentGameScene.QueueFree();
-                    _currentGameScene = null;
+                    Game.End();
                 })
                 .Build();
                 
@@ -307,31 +301,5 @@ namespace Veronenger.Game.Managers {
             modalBoxConfirm.QueueFree();
             return result;
         }
-
-        public async void QueueChangeSceneWithPlayer(string sceneName) {
-            StageManager.ClearTransition();
-            _currentGameScene.QueueFree();
-
-            var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
-            await AddSceneDeferred(nextScene);
-            AddPlayerToScene(nextScene);
-            _currentGameScene = nextScene;
-        }
-        
-        private void AddPlayerToScene(Node nextScene) {
-            _playerScene = MainResourceLoader.CreatePlayer();
-            nextScene.AddChild(_playerScene);
-            var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
-            if (position2D == null) {
-                throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.Filename);
-            }
-            _playerScene.GlobalPosition = position2D.GlobalPosition;
-        }
-
-        private async Task AddSceneDeferred(Node scene) {
-            await SceneTree.AwaitIdleFrame();
-            SceneTree.Root.AddChild(scene);
-        }
-
     }
 }

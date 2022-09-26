@@ -13,7 +13,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller {
     public class SplashScreenController : Control {
-        [Inject] private GameManager _gameManager { get; set; }
+        [Inject] private MenuFlowManager MenuFlowManager { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
         [Inject] private SettingsContainer _settingsContainer { get; set; }
         [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
@@ -54,7 +54,7 @@ namespace Veronenger.Game.Controller {
         }
 
         public override void _Process(float delta) {
-            if (!_gameManager.IsState(GameManager.State.Init)) QueueFree();
+            if (!MenuFlowManager.IsState(MenuFlowManager.State.Init)) QueueFree();
         }
 
     }
