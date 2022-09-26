@@ -7,7 +7,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Signal {
     public class DefaultSignalManager {
-        public static SignalManager Instance = new SignalManager();
+        public static SignalManager Instance = new();
     }
 
     public class SignalManager : Object {

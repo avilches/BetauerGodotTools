@@ -16,8 +16,8 @@ namespace Betauer.Application {
      */
     public abstract class AutoConfiguration : Node {
         protected readonly Container Container = new Container();
-        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
-        protected readonly DebugOverlayManager DebugOverlayManagerInstance = new DebugOverlayManager();
+        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new();
+        protected readonly DebugOverlayManager DebugOverlayManagerInstance = new();
 
         [Service] public Consumer Consumer => DefaultObjectWatcherTask.Instance;
         [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
@@ -27,7 +27,7 @@ namespace Betauer.Application {
         [Service] public DebugOverlay DefaultDebugOverlay => DebugOverlayManagerInstance.CreateOverlay();
         
         [Service(Lifetime.Transient)]
-        public GodotStopwatch GodotStopwatch => new GodotStopwatch(GetTree());
+        public GodotStopwatch GodotStopwatch => new(GetTree());
 
         private bool _addSingletonNodesToTree = true;
         private float _objectWatcherTimer = 10f;

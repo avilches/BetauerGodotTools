@@ -5,7 +5,7 @@ using Color = Godot.Color;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlay : PopupPanel {
-        public readonly MonitorList MonitorList = new MonitorList();
+        public readonly MonitorList MonitorList = new();
         public readonly int Id;
         public readonly Label Label;
 

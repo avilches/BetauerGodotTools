@@ -4,9 +4,9 @@ using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI {
     public class ResolveContext {
-        internal readonly Dictionary<string, object> SingletonCache = new Dictionary<string, object>();
-        internal readonly List<object> Transients = new List<object>();
-        internal readonly Stack<string> TransientNameStack = new Stack<string>();
+        internal readonly Dictionary<string, object> SingletonCache = new();
+        internal readonly List<object> Transients = new();
+        internal readonly Stack<string> TransientNameStack = new();
         internal readonly Container Container;
 
         public ResolveContext(Container container) {

@@ -3,7 +3,7 @@ using Betauer.Pool;
 
 namespace Betauer.Application {
     public static class DefaultObjectPool {
-        public static ObjectPool Registry { get; private set; } = new ObjectPool();
+        public static ObjectPool Registry { get; private set; } = new();
         public static bool Enabled = true;
 
         public static void SetPool(ObjectPool objectPool) {

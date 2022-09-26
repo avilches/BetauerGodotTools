@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public class MonitorList {
-        public readonly List<IMonitor> Monitors = new List<IMonitor>();
+        public readonly List<IMonitor> Monitors = new();
 
         public IMonitor Add(IMonitor monitor) {
             Monitors.Add(monitor);

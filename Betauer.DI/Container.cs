@@ -10,8 +10,8 @@ using Betauer.Reflection;
 namespace Betauer.DI {
     public class Container {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
-        private readonly Dictionary<Type, IProvider> _fallbackByType = new Dictionary<Type, IProvider>();
-        private readonly Dictionary<string, IProvider> _registry = new Dictionary<string, IProvider>();
+        private readonly Dictionary<Type, IProvider> _fallbackByType = new();
+        private readonly Dictionary<string, IProvider> _registry = new();
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
         public event Action<Lifetime, object> OnCreate;

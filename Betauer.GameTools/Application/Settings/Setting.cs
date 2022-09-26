@@ -3,16 +3,14 @@ using Betauer.DI;
 
 namespace Betauer.Application.Settings {
     public static class Setting<T> {
-        public static SaveSetting<T> Save(string? settingsContainerName, string section, string name,
-            T defaultValue, bool autoSave = true, bool enabled = true) =>
-            new SaveSetting<T>(settingsContainerName, section, name, defaultValue, autoSave, enabled);
+        public static SaveSetting<T> Save(string? settingsContainerName, string section, string name, T defaultValue,
+            bool autoSave = true, bool enabled = true) =>
+            new(settingsContainerName, section, name, defaultValue, autoSave, enabled);
 
-        public static SaveSetting<T> Save(string section, string name,
-            T defaultValue, bool autoSave = true, bool enabled = true) =>
-            new SaveSetting<T>(null, section, name, defaultValue, autoSave, enabled);
+        public static SaveSetting<T> Save(string section, string name, T defaultValue, bool autoSave = true,
+            bool enabled = true) => new(null, section, name, defaultValue, autoSave, enabled);
 
-        public static MemorySetting<T> Memory(T value) =>
-            new MemorySetting<T>(value);
+        public static MemorySetting<T> Memory(T value) => new(value);
     }
 
     public interface ISetting<T> {

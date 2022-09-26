@@ -223,11 +223,9 @@ namespace Betauer.Animation {
 
         public AnimationPlayer? AnimationPlayer { get; private set; }
 
-        private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations =
-            new System.Collections.Generic.Dictionary<string, LoopStatus>();
+        private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations = new();
 
-        private readonly System.Collections.Generic.Dictionary<string, OnceStatus> _onceAnimations =
-            new System.Collections.Generic.Dictionary<string, OnceStatus>();
+        private readonly System.Collections.Generic.Dictionary<string, OnceStatus> _onceAnimations = new();
 
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;

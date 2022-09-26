@@ -7,7 +7,7 @@ using Betauer.Reflection;
 
 namespace Betauer.DI {
     public class ContainerBuilder {
-        private readonly LinkedList<IProvider> _pendingToBuild = new LinkedList<IProvider>();
+        private readonly List<IProvider> _pendingToBuild = new();
         private readonly Container _container;
 
         public ContainerBuilder(Container container) {
@@ -95,7 +95,7 @@ namespace Betauer.DI {
         }
         
         public ContainerBuilder Register(IProvider builder) {
-            _pendingToBuild.AddLast(builder);
+            _pendingToBuild.Add(builder);
             return this;
         }
 

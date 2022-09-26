@@ -43,9 +43,9 @@ namespace Betauer.StateMachine {
             internal bool IsNone() => Type == TransitionType.None;
         }
 
-        private readonly Stack<IState<TStateKey, TTransitionKey>> _stack = new Stack<IState<TStateKey, TTransitionKey>>();
-        private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new ExecuteContext<TStateKey, TTransitionKey>();
-        private readonly TriggerContext<TStateKey> _triggerContext = new TriggerContext<TStateKey>();
+        private readonly Stack<IState<TStateKey, TTransitionKey>> _stack = new();
+        private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new();
+        private readonly TriggerContext<TStateKey> _triggerContext = new();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
         private List<IStateMachineListener<TStateKey>>? _listeners;
@@ -58,7 +58,7 @@ namespace Betauer.StateMachine {
 
         public readonly Logger Logger;
         public readonly string? Name;
-        public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new Dictionary<TStateKey, IState<TStateKey, TTransitionKey>>();
+        public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new();
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
         public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
         public bool IsState(TStateKey state) => CurrentState != null && state.Equals(CurrentState.Key);

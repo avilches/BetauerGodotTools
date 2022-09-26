@@ -4,7 +4,7 @@ using File = System.IO.File;
 
 namespace Betauer.Application {
     public class ConfigFileWrapper {
-        private readonly ConfigFile _configFile = new ConfigFile();
+        private readonly ConfigFile _configFile = new();
         public string? FilePath { get; private set; }
         public byte[]? EncryptionKey { get; private set; } // TODO:
         public Error LastError { get; private set; }

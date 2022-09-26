@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Application {
     public static partial class FeatureFlags {
-        public static readonly Dictionary<string, string> Description = new Dictionary<string, string> {
+        public static readonly Dictionary<string, string> Description = new() {
             { "Android", "Running on Android" },
             { "HTML5", "Running on HTML5" },
             { "JavaScript", "JavaScript singleton is available" },

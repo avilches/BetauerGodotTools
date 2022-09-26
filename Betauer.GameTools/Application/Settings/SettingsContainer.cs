@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Betauer.Application.Settings {
     public class SettingsContainer {
         private readonly ConfigFileWrapper _configFileWrapper;
-        public readonly List<SaveSetting> Settings = new List<SaveSetting>();
+        public readonly List<SaveSetting> Settings = new();
         public bool Dirty => _configFileWrapper?.Dirty ?? false;
         public string FilePath => _configFileWrapper.FilePath;
 

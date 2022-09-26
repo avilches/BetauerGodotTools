@@ -15,7 +15,7 @@ namespace Betauer.Application.Settings {
     }
 
     public static class Transformers {
-        private static readonly Dictionary<Type, ITransformer> Registry = new Dictionary<Type, ITransformer>();
+        private static readonly Dictionary<Type, ITransformer> Registry = new();
 
         static Transformers() {
             AddTransformer(new ResolutionTransformer(), typeof(Resolution), typeof(ScaledResolution));

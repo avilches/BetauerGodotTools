@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Memory {
     public class DefaultObjectWatcherTask {
-        public static ObjectWatcherTask Instance = new ObjectWatcherTask();
+        public static ObjectWatcherTask Instance = new();
     }
 
     public class ObjectWatcherTask : Consumer {

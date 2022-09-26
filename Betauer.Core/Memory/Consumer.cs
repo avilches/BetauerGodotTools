@@ -8,7 +8,7 @@ namespace Betauer.Memory {
 
     public class Consumer {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Consumer));
-        private readonly HashSet<IObjectConsumer> _objects = new HashSet<IObjectConsumer>();
+        private readonly HashSet<IObjectConsumer> _objects = new();
         protected bool Disposed = false;
 
         public int PeakSize { get; private set; }

@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Nodes {
     public class DefaultNodeHandler {
-        public static NodeHandler Instance = new NodeHandler();
+        public static NodeHandler Instance = new();
     }
 
     public interface INodeEvent {

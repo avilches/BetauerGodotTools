@@ -8,7 +8,7 @@ using Object = Godot.Object;
 namespace Betauer.Animation.Tween {
 
     public class DefaultTweenCallbackManager {
-        public static TweenCallbackManager Instance = new TweenCallbackManager();
+        public static TweenCallbackManager Instance = new();
     }
 
     /// <summary>

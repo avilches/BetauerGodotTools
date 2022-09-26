@@ -15,7 +15,7 @@ namespace Betauer.Pool {
 
     public class ObjectPool : IObjectPool {
         internal static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ObjectPool));
-        public readonly Dictionary<Type, IObjectPool> Pools = new Dictionary<Type, IObjectPool>();
+        public readonly Dictionary<Type, IObjectPool> Pools = new();
 
         public IObjectPool<T> Pool<T>() where T : IRecyclable {
             return (IObjectPool<T>)Pool(typeof(T));

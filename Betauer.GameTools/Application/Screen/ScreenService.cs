@@ -7,8 +7,7 @@ namespace Betauer.Application.Screen {
     public class ScreenService {
         private readonly SceneTree _tree;
 
-        private readonly Dictionary<ScreenStrategyKey, IScreenStrategy> _strategies =
-            new Dictionary<ScreenStrategyKey, IScreenStrategy>();
+        private readonly Dictionary<ScreenStrategyKey, IScreenStrategy> _strategies = new();
         public IScreenStrategy? ScreenStrategyImpl { get; private set;  }
         public ScreenConfiguration ScreenConfiguration { get; private set; }
         public ScreenStrategyKey StrategyKey { get; private set; } = ScreenStrategyKey.ViewportSize;
