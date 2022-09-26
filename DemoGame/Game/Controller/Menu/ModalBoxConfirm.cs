@@ -32,7 +32,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         [Inject] private InputAction UiCancel { get; set; }
 
-        private readonly TaskCompletionSource<bool> _promise = new TaskCompletionSource<bool>();
+        private readonly TaskCompletionSource<bool> _promise = new();
 
         private string? _titleText;
         private string? _subtitleText;

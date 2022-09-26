@@ -6,10 +6,9 @@ namespace Veronenger.Game.Character.Player {
         public const float CoyoteJumpTime = 0.1f; // seconds. How much time the player can jump when falling
         public const float JumpHelperTime = 0.1f; // seconds. If the user press jump just before land
 
-        public readonly MotionConfig MotionConfig;
+        public readonly MotionConfig MotionConfig = new();
 
         public PlayerConfig() {
-            MotionConfig = new MotionConfig();
             const float _maxSpeed = 110.0f; // pixels/seconds
             const float _timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
             MotionConfig.ConfigureSpeed(_maxSpeed, _timeToMaxSpeed);

@@ -12,10 +12,10 @@ namespace Veronenger.Game.Managers {
         [Inject] public PlatformManager PlatformManager { get; set;}
 
         private const string GROUP_SLOPE_STAIRS = "slope_stairs";
-        public readonly BodyOnArea2D.Collection DownTopic = new BodyOnArea2D.Collection("SlopeStairsDown");
-        public readonly BodyOnArea2D.Collection UpTopic = new BodyOnArea2D.Collection("SlopeStairsUp");
-        public readonly BodyOnArea2DEntered.Unicast EnablerTopic = new BodyOnArea2DEntered.Unicast("SlopeStairsEnabler");
-        public readonly BodyOnArea2DEntered.Unicast DisablerTopic = new BodyOnArea2DEntered.Unicast("SlopeStairsDisabler");
+        public readonly BodyOnArea2D.Collection DownTopic = new("SlopeStairsDown");
+        public readonly BodyOnArea2D.Collection UpTopic = new("SlopeStairsUp");
+        public readonly BodyOnArea2DEntered.Unicast EnablerTopic = new("SlopeStairsEnabler");
+        public readonly BodyOnArea2DEntered.Unicast DisablerTopic = new("SlopeStairsDisabler");
 
         public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);

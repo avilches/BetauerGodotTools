@@ -15,8 +15,8 @@ namespace Veronenger.Game.Managers {
         private Stage _currentStage;
         private StageCameraController _stageCameraController;
 
-        private readonly AreaOnArea2DEntered.Unicast _enterStageTopic = new AreaOnArea2DEntered.Unicast("StageTopic");
-        private readonly AreaOnArea2DExited.Unicast _exitStageTopic = new AreaOnArea2DExited.Unicast("StageTopic");
+        private readonly AreaOnArea2DEntered.Unicast _enterStageTopic = new("StageTopic");
+        private readonly AreaOnArea2DExited.Unicast _exitStageTopic = new("StageTopic");
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;

@@ -17,7 +17,7 @@ namespace Veronenger.Game.Managers {
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
 
-        private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new AreaOnArea2DEntered.Unicast("PlayerAttack");
+        private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new("PlayerAttack");
 
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;

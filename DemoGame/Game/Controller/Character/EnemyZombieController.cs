@@ -30,7 +30,7 @@ namespace Veronenger.Game.Controller.Character {
         public IOnceStatus AnimationDieRight { get; private set; }
         public IOnceStatus AnimationDieLeft { get; private set; }
 
-        public readonly EnemyConfig EnemyConfig = new EnemyConfig();
+        public readonly EnemyConfig EnemyConfig = new();
 
         public IFlipper _flippers;
 

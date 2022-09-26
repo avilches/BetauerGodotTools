@@ -200,7 +200,7 @@ namespace Veronenger.Game.Managers {
             CreateState(State.StartingGame)
                 .Enter(async () => {
                     await _mainMenuScene.HideMainMenu();
-                    await Game.Start();
+                    Game.Start();
                 })
                 .Execute(context => context.Set(State.Gaming))
                 .Build();

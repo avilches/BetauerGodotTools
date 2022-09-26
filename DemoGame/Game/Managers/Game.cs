@@ -1,8 +1,7 @@
 using System;
-using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Signal;
+using Betauer.Nodes;
 using Godot;
 
 namespace Veronenger.Game.Managers {
@@ -18,20 +17,20 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        public async Task Start() {
-            _currentGameScene = MainResourceLoader.CreateWorld2();
-            await AddSceneDeferred(_currentGameScene);
-            AddPlayerToScene(_currentGameScene);
+        public void Start() {
+            _currentGameScene = MainResourceLoader.CreateWorld2Empty();
+            _currentGameScene.GetNode<TileMap>("RealTileMap");
+            AddPlayerToScene(_currentGameScene, Vector2.Zero);
+            SceneTree.Root.AddChildDeferred(_currentGameScene);
         }
 
-        public async void QueueChangeSceneWithPlayer(string sceneName) {
+        public void QueueChangeSceneWithPlayer(string sceneName) {
             StageManager.ClearTransition();
             _currentGameScene.QueueFree();
-
             var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
-            await AddSceneDeferred(nextScene);
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
+            SceneTree.Root.AddChildDeferred(nextScene);
         }
         
         private void AddPlayerToScene(Node nextScene) {
@@ -44,11 +43,6 @@ namespace Veronenger.Game.Managers {
             _playerScene = MainResourceLoader.CreatePlayer();
             _playerScene.GlobalPosition = position;
             nextScene.AddChild(_playerScene);
-        }
-
-        private async Task AddSceneDeferred(Node scene) {
-            await SceneTree.AwaitIdleFrame();
-            SceneTree.Root.AddChild(scene);
         }
 
         public void End() {

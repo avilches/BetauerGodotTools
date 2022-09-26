@@ -102,8 +102,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
     }
 
     public abstract class SpriteConfig {
-        private readonly Dictionary<int, ConsoleButtonView> _mapping =
-            new Dictionary<int, ConsoleButtonView>();
+        private readonly Dictionary<int, ConsoleButtonView> _mapping = new();
 
         private readonly ConsoleButtonView _default;
 
@@ -137,7 +136,7 @@ namespace Veronenger.Game.Controller.UI.Consoles {
 
     [Service]
     public class Xbox360SpriteConfig : SpriteConfig {
-        public override ConsoleButtonView CreateDefaultView() => new ConsoleButtonView(null, 0, 0);
+        public override ConsoleButtonView CreateDefaultView() => new(null, 0, 0);
 
         [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
         public override Texture Texture => _mainResourceLoader.Xbox360ButtonsTexture;

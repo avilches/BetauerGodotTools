@@ -1,11 +1,10 @@
 namespace Veronenger.Game.Character.Enemy {
     public class EnemyConfig {
-        public readonly MotionConfig MotionConfig;
+        public readonly MotionConfig MotionConfig = new();
 
         public float DeathJump = 200;
 
         public EnemyConfig() {
-            MotionConfig = new MotionConfig();
             const float maxSpeed = 15.0f; // pixels/seconds
             const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
             MotionConfig.ConfigureSpeed(maxSpeed, timeToMaxSpeed);

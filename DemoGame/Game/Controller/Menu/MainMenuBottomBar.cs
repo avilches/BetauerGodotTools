@@ -14,7 +14,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;
         [OnReady("%ActionHint3")] private ActionHint _actionHint3;
         [OnReady("%ActionHint4")] private ActionHint _actionHint4;
-        private readonly List<ActionHint> _actionHintList = new List<ActionHint>();
+        private readonly List<ActionHint> _actionHintList = new();
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction UiLeft { get; set; }

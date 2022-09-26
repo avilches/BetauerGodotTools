@@ -7,7 +7,7 @@ using Godot;
 
 namespace Veronenger.Game {
     public static class ApplicationConfig {
-        public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
+        public static readonly ScreenConfiguration Configuration = new(
             Resolutions.FULLHD_DIV2,
             Resolutions.FULLHD,
             SceneTree.StretchMode.Mode2d, // (viewport is blur)
@@ -19,8 +19,8 @@ namespace Veronenger.Game {
 
     [Configuration]
     public class Settings {
-        [Service] public ScreenSettingsManager ScreenSettingsManager => new ScreenSettingsManager(ApplicationConfig.Configuration);
-        [Service] public SettingsContainer SettingsContainer => new SettingsContainer(AppTools.GetUserFile("settings.ini"));
+        [Service] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Configuration);
+        [Service] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
 
         // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
         [Service("Settings.Screen.PixelPerfect")]
@@ -73,7 +73,7 @@ namespace Veronenger.Game {
 
     [Configuration]
     public class UiActions {
-        [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
+        [Service] public InputActionsContainer InputActionsContainer => new();
         
         [Service]
         private InputAction UiUp => InputAction.Create("ui_up")
