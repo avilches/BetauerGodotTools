@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
@@ -43,13 +44,13 @@ namespace Betauer.Application {
             StartContainer();
 
             MainLoopNotificationsHandler.OnWmQuitRequest += LoggerFactory.EnableAutoFlush;
+            TaskScheduler.UnobservedTaskException += (o, args) => {
+                var e = args.Exception;
+                GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] TaskScheduler.UnobservedTaskException:\n{e}");
+            };
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                 var e = args.ExceptionObject;
-                GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] Unhandled Exception:\n{e}");
-                if (e is SystemException) {
-                    GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} {e.GetType().Name} was fatal. Ending game...");
-                    GetTree().Quit();
-                }
+                GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] AppDomain.CurrentDomain.UnhandledException:\n{e}");
             };
             DefaultObjectWatcherTask.Instance.Start(GetTree(), _objectWatcherTimer);
             PauseMode = PauseModeEnum.Process;

@@ -5,10 +5,13 @@ using Godot;
 
 namespace Betauer {
     public static class TaskExtensions {
-        public static Task OnException(this Task task, Action<Exception> action) =>
+        public static Task OnException(this Task task, Action<Exception> action, bool rethrow = false) =>
             task.ContinueWith(t => {
                 var ex = task.Exception?.InnerException;
-                if (ex != null) action(ex);
+                if (ex != null) {
+                    action(ex);
+                    if (rethrow) throw ex;
+                }
             }, TaskContinuationOptions.OnlyOnFaulted);        
         
         // TODO: tests

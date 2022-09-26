@@ -195,7 +195,10 @@ namespace Betauer {
                 }
             }
 
-            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.GodotPrint) GD.Print(logLine);
+            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.GodotPrint) {
+                if (level <= TraceLevel.Error) GD.PrintErr(logLine);
+                else GD.Print(logLine);
+            }
             else if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.ConsoleWriteLine) Console.WriteLine(logLine);
         }
     }
