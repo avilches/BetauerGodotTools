@@ -33,7 +33,6 @@ namespace Veronenger.Game.Managers.Autoload {
                 ExportConfig();
             #endif
             ShowConfig();
-            Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
         }
 
         private static void ShowConfig() {
@@ -65,6 +64,7 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         public override void _Ready() {
+            Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             MainLoopNotificationsHandler.OnWmQuitRequest += () => {
                 var timespan = Uptime;

@@ -42,12 +42,10 @@ namespace Betauer.Application {
             // scene will not have services injected.
             StartContainer();
 
-            MainLoopNotificationsHandler.OnWmQuitRequest += () => {
-                LoggerFactory.EnableAutoFlush();
-            };
+            MainLoopNotificationsHandler.OnWmQuitRequest += LoggerFactory.EnableAutoFlush;
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                 var e = args.ExceptionObject;
-                GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} Unhandled Exception:\n{e}");
+                GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] Unhandled Exception:\n{e}");
                 if (e is SystemException) {
                     GD.Print($"{StringTools.FastFormatDateTime(DateTime.Now)} {e.GetType().Name} was fatal. Ending game...");
                     GetTree().Quit();

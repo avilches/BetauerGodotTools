@@ -5,9 +5,13 @@ using Godot;
 
 namespace Betauer {
     public static class TaskExtensions {
+        // Exception thrown will be caught by AppDomain.CurrentDomain.UnhandledException
+        public static Task ThrowUnhandledException(this Task task) =>
+            task.ContinueWith(t => {
+                if (t.Exception != null) throw t.Exception;
+            });        
         
         // TODO: tests
-
         public static async Task<object[]> RealTimeout(this SignalAwaiter awaiter, float seconds) {
             return await OnRealTimeout(awaiter, seconds, () => throw new TimeoutException());
         }
