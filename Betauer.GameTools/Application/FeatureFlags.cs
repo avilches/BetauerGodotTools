@@ -52,6 +52,12 @@ namespace Betauer.Application {
 
         public static bool IsExported() => OS.HasFeature("standalone");
 
+        private const string MonoUnhandledExceptionPolicyLogError = "1"; 
+        private const string MonoUnhandledExceptionPolicyTerminate = "0"; 
+
+        public static bool IsTerminateOnExceptionEnabled() =>
+            ProjectSettings.GetSetting("mono/runtime/unhandled_exception_policy").ToString() == MonoUnhandledExceptionPolicyTerminate;
+
         public static Dictionary<string, string> GetActiveMap() {
             return Description
                 .Where(val => OS.HasFeature(val.Key))

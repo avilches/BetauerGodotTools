@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Betauer.Application;
 using Godot;
 
 namespace Betauer.StateMachine {
@@ -106,7 +107,12 @@ namespace Betauer.StateMachine {
 
         private void Process(float delta) {
             Execute(delta)
-                .OnException((ex) => Logger.Error($"Name: {Name} | State: {CurrentState.Key}\n{ex}"));
+                .OnException((ex) => {
+                    Logger.Error($"Name: {Name} | State: {CurrentState.Key}\n{ex}");
+                    if (FeatureFlags.IsExported() && FeatureFlags.IsTerminateOnExceptionEnabled()) {
+                        GetTree().Notification(MainLoop.NotificationWmQuitRequest);
+                    }
+                });
         }
     }
 }

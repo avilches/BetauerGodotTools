@@ -62,10 +62,6 @@ texture={
 file_logging/log_path="user://logs/dev.log"
 file_logging/log_path.standalone="user://logs/game.log"
 
-[mono]
-
-runtime/unhandled_exception_policy.standalone=1
-
 [rendering]
 
 environment/default_clear_color=Color( 0, 0, 0, 1 )

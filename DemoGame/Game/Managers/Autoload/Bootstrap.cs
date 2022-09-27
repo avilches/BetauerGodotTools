@@ -55,12 +55,17 @@ namespace Veronenger.Game.Managers.Autoload {
                     "application/run/flush_stdout_on_print.debug",
                     "application/config/use_custom_user_dir",
                     "application/config/project_settings_override",
-                    "mono/unhandled_exception_policy",
-                    "mono/unhandled_exception_policy.standalone",
+                    "mono/runtime/unhandled_exception_policy",
+                    "mono/runtime/unhandled_exception_policy.standalone",
                     "application/config/version"
                 }.ToList()
-                .Where(ProjectSettings.HasSetting)
-                .ForEach(property => Logger.Info($"- {property}: {ProjectSettings.GetSetting(property)}"));
+                .ForEach(property => {
+                    if (ProjectSettings.HasSetting(property)) {
+                        Logger.Info($"- {property} = {ProjectSettings.GetSetting(property)}");
+                    } else {
+                        Logger.Info($"! {property} !");
+                    }
+                });
         }
 
         public override void _Ready() {

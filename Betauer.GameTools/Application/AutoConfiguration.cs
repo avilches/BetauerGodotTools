@@ -45,10 +45,18 @@ namespace Betauer.Application {
 
             MainLoopNotificationsHandler.OnWmQuitRequest += LoggerFactory.EnableAutoFlush;
             TaskScheduler.UnobservedTaskException += (o, args) => {
+                // This event logs errors in non-awaited Task. It needs
                 var e = args.Exception;
                 GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] TaskScheduler.UnobservedTaskException:\n{e}");
+                if (FeatureFlags.IsExported() && FeatureFlags.IsTerminateOnExceptionEnabled()) {
+                    SceneTree.Notification(MainLoop.NotificationWmQuitRequest);
+                }
             };
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
+                // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
+                // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
+                // so the quit is not really needed
+                // If unhandled_exception_policy is "1" (LogError), the error is not logged neither this event is called
                 var e = args.ExceptionObject;
                 GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] AppDomain.CurrentDomain.UnhandledException:\n{e}");
             };
