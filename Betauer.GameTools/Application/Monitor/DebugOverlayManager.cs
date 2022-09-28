@@ -14,6 +14,7 @@ namespace Betauer.Application.Monitor {
 
         public override void _Ready() {
             Layer = 1000000;
+            PauseMode = PauseModeEnum.Process;
         }
 
         public DebugOverlay CreateOverlay() {
