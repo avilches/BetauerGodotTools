@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Nodes {
@@ -154,6 +155,16 @@ namespace Betauer.Nodes {
                 return false;
             });
         }
+
+        public string GetStateAsString() {
+            string NodeName(Node node) => IsInstanceValid(node) ? node.Name : "disposed";
+            return 
+$@"Process: {string.Join(", ", OnProcessList.Select(e => NodeName(e.Node)))}
+PhysicsProcess: {string.Join(", ", OnPhysicsProcessList.Select(e => NodeName(e.Node)))}
+Input: {string.Join(", ", OnInputList.Select(e => NodeName(e.Node)))}
+UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => NodeName(e.Node)))}";
+        }
+        
     }
     
     public static class NodeHandlerExtensions {

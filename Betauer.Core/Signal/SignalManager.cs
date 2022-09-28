@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Betauer.Memory;
 using Object = Godot.Object;
 
@@ -242,6 +243,16 @@ namespace Betauer.Signal {
                 #endif
                 objectSignals.Emitter.Disconnect(signal, this, signalMethodName);
             }
+        }
+
+        public string GetStateAsString() {
+            var txt = new StringBuilder();
+            foreach (var objectSignals in SignalsByObject.Values) {
+                txt.Append(objectSignals.Emitter.ToStringSafe());
+                txt.Append(": ");
+                txt.AppendLine(string.Join(", ", objectSignals.Signals.Select(s => s.Signal)));
+            }
+            return txt.ToString();
         }
     }
 }
