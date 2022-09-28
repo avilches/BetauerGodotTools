@@ -14,18 +14,19 @@ namespace Betauer.Nodes {
     }
 
     public class NodeHandler : Node {
-        public class NodeEvent<T> : INodeEvent {
-            internal readonly Node Node;
-            internal readonly T Delegate;
-            internal PauseModeEnum PauseMode;
-            internal bool IsEnabled(bool isTreePaused) => _isEnabled && 
-                                                          (!isTreePaused || PauseMode == PauseModeEnum.Process) &&
-                                                          Node.IsInsideTree();
-            internal bool IsDestroyed => _isDestroyed || !IsInstanceValid(Node);
+        public class Event<T> : INodeEvent {
+            public readonly Node Node;
+            public readonly T Delegate;
+            public PauseModeEnum PauseMode;
+            public bool IsEnabled(bool isTreePaused) => _isEnabled && 
+                                                        (!isTreePaused || PauseMode == PauseModeEnum.Process) &&
+                                                        Node.IsInsideTree();
+            public bool IsDestroyed => _isDestroyed || !IsInstanceValid(Node);
+            
             private bool _isEnabled = true;
             private bool _isDestroyed = false;
             
-            public NodeEvent(Node node, T @delegate, PauseModeEnum pauseMode) {
+            public Event(Node node, T @delegate, PauseModeEnum pauseMode) {
                 Node = node;
                 Delegate = @delegate;
                 PauseMode = pauseMode;
@@ -36,10 +37,11 @@ namespace Betauer.Nodes {
             public void Destroy() => _isDestroyed = true;
         }
 
-        private readonly List<NodeEvent<Action<float>>> _onProcesses = new List<NodeEvent<Action<float>>>();
-        private readonly List<NodeEvent<Action<float>>> _onPhysicsProcesses = new List<NodeEvent<Action<float>>>();
-        private readonly List<NodeEvent<Func<InputEvent, bool>>> _onInput = new List<NodeEvent<Func<InputEvent, bool>>>();
-        private readonly List<NodeEvent<Func<InputEvent, bool>>> _onUnhandledInput = new List<NodeEvent<Func<InputEvent, bool>>>();
+        public readonly List<Event<Action<float>>> OnProcessList = new();
+        public readonly List<Event<Action<float>>> OnPhysicsProcessList = new();
+        public readonly List<Event<Func<InputEvent, bool>>> OnInputList = new();
+        public readonly List<Event<Func<InputEvent, bool>>> OnUnhandledInputList = new();
+        
         private SceneTree _sceneTree;
 
         public override void _EnterTree() {
@@ -48,14 +50,16 @@ namespace Betauer.Nodes {
         }
 
         public INodeEvent OnProcess(Node node, Action<float> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new NodeEvent<Action<float>>(node, action, pauseMode);
-            _onProcesses.Add(nodeEvent);
+            var nodeEvent = new Event<Action<float>>(node, action, pauseMode);
+            OnProcessList.Add(nodeEvent);
+            SetProcess(true);
             return nodeEvent;
         }
 
         public INodeEvent OnPhysicsProcess(Node node, Action<float> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new NodeEvent<Action<float>>(node, action, pauseMode);
-            _onPhysicsProcesses.Add(nodeEvent);
+            var nodeEvent = new Event<Action<float>>(node, action, pauseMode);
+            OnPhysicsProcessList.Add(nodeEvent);
+            SetPhysicsProcess(true);
             return nodeEvent;
         }
 
@@ -67,8 +71,9 @@ namespace Betauer.Nodes {
         }
 
         public INodeEvent OnInput(Node node, Func<InputEvent, bool> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new NodeEvent<Func<InputEvent, bool>>(node, action, pauseMode);
-            _onInput.Add(nodeEvent);
+            var nodeEvent = new Event<Func<InputEvent, bool>>(node, action, pauseMode);
+            OnInputList.Add(nodeEvent);
+            SetProcessInput(true);
             return nodeEvent;
         }
 
@@ -80,14 +85,19 @@ namespace Betauer.Nodes {
         }
 
         public INodeEvent OnUnhandledInput(Node node, Func<InputEvent, bool> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new NodeEvent<Func<InputEvent, bool>>(node, action, pauseMode);
-            _onUnhandledInput.Add(nodeEvent);
+            var nodeEvent = new Event<Func<InputEvent, bool>>(node, action, pauseMode);
+            OnUnhandledInputList.Add(nodeEvent);
+            SetProcessUnhandledInput(true);
             return nodeEvent;
         }
         
         public override void _Process(float delta) {
+            if (OnProcessList.Count == 0) {
+                SetProcess(false);
+                return;
+            }
             var isTreePaused = _sceneTree.Paused;
-            _onProcesses.RemoveAll(nodeOnProcess => {
+            OnProcessList.RemoveAll(nodeOnProcess => {
                 if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled(isTreePaused)) nodeOnProcess.Delegate.Invoke(delta);
                 return false;
@@ -95,8 +105,12 @@ namespace Betauer.Nodes {
         }
 
         public override void _PhysicsProcess(float delta) {
+            if (OnPhysicsProcessList.Count == 0) {
+                SetPhysicsProcess(false);
+                return;
+            }
             var isTreePaused = _sceneTree.Paused;
-            _onPhysicsProcesses.RemoveAll(nodeOnProcess => {
+            OnPhysicsProcessList.RemoveAll(nodeOnProcess => {
                 if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled(isTreePaused)) nodeOnProcess.Delegate.Invoke(delta);
                 return false;
@@ -104,9 +118,13 @@ namespace Betauer.Nodes {
         }
 
         public override void _Input(InputEvent e) {
+            if (OnInputList.Count == 0) {
+                SetProcessInput(false);
+                return;
+            }
             var isInputHandled = false;
             var isTreePaused = _sceneTree.Paused;
-            _onInput.RemoveAll(nodeOnProcess => {
+            OnInputList.RemoveAll(nodeOnProcess => {
                 if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled(isTreePaused)) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
@@ -119,9 +137,13 @@ namespace Betauer.Nodes {
         }
 
         public override void _UnhandledInput(InputEvent e) {
+            if (OnUnhandledInputList.Count == 0) {
+                SetProcessUnhandledInput(false);
+                return;
+            }
             var isInputHandled = false;
             var isTreePaused = _sceneTree.Paused;
-            _onUnhandledInput.RemoveAll(nodeOnProcess => {
+            OnUnhandledInputList.RemoveAll(nodeOnProcess => {
                 if (nodeOnProcess.IsDestroyed) return true;
                 if (nodeOnProcess.IsEnabled(isTreePaused)) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
