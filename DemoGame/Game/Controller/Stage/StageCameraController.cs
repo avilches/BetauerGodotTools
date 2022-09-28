@@ -6,7 +6,7 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Stage {
     /**
-     * Add this script to a Comera2D in your Player.
+     * Add this script to a Camera2D in your Player.
      * The Player should have an Area2D called 'StageDetector' children
      * (So, this script and StageDetector should be siblings)
      *
@@ -14,14 +14,16 @@ namespace Veronenger.Game.Controller.Stage {
      *   +- StageDetector : Area2D
      *   +- StageCameraController (this class)
      */
-    public class StageCameraController :Camera2D {
+    public class StageCameraController : Camera2D {
 
         [Inject] public StageManager StageManager { get; set;}
 
         [OnReady("../Detector")] private Area2D stageDetector;
 
+        private const bool EnableStageCamera = false;
+
         public override void _Ready() {
-            StageManager.ConfigureStageCamera(this, stageDetector);
+            if (EnableStageCamera) StageManager.ConfigureStageCamera(this, stageDetector);
         }
 
         public void ChangeStage(Rect2 rect2) {

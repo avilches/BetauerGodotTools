@@ -4,17 +4,14 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
-using Betauer.Application;
+using Betauer.Application.Camera;
 using Betauer.Application.Monitor;
-using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.Nodes.Property;
-using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
 using Betauer.Restorer;
-using Betauer.Signal;
-using Betauer.Signal.Bus;
 using Veronenger.Game.Character;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI.Consoles;
@@ -31,6 +28,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
+        [OnReady("Camera2D")] private Camera2D _camera2D;
 
         private IFlipper _flippers;
 
@@ -63,6 +61,7 @@ namespace Veronenger.Game.Controller.Character {
          */
         public bool IsOnSlopeStairsUp() => _slopeStairsManager.UpOverlap(this);
         public bool IsOnSlopeStairsDown() => _slopeStairsManager.DownOverlap(this);
+        private DragCameraController _cameraController;
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
         private Restorer _restorer;
@@ -75,6 +74,9 @@ namespace Veronenger.Game.Controller.Character {
             AnimationFall = _animationStack.AddLoopAnimation("Fall");
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
+
+            _cameraController = new DragCameraController(_camera2D, ButtonList.Middle, 1.8f, 100f);
+            this.OnInput(_cameraController.DragCamera);
 
             _tweenStack = new AnimationStack(_name);
             _restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)
@@ -213,19 +215,15 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void _Input(InputEvent e) {
-            // var action = InputActionsContainer.FindAction(e);
-            // if (action != null) {
-                // _logger.Debug(
-                    // $"{action.Name} | JustPressed:{action.JustPressed()} Pressed:{action.Pressed()} Released:{action.Released()} {action.Strength()}");
-            // }
-            if (e is InputEventJoypadButton button) {
-                _consoleButton.SetButton((JoystickList)button.ButtonIndex, button.Pressed);
-                if (button.Pressed == false) {
-                    Templates.FadeOut.Play(_consoleButton, 0, 0.6f);
-                } else {
+            if (e.IsAnyButton()) {
+                _consoleButton.SetButton(e.GetButton(), e.IsPressed());
+                if (e.IsPressed()) {
                     _consoleButton.Modulate = Colors.White;
+                } else {
+                    Templates.FadeOut.Play(_consoleButton, 0, 0.6f);
                 }
             }
+            if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
         }
 
         public override void _Draw() {
