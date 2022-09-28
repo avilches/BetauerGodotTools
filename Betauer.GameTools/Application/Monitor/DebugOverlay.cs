@@ -40,7 +40,7 @@ namespace Betauer.Application.Monitor {
             if (@event.IsDoubleClick(ButtonList.Left)) {
                 Modulate = Modulate.a <= 0.9f ? Solid : Transparent;
                 
-            } else if (_mouseInsidePanel.Inside && @event.IsClick(ButtonList.Left)) {
+            } else if (_mouseInsidePanel.Inside && @event.IsLeftClick()) {
                 if (@event.IsJustPressed()) {
                     _startDragPosition = RectPosition - GetGlobalMousePosition();
                     Raise();

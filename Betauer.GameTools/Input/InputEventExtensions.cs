@@ -124,23 +124,42 @@ namespace Betauer.Input {
         public static bool IsMouseMotion(this InputEvent input) =>
             input is InputEventMouseMotion;
 
-        public static bool IsAnyClick(this InputEvent input) =>
+        public static bool IsClick(this InputEvent input) =>
             input is InputEventMouseButton;
 
-        public static bool IsAnyClick(this InputEvent input, params ButtonList[] buttons) =>
-            input is InputEventMouseButton k && buttons.Any(button => (ButtonList)k.ButtonIndex == button);
-
         public static bool IsClick(this InputEvent input, ButtonList button) =>
-            input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button;
+            input is InputEventMouseButton k &&
+            (ButtonList)k.ButtonIndex == button;
+
+        public static Vector2 GetMousePosition(this InputEvent input) =>
+            input is InputEventMouse m ? m.Position : Vector2.Zero;
+
+        public static Vector2 GetMouseGlobalPosition(this InputEvent input) =>
+            input is InputEventMouse m ? m.GlobalPosition : Vector2.Zero;
+
+        public static bool IsDoubleClick(this InputEvent input) =>
+            input is InputEventMouseButton { Doubleclick: true };
+
+        public static bool IsDoubleClick(this InputEvent input, ButtonList button) =>
+            input.IsClick(button) && input.IsDoubleClick();
 
         public static bool IsLeftClick(this InputEvent input) => 
             input.IsClick(ButtonList.Left);
 
+        public static bool IsLeftDoubleClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Left) && input.IsDoubleClick();
+
         public static bool IsMiddleClick(this InputEvent input) => 
             input.IsClick(ButtonList.Middle);
 
+        public static bool IsMiddleDoubleClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Middle) && input.IsDoubleClick();
+
         public static bool IsRightClick(this InputEvent input) => 
             input.IsClick(ButtonList.Right);
+
+        public static bool IsRightDoubleClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Right) && input.IsDoubleClick();
 
         public static ButtonList GetClick(this InputEvent input) =>
             input is InputEventMouseButton k ? (ButtonList)k.ButtonIndex : ButtonList.MaskXbutton2;
@@ -156,8 +175,6 @@ namespace Betauer.Input {
         public static bool IsClickReleased(this InputEvent input, ButtonList button) =>
             input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && input.IsReleased();
 
-        public static bool IsDoubleClick(this InputEvent input, ButtonList button) =>
-            input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && k.Doubleclick;
         
     }
 }
