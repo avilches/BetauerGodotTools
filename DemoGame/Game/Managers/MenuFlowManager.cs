@@ -103,22 +103,22 @@ namespace Veronenger.Game.Managers {
             DefaultDebugOverlay.MonitorObjectRunnerSize();
             DefaultDebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
             DefaultDebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
-            DefaultDebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString());
+            DefaultDebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString()); 
+            // CreateNodeHandlerManagerDebugOverlay();
             // CreateSignalManagerDebugOverlay();
         }
 
         private DebugOverlay CreateSignalManagerDebugOverlay() {
             var debugOverlay = DebugOverlayManager.CreateOverlay();
             debugOverlay.Theme = MyTheme;
-            debugOverlay.CreateMonitor().Show(() => {
-                var txt = "";
-                foreach (var objectSignals in DefaultSignalManager.Instance.SignalsByObject.Values) {
-                    txt += objectSignals.Emitter.ToStringSafe() + " (" + objectSignals.Signals.Count + "): " +
-                           string.Join(", ", objectSignals.Signals.Select(s => s.Signal)) + "\n";
-                }
+            debugOverlay.CreateMonitor().Show(DefaultSignalManager.Instance.GetStateAsString);
+            return debugOverlay;
+        }
 
-                return txt;
-            });
+        private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
+            var debugOverlay = DebugOverlayManager.CreateOverlay();
+            debugOverlay.Theme = MyTheme;
+            debugOverlay.CreateMonitor().Show(DefaultNodeHandler.Instance.GetStateAsString);
             return debugOverlay;
         }
 
