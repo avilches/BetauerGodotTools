@@ -85,6 +85,6 @@ namespace Betauer.Application.Screen {
         }
         
         private string _state;
-        public string GetStateAsString() => _state;
+        public override string GetStateAsString() => _state;
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Betauer.Memory;
 using Godot;
 
 namespace Betauer.Application.Screen {
@@ -75,5 +74,7 @@ namespace Betauer.Application.Screen {
             // OS.WindowPosition = centeredPos;
             // OS.CurrentScreen = currentScreen;
         }
+
+        public abstract string GetStateAsString();
     }
 }
