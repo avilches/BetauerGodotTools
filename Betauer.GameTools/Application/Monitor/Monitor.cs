@@ -17,7 +17,7 @@ namespace Betauer.Application.Monitor {
         public Godot.Object? Target;
         public Func<string>? Delegate;
 
-        public bool IsEnabled => _isEnabled && (Target is Node n ? n.IsInsideTree() : true);
+        public bool IsEnabled => _isEnabled && (Target is not Node n || n.IsInsideTree());
         public bool IsDestroyed => _isDestroyed || (Target != null && !Godot.Object.IsInstanceValid(Target));
 
         public Monitor WithPrefix(string prefix) {
@@ -39,16 +39,25 @@ namespace Betauer.Application.Monitor {
             _text = text;
         }
 
+        public void Enable(bool enable = true) {
+            _isEnabled = enable;
+        }
+
+        public void Disable() {
+            Enable(false);
+        }
+
+        public void Destroy() {
+            _isDestroyed = true;
+        }
+
         public string GetText() {
-            var label = Prefix != null ? Prefix + ": " : "";
-            if (Delegate != null) {
-                try {
-                    return $"{label}{Delegate?.Invoke()}";
-                } catch (Exception e) {
-                    return $"{label}{e.Message}";
-                }
+            try {
+                var text = Delegate != null ? Delegate.Invoke() : _text;
+                return Prefix != null ? $"{Prefix}: {text}" : text;
+            } catch (Exception e) {
+                return Prefix != null ? $"{Prefix}: {e.Message}" : e.Message;
             }
-            return $"{label}{_text}"; 
         }
 
     }
