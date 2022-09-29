@@ -55,10 +55,6 @@ namespace Betauer.Input {
             input is InputEventJoypadButton
             && (deviceId == -1 || input.Device == deviceId);
 
-        public static bool IsAnyButton(this InputEvent input, params JoystickList[] buttons) =>
-            input is InputEventJoypadButton k
-            && buttons.Any(scancode => (JoystickList)k.ButtonIndex == scancode);
-
         public static bool IsButton(this InputEvent input, JoystickList button, int deviceId = -1) =>
             input is InputEventJoypadButton k
             && (deviceId == -1 || input.Device == deviceId)
@@ -93,9 +89,6 @@ namespace Betauer.Input {
         // Keys
         public static bool IsAnyKey(this InputEvent input) =>
             input is InputEventKey;
-
-        public static bool IsAnyKey(this InputEvent input, params int[] scancodes) =>
-            input is InputEventKey k && scancodes.Any(scancode => k.Scancode == scancode);
 
         public static bool IsKey(this InputEvent input, KeyList scancode) =>
             input is InputEventKey k && (KeyList)k.Scancode == scancode;

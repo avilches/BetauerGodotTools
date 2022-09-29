@@ -4,15 +4,10 @@ using Godot;
 
 namespace Betauer.Restorer {
     public class MultiRestorer : Restorer {
-        public readonly List<Restorer> Restorers = new List<Restorer>();
+        public readonly List<Restorer> Restorers = new();
 
         public override MultiRestorer Add(Restorer restorer) {
             Restorers.Add(restorer);
-            return this;
-        }
-
-        public override MultiRestorer Add(params Restorer[] restorer) {
-            foreach (var r in restorer) Restorers.Add(r);
             return this;
         }
 

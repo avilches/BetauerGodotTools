@@ -31,17 +31,11 @@ namespace Betauer.Restorer {
         protected abstract void DoRestore();
         
         public virtual MultiRestorer Add(Restorer restorer) {
-            return new MultiRestorer().Add(this, restorer);
-        }
-
-        public virtual MultiRestorer Add(params Restorer[] restorer) {
             return new MultiRestorer().Add(this).Add(restorer);
         }
 
         public virtual MultiRestorer Add(IEnumerable<Restorer> toList) {
             return new MultiRestorer().Add(this).Add(toList);
         }
-        
-        
     }
 }
