@@ -334,7 +334,7 @@ tracks/4/keys = {
 }
 
 [sub_resource type="Animation" id=8]
-length = 0.8
+length = 0.7
 loop = true
 tracks/0/type = "value"
 tracks/0/path = NodePath(".:frame")
