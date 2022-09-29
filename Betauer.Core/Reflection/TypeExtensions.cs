@@ -5,30 +5,8 @@ using System.Reflection;
 
 namespace Betauer.Reflection {
     public static partial class TypeExtensions {
-        private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache =
-            new Dictionary<(Type, Type, MemberTypes, BindingFlags), object>();
+        private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
         
-        public static List<IGetterSetter<T>> GetGetterSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
-            var key = (typeof(IGetterSetter<T>), type, memberFlags, bindingAttr);
-            if (Cache.TryGetValue(key, out var result)) return (List<IGetterSetter<T>>)result; 
-            return (List<IGetterSetter<T>>)(Cache[key] = type.GetGetterSetters<T>(memberFlags, bindingAttr));
-        }
-
-        public static List<IGetterSetter<T>> GetGetterSetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
-            if (memberFlags.HasFlag(MemberTypes.Method)) throw new Exception("Can't create GetterSetter with methods");
-
-            IEnumerable<MemberInfo> e = Enumerable.Empty<MemberInfo>();
-            e = ConcatFields(e, type, memberFlags, bindingAttr);
-            e = ConcatProperties(e, type, memberFlags, bindingAttr);
-            
-            List<IGetterSetter<T>> getterSetter = new List<IGetterSetter<T>>();
-            foreach (var memberInfo in e) {
-                if (memberInfo.GetAttribute<T>() is T attribute)
-                    getterSetter.Add(new FastGetterSetter<T>(memberInfo, attribute));
-            }
-            return getterSetter;
-        }
-
         public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
             var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
             if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
@@ -43,8 +21,17 @@ namespace Betauer.Reflection {
             
             List<ISetter<T>> setters = new List<ISetter<T>>();
             foreach (var memberInfo in e) {
-                if (memberInfo.GetAttribute<T>() is T attribute)
-                    setters.Add(new FastSetter<T>(memberInfo, attribute));
+                if (memberInfo.GetAttribute<T>() is T attribute) {
+                    var validSetter = FastSetter.IsValid(memberInfo);
+                    var validGetter = FastGetter.IsValid(memberInfo);
+                    if (validGetter && validSetter) {
+                        // fields and properties
+                        setters.Add(new FastGetterSetter<T>(memberInfo, attribute));
+                    } else if (validSetter) {
+                        // methods with 1 parameter and void return type
+                        setters.Add(new FastSetter<T>(memberInfo, attribute));
+                    }
+                }
             }
             return setters;
         }
@@ -62,8 +49,17 @@ namespace Betauer.Reflection {
             e = ConcatMethods(e, type, memberFlags, bindingAttr, 0);
             List<IGetter<T>> getters = new List<IGetter<T>>();
             foreach (var memberInfo in e) {
-                if (memberInfo.GetAttribute<T>() is T attribute)
-                    getters.Add(new FastGetter<T>(memberInfo, attribute));
+                if (memberInfo.GetAttribute<T>() is T attribute) {
+                    var validSetter = FastSetter.IsValid(memberInfo);
+                    var validGetter = FastGetter.IsValid(memberInfo);
+                    if (validGetter && validSetter) {
+                        // fields and properties
+                        getters.Add(new FastGetterSetter<T>(memberInfo, attribute));
+                    } else if (validGetter) {
+                        // methods with 1 parameter and void return type
+                        getters.Add(new FastGetter<T>(memberInfo, attribute));
+                    }
+                }
             }
             return getters;
         }

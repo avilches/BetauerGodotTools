@@ -41,54 +41,51 @@ namespace Betauer.DI {
                 InjectMember(target, context, setter);
         }
 
-        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> setter) {
-            if (setter is IGetter getter && getter.GetValue(target) != null) {
-                // Ignore the already defined values
-                // TODO: test
-                return;
-            }
+        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> getterSetter) {
+            // Ignore the already defined values
+            if (getterSetter is IGetter getter && getter.GetValue(target) is not null) return;
+            
+            if (InjectorFunction.InjectField(_container, target, getterSetter)) return;
 
-            if (InjectorFunction.InjectField(_container, target, setter)) return;
-
-            var nullable = setter.Attribute.Nullable;
-            var name = setter.Attribute.Name;
+            var nullable = getterSetter.SetterAttribute.Nullable;
+            var name = getterSetter.SetterAttribute.Name;
             if (name != null) {
                 name = name.Trim();
                 if (_container.Contains(name)) {
                     #if DEBUG
-                        Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name in [Inject(\"{name}\")");
+                        Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name in [Inject(\"{name}\")");
                     #endif
-                    InjectFieldByName(target, context, setter, name);
+                    InjectFieldByName(target, context, getterSetter, name);
                     return;
                 }
                 if (!nullable) {
-                    throw new InjectMemberException(setter.Name, target,
-                        "Service \"" + name + "\" not found when trying to inject " + setter);
+                    throw new InjectMemberException(getterSetter.Name, target,
+                        "Service \"" + name + "\" not found when trying to inject " + getterSetter);
                 }
                 return;
             } 
             
-            if (_container.Contains(setter.Name)) {
+            if (_container.Contains(getterSetter.Name)) {
                 #if DEBUG
-                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Member name: {setter.Name}");
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member name: {getterSetter.Name}");
                 #endif
-                InjectFieldByName(target, context, setter, setter.Name);
+                InjectFieldByName(target, context, getterSetter, getterSetter.Name);
                 return;
             }
 
-            var realType = setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)
-                ? setter.Type.GetGenericArguments()[0]
-                : setter.Type;
+            var realType = getterSetter.Type.IsGenericType && getterSetter.Type.GetGenericTypeDefinition() == typeof(Factory<>)
+                ? getterSetter.Type.GetGenericArguments()[0]
+                : getterSetter.Type;
             if (_container.CreateIfNotFound || _container.Contains(realType)) {
                 #if DEBUG
-                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Member type: {realType}");
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member type: {realType}");
                 #endif
-                InjectFieldByType(target, context, setter);
+                InjectFieldByType(target, context, getterSetter);
                 return;
             }
 
             if (!nullable) {
-                throw new InjectMemberException(setter.Name, target, "Not service found when trying to inject [" + setter +
+                throw new InjectMemberException(getterSetter.Name, target, "Not service found when trying to inject [" + getterSetter +
                                                                      "] in " + target.GetType().FullName);
             }
         }

@@ -157,7 +157,7 @@ namespace Betauer.DI {
             var conf = instance;
             // No need to use GetGettersCached, this reflection scan is only done once
             foreach (var getter in configurationType.GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags)) {
-                var serviceAttr = getter.Attribute;
+                var serviceAttr = getter.GetterAttribute;
                 var type = getter.Type;
                 var registeredType = serviceAttr.Type ?? type;
                 var name = serviceAttr.Name?? getter.Name;

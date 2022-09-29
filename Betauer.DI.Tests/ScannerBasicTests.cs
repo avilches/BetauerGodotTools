@@ -363,6 +363,29 @@ namespace Betauer.DI.Tests {
         }
 
         [Test(Description = "Inject singletons in singleton + get/set properties")]
+        public void IgnoreAlreadyInjectedFields() {
+            var di = new ContainerBuilder();
+            EmptyTransient.Created = 0;
+
+            di.Scan<EmptyTransient>();
+            di.Scan<SingletonWith2Transients>();
+            var c = di.Build();
+
+            var s = c.Resolve<SingletonWith2Transients>();
+            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+            
+            // Already assigned are ignored
+            c.InjectServices(s);
+            Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+
+            // If a service field is not found, assign again
+            s.et1 = null;
+            c.InjectServices(s);
+            Assert.That(EmptyTransient.Created, Is.EqualTo(3));
+
+        }
+
+        [Test(Description = "Inject singletons in singleton + get/set properties")]
         public void SingletonInSingleton() {
             var di = new ContainerBuilder();
             EmptyTransient.Created = 0;
