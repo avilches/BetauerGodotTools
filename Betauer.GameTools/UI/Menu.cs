@@ -89,8 +89,6 @@ namespace Betauer.UI {
                 var transition = new MenuTransition(fromMenu, null, toMenu, toButton);
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, null, newMenuAnimation);
-            } catch (Exception e) {
-                throw e;
             } finally {
                 lock (_lockObject) {
                     Available = true;
@@ -193,8 +191,6 @@ namespace Betauer.UI {
                 goodbyeAnimation ??= ActiveMenu.GoGoodbyeAnimation ?? DefaultGoGoodbyeAnimation;
                 newMenuAnimation ??= toMenu.GoNewMenuAnimation ?? DefaultGoNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
-            } catch (Exception e) {
-                throw e;
             } finally {
                 lock (_lockObject) {
                     Available = true;
@@ -228,8 +224,6 @@ namespace Betauer.UI {
                 goodbyeAnimation ??= ActiveMenu.BackGoodbyeAnimation ?? DefaultBackGoodbyeAnimation;
                 newMenuAnimation ??= toMenu.BackNewMenuAnimation ?? DefaultBackNewMenuAnimation;
                 await PlayTransition(transition, goodbyeAnimation, newMenuAnimation);
-            } catch (Exception e) {
-                throw e;
             } finally {
                 lock (_lockObject) {
                     Available = true;
@@ -285,8 +279,6 @@ namespace Betauer.UI {
                      */
                 }
                 ActiveMenu = transition.ToMenu;
-            } catch (Exception e) {
-                throw e;
             } finally {
                 if (DisableGuiInAnimations) _viewport.GuiDisableInput = false;
             }

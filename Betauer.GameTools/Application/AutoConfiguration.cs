@@ -48,7 +48,7 @@ namespace Betauer.Application {
                 // This event logs errors in non-awaited Task. It needs
                 var e = args.Exception;
                 GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] TaskScheduler.UnobservedTaskException:\n{e}");
-                if (FeatureFlags.IsExported() && FeatureFlags.IsTerminateOnExceptionEnabled()) {
+                if (FeatureFlags.IsTerminateOnExceptionEnabled()) {
                     SceneTree.Notification(MainLoop.NotificationWmQuitRequest);
                 }
             };

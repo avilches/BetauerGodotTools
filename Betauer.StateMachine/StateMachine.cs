@@ -160,7 +160,7 @@ namespace Betauer.StateMachine {
             } catch (Exception e) {
                 _nextChange = NoChange;
                 CurrentState = currentStateBackup;
-                throw e;
+                throw;
             } finally {
                 lock (_lockObject) {
                     Available = true;

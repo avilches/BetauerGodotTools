@@ -109,7 +109,7 @@ namespace Betauer.StateMachine {
             Execute(delta)
                 .OnException((ex) => {
                     Logger.Error($"Name: {Name} | State: {CurrentState.Key}\n{ex}");
-                    if (FeatureFlags.IsExported() && FeatureFlags.IsTerminateOnExceptionEnabled()) {
+                    if (FeatureFlags.IsTerminateOnExceptionEnabled()) {
                         GetTree().Notification(MainLoop.NotificationWmQuitRequest);
                     }
                 });
