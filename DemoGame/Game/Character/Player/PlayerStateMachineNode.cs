@@ -148,6 +148,7 @@ namespace Veronenger.Game.Character.Player {
 
                     if (!_player.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
+                        Body.SetMotionY(0f);
                         return context.Set(State.FallShort);
                     }
 
