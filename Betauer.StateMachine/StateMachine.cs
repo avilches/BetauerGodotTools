@@ -21,7 +21,7 @@ namespace Betauer.StateMachine {
     }
 
     public abstract class StateMachine {
-        protected static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(StateMachine));
+        protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<StateMachine>();
     }
 
     public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
@@ -63,7 +63,7 @@ namespace Betauer.StateMachine {
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
             Name = name;
-            Logger = name == null ? StaticLogger : LoggerFactory.GetLogger($"{name}.{nameof(StateMachine)}");
+            Logger = name == null ? StaticLogger : LoggerFactory.GetLogger(name);
         }
 
         public void On(TTransitionKey transitionKey, 

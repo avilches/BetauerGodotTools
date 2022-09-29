@@ -229,11 +229,11 @@ namespace Betauer.Animation {
 
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
-        private static readonly Logger StaticLogger = LoggerFactory.GetLogger(typeof(AnimationStack));
+        private static readonly Logger StaticLogger = LoggerFactory.GetLogger<AnimationStack>();
         private readonly Logger _logger;
 
         public AnimationStack(string? name = null) {
-            _logger = name == null ? StaticLogger : LoggerFactory.GetLogger($"{name}.{nameof(AnimationStack)}");
+            _logger = name == null ? StaticLogger : LoggerFactory.GetLogger(name);
         }
 
         public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
