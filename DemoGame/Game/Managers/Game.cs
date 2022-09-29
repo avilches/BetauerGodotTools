@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes;
@@ -17,10 +18,17 @@ namespace Veronenger.Game.Managers {
         private Node _currentGameScene;
         private Node2D _playerScene;
 
-        public void Start() {
+        public void StartNew() {
             _currentGameScene = MainResourceLoader.CreateWorld2Empty();
-            _currentGameScene.GetNode<TileMap>("RealTileMap");
+            var tileMap = _currentGameScene.GetNode<TileMap>("RealTileMap");
+            new WorldGenerator().Generate(tileMap);
             AddPlayerToScene(_currentGameScene, Vector2.Zero);
+            SceneTree.Root.AddChildDeferred(_currentGameScene);
+        }
+
+        public void Start() {
+            _currentGameScene = MainResourceLoader.CreateWorld1();
+            AddPlayerToScene(_currentGameScene);
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }
 
@@ -41,8 +49,9 @@ namespace Veronenger.Game.Managers {
 
         private void AddPlayerToScene(Node nextScene, Vector2 position) {
             _playerScene = MainResourceLoader.CreatePlayer();
-            _playerScene.GlobalPosition = position;
             nextScene.AddChild(_playerScene);
+            // TODO: this shows a warning "!is_inside_tree()" is true. Returned: get_transform()" but it still works 
+            _playerScene.GlobalPosition = position;
         }
 
         public void End() {

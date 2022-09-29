@@ -1,4 +1,7 @@
+using Betauer.DI;
+
 namespace Veronenger.Game.Character.Enemy {
+    [Service]
     public class EnemyConfig {
         public readonly MotionConfig MotionConfig = new();
 

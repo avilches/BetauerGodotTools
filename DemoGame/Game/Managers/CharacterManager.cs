@@ -28,6 +28,11 @@ namespace Veronenger.Game.Managers {
             playerController.CollisionMask = 0;
             PlatformManager.ConfigurePlayerCollisions(playerController);
             SlopeStairsManager.ConfigurePlayerCollisions(playerController);
+            
+            playerController.PlayerDetector.CollisionLayer = 0;
+            playerController.PlayerDetector.CollisionMask = 0;
+            playerController.PlayerDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
+
         }
 
         public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D> enterMethod) {

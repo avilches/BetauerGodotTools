@@ -124,13 +124,13 @@ namespace Veronenger.Game.Managers {
             #if DEBUG
             this.OnInput((e) => {
                 if (e.IsKeyPressed(KeyList.Q)) {
-                    _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
+                    // _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
                 }
                 if (e.IsKeyPressed(KeyList.W)) {
-                    _settingsMenuScene.Scale = new Vector2(1, 1);
+                    // _settingsMenuScene.Scale = new Vector2(1, 1);
                 }
                 if (e.IsKeyPressed(KeyList.E)) {
-                    _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
+                    // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
                 }
                 if (e.IsKeyPressed(KeyList.Key1)) {
                     ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;

@@ -13,8 +13,8 @@ using Veronenger.Game.Managers;
 namespace Veronenger.Game.Character.Player {
     [Service(Lifetime.Transient)]
     public class PlayerStateMachineNode : StateMachineNode<PlayerStateMachineNode.State, PlayerStateMachineNode.Transition> {
-        private Logger _loggerJumpVelocity;
-        private void DebugJump(string message) => _loggerJumpVelocity.Debug(message);
+        private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
+        private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
 
         public enum Transition {
         }
@@ -27,30 +27,30 @@ namespace Veronenger.Game.Character.Player {
             Jump,
         }
         
-        public PlayerStateMachineNode() : base(State.Idle, "Player", ProcessMode.Physics) {
+        public PlayerStateMachineNode() : base(State.Idle, "Player.StateMachine", ProcessMode.Physics) {
         }
 
-        [Inject] private PlatformManager _platformManager { get; set;}
-        [Inject] private PlayerConfig _playerConfig { get; set;}
-        private AxisAction LateralMotion => Left.AxisAction;
-        private AxisAction VerticalMotion => Up.AxisAction;
+        [Inject] private PlatformManager PlatformManager { get; set;}
+        [Inject] private PlayerConfig PlayerConfig { get; set;}
         [Inject] private InputAction Left { get; set;}
         [Inject] private InputAction Up { get; set;}
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
+        [Inject] private KinematicPlatformMotionBody Body { get; set; }
 
         private PlayerController _player;
-        private KinematicPlatformMotionBody Body => _player.KinematicPlatformMotionBody;
 
         // Input from the player
+        private AxisAction LateralMotion => Left.AxisAction;
+        private AxisAction VerticalMotion => Up.AxisAction;
         private float XInput => LateralMotion.Strength;
         private float YInput => VerticalMotion.Strength;
         private bool IsRight => XInput > 0;
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
         private bool IsDown => YInput > 0;
-        private Vector2 Motion => _player.KinematicPlatformMotionBody.Motion;
-        private MotionConfig MotionConfig => _playerConfig.MotionConfig;
+        private Vector2 Motion => Body.Motion;
+        private MotionConfig MotionConfig => PlayerConfig.MotionConfig;
 
         // State sharad between states
         private bool _coyoteJumpEnabled = false;
@@ -61,9 +61,10 @@ namespace Veronenger.Game.Character.Player {
         private Monitor _coyoteJumpState;
         private Monitor _jumpHelperState;
 
-        public void Configure(PlayerController playerController, string name) {
-            _loggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
+        public void Start(string name, PlayerController playerController, IFlipper flippers, RayCast2D slopeDetector, Position2D position2D) {
             _player = playerController;
+
+            Body.Configure(name, playerController, flippers, PlayerConfig.MotionConfig, slopeDetector, position2D);
 
             playerController.AddChild(this);
 
@@ -121,7 +122,7 @@ namespace Veronenger.Game.Character.Player {
 
                     if (Jump.IsJustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
-                            _platformManager.BodyFallFromPlatform(_player);
+                            PlatformManager.BodyFallFromPlatform(_player);
                         } else {
                             return context.Set(State.Jump);
                         }
@@ -156,7 +157,7 @@ namespace Veronenger.Game.Character.Player {
 
                     if (Jump.IsJustPressed()) {
                         if (IsDown && Body.IsOnFallingPlatform()) {
-                            _platformManager.BodyFallFromPlatform(_player);
+                            PlatformManager.BodyFallFromPlatform(_player);
                         } else {
                             return context.Set(State.Jump);
                         }
@@ -186,16 +187,16 @@ namespace Veronenger.Game.Character.Player {
         private ExecuteTransition<State, Transition> CheckLanding(ExecuteContext<State, Transition> context) {
             if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
-            _platformManager.BodyStopFallFromPlatform(_player);
+            PlatformManager.BodyStopFallFromPlatform(_player);
 
             // Check helper jump
             if (JumpHelperTimer.IsRunning) {
                 JumpHelperTimer.Stop();
                 if (JumpHelperTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                    _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} Done!");
+                    _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
                     return context.Set(State.Jump);
                 }
-                _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed} <= {PlayerConfig.JumpHelperTime} TOO MUCH TIME");
+                _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
             }
 
             // Debug("Just grounded!");
@@ -224,10 +225,10 @@ namespace Veronenger.Game.Character.Player {
                 JumpHelperTimer.Restart();
                 if (FallingTimer.IsRunning) {
                     if (FallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                        _coyoteJumpState.SetText($"{FallingTimer.Elapsed} <= {PlayerConfig.CoyoteJumpTime} Done!");
+                        _coyoteJumpState.SetText($"{FallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
                         return true;
                     }
-                    _coyoteJumpState.SetText($"{FallingTimer.Elapsed} > {PlayerConfig.CoyoteJumpTime} TOO LATE");
+                    _coyoteJumpState.SetText($"{FallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
                 }
                 return false;
             }

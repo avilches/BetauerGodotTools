@@ -1,10 +1,9 @@
-using System;
-using System.Runtime.InteropServices;
 using Betauer;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.StateMachine;
 using Betauer.Time;
+using Godot;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
@@ -22,23 +21,24 @@ namespace Veronenger.Game.Character.Enemy {
             PatrolWait,
         }
 
-        public EnemyZombieStateMachineNode() : base(State.Idle) {
+        public EnemyZombieStateMachineNode() : base(State.Idle, "Zombie.StateMachine", ProcessMode.Physics) {
         }
 
         [Inject] private CharacterManager CharacterManager { get; set; }
-
-        private EnemyZombieController _enemyZombieController;
-
-        private KinematicPlatformMotionBody Body => _enemyZombieController.KinematicPlatformMotionBody;
-        private MotionConfig MotionConfig => _enemyZombieController.EnemyConfig.MotionConfig;
-
-        // State sharad between states
+        [Inject] private KinematicPlatformMotionBody Body { get; set; }
+        [Inject] private EnemyConfig EnemyConfig { get; set; }
+        // State shared between states
         [Inject] private GodotStopwatch PatrolTimer  { get; set; }
         [Inject] private GodotStopwatch StateTimer  { get; set; }
 
-        public void Configure(EnemyZombieController enemyZombie, string name) {
+        private EnemyZombieController _enemyZombieController;
+        private MotionConfig MotionConfig => EnemyConfig.MotionConfig;
+
+        public void Start(string name, EnemyZombieController enemyZombie, IFlipper flippers, RayCast2D floorDetector, Position2D position2D) {
             _enemyZombieController = enemyZombie;
             enemyZombie.AddChild(this);
+
+            Body.Configure(name, enemyZombie, flippers, EnemyConfig.MotionConfig, floorDetector, position2D);
 
             var events = new StateMachineEvents<State>();
             events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
@@ -76,7 +76,7 @@ namespace Veronenger.Game.Character.Enemy {
             
             CreateState(State.PatrolStep)
                 .Enter(() => {
-                    _enemyZombieController.FaceTo(CharacterManager.PlayerController.PlayerDetector);
+                    Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
                     _enemyZombieController.AnimationStep.PlayOnce();
                 })
                 /*
@@ -137,7 +137,7 @@ namespace Veronenger.Game.Character.Enemy {
                 .Enter(() => {
                     _enemyZombieController.DisableAll();
 
-                    if (_enemyZombieController.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector)) {
+                    if (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector)) {
                         _enemyZombieController.AnimationDieLeft.PlayOnce(true);
                     } else {
                         _enemyZombieController.AnimationDieRight.PlayOnce(true);

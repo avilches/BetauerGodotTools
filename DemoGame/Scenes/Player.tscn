@@ -458,7 +458,6 @@ __meta__ = {
 [node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
 margin_top = -88.0
 margin_right = 236.0
-text = "asdasdasdaasd"
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -524,6 +523,8 @@ polygon = PoolVector2Array( 32.2994, -10.9505, 48.9701, -14.4312, 63.9738, -22.9
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/DamageArea"]
 position = Vector2( 0, -21 )
 shape = SubResource( 10 )
+
+[node name="Position2D" type="Position2D" parent="PlayerBody"]
 
 [connection signal="pressed" from="PlayerBody/VBoxContainer/StopIdle" to="PlayerBody" method="StopIdle"]
 [connection signal="pressed" from="PlayerBody/VBoxContainer/StartIdle" to="PlayerBody" method="StartIdle"]

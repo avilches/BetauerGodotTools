@@ -20,9 +20,6 @@ namespace Veronenger.Game.Managers {
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
-            stageDetector.CollisionLayer = 0;
-            stageDetector.CollisionMask = 0;
-            stageDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
             _enterStageTopic.OnEventFilter(stageDetector, OnEnterStage);
             _exitStageTopic.OnEventFilter(stageDetector, OnExitStage);
         }

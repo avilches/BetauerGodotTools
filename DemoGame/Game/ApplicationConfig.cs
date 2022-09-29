@@ -14,7 +14,7 @@ namespace Veronenger.Game {
             SceneTree.StretchAspect.Keep,
             Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9), 
             true,
-            2f);
+            1f);
     }
 
     [Configuration]

@@ -19,31 +19,23 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
     public sealed class PlayerController : KinematicBody2D {
-        private readonly string _name;
-        private readonly Logger _logger;
+        private readonly Logger _logger = LoggerFactory.GetLogger<PlayerController>();
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("RichTextLabel")] private RichTextLabel Label;
+        [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Camera2D")] private Camera2D _camera2D;
+        [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
 
-        private IFlipper _flippers;
-
-        [Inject] private PlatformManager _platformManager { get; set; }
-        [Inject] private CharacterManager _characterManager { get; set; }
-        [Inject] private SlopeStairsManager _slopeStairsManager { get; set; }
-        [Inject] private PlayerStateMachineNode StateMachineNode { get; set; }
-        [Inject] private PlayerConfig _playerConfig { get; set; }
-        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
+        [Inject] private PlatformManager PlatformManager { get; set; }
+        [Inject] private CharacterManager CharacterManager { get; set; }
+        [Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
+        [Inject] private PlayerStateMachineNode StateMachineNode { get; set; } // Transient!
         [Inject] private DebugOverlay DebugOverlay { get; set; }
-
-        public PlayerController() {
-            _name = "Player:" + GetHashCode().ToString("x8");
-            _logger = LoggerFactory.GetLogger(typeof(PlayerController));
-        }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationRun { get; private set; }
@@ -59,15 +51,15 @@ namespace Veronenger.Game.Controller.Character {
         /**
          * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
          */
-        public bool IsOnSlopeStairsUp() => _slopeStairsManager.UpOverlap(this);
-        public bool IsOnSlopeStairsDown() => _slopeStairsManager.DownOverlap(this);
+        public bool IsOnSlopeStairsUp() => SlopeStairsManager.UpOverlap(this);
+        public bool IsOnSlopeStairsDown() => SlopeStairsManager.DownOverlap(this);
         private DragCameraController _cameraController;
         private AnimationStack _animationStack;
         private AnimationStack _tweenStack;
         private Restorer _restorer;
 
         public override void _Ready() {
-            _animationStack = new AnimationStack(_name).SetAnimationPlayer(_animationPlayer);
+            _animationStack = new AnimationStack("Player.AnimationStack").SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
             AnimationJump = _animationStack.AddLoopAnimation("Jump");
@@ -78,7 +70,7 @@ namespace Veronenger.Game.Controller.Character {
             _cameraController = new DragCameraController(_camera2D, ButtonList.Middle, 1.8f, 100f);
             this.OnInput(_cameraController.DragCamera);
 
-            _tweenStack = new AnimationStack(_name);
+            _tweenStack = new AnimationStack("Player.AnimationStack");
             _restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)
                 .Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
                 
@@ -88,21 +80,19 @@ namespace Veronenger.Game.Controller.Character {
             DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorePlayer);
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
 
-            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            KinematicPlatformMotionBody.Configure(this, _flippers, _name, _playerConfig.MotionConfig);
+            var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+            StateMachineNode.Start("Player", this, flippers, _slopeDetector, _position2D);
 
-            StateMachineNode.Configure(this, _name);
-
-            _characterManager.RegisterPlayerController(this);
-            _characterManager.ConfigurePlayerCollisions(this);
-            _characterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
+            CharacterManager.RegisterPlayerController(this);
+            CharacterManager.ConfigurePlayerCollisions(this);
+            CharacterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
-            _slopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
-            _slopeStairsManager.SubscribeSlopeStairsDisabler(this, (area2D) => DisableSlopeStairs());
+            SlopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
+            SlopeStairsManager.SubscribeSlopeStairsDisabler(this, (area2D) => DisableSlopeStairs());
 
-            _platformManager.SubscribeFallingPlatformOut(this, (area2D) => {
-                _platformManager.BodyStopFallFromPlatform(this);
+            PlatformManager.SubscribeFallingPlatformOut(this, (area2D) => {
+                PlatformManager.BodyStopFallFromPlatform(this);
             });
 
             DebugOverlay.CreateMonitor().WithPrefix("Player")
@@ -205,13 +195,13 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public void EnableSlopeStairs() {
-            _slopeStairsManager.DisableSlopeStairsCoverForBody(this);
-            _slopeStairsManager.EnableSlopeStairsForBody(this);
+            SlopeStairsManager.DisableSlopeStairsCoverForBody(this);
+            SlopeStairsManager.EnableSlopeStairsForBody(this);
         }
 
         public void DisableSlopeStairs() {
-            _slopeStairsManager.EnableSlopeStairsCoverForBody(this);
-            _slopeStairsManager.DisableSlopeStairsForBody(this);
+            SlopeStairsManager.EnableSlopeStairsCoverForBody(this);
+            SlopeStairsManager.DisableSlopeStairsForBody(this);
         }
 
         public override void _Input(InputEvent e) {
@@ -224,6 +214,15 @@ namespace Veronenger.Game.Controller.Character {
                 }
             }
             if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
+                if (e.IsKeyPressed(KeyList.Q)) {
+                    _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
+                }
+                if (e.IsKeyPressed(KeyList.W)) {
+                    _camera2D.Zoom = new Vector2(1, 1);
+                }
+                if (e.IsKeyPressed(KeyList.E)) {
+                    _camera2D.Zoom += new Vector2(0.05f, 0.05f);
+                }
         }
 
         public override void _Draw() {

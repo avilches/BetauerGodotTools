@@ -11,47 +11,35 @@ using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
     public sealed class EnemyZombieController : KinematicBody2D {
-        private readonly string _name;
-        private readonly Logger _logger;
+        private readonly Logger _logger = LoggerFactory.GetLogger<EnemyZombieController>();
 
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("../Label")] private Label Label;
-        [OnReady("Position2D")] public Position2D _position2D;
+        [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+        [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
 
-        [Inject] private EnemyZombieStateMachineNode StateMachineNode { get; set; }
+        [Inject] private EnemyZombieStateMachineNode StateMachineNode { get; set; }  // Transient
         [Inject] private CharacterManager _characterManager { get; set; }
-        [Inject] public KinematicPlatformMotionBody KinematicPlatformMotionBody { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public IOnceStatus AnimationStep { get; private set; }
         public IOnceStatus AnimationDieRight { get; private set; }
         public IOnceStatus AnimationDieLeft { get; private set; }
 
-        public readonly EnemyConfig EnemyConfig = new();
-
-        public IFlipper _flippers;
-
-        public EnemyZombieController() {
-            _name = "Enemy.Zombie:" + GetHashCode().ToString("x8");
-            _logger = LoggerFactory.GetLogger(_name);
-        }
-
         private AnimationStack _animationStack;
 
         public override void _Ready() {
-            _animationStack = new AnimationStack(_name).SetAnimationPlayer(_animationPlayer);
+            _animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationStep = _animationStack.AddOnceAnimation("Step");
             AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
-            _flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            KinematicPlatformMotionBody.Configure(this, _flippers, _name, EnemyConfig.MotionConfig);
-
-            StateMachineNode.Configure(this, _name);
+            var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+            StateMachineNode.Start("Zombie", this, flippers, _slopeDetector, _position2D);
 
             _characterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
@@ -59,9 +47,9 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (_characterManager.PlayerController?.PlayerDetector?.Position != null) {
-                Label.Text = "" + DegreesTo(_characterManager.PlayerController.PlayerDetector);
-            }
+            // if (_characterManager.PlayerController?.PlayerDetector?.Position != null) {
+                // Label.Text = "" + DegreesTo(_characterManager.PlayerController.PlayerDetector);
+            // }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
                           "Slope: " + IsOnSlope() + "\n" +
@@ -78,36 +66,6 @@ namespace Veronenger.Game.Controller.Character {
             // _attackArea.CollisionLayer = 0;
             _damageArea.CollisionMask = 0;
             // _attackArea.CollisionMask = 0;
-        }
-
-
-        public bool IsFacingRight => _flippers.IsFacingRight;
-
-
-        /**
-         * node is | I'm facing  | flip?
-         * right   | right       | no
-         * right   | left        | yes
-         * left    | right       | yes
-         * left    | left        | no
-         *
-         */
-        public void FaceTo(Node2D node2D) {
-            if (IsToTheRightOf(node2D) != _flippers.IsFacingRight) {
-                _flippers.Flip();
-            }
-        }
-
-        public bool IsToTheLeftOf(Node2D node2D) {
-            return Math.Abs(DegreesTo(node2D) - 180f) < 0.1f;
-        }
-
-        public bool IsToTheRightOf(Node2D node2D) {
-            return DegreesTo(node2D) == 0f;
-        }
-
-        public float DegreesTo(Node2D node2D) {
-            return Mathf.Rad2Deg(ToLocal(node2D.GlobalPosition).AngleTo(_position2D.Position));
         }
 
         public override void _Draw() {
