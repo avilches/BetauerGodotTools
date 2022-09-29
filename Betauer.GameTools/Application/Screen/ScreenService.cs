@@ -20,9 +20,9 @@ namespace Betauer.Application.Screen {
 
         public ScreenService(SceneTree tree, ScreenConfiguration initialScreenConfiguration, ScreenStrategyKey? strategyKey = ScreenStrategyKey.ViewportSize) {
             _tree = tree;
-            _strategies[ScreenStrategyKey.WindowSize] = new WindowSizeResolutionStrategy(_tree);
-            _strategies[ScreenStrategyKey.ViewportSize] = new ViewportResolutionStrategy(_tree);
-            _strategies[ScreenStrategyKey.IntegerScale] = new IntegerScaledScreenResolutionStrategy(_tree);
+            _strategies[ScreenStrategyKey.WindowSize] = new FixedViewportStrategy(_tree);
+            _strategies[ScreenStrategyKey.ViewportSize] = new ResizeViewportStrategy(_tree);
+            _strategies[ScreenStrategyKey.IntegerScale] = new ResizeIntegerScaledStrategy(_tree);
             SetScreenConfiguration(initialScreenConfiguration, strategyKey);
             tree.OnScreenResized(OnScreenResized);
         }

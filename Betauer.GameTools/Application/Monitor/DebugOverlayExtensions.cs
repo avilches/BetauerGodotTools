@@ -1,4 +1,7 @@
+using System.Linq;
+using Betauer.Animation.Tween;
 using Betauer.Memory;
+using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Application.Monitor {
@@ -17,11 +20,19 @@ namespace Betauer.Application.Monitor {
                 .Show(() => node.GetIndexed(property).ToString());
         }
 
-        public static Monitor MonitorObjectRunnerSize(this DebugOverlay overlay) {
+        public static Monitor MonitorInternals(this DebugOverlay overlay) {
             return overlay.MonitorList
                 .Create<Monitor>()
-                .WithPrefix("ObjectWatcher")
-                .Show(() => $"{DefaultObjectWatcherTask.Instance.Size.ToString()}/{DefaultObjectWatcherTask.Instance.PeakSize.ToString()}");
+                .Show(() => {
+                    var watcherSize = DefaultObjectWatcherTask.Instance.Size.ToString();
+                    var watcherPeakSize = DefaultObjectWatcherTask.Instance.PeakSize.ToString();
+                    var tweenCallbacks = DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString();
+                    var objectsWithSignals = DefaultSignalManager.Instance.SignalsByObject.Count.ToString();
+                    var signals = DefaultSignalManager.Instance.SignalsByObject.Values.SelectMany(o => o.Signals)
+                        .Count().ToString();
+                    return $"Watching(peak): {watcherSize}({watcherPeakSize}) | Tweens: {tweenCallbacks} | Objects/Signals {objectsWithSignals}/{signals}";
+                });
+
         }
 
         public static Monitor MonitorFpsAndMemory(this DebugOverlay overlay) {

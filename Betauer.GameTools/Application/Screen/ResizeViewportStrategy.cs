@@ -9,8 +9,8 @@ namespace Betauer.Application.Screen {
     /// - StretchAspect.KeepHeight: the viewport grows/shrink keeping the aspect ratio of base. Expand width only. The more width, the smaller the controls. Changing height keep aspect ratio of controls.
     /// - StretchAspect.KeepWidth: the viewport grows/shrink, but keeping the width aspect ratio of base. Expand height only. The more height, the smaller the controls. Changing width keep aspect ratio of controls.
     /// </summary>
-    public class ViewportResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public ViewportResolutionStrategy(SceneTree tree) : base(tree) {
+    public class ResizeViewportStrategy : BaseScreenResolutionService, IScreenStrategy {
+        public ResizeViewportStrategy(SceneTree tree) : base(tree) {
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -27,7 +27,7 @@ namespace Betauer.Application.Screen {
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             var keepRatio = KeepRatio(new Resolution(windowSize));
             Tree.SetScreenStretch(StretchMode, StretchAspect, keepRatio.Size, Zoom);
-            _state = $"{nameof(ViewportResolutionStrategy)} {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {keepRatio.x}x{keepRatio.y}";
+            _state = $"ResizeViewport: {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {keepRatio.x}x{keepRatio.y}";
             Logger.Debug(_state);
         }
 

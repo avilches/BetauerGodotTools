@@ -9,8 +9,8 @@ namespace Betauer.Application.Screen {
     /// User interface container changes their size with the viewport (following StretchAspect) and
     /// controls (and fonts!) doesn't keep the aspect ratio (they shrink or expand)
     /// </summary>
-    public class WindowSizeResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public WindowSizeResolutionStrategy(SceneTree tree) : base(tree) {
+    public class FixedViewportStrategy : BaseScreenResolutionService, IScreenStrategy {
+        public FixedViewportStrategy(SceneTree tree) : base(tree) {
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -26,7 +26,7 @@ namespace Betauer.Application.Screen {
             OS.WindowResizable = ScreenConfiguration.IsResizeable;
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
-            _state = $"{nameof(WindowSizeResolutionStrategy)} {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}";
+            _state = $"FixedViewport: {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}";
             Logger.Debug(_state);
         }
         

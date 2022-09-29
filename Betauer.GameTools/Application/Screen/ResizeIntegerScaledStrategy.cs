@@ -9,8 +9,8 @@ namespace Betauer.Application.Screen {
      * 
      * 
      */
-    public class IntegerScaledScreenResolutionStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public IntegerScaledScreenResolutionStrategy(SceneTree tree) : base(tree) {
+    public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenStrategy {
+        public ResizeIntegerScaledStrategy(SceneTree tree) : base(tree) {
         }
 
         public List<ScaledResolution> GetResolutions() {
@@ -80,7 +80,7 @@ namespace Betauer.Application.Screen {
                 Mathf.Max(0, (int)margin2.x),
                 Mathf.Max(0, (int)margin2.y));
 
-            _state = $"{nameof(IntegerScaledScreenResolutionStrategy)} {StretchMode}/{StretchAspect} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y} | AttachToScreenRect pos:{attachToScreenRect.Position.x}x{attachToScreenRect.Position.y} size:{attachToScreenRect.Size.x}x{attachToScreenRect.Size.y}";
+            _state = $"ResizeIntegerScaled {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}";
             Logger.Debug(_state);
         }
         

@@ -100,12 +100,10 @@ namespace Veronenger.Game.Managers {
         private void ConfigureDebugOverlays() {
             DefaultDebugOverlay.Theme = MyTheme;
             DefaultDebugOverlay.MonitorFpsAndMemory();
-            DefaultDebugOverlay.MonitorObjectRunnerSize();
-            DefaultDebugOverlay.CreateMonitor().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
-            DefaultDebugOverlay.CreateMonitor().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
-            DefaultDebugOverlay.CreateMonitor().Show(() => ScreenSettingsManager.GetStateAsString()); 
-            // CreateNodeHandlerManagerDebugOverlay();
-            // CreateSignalManagerDebugOverlay();
+            DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
+            DefaultDebugOverlay.MonitorInternals();
+            CreateNodeHandlerManagerDebugOverlay();
+            CreateSignalManagerDebugOverlay();
         }
 
         private DebugOverlay CreateSignalManagerDebugOverlay() {

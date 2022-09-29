@@ -1,3 +1,4 @@
+using System;
 using Betauer.Input;
 using Betauer.Signal;
 using Godot;
@@ -50,9 +51,10 @@ namespace Betauer.Application.Monitor {
                 
             } else if (_mouseInsidePanel.Inside && _startDragPosition != null && @event.IsMouseMotion()) {
                 var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
+                // TODO: this doesn't work well with scaled viewport
                 newPosition = new Vector2(
-                    Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - 100),
-                    Mathf.Clamp(newPosition.y, 0, GetTree().Root.Size.y - 100));
+                    Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - RectSize.x),
+                    Mathf.Clamp(newPosition.y, 0, GetTree().Root.Size.y - RectSize.y));
                 SetPosition(newPosition);
             }
         }

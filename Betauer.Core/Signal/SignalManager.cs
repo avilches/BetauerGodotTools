@@ -15,7 +15,7 @@ namespace Betauer.Signal {
         
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SignalManager));
 
-        public readonly Dictionary<int, ObjectSignals> SignalsByObject = new Dictionary<int, ObjectSignals>();
+        public readonly Dictionary<int, ObjectSignals> SignalsByObject = new();
 
         public class ObjectSignals {
             public readonly Object Emitter;
