@@ -67,11 +67,14 @@ namespace Betauer.Application {
 
         private void StartContainer() {
             if (_addSingletonNodesToTree) {
-                Container.OnCreate += (lifetime, o) => {
-                    if (lifetime == Lifetime.Singleton && o is Node node && node.GetParent() == null) {
-                        if (string.IsNullOrEmpty(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
-                        if (_isReady) GetTree().Root.AddChild(node);
-                        else GetTree().Root.AddChildDeferred(node);
+                Container.OnCreated += (lifetime, o) => {
+                    if (o is Node node) {
+                        MarkNodeAsAlreadyInjected(node);
+                        if (lifetime == Lifetime.Singleton && node.GetParent() == null) {
+                            if (string.IsNullOrEmpty(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
+                            if (_isReady) GetTree().Root.AddChild(node);
+                            else GetTree().Root.AddChildDeferred(node);
+                        }
                     }
                 };
             }
@@ -82,19 +85,20 @@ namespace Betauer.Application {
                 .InjectServices(this);
             GetTree().OnNodeAdded(_GodotSignalNodeAdded);
         }
-
-        private const string MetaInjected = "__injected";
-
+        
         // Method called by Godot
         private void _GodotSignalNodeAdded(Node node) {
             if (node.GetScript() is CSharpScript) {
                 OnReadyScanner.ScanAndInject(node);
-                if (!node.HasMeta(MetaInjected)) {
+                if (IsNodeInjected(node)) {
                     Container.InjectServices(node);
-                    node.SetMeta(MetaInjected, true);
                 }
             }
         }
+
+        private const string MetaInjected = "__injected";
+        private static void MarkNodeAsAlreadyInjected(Node node) => node.SetMeta(MetaInjected, true);
+        private static bool IsNodeInjected(Node node) => !node.HasMeta(MetaInjected);
 
         public override void _Notification(int what) {
             MainLoopNotificationsHandler.Execute(what);

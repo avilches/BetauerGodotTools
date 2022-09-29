@@ -14,7 +14,7 @@ namespace Betauer.DI {
         private readonly Dictionary<string, IProvider> _registry = new();
         public readonly Injector Injector;
         public bool CreateIfNotFound { get; set; }
-        public event Action<Lifetime, object> OnCreate;
+        public event Action<Lifetime, object> OnCreated;
 
         public Container() {
             Injector = new Injector(this);
@@ -158,8 +158,8 @@ namespace Betauer.DI {
             return instances;
         }
 
-        internal void ExecuteOnCreate(Lifetime lifetime, object instance) {
-            OnCreate?.Invoke(lifetime, instance);
+        internal void ExecuteOnCreated(Lifetime lifetime, object instance) {
+            OnCreated?.Invoke(lifetime, instance);
         }
 
         internal static void ExecutePostCreateMethods<T>(T instance) {

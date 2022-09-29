@@ -1030,7 +1030,7 @@ namespace Betauer.DI.Tests {
             var singletons = new List<object>();
             var transients = new List<object>();
             var c = new Container();
-            c.OnCreate += (lifetime, instance) => {
+            c.OnCreated += (lifetime, instance) => {
                 if (lifetime == Lifetime.Singleton) {
                     singletons.Add(instance);
                 } else {
@@ -1066,7 +1066,7 @@ namespace Betauer.DI.Tests {
             var singletons = new List<object>();
             var transients = new List<object>();
             var c = new Container();
-            c.OnCreate += (lifetime, instance) => {
+            c.OnCreated += (lifetime, instance) => {
                 if (lifetime == Lifetime.Singleton) {
                     singletons.Add(instance);
                 } else {

@@ -80,7 +80,7 @@ namespace Betauer.Loader {
             // Get all unique resource paths combined from all sources
             var resourcesPaths = _sources
                 .SelectMany(source => source.GetType().GetSettersCached<LoadAttribute>(MemberFlags, Flags))
-                .Select(setter => setter.Attribute.Path)
+                .Select(setter => setter.SetterAttribute.Path)
                 .ToHashSet();
             
             // Load resources
@@ -99,10 +99,10 @@ namespace Betauer.Loader {
             foreach (var source in _sources) {
                 var loadSetters = source.GetType().GetSettersCached<LoadAttribute>(MemberFlags, Flags);
                 foreach (var setter in loadSetters) {
-                    var resourceMetadata = Registry[setter.Attribute.Path];
+                    var resourceMetadata = Registry[setter.SetterAttribute.Path];
                     var o = Convert(resourceMetadata, setter.Type);
                     setter.SetValue(source, o);
-                    var resourceName = setter.Attribute.ResourceName;
+                    var resourceName = setter.SetterAttribute.ResourceName;
                     if (resourceName != null) {
                         if (Registry.ContainsKey(resourceName))
                             throw new ResourceLoaderException($"Duplicated resource name: {resourceName}");
@@ -130,7 +130,7 @@ namespace Betauer.Loader {
             object target) {
             var resourceSetters = target.GetType().GetSettersCached<ResourceAttribute>(MemberFlags, Flags);
             foreach (var setter in resourceSetters) {
-                var resourceName = setter.Attribute.ResourceName;
+                var resourceName = setter.SetterAttribute.ResourceName;
                 if (resourcesByName != null && resourcesByName.TryGetValue(resourceName, out var resourceMetadata)) {
                     var o = Convert(resourceMetadata, setter.Type);
                     setter.SetValue(target, o);

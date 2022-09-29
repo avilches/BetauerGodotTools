@@ -18,7 +18,7 @@ namespace Betauer.Reflection {
             Name = fieldInfo.Name;
             _getValue = CreateLambdaGetter(fieldInfo);
             #if DEBUG
-            _toString = $"Field {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.Name} {Name}";
+                _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.Name} {Name};";
             #endif                
         }
 

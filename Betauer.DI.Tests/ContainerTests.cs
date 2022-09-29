@@ -523,14 +523,14 @@ namespace Betauer.DI.Tests {
             var transients = new List<object>();
             var calls = 0;
             var c = new Container();
-            c.OnCreate += (lifetime, instance) => {
+            c.OnCreated += (lifetime, instance) => {
                 if (lifetime == Lifetime.Singleton) {
                     singletons.Add(instance);
                 } else {
                     transients.Add(instance);
                 }
             };
-            c.OnCreate += (lifetime, instance) => {
+            c.OnCreated += (lifetime, instance) => {
                 calls++;
             };
             var b = new ContainerBuilder(c);

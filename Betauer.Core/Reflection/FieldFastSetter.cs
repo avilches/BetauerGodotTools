@@ -20,7 +20,7 @@ namespace Betauer.Reflection {
             Name = fieldInfo.Name;
             _setValue = CreateLambdaSetter(fieldInfo);
             #if DEBUG
-                _toString = $"Field {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.Name} {Name}";
+                _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.Name} {Name};";
             #endif                
         }
 

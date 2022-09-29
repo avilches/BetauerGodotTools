@@ -30,6 +30,8 @@ namespace Betauer.Reflection {
             }
         }
 
+        public override string ToString() => _iGetter.ToString();
+
         public static bool IsValid(MemberInfo memberInfo) =>
             PropertyFastGetter.IsValid(memberInfo) ||
             FieldFastGetter.IsValid(memberInfo);

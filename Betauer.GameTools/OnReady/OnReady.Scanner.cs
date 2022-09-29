@@ -14,8 +14,8 @@ namespace Betauer.OnReady {
         }
 
         private static void LoadOnReadyField(Node target, ISetter<OnReadyAttribute> getterSetter) {
-            var nullable = getterSetter.Attribute.Nullable; 
-            var path = getterSetter.Attribute.Path?.Trim(); 
+            var nullable = getterSetter.SetterAttribute.Nullable; 
+            var path = getterSetter.SetterAttribute.Path?.Trim(); 
             if (path == null) return;
             // [OnReady("path/to/node")
             // private Sprite sprite = this.GetNode<Sprite>("path/to/node");
