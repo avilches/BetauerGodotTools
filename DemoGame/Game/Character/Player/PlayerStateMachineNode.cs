@@ -72,12 +72,10 @@ namespace Veronenger.Game.Character.Player {
             PlatformBody.Configure(name, playerController, flippers, slopeDetector, position2D, MotionConfig.Configure);
             TopDownBody.Configure(name, playerController, position2D, MotionConfig.Configure);
 
-            var events = new StateMachineEvents<State>();
-            events.ExecuteStart += (delta, _) => PlatformBody.StartFrame(delta);
-            events.ExecuteStart += (delta, _) => TopDownBody.StartFrame(delta);
-            events.ExecuteEnd += (_) => PlatformBody.EndFrame();
-            events.ExecuteEnd += (_) => TopDownBody.EndFrame();
-            AddListener(events);
+            AddOnExecuteStart((delta, _) => PlatformBody.StartFrame(delta));
+            AddOnExecuteStart((delta, _) => TopDownBody.StartFrame(delta));
+            AddOnExecuteEnd((_) => PlatformBody.EndFrame());
+            AddOnExecuteEnd((_) => TopDownBody.EndFrame());
             GroundStates();
             AirStates();
 

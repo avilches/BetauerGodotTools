@@ -1,6 +1,5 @@
 using System;
 using Betauer;
-using Betauer.StateMachine;
 using Godot;
 
 namespace Veronenger.Game.Character {
@@ -28,15 +27,12 @@ namespace Veronenger.Game.Character {
             LoggerMotion = LoggerFactory.GetLogger($"{name}.Motion");
         }
 
-        public void Use(StateMachine stateMachine) {
-            
-        }
-        public virtual void StartFrame(float delta) {
+        public void StartFrame(float delta) {
             Delta = delta;
             PreviousSpeed = Speed;
         }
 
-        public virtual void EndFrame() {
+        public void EndFrame() {
             #if DEBUG
             if (Speed != PreviousSpeed) {
                 LoggerMotion.Debug($"Motion:{Speed.ToString()} (diff {(PreviousSpeed - Speed).ToString()})");

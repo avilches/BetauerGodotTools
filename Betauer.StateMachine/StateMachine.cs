@@ -18,6 +18,20 @@ namespace Betauer.StateMachine {
         public Task Execute(float delta);
         public bool Available { get; }
         public string? Name { get; }
+        public void AddOnEnter(Action<TStateKey, TStateKey> e);
+        public void AddOnAwake(Action<TStateKey, TStateKey> e);
+        public void AddOnSuspend(Action<TStateKey, TStateKey> e);
+        public void AddOnExit(Action<TStateKey, TStateKey> e);
+        public void AddOnTransition(Action<TStateKey, TStateKey> e);
+        public void AddOnExecuteStart(Action<float, TStateKey> e);
+        public void AddOnExecuteEnd(Action<TStateKey> e);
+        public void RemoveOnEnter(Action<TStateKey, TStateKey> e);
+        public void RemoveOnAwake(Action<TStateKey, TStateKey> e);
+        public void RemoveOnSuspend(Action<TStateKey, TStateKey> e);
+        public void RemoveOnExit(Action<TStateKey, TStateKey> e);
+        public void RemoveOnTransition(Action<TStateKey, TStateKey> e);
+        public void RemoveOnExecuteStart(Action<float, TStateKey> e);
+        public void RemoveOnExecuteEnd(Action<TStateKey> e);
     }
 
     public abstract class StateMachine {
@@ -42,7 +56,6 @@ namespace Betauer.StateMachine {
         private readonly TriggerContext<TStateKey> _triggerContext = new();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
-        private List<IStateMachineListener<TStateKey>>? _listeners;
         private Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> _onError; 
         private Change _nextChange;
         private readonly TStateKey _initialState;
@@ -59,6 +72,14 @@ namespace Betauer.StateMachine {
         public bool IsState(TStateKey state) => state.Equals(CurrentState.Key);
         public bool Available { get; private set; } = true;
         public string? Name { get; }
+
+        public event Action<TStateKey, TStateKey>? OnEnter;
+        public event Action<TStateKey, TStateKey>? OnAwake;
+        public event Action<TStateKey, TStateKey>? OnSuspend;
+        public event Action<TStateKey, TStateKey>? OnExit;
+        public event Action<TStateKey, TStateKey>? OnTransition;
+        public event Action<float, TStateKey>? OnExecuteStart;
+        public event Action<TStateKey>? OnExecuteEnd;
 
         public StateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
@@ -78,9 +99,30 @@ namespace Betauer.StateMachine {
             _stateEvents[new Tuple<TStateKey, TTransitionKey>(stateKey, transitionKey)] = transition;
         }
 
+        public void AddOnEnter(Action<TStateKey, TStateKey> e) => OnEnter += e;
+        public void AddOnAwake(Action<TStateKey, TStateKey> e) => OnAwake += e;
+        public void AddOnSuspend(Action<TStateKey, TStateKey> e) => OnSuspend += e;
+        public void AddOnExit(Action<TStateKey, TStateKey> e) => OnExit += e;
+        public void AddOnTransition(Action<TStateKey, TStateKey> e) => OnTransition += e;
+        public void AddOnExecuteStart(Action<float, TStateKey> e) => OnExecuteStart += e;
+        public void AddOnExecuteEnd(Action<TStateKey> e) => OnExecuteEnd += e;
+
+        public void RemoveOnEnter(Action<TStateKey, TStateKey> e) => OnEnter -= e;
+        public void RemoveOnAwake(Action<TStateKey, TStateKey> e) => OnAwake -= e;
+        public void RemoveOnSuspend(Action<TStateKey, TStateKey> e) => OnSuspend -= e;
+        public void RemoveOnExit(Action<TStateKey, TStateKey> e) => OnExit -= e;
+        public void RemoveOnTransition(Action<TStateKey, TStateKey> e) => OnTransition -= e;
+        public void RemoveOnExecuteStart(Action<float, TStateKey> e) => OnExecuteStart -= e;
+        public void RemoveOnExecuteEnd(Action<TStateKey> e) => OnExecuteEnd -= e;
+
         public void AddListener(IStateMachineListener<TStateKey> machineListener) {
-            _listeners ??= new List<IStateMachineListener<TStateKey>>();
-            _listeners.Add(machineListener);
+            OnEnter += machineListener.OnEnter;
+            OnAwake += machineListener.OnAwake;
+            OnSuspend += machineListener.OnSuspend;
+            OnExit += machineListener.OnExit;
+            OnTransition += machineListener.OnTransition;
+            OnExecuteStart += machineListener.OnExecuteStart;
+            OnExecuteEnd += machineListener.OnExecuteEnd;
         }
 
         public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(
@@ -151,10 +193,10 @@ namespace Betauer.StateMachine {
                     _stack.Push(CurrentState);
                     await Enter(CurrentState, oldState.Key);
                 }
-                _listeners?.ForEach(listener => listener.OnExecuteStart(delta, CurrentState.Key));
+                OnExecuteStart?.Invoke(delta, CurrentState.Key);
                 _executeContext.Delta = delta;
                 var transition = await CurrentState.Execute(_executeContext);
-                _listeners?.ForEach(listener => listener.OnExecuteEnd(CurrentState.Key));
+                OnExecuteEnd?.Invoke(CurrentState.Key);
                 _nextChange = CreateChange(transition);
                 _initialized = true;
             } catch (Exception e) {
@@ -226,14 +268,14 @@ namespace Betauer.StateMachine {
         }
 
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {
-            _listeners?.ForEach(listener => listener.OnTransition(from.Key, to.Key));
+            OnTransition?.Invoke(from.Key, to.Key);
             #if DEBUG
                 Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key}");
             #endif
         }
 
         private Task Exit(IState<TStateKey, TTransitionKey> state, TStateKey to) {
-            _listeners?.ForEach(listener => listener.OnExit(state.Key, to));
+            OnExit?.Invoke(state.Key, to);
             #if DEBUG
                 Logger.Debug($"Exit: \"{state.Key}\"(to:{to})\"");
             #endif
@@ -241,7 +283,7 @@ namespace Betauer.StateMachine {
         }
 
         private Task Suspend(IState<TStateKey, TTransitionKey> state, TStateKey to) {
-            _listeners?.ForEach(listener => listener.OnSuspend(state.Key, to));
+            OnSuspend?.Invoke(state.Key, to);
             #if DEBUG
                 Logger.Debug($"Suspend: \"{state.Key}\"(to:{to})");
             #endif
@@ -249,7 +291,7 @@ namespace Betauer.StateMachine {
         }
 
         private Task Awake(IState<TStateKey, TTransitionKey> state, TStateKey from) {
-            _listeners?.ForEach(listener => listener.OnAwake(state.Key, from));
+            OnAwake?.Invoke(state.Key, from);
             #if DEBUG
                 Logger.Debug($"Awake: \"{state.Key}\"(from:{from})");
             #endif
@@ -257,7 +299,7 @@ namespace Betauer.StateMachine {
         }
 
         private Task Enter(IState<TStateKey, TTransitionKey> state, TStateKey from) {
-            _listeners?.ForEach(listener => listener.OnEnter(state.Key, from));
+            OnEnter?.Invoke(state.Key, from);
             #if DEBUG
                 Logger.Debug($"Enter: \"{state.Key}\"(from:{from})");
             #endif

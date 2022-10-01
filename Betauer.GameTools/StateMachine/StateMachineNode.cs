@@ -42,34 +42,31 @@ namespace Betauer.StateMachine {
             Mode = mode;
         }
         
-        public void AddListener(IStateMachineListener<TStateKey> machineListener) {
-            StateMachine.AddListener(machineListener);
-        }
+        public void AddOnEnter(Action<TStateKey, TStateKey> e) => StateMachine.AddOnEnter(e);
+        public void AddOnAwake(Action<TStateKey, TStateKey> e) => StateMachine.AddOnAwake(e);
+        public void AddOnSuspend(Action<TStateKey, TStateKey> e) => StateMachine.AddOnSuspend(e);
+        public void AddOnExit(Action<TStateKey, TStateKey> e) => StateMachine.AddOnExit(e);
+        public void AddOnTransition(Action<TStateKey, TStateKey> e) => StateMachine.AddOnTransition(e);
+        public void AddOnExecuteStart(Action<float, TStateKey> e) => StateMachine.AddOnExecuteStart(e);
+        public void AddOnExecuteEnd(Action<TStateKey> e) => StateMachine.AddOnExecuteEnd(e);
 
-        public void AddState(IState<TStateKey, TTransitionKey> state) {
-            StateMachine.AddState(state);
-        }
+        public void RemoveOnEnter(Action<TStateKey, TStateKey> e) => StateMachine.RemoveOnEnter(e);
+        public void RemoveOnAwake(Action<TStateKey, TStateKey> e) => StateMachine.RemoveOnAwake(e);
+        public void RemoveOnSuspend(Action<TStateKey, TStateKey> e) => StateMachine.RemoveOnSuspend(e);
+        public void RemoveOnExit(Action<TStateKey, TStateKey> e) => StateMachine.RemoveOnExit(e);
+        public void RemoveOnTransition(Action<TStateKey, TStateKey> e) => StateMachine.RemoveOnTransition(e);
+        public void RemoveOnExecuteStart(Action<float, TStateKey> e) => StateMachine.RemoveOnExecuteStart(e);
+        public void RemoveOnExecuteEnd(Action<TStateKey> e) => StateMachine.RemoveOnExecuteEnd(e);
 
-        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey) {
-            return StateMachine.CreateState(stateKey);
-        }
-
-        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            StateMachine.On(transitionKey, transition);
-        }
-
-        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            StateMachine.On(stateKey, transitionKey, transition);
-        }
-
-        public void Enqueue(TTransitionKey name) {
-            StateMachine.Enqueue(name);
-        }
-
-        public Task Execute(float delta) {
-            return StateMachine.Execute(delta);
-        }
-
+        public void AddListener(IStateMachineListener<TStateKey> machineListener) => StateMachine.AddListener(machineListener);
+        
+        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey) => StateMachine.CreateState(stateKey);
+        
+        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) => StateMachine.On(transitionKey, transition);
+        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) => StateMachine.On(stateKey, transitionKey, transition);
+        public void AddState(IState<TStateKey, TTransitionKey> state) => StateMachine.AddState(state);
+        public void Enqueue(TTransitionKey name) => StateMachine.Enqueue(name);
+        public Task Execute(float delta) => StateMachine.Execute(delta);
 
         public void OnInput(TStateKey stateKey, Action<InputEvent> input) {
             _input ??= new Dictionary<TStateKey, Action<InputEvent>>();
