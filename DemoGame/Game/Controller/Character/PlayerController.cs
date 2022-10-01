@@ -82,6 +82,7 @@ namespace Veronenger.Game.Controller.Character {
 
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             StateMachineNode.Start("Player", this, flippers, _slopeDetector, _position2D);
+            AddChild(StateMachineNode);
 
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);

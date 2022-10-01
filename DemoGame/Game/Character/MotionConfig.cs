@@ -40,20 +40,24 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public static JumpConfig ConfigureJump(float jumpHeight, float maxJumpTime) {
-            float gravity = (2 * jumpHeight) / Mathf.Pow(maxJumpTime, 2);
-            float jumpForce = gravity * maxJumpTime;
-            return new JumpConfig(gravity, jumpForce);
+        public static (float gravity, float jumpForce) ConfigureJump(float jumpHeight, float maxJumpTime) {
+            var gravity = (2 * jumpHeight) / Mathf.Pow(maxJumpTime, 2);
+            var jumpForce = gravity * maxJumpTime;
+            return (gravity, jumpForce);
         }
 
-        public struct JumpConfig {
-            public readonly float Gravity;
-            public readonly float JumpForce;
+        public void Configure(IKinematicPlatformMotionBodyConfig kinematicPlatformMotionBody) {
+            kinematicPlatformMotionBody.DefaultGravity = Gravity;
+            kinematicPlatformMotionBody.DefaultMaxSpeed = MaxSpeed;
+            kinematicPlatformMotionBody.DefaultMaxFallingSpeed = MaxFallingSpeed;
+            kinematicPlatformMotionBody.SlopeRayCastVector = SlopeRayCastVector;
+            kinematicPlatformMotionBody.FloorVector = FloorVector;
+        }
 
-            public JumpConfig(float gravity, float jumpForce) {
-                Gravity = gravity;
-                JumpForce = jumpForce;
-            }
+        public void Configure(IKinematicTopDownMotionBodyConfig kinematicPlatformMotionBody) {
+            kinematicPlatformMotionBody.DefaultMaxSpeed = new Vector2(MaxSpeed, MaxSpeed);
+            kinematicPlatformMotionBody.DefaultSlideOnSlopes = true;
+
         }
     }
 }

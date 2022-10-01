@@ -25,9 +25,11 @@ namespace Veronenger.Game.Character.Player {
             FallShort,
             FallLong,
             Jump,
+            
+            Float,
         }
         
-        public PlayerStateMachineNode() : base(State.Idle, "Player.StateMachine", ProcessMode.Physics) {
+        public PlayerStateMachineNode() : base(State.Idle, "Player.StateMachine") {
         }
 
         [Inject] private PlatformManager PlatformManager { get; set;}
@@ -36,7 +38,9 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private InputAction Up { get; set;}
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
-        [Inject] private KinematicPlatformMotionBody Body { get; set; }
+        [Inject] private InputAction Float { get; set;}
+        [Inject] private KinematicPlatformMotionBody PlatformBody { get; set; }
+        [Inject] private KinematicTopDownMotionBody TopDownBody { get; set; }
 
         private PlayerController _player;
 
@@ -49,7 +53,8 @@ namespace Veronenger.Game.Character.Player {
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
         private bool IsDown => YInput > 0;
-        private Vector2 Motion => Body.Motion;
+        private float SpeedX => PlatformBody.SpeedX;
+        private float SpeedY => PlatformBody.SpeedY;
         private MotionConfig MotionConfig => PlayerConfig.MotionConfig;
 
         // State sharad between states
@@ -64,13 +69,14 @@ namespace Veronenger.Game.Character.Player {
         public void Start(string name, PlayerController playerController, IFlipper flippers, RayCast2D slopeDetector, Position2D position2D) {
             _player = playerController;
 
-            Body.Configure(name, playerController, flippers, PlayerConfig.MotionConfig, slopeDetector, position2D);
-
-            playerController.AddChild(this);
+            PlatformBody.Configure(name, playerController, flippers, slopeDetector, position2D, MotionConfig.Configure);
+            TopDownBody.Configure(name, playerController, position2D, MotionConfig.Configure);
 
             var events = new StateMachineEvents<State>();
-            events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
-            events.ExecuteEnd += (state) => Body.EndFrame();
+            events.ExecuteStart += (delta, _) => PlatformBody.StartFrame(delta);
+            events.ExecuteStart += (delta, _) => TopDownBody.StartFrame(delta);
+            events.ExecuteEnd += (_) => PlatformBody.EndFrame();
+            events.ExecuteEnd += (_) => TopDownBody.EndFrame();
             AddListener(events);
             GroundStates();
             AirStates();
@@ -121,7 +127,7 @@ namespace Veronenger.Game.Character.Player {
                     }
 
                     if (Jump.IsJustPressed()) {
-                        if (IsDown && Body.IsOnFallingPlatform()) {
+                        if (IsDown && PlatformBody.IsOnFallingPlatform()) {
                             PlatformManager.BodyFallFromPlatform(_player);
                         } else {
                             return context.Set(State.Jump);
@@ -130,12 +136,12 @@ namespace Veronenger.Game.Character.Player {
 
                     // Suelo + no salto + sin movimiento
 
-                    if (!Body.IsOnMovingPlatform()) {
+                    if (!PlatformBody.IsOnMovingPlatform()) {
                         // No gravity in moving platforms
                         // Gravity in slopes to avoid go down slowly
-                        Body.ApplyGravity();
+                        PlatformBody.ApplyDefaultGravity();
                     }
-                    Body.MoveSnapping();
+                    PlatformBody.MoveSnapping();
 
                     return context.None();
                 })
@@ -148,16 +154,16 @@ namespace Veronenger.Game.Character.Player {
 
                     if (!_player.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
-                        Body.SetMotionY(0f);
+                        PlatformBody.SpeedY = 0f;
                         return context.Set(State.FallShort);
                     }
 
-                    if (XInput == 0 && Motion.x == 0) {
+                    if (XInput == 0 && SpeedX == 0) {
                         return context.Set(State.Idle);
                     }
 
                     if (Jump.IsJustPressed()) {
-                        if (IsDown && Body.IsOnFallingPlatform()) {
+                        if (IsDown && PlatformBody.IsOnFallingPlatform()) {
                             PlatformManager.BodyFallFromPlatform(_player);
                         } else {
                             return context.Set(State.Jump);
@@ -168,16 +174,16 @@ namespace Veronenger.Game.Character.Player {
                     EnableSlopeStairs();
 
                     if (_player.IsAttacking) {
-                        Body.StopLateralMotionWithFriction(MotionConfig.Friction,
+                        PlatformBody.StopLateralSpeedWithFriction(MotionConfig.Friction,
                             MotionConfig.StopIfSpeedIsLessThan);
                     } else {
-                        Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.Friction,
+                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.Friction,
                             MotionConfig.StopIfSpeedIsLessThan, 0);
-                        Body.LimitMotion();
-                        Body.Flip(XInput);
+                        PlatformBody.LimitDefaultSpeed();
+                        PlatformBody.Flip(XInput);
                     }
 
-                    Body.MoveSnapping();
+                    PlatformBody.MoveSnapping();
 
                     return context.None();
                 })
@@ -202,9 +208,9 @@ namespace Veronenger.Game.Character.Player {
 
             // Debug("Just grounded!");
             if (XInput == 0) {
-                if (Body.IsOnSlope()) {
+                if (PlatformBody.IsOnSlope()) {
                     // Evita resbalarse hacia abajo al caer sobre un slope
-                    Body.SetMotionX(0);
+                    PlatformBody.SpeedX = 0;
                 }
                 return context.Set(State.Idle);
             }
@@ -236,25 +242,28 @@ namespace Veronenger.Game.Character.Player {
 
             CreateState(State.Jump)
                 .Enter(() => {
-                    Body.SetMotionY(-MotionConfig.JumpForce);
+                    PlatformBody.SpeedY = -MotionConfig.JumpForce;
                     DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
                     _player.AnimationJump.PlayLoop();
                 })
                 .Execute(context => {
+                    if (Float.IsPressed()) {
+                        return context.Set(State.Float);
+                    }
                     CheckAirAttack();
 
-                    if (Jump.IsReleased() && Motion.y < -MotionConfig.JumpForceMin) {
-                        DebugJump("Short jump: decelerating from " + Motion.y + " to " +
+                    if (Jump.IsReleased() && SpeedY < -MotionConfig.JumpForceMin) {
+                        DebugJump("Short jump: decelerating from " + SpeedY + " to " +
                                   -MotionConfig.JumpForceMin);
-                        Body.SetMotionY(-MotionConfig.JumpForceMin);
+                        PlatformBody.SpeedY = -MotionConfig.JumpForceMin;
                     }
 
-                    Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
                         MotionConfig.StopIfSpeedIsLessThan, 0);
-                    Body.Flip(XInput);
-                    Body.Fall();
+                    PlatformBody.Flip(XInput);
+                    PlatformBody.Fall();
 
-                    if (Motion.y >= 0) {
+                    if (SpeedY >= 0) {
                         return context.Set(State.FallShort);
                     }
 
@@ -269,6 +278,9 @@ namespace Veronenger.Game.Character.Player {
                 })
                 .Execute(context => {
                     CheckAirAttack();
+                    if (Float.IsPressed()) {
+                        return context.Set(State.Float);
+                    }
 
                     // The flag _coyoteJumpEnabled is only enabled from Running -> fallShort
                     // Other cases (from idle or jump), the coyote is not enabled 
@@ -276,15 +288,15 @@ namespace Veronenger.Game.Character.Player {
                         _coyoteJumpEnabled = false;
                         return context.Set(State.Jump);
                     }
-                    if (Motion.y > MotionConfig.StartFallingSpeed) {
+                    if (SpeedY > MotionConfig.StartFallingSpeed) {
                         return context.Set(State.FallLong);
                     }
 
-                    Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
                         MotionConfig.StopIfSpeedIsLessThan, 0);
-                    Body.Flip(XInput);
+                    PlatformBody.Flip(XInput);
 
-                    Body.Fall();
+                    PlatformBody.Fall();
 
                     return CheckLanding(context);
                 })
@@ -301,22 +313,40 @@ namespace Veronenger.Game.Character.Player {
                 })
                 .Execute(context => {
                         CheckAirAttack();
+                        if (Float.IsPressed()) {
+                            return context.Set(State.Float);
+                        }
 
                         if (CheckCoyoteJump()) {
                             return context.Set(State.Jump);
                         }
 
-                        Body.AddLateralMotion(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
                             MotionConfig.StopIfSpeedIsLessThan, 0);
-                        Body.Flip(XInput);
+                        PlatformBody.Flip(XInput);
 
-                        Body.Fall();
+                        PlatformBody.Fall();
 
                         return CheckLanding(context);
                     }
                 )
                 .Build();
-                
+
+            CreateState(State.Float)
+                .Enter(() => {
+                    TopDownBody.Speed = PlatformBody.Speed;
+                })
+                .Execute(context => {
+                    if (Float.IsReleased()) {
+                        PlatformBody.Speed = TopDownBody.Speed;
+                        return context.Set(State.FallShort);
+                    }
+                    TopDownBody.AddSpeed(new Vector2(XInput, YInput), MotionConfig.Acceleration, MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan, 0);
+                    TopDownBody.LimitDefaultSpeed();
+                    TopDownBody.Slide();
+                    return context.None();
+                }).Build();
+
         }
     }
 }

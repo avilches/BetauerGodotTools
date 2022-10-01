@@ -4,66 +4,113 @@ using Godot;
 using Betauer;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
+using Betauer.StateMachine;
 using Veronenger.Game.Managers;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace Veronenger.Game.Character {
+    public interface IKinematicPlatformMotionBodyConfig {
+        public float DefaultGravity { set; }
+        public float DefaultMaxFallingSpeed { set; }
+        public float DefaultMaxSpeed { set; }
+        public Vector2 SlopeRayCastVector { set; }
+        public Vector2 FloorVector { set; }
+    }
+    
     [Service(Lifetime.Transient)]
-    public class KinematicPlatformMotionBody : BaseMotionBody {
+    public class KinematicPlatformMotionBody : BaseMotionBody, IFlipper, IKinematicPlatformMotionBodyConfig {
+        public float DefaultGravity { get; set; } = 0f;
+        public float DefaultMaxFallingSpeed { get; set; } = 1000f;
+        public float DefaultMaxSpeed { get; set; } = 100f;
+        public Vector2 SlopeRayCastVector { get; set; }
+        public Vector2 FloorVector { get; set; }
+
         private Logger _loggerCollision;
-        private MotionConfig _motionConfig;
         private RayCast2D _floorDetector;
+        private IFlipper _flippers;
 
         [Inject] private PlatformManager PlatformManager { get; set;}
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set;}
 
-        public void Configure(string name, KinematicBody2D body, IFlipper flippers, MotionConfig motionConfig, RayCast2D floorDetector, Position2D position2D) {
-            base.Configure(name, body, flippers, position2D);
+        public void Configure(string name, KinematicBody2D body, IFlipper flippers, RayCast2D floorDetector, Position2D position2D, Action<IKinematicPlatformMotionBodyConfig> conf) {
+            base.Configure(name, body, position2D);
+            conf(this);
+            _flippers = flippers;
             _loggerCollision = LoggerFactory.GetLogger($"{name}.Collision");
-            _motionConfig = motionConfig;
             _floorDetector = floorDetector;
         }
 
-        public void ApplyGravity(float factor = 1.0F) {
-            AddMotionY(_motionConfig.Gravity * factor * Delta);
+        public bool IsFacingRight => _flippers.IsFacingRight;
+        public bool Flip() => _flippers.Flip();
+        public bool Flip(bool left) => _flippers.Flip(left);
+        public bool Flip(float xInput) => _flippers.Flip(xInput);
+
+        
+        /**
+         * node is | I'm facing  | flip?
+         * right   | right       | no
+         * right   | left        | yes
+         * left    | right       | yes
+         * left    | left        | no
+         *
+         */
+        public void FaceTo(Node2D node2D) {
+            if (IsToTheRightOf(node2D) != _flippers.IsFacingRight) {
+                _flippers.Flip();
+            }
         }
 
-        public void AddLateralMotion(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
+        public void ApplyDefaultGravity(float factor = 1.0F) {
+            ApplyGravity(DefaultGravity * factor);
+        }
+
+        public void ApplyGravity(float gravity) {
+            SpeedY += gravity * Delta;
+        }
+
+        public void AddLateralSpeed(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
             if (xInput != 0) {
-                var directionChanged = Motion.x != 0 && Math.Sign(Motion.x) != Math.Sign(xInput);
+                var directionChanged = SpeedX != 0 && Math.Sign(SpeedX) != Math.Sign(xInput);
                 if (directionChanged) {
-                    SetMotionX((Motion.x * changeDirectionFactor) + xInput * acceleration * Delta);
+                    SpeedX = SpeedX * changeDirectionFactor + xInput * acceleration * Delta;
                 } else {
-                    SetMotionX(Motion.x + xInput * acceleration * Delta);
+                    SpeedX += xInput * acceleration * Delta;
                 }
             } else {
-                StopLateralMotionWithFriction(friction, stopIfSpeedIsLessThan);
+                StopLateralSpeedWithFriction(friction, stopIfSpeedIsLessThan);
             }
         }
 
-        public void StopLateralMotionWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            if (Mathf.Abs(Motion.x) < stopIfSpeedIsLessThan) {
-                SetMotionX(0);
+        public void StopLateralSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
+            if (Mathf.Abs(SpeedX) < stopIfSpeedIsLessThan) {
+                SpeedX = 0;
             } else {
-                SetMotionX(Motion.x * friction);
-                // SetMotionX(Motion.x - (deceleration * Delta * Math.Sign(Motion.x)));
+                SpeedX *= friction;
+                // SpeedX = SpeedX - (deceleration * Delta * Math.Sign(SpeedX));
             }
         }
 
-        public void LimitMotion(float maxSpeedFactor = 1.0F) {
-            LimitLateralMotion(maxSpeedFactor);
-            LimitGravity();
+        public void LimitDefaultSpeed(float maxSpeedFactor = 1.0F) {
+            LimitDefaultLateralSpeed(maxSpeedFactor);
+            LimitDefaultMaxSpeed(maxSpeedFactor);
         }
 
-        public void LimitGravity(float maxSpeedFactor = 1.0F) {
-            var realMaxSpeed = _motionConfig.MaxFallingSpeed * maxSpeedFactor;
-            SetMotionY(Mathf.Min(Motion.y, realMaxSpeed)); //  avoid gravity continue forever in free fall
+
+        public void LimitDefaultMaxSpeed(float factor = 1.0F) {
+            LimitMaxSpeed(DefaultMaxFallingSpeed * factor);
         }
 
-        public void LimitLateralMotion(float maxSpeedFactor = 1.0F) {
-            var realMaxSpeed = _motionConfig.MaxSpeed * maxSpeedFactor;
-            SetMotionX(Mathf.Clamp(Motion.x, -realMaxSpeed, realMaxSpeed));
+        public void LimitMaxSpeed(float maxSpeed) {
+            SpeedY = Mathf.Min(SpeedY, maxSpeed); //  avoid gravity continue forever in free fall
+        }
+
+        public void LimitDefaultLateralSpeed(float factor = 1.0F) {
+            LimitLateralSpeed(DefaultMaxSpeed * factor);
+        }
+
+        public void LimitLateralSpeed(float maxSpeed) {
+            SpeedX = Mathf.Clamp(SpeedX, -maxSpeed, maxSpeed);
         }
 
         public void MoveSnapping() => MoveSnapping(Vector2.One);
@@ -75,23 +122,16 @@ namespace Veronenger.Game.Character {
             se para y ya no sigue a la plataforma
             */
             var stopOnSlopes = !HasFloorLateralMovement();
-            var remain = Body.MoveAndSlideWithSnap(Motion * slowdownVector, _motionConfig.SlopeRayCastVector,
-                _motionConfig.FloorVector, stopOnSlopes);
-            SetMotionY(remain.y); // this line stops the gravity accumulation
-            // motion.x = remain.x:  // WARNING!! this line should be always commented, player can't climb slopes with it!!
+            var remain = Body.MoveAndSlideWithSnap(Speed * slowdownVector, SlopeRayCastVector,
+                FloorVector, stopOnSlopes);
+            SpeedY = remain.y; // this line stops the gravity accumulation
+            // SpeedX = remain.x:  // WARNING!! this line should be always commented, player can't climb slopes with it!!
             _dirtyGroundCollisions = true;
         }
 
         public void Slide() => Slide(Vector2.One);
 
-        public void Slide(Vector2 slowdownVector) {
-            // stopOnSlopes debe ser true para al caer sobre una pendiente la tome comoelo
-            var stopOnSlopes = true;
-            var remain = Body.MoveAndSlideWithSnap(Motion * slowdownVector, Vector2.Zero,
-                _motionConfig.FloorVector,
-                stopOnSlopes);
-            SetMotionY(remain.y); // this line stops the gravity accumulation
-            /*
+        /*
         inertia false = se mantiene el remain.x = al chocar con la cabeza pierde toda la inercia lateral que tenia y se va para abajo. Y si choca al subir y se
         se sube, pierde tambien la inercia teniendo que alecerar desde 0
 
@@ -99,10 +139,17 @@ namespace Veronenger.Game.Character {
         totalmente la movilidad = si choca justo antes de subir y luego se sube, corre a tope. Si choca con la cabeza y baja un poco,
         cuando de chocar, continua hacia delante a tope.
         */
-            var inertia = false;
+        private bool _inertia = false;
+        public void Slide(Vector2 slowdownVector) {
+            // stopOnSlopes debe ser true para al caer sobre una pendiente la tome comoelo
+            var stopOnSlopes = true;
+            var remain = Body.MoveAndSlideWithSnap(Speed * slowdownVector, Vector2.Zero,
+                FloorVector,
+                stopOnSlopes);
+            SpeedY = remain.y; // this line stops the gravity accumulation
 
-            if (!inertia) {
-                SetMotionX(remain.x);
+            if (!_inertia) {
+                SpeedX = remain.x;
             }
 
             _dirtyGroundCollisions = true;
@@ -281,8 +328,8 @@ namespace Veronenger.Game.Character {
         public bool HasFloorLateralMovement() => Body.GetFloorVelocity().x != 0;
 
         public void Fall() {
-            ApplyGravity();
-            LimitMotion();
+            ApplyDefaultGravity();
+            LimitDefaultSpeed();
             Slide();
         }
     }

@@ -17,7 +17,7 @@ __meta__ = {
 }
 
 [node name="PositionPlayer" type="Position2D" parent="."]
-position = Vector2( 50, 120 )
+position = Vector2( 338, 92 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
 position = Vector2( 115.436, 20.7512 )

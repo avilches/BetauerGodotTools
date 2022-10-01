@@ -21,7 +21,7 @@ namespace Veronenger.Game.Character.Enemy {
             PatrolWait,
         }
 
-        public EnemyZombieStateMachineNode() : base(State.Idle, "Zombie.StateMachine", ProcessMode.Physics) {
+        public EnemyZombieStateMachineNode() : base(State.Idle, "Zombie.StateMachine") {
         }
 
         [Inject] private CharacterManager CharacterManager { get; set; }
@@ -38,7 +38,7 @@ namespace Veronenger.Game.Character.Enemy {
             _enemyZombieController = enemyZombie;
             enemyZombie.AddChild(this);
 
-            Body.Configure(name, enemyZombie, flippers, EnemyConfig.MotionConfig, floorDetector, position2D);
+            Body.Configure(name, enemyZombie, flippers, floorDetector, position2D, EnemyConfig.MotionConfig.Configure);
 
             var events = new StateMachineEvents<State>();
             events.ExecuteStart += (delta, state) => Body.StartFrame(delta);
@@ -61,7 +61,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!Body.IsOnMovingPlatform()) {
                         // No gravity in moving platforms
                         // Gravity in slopes to avoid go down slowly
-                        Body.ApplyGravity();
+                        Body.ApplyDefaultGravity();
                     }
 
                     Body.MoveSnapping();
@@ -92,10 +92,10 @@ namespace Veronenger.Game.Character.Enemy {
                     if (PatrolTimer.IsAlarm() && !_enemyZombieController.AnimationStep.Playing) {
                         // Console.WriteLine(DateTime.Now+": Alarm! Patrol for 4 seconds done! Go to idle");
                         // Stop slowly and go to idle
-                        if (Body.Motion.x == 0) {
+                        if (Body.Speed.x == 0) {
                             return context.Set(State.Idle);
                         } else {
-                            Body.StopLateralMotionWithFriction(MotionConfig.Friction,
+                            Body.StopLateralSpeedWithFriction(MotionConfig.Friction,
                                 MotionConfig.StopIfSpeedIsLessThan);
                             Body.MoveSnapping();
                         }
@@ -106,9 +106,9 @@ namespace Veronenger.Game.Character.Enemy {
                         return context.Set(State.PatrolWait);
                     }
 
-                    Body.AddLateralMotion(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
+                    Body.AddLateralSpeed(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
                         MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
-                    Body.LimitMotion();
+                    Body.LimitDefaultSpeed();
                     Body.MoveSnapping();
                     return context.None();
                 })
@@ -123,7 +123,7 @@ namespace Veronenger.Game.Character.Enemy {
                     if (!_enemyZombieController.IsOnFloor()) {
                         return context.Set(State.PatrolStep);
                     }
-                    Body.StopLateralMotionWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
+                    Body.StopLateralSpeedWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
                     Body.MoveSnapping();
 
                     // if (_stateTimer.IsAlarm()) {

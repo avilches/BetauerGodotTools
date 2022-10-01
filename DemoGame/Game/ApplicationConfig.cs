@@ -204,7 +204,14 @@ namespace Veronenger.Game {
         [Service]
         private InputAction Attack => InputAction.Configurable("Attack")
             .Keys(KeyList.C)
-            .Buttons(JoystickList.XboxX)
+            .Mouse(ButtonList.Left)
+            .Buttons(JoystickList.XboxB)
+            .Build();
+
+        [Service]
+        private InputAction Float => InputAction.Configurable("Float")
+            .Keys(KeyList.F)
+            .Buttons(JoystickList.XboxY)
             .Build();
 
         [Service]

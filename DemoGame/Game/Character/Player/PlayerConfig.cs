@@ -18,9 +18,7 @@ namespace Veronenger.Game.Character.Player {
             // CONFIG: air
             const float jumpHeight = 80f; // jump max pixels
             const float maxJumpTime = 0.5f; // jump max time
-            var jump = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
-            MotionConfig.Gravity = jump.Gravity;
-            MotionConfig.JumpForce = jump.JumpForce;
+            (MotionConfig.Gravity, MotionConfig.JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
             MotionConfig.JumpForceMin = MotionConfig.JumpForce / 2;
 
             MotionConfig.MaxFallingSpeed = 2000; // max speed in free fall

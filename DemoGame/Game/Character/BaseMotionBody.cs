@@ -1,60 +1,47 @@
 using System;
 using Betauer;
+using Betauer.StateMachine;
 using Godot;
 
 namespace Veronenger.Game.Character {
-    public class BaseMotionBody  : IFlipper {
+    public abstract class BaseMotionBody {
         protected Logger LoggerMotion;
         protected KinematicBody2D Body;
         protected Position2D Position2D;
         
-        public Vector2 Motion { get; private set; } = Vector2.Zero;
-        public Vector2 LastMotion { get; private set; } = Vector2.Zero;
+        public float SpeedX;
+        public float SpeedY; 
+        public Vector2 Speed {
+            get => new(SpeedX, SpeedY);
+            set {
+                SpeedX = value.x;
+                SpeedY = value.y;
+            }
+        }
+
+        public Vector2 PreviousSpeed { get; private set; } = Vector2.Zero;
         public float Delta { get; private set; } = 0;
 
-        private IFlipper _flippers;
-
-        protected void Configure(string name, KinematicBody2D body, IFlipper flippers, Position2D position2D) {
+        protected void Configure(string name, KinematicBody2D body, Position2D position2D) {
             Body = body;
-            _flippers = flippers;
             Position2D = position2D;
             LoggerMotion = LoggerFactory.GetLogger($"{name}.Motion");
         }
 
-        public void SetMotionX(float x) => Motion = new Vector2(x, Motion.y);
-        public void AddMotionX(float x) => Motion += new Vector2(x, 0);
-        public void SetMotionY(float y) => Motion = new Vector2(Motion.x, y);
-        public void AddMotionY(float y) => Motion += new Vector2(0, y);
-        public bool IsFacingRight => _flippers.IsFacingRight;
-        public bool Flip() => _flippers.Flip();
-        public bool Flip(bool left) => _flippers.Flip(left);
-        public bool Flip(float xInput) => _flippers.Flip(xInput);
-
+        public void Use(StateMachine stateMachine) {
+            
+        }
         public virtual void StartFrame(float delta) {
             Delta = delta;
-            LastMotion = Motion;
+            PreviousSpeed = Speed;
         }
 
         public virtual void EndFrame() {
             #if DEBUG
-            if (Motion != LastMotion) {
-                LoggerMotion.Debug($"Motion:{Motion.ToString()} (diff {(LastMotion - Motion).ToString()})");
+            if (Speed != PreviousSpeed) {
+                LoggerMotion.Debug($"Motion:{Speed.ToString()} (diff {(PreviousSpeed - Speed).ToString()})");
             }
             #endif
-        }
-        
-        /**
-         * node is | I'm facing  | flip?
-         * right   | right       | no
-         * right   | left        | yes
-         * left    | right       | yes
-         * left    | left        | no
-         *
-         */
-        public void FaceTo(Node2D node2D) {
-            if (IsToTheRightOf(node2D) != _flippers.IsFacingRight) {
-                _flippers.Flip();
-            }
         }
 
         public bool IsToTheLeftOf(Node2D node2D) {
@@ -68,7 +55,5 @@ namespace Veronenger.Game.Character {
         public float DegreesTo(Node2D node2D) {
             return Mathf.Rad2Deg(Body.ToLocal(node2D.GlobalPosition).AngleTo(Position2D.Position));
         }
-
-
     }
 }
