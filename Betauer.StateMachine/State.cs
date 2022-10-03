@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
@@ -13,11 +14,16 @@ namespace Betauer.StateMachine {
 
         public Task Suspend(TStateKey to);
         public Task Exit(TStateKey to);
+
+        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>?
+            Events { get; }
+
     }
 
     public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
+        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
 
         protected BaseState(TStateKey key) {
             Key = key;
@@ -48,6 +54,7 @@ namespace Betauer.StateMachine {
     public class State<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
+        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
 
         private readonly Func<TStateKey, Task>? _enter;
         private readonly Func<TStateKey, Task>? _awake;
@@ -65,13 +72,15 @@ namespace Betauer.StateMachine {
                 execute = null,
             Func<TStateKey, Task>? exit = null,
             Func<TStateKey, Task>? suspend = null,
-            Func<TStateKey, Task>? awake = null) {
+            Func<TStateKey, Task>? awake = null,
+            Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events = null) {
             Key = key;
             _enter = enter;
             _execute = execute;
             _exit = exit;
             _suspend = suspend;
             _awake = awake;
+            Events = events;
         }
 
 

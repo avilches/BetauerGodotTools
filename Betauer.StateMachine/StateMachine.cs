@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
 
-    public interface IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
+    public interface IStateMachine<out TStateBuilder, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         public void AddState(IState<TStateKey, TTransitionKey> state);
-        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey);
+        public TStateBuilder CreateState(TStateKey stateKey);
         public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
-        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public bool IsState(TStateKey state);
         public IState<TStateKey, TTransitionKey> CurrentState { get; }
         public void Enqueue(TTransitionKey name);
@@ -38,7 +37,21 @@ namespace Betauer.StateMachine {
         protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<StateMachine>();
     }
 
-    public class StateMachine<TStateKey, TTransitionKey> : StateMachine, IStateMachine<TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateMachine<TStateKey, TTransitionKey> : StateMachine<
+        StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
+        public StateMachine(TStateKey initialState, string? name = null) : base(initialState, name) {
+        }
+
+        public override StateBuilder<TStateKey, TTransitionKey> CreateState(
+            TStateKey stateKey) {
+            return new StateBuilder<TStateKey, TTransitionKey>(stateKey, AddState);
+        }
+    }
+
+    public abstract class StateMachine<TStateBuilder, TStateKey, TTransitionKey> : 
+        StateMachine, IStateMachine<TStateBuilder, TStateKey, TTransitionKey> 
+        where TStateKey : Enum 
+        where TTransitionKey : Enum {
         private readonly struct Change {
             internal readonly IState<TStateKey, TTransitionKey>? State;
             internal readonly TransitionType Type;
@@ -55,7 +68,6 @@ namespace Betauer.StateMachine {
         private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new();
         private readonly TriggerContext<TStateKey> _triggerContext = new();
         private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
-        private Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _stateEvents;
         private Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> _onError; 
         private Change _nextChange;
         private readonly TStateKey _initialState;
@@ -69,7 +81,10 @@ namespace Betauer.StateMachine {
         public readonly Dictionary<TStateKey, IState<TStateKey, TTransitionKey>> States = new();
         public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
         public IState<TStateKey, TTransitionKey> CurrentState { get; private set; }
-        public bool IsState(TStateKey state) => state.Equals(CurrentState.Key);
+        public bool IsState(TStateKey state) {
+            return EqualityComparer<TStateKey>.Default.Equals(CurrentState.Key, state);
+        }
+
         public bool Available { get; private set; } = true;
         public string? Name { get; }
 
@@ -91,12 +106,6 @@ namespace Betauer.StateMachine {
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
             _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
             _events[transitionKey] = transition;
-        }
-
-        public void On(TStateKey stateKey, TTransitionKey transitionKey,
-            Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _stateEvents ??= new Dictionary<Tuple<TStateKey, TTransitionKey>, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
-            _stateEvents[new Tuple<TStateKey, TTransitionKey>(stateKey, transitionKey)] = transition;
         }
 
         public void AddOnEnter(Action<TStateKey, TStateKey> e) => OnEnter += e;
@@ -125,10 +134,7 @@ namespace Betauer.StateMachine {
             OnExecuteEnd += machineListener.OnExecuteEnd;
         }
 
-        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(
-            TStateKey stateKey) {
-            return new StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey>(this, stateKey);
-        }
+        public abstract TStateBuilder CreateState(TStateKey stateKey);
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
@@ -249,13 +255,15 @@ namespace Betauer.StateMachine {
         private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
             TriggerTransition<TStateKey> triggerTransition = default;
             var found = false;
-            if (CurrentState != null && _stateEvents != null) {
-                var key = new Tuple<TStateKey, TTransitionKey>(CurrentState.Key, name);
-                if (_stateEvents != null && _stateEvents.ContainsKey(key)) {
-                    triggerTransition = _stateEvents[key].Invoke(_triggerContext);
+            var stateEvents = CurrentState != null ? FindState(CurrentState.Key)?.Events : null;
+            if (stateEvents != null) {
+                // TODO: use TryGetValue instead
+                if (stateEvents.ContainsKey(name)) {
+                    triggerTransition = stateEvents[name].Invoke(_triggerContext);
                     found = true;
                 }
             }
+            // TODO: use TryGetValue instead
             if (!found && _events != null && _events.ContainsKey(name)) {
                 triggerTransition = _events[name].Invoke(_triggerContext);
                 found = true;

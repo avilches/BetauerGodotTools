@@ -21,9 +21,9 @@ namespace Betauer.StateMachine {
         protected static Logger Logger = LoggerFactory.GetLogger<StateMachineNode>();
     }
 
-    public class StateMachineNode<TStateKey, TTransitionKey> : StateMachineNode, IStateMachine<TStateKey, TTransitionKey> 
+    public class StateMachineNode<TStateKey, TTransitionKey> : StateMachineNode, IStateMachine<StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> 
         where TStateKey : Enum where TTransitionKey : Enum {
-        public readonly IStateMachine<TStateKey, TTransitionKey> StateMachine;
+        public readonly IStateMachine<StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> StateMachine;
         public IState<TStateKey, TTransitionKey> CurrentState => StateMachine.CurrentState;
         public bool Available => StateMachine.Available;
         public string? Name => StateMachine.Name; 
@@ -37,7 +37,7 @@ namespace Betauer.StateMachine {
             this(new StateMachine<TStateKey, TTransitionKey>(initialState, name), mode) {
         }
 
-        public StateMachineNode(IStateMachine<TStateKey, TTransitionKey> stateMachine, ProcessMode mode = ProcessMode.Idle) {
+        public StateMachineNode(IStateMachine<StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> stateMachine, ProcessMode mode = ProcessMode.Idle) {
             StateMachine = stateMachine;
             Mode = mode;
         }
@@ -60,10 +60,9 @@ namespace Betauer.StateMachine {
 
         public void AddListener(IStateMachineListener<TStateKey> machineListener) => StateMachine.AddListener(machineListener);
         
-        public StateBuilder<IStateMachine<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> CreateState(TStateKey stateKey) => StateMachine.CreateState(stateKey);
+        public StateBuilder<TStateKey, TTransitionKey> CreateState(TStateKey stateKey) => StateMachine.CreateState(stateKey);
         
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) => StateMachine.On(transitionKey, transition);
-        public void On(TStateKey stateKey, TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) => StateMachine.On(stateKey, transitionKey, transition);
         public void AddState(IState<TStateKey, TTransitionKey> state) => StateMachine.AddState(state);
         public void Enqueue(TTransitionKey name) => StateMachine.Enqueue(name);
         public Task Execute(float delta) => StateMachine.Execute(delta);
