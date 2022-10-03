@@ -6,6 +6,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
 using Betauer.Application.Screen;
+using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Nodes;
@@ -74,6 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction Right { get; set; }
         
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
+        [Inject] private Multicast<MenuFlowManager.Transition> MenuFlowBus { get; set; }
 
         private Restorer _restorer;
 
@@ -246,7 +248,7 @@ namespace Veronenger.Game.Controller.Menu {
                 GetTree().SetInputAsHandled();
                 
             } else if (UiCancel.IsEventPressed(e)) {
-                MenuFlowManager.TriggerBack();
+                MenuFlowBus.Publish(MenuFlowManager.Transition.Back);
                 GetTree().SetInputAsHandled();
                 
             } else if (_resolutionButton.HasFocus()) {

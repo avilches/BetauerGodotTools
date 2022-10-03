@@ -30,8 +30,6 @@ namespace Veronenger.Game.Managers {
          * Es lo mismo que si a esa zona se le añade el script FallingPlatformExit
          */
         public void ConfigurePlatform(PhysicsBody2D platform, bool falling = false, bool moving = false) {
-            var message = "PlatformManager.Platform " + (falling ? "falling" : "") + "/" + (moving ? "moving" : "") +
-                          ")";
             // platform.AddToGroup("platform");
             platform.CollisionMask = 0;
             platform.CollisionLayer = 0;
@@ -81,7 +79,7 @@ namespace Veronenger.Game.Managers {
         public bool IsBodyFallingFromPlatform(KinematicBody2D kb2d) => !kb2d.GetCollisionMaskBit(LayerFallPlatform);
         // Para la caida del jugador
 
-        public BodyOnArea2DEntered.Unicast PlatformBodyOutTopicBodyOnArea2D = new BodyOnArea2DEntered.Unicast("PlatformBodyOut");
+        public BodyOnArea2DEntered.Unicast PlatformBodyOutTopicBodyOnArea2D = new("PlatformBodyOut");
         
         public void BodyStopFallFromPlatform(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerFallPlatform, true);

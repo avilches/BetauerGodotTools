@@ -1,9 +1,11 @@
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
+using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Godot;
+using Veronenger.Game.Managers;
 
 namespace Veronenger.Game {
     public static class ApplicationConfig {
@@ -21,6 +23,8 @@ namespace Veronenger.Game {
     public class Settings {
         [Service] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Configuration);
         [Service] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
+        [Service] private Multicast<MenuFlowManager.Transition> MenuFlowBus => new();
+
 
         // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
         [Service("Settings.Screen.PixelPerfect")]

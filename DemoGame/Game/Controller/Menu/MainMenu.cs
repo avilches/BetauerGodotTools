@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
+using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
@@ -25,7 +26,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuContainer _menuContainer;
 
-        [Inject] private MenuFlowManager MenuFlowManager { get; set; }
+        [Inject] private Multicast<MenuFlowManager.Transition> MenuFlowBus { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -68,9 +69,9 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetStartMenu();
-            startMenu.AddButton("Start", "Start").OnPressed(() => MenuFlowManager.TriggerStartGame());
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => MenuFlowManager.TriggerSettings());
-            startMenu.AddButton("Exit", "Exit").OnPressed(() => MenuFlowManager.TriggerExitDesktop());
+            startMenu.AddButton("Start", "Start").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.StartGame));
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.Settings));
+            startMenu.AddButton("Exit", "Exit").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.ExitDesktop));
             return mainMenu;
         }
 
@@ -89,7 +90,7 @@ namespace Veronenger.Game.Controller.Menu {
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) { 
                 if (_menuContainer.IsStartMenuActive()) {
-                    MenuFlowManager.TriggerModalBoxConfirmExitDesktop();
+                    MenuFlowBus.Publish(MenuFlowManager.Transition.ModalBoxConfirmExitDesktop);
                 } else {
                     _menuContainer.Back();
                 }

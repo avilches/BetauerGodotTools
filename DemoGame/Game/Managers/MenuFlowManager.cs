@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Betauer;
-using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
+using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
@@ -70,57 +68,17 @@ namespace Veronenger.Game.Managers {
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction ControllerStart { get; set; }
 
+        [Inject] private Multicast<Transition> MenuFlowBus { get; set; }
+
         public override void _Ready() {
             PauseMode = PauseModeEnum.Process;
         }
 
-        public MenuFlowManager() : base(State.Init, "GameManager") {
-            CreateState(State.Init)
-                .Execute(async (ctx) => {
-                    MainResourceLoader.OnProgress += context => {
-                        // GD.Print(context.LoadPercent.ToString("P") + " = " + context.LoadedSize + " / " +
-                        // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
-                        // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                    };
-                    await MainResourceLoader.From(this).Load();
-                    ScreenSettingsManager.Setup();
-                    ConfigureDebugOverlays();
-                    // Never pause the pause, settings and the state machine, because they will not work!
-                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
-
-                    SceneTree.Root.AddChild(_pauseMenuScene);
-                    SceneTree.Root.AddChild(_settingsMenuScene);
-                    SceneTree.Root.AddChild(_mainMenuScene);
-                    SceneTree.Root.AddChild(MainMenuBottomBarScene);
-                    ConfigureStates();
-                    return ctx.Set(State.StartingGame);
-                }).Build();
+        public MenuFlowManager() : base(State.Init) {
         }
 
-        private void ConfigureDebugOverlays() {
-            DefaultDebugOverlay.Theme = MyTheme;
-            DefaultDebugOverlay.MonitorFpsAndMemory();
-            DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
-            DefaultDebugOverlay.MonitorInternals();
-            CreateNodeHandlerManagerDebugOverlay();
-            CreateSignalManagerDebugOverlay();
-        }
-
-        private DebugOverlay CreateSignalManagerDebugOverlay() {
-            var debugOverlay = DebugOverlayManager.CreateOverlay();
-            debugOverlay.Theme = MyTheme;
-            debugOverlay.CreateMonitor().Show(DefaultSignalManager.Instance.GetStateAsString);
-            return debugOverlay;
-        }
-
-        private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
-            var debugOverlay = DebugOverlayManager.CreateOverlay();
-            debugOverlay.Theme = MyTheme;
-            debugOverlay.CreateMonitor().Show(DefaultNodeHandler.Instance.GetStateAsString);
-            return debugOverlay;
-        }
-
-        private void ConfigureStates() {
+        [PostCreate]
+        private void Configure() {
             #if DEBUG
             this.OnInput((e) => {
                 if (e.IsKeyPressed(KeyList.Q)) {
@@ -177,11 +135,31 @@ namespace Veronenger.Game.Managers {
             }, PauseModeEnum.Process);
             #endif
             
-            AddListener(MainMenuBottomBarScene);
+            MenuFlowBus.Subscribe(Enqueue);
+            
+            CreateState(State.Init)
+                .Execute(async (ctx) => {
+                    MainResourceLoader.OnProgress += context => {
+                        // GD.Print(context.LoadPercent.ToString("P") + " = " + context.LoadedSize + " / " +
+                        // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
+                        // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
+                    };
+                    await MainResourceLoader.From(this).Load();
+                    ScreenSettingsManager.Setup();
+                    ConfigureDebugOverlays();
+                    // Never pause the pause, settings and the state machine, because they will not work!
+                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
 
+                    SceneTree.Root.AddChild(_pauseMenuScene);
+                    SceneTree.Root.AddChild(_settingsMenuScene);
+                    SceneTree.Root.AddChild(_mainMenuScene);
+                    SceneTree.Root.AddChild(MainMenuBottomBarScene);
+                    AddListener(MainMenuBottomBarScene);
+                    return ctx.Set(State.StartingGame);
+                }).Build();
             
             CreateState(State.MainMenu)
-                .OnInput(_mainMenuScene.OnInput)
+                .OnInput(e => _mainMenuScene.OnInput(e))
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
@@ -190,10 +168,10 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             CreateState(State.Settings)
-                .OnInput(_settingsMenuScene.OnInput)
+                .OnInput(e => _settingsMenuScene.OnInput(e))
                 .On(Transition.Back, context => context.Pop())
-                .Enter(_settingsMenuScene.ShowSettingsMenu)
-                .Exit(_settingsMenuScene.HideSettingsMenu)
+                .Enter(() => _settingsMenuScene.ShowSettingsMenu())
+                .Exit(() => _settingsMenuScene.HideSettingsMenu())
                 .Build();
 
             CreateState(State.StartingGame)
@@ -205,7 +183,7 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             CreateState(State.Gaming)
-                .OnInput((e) => {
+                .OnInput(e => {
                     if (ControllerStart.IsEventJustPressed(e)) {
                         Enqueue(Transition.Pause);
                         GetTree().SetInputAsHandled();
@@ -213,14 +191,12 @@ namespace Veronenger.Game.Managers {
                 })
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
-                .Exit(() => {
-                    Game.End();
-                })
+                .Exit(() => Game.End())
                 .Build();
                 
 
             CreateState(State.PauseMenu)
-                .OnInput(_pauseMenuScene.OnInput)
+                .OnInput(e => _pauseMenuScene.OnInput(e))
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())
@@ -263,32 +239,27 @@ namespace Veronenger.Game.Managers {
                 .Build();
         }
 
-        public void TriggerStartGame() {
-            Enqueue(Transition.StartGame);
+        private void ConfigureDebugOverlays() {
+            DefaultDebugOverlay.Theme = MyTheme;
+            DefaultDebugOverlay.MonitorFpsAndMemory();
+            DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
+            DefaultDebugOverlay.MonitorInternals();
+            CreateNodeHandlerManagerDebugOverlay();
+            CreateSignalManagerDebugOverlay();
         }
 
-        public void TriggerPauseMenu() {
-            Enqueue(Transition.Pause);
+        private DebugOverlay CreateSignalManagerDebugOverlay() {
+            var debugOverlay = DebugOverlayManager.CreateOverlay();
+            debugOverlay.Theme = MyTheme;
+            debugOverlay.CreateMonitor().Show(DefaultSignalManager.Instance.GetStateAsString);
+            return debugOverlay;
         }
 
-        public void TriggerSettings() {
-            Enqueue(Transition.Settings);
-        }
-
-        public void TriggerBack() {
-            Enqueue(Transition.Back);
-        }
-
-        public void TriggerModalBoxConfirmExitDesktop() {
-            Enqueue(Transition.ModalBoxConfirmExitDesktop);
-        }
-
-        public void TriggerModalBoxConfirmQuitGame() {
-            Enqueue(Transition.ModalBoxConfirmQuitGame);
-        }
-
-        public void TriggerExitDesktop() {
-            Enqueue(Transition.ExitDesktop);
+        private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
+            var debugOverlay = DebugOverlayManager.CreateOverlay();
+            debugOverlay.Theme = MyTheme;
+            debugOverlay.CreateMonitor().Show(DefaultNodeHandler.Instance.GetStateAsString);
+            return debugOverlay;
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
