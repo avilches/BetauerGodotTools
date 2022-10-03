@@ -6,11 +6,11 @@ namespace Betauer.StateMachine {
         BaseStateBuilder<StateNodeBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> 
         where TStateKey : Enum where TTransitionKey : Enum {
         
-        public StateNodeBuilder(TStateKey key, Action<IState<TStateKey, TTransitionKey>> onBuild) : base(key, onBuild) {
+        public StateNodeBuilder(TStateKey key, Action<IState<TStateKey, TTransitionKey>> build) : base(key, build) {
         }
 
         protected override IState<TStateKey, TTransitionKey> CreateState() {
-            return new StateNode<TStateKey, TTransitionKey>(_key, _enter, _execute, _exit, _suspend, _awake, _events, _input, _unhandledInput);
+            return new StateNode<TStateKey, TTransitionKey>(Key, EnterFunc, ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
         private Action<InputEvent> _input;

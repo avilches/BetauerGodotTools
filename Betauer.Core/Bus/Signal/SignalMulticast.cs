@@ -48,17 +48,17 @@ namespace Betauer.Bus.Signal {
                 Action = action;
             }
 
-            internal EventHandler WithFilter(TFilter? detect) {
+            public EventHandler WithFilter(TFilter? detect) {
                 Filter = detect;
                 return this;
             }
 
-            internal EventHandler RemoveIfInvalid(Object? owner) {
+            public EventHandler RemoveIfInvalid(Object? owner) {
                 Watch = owner;
                 return this;
             }
 
-            internal void Remove() {
+            public void Remove() {
                 _removed = true;
             }
 

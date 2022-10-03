@@ -43,14 +43,14 @@ namespace Betauer.GameTools.Tests {
             var x = 0;
             List<string> states = new List<string>();
 
-            sm.CreateState(State.Start)
+            sm.State(State.Start)
                 .Execute(async context => {
                     states.Add("Start");
                     await this.AwaitIdleFrame();
                     return context.Set(State.Idle);
                 }).Build();
 
-            sm.CreateState(State.Idle)
+            sm.State(State.Idle)
                 .Enter(async () => {
                     await this.AwaitIdleFrame();
                     x = 0;
@@ -71,14 +71,14 @@ namespace Betauer.GameTools.Tests {
                     states.Add("IdleExit(" + x + ")");
                 }).Build();
 
-            sm.CreateState(State.Attack)
+            sm.State(State.Attack)
                 .Execute(async context => {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
                     return context.Set(State.End);
                 }).Build();
 
-            sm.CreateState(State.End)
+            sm.State(State.End)
                 .Execute(async context => {
                     x++;
                     states.Add("End(" + x + ")");

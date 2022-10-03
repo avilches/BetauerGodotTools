@@ -31,6 +31,7 @@ namespace Betauer.Bus.Signal {
         }
 
         public EventHandler OnEvent(Action<TPublisher, TSignalArgs> action) {
+            Handler.Remove();
             Handler.Action = action;
             return Handler;
         }

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Betauer.Signal;
-using Betauer.Signal.Bus;
+using Betauer.Bus.Signal;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -27,21 +27,19 @@ namespace Betauer.Tests.Signal {
             KinematicBody2D body2 = new KinematicBody2D();
             BodyShapeOnArea2DEntered.Multicast topic = new BodyShapeOnArea2DEntered.Multicast("T");
             var o = new Object();
-            topic.OnEventFilter(body1, (area2D1, tuple) => {
+            topic.OnEvent((_, tuple) => {
                 Assert.That(tuple.Item2, Is.EqualTo(body1));
                 body1Calls++;
-            });
-            topic.OnEventFilter(body2, (a) => body2Calls++);
-            topic.OnEvent((a, b) => noFilterNoOwner++);
-            topic.OnEvent(o, (a, b) => {
-                noFilter++;
-            });
-            Assert.That(topic.EventHandlers.Count, Is.EqualTo(4));
+            }).WithFilter(body1);
+            topic.OnEvent((_,_) => body2Calls++).WithFilter(body2);
+            topic.OnEvent((_,_) => noFilterNoOwner++);
+            topic.OnEvent((_,_) => noFilter++).RemoveIfInvalid(o);
+            Assert.That(topic.Handlers.Count, Is.EqualTo(4));
 
             // When events are published, the origin doesn't matter
-            topic.Emit(area1, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body2, 1, 1));
-            topic.Emit(area1, (new RID(new Object()), body2, 1, 1));
+            topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
+            topic.Publish(area1, (new RID(new Object()), body2, 1, 1));
 
             // Then
             Assert.That(body1Calls, Is.EqualTo(1));
@@ -52,9 +50,9 @@ namespace Betauer.Tests.Signal {
             // When body is disposed
             body1.Dispose();
             // When new events are published
-            topic.Emit(area1, (new RID(new Object()), body2, 1, 1));
+            topic.Publish(area1, (new RID(new Object()), body2, 1, 1));
             // Then the "Body1" listener with the disposed filter disappear
-            Assert.That(topic.EventHandlers.Count, Is.EqualTo(3));
+            Assert.That(topic.Handlers.Count, Is.EqualTo(3));
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(3)); // 2 before + 1 now
@@ -62,9 +60,9 @@ namespace Betauer.Tests.Signal {
             Assert.That(noFilterNoOwner, Is.EqualTo(4)); // 3 before + 1 now
             
             o.Free();
-            topic.Emit(area1, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
 
-            Assert.That(topic.EventHandlers.Count, Is.EqualTo(2));
+            Assert.That(topic.Handlers.Count, Is.EqualTo(2));
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(3)); // 3 before
@@ -81,27 +79,27 @@ namespace Betauer.Tests.Signal {
             KinematicBody2D body2 = new KinematicBody2D();
             BodyShapeOnArea2DEntered.Unicast topic = new BodyShapeOnArea2DEntered.Unicast("T");
             
-            topic.OnEventFilter(body1, (a, tuple) => {
+            topic.OnEvent((_, tuple) => {
                 Assert.That(tuple.Item2, Is.EqualTo(body1));
                 calls++;
-            });
-            topic.Emit(area1, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body2, 1, 1));
+            }).WithFilter(body1);
+            topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
             Assert.That(calls, Is.EqualTo(2));
 
             calls = 0;
-            topic.OnEventFilter(body1, (a) => calls++);
-            topic.Emit(area1, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body2, 1, 1));
+            topic.OnEvent((_,_) => calls++).WithFilter(body1);
+            topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
             Assert.That(calls, Is.EqualTo(2));
 
             calls = 0;
-            topic.OnEvent((a, b) => calls++);
-            topic.Emit(area1, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body1, 1, 1));
-            topic.Emit(area2, (new RID(new Object()), body2, 1, 1));
+            topic.OnEvent((_,_) => calls++);
+            topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body1, 1, 1));
+            topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
             Assert.That(calls, Is.EqualTo(3));
         }
 
@@ -129,10 +127,10 @@ namespace Betauer.Tests.Signal {
             status.Connect(area2D);
             collection.Connect(area2D);
 
-            uniEnter.OnEventFilter(body, (origin) => uniEnterCalls++);
-            uniExit.OnEventFilter(body, (origin) => uniExitCalls++);
-            multiEnter.OnEventFilter(body, (origin) => multiEnterCalls++);
-            multiExit.OnEventFilter(body, (origin) => multiExitCalls++);
+            uniEnter.OnEvent((_,_) => uniEnterCalls++).WithFilter(body);
+            uniExit.OnEvent((_,_) => uniExitCalls++).WithFilter(body);
+            multiEnter.OnEvent((_,_) => multiEnterCalls++).WithFilter(body);
+            multiExit.OnEvent((_,_) => multiExitCalls++).WithFilter(body);
             await this.AwaitPhysicsFrame();
 
             // They are not colliding
