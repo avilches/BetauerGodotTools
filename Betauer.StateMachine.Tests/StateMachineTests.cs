@@ -64,6 +64,16 @@ namespace Betauer.StateMachine.Tests {
             });
         }
         
+        [Test(Description = "IsState")]
+        public void IsStateTests() {
+            var sm = new StateMachine<State, Trans>(State.Global);
+            sm.CreateState(State.Global).Build();
+            
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
+            Assert.That(sm.IsState(State.Global), Is.True);
+            Assert.That(sm.IsState(State.Settings), Is.False);
+        }
+        
         [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
         public async Task WrongStartWithTriggering() {
             var sm = new StateMachine<State, Trans>(State.Global);
@@ -73,6 +83,8 @@ namespace Betauer.StateMachine.Tests {
             sm.Enqueue(Trans.Audio);
             await sm.Execute(0);
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
+            Assert.That(sm.IsState(State.Audio), Is.True);
+            Assert.That(sm.IsState(State.Global), Is.False);
         }
         
         [Test(Description = "Error when a state changes to a not found state: Replace")]
