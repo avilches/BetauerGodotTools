@@ -24,15 +24,15 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Constructor")]
         public void StateMachineNodeConstructors() {
             var sm1 = new StateMachineNode<State, Trans>(State.A, "X");
-            Assert.That(((StateMachine<State, Trans>)sm1.StateMachine).Name, Is.EqualTo("X"));
+            Assert.That(sm1.StateMachine.Name, Is.EqualTo("X"));
             Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
 
             var sm2 = new StateMachineNode<State, Trans>(State.A, null, ProcessMode.Physics);
-            Assert.That(((StateMachine<State, Trans>)sm2.StateMachine).Name, Is.Null);
+            Assert.That(sm2.StateMachine.Name, Is.Null);
             Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
 
             var sm3 = new StateMachineNode<State, Trans>(State.A);
-            Assert.That(((StateMachine<State, Trans>)sm3.StateMachine).Name, Is.Null);
+            Assert.That(sm3.StateMachine.Name, Is.Null);
             Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
         }
 

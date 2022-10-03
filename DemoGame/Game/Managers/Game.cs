@@ -27,7 +27,7 @@ namespace Veronenger.Game.Managers {
         }
 
         public void Start() {
-            _currentGameScene = MainResourceLoader.CreateWorld1();
+            _currentGameScene = MainResourceLoader.CreateWorld2();
             AddPlayerToScene(_currentGameScene);
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }

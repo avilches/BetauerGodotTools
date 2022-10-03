@@ -93,7 +93,7 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Root.AddChild(_mainMenuScene);
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     ConfigureStates();
-                    return ctx.Set(State.MainMenu);
+                    return ctx.Set(State.StartingGame);
                 }).Build();
         }
 
@@ -179,8 +179,9 @@ namespace Veronenger.Game.Managers {
             
             AddListener(MainMenuBottomBarScene);
 
-            OnInput(State.MainMenu, _mainMenuScene.OnInput);
+            
             CreateState(State.MainMenu)
+                .OnInput(_mainMenuScene.OnInput)
                 .On(Transition.StartGame, context => context.Set(State.StartingGame))
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
@@ -188,8 +189,8 @@ namespace Veronenger.Game.Managers {
                 .Enter(async () => await _mainMenuScene.ShowMenu())
                 .Build();
 
-            OnInput(State.Settings, _settingsMenuScene.OnInput);
             CreateState(State.Settings)
+                .OnInput(_settingsMenuScene.OnInput)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(_settingsMenuScene.ShowSettingsMenu)
                 .Exit(_settingsMenuScene.HideSettingsMenu)
@@ -203,13 +204,13 @@ namespace Veronenger.Game.Managers {
                 .Execute(context => context.Set(State.Gaming))
                 .Build();
 
-            OnInput(State.Gaming, (e) => {
-                if (ControllerStart.IsEventJustPressed(e)) {
-                    Enqueue(Transition.Pause);
-                    GetTree().SetInputAsHandled();
-                }
-            });
             CreateState(State.Gaming)
+                .OnInput((e) => {
+                    if (ControllerStart.IsEventJustPressed(e)) {
+                        Enqueue(Transition.Pause);
+                        GetTree().SetInputAsHandled();
+                    }
+                })
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Pause, context => context.Push(State.PauseMenu))
                 .Exit(() => {
@@ -218,8 +219,8 @@ namespace Veronenger.Game.Managers {
                 .Build();
                 
 
-            OnInput(State.PauseMenu, _pauseMenuScene.OnInput);
             CreateState(State.PauseMenu)
+                .OnInput(_pauseMenuScene.OnInput)
                 .On(Transition.Back, context => context.Pop())
                 .On(Transition.Settings, context => context.Push(State.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())

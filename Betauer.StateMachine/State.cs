@@ -20,37 +20,6 @@ namespace Betauer.StateMachine {
 
     }
 
-    public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
-        where TStateKey : Enum where TTransitionKey : Enum {
-        public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
-
-        protected BaseState(TStateKey key) {
-            Key = key;
-        }
-
-        public virtual Task Enter(TStateKey from) {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task Awake(TStateKey from) {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
-            ExecuteContext<TStateKey, TTransitionKey> executeContext) {
-            return Task.FromResult(executeContext.None());
-        }
-
-        public virtual Task Suspend(TStateKey to) {
-            return Task.CompletedTask;
-        }
-
-        public virtual Task Exit(TStateKey to) {
-            return Task.CompletedTask;
-        }
-    }
-
     public class State<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
@@ -67,13 +36,13 @@ namespace Betauer.StateMachine {
         private readonly Func<TStateKey, Task>? _exit;
 
         public State(TStateKey key,
-            Func<TStateKey, Task>? enter = null,
+            Func<TStateKey, Task>? enter,
             Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
-                execute = null,
-            Func<TStateKey, Task>? exit = null,
-            Func<TStateKey, Task>? suspend = null,
-            Func<TStateKey, Task>? awake = null,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events = null) {
+                execute,
+            Func<TStateKey, Task>? exit,
+            Func<TStateKey, Task>? suspend,
+            Func<TStateKey, Task>? awake,
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events) {
             Key = key;
             _enter = enter;
             _execute = execute;

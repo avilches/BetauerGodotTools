@@ -5,50 +5,22 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine {
-
-    public interface IStateMachine<out TStateBuilder, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
-        public void AddState(IState<TStateKey, TTransitionKey> state);
-        public TStateBuilder CreateState(TStateKey stateKey);
-        public void AddListener(IStateMachineListener<TStateKey> machineListener);
-        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
-        public bool IsState(TStateKey state);
-        public IState<TStateKey, TTransitionKey> CurrentState { get; }
-        public void Enqueue(TTransitionKey name);
-        public Task Execute(float delta);
-        public bool Available { get; }
-        public string? Name { get; }
-        public void AddOnEnter(Action<TStateKey, TStateKey> e);
-        public void AddOnAwake(Action<TStateKey, TStateKey> e);
-        public void AddOnSuspend(Action<TStateKey, TStateKey> e);
-        public void AddOnExit(Action<TStateKey, TStateKey> e);
-        public void AddOnTransition(Action<TStateKey, TStateKey> e);
-        public void AddOnExecuteStart(Action<float, TStateKey> e);
-        public void AddOnExecuteEnd(Action<TStateKey> e);
-        public void RemoveOnEnter(Action<TStateKey, TStateKey> e);
-        public void RemoveOnAwake(Action<TStateKey, TStateKey> e);
-        public void RemoveOnSuspend(Action<TStateKey, TStateKey> e);
-        public void RemoveOnExit(Action<TStateKey, TStateKey> e);
-        public void RemoveOnTransition(Action<TStateKey, TStateKey> e);
-        public void RemoveOnExecuteStart(Action<float, TStateKey> e);
-        public void RemoveOnExecuteEnd(Action<TStateKey> e);
-    }
-
     public abstract class StateMachine {
         protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<StateMachine>();
     }
 
-    public class StateMachine<TStateKey, TTransitionKey> : StateMachine<
-        StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
-        public StateMachine(TStateKey initialState, string? name = null) : base(initialState, name) {
+    public class BaseStateMachine<TStateKey, TTransitionKey> : 
+        BaseStateMachine<StateBuilder<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
+        
+        public BaseStateMachine(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
-        public override StateBuilder<TStateKey, TTransitionKey> CreateState(
-            TStateKey stateKey) {
+        public override StateBuilder<TStateKey, TTransitionKey> CreateState(TStateKey stateKey) {
             return new StateBuilder<TStateKey, TTransitionKey>(stateKey, AddState);
         }
     }
 
-    public abstract class StateMachine<TStateBuilder, TStateKey, TTransitionKey> : 
+    public abstract class BaseStateMachine<TStateBuilder, TStateKey, TTransitionKey> : 
         StateMachine, IStateMachine<TStateBuilder, TStateKey, TTransitionKey> 
         where TStateKey : Enum 
         where TTransitionKey : Enum {
@@ -96,7 +68,7 @@ namespace Betauer.StateMachine {
         public event Action<float, TStateKey>? OnExecuteStart;
         public event Action<TStateKey>? OnExecuteEnd;
 
-        public StateMachine(TStateKey initialState, string? name = null) {
+        public BaseStateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
             Name = name;
             Logger = name == null ? StaticLogger : LoggerFactory.GetLogger(name);
