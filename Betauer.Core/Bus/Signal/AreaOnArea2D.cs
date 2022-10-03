@@ -10,8 +10,8 @@ namespace Betauer.Bus.Signal {
 
             public bool IsOverlapping => Size() > 0;
 
-            protected override Area2D Extract(Area2D signalParams) {
-                return signalParams;
+            protected override Area2D Extract(Area2D signalArgs) {
+                return signalArgs;
             }
 
             public Collection Connect(Area2D area2D) {
@@ -22,8 +22,8 @@ namespace Betauer.Bus.Signal {
         }
 
         public class Status : SignalStatus<Area2D, Area2D, Area2D> {
-            protected override Area2D Extract(Area2D signalParams) {
-                return signalParams;
+            protected override Area2D Extract(Area2D signalArgs) {
+                return signalArgs;
             }
             
             public Status Connect(Area2D area2D) {
@@ -40,7 +40,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaEntered(target => Emit(area2D, target));
+                return area2D.OnAreaEntered(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Area2D e, Area2D detect) {
@@ -53,7 +53,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaEntered(target => Emit(area2D, target));
+                return area2D.OnAreaEntered(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Area2D e, Area2D detect) {
@@ -68,7 +68,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaExited(target => Emit(area2D, target));
+                return area2D.OnAreaExited(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Area2D e, Area2D detect) {
@@ -81,7 +81,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaExited(target => Emit(area2D, target));
+                return area2D.OnAreaExited(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Area2D e, Area2D detect) {

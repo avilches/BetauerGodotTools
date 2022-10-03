@@ -3,40 +3,43 @@ using Betauer.Signal;
 using Object = Godot.Object;
 
 namespace Betauer.Bus.Signal {
-    public abstract class SignalUnicast<TEmitter, TSignalParams, TFilter>
-        where TEmitter : Object
+    public abstract class SignalUnicast<TPublisher, TSignalArgs, TFilter>
+        where TPublisher : Object
         where TFilter : Object {
         public readonly string? Name;
-        public Action<TEmitter, TSignalParams>? EventHandler;
+        public Action<TPublisher, TSignalArgs>? EventHandler;
 
         protected SignalUnicast(string name) {
             Name = name;
         }
 
-        public abstract SignalHandler Connect(TEmitter emitter);
+        public abstract SignalHandler Connect(TPublisher publisher);
 
-        public void Emit(TEmitter origin, TSignalParams signalParams) {
-            EventHandler?.Invoke(origin, signalParams);
+        protected abstract bool Matches(TSignalArgs signalArgs, TFilter detect);
+
+        public void Publish(TPublisher publisher, TSignalArgs signalArgs) {
+            EventHandler?.Invoke(publisher, signalArgs);
         }
 
         public void RemoveEventFilter() => EventHandler = null;
 
-        public void OnEventFilter(TFilter filter, Action<TEmitter> action) {
-            OnEventFilter(filter, (origin, signalParams) => action(origin));
+        public void OnEventFilter(TFilter filter, Action<TPublisher> action) {
+            OnEventFilter(filter, (publisher, signalArgs) => action(publisher));
         }
 
-        public void OnEventFilter(TFilter filter, Action<TEmitter, TSignalParams> action) {
-            EventHandler = (origin, signalParams) => {
-                if (Matches(signalParams, filter)) action(origin, signalParams);
+        public void OnEventFilter(TFilter filter, Action<TPublisher, TSignalArgs> action) {
+            EventHandler = (publisher, signalArgs) => {
+                if (Matches(signalArgs, filter)) action(publisher, signalArgs);
             };
         }
 
-        public void OnEvent(Action<TEmitter, TSignalParams> action) {
-            Console.WriteLine(Name + ":Subscribe enter *");
+        public void OnEvent(Action<TPublisher, TSignalArgs> action) {
             EventHandler = action;
         }
 
-        protected abstract bool Matches(TSignalParams e, TFilter detect);
+        public void OnEvent(Action<TSignalArgs> action) {
+            EventHandler = (_, args) => action(args);
+        }
 
     }
 }

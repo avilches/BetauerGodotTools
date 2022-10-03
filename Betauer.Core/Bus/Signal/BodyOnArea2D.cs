@@ -10,8 +10,8 @@ namespace Betauer.Bus.Signal {
 
             public bool IsOverlapping => Size() > 0;
 
-            protected override Node Extract(Node signalParams) {
-                return signalParams;
+            protected override Node Extract(Node signalArgs) {
+                return signalArgs;
             }
 
             public Collection Connect(Area2D area2D) {
@@ -22,8 +22,8 @@ namespace Betauer.Bus.Signal {
         }
 
         public class Status : SignalStatus<Area2D, Node, Node> {
-            protected override Node Extract(Node signalParams) {
-                return signalParams;
+            protected override Node Extract(Node signalArgs) {
+                return signalArgs;
             }
             
             public Status Connect(Area2D area2D) {
@@ -40,7 +40,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyEntered(target => Emit(area2D, target));
+                return area2D.OnBodyEntered(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Node e, Node detect) {
@@ -53,7 +53,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyEntered(target => Emit(area2D, target));
+                return area2D.OnBodyEntered(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Node e, Node detect) {
@@ -68,7 +68,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyExited(target => Emit(area2D, target));
+                return area2D.OnBodyExited(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Node e, Node detect) {
@@ -81,7 +81,7 @@ namespace Betauer.Bus.Signal {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyExited(target => Emit(area2D, target));
+                return area2D.OnBodyExited(target => Publish(area2D, target));
             }
 
             protected override bool Matches(Node e, Node detect) {

@@ -19,7 +19,7 @@ namespace Betauer.Signal {
 
         public class ObjectSignals {
             public readonly Object Emitter;
-            public readonly List<SignalHandler> Signals = new List<SignalHandler>();
+            public readonly List<SignalHandler> Signals = new();
             public readonly Watcher Watcher;
 
             public ObjectSignals(SignalManager signalManager, Object emitter) {

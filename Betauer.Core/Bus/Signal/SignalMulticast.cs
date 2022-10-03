@@ -4,8 +4,8 @@ using Betauer.Signal;
 using Object = Godot.Object;
 
 namespace Betauer.Bus.Signal {
-    public abstract class SignalMulticast<TEmitter, TSignalParams, TFilter>
-        where TEmitter : Object
+    public abstract class SignalMulticast<TPublisher, TSignalArgs, TFilter>
+        where TPublisher : Object
         where TFilter : Object {
         public readonly string? Name;
         public readonly List<EventHandler> EventHandlers = new();
@@ -14,35 +14,37 @@ namespace Betauer.Bus.Signal {
             Name = name;
         }
 
-        public abstract SignalHandler Connect(TEmitter emitter);
+        public abstract SignalHandler Connect(TPublisher publisher);
 
-        public void Emit(TEmitter origin, TSignalParams signalParams) {
+        protected abstract bool Matches(TSignalArgs signalArgs, TFilter detect);
+
+        public void Publish(TPublisher publisher, TSignalArgs signalArgs) {
             EventHandlers.RemoveAll((handler) => {
                 if (!handler.IsValid()) return true; // Deleting handler
-                if (handler.Filter == null || Matches(signalParams, handler.Filter)) {
-                    handler.Action(origin, signalParams);
+                if (handler.Filter == null || Matches(signalArgs, handler.Filter)) {
+                    handler.Action(publisher, signalArgs);
                 }
                 return false;
             });
         }
 
-        public EventHandler OnEventFilter(TFilter filter, Action<TEmitter> action) {
-            return OnEventFilter(filter, (origin, _) => action(origin));
+        public EventHandler OnEventFilter(TFilter filter, Action<TPublisher> action) {
+            return OnEventFilter(filter, (publisher, _) => action(publisher));
         }
 
-        public EventHandler OnEventFilter(TFilter filter, Action<TEmitter, TSignalParams> action) {
+        public EventHandler OnEventFilter(TFilter filter, Action<TPublisher, TSignalArgs> action) {
             var eventHandler = new EventHandler(action).WithFilter(filter);
             AddEventHandler(eventHandler);
             return eventHandler;
         }
 
-        public EventHandler OnEvent(Object watch, Action<TEmitter, TSignalParams> action) {
+        public EventHandler OnEvent(Object watch, Action<TPublisher, TSignalArgs> action) {
             var eventHandler = new EventHandler(action).RemoveIfInvalid(watch);
             AddEventHandler(eventHandler);
             return eventHandler;
         }
 
-        public EventHandler OnEvent(Action<TEmitter, TSignalParams> action) {
+        public EventHandler OnEvent(Action<TPublisher, TSignalArgs> action) {
             var eventHandler = new EventHandler(action);
             AddEventHandler(eventHandler);
             return eventHandler;
@@ -56,14 +58,12 @@ namespace Betauer.Bus.Signal {
             EventHandlers.Remove(eventHandler);
         }
 
-        protected abstract bool Matches(TSignalParams e, TFilter detect);
-
         public class EventHandler {
-            public readonly Action<TEmitter, TSignalParams> Action;
+            public readonly Action<TPublisher, TSignalArgs> Action;
             public Object? Watch { get; private set; }
             public TFilter? Filter { get; private set; }
 
-            internal EventHandler(Action<TEmitter, TSignalParams> action) {
+            internal EventHandler(Action<TPublisher, TSignalArgs> action) {
                 Action = action;
             }
 

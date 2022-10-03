@@ -10,8 +10,8 @@ namespace Betauer.Bus.Signal {
 
             public bool IsOverlapping => Size() > 0;
 
-            protected override Node Extract((RID, Node, int, int) signalParams) {
-                return signalParams.Item2;
+            protected override Node Extract((RID, Node, int, int) signalArgs) {
+                return signalArgs.Item2;
             }
 
             public Collection Connect(Area2D area2D) {
@@ -22,8 +22,8 @@ namespace Betauer.Bus.Signal {
         }
 
         public class Status : SignalStatus<Area2D, (RID, Node, int, int), Node> {
-            protected override Node Extract((RID, Node, int, int) signalParams) {
-                return signalParams.Item2;
+            protected override Node Extract((RID, Node, int, int) signalArgs) {
+                return signalArgs.Item2;
             }
             
             public Status Connect(Area2D area2DFrom) {
@@ -41,7 +41,7 @@ namespace Betauer.Bus.Signal {
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -55,7 +55,7 @@ namespace Betauer.Bus.Signal {
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -71,7 +71,7 @@ namespace Betauer.Bus.Signal {
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -85,7 +85,7 @@ namespace Betauer.Bus.Signal {
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {

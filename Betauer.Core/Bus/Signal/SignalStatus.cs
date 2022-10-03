@@ -1,8 +1,8 @@
 using Godot;
 
 namespace Betauer.Bus.Signal {
-    public abstract class SignalStatus<TEmitter, TSignalParams, TObject>
-        where TEmitter : Object
+    public abstract class SignalStatus<TPublisher, TSignalArgs, TObject>
+        where TPublisher : Object
         where TObject : Object {
 
         public readonly string? Name;
@@ -18,14 +18,14 @@ namespace Betauer.Bus.Signal {
             Filter = filter;
         }
 
-        protected abstract TObject Extract(TSignalParams signalParams);
+        protected abstract TObject Extract(TSignalArgs signalArgs);
 
-        protected void OnEnter(TEmitter origin, TSignalParams signalParams) {
-            if (Filter == null || Extract(signalParams) == origin) Status = true;
+        protected void OnEnter(TPublisher publisher, TSignalArgs signalArgs) {
+            if (Filter == null || Extract(signalArgs) == publisher) Status = true;
         }
 
-        protected void OnExit(TEmitter origin, TSignalParams signalParams) {
-            if (Filter == null || Extract(signalParams) == origin) Status = false;
+        protected void OnExit(TPublisher publisher, TSignalArgs signalArgs) {
+            if (Filter == null || Extract(signalArgs) == publisher) Status = false;
         }
     }
 }
