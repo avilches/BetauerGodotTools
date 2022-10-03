@@ -40,8 +40,8 @@ namespace Betauer.Nodes {
 
         public readonly List<Event<Action<float>>> OnProcessList = new();
         public readonly List<Event<Action<float>>> OnPhysicsProcessList = new();
-        public readonly List<Event<Func<InputEvent, bool>>> OnInputList = new();
-        public readonly List<Event<Func<InputEvent, bool>>> OnUnhandledInputList = new();
+        public readonly List<Event<Action<InputEvent>>> OnInputList = new();
+        public readonly List<Event<Action<InputEvent>>> OnUnhandledInputList = new();
         
         private SceneTree _sceneTree;
 
@@ -65,28 +65,14 @@ namespace Betauer.Nodes {
         }
 
         public INodeEvent OnInput(Node node, Action<InputEvent> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            return OnInput(node, input => {
-                action.Invoke(input);
-                return false;
-            }, pauseMode);
-        }
-
-        public INodeEvent OnInput(Node node, Func<InputEvent, bool> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new Event<Func<InputEvent, bool>>(node, action, pauseMode);
+            var nodeEvent = new Event<Action<InputEvent>>(node, action, pauseMode);
             OnInputList.Add(nodeEvent);
             SetProcessInput(true);
             return nodeEvent;
         }
 
         public INodeEvent OnUnhandledInput(Node node, Action<InputEvent> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            return OnUnhandledInput(node, input => {
-                action.Invoke(input);
-                return false;
-            }, pauseMode);
-        }
-
-        public INodeEvent OnUnhandledInput(Node node, Func<InputEvent, bool> action, PauseModeEnum pauseMode = PauseModeEnum.Inherit) {
-            var nodeEvent = new Event<Func<InputEvent, bool>>(node, action, pauseMode);
+            var nodeEvent = new Event<Action<InputEvent>>(node, action, pauseMode);
             OnUnhandledInputList.Add(nodeEvent);
             SetProcessUnhandledInput(true);
             return nodeEvent;
@@ -130,7 +116,7 @@ namespace Betauer.Nodes {
                 if (nodeOnProcess.IsEnabled(isTreePaused)) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
                     if (!isInputHandled) {
-                        if (nodeOnProcess.Delegate.Invoke(e)) _sceneTree.SetInputAsHandled();
+                        nodeOnProcess.Delegate.Invoke(e);
                     }
                 }
                 return false;
@@ -149,7 +135,7 @@ namespace Betauer.Nodes {
                 if (nodeOnProcess.IsEnabled(isTreePaused)) {
                     isInputHandled = isInputHandled || _sceneTree.IsInputHandled();
                     if (!isInputHandled) {
-                        if (nodeOnProcess.Delegate.Invoke(e)) _sceneTree.SetInputAsHandled();
+                        nodeOnProcess.Delegate.Invoke(e);
                     }
                 }
                 return false;
@@ -174,14 +160,8 @@ UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => NodeName(e.N
         public static INodeEvent OnPhysicsProcess(this Node node, Action<float> action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) =>
             DefaultNodeHandler.Instance.OnPhysicsProcess(node, action, pauseMode);
 
-        public static INodeEvent OnInput(this Node node, Func<InputEvent, bool> action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) =>
-            DefaultNodeHandler.Instance.OnInput(node, action, pauseMode);
-
         public static INodeEvent OnInput(this Node node, Action<InputEvent> action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) =>
             DefaultNodeHandler.Instance.OnInput(node, action, pauseMode);
-
-        public static INodeEvent OnUnhandledInput(this Node node, Func<InputEvent, bool> action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) =>
-            DefaultNodeHandler.Instance.OnUnhandledInput(node, action, pauseMode);
 
         public static INodeEvent OnUnhandledInput(this Node node, Action<InputEvent> action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) =>
             DefaultNodeHandler.Instance.OnUnhandledInput(node, action, pauseMode);

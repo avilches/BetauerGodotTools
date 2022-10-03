@@ -68,7 +68,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
             _cameraController = new DragCameraController(_camera2D, ButtonList.Middle, 1.8f, 100f);
-            this.OnInput(_cameraController.DragCamera);
+            this.OnInput((e) => _cameraController.DragCamera(e));
 
             _tweenStack = new AnimationStack("Player.AnimationStack");
             _restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)
