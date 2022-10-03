@@ -39,7 +39,7 @@ namespace Veronenger.Game.Managers {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
             attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
-            _playerAttackBus.OnEventFilter(attackArea2D, enterMethod);
+            _playerAttackBus.OnEvent((area2d, _) => enterMethod(area2d)).WithFilter(attackArea2D);
         }
 
         public void ConfigureEnemyCollisions(KinematicBody2D enemy) {

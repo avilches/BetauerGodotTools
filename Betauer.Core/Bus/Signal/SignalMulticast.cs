@@ -8,9 +8,9 @@ namespace Betauer.Bus.Signal {
         where TPublisher : Object
         where TFilter : Object {
         public readonly string? Name;
-        public readonly List<EventHandler> EventHandlers = new();
+        public readonly List<EventHandler> Handlers = new();
 
-        protected SignalMulticast(string name) {
+        protected SignalMulticast(string? name = null) {
             Name = name;
         }
 
@@ -19,7 +19,7 @@ namespace Betauer.Bus.Signal {
         protected abstract bool Matches(TSignalArgs signalArgs, TFilter detect);
 
         public void Publish(TPublisher publisher, TSignalArgs signalArgs) {
-            EventHandlers.RemoveAll((handler) => {
+            Handlers.RemoveAll((handler) => {
                 if (!handler.IsValid()) return true; // Deleting handler
                 if (handler.Filter == null || Matches(signalArgs, handler.Filter)) {
                     handler.Action(publisher, signalArgs);
@@ -28,40 +28,21 @@ namespace Betauer.Bus.Signal {
             });
         }
 
-        public EventHandler OnEventFilter(TFilter filter, Action<TPublisher> action) {
-            return OnEventFilter(filter, (publisher, _) => action(publisher));
-        }
-
-        public EventHandler OnEventFilter(TFilter filter, Action<TPublisher, TSignalArgs> action) {
-            var eventHandler = new EventHandler(action).WithFilter(filter);
-            AddEventHandler(eventHandler);
-            return eventHandler;
-        }
-
-        public EventHandler OnEvent(Object watch, Action<TPublisher, TSignalArgs> action) {
-            var eventHandler = new EventHandler(action).RemoveIfInvalid(watch);
-            AddEventHandler(eventHandler);
-            return eventHandler;
-        }
-
         public EventHandler OnEvent(Action<TPublisher, TSignalArgs> action) {
             var eventHandler = new EventHandler(action);
-            AddEventHandler(eventHandler);
+            Handlers.Add(eventHandler);
             return eventHandler;
         }
 
-        public void AddEventHandler(EventHandler eventHandler) {
-            EventHandlers.Add(eventHandler);
-        }
-
-        public void RemoveEventHandler(EventHandler eventHandler) {
-            EventHandlers.Remove(eventHandler);
+        public void Dispose() {
+            Handlers.Clear();
         }
 
         public class EventHandler {
             public readonly Action<TPublisher, TSignalArgs> Action;
             public Object? Watch { get; private set; }
             public TFilter? Filter { get; private set; }
+            private bool _removed = false;
 
             internal EventHandler(Action<TPublisher, TSignalArgs> action) {
                 Action = action;
@@ -77,8 +58,13 @@ namespace Betauer.Bus.Signal {
                 return this;
             }
 
+            internal void Remove() {
+                _removed = true;
+            }
+
             public bool IsValid() {
-                return (Watch == null || Object.IsInstanceValid(Watch)) && 
+                return !_removed &&
+                       (Watch == null || Object.IsInstanceValid(Watch)) && 
                        (Filter == null || Object.IsInstanceValid(Filter));
             }
         }

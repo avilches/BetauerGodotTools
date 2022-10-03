@@ -7,9 +7,9 @@ namespace Betauer.Bus.Signal {
         where TPublisher : Object
         where TFilter : Object {
         public readonly string? Name;
-        public Action<TPublisher, TSignalArgs>? EventHandler;
+        public readonly EventHandler Handler = new();
 
-        protected SignalUnicast(string name) {
+        protected SignalUnicast(string? name = null) {
             Name = name;
         }
 
@@ -18,27 +18,48 @@ namespace Betauer.Bus.Signal {
         protected abstract bool Matches(TSignalArgs signalArgs, TFilter detect);
 
         public void Publish(TPublisher publisher, TSignalArgs signalArgs) {
-            EventHandler?.Invoke(publisher, signalArgs);
+            if (Handler.Action == null) return;
+            
+            if (!Handler.IsValid()) {
+                Handler.Remove();
+                return;
+            }
+            if (Handler.Action != null && 
+                (Handler.Filter == null || Matches(signalArgs, Handler.Filter))) {
+                Handler.Action(publisher, signalArgs);
+            }
         }
 
-        public void RemoveEventFilter() => EventHandler = null;
-
-        public void OnEventFilter(TFilter filter, Action<TPublisher> action) {
-            OnEventFilter(filter, (publisher, signalArgs) => action(publisher));
+        public EventHandler OnEvent(Action<TPublisher, TSignalArgs> action) {
+            Handler.Action = action;
+            return Handler;
         }
 
-        public void OnEventFilter(TFilter filter, Action<TPublisher, TSignalArgs> action) {
-            EventHandler = (publisher, signalArgs) => {
-                if (Matches(signalArgs, filter)) action(publisher, signalArgs);
-            };
-        }
+        public class EventHandler {
+            public Action<TPublisher, TSignalArgs>? Action { get; internal set; }
+            public Object? Watch { get; private set; }
+            public TFilter? Filter { get; private set; }
 
-        public void OnEvent(Action<TPublisher, TSignalArgs> action) {
-            EventHandler = action;
-        }
+            public EventHandler RemoveIfInvalid(Object? owner) {
+                Watch = owner;
+                return this;
+            }
 
-        public void OnEvent(Action<TSignalArgs> action) {
-            EventHandler = (_, args) => action(args);
+            public EventHandler WithFilter(TFilter? detect) {
+                Filter = detect;
+                return this;
+            }
+
+            public bool IsValid() {
+                return (Watch == null || Object.IsInstanceValid(Watch)) && 
+                       (Filter == null || Object.IsInstanceValid(Filter));
+            }
+
+            public void Remove() {
+                Action = null;
+                Watch = null;
+                Filter = null;
+            }
         }
 
     }
