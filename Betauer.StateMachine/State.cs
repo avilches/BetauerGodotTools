@@ -15,7 +15,7 @@ namespace Betauer.StateMachine {
         public Task Suspend(TStateKey to);
         public Task Exit(TStateKey to);
 
-        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>?
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>?
             Events { get; }
 
     }
@@ -23,7 +23,7 @@ namespace Betauer.StateMachine {
     public abstract class BaseState<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
-        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
 
         protected BaseState(TStateKey key) {
             Key = key;
@@ -54,7 +54,7 @@ namespace Betauer.StateMachine {
     public class State<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         public TStateKey Key { get; }
-        public Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
 
         private readonly Func<TStateKey, Task>? _enter;
         private readonly Func<TStateKey, Task>? _awake;
@@ -73,7 +73,7 @@ namespace Betauer.StateMachine {
             Func<TStateKey, Task>? exit = null,
             Func<TStateKey, Task>? suspend = null,
             Func<TStateKey, Task>? awake = null,
-            Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events = null) {
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events = null) {
             Key = key;
             _enter = enter;
             _execute = execute;

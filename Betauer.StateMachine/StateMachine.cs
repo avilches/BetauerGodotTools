@@ -67,7 +67,7 @@ namespace Betauer.StateMachine {
         private readonly Stack<IState<TStateKey, TTransitionKey>> _stack = new();
         private readonly ExecuteContext<TStateKey, TTransitionKey> _executeContext = new();
         private readonly TriggerContext<TStateKey> _triggerContext = new();
-        private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
+        private EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteTransition<TStateKey, TTransitionKey>> _onError; 
         private Change _nextChange;
         private readonly TStateKey _initialState;
@@ -104,7 +104,7 @@ namespace Betauer.StateMachine {
 
         public void On(TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
+            _events ??= new EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
             _events[transitionKey] = transition;
         }
 
@@ -150,8 +150,7 @@ namespace Betauer.StateMachine {
         }
         
         public async Task Execute(float delta) {
-            if (_disposed) return;
-            if (!Available) return;
+            if (_disposed || !Available) return;
             lock (_lockObject) {
                 if (!Available) return;
                 Available = false;
@@ -161,7 +160,7 @@ namespace Betauer.StateMachine {
                 var change = NoChange;
                 if (_nextTransitionDefined) {
                     _nextTransitionDefined = false;
-                    var triggerTransition = GetTransitionFromTrigger(_nextTransition);
+                    var triggerTransition = FindTransition(_nextTransition);
                     change = CreateChange(triggerTransition);
                 } else if (!_initialized) {
                     var state = FindState(_initialState); // Call to ensure initial state exists
@@ -230,7 +229,7 @@ namespace Betauer.StateMachine {
 
         private Change CreateChange(ExecuteTransition<TStateKey, TTransitionKey> candidate) {
             if (candidate.IsTrigger() ) {
-                candidate = GetTransitionFromTrigger(candidate.TransitionKey);
+                candidate = FindTransition(candidate.TransitionKey);
             }
             if (CurrentState != null && candidate.IsSet(CurrentState.Key)) {
                 return NoChange;
@@ -252,27 +251,14 @@ namespace Betauer.StateMachine {
         }
 
 
-        private ExecuteTransition<TStateKey, TTransitionKey> GetTransitionFromTrigger(TTransitionKey name) {
-            TriggerTransition<TStateKey> triggerTransition = default;
-            var found = false;
-            var stateEvents = CurrentState != null ? FindState(CurrentState.Key)?.Events : null;
-            if (stateEvents != null) {
-                // TODO: use TryGetValue instead
-                if (stateEvents.ContainsKey(name)) {
-                    triggerTransition = stateEvents[name].Invoke(_triggerContext);
-                    found = true;
-                }
+        private ExecuteTransition<TStateKey, TTransitionKey> FindTransition(TTransitionKey name) {
+            if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var stateTransition)) {
+                return stateTransition(_triggerContext).ToTransition<TTransitionKey>();
             }
-            // TODO: use TryGetValue instead
-            if (!found && _events != null && _events.ContainsKey(name)) {
-                triggerTransition = _events[name].Invoke(_triggerContext);
-                found = true;
+            if (_events != null && _events.TryGetValue(name, out var globalTrans)) {
+                return globalTrans(_triggerContext).ToTransition<TTransitionKey>();
             }
-            if (!found) {
-                throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");
-            }
-            var transition = triggerTransition.ToTransition<TTransitionKey>();
-            return transition;
+            throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");
         }
 
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {

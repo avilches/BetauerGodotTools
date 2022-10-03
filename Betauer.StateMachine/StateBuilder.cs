@@ -14,7 +14,7 @@ namespace Betauer.StateMachine {
         private Func<TStateKey, Task>? _exit;
         private Func<TStateKey, Task>? _suspend;
         private Func<TStateKey, Task>? _awake;
-        private Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
+        private EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? _events;
         private readonly TStateKey _key;
         private readonly Action<IState<TStateKey, TTransitionKey>> _onBuild;
 
@@ -26,7 +26,7 @@ namespace Betauer.StateMachine {
         public StateBuilder<TStateKey, TTransitionKey> On(
             TTransitionKey transitionKey,
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new Dictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
+            _events ??= new EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
             _events.Add(transitionKey, transition);
             return this;
         }
