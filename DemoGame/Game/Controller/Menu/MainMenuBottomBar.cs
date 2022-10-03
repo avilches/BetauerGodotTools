@@ -9,7 +9,7 @@ using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<MenuFlowManager.State> {
+    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<MainState> {
         [OnReady("%ActionHint1")] private ActionHint _actionHint1;
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;
         [OnReady("%ActionHint3")] private ActionHint _actionHint3;
@@ -65,36 +65,36 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton(null, UiCancel, false, "Back");
         }
 
-        public void OnEnter(MenuFlowManager.State state, MenuFlowManager.State from) {
+        public void OnEnter(MainState state, MainState from) {
         }
 
-        public void OnAwake(MenuFlowManager.State state, MenuFlowManager.State from) {
+        public void OnAwake(MainState state, MainState from) {
         }
 
-        public void OnSuspend(MenuFlowManager.State state, MenuFlowManager.State to) {
+        public void OnSuspend(MainState state, MainState to) {
         }
 
-        public void OnExit(MenuFlowManager.State state, MenuFlowManager.State to) {
+        public void OnExit(MainState state, MainState to) {
         }
 
-        public void OnExecuteStart(float delta, MenuFlowManager.State state) {
+        public void OnExecuteStart(float delta, MainState state) {
         }
 
-        public void OnExecuteEnd(MenuFlowManager.State state) {
+        public void OnExecuteEnd(MainState state) {
         }
 
-        public void OnTransition(MenuFlowManager.State from, MenuFlowManager.State to) {
+        public void OnTransition(MainState from, MainState to) {
             switch (to) {
-                case MenuFlowManager.State.ModalExitDesktop:
-                case MenuFlowManager.State.ModalQuitGame:
+                case MainState.ModalExitDesktop:
+                case MainState.ModalQuitGame:
                     ConfigureModalAcceptCancel();
                     break;
-                case MenuFlowManager.State.MainMenu:
-                case MenuFlowManager.State.PauseMenu:
+                case MainState.MainMenu:
+                case MainState.PauseMenu:
                     ConfigureMenuAcceptBack();
                     break;
-                case MenuFlowManager.State.Gaming:
-                case MenuFlowManager.State.ExitDesktop:
+                case MainState.Gaming:
+                case MainState.ExitDesktop:
                     HideAll();
                     break;
             }

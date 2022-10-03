@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Betauer.StateMachine {
     public interface IStateMachine<out TStateBuilder, TStateKey, TTransitionKey> where TStateKey : Enum where TTransitionKey : Enum {
         public void AddState(IState<TStateKey, TTransitionKey> state);
-        public TStateBuilder CreateState(TStateKey stateKey);
+        public TStateBuilder State(TStateKey stateKey);
         public void AddListener(IStateMachineListener<TStateKey> machineListener);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition);
         public bool IsState(TStateKey state);

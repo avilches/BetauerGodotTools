@@ -31,7 +31,7 @@ namespace Betauer.StateMachine {
             internal RealStateMachineNode(TStateKey initialState, string? name = null) : base(initialState, name) {
             }
 
-            public override StateNodeBuilder<TStateKey, TTransitionKey> CreateState(TStateKey stateKey) {
+            public override StateNodeBuilder<TStateKey, TTransitionKey> State(TStateKey stateKey) {
                 return new StateNodeBuilder<TStateKey, TTransitionKey>(stateKey, AddState);
             }
         }
@@ -63,7 +63,7 @@ namespace Betauer.StateMachine {
         public void RemoveOnExecuteStart(Action<float, TStateKey> e) => StateMachine.RemoveOnExecuteStart(e);
         public void RemoveOnExecuteEnd(Action<TStateKey> e) => StateMachine.RemoveOnExecuteEnd(e);
         public void AddListener(IStateMachineListener<TStateKey> machineListener) => StateMachine.AddListener(machineListener);
-        public StateNodeBuilder<TStateKey, TTransitionKey> CreateState(TStateKey stateKey) => StateMachine.CreateState(stateKey);
+        public StateNodeBuilder<TStateKey, TTransitionKey> State(TStateKey stateKey) => StateMachine.State(stateKey);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) => StateMachine.On(transitionKey, transition);
         public void AddState(IState<TStateKey, TTransitionKey> state) => StateMachine.AddState(state);
         public void Enqueue(TTransitionKey name) => StateMachine.Enqueue(name);

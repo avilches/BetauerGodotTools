@@ -35,12 +35,12 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuContainer _menuContainer;
 
-        [Inject] private MenuFlowManager MenuFlowManager { get; set; }
+        [Inject] private MainGameManager MainGameManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction ControllerStart { get; set; }
-        [Inject] private Multicast<MenuFlowManager.Transition> MenuFlowBus { get; set; }
+        [Inject] private Multicast<MainTransition> MainBus { get; set; }
 
         public override void _Ready() {
             _menuContainer = BuildMenu();
@@ -82,23 +82,23 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetStartMenu();
-            startMenu.AddButton("Resume", "Resume").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.Back)); // MenuFlowManager.TriggerBack());
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.Settings)); // MenuFlowManager.TriggerSettings());
-            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.ModalBoxConfirmQuitGame)); // MenuFlowManager.TriggerModalBoxConfirmQuitGame());
+            startMenu.AddButton("Resume", "Resume").OnPressed(() => MainBus.Publish(MainTransition.Back));
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => MainBus.Publish(MainTransition.Settings));
+            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => MainBus.Publish(MainTransition.ModalBoxConfirmQuitGame));
             return mainMenu;
         }
 
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) {
                 if (_menuContainer.IsStartMenuActive()) {
-                    MenuFlowBus.Publish(MenuFlowManager.Transition.Back);
+                    MainBus.Publish(MainTransition.Back);
                 } else {
                     _menuContainer.Back();
                 }
                 GetTree().SetInputAsHandled();
 
             } else if (ControllerStart.IsJustPressed()) {
-                MenuFlowBus.Publish(MenuFlowManager.Transition.Back);
+                MainBus.Publish(MainTransition.Back);
                 GetTree().SetInputAsHandled();
                 
             }

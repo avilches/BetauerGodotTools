@@ -58,7 +58,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Panel/RedefineBox/ActionName")] 
         private Label _redefineActionName;
 
-        [Inject] private MenuFlowManager MenuFlowManager { get; set; }
+        [Inject] private MainGameManager MainGameManager { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
@@ -75,7 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction Right { get; set; }
         
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
-        [Inject] private Multicast<MenuFlowManager.Transition> MenuFlowBus { get; set; }
+        [Inject] private Multicast<MainTransition> MainBus { get; set; }
 
         private Restorer _restorer;
 
@@ -116,7 +116,7 @@ namespace Veronenger.Game.Controller.Menu {
             _fullscreenButtonWrapper
                 .OnFocusEntered(() => {
                     _scrollContainer.ScrollVertical = 0;
-                    MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+                    MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 });
             _fullscreenButtonWrapper.OnToggled(isChecked => {
                 _resolutionButton.SetFocusDisabled(isChecked);
@@ -129,19 +129,19 @@ namespace Veronenger.Game.Controller.Menu {
             });
             _resolutionButton.OnFocusEntered(() => {
                 UpdateResolutionButton();
-                MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsResolution();
+                MainGameManager.MainMenuBottomBarScene.ConfigureSettingsResolution();
             });
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
-            _pixelPerfectButtonWrapper.OnFocusEntered(MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _pixelPerfectButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _pixelPerfectButtonWrapper.OnPressed(() => {
                 _screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.Pressed);
                 CheckIfResolutionStillMatches();
             });
 
-            _borderlessButtonWrapper.OnFocusEntered(MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _borderlessButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _borderlessButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetBorderless(isChecked));
 
-            _vsyncButtonWrapper.OnFocusEntered(MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _vsyncButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _vsyncButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetVSync(isChecked));
         }
 
@@ -162,7 +162,7 @@ namespace Veronenger.Game.Controller.Menu {
             AddConfigureControl("Attack", Attack, true);
             
             _keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).OnFocusEntered(() => {
-                MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+                MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 _scrollContainer.ScrollVertical = int.MaxValue;
             });
         }
@@ -170,7 +170,7 @@ namespace Veronenger.Game.Controller.Menu {
         private void AddConfigureControl(string name, InputAction action, bool isKey) {
             var button = MainResourceLoader.RedefineActionButtonFactory();
             button.OnPressed(() => ShowRedefineActionPanel(button));
-            button.OnFocusEntered(MenuFlowManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            button.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             button.SetInputAction(name, action, isKey);
             if (isKey) _keyboardControls.AddChild(button);
             else _gamepadControls.AddChild(button);
@@ -248,7 +248,7 @@ namespace Veronenger.Game.Controller.Menu {
                 GetTree().SetInputAsHandled();
                 
             } else if (UiCancel.IsEventPressed(e)) {
-                MenuFlowBus.Publish(MenuFlowManager.Transition.Back);
+                MainBus.Publish(MainTransition.Back);
                 GetTree().SetInputAsHandled();
                 
             } else if (_resolutionButton.HasFocus()) {
@@ -271,7 +271,7 @@ namespace Veronenger.Game.Controller.Menu {
             _redefineActionName.Text = button.ActionName;
             // TODO: i18n
             _redefineActionMessage.Text = button.IsKey ? "Press key for..." : "Press button for...";
-            MenuFlowManager.MainMenuBottomBarScene.HideAll();
+            MainGameManager.MainMenuBottomBarScene.HideAll();
         }
 
         private void RedefineControlFromInputEvent(InputEvent e) {

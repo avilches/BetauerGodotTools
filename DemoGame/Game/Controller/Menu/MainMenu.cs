@@ -26,7 +26,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuContainer _menuContainer;
 
-        [Inject] private Multicast<MenuFlowManager.Transition> MenuFlowBus { get; set; }
+        [Inject] private Multicast<MainTransition> MainBus { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -69,9 +69,9 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetStartMenu();
-            startMenu.AddButton("Start", "Start").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.StartGame));
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.Settings));
-            startMenu.AddButton("Exit", "Exit").OnPressed(() => MenuFlowBus.Publish(MenuFlowManager.Transition.ExitDesktop));
+            startMenu.AddButton("Start", "Start").OnPressed(() => MainBus.Publish(MainTransition.StartGame));
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => MainBus.Publish(MainTransition.Settings));
+            startMenu.AddButton("Exit", "Exit").OnPressed(() => MainBus.Publish(MainTransition.ExitDesktop));
             return mainMenu;
         }
 
@@ -90,7 +90,7 @@ namespace Veronenger.Game.Controller.Menu {
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) { 
                 if (_menuContainer.IsStartMenuActive()) {
-                    MenuFlowBus.Publish(MenuFlowManager.Transition.ModalBoxConfirmExitDesktop);
+                    MainBus.Publish(MainTransition.ModalBoxConfirmExitDesktop);
                 } else {
                     _menuContainer.Back();
                 }

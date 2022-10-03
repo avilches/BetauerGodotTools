@@ -15,7 +15,7 @@ namespace Betauer.StateMachine {
         public BaseStateMachine(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
-        public override StateBuilder<TStateKey, TTransitionKey> CreateState(TStateKey stateKey) {
+        public override StateBuilder<TStateKey, TTransitionKey> State(TStateKey stateKey) {
             return new StateBuilder<TStateKey, TTransitionKey>(stateKey, AddState);
         }
     }
@@ -106,7 +106,7 @@ namespace Betauer.StateMachine {
             OnExecuteEnd += machineListener.OnExecuteEnd;
         }
 
-        public abstract TStateBuilder CreateState(TStateKey stateKey);
+        public abstract TStateBuilder State(TStateKey stateKey);
 
         public void AddState(IState<TStateKey, TTransitionKey> state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
