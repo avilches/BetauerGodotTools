@@ -16,7 +16,7 @@ namespace Betauer.Tests.Signal {
         }
 
         [Test]
-        public async Task AreaShapeOnArea2DFilterMulticastTest() {
+        public void AreaShapeOnArea2DFilterMulticastTest() {
             var body1Calls = 0;
             var body2Calls = 0;
             var noFilter = 0;
@@ -73,7 +73,7 @@ namespace Betauer.Tests.Signal {
         }
 
         [Test]
-        public async Task AreaShapeOnArea2DFilterUnicastTest() {
+        public void AreaShapeOnArea2DFilterUnicastTest() {
             var calls = 0;
             Area2D area1 = new Area2D();
             Area2D area2 = new Area2D();

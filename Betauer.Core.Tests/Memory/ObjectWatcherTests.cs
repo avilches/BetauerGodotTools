@@ -41,7 +41,7 @@ namespace Betauer.Tests.Memory {
         }
 
         [Test]
-        public async Task WatchAndUnwatchTest() {
+        public void WatchAndUnwatchTest() {
             Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
             
             var origin = new Object();
