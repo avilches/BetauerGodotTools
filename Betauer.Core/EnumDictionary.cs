@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Betauer {
-    public class EnumDictionary<TKey, TValue> : IDictionary<TKey, TValue> where TKey : struct, Enum {
-        private readonly TValue[] _values;
+    public class EnumDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+        where TKey : Enum
+        where TValue : class {
+        private readonly TValue?[] _values;
         private readonly TKey[] _keys;
         public int Count { get; }
 
@@ -15,7 +17,7 @@ namespace Betauer {
 
         private int GetPos(TKey key) {
             for (var pos = 0; pos < Count; pos++) {
-                if (EqualityComparer<TKey>.Default.Equals( _keys[pos], key)) return pos;
+                if (EqualityComparer<TKey>.Default.Equals(_keys[pos], key)) return pos;
             }
             return -1; // this will never happen
         }
@@ -32,7 +34,7 @@ namespace Betauer {
             foreach (var key in Keys) _values[GetPos(key)] = filler(key);
         }
 
-        public TValue this[TKey key] {
+        public TValue? this[TKey key] {
             get => _values[GetPos(key)];
             set => _values[GetPos(key)] = value;
         }
@@ -49,7 +51,7 @@ namespace Betauer {
         public ICollection<TValue> Values => _values;
 
         public void Clear() {
-            Fill(e => default);
+            Fill(e => null);
         }
 
         public void Add(KeyValuePair<TKey, TValue> item) {
@@ -57,7 +59,7 @@ namespace Betauer {
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item) {
-            return this[item.Key]?.Equals(item.Value) ?? false;
+            return item.Value == null ? this[item.Key] == null : this[item.Key]?.Equals(item.Value) ?? false;
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
@@ -65,27 +67,28 @@ namespace Betauer {
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item) {
-            this[item.Key] = default;
+            this[item.Key] = null;
             return true;
         }
 
         public bool IsReadOnly => false;
+
         public void Add(TKey key, TValue value) {
             this[key] = value;
         }
 
         public bool ContainsKey(TKey key) {
-            return true;
+            return this[key] is not null;
         }
 
         public bool Remove(TKey key) {
-            this[key] = default;
+            this[key] = null;
             return true;
         }
 
         public bool TryGetValue(TKey key, out TValue value) {
             value = this[key];
-            return true;
+            return value is not null;
         }
 
         public class Enumerator : IEnumerator<KeyValuePair<TKey, TValue>> {
@@ -104,7 +107,7 @@ namespace Betauer {
                 // dictionary.count+1 could be negative if dictionary.count is int.MaxValue
                 if ((uint)_index < (uint)_enumDictionary.Count) {
                     TKey key = _enumDictionary._keys[_index];
-                    TValue value = _enumDictionary[key];
+                    TValue? value = _enumDictionary[key];
                     _current = new KeyValuePair<TKey, TValue>(key, value);
                     _index++;
                     return true;
