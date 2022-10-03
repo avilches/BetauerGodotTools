@@ -72,7 +72,7 @@ namespace Betauer {
         protected T Node2D { get; }
         private bool _isFacingRight = false;
 
-        public Flipper(T node2D) {
+        protected Flipper(T node2D) {
             Node2D = node2D;
             _isFacingRight = LoadIsFacingRight();
         }

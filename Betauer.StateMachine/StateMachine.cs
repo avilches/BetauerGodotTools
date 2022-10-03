@@ -68,7 +68,7 @@ namespace Betauer.StateMachine {
         public event Action<float, TStateKey>? OnExecuteStart;
         public event Action<TStateKey>? OnExecuteEnd;
 
-        public BaseStateMachine(TStateKey initialState, string? name = null) {
+        protected BaseStateMachine(TStateKey initialState, string? name = null) {
             _initialState = initialState;
             Name = name;
             Logger = name == null ? StaticLogger : LoggerFactory.GetLogger(name);
