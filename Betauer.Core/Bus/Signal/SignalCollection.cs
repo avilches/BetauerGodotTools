@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Signal.Bus {
+namespace Betauer.Bus.Signal {
     public abstract class SignalCollection<TEmitter, TSignalParams, TObject>
         where TEmitter : Object
         where TObject : Object {

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Signal.Bus {
+namespace Betauer.Bus.Signal {
     public abstract class SignalStatus<TEmitter, TSignalParams, TObject>
         where TEmitter : Object
         where TObject : Object {

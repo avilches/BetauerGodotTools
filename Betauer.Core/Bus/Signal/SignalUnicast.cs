@@ -1,18 +1,19 @@
 using System;
+using Betauer.Signal;
 using Object = Godot.Object;
 
-namespace Betauer.Signal.Bus {
-    public abstract class Unicast<TEmitter, TSignalParams, TFilter>
+namespace Betauer.Bus.Signal {
+    public abstract class SignalUnicast<TEmitter, TSignalParams, TFilter>
         where TEmitter : Object
         where TFilter : Object {
         public readonly string? Name;
         public Action<TEmitter, TSignalParams>? EventHandler;
 
-        protected Unicast(string name) {
+        protected SignalUnicast(string name) {
             Name = name;
         }
 
-        public abstract SignalHandler Connect(TEmitter area2D);
+        public abstract SignalHandler Connect(TEmitter emitter);
 
         public void Emit(TEmitter origin, TSignalParams signalParams) {
             EventHandler?.Invoke(origin, signalParams);

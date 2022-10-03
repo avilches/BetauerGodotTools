@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Signal;
 using Object = Godot.Object;
 
-namespace Betauer.Signal.Bus {
-    public abstract class Multicast<TEmitter, TSignalParams, TFilter>
+namespace Betauer.Bus.Signal {
+    public abstract class SignalMulticast<TEmitter, TSignalParams, TFilter>
         where TEmitter : Object
         where TFilter : Object {
         public readonly string? Name;
-        public readonly List<EventHandler> EventHandlers = new List<EventHandler>();
+        public readonly List<EventHandler> EventHandlers = new();
 
-        protected Multicast(string name) {
+        protected SignalMulticast(string name) {
             Name = name;
         }
 
-        public abstract SignalHandler Connect(TEmitter area2D);
+        public abstract SignalHandler Connect(TEmitter emitter);
 
         public void Emit(TEmitter origin, TSignalParams signalParams) {
             EventHandlers.RemoveAll((handler) => {

@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Godot;
 using Betauer;
+using Betauer.Bus.Signal;
 using Betauer.DI;
 using Betauer.Signal;
-using Betauer.Signal.Bus;
 using static Veronenger.Game.LayerConstants;
 
 namespace Veronenger.Game.Managers {

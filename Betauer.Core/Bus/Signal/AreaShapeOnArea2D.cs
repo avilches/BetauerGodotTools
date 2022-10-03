@@ -1,7 +1,8 @@
+using Betauer.Signal;
 using Godot;
 
-namespace Betauer.Signal.Bus {
-    public static class BodyShapeOnArea2D {
+namespace Betauer.Bus.Signal {
+    public static class AreaShapeOnArea2D {
         public class Collection : SignalCollection<Area2D, (RID, Node, int, int), Node> {
             
             public Collection(string? name = null) : base(name) {
@@ -14,8 +15,8 @@ namespace Betauer.Signal.Bus {
             }
 
             public Collection Connect(Area2D area2D) {
-                area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => OnEnter(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
-                area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => OnExit(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
+                area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => OnEnter(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
+                area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => OnExit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
                 return this;
             }
         }
@@ -26,21 +27,21 @@ namespace Betauer.Signal.Bus {
             }
             
             public Status Connect(Area2D area2DFrom) {
-                area2DFrom.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => OnEnter(area2DFrom, (rid, node, bodyShapeIndex, localShapeIndex)));
-                area2DFrom.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => OnExit(area2DFrom, (rid, node, bodyShapeIndex, localShapeIndex)));
+                area2DFrom.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => OnEnter(area2DFrom, (rid, node, areaShapeIndex, localShapeIndex)));
+                area2DFrom.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => OnExit(area2DFrom, (rid, node, areaShapeIndex, localShapeIndex)));
                 return this;
             }
         }
     }
 
-    public static class BodyShapeOnArea2DEntered {
-        public class Multicast : Multicast<Area2D, (RID, Node, int, int), Node> {
+    public static class AreaShapeOnArea2DEntered {
+        public class Multicast : SignalMulticast<Area2D, (RID, Node, int, int), Node> {
             public Multicast(string name) : base(name) {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -48,13 +49,13 @@ namespace Betauer.Signal.Bus {
             }
         }
 
-        public class Unicast : Unicast<Area2D, (RID, Node, int, int), Node> {
+        public class Unicast : SignalUnicast<Area2D, (RID, Node, int, int), Node> {
             public Unicast(string name) : base(name) {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -63,14 +64,14 @@ namespace Betauer.Signal.Bus {
         }
     }
 
-    public static class BodyShapeOnArea2DExited {
-        public class Multicast : Multicast<Area2D, (RID, Node, int, int), Node> {
+    public static class AreaShapeOnArea2DExited {
+        public class Multicast : SignalMulticast<Area2D, (RID, Node, int, int), Node> {
             public Multicast(string name) : base(name) {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {
@@ -78,13 +79,13 @@ namespace Betauer.Signal.Bus {
             }
         }
 
-        public class Unicast : Unicast<Area2D, (RID, Node, int, int), Node> {
+        public class Unicast : SignalUnicast<Area2D, (RID, Node, int, int), Node> {
             public Unicast(string name) : base(name) {
             }
 
             public override SignalHandler Connect(Area2D area2D) {
                 // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, bodyShapeIndex, localShapeIndex)));
+                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Emit(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
             }
 
             protected override bool Matches((RID, Node, int, int) e, Node detect) {

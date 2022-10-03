@@ -1,7 +1,7 @@
 using Godot;
 using Betauer;
+using Betauer.Bus.Signal;
 using Betauer.DI;
-using Betauer.Signal.Bus;
 using Veronenger.Game.Controller.Stage;
 using static Veronenger.Game.LayerConstants;
 

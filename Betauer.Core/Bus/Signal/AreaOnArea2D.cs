@@ -1,6 +1,7 @@
+using Betauer.Signal;
 using Godot;
 
-namespace Betauer.Signal.Bus {
+namespace Betauer.Bus.Signal {
     public static class AreaOnArea2D {
         public class Collection : SignalCollection<Area2D, Area2D, Area2D> {
 
@@ -34,7 +35,7 @@ namespace Betauer.Signal.Bus {
     }
 
     public static class AreaOnArea2DEntered {
-        public class Multicast : Multicast<Area2D, Area2D, Area2D> {
+        public class Multicast : SignalMulticast<Area2D, Area2D, Area2D> {
             public Multicast(string name) : base(name) {
             }
 
@@ -47,7 +48,7 @@ namespace Betauer.Signal.Bus {
             }
         }
 
-        public class Unicast : Unicast<Area2D, Area2D, Area2D> {
+        public class Unicast : SignalUnicast<Area2D, Area2D, Area2D> {
             public Unicast(string name) : base(name) {
             }
 
@@ -62,7 +63,7 @@ namespace Betauer.Signal.Bus {
     }
 
     public static class AreaOnArea2DExited {
-        public class Multicast : Multicast<Area2D, Area2D, Area2D> {
+        public class Multicast : SignalMulticast<Area2D, Area2D, Area2D> {
             public Multicast(string name) : base(name) {
             }
 
@@ -75,7 +76,7 @@ namespace Betauer.Signal.Bus {
             }
         }
 
-        public class Unicast : Unicast<Area2D, Area2D, Area2D> {
+        public class Unicast : SignalUnicast<Area2D, Area2D, Area2D> {
             public Unicast(string name) : base(name) {
             }
 
