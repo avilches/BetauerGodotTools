@@ -4,11 +4,11 @@ using Betauer.Signal;
 using Object = Godot.Object;
 
 namespace Betauer.Bus.Signal {
-    public abstract class SignalMulticast<TPublisher, TSignalArgs, TFilter>
+    public abstract class SignalMulticast<TPublisher, TArgs, TFilter>
         where TPublisher : Object
         where TFilter : Object {
         public readonly string? Name;
-        public readonly List<EventHandler> Handlers = new();
+        public readonly List<EventConsumer> Consumers = new();
 
         protected SignalMulticast(string? name = null) {
             Name = name;
@@ -16,56 +16,42 @@ namespace Betauer.Bus.Signal {
 
         public abstract SignalHandler Connect(TPublisher publisher);
 
-        protected abstract bool Matches(TSignalArgs signalArgs, TFilter detect);
+        protected abstract bool Matches(TArgs signalArgs, TFilter detect);
 
-        public void Publish(TPublisher publisher, TSignalArgs signalArgs) {
-            Handlers.RemoveAll((handler) => {
-                if (!handler.IsValid()) return true; // Deleting handler
-                if (handler.Filter == null || Matches(signalArgs, handler.Filter)) {
-                    handler.Action(publisher, signalArgs);
+        public void Publish(TPublisher publisher, TArgs signalArgs) {
+            Consumers.RemoveAll((consumer) => {
+                if (!consumer.IsValid()) return true; // Deleting consumer
+                if (consumer.Filter == null || Matches(signalArgs, consumer.Filter)) {
+                    consumer.Execute(publisher, signalArgs);
                 }
                 return false;
             });
         }
 
-        public EventHandler OnEvent(Action<TPublisher, TSignalArgs> action) {
-            var eventHandler = new EventHandler(action);
-            Handlers.Add(eventHandler);
-            return eventHandler;
+        public EventConsumer OnEvent(Action<TPublisher, TArgs> action) {
+            var consumer = new EventConsumer().Do(action);
+            Consumers.Add(consumer);
+            return consumer;
         }
 
         public void Dispose() {
-            Handlers.Clear();
+            Consumers.Clear();
         }
 
-        public class EventHandler {
-            public readonly Action<TPublisher, TSignalArgs> Action;
-            public Object? Watch { get; private set; }
+        public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {
             public TFilter? Filter { get; private set; }
-            private bool _removed = false;
 
-            internal EventHandler(Action<TPublisher, TSignalArgs> action) {
-                Action = action;
-            }
-
-            public EventHandler WithFilter(TFilter? detect) {
+            public EventConsumer WithFilter(TFilter? detect) {
                 Filter = detect;
                 return this;
             }
 
-            public EventHandler RemoveIfInvalid(Object? owner) {
-                Watch = owner;
-                return this;
+            public override bool IsValid() {
+                return base.IsValid() && (Filter == null || Object.IsInstanceValid(Filter));
             }
-
-            public void Remove() {
-                _removed = true;
-            }
-
-            public bool IsValid() {
-                return !_removed &&
-                       (Watch == null || Object.IsInstanceValid(Watch)) && 
-                       (Filter == null || Object.IsInstanceValid(Filter));
+            
+            public override void Remove() {
+                Filter = null;
             }
         }
     }

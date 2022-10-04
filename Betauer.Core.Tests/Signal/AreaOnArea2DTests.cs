@@ -34,7 +34,7 @@ namespace Betauer.Tests.Signal {
             topic.OnEvent((_,_) => body2Calls++).WithFilter(body2);
             topic.OnEvent((_,_) => noFilterNoOwner++);
             topic.OnEvent((_,_) => noFilter++).RemoveIfInvalid(o);
-            Assert.That(topic.Handlers.Count, Is.EqualTo(4));
+            Assert.That(topic.Consumers.Count, Is.EqualTo(4));
 
             // When events are published, the origin doesn't matter
             topic.Publish(area1, body1);
@@ -52,7 +52,7 @@ namespace Betauer.Tests.Signal {
             // When new events are published
             topic.Publish(area1, body2);
             // Then the "Body1" listener with the disposed filter disappear
-            Assert.That(topic.Handlers.Count, Is.EqualTo(3));
+            Assert.That(topic.Consumers.Count, Is.EqualTo(3));
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(3)); // 2 before + 1 now
@@ -62,7 +62,7 @@ namespace Betauer.Tests.Signal {
             o.Free();
             topic.Publish(area1, body1);
 
-            Assert.That(topic.Handlers.Count, Is.EqualTo(2));
+            Assert.That(topic.Consumers.Count, Is.EqualTo(2));
             // And data is ok
             Assert.That(body1Calls, Is.EqualTo(1)); // 1 as before
             Assert.That(body2Calls, Is.EqualTo(3)); // 3 before

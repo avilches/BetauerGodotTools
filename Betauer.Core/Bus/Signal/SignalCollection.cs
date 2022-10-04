@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Bus.Signal {
-    public abstract class SignalCollection<TPublisher, TSignalArgs, TObject>
+    public abstract class SignalCollection<TPublisher, TArgs, TObject>
         where TPublisher : Object
         where TObject : Object {
 
@@ -26,16 +26,16 @@ namespace Betauer.Bus.Signal {
             }
         }
 
-        protected abstract TObject Extract(TSignalArgs signalArgs);
+        protected abstract TObject Extract(TArgs signalArgs);
 
-        protected void OnEnter(TPublisher publisher, TSignalArgs signalArgs) {
+        protected void OnEnter(TPublisher publisher, TArgs signalArgs) {
             lock (Set) {
                 Set.RemoveWhere((e) => !Object.IsInstanceValid(e));
                 Set.Add(Extract(signalArgs));
             }
         }
 
-        protected void OnExit(TPublisher publisher, TSignalArgs signalArgs) {
+        protected void OnExit(TPublisher publisher, TArgs signalArgs) {
             var toRemove = Extract(signalArgs);
             lock (Set) Set.RemoveWhere((e) => e == toRemove || !Object.IsInstanceValid(e));
         }
