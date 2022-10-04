@@ -20,8 +20,8 @@ namespace Veronenger.Game.Managers {
 
         public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
             _stageCameraController = stageCameraController;
-            _enterStageTopic.OnEvent(OnEnterStage).WithFilter(stageDetector);
-            _exitStageTopic.OnEvent(OnExitStage).WithFilter(stageDetector);
+            _enterStageTopic.Subscribe(OnEnterStage).WithFilter(stageDetector);
+            _exitStageTopic.Subscribe(OnExitStage).WithFilter(stageDetector);
         }
 
         public void ConfigureStage(Area2D stageArea2D) {

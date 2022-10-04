@@ -88,6 +88,6 @@ namespace Veronenger.Game.Managers {
         private void AddArea2DFallingPlatformExit(Area2D area2D) => PlatformBodyOutTopicBodyOnArea2D.Connect(area2D);
 
         public void SubscribeFallingPlatformOut(Node filter, Action<Area2D> action) =>
-            PlatformBodyOutTopicBodyOnArea2D.OnEvent((area2D, _) => action(area2D)).WithFilter(filter);
+            PlatformBodyOutTopicBodyOnArea2D.Subscribe((area2D, _) => action(area2D)).WithFilter(filter);
     }
 }

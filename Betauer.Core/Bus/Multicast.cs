@@ -1,6 +1,5 @@
 using System ;
 using System.Collections.Generic;
-using Object = Godot.Object;
 
 namespace Betauer.Bus {
     public class Multicast<TArgs> : Multicast<object, TArgs> {
@@ -8,6 +7,8 @@ namespace Betauer.Bus {
 
     public class Multicast<TPublisher, TArgs> {
         public readonly List<EventConsumer> Consumers = new();
+
+        public Func<TPublisher, TArgs, bool>? Condition;
 
         public void Publish() {
             Publish(default, default);
@@ -17,12 +18,16 @@ namespace Betauer.Bus {
             Publish(default, args);
         }
 
-        public void Publish(TPublisher origin, TArgs args) {
+        public void Publish(TPublisher publisher, TArgs args) {
             Consumers.RemoveAll(consumer => {
                 if (!consumer.IsValid()) return true; // Deleting consumer
-                consumer.Execute(origin, args);
+                if (Condition == null || Condition(publisher, args)) Execute(consumer, publisher, args);
                 return false;
             });
+        }
+
+        protected virtual void Execute(EventConsumer consumer, TPublisher publisher, TArgs args) {
+            consumer.Execute(publisher, args);
         }
 
         public EventConsumer Subscribe(Action action) {
@@ -37,6 +42,10 @@ namespace Betauer.Bus {
             var consumer = new EventConsumer().Do(action);
             Consumers.Add(consumer);
             return consumer;
+        }
+
+        public void Dispose() {
+            Consumers.Clear();
         }
 
         public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {

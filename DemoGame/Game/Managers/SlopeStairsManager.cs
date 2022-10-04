@@ -64,11 +64,11 @@ namespace Veronenger.Game.Managers {
         }
 
         public void SubscribeSlopeStairsEnabler(Node filter, Action<Area2D> enterListener) {
-            EnablerTopic.OnEvent((area2d, _) => enterListener(area2d)).WithFilter(filter);
+            EnablerTopic.Subscribe((area2d, _) => enterListener(area2d)).WithFilter(filter);
         }
 
         public void SubscribeSlopeStairsDisabler(Node filter, Action<Area2D> enterListener) {
-            DisablerTopic.OnEvent((area2d, _) => enterListener(area2d)).WithFilter(filter);
+            DisablerTopic.Subscribe((area2d, _) => enterListener(area2d)).WithFilter(filter);
         }
 
         public bool IsSlopeStairs(PhysicsBody2D platform) => platform.IsInGroup(GROUP_SLOPE_STAIRS);

@@ -28,7 +28,7 @@ namespace Betauer.Bus.Signal {
             });
         }
 
-        public EventConsumer OnEvent(Action<TPublisher, TArgs> action) {
+        public EventConsumer Subscribe(Action<TPublisher, TArgs> action) {
             var consumer = new EventConsumer().Do(action);
             Consumers.Add(consumer);
             return consumer;
@@ -41,8 +41,8 @@ namespace Betauer.Bus.Signal {
         public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {
             public TFilter? Filter { get; private set; }
 
-            public EventConsumer WithFilter(TFilter? detect) {
-                Filter = detect;
+            public EventConsumer WithFilter(TFilter filter) {
+                Filter = filter;
                 return this;
             }
 

@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
+    [Only]
     public class BusUnicastTests {
 
         [Test]
@@ -29,6 +30,20 @@ namespace Betauer.Tests {
             bus.Publish("sender", "args");
             Assert.That(calls1, Is.EqualTo(1));
             Assert.That(calls2, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ConditionalTest() {
+            var bus = new Unicast<string, string> {
+                Condition = (publisher, args) => publisher == "sender" && args == "args"
+            };
+            var calls = 0;
+            bus.Subscribe((sender, args) => calls++);
+            
+            bus.Publish("sender", "1");
+            bus.Publish("sender", "args");
+            bus.Publish("1", "args");
+            Assert.That(calls, Is.EqualTo(1));
         }
         
         [Test]

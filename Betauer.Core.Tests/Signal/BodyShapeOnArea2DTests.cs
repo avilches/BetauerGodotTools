@@ -27,13 +27,13 @@ namespace Betauer.Tests.Signal {
             KinematicBody2D body2 = new KinematicBody2D();
             BodyShapeOnArea2DEntered.Multicast topic = new BodyShapeOnArea2DEntered.Multicast("T");
             var o = new Object();
-            topic.OnEvent((_, tuple) => {
+            topic.Subscribe((_, tuple) => {
                 Assert.That(tuple.Item2, Is.EqualTo(body1));
                 body1Calls++;
             }).WithFilter(body1);
-            topic.OnEvent((_,_) => body2Calls++).WithFilter(body2);
-            topic.OnEvent((_,_) => noFilterNoOwner++);
-            topic.OnEvent((_,_) => noFilter++).RemoveIfInvalid(o);
+            topic.Subscribe((_,_) => body2Calls++).WithFilter(body2);
+            topic.Subscribe((_,_) => noFilterNoOwner++);
+            topic.Subscribe((_,_) => noFilter++).RemoveIfInvalid(o);
             Assert.That(topic.Consumers.Count, Is.EqualTo(4));
 
             // When events are published, the origin doesn't matter
@@ -79,7 +79,7 @@ namespace Betauer.Tests.Signal {
             KinematicBody2D body2 = new KinematicBody2D();
             BodyShapeOnArea2DEntered.Unicast topic = new BodyShapeOnArea2DEntered.Unicast("T");
             
-            topic.OnEvent((_, tuple) => {
+            topic.Subscribe((_, tuple) => {
                 Assert.That(tuple.Item2, Is.EqualTo(body1));
                 calls++;
             }).WithFilter(body1);
@@ -89,14 +89,14 @@ namespace Betauer.Tests.Signal {
             Assert.That(calls, Is.EqualTo(2));
 
             calls = 0;
-            topic.OnEvent((_,_) => calls++).WithFilter(body1);
+            topic.Subscribe((_,_) => calls++).WithFilter(body1);
             topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
             topic.Publish(area2, (new RID(new Object()), body1, 1, 1));
             topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
             Assert.That(calls, Is.EqualTo(2));
 
             calls = 0;
-            topic.OnEvent((_,_) => calls++);
+            topic.Subscribe((_,_) => calls++);
             topic.Publish(area1, (new RID(new Object()), body1, 1, 1));
             topic.Publish(area2, (new RID(new Object()), body1, 1, 1));
             topic.Publish(area2, (new RID(new Object()), body2, 1, 1));
@@ -127,10 +127,10 @@ namespace Betauer.Tests.Signal {
             status.Connect(area2D);
             collection.Connect(area2D);
 
-            uniEnter.OnEvent((_,_) => uniEnterCalls++).WithFilter(body);
-            uniExit.OnEvent((_,_) => uniExitCalls++).WithFilter(body);
-            multiEnter.OnEvent((_,_) => multiEnterCalls++).WithFilter(body);
-            multiExit.OnEvent((_,_) => multiExitCalls++).WithFilter(body);
+            uniEnter.Subscribe((_,_) => uniEnterCalls++).WithFilter(body);
+            uniExit.Subscribe((_,_) => uniExitCalls++).WithFilter(body);
+            multiEnter.Subscribe((_,_) => multiEnterCalls++).WithFilter(body);
+            multiExit.Subscribe((_,_) => multiExitCalls++).WithFilter(body);
             await this.AwaitPhysicsFrame();
 
             // They are not colliding

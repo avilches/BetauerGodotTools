@@ -9,6 +9,8 @@ namespace Betauer.Bus {
     public class Unicast<TPublisher, TArgs> {
         public readonly EventConsumer Consumer = new();
 
+        public Func<TPublisher, TArgs, bool>? Condition;
+
         public void Publish() {
             Publish(default, default);
         }
@@ -17,12 +19,17 @@ namespace Betauer.Bus {
             Publish(default, args);
         }
 
-        public void Publish(TPublisher origin, TArgs args) {
-            if (Consumer.IsValid()) {
-                Consumer.Execute(origin, args);
+        public void Publish(TPublisher publisher, TArgs args) {
+            if (Consumer.IsValid() &&
+                (Condition == null || Condition(publisher, args))) {
+                Execute(Consumer, publisher, args);
             }
         }
 
+        protected virtual void Execute(EventConsumer consumer, TPublisher publisher, TArgs args) {
+            consumer.Execute(publisher, args);
+        }
+        
         public EventConsumer Subscribe(Action action) {
             return Subscribe((_, _) => action());
         }
@@ -35,6 +42,10 @@ namespace Betauer.Bus {
             Consumer.Remove();
             Consumer.Do(action);
             return Consumer;
+        }
+
+        public void Dispose() {
+            Consumer.Remove();
         }
 
         public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {
