@@ -1,5 +1,7 @@
+using System;
 using Betauer;
 using Betauer.Application.Monitor;
+using Betauer.Bus;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
@@ -11,24 +13,26 @@ using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character.Player {
+    
     public enum PlayerState {
         Idle,
         Run,
         FallShort,
         FallLong,
         Jump,
+        Death,
             
         Float,
     }
 
+    public enum PlayerTransition {
+        Death
+    }
 
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachineNode : StateMachineNode<PlayerState, PlayerStateMachineNode.Transition> {
+    public class PlayerStateMachineNode : StateMachineNode<PlayerState, PlayerTransition> {
         private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
         private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
-
-        public enum Transition {
-        }
 
         public PlayerStateMachineNode() : base(PlayerState.Idle, "Player.StateMachine") {
         }
@@ -63,6 +67,7 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private GodotStopwatch JumpHelperTimer { get; set; }
         [Inject] private GodotStopwatch FallingTimer { get; set; }
         [Inject] private DebugOverlay DebugOverlay { get; set; }
+        [Inject] private Bus Bus { get; set; }
 
         private Monitor _coyoteJumpState;
         private Monitor _jumpHelperState;
@@ -77,6 +82,7 @@ namespace Veronenger.Game.Character.Player {
             AddOnExecuteStart((delta, _) => TopDownBody.StartFrame(delta));
             AddOnExecuteEnd((_) => PlatformBody.EndFrame());
             AddOnExecuteEnd((_) => TopDownBody.EndFrame());
+            Bus.Subscribe(Enqueue);
             GroundStates();
             AirStates();
 
@@ -187,10 +193,19 @@ namespace Veronenger.Game.Character.Player {
                     return context.None();
                 })
                 .Build();
-                
+
+            On(PlayerTransition.Death, ctx => ctx.Set(PlayerState.Death));
+            State(PlayerState.Death)
+                .Enter(() => {
+                    Console.WriteLine("MUERTO");
+                    Bus.Publish(MainTransition.EndGame);
+                })
+                .Build();
+
+
         }
 
-        private ExecuteTransition<PlayerState, Transition> CheckLanding(ExecuteContext<PlayerState, Transition> context) {
+        private ExecuteTransition<PlayerState, PlayerTransition> CheckLanding(ExecuteContext<PlayerState, PlayerTransition> context) {
             if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
             PlatformManager.BodyStopFallFromPlatform(_player);

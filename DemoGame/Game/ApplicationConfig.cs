@@ -23,8 +23,6 @@ namespace Veronenger.Game {
     public class Settings {
         [Service] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Configuration);
         [Service] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
-        [Service] private Multicast<MainTransition> MainBus => new();
-
 
         // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
         [Service("Settings.Screen.PixelPerfect")]

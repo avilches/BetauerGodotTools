@@ -233,8 +233,5 @@ namespace Veronenger.Game.Controller.Character {
 
         public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 
-        public void DeathZone(Area2D deathArea2D) {
-            _logger.Debug("MUETO!!");
-        }
     }
 }

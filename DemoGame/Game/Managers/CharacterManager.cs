@@ -1,8 +1,10 @@
 using System;
+using Betauer.Bus;
 using Betauer.Bus.Signal;
 using Godot;
 using Betauer.DI;
 using Betauer.Signal;
+using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
 
@@ -16,6 +18,7 @@ namespace Veronenger.Game.Managers {
 
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
+        [Inject] private Bus Bus { get; set; }
 
         private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new("PlayerAttack");
 
@@ -68,7 +71,7 @@ namespace Veronenger.Game.Managers {
             deathArea2D.CollisionMask = 0;
             // TODO: this should be a topic, so other places can subscribe like remove all bullets
             deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
-            deathArea2D.OnAreaEntered((player) => GD.Print("Muerto"));
+            deathArea2D.OnAreaEntered((player) => Bus.Publish(PlayerTransition.Death));
         }
 
         public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {

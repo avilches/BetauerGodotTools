@@ -40,7 +40,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction ControllerStart { get; set; }
-        [Inject] private Multicast<MainTransition> MainBus { get; set; }
+        [Inject] private Bus Bus { get; set; }
 
         public override void _Ready() {
             _menuContainer = BuildMenu();
@@ -82,23 +82,23 @@ namespace Veronenger.Game.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetStartMenu();
-            startMenu.AddButton("Resume", "Resume").OnPressed(() => MainBus.Publish(MainTransition.Back));
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => MainBus.Publish(MainTransition.Settings));
-            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => MainBus.Publish(MainTransition.ModalBoxConfirmQuitGame));
+            startMenu.AddButton("Resume", "Resume").OnPressed(() => Bus.Publish(MainTransition.Back));
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainTransition.Settings));
+            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => Bus.Publish(MainTransition.ModalBoxConfirmQuitGame));
             return mainMenu;
         }
 
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) {
                 if (_menuContainer.IsStartMenuActive()) {
-                    MainBus.Publish(MainTransition.Back);
+                    Bus.Publish(MainTransition.Back);
                 } else {
                     _menuContainer.Back();
                 }
                 GetTree().SetInputAsHandled();
 
             } else if (ControllerStart.IsJustPressed()) {
-                MainBus.Publish(MainTransition.Back);
+                Bus.Publish(MainTransition.Back);
                 GetTree().SetInputAsHandled();
                 
             }

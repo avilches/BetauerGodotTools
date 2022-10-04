@@ -31,6 +31,7 @@ namespace Veronenger.Game.Managers {
         Pause,
         Settings,
         StartGame,
+        EndGame,
         ModalBoxConfirmExitDesktop,
         ModalBoxConfirmQuitGame,
         ExitDesktop
@@ -69,7 +70,7 @@ namespace Veronenger.Game.Managers {
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction ControllerStart { get; set; }
 
-        [Inject] private Multicast<MainTransition> MainBus { get; set; }
+        [Inject] private Bus Bus { get; set; }
 
         public override void _Ready() {
             PauseMode = PauseModeEnum.Process;
@@ -136,7 +137,7 @@ namespace Veronenger.Game.Managers {
             }, PauseModeEnum.Process);
             #endif
             
-            MainBus.Subscribe(Enqueue);
+            Bus.Subscribe(Enqueue);
             
             State(MainState.Init)
                 .Execute(async (ctx) => {
@@ -194,7 +195,8 @@ namespace Veronenger.Game.Managers {
                 .On(MainTransition.Pause, context => context.Push(MainState.PauseMenu))
                 .Exit(() => Game.End())
                 .Build();
-                
+            
+            On(MainTransition.EndGame, ctx => ctx.Set(MainState.MainMenu));
 
             State(MainState.PauseMenu)
                 .OnInput(e => _pauseMenuScene.OnInput(e))

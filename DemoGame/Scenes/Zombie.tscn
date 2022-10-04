@@ -213,7 +213,7 @@ anims/Step = SubResource( 6 )
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Node2D/EnemyBody/AttackArea" index="0"]
 position = Vector2( 0, 0.0677719 )
-polygon = PoolVector2Array( 2.90794, -11.8251, 9.18351, -12.9741, 17.934, -15.5374, 22.9721, -18.9845, 15.6359, -24.7298, -3.6328, -20.9291 )
+polygon = PoolVector2Array( -5, -16.0678, -5, -0.0677719, 5, -0.0677719, 5, -21.0678, 3, -28.0678, -2, -25.0678 )
 disabled = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Node2D/EnemyBody/DamageArea" index="0"]

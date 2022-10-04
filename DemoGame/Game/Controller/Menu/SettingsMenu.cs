@@ -75,7 +75,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction Right { get; set; }
         
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
-        [Inject] private Multicast<MainTransition> MainBus { get; set; }
+        [Inject] private Bus Bus { get; set; }
 
         private Restorer _restorer;
 
@@ -248,7 +248,7 @@ namespace Veronenger.Game.Controller.Menu {
                 GetTree().SetInputAsHandled();
                 
             } else if (UiCancel.IsEventPressed(e)) {
-                MainBus.Publish(MainTransition.Back);
+                Bus.Publish(MainTransition.Back);
                 GetTree().SetInputAsHandled();
                 
             } else if (_resolutionButton.HasFocus()) {
