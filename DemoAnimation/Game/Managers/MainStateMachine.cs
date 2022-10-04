@@ -15,7 +15,7 @@ using Godot;
 
 namespace DemoAnimation.Game.Managers {
     [Service]
-    public class GameManager : StateMachineNode<GameManager.State, GameManager.Transition> {
+    public class MainStateMachine : StateMachineNode<MainStateMachine.State, MainStateMachine.Transition> {
         public enum Transition {
             FinishLoading,
             Back,
@@ -37,34 +37,29 @@ namespace DemoAnimation.Game.Managers {
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
 
-        [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
-        [Inject] private DebugOverlay DebugOverlay { get; set; }
+        [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
+        [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
         [Inject] private SceneTree _sceneTree { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
-        [Inject] private InputAction UiStart { get; set; }
 
-        public GameManager() : base(State.Init) {
+        public MainStateMachine() : base(State.Init) {
             On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
-            CreateState(State.Init)
+            State(State.Init)
                 .Enter(async () => {
                     await new ResourceLoaderContainer().From(this).Load();
-                    _screenSettingsManager.Setup();
+                    ScreenSettingsManager.Setup();
+                    DefaultDebugOverlay.Theme = MyTheme;
+                    DefaultDebugOverlay.MonitorFpsAndMemory();
+                    DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
+                    DefaultDebugOverlay.MonitorInternals();
                     _sceneTree.Root.AddChild(_mainMenuScene);
-
-                    DebugOverlay.Panel.Theme = MyTheme;
-                    DebugOverlay.DebugOverlayAction = InputAction.Create("Debug").Keys(KeyList.F9).Build();
-                    DebugOverlay.DebugOverlayAction.Setup();
-                    DebugOverlay.MonitorFpsAndMemory();
-                    DebugOverlay.MonitorObjectRunnerSize();
-                    DebugOverlay.Create().WithPrefix("Tweens w/callbacks").Show(() => DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString());
-                    DebugOverlay.Create().WithPrefix("Objects w/signals").Show(() => DefaultSignalManager.Instance.SignalsByObject.Count.ToString());
                 })
                 .Execute(context => context.Set(State.MainMenu))
                 .Build();
                 
 
-            CreateState(State.MainMenu)
+            State(State.MainMenu)
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
@@ -78,7 +73,7 @@ namespace DemoAnimation.Game.Managers {
                 
 
             On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
-            CreateState(State.ModalExitDesktop)
+            State(State.ModalExitDesktop)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
@@ -88,7 +83,7 @@ namespace DemoAnimation.Game.Managers {
                 })
                 .Build();
 
-            CreateState(State.ExitDesktop)
+            State(State.ExitDesktop)
                 .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest))
                 .Build();
             

@@ -58,7 +58,7 @@ namespace Veronenger.Game.Controller.Menu {
         [OnReady("Panel/RedefineBox/ActionName")] 
         private Label _redefineActionName;
 
-        [Inject] private MainGameManager MainGameManager { get; set; }
+        [Inject] private MainStateMachine MainStateMachine { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
@@ -116,7 +116,7 @@ namespace Veronenger.Game.Controller.Menu {
             _fullscreenButtonWrapper
                 .OnFocusEntered(() => {
                     _scrollContainer.ScrollVertical = 0;
-                    MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+                    MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 });
             _fullscreenButtonWrapper.OnToggled(isChecked => {
                 _resolutionButton.SetFocusDisabled(isChecked);
@@ -129,19 +129,19 @@ namespace Veronenger.Game.Controller.Menu {
             });
             _resolutionButton.OnFocusEntered(() => {
                 UpdateResolutionButton();
-                MainGameManager.MainMenuBottomBarScene.ConfigureSettingsResolution();
+                MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsResolution();
             });
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
-            _pixelPerfectButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _pixelPerfectButtonWrapper.OnFocusEntered(MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _pixelPerfectButtonWrapper.OnPressed(() => {
                 _screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.Pressed);
                 CheckIfResolutionStillMatches();
             });
 
-            _borderlessButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _borderlessButtonWrapper.OnFocusEntered(MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _borderlessButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetBorderless(isChecked));
 
-            _vsyncButtonWrapper.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            _vsyncButtonWrapper.OnFocusEntered(MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _vsyncButtonWrapper.OnToggled(isChecked => _screenSettingsManager.SetVSync(isChecked));
         }
 
@@ -162,7 +162,7 @@ namespace Veronenger.Game.Controller.Menu {
             AddConfigureControl("Attack", Attack, true);
             
             _keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).OnFocusEntered(() => {
-                MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
+                MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack();
                 _scrollContainer.ScrollVertical = int.MaxValue;
             });
         }
@@ -170,7 +170,7 @@ namespace Veronenger.Game.Controller.Menu {
         private void AddConfigureControl(string name, InputAction action, bool isKey) {
             var button = MainResourceLoader.RedefineActionButtonFactory();
             button.OnPressed(() => ShowRedefineActionPanel(button));
-            button.OnFocusEntered(MainGameManager.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
+            button.OnFocusEntered(MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             button.SetInputAction(name, action, isKey);
             if (isKey) _keyboardControls.AddChild(button);
             else _gamepadControls.AddChild(button);
@@ -271,7 +271,7 @@ namespace Veronenger.Game.Controller.Menu {
             _redefineActionName.Text = button.ActionName;
             // TODO: i18n
             _redefineActionMessage.Text = button.IsKey ? "Press key for..." : "Press button for...";
-            MainGameManager.MainMenuBottomBarScene.HideAll();
+            MainStateMachine.MainMenuBottomBarScene.HideAll();
         }
 
         private void RedefineControlFromInputEvent(InputEvent e) {

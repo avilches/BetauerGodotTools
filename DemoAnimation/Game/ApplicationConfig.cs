@@ -8,6 +8,7 @@ namespace DemoAnimation.Game {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV1_875,
+            Resolutions.FULLHD_DIV1_875,
             SceneTree.StretchMode.Viewport,
             SceneTree.StretchAspect.Keep,
             Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
@@ -59,16 +60,22 @@ namespace DemoAnimation.Game {
         private InputAction UiCancel => InputAction.Create("ui_cancel").KeepProjectSettings().Build();
 
         [Service]
-        private InputAction UiSelect => InputAction.Create("select")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.XboxB)
+        private InputAction ControllerSelect => InputAction.Create("select")
+            .Keys(KeyList.Tab)
+            .Buttons(JoystickList.Select)
             .Build();
 
         [Service]
-        private InputAction UiStart => InputAction.Create("start")
+        private InputAction ControllerStart => InputAction.Create("start")
             .Keys(KeyList.Escape)
             .Buttons(JoystickList.Start)
             .Build();
+        
+        [Service]
+        private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
+            .Keys(KeyList.F9)
+            .Build();
+
     }
 
 }

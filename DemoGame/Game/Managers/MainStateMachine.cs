@@ -38,7 +38,7 @@ namespace Veronenger.Game.Managers {
     }
     
     [Service]
-    public class MainGameManager : StateMachineNode<MainState, MainTransition> {
+    public class MainStateMachine : StateMachineNode<MainState, MainTransition> {
 
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
@@ -76,7 +76,7 @@ namespace Veronenger.Game.Managers {
             PauseMode = PauseModeEnum.Process;
         }
 
-        public MainGameManager() : base(MainState.Init) {
+        public MainStateMachine() : base(MainState.Init) {
         }
 
         [PostCreate]

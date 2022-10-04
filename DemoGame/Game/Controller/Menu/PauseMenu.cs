@@ -35,7 +35,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         private MenuContainer _menuContainer;
 
-        [Inject] private MainGameManager MainGameManager { get; set; }
+        [Inject] private MainStateMachine MainStateMachine { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
