@@ -19,7 +19,14 @@ namespace Betauer.StateMachine {
 
         internal ExecuteTransition<TStateKey, TTransitionKey> ToTransition<TTransitionKey>()
             where TTransitionKey : Enum {
-            return new ExecuteTransition<TStateKey, TTransitionKey>(StateKey, Type);
+            return Type switch {
+                TransitionType.None => ExecuteTransitionCache<TStateKey, TTransitionKey>.CachedNone,
+                TransitionType.Pop => ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePop,
+                TransitionType.Push => ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePush[StateKey]!,
+                TransitionType.Set => ExecuteTransitionCache<TStateKey, TTransitionKey>.CacheSet[StateKey]!,
+                TransitionType.PopPush => ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePopPush[StateKey]!,
+                _ => throw new ArgumentException("TriggerTransition type can't be a trigger")
+            };
         }
     }
 }
