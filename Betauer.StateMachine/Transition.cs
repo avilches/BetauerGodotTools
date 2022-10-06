@@ -11,7 +11,7 @@ namespace Betauer.StateMachine {
         None
     }
 
-    public class Transition {
+    public abstract class Transition {
         public readonly TransitionType Type;
 
         internal Transition(TransitionType type) {

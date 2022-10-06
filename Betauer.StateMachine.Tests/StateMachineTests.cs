@@ -137,6 +137,21 @@ namespace Betauer.StateMachine.Tests {
             Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute(0f));
         }
         
+        [Test(Description = "Pop the same state in the stack is allowed")]
+        public async Task PopSameStateInTheStackIsAllowed() {
+            var sm = new BaseStateMachine<State, Trans>(State.A);
+            sm.State(State.A).Execute(context => context.Push(State.A)).Build();
+
+            await sm.Execute(0f);
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+
+            await sm.Execute(0f);
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A }));
+
+            await sm.Execute(0f);
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
+        }
+        
         /*
          * Working StateMachine
          */

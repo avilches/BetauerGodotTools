@@ -18,20 +18,27 @@ namespace Betauer.StateMachine {
         
         public TriggerTransition<TStateKey> Set(TStateKey name) => 
             TriggerTransitionCache<TStateKey>.CacheSet[name]!;
+        
+        public TriggerTransition<TStateKey> None() =>
+            TriggerTransitionCache<TStateKey>.CachedNone;
+
     }
     
     internal static class TriggerTransitionCache<TStateKey>
         where TStateKey : Enum {
+        
+        internal static readonly TriggerTransition<TStateKey> CachedNone = new(TransitionType.None);
+
         internal static readonly TriggerTransition<TStateKey> CachePop = new(TransitionType.Pop);
 
         internal static readonly EnumDictionary<TStateKey, TriggerTransition<TStateKey>> CachePush =
-            new(s => new TriggerTransition<TStateKey>(s, TransitionType.Push));
+            EnumDictionary<TStateKey, TriggerTransition<TStateKey>>.Create(s => new TriggerTransition<TStateKey>(s, TransitionType.Push));
 
         internal static readonly EnumDictionary<TStateKey, TriggerTransition<TStateKey>> CachePopPush =
-            new(s => new TriggerTransition<TStateKey>(s, TransitionType.PopPush));
+            EnumDictionary<TStateKey, TriggerTransition<TStateKey>>.Create(s => new TriggerTransition<TStateKey>(s, TransitionType.PopPush));
 
         internal static readonly EnumDictionary<TStateKey, TriggerTransition<TStateKey>> CacheSet =
-            new(s => new TriggerTransition<TStateKey>(s, TransitionType.Set));
+            EnumDictionary<TStateKey, TriggerTransition<TStateKey>>.Create(s => new TriggerTransition<TStateKey>(s, TransitionType.Set));
 
     }
 }

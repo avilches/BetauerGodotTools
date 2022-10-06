@@ -4,39 +4,72 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Betauer {
-    public class EnumDictionary<TKey, TValue> : IDictionary<TKey, TValue>
-        where TKey : Enum
+    public class FixedEnumDictionary<TKey, TValue> : EnumDictionary<TKey, TValue> 
+        where TKey : Enum 
         where TValue : class {
-        private readonly TValue?[] _values;
-        private readonly TKey[] _keys;
-        public int Count { get; }
-
-        public EnumDictionary(Func<TKey, TValue> filler) : this() {
-            Fill(filler);
+        
+        internal FixedEnumDictionary(TKey[] enums) : base(enums) {
         }
 
-        private int GetPos(TKey key) {
+        public override int GetPos(TKey key) => key.ToInt();
+    }
+
+    public class VariableEnumDictionary<TKey, TValue> : EnumDictionary<TKey, TValue> 
+        where TKey : Enum 
+        where TValue : class {
+        
+        internal VariableEnumDictionary(TKey[] enums) : base(enums) {
+        }
+
+        public override int GetPos(TKey key) {
             for (var pos = 0; pos < Count; pos++) {
-                if (EqualityComparer<TKey>.Default.Equals(_keys[pos], key)) return pos;
+                if (EqualityComparer<TKey>.Default.Equals(KeyArray[pos], key)) return pos;
             }
             return -1; // this will never happen
         }
+    }
 
-        public EnumDictionary() {
-            var enums = Enum.GetValues(typeof(TKey));
+    public abstract class EnumDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+        where TKey : Enum
+        where TValue : class {
+        
+        public readonly TValue?[] ValueArray;
+        public readonly TKey[] KeyArray;
+        public int Count { get; }
+
+        public static EnumDictionary<TKey, TValue> Create(Func<TKey, TValue>? filler = null) {
+            var enums = (TKey[])Enum.GetValues(typeof(TKey));
+            var isFixed = true;
+            for (var count = 0; count < enums.Length; count++) {
+                if (enums[count].ToInt() != count) {
+                    isFixed = false;
+                    break;
+                }
+            }
+            
+            EnumDictionary<TKey, TValue> enumDictionary = isFixed ? 
+                new FixedEnumDictionary<TKey, TValue>(enums) : 
+                new VariableEnumDictionary<TKey, TValue>(enums);
+            
+            if (filler != null) enumDictionary.Fill(filler);
+            return enumDictionary;
+        }
+
+        public abstract int GetPos(TKey key);
+
+        protected EnumDictionary(TKey[] enums) {
+            KeyArray = enums;
             Count = enums.Length;
-            _keys = enums.Cast<TKey>().ToArray();
-
-            _values = new TValue[Count];
+            ValueArray = new TValue[Count];
         }
 
         public void Fill(Func<TKey, TValue> filler) {
-            foreach (var key in Keys) _values[GetPos(key)] = filler(key);
+            foreach (var key in Keys) this[key] = filler(key);
         }
 
         public TValue? this[TKey key] {
-            get => _values[GetPos(key)];
-            set => _values[GetPos(key)] = value;
+            get => ValueArray[GetPos(key)];
+            set => ValueArray[GetPos(key)] = value;
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
@@ -47,11 +80,11 @@ namespace Betauer {
             return new Enumerator(this);
         }
 
-        public ICollection<TKey> Keys => _keys;
-        public ICollection<TValue> Values => _values;
+        public ICollection<TKey> Keys => KeyArray;
+        public ICollection<TValue> Values => ValueArray;
 
         public void Clear() {
-            Fill(e => null);
+            for (var i = 0; i < ValueArray.Length; i++) ValueArray[i] = null;
         }
 
         public void Add(KeyValuePair<TKey, TValue> item) {
@@ -106,7 +139,7 @@ namespace Betauer {
                 // Use unsigned comparison since we set index to dictionary.count+1 when the enumeration ends.
                 // dictionary.count+1 could be negative if dictionary.count is int.MaxValue
                 if ((uint)_index < (uint)_enumDictionary.Count) {
-                    TKey key = _enumDictionary._keys[_index];
+                    TKey key = _enumDictionary.KeyArray[_index];
                     TValue? value = _enumDictionary[key];
                     _current = new KeyValuePair<TKey, TValue>(key, value);
                     _index++;

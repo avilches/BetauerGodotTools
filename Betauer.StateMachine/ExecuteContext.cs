@@ -38,15 +38,20 @@ namespace Betauer.StateMachine {
             CachedNone = new(TransitionType.None);
 
         internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CachePush = new(s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Push));
+            CachePush = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
+                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Push));
 
         internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CachePopPush = new(s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.PopPush));
+            CachePopPush = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
+                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.PopPush));
 
         internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CacheSet = new(s => new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Set));
+            CacheSet = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
+                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Set));
 
         internal static readonly EnumDictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CacheTransition = new(s => new ExecuteTransition<TStateKey, TTransitionKey>(s));
+            CacheTransition =
+                EnumDictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
+                    new ExecuteTransition<TStateKey, TTransitionKey>(s));
     }
 }

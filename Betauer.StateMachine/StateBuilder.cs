@@ -24,8 +24,7 @@ namespace Betauer.StateMachine {
         public TBuilder On(
             TTransitionKey transitionKey,
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            Events ??=
-                new EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
+            Events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>.Create();
             Events.Add(transitionKey, transition);
             return this as TBuilder;
         }

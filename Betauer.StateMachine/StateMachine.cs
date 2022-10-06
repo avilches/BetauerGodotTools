@@ -76,7 +76,7 @@ namespace Betauer.StateMachine {
 
         public void On(TTransitionKey transitionKey, 
             Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>> transition) {
-            _events ??= new EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>();
+            _events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>.Create();
             _events[transitionKey] = transition;
         }
 
@@ -225,10 +225,12 @@ namespace Betauer.StateMachine {
 
         private ExecuteTransition<TStateKey, TTransitionKey> FindTransition(TTransitionKey name) {
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var stateTransition)) {
-                return stateTransition(_triggerContext).ToTransition<TTransitionKey>();
+                var triggerTransition = stateTransition.Invoke(_triggerContext);
+                return triggerTransition.ToTransition<TTransitionKey>();
             }
             if (_events != null && _events.TryGetValue(name, out var globalTrans)) {
-                return globalTrans(_triggerContext).ToTransition<TTransitionKey>();
+                var triggerTransition = globalTrans.Invoke(_triggerContext);
+                return triggerTransition.ToTransition<TTransitionKey>();
             }
             throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");
         }
@@ -236,14 +238,14 @@ namespace Betauer.StateMachine {
         private void Transition(Change change, IState<TStateKey, TTransitionKey> from, IState<TStateKey, TTransitionKey> to) {
             OnTransition?.Invoke(from.Key, to.Key);
             #if DEBUG
-                Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key}");
+                Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key})");
             #endif
         }
 
         private Task Exit(IState<TStateKey, TTransitionKey> state, TStateKey to) {
             OnExit?.Invoke(state.Key, to);
             #if DEBUG
-                Logger.Debug($"Exit: \"{state.Key}\"(to:{to})\"");
+                Logger.Debug($"Exit: \"{state.Key}\"(to:{to})");
             #endif
             return state.Exit(to);
         }
