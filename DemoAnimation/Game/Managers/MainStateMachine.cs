@@ -10,12 +10,13 @@ using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Signal;
 using Betauer.StateMachine;
+using Betauer.StateMachine.Async;
 using DemoAnimation.Game.Controller.Menu;
 using Godot;
 
 namespace DemoAnimation.Game.Managers {
     [Service]
-    public class MainStateMachine : StateMachineNode<MainStateMachine.State, MainStateMachine.Transition> {
+    public class MainStateMachine : StateMachineNodeAsync<MainStateMachine.State, MainStateMachine.Transition> {
         public enum Transition {
             FinishLoading,
             Back,
@@ -39,7 +40,7 @@ namespace DemoAnimation.Game.Managers {
 
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
-        [Inject] private SceneTree _sceneTree { get; set; }
+        [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
 
@@ -53,7 +54,7 @@ namespace DemoAnimation.Game.Managers {
                     DefaultDebugOverlay.MonitorFpsAndMemory();
                     DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
                     DefaultDebugOverlay.MonitorInternals();
-                    _sceneTree.Root.AddChild(_mainMenuScene);
+                    SceneTree.Root.AddChild(_mainMenuScene);
                 })
                 .Execute(context => context.Set(State.MainMenu))
                 .Build();
@@ -84,7 +85,7 @@ namespace DemoAnimation.Game.Managers {
                 .Build();
 
             State(State.ExitDesktop)
-                .Enter(() => _sceneTree.Notification(MainLoop.NotificationWmQuitRequest))
+                .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest))
                 .Build();
             
         }
@@ -98,14 +99,14 @@ namespace DemoAnimation.Game.Managers {
                 (ModalBoxConfirm)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/ModalBoxConfirm.tscn").Instance();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
-            _sceneTree.Root.AddChild(modalBoxConfirm);
+            SceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
             return result;
         }
         private async Task AddSceneDeferred(Node scene) {
-            await _sceneTree.AwaitIdleFrame();
-            _sceneTree.Root.AddChild(scene);
+            await SceneTree.AwaitIdleFrame();
+            SceneTree.Root.AddChild(scene);
         }
 
         public async Task LoadAnimaDemo() {
