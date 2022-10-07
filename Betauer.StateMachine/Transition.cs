@@ -2,15 +2,6 @@ using System;
 using System.Linq;
 
 namespace Betauer.StateMachine {
-    public enum TransitionType {
-        Push,
-        PopPush,
-        Pop,
-        Set,
-        Trigger,
-        None
-    }
-
     public abstract class Transition {
         public readonly TransitionType Type;
 

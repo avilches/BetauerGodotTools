@@ -1,48 +1,26 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Betauer.StateMachine {
-    public interface IState<TStateKey, TTransitionKey>
+namespace Betauer.StateMachine.Async {
+    public class StateAsync<TStateKey, TTransitionKey> : IStateAsync<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
+        
         public TStateKey Key { get; }
-        public Task Enter(TStateKey from);
-        public Task Awake(TStateKey from);
-
-        public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
-            ExecuteContext<TStateKey, TTransitionKey> executeContext);
-
-        public Task Suspend(TStateKey to);
-        public Task Exit(TStateKey to);
-
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>?
-            Events { get; }
-
-    }
-
-    public class State<TStateKey, TTransitionKey> : IState<TStateKey, TTransitionKey>
-        where TStateKey : Enum where TTransitionKey : Enum {
-        public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events { get; }
 
         private readonly Func<TStateKey, Task>? _enter;
         private readonly Func<TStateKey, Task>? _awake;
-
-        private readonly
-            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
-            _execute;
-
+        private readonly Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteContext<TStateKey, TTransitionKey>.Response>>? _execute;
         private readonly Func<TStateKey, Task>? _suspend;
         private readonly Func<TStateKey, Task>? _exit;
 
-        public State(TStateKey key,
+        public StateAsync(TStateKey key,
             Func<TStateKey, Task>? enter,
-            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteTransition<TStateKey, TTransitionKey>>>?
-                execute,
+            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteContext<TStateKey, TTransitionKey>.Response>>? execute,
             Func<TStateKey, Task>? exit,
             Func<TStateKey, Task>? suspend,
             Func<TStateKey, Task>? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerTransition<TStateKey>>>? events) {
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events) {
             Key = key;
             _enter = enter;
             _execute = execute;
@@ -61,7 +39,7 @@ namespace Betauer.StateMachine {
             return _awake != null ? _awake.Invoke(from) : Task.CompletedTask;
         }
 
-        public Task<ExecuteTransition<TStateKey, TTransitionKey>> Execute(
+        public Task<ExecuteContext<TStateKey, TTransitionKey>.Response> Execute(
             ExecuteContext<TStateKey, TTransitionKey> executeContext) {
             return _execute != null ? _execute.Invoke(executeContext) : Task.FromResult(executeContext.None());
         }

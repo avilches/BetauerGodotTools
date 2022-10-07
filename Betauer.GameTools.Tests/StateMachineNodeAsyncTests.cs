@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.StateMachine;
-using Betauer.StateMachine.Sync;
+using Betauer.StateMachine.Async;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests {
     [TestFixture]
     [Only]
-    public class StateMachineNodeTests : Node {
+    public class StateMachineNodeAsyncTests : Node {
         enum State {
             A,
             Idle,
@@ -25,42 +25,42 @@ namespace Betauer.GameTools.Tests {
         }
         [Test(Description = "Constructor")]
         public void StateMachineNodeConstructors() {
-            var sm1 = new StateMachineNodeSync<State, Trans>(State.A, "X");
-            Assert.That(sm1.StateMachineSyncSync.Name, Is.EqualTo("X"));
+            var sm1 = new StateMachineNodeAsync<State, Trans>(State.A, "X");
+            Assert.That(sm1.StateMachine.Name, Is.EqualTo("X"));
             Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
 
-            var sm2 = new StateMachineNodeSync<State, Trans>(State.A, null, ProcessMode.Physics);
-            Assert.That(sm2.StateMachineSyncSync.Name, Is.Null);
+            var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, ProcessMode.Physics);
+            Assert.That(sm2.StateMachine.Name, Is.Null);
             Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
 
-            var sm3 = new StateMachineNodeSync<State, Trans>(State.A);
-            Assert.That(sm3.StateMachineSyncSync.Name, Is.Null);
+            var sm3 = new StateMachineNodeAsync<State, Trans>(State.A);
+            Assert.That(sm3.StateMachine.Name, Is.Null);
             Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
         }
 
         [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
         public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var sm = new StateMachineNodeSync<State, Trans>(State.Start, null, ProcessMode.Idle);
+            var sm = new StateMachineNodeAsync<State, Trans>(State.Start, null, ProcessMode.Idle);
 
             var x = 0;
             List<string> states = new List<string>();
 
             sm.State(State.Start)
-                .Execute(context => {
+                .Execute(async context => {
                     states.Add("Start");
-                    
+                    await this.AwaitIdleFrame();
                     return context.Set(State.Idle);
                 }).Build();
 
             sm.State(State.Idle)
-                .Enter(() => {
-                    
+                .Enter(async () => {
+                    await this.AwaitIdleFrame();
                     x = 0;
                 })
-                .Execute(context => {
-                    
+                .Execute(async context => {
+                    await this.AwaitIdleFrame();
                     x++;
-                    
+                    await this.AwaitIdleFrame();
                     states.Add("IdleExecute(" + x + ")");
                     if (x == 2) {
                         return context.Set(State.Attack);
@@ -68,23 +68,23 @@ namespace Betauer.GameTools.Tests {
 
                     return context.Set(State.Idle);
                 })
-                .Exit(() => {
-                    
+                .Exit(async () => {
+                    await this.AwaitIdleFrame();
                     states.Add("IdleExit(" + x + ")");
                 }).Build();
 
             sm.State(State.Attack)
-                .Execute(context => {
+                .Execute(async context => {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
                     return context.Set(State.End);
                 }).Build();
 
             sm.State(State.End)
-                .Execute(context => {
+                .Execute(async context => {
                     x++;
                     states.Add("End(" + x + ")");
-                    
+                    await this.AwaitIdleFrame();
                     return context.None();
                 }).Build();
 

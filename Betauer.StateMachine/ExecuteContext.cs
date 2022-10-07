@@ -1,57 +1,59 @@
 using System;
+using System.Collections.Generic;
 
 namespace Betauer.StateMachine {
     public class ExecuteContext<TStateKey, TTransitionKey>
         where TStateKey : Enum
         where TTransitionKey : Enum {
+        
         public float Delta { get; internal set; }
 
         internal ExecuteContext() {
         }
 
-        public ExecuteTransition<TStateKey, TTransitionKey> Push(TStateKey name) =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePush[name]!;
+        public Response Push(TStateKey name) => CachePush[name]!;
+        public Response PopPush(TStateKey name) => CachePopPush[name]!;
+        public Response Pop() => CachePop;
+        public Response Set(TStateKey name) => CacheSet[name]!;
+        public Response None() => CachedNone;
+        public Response Trigger(TTransitionKey transitionKey) => CacheTransition[transitionKey]!;
 
-        public ExecuteTransition<TStateKey, TTransitionKey> PopPush(TStateKey name) =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePopPush[name]!;
+        internal static readonly Response CachePop = new(TransitionType.Pop);
+        internal static readonly Response CachedNone = new(TransitionType.None);
+        internal static readonly EnumDictionary<TStateKey, Response> CachePush = EnumDictionary<TStateKey, Response>.Create(s =>
+                new Response(s, TransitionType.Push));
+        internal static readonly EnumDictionary<TStateKey, Response> CachePopPush = EnumDictionary<TStateKey, Response>.Create(s =>
+                new Response(s, TransitionType.PopPush));
+        internal static readonly EnumDictionary<TStateKey, Response> CacheSet = EnumDictionary<TStateKey, Response>.Create(s =>
+                new Response(s, TransitionType.Set));
+        internal static readonly EnumDictionary<TTransitionKey, Response> CacheTransition =
+                EnumDictionary<TTransitionKey, Response>.Create(s => new Response(s));
 
-        public ExecuteTransition<TStateKey, TTransitionKey> Pop() =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CachePop;
-
-        public ExecuteTransition<TStateKey, TTransitionKey> Set(TStateKey name) =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CacheSet[name]!;
-
-        public ExecuteTransition<TStateKey, TTransitionKey> None() =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CachedNone;
-
-        public ExecuteTransition<TStateKey, TTransitionKey> Trigger(TTransitionKey transitionKey) =>
-            ExecuteTransitionCache<TStateKey, TTransitionKey>.CacheTransition[transitionKey]!;
-    }
-
-    internal static class ExecuteTransitionCache<TStateKey, TTransitionKey>
-        where TStateKey : Enum where TTransitionKey : Enum {
+        public class Response : Transition {
         
-        internal static readonly ExecuteTransition<TStateKey, TTransitionKey>
-            CachePop = new(TransitionType.Pop);
+            public readonly TStateKey StateKey;
+            public readonly TTransitionKey TransitionKey;
 
-        internal static readonly ExecuteTransition<TStateKey, TTransitionKey>
-            CachedNone = new(TransitionType.None);
+            internal Response(TransitionType type) : base(type) {
+                if (type != TransitionType.Pop && type != TransitionType.None)
+                    throw new ArgumentException("ExecuteContext.Response without state can be only Pop or None");
+            }
 
-        internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CachePush = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
-                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Push));
+            internal Response(TTransitionKey transitionKey) : base(TransitionType.Trigger) {
+                TransitionKey = transitionKey;
+            }
 
-        internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CachePopPush = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
-                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.PopPush));
+            internal Response(TStateKey stateKey, TransitionType type) : base(type) {
+                if (type == TransitionType.Trigger)
+                    throw new ArgumentException("ExecuteContext.Response with state can't have a Trigger type");
+                StateKey = stateKey;
+            }
 
-        internal static readonly EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CacheSet = EnumDictionary<TStateKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
-                new ExecuteTransition<TStateKey, TTransitionKey>(s, TransitionType.Set));
+            public bool IsTrigger() => Type == TransitionType.Trigger;
 
-        internal static readonly EnumDictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>>
-            CacheTransition =
-                EnumDictionary<TTransitionKey, ExecuteTransition<TStateKey, TTransitionKey>>.Create(s =>
-                    new ExecuteTransition<TStateKey, TTransitionKey>(s));
+            public bool IsSet(TStateKey? key) {
+                return IsSet() && EqualityComparer<TStateKey>.Default.Equals(StateKey, key);
+            }
+        }
     }
 }
