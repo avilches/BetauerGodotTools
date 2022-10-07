@@ -38,7 +38,7 @@ namespace Veronenger.Game.Managers {
     }
     
     [Service]
-    public class MainStateMachine : StateMachineNode<MainState, MainTransition> {
+    public class MainStateMachine : StateMachineNodeAsync<MainState, MainTransition> {
 
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
@@ -156,7 +156,7 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
-                    AddListener(MainMenuBottomBarScene);
+                    AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
                     return ctx.Set(MainState.StartingGame);
                 }).Build();
             

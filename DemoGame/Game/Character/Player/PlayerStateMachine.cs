@@ -7,6 +7,7 @@ using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 
 using Betauer.StateMachine;
+using Betauer.StateMachine.Sync;
 using Betauer.Time;
 using Godot;
 using Veronenger.Game.Controller.Character;
@@ -30,11 +31,11 @@ namespace Veronenger.Game.Character.Player {
     }
 
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachineNode : StateMachineNode<PlayerState, PlayerTransition> {
+    public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerTransition> {
         private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
         private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
 
-        public PlayerStateMachineNode() : base(PlayerState.Idle, "Player.StateMachine") {
+        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine") {
         }
 
         [Inject] private PlatformManager PlatformManager { get; set;}
@@ -205,7 +206,7 @@ namespace Veronenger.Game.Character.Player {
 
         }
 
-        private ExecuteTransition<PlayerState, PlayerTransition> CheckLanding(ExecuteContext<PlayerState, PlayerTransition> context) {
+        private ExecuteContext<PlayerState, PlayerTransition>.Response CheckLanding(ExecuteContext<PlayerState, PlayerTransition> context) {
             if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
 
             PlatformManager.BodyStopFallFromPlatform(_player);

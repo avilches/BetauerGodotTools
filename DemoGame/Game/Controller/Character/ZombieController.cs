@@ -21,7 +21,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
 
-        [Inject] private EnemyZombieStateMachineNode StateMachineNode { get; set; }  // Transient
+        [Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
         [Inject] private CharacterManager _characterManager { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
@@ -39,7 +39,7 @@ namespace Veronenger.Game.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachineNode.Start("Zombie", this, flippers, _slopeDetector, _position2D);
+            StateMachine.Start("Zombie", this, flippers, _slopeDetector, _position2D);
 
             _characterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);

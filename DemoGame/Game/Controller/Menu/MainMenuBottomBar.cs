@@ -9,7 +9,7 @@ using Veronenger.Game.Controller.UI;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Menu {
-    public class MainMenuBottomBar : CanvasLayer, IStateMachineListener<MainState> {
+    public class MainMenuBottomBar : CanvasLayer {
         [OnReady("%ActionHint1")] private ActionHint _actionHint1;
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;
         [OnReady("%ActionHint3")] private ActionHint _actionHint3;
@@ -65,25 +65,8 @@ namespace Veronenger.Game.Controller.Menu {
                 .AddButton(null, UiCancel, false, "Back");
         }
 
-        public void OnEnter(MainState state, MainState from) {
-        }
 
-        public void OnAwake(MainState state, MainState from) {
-        }
-
-        public void OnSuspend(MainState state, MainState to) {
-        }
-
-        public void OnExit(MainState state, MainState to) {
-        }
-
-        public void OnExecuteStart(float delta, MainState state) {
-        }
-
-        public void OnExecuteEnd(MainState state) {
-        }
-
-        public void OnTransition(MainState from, MainState to) {
+        public void UpdateState(MainState to) {
             switch (to) {
                 case MainState.ModalExitDesktop:
                 case MainState.ModalQuitGame:

@@ -34,7 +34,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private PlatformManager PlatformManager { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
-        [Inject] private PlayerStateMachineNode StateMachineNode { get; set; } // Transient!
+        [Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
         [Inject] private DebugOverlay DebugOverlay { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
@@ -81,8 +81,8 @@ namespace Veronenger.Game.Controller.Character {
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
 
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachineNode.Start("Player", this, flippers, _slopeDetector, _position2D);
-            AddChild(StateMachineNode);
+            StateMachine.Start("Player", this, flippers, _slopeDetector, _position2D);
+            AddChild(StateMachine);
 
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
@@ -98,7 +98,7 @@ namespace Veronenger.Game.Controller.Character {
 
             DebugOverlay.CreateMonitor().WithPrefix("Player")
                 .Bind(this)
-                .Show(() => StateMachineNode.CurrentState.Key.ToString());
+                .Show(() => StateMachine.CurrentState.Key.ToString());
 
             // DebugOverlay.Create().Bind(this).Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
             // DebugOverlay.Create().Bind(this).Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
