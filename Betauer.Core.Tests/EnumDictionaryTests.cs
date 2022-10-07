@@ -5,7 +5,6 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class EnumDictionaryTests {
         public enum VariableState {
             Start = 2,

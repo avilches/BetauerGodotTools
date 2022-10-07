@@ -9,7 +9,6 @@ using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.StateMachine.Tests {
     [TestFixture]
-    [Only]
     public class StateMachineAsyncTests : Node {
         enum State {
             A,
@@ -90,7 +89,6 @@ namespace Betauer.StateMachine.Tests {
         }
         
         [Test(Description = "Error when a state changes to a not found state: Replace")]
-        [Only]
         public void WrongStatesUnknownStateSet() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Execute(async context => context.Set(State.Debug)).Build();
@@ -115,7 +113,6 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test(Description = "Error when a state triggers a not found transition")]
-        [Only]
         public void WrongStatesTriggerUnknownTransition() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Execute(async context => context.Trigger(Trans.NotFound)).Build();
@@ -471,7 +468,7 @@ namespace Betauer.StateMachine.Tests {
                 
                     "Settings:exit," +
                     "from:Settings-to:Debug," +
-                    "Debug:awake,"));
+                    "Debug:awake"));
             
 
         }

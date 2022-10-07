@@ -5,12 +5,9 @@ namespace Betauer.StateMachine.Sync {
     public class StateMachineNodeSync<TStateKey, TTransitionKey> : StateMachineNode, IStateMachineSync<TStateKey, TTransitionKey, StateNodeSync<TStateKey, TTransitionKey>> 
         where TStateKey : Enum where TTransitionKey : Enum {
         
-        
         private class RealStateMachineNode : BaseStateMachineSync<TStateKey, TTransitionKey, IStateSync<TStateKey, TTransitionKey>> { 
-        
             internal RealStateMachineNode(TStateKey initialState, string? name = null) : base(initialState, name) {
             }
-
             public StateNodeBuilderSync<TStateKey, TTransitionKey> State(TStateKey stateKey) {
                 return new StateNodeBuilderSync<TStateKey, TTransitionKey>(stateKey, AddState);
             }
@@ -18,7 +15,6 @@ namespace Betauer.StateMachine.Sync {
 
         private readonly RealStateMachineNode _stateMachine;
 
-        public ProcessMode Mode { get; set; }
         public IStateMachineSync<TStateKey, TTransitionKey, IStateSync<TStateKey, TTransitionKey>> StateMachine => _stateMachine;
         public StateNodeSync<TStateKey, TTransitionKey> CurrentState => (StateNodeSync<TStateKey, TTransitionKey>)_stateMachine.CurrentState;
         
@@ -58,15 +54,13 @@ namespace Betauer.StateMachine.Sync {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) Process(delta);
+            if (Mode == ProcessMode.Physics) Execute(delta);
             else SetPhysicsProcess(false);
         }
 
         public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) Process(delta);
+            if (Mode == ProcessMode.Idle) Execute(delta);
             else SetProcess(false);
         }
-
-        private void Process(float delta) => Execute(delta);
     }
 }

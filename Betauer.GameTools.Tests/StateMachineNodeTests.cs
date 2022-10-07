@@ -10,7 +10,6 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class StateMachineNodeTests : Node {
         enum State {
             A,

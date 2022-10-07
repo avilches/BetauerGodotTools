@@ -6,12 +6,9 @@ namespace Betauer.StateMachine.Async {
     public class StateMachineNodeAsync<TStateKey, TTransitionKey> : StateMachineNode, IStateMachineAsync<TStateKey, TTransitionKey, StateNodeAsync<TStateKey, TTransitionKey>> 
         where TStateKey : Enum where TTransitionKey : Enum {
         
-        
         private class RealStateMachineNodeAsync : BaseStateMachineAsync<TStateKey, TTransitionKey, IStateAsync<TStateKey, TTransitionKey>> { 
-        
             internal RealStateMachineNodeAsync(TStateKey initialState, string? name = null) : base(initialState, name) {
             }
-
             public StateNodeBuilderAsync<TStateKey, TTransitionKey> State(TStateKey stateKey) {
                 return new StateNodeBuilderAsync<TStateKey, TTransitionKey>(stateKey, AddState);
             }
@@ -19,7 +16,6 @@ namespace Betauer.StateMachine.Async {
 
         private readonly RealStateMachineNodeAsync _stateMachine;
 
-        public ProcessMode Mode { get; set; }
         public IStateMachineAsync<TStateKey, TTransitionKey, IStateAsync<TStateKey, TTransitionKey>> StateMachine => _stateMachine;
         public StateNodeAsync<TStateKey, TTransitionKey> CurrentState => (StateNodeAsync<TStateKey, TTransitionKey>)_stateMachine.CurrentState;
         public bool Available => _stateMachine.Available;
@@ -59,15 +55,13 @@ namespace Betauer.StateMachine.Async {
         }
 
         public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) Process(delta);
+            if (Mode == ProcessMode.Physics) Execute(delta);
             else SetPhysicsProcess(false);
         }
 
         public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) Process(delta);
+            if (Mode == ProcessMode.Idle) Execute(delta);
             else SetProcess(false);
         }
-
-        private void Process(float delta) => Execute(delta);
     }
 }
