@@ -36,7 +36,7 @@ namespace Betauer.StateMachine.Async {
                     change = NextChange;
                 }
                 if (change.Type == TransitionType.Pop) {
-                    var newState = _stack.Pop();
+                    var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     await newState.Exit(change.State.Key);
                     CurrentState = TransitionTo(change, out var oldState);
@@ -46,34 +46,34 @@ namespace Betauer.StateMachine.Async {
                     SuspendEvent(CurrentState, change.State!.Key);
                     await CurrentState.Suspend(change.State!.Key);
                     CurrentState = TransitionTo(change, out var oldState);
-                    _stack.Push(CurrentState);
+                    Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter(oldState.Key);
                 } else if (change.Type == TransitionType.PopPush) {
-                    var newState = _stack.Pop();
+                    var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     await newState.Exit(change.State.Key);
                     CurrentState = TransitionTo(change, out var oldState);
-                    _stack.Push(CurrentState);
+                    Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter(oldState.Key);
                 } else if (change.Type == TransitionType.Set) {
-                    if (_stack.Count == 1) {
-                        var newState = _stack.Pop();
+                    if (Stack.Count == 1) {
+                        var newState = Stack.Pop();
                         ExitEvent(newState, change.State.Key);
                         await newState.Exit(change.State.Key);
                     } else {
                         // Special case: 
                         // Exit from all the states from the stack, in order
-                        while (_stack.Count > 0) {
-                            var exitingState = _stack.Pop();
-                            var to = _stack.Count > 0 ? _stack.Peek().Key : change.State.Key;
+                        while (Stack.Count > 0) {
+                            var exitingState = Stack.Pop();
+                            var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
                             ExitEvent(exitingState, to);
                             await exitingState.Exit(to);
                         }
                     }
                     CurrentState = TransitionTo(change, out var oldState);
-                    _stack.Push(CurrentState);
+                    Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter(oldState.Key);
                 }

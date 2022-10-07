@@ -13,12 +13,16 @@ namespace Betauer.StateMachine {
             To = to;
         }
     }
-    public abstract class BaseStateMachine<TStateKey, TTransitionKey, TState> 
+
+    public abstract class StateMachine {
+        protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<StateMachine>();
+    }
+
+    public abstract class BaseStateMachine<TStateKey, TTransitionKey, TState> : StateMachine  
         where TStateKey : Enum 
         where TTransitionKey : Enum 
         where TState : class, IState<TStateKey, TTransitionKey> {
         
-        protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<object>(); // TODO WHATTT
         
         protected readonly struct Change {
             internal readonly TState? State;
@@ -32,7 +36,7 @@ namespace Betauer.StateMachine {
         }
         protected static readonly Change NoChange = new(null, TransitionType.None);
 
-        protected readonly Stack<TState> _stack = new();
+        protected readonly Stack<TState> Stack = new();
         protected readonly ExecuteContext<TStateKey, TTransitionKey> ExecuteContext = new();
         protected readonly TriggerContext<TStateKey> TriggerContext = new();
         protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events;
@@ -46,8 +50,8 @@ namespace Betauer.StateMachine {
         protected readonly object LockObject = new();
 
         public readonly Logger Logger;
-        public readonly Dictionary<TStateKey, TState> States = new();
-        public TStateKey[] GetStack() => _stack.Reverse().Select(e => e.Key).ToArray();
+        public readonly EnumDictionary<TStateKey, TState> States = EnumDictionary<TStateKey, TState>.Create();
+        public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
         public TState CurrentState { get; protected set; }
         public bool IsState(TStateKey state) {
             return EqualityComparer<TStateKey>.Default.Equals(CurrentState.Key, state);
@@ -119,12 +123,12 @@ namespace Betauer.StateMachine {
                 return NoChange;
             }
             if (candidate.IsPop()) {
-                if (_stack.Count <= 1) {
+                if (Stack.Count <= 1) {
                     throw new InvalidOperationException("Can't pop state: stack empty");
                 }
-                var o = _stack.Pop();
-                var transition = new Change(_stack.Peek(), TransitionType.Pop);
-                _stack.Push(o);
+                var o = Stack.Pop();
+                var transition = new Change(Stack.Peek(), TransitionType.Pop);
+                Stack.Push(o);
                 return transition;
             }
             if (candidate.IsNone()) {
