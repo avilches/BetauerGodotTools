@@ -404,49 +404,47 @@ extents = Vector2( 0.5, 14 )
 radius = 7.0
 height = 28.0
 
-[node name="PlayerNode" type="Node2D"]
-
-[node name="PlayerBody" type="KinematicBody2D" parent="."]
+[node name="PlayerBody" type="KinematicBody2D"]
 collision_layer = 1024
 collision_mask = 0
 script = ExtResource( 1 )
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerBody"]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 margin_left = -28.0
 margin_top = 3.0
 margin_right = 69.0
 margin_bottom = 105.0
 
-[node name="StopIdle" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StopIdle" type="Button" parent="VBoxContainer"]
 margin_right = 127.0
 margin_bottom = 20.0
 text = "Stop Idle"
 
-[node name="StartIdle" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StartIdle" type="Button" parent="VBoxContainer"]
 margin_top = 24.0
 margin_right = 127.0
 margin_bottom = 44.0
 text = "Start Idle"
 
-[node name="StopModulate" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StopModulate" type="Button" parent="VBoxContainer"]
 margin_top = 48.0
 margin_right = 127.0
 margin_bottom = 68.0
 text = "Stop Modulate"
 
-[node name="StartModulate" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StartModulate" type="Button" parent="VBoxContainer"]
 margin_top = 72.0
 margin_right = 127.0
 margin_bottom = 92.0
 text = "Once Modulate"
 
-[node name="StopSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StopSqueeze" type="Button" parent="VBoxContainer"]
 margin_top = 96.0
 margin_right = 127.0
 margin_bottom = 116.0
 text = "Stop Squeeze"
 
-[node name="StartSqueeze" type="Button" parent="PlayerBody/VBoxContainer"]
+[node name="StartSqueeze" type="Button" parent="VBoxContainer"]
 margin_top = 120.0
 margin_right = 127.0
 margin_bottom = 140.0
@@ -455,32 +453,32 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
 margin_top = -88.0
 margin_right = 236.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Camera2D" type="Camera2D" parent="PlayerBody"]
+[node name="Camera2D" type="Camera2D" parent="."]
 current = true
 drag_margin_v_enabled = true
 smoothing_enabled = true
 smoothing_speed = 10.0
 script = ExtResource( 5 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 0, -20 )
 shape = SubResource( 2 )
 
-[node name="Sprite" type="Sprite" parent="PlayerBody"]
+[node name="Sprite" type="Sprite" parent="."]
 position = Vector2( 83.4929, -10.62 )
 texture = ExtResource( 6 )
 offset = Vector2( -83.4929, -21.38 )
 hframes = 5
 frame = 1
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite"]
 anims/Attack = SubResource( 3 )
 anims/Fall = SubResource( 4 )
 anims/Idle = SubResource( 5 )
@@ -488,12 +486,12 @@ anims/Jump = SubResource( 6 )
 anims/JumpAttack = SubResource( 7 )
 anims/Run = SubResource( 8 )
 
-[node name="ConsoleButton" parent="PlayerBody" instance=ExtResource( 8 )]
+[node name="ConsoleButton" parent="." instance=ExtResource( 8 )]
 position = Vector2( -28, 3 )
 
-[node name="RayCasts" type="Node2D" parent="PlayerBody"]
+[node name="RayCasts" type="Node2D" parent="."]
 
-[node name="SlopeDetector" type="RayCast2D" parent="PlayerBody/RayCasts"]
+[node name="SlopeDetector" type="RayCast2D" parent="RayCasts"]
 position = Vector2( 0, -4 )
 enabled = true
 cast_to = Vector2( 0, 21 )
@@ -502,33 +500,35 @@ __meta__ = {
 "_editor_description_": "El rayo se usa para detectar el tipo de suelo cuando el GetSlideCollision no funciona bien. Debe empezar dentro del jugador para que funcione con una plataforma que sube rapido."
 }
 
-[node name="Detector" type="Area2D" parent="PlayerBody"]
+[node name="Detector" type="Area2D" parent="."]
 position = Vector2( 0, -26 )
 collision_layer = 0
 collision_mask = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/Detector"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Detector"]
 shape = SubResource( 9 )
 
-[node name="AttackArea" type="Area2D" parent="PlayerBody"]
+[node name="AttackArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody/AttackArea"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="AttackArea"]
 position = Vector2( 0, 0.0677719 )
 polygon = PoolVector2Array( 32.2994, -10.9505, 48.9701, -14.4312, 63.9738, -22.9043, 56.6642, -36.9641, 44.3793, -46.8699, 25.9792, -38.1548, 2.34714, -25.7892 )
 
-[node name="DamageArea" type="Area2D" parent="PlayerBody"]
+[node name="DamageArea" type="Area2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/DamageArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
 position = Vector2( 0, -21 )
 shape = SubResource( 10 )
 
-[node name="Position2D" type="Position2D" parent="PlayerBody"]
+[node name="Position2D" type="Position2D" parent="."]
 
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StopIdle" to="PlayerBody" method="StopIdle"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StartIdle" to="PlayerBody" method="StartIdle"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StopModulate" to="PlayerBody" method="StopModulate"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StartModulate" to="PlayerBody" method="StartModulate"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StopSqueeze" to="PlayerBody" method="StopSqueeze"]
-[connection signal="pressed" from="PlayerBody/VBoxContainer/StartSqueeze" to="PlayerBody" method="StartSqueeze"]
+[node name="PlayerNode" type="Node2D" parent="."]
+
+[connection signal="pressed" from="VBoxContainer/StopIdle" to="." method="StopIdle"]
+[connection signal="pressed" from="VBoxContainer/StartIdle" to="." method="StartIdle"]
+[connection signal="pressed" from="VBoxContainer/StopModulate" to="." method="StopModulate"]
+[connection signal="pressed" from="VBoxContainer/StartModulate" to="." method="StartModulate"]
+[connection signal="pressed" from="VBoxContainer/StopSqueeze" to="." method="StopSqueeze"]
+[connection signal="pressed" from="VBoxContainer/StartSqueeze" to="." method="StartSqueeze"]

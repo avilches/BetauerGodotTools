@@ -33,7 +33,7 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
-        [OnReady("../Label")] public Label Label;
+        [OnReady("Label")] public Label Label;
         [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;

@@ -1,26 +1,24 @@
 [gd_scene format=2]
 
-[node name="Node2D" type="Node2D"]
-
-[node name="EnemyBody" type="KinematicBody2D" parent="."]
+[node name="EnemyBody" type="KinematicBody2D"]
 collision_layer = 1024
 collision_mask = 0
 
-[node name="Label" type="Label" parent="EnemyBody"]
+[node name="Label" type="Label" parent="."]
 margin_top = -40.0
 margin_right = 735.0
 margin_bottom = 314.0
 autowrap = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyBody"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 
-[node name="Sprite" type="Sprite" parent="EnemyBody"]
+[node name="Sprite" type="Sprite" parent="."]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="EnemyBody/Sprite"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite"]
 
-[node name="RayCasts" type="Node2D" parent="EnemyBody"]
+[node name="RayCasts" type="Node2D" parent="."]
 
-[node name="SlopeDetector" type="RayCast2D" parent="EnemyBody/RayCasts"]
+[node name="SlopeDetector" type="RayCast2D" parent="RayCasts"]
 position = Vector2( 0, -4 )
 enabled = true
 cast_to = Vector2( 0, 21 )
@@ -29,12 +27,12 @@ __meta__ = {
 "_editor_description_": "El rayo se usa para detectar el tipo de suelo cuando el GetSlideCollision no funciona bien. Debe empezar dentro del jugador para que funcione con una plataforma que sube rapido."
 }
 
-[node name="AttackArea" type="Area2D" parent="EnemyBody"]
+[node name="AttackArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
 
-[node name="DamageArea" type="Area2D" parent="EnemyBody"]
+[node name="DamageArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
 
-[node name="Position2D" type="Position2D" parent="EnemyBody"]
+[node name="Position2D" type="Position2D" parent="."]
