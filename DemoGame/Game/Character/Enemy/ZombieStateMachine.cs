@@ -104,9 +104,8 @@ namespace Veronenger.Game.Character.Enemy {
                         // return context.Set(PlayerState.FallShort);
                     }
 
-                    Body.AddLateralSpeed(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration,
+                    Body.AddLateralSpeed(Body.IsFacingRight ? 1 : -1, MotionConfig.Acceleration, MotionConfig.MaxSpeed, 
                         MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan, 0);
-                    Body.LimitDefaultSpeed();
                     Body.MoveSnapping();
                     if (StateTimer.IsAlarm()) {
                         Body.Flip();
@@ -135,14 +134,15 @@ namespace Veronenger.Game.Character.Enemy {
                 context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
             State(ZombieState.Attacked)
                 .Enter(() => {
+                    Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
                     Body.SpeedY = EnemyConfig.MiniJumpOnAttack.y;
-                    Body.SpeedX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? -1 : 1);
+                    Body.SpeedX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
                     _zombieController.PlayAnimationAttacked();
-                    EnemyConfig.MiniJumpOnAttack *= 1.10f;
-                    StateTimer.Restart().SetAlarm(0.3f);
+                    StateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(context => {
-                    Body.Fall();
+                    Body.ApplyDefaultGravity();
+                    Body.Slide();
                     if (StateTimer.IsAlarm())
                         return context.Pop();
                     return context.None();

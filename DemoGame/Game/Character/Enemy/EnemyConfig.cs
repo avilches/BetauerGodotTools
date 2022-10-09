@@ -6,7 +6,7 @@ namespace Veronenger.Game.Character.Enemy {
     public class EnemyConfig {
         public readonly MotionConfig MotionConfig = new();
 
-        public Vector2 MiniJumpOnAttack = new(100, -100);
+        public Vector2 MiniJumpOnAttack = new(130, -230);
 
         public EnemyConfig() {
             const float maxSpeed = 15.0f; // pixels/seconds

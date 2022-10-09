@@ -78,7 +78,8 @@ namespace Veronenger.Game.Character.Player {
 
             PlatformBody.Configure(name, playerController, flippers, slopeDetector, position2D, MotionConfig.Configure);
             TopDownBody.Configure(name, playerController, position2D, MotionConfig.Configure);
-
+            TopDownBody.DefaultSlideOnSlopes = true;
+            
             AddOnExecuteStart((delta, _) => PlatformBody.StartFrame(delta));
             AddOnExecuteStart((delta, _) => TopDownBody.StartFrame(delta));
             AddOnExecuteEnd((_) => PlatformBody.EndFrame());
@@ -131,6 +132,7 @@ namespace Veronenger.Game.Character.Player {
                     if (XInput != 0) {
                         return context.Set(PlayerState.Run);
                     }
+                    PlatformBody.StopLateralSpeedWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
 
                     if (Jump.IsJustPressed()) {
                         if (IsDown && PlatformBody.IsOnFallingPlatform()) {
@@ -183,9 +185,8 @@ namespace Veronenger.Game.Character.Player {
                         PlatformBody.StopLateralSpeedWithFriction(MotionConfig.Friction,
                             MotionConfig.StopIfSpeedIsLessThan);
                     } else {
-                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.Friction,
+                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.Friction, 
                             MotionConfig.StopIfSpeedIsLessThan, 0);
-                        PlatformBody.LimitDefaultSpeed();
                         PlatformBody.Flip(XInput);
                     }
 
@@ -258,7 +259,7 @@ namespace Veronenger.Game.Character.Player {
             State(PlayerState.Jump)
                 .Enter(() => {
                     PlatformBody.SpeedY = -MotionConfig.JumpForce;
-                    DebugJump("Jump start: decelerating to " + -MotionConfig.JumpForce);
+                    DebugJump($"Jump start: decelerating to {(-MotionConfig.JumpForce).ToString()}");
                     _player.AnimationJump.PlayLoop();
                 })
                 .Execute(context => {
@@ -268,12 +269,11 @@ namespace Veronenger.Game.Character.Player {
                     CheckAirAttack();
 
                     if (Jump.IsReleased() && SpeedY < -MotionConfig.JumpForceMin) {
-                        DebugJump("Short jump: decelerating from " + SpeedY + " to " +
-                                  -MotionConfig.JumpForceMin);
+                        DebugJump($"Short jump: decelerating from {SpeedY.ToString()} to {(-MotionConfig.JumpForceMin).ToString()}");
                         PlatformBody.SpeedY = -MotionConfig.JumpForceMin;
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.AirResistance,
                         MotionConfig.StopIfSpeedIsLessThan, 0);
                     PlatformBody.Flip(XInput);
                     PlatformBody.Fall();
@@ -307,7 +307,7 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(PlayerState.FallLong);
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
+                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.AirResistance,
                         MotionConfig.StopIfSpeedIsLessThan, 0);
                     PlatformBody.Flip(XInput);
 
@@ -336,8 +336,8 @@ namespace Veronenger.Game.Character.Player {
                             return context.Set(PlayerState.Jump);
                         }
 
-                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.AirResistance,
-                            MotionConfig.StopIfSpeedIsLessThan, 0);
+                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed,
+                            MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
                         PlatformBody.Flip(XInput);
 
                         PlatformBody.Fall();
@@ -356,11 +356,13 @@ namespace Veronenger.Game.Character.Player {
                         PlatformBody.Speed = TopDownBody.Speed;
                         return context.Set(PlayerState.FallShort);
                     }
-                    TopDownBody.AddSpeed(new Vector2(XInput, YInput), MotionConfig.Acceleration, MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan, 0);
-                    TopDownBody.LimitDefaultSpeed();
+                    TopDownBody.AddSpeed(XInput, YInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.MaxSpeed,
+                        MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan, 0);
                     TopDownBody.Slide();
                     return context.None();
                 }).Build();
+            
+            AddOnTransition(args => _player.Label.Text = args.To.ToString());
 
         }
     }

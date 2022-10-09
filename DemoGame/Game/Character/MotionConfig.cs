@@ -4,18 +4,18 @@ namespace Veronenger.Game.Character {
     public sealed class MotionConfig {
 
         // CONFIG: ground
-        public float MaxSpeed = 120f; // pixels/seconds
-        public float Acceleration = 120f; // pixels/frame
-        public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
-        public float Friction = 0f; // 0=stop immediately, 0.9=10%/frame 0.99=ice!!
+        public float MaxSpeed = 0; // pixels/seconds
+        public float Acceleration = 0; // pixels/frame
+        public float StopIfSpeedIsLessThan = 0; // pixels/seconds
+        public float Friction = 0; // pixels/seconds 0=stop immediately
 
         // CONFIG: air
         public float Gravity;
         public float JumpForce;
         public float JumpForceMin;
 
-        public float MaxFallingSpeed = 2000; // max speed in free fall
-        public float StartFallingSpeed = 400; // speed where the player changes to falling (test with fast downwards platform!)
+        public float MaxFallingSpeed = 0; // max speed in free fall
+        public float StartFallingSpeed = 0; // speed where the player changes to falling (test with fast downwards platform!)
         public float AirResistance = 0; // 0=stop immediately, 1=keep lateral movement until the end of the jump
 
         // CONFIG: squeeze effect
@@ -48,15 +48,12 @@ namespace Veronenger.Game.Character {
 
         public void Configure(IKinematicPlatformMotionBodyConfig kinematicPlatformMotionBody) {
             kinematicPlatformMotionBody.DefaultGravity = Gravity;
-            kinematicPlatformMotionBody.DefaultMaxSpeed = MaxSpeed;
             kinematicPlatformMotionBody.DefaultMaxFallingSpeed = MaxFallingSpeed;
             kinematicPlatformMotionBody.SlopeRayCastVector = SlopeRayCastVector;
             kinematicPlatformMotionBody.FloorVector = FloorVector;
         }
 
         public void Configure(IKinematicTopDownMotionBodyConfig kinematicPlatformMotionBody) {
-            kinematicPlatformMotionBody.DefaultMaxSpeed = new Vector2(MaxSpeed, MaxSpeed);
-            kinematicPlatformMotionBody.DefaultSlideOnSlopes = true;
 
         }
     }

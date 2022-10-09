@@ -12,7 +12,6 @@ namespace Veronenger.Game.Character {
     public interface IKinematicPlatformMotionBodyConfig {
         public float DefaultGravity { set; }
         public float DefaultMaxFallingSpeed { set; }
-        public float DefaultMaxSpeed { set; }
         public Vector2 SlopeRayCastVector { set; }
         public Vector2 FloorVector { set; }
     }
@@ -21,7 +20,6 @@ namespace Veronenger.Game.Character {
     public class KinematicPlatformMotionBody : BaseMotionBody, IFlipper, IKinematicPlatformMotionBodyConfig {
         public float DefaultGravity { get; set; } = 0f;
         public float DefaultMaxFallingSpeed { get; set; } = 1000f;
-        public float DefaultMaxSpeed { get; set; } = 100f;
         public Vector2 SlopeRayCastVector { get; set; }
         public Vector2 FloorVector { get; set; }
 
@@ -65,52 +63,18 @@ namespace Veronenger.Game.Character {
         }
 
         public void ApplyGravity(float gravity) {
-            SpeedY += gravity * Delta;
+            SpeedY = Mathf.Min(SpeedY + gravity * Delta, DefaultMaxFallingSpeed);
         }
 
-        public void AddLateralSpeed(float xInput, float acceleration, float friction, float stopIfSpeedIsLessThan,
+        public void AddLateralSpeed(float xInput,
+            float acceleration, float maxSpeed,
+            float friction, float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
-            if (xInput != 0) {
-                var directionChanged = SpeedX != 0 && Math.Sign(SpeedX) != Math.Sign(xInput);
-                if (directionChanged) {
-                    SpeedX = SpeedX * changeDirectionFactor + xInput * acceleration * Delta;
-                } else {
-                    SpeedX += xInput * acceleration * Delta;
-                }
-            } else {
-                StopLateralSpeedWithFriction(friction, stopIfSpeedIsLessThan);
-            }
+            Accelerate(ref SpeedX, xInput, acceleration, maxSpeed, friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
         }
 
         public void StopLateralSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            if (Mathf.Abs(SpeedX) < stopIfSpeedIsLessThan) {
-                SpeedX = 0;
-            } else {
-                SpeedX *= friction;
-                // SpeedX = SpeedX - (deceleration * Delta * Math.Sign(SpeedX));
-            }
-        }
-
-        public void LimitDefaultSpeed(float maxSpeedFactor = 1.0F) {
-            LimitDefaultLateralSpeed(maxSpeedFactor);
-            LimitDefaultMaxSpeed(maxSpeedFactor);
-        }
-
-
-        public void LimitDefaultMaxSpeed(float factor = 1.0F) {
-            LimitMaxSpeed(DefaultMaxFallingSpeed * factor);
-        }
-
-        public void LimitMaxSpeed(float maxSpeed) {
-            SpeedY = Mathf.Min(SpeedY, maxSpeed); //  avoid gravity continue forever in free fall
-        }
-
-        public void LimitDefaultLateralSpeed(float factor = 1.0F) {
-            LimitLateralSpeed(DefaultMaxSpeed * factor);
-        }
-
-        public void LimitLateralSpeed(float maxSpeed) {
-            SpeedX = Mathf.Clamp(SpeedX, -maxSpeed, maxSpeed);
+            SlowDownSpeed(ref SpeedX, friction, stopIfSpeedIsLessThan);
         }
 
         public void MoveSnapping() => MoveSnapping(Vector2.One);
@@ -329,7 +293,6 @@ namespace Veronenger.Game.Character {
 
         public void Fall() {
             ApplyDefaultGravity();
-            LimitDefaultSpeed();
             Slide();
         }
     }
