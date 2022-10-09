@@ -18,6 +18,15 @@ using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
+
+    public readonly struct Attack {
+        public readonly float Damage;
+
+        public Attack(float damage) {
+            Damage = damage;
+        }
+    }
+    
     public sealed class PlayerController : KinematicBody2D {
         private readonly Logger _logger = LoggerFactory.GetLogger<PlayerController>();
         [OnReady("Sprite")] private Sprite _mainSprite;
@@ -86,7 +95,12 @@ namespace Veronenger.Game.Controller.Character {
 
             CharacterManager.RegisterPlayerController(this);
             CharacterManager.ConfigurePlayerCollisions(this);
-            CharacterManager.ConfigurePlayerAttackArea2D(_attackArea, _OnPlayerAttackedEnemy);
+            CharacterManager.ConfigurePlayerAttackArea2D(_attackArea,
+                (enemyDamageArea2DPublisher, playerAttackArea2D) => {
+                    var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
+                    enemy.AttackedByPlayer(new Attack(1f));
+                    
+                });
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
             SlopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
@@ -184,15 +198,6 @@ namespace Veronenger.Game.Controller.Character {
                 .EndAnimate()
                 .SetLoops(2);
             return seq;
-        }
-
-        private void _OnPlayerAttackedEnemy(Area2D @event) {
-            // LoggerFactory.GetLogger(GetType()).RemoveDuplicates = false;
-            // LoggerFactory.GetLogger(GetType()).Debug("Collision from Origin:"+originParent.Name+"."+originParent.Name+" / Detected:"+@event.Detected.GetParent().Name+"."+@event.Detected.Name);
-            var originParent = @event.GetParent();
-            if (originParent is EnemyZombieController zombieController) {
-                zombieController.AttackedByPlayer(this);
-            }
         }
 
         public void EnableSlopeStairs() {

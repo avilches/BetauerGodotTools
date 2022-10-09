@@ -35,14 +35,16 @@ namespace Veronenger.Game.Managers {
             playerController.PlayerDetector.CollisionLayer = 0;
             playerController.PlayerDetector.CollisionMask = 0;
             playerController.PlayerDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
-
         }
 
-        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D> enterMethod) {
+        // Only one player attack area is allowed.
+        // If there are more than one, change from Unicast to Multicast
+        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D, Area2D> onAttack) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
             attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
-            _playerAttackBus.Subscribe((area2d, _) => enterMethod(area2d)).WithFilter(attackArea2D);
+            _playerAttackBus.Subscribe(onAttack)
+                .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
 
         public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
@@ -53,11 +55,12 @@ namespace Veronenger.Game.Managers {
             SlopeStairsManager.ConfigurePlayerCollisions(enemy);
         }
 
-        public void ConfigureEnemyDamageArea2D(Area2D damageArea2D) {
-            damageArea2D.CollisionMask = 0;
-            damageArea2D.CollisionLayer = 0;
-            damageArea2D.SetCollisionLayerBit(LayerEnemy, true);
-            _playerAttackBus.Connect(damageArea2D);
+        public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D) {
+            if (enemyDamageArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
+            enemyDamageArea2D.CollisionMask = 0;
+            enemyDamageArea2D.CollisionLayer = 0;
+            enemyDamageArea2D.SetCollisionLayerBit(LayerEnemy, true);
+            _playerAttackBus.Connect(enemyDamageArea2D);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

@@ -1,11 +1,12 @@
 using Betauer.DI;
+using Godot;
 
 namespace Veronenger.Game.Character.Enemy {
     [Service]
     public class EnemyConfig {
         public readonly MotionConfig MotionConfig = new();
 
-        public float DeathJump = 200;
+        public Vector2 MiniJumpOnAttack = new(100, -100);
 
         public EnemyConfig() {
             const float maxSpeed = 15.0f; // pixels/seconds

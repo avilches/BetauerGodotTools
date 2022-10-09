@@ -3,13 +3,12 @@ using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Nodes;
 using Betauer.Signal;
-using Betauer.StateMachine;
+using Betauer.StateMachine.Async;
 using Veronenger.Game.Controller.Menu;
 
 namespace Veronenger.Game.Managers {

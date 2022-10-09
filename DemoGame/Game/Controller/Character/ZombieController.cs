@@ -2,7 +2,9 @@ using System;
 using Godot;
 using Betauer;
 using Betauer.Animation;
+using Betauer.Animation.Tween;
 using Betauer.DI;
+using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.StateMachine;
 using Veronenger.Game.Character;
@@ -10,45 +12,67 @@ using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Character {
-    public sealed class EnemyZombieController : KinematicBody2D {
-        private readonly Logger _logger = LoggerFactory.GetLogger<EnemyZombieController>();
+    public interface IEnemy {
+        public void AttackedByPlayer(Attack attack);
+    }
+    
+    
+    public sealed class ZombieController : KinematicBody2D, IEnemy {
+        private static readonly KeyframeAnimation RedFlash = KeyframeAnimation.Create()
+            .SetDuration(0.3f)
+            .AnimateKeys(Properties.Modulate)
+            .KeyframeTo(0.00f, Colors.White)
+            .KeyframeTo(0.25f, Colors.Red)
+            .KeyframeTo(0.50f, Colors.White)
+            .KeyframeTo(0.75f, Colors.Red)
+            .KeyframeTo(1.00f, Colors.White)
+            .EndAnimate();
+
+        private readonly Logger _logger = LoggerFactory.GetLogger<ZombieController>();
 
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
-        [OnReady("../Label")] private Label Label;
+        [OnReady("../Label")] public Label Label;
         [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
 
         [Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
-        [Inject] private CharacterManager _characterManager { get; set; }
+        [Inject] private CharacterManager CharacterManager { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
-        public IOnceStatus AnimationStep { get; private set; }
+        public ILoopStatus AnimationStep { get; private set; }
         public IOnceStatus AnimationDieRight { get; private set; }
         public IOnceStatus AnimationDieLeft { get; private set; }
+
+        private SceneTreeTween _sceneTreeTween;
+
+        public void PlayAnimationAttacked() {
+            _sceneTreeTween?.Kill();
+            _sceneTreeTween = RedFlash.Play(_mainSprite);
+        }
 
         private AnimationStack _animationStack;
 
         public override void _Ready() {
             _animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
-            AnimationStep = _animationStack.AddOnceAnimation("Step");
+            AnimationStep = _animationStack.AddLoopAnimation("Step");
             AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
-
+            
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
             StateMachine.Start("Zombie", this, flippers, _slopeDetector, _position2D);
 
-            _characterManager.ConfigureEnemyCollisions(this);
+            CharacterManager.ConfigureEnemyCollisions(this);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
-            _characterManager.ConfigureEnemyDamageArea2D(_damageArea);
+            CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
         }
 
         public override void _PhysicsProcess(float delta) {
-            // if (_characterManager.PlayerController?.PlayerDetector?.Position != null) {
-                // Label.Text = "" + DegreesTo(_characterManager.PlayerController.PlayerDetector);
+            // if (CharacterManager.PlayerController?.PlayerDetector?.Position != null) {
+                // Label.Text = "" + DegreesTo(CharacterManager.PlayerController.PlayerDetector);
             // }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +
@@ -76,8 +100,8 @@ namespace Veronenger.Game.Controller.Character {
             // DrawLine(_position2D.Position, GetLocalMousePosition(), Colors.Blue, 3F);
         }
 
-        public void AttackedByPlayer(PlayerController playerController) {
-            StateMachineNode.TriggerAttacked();
+        public void AttackedByPlayer(Attack attack) {
+            StateMachine.TriggerAttacked(attack);
         }
     }
 }
