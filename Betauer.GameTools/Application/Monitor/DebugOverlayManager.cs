@@ -17,6 +17,13 @@ namespace Betauer.Application.Monitor {
             PauseMode = PauseModeEnum.Process;
         }
 
+        public DebugOverlay Overlay(Node2D follow) {
+            return GetChildren()
+                       .OfType<DebugOverlay>()
+                       .FirstOrDefault(d => d.Node2D == follow)
+                   ?? CreateOverlay().Follow(follow);
+        }
+
         public DebugOverlay CreateOverlay() {
             var overlay = new DebugOverlay(this, _count++);
             AddChild(overlay);

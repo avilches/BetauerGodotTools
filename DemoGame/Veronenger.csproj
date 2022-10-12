@@ -17,6 +17,7 @@
         <Compile Include="Tests/**" />
     </ItemGroup>
     <ItemGroup>
+        <Content Include="addons/**" />
         <Content Include="*" Exclude="mono_crash*" />
         <Content Include="Assets/**" />
         <Content Include="Characters/**" />
