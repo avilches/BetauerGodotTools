@@ -44,7 +44,7 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private CharacterManager CharacterManager { get; set; }
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
         [Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
-        [Inject] private DebugOverlay DebugOverlay { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationRun { get; private set; }
@@ -110,18 +110,16 @@ namespace Veronenger.Game.Controller.Character {
                 PlatformManager.BodyStopFallFromPlatform(this);
             });
 
-            DebugOverlay.CreateMonitor().WithPrefix("Player")
-                .Bind(this)
-                .Show(() => StateMachine.CurrentState.Key.ToString());
-
-            // DebugOverlay.Create().Bind(this).Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
-            // DebugOverlay.Create().Bind(this).Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
-                                                        // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name);
-            // DebugOverlay.Create().Bind(this).Show(() =>
+            var debugOverlay = DebugOverlayManager.Overlay(this).Title("Player");
+            debugOverlay.Show(() => StateMachine.CurrentState.Key.ToString()).SetLabel("State");
+            debugOverlay.Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition())).SetLabel("Mouse");
+            debugOverlay.Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
+                                                    " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
+            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
                 // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
-            // DebugOverlay.Create().Bind(this).Show(() =>
+            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
                 // _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
-            // DebugOverlay.Create().Bind(this).Show(() =>
+            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
                 // "Floor: " + IsOnFloor() + "\n" +
                 // "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
                 // "SlopeStairsDown: " + IsOnSlopeStairsDown());

@@ -67,7 +67,7 @@ namespace Veronenger.Game.Character.Player {
         private bool _coyoteJumpEnabled = false;
         [Inject] private GodotStopwatch JumpHelperTimer { get; set; }
         [Inject] private GodotStopwatch FallingTimer { get; set; }
-        [Inject] private DebugOverlay DebugOverlay { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private Bus Bus { get; set; }
 
         private Monitor _coyoteJumpState;
@@ -88,10 +88,16 @@ namespace Veronenger.Game.Character.Player {
             GroundStates();
             AirStates();
 
-            DebugOverlay.CreateMonitor().WithPrefix("JumpHelperTimer").Bind(this).Show(() => JumpHelperTimer.ToString());
-            _jumpHelperState = DebugOverlay.CreateMonitor().WithPrefix("JumpHelperState").Bind(this);
-            DebugOverlay.CreateMonitor().WithPrefix("FallingTimer").Bind(this).Show(() => FallingTimer.ToString());
-            _coyoteJumpState = DebugOverlay.CreateMonitor().WithPrefix("CoyoteState").Bind(this);
+            var debugOverlay = DebugOverlayManager.Overlay(_player);
+            debugOverlay.Show(() => JumpHelperTimer.ToString()).SetLabel("JumpHelperTimer");
+            _jumpHelperState = debugOverlay.AddText("JumpHelperState");
+            debugOverlay.Show(() => FallingTimer.ToString()).SetLabel("FallingTimer");
+            _coyoteJumpState = debugOverlay.AddText("CoyoteState");
+
+            debugOverlay.Show(() => PlatformBody.Speed.ToString("F3")).SetLabel("Speed");
+            debugOverlay.Graph(() => PlatformBody.SpeedY, -PlayerConfig.JumpForce, PlayerConfig.JumpForce).SetLabel("SpeedY").Keep(10).SetColor(Colors.Fuchsia);
+            debugOverlay.Graph(() => PlatformBody.SpeedX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetLabel("SpeedX").Keep(10).SetColor(Colors.Aquamarine);
+
         }
 
         public void GroundStates() {
