@@ -12,8 +12,8 @@ namespace Betauer.UI {
         internal readonly Container OriginalContainer;
         internal readonly Node Parent;
         private readonly Viewport _viewport;
-        private readonly List<Menu> _menus = new List<Menu>();
-        private readonly LinkedList<MenuState> _navigationState = new LinkedList<MenuState>();
+        private readonly List<Menu> _menus = new();
+        private readonly LinkedList<MenuState> _navigationState = new();
 
         public Menu ActiveMenu { get; private set; } = null;
         public bool Available { get; private set; } = true;
