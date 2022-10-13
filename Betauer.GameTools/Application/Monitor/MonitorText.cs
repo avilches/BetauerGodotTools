@@ -14,7 +14,7 @@ namespace Betauer.Application.Monitor {
         public readonly Label Content = new();
 
         public MonitorText RemoveIfInvalid(Godot.Object target) {
-            Target = target;
+            NodeToFollow = target;
             return this;
         }
 

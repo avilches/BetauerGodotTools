@@ -40,6 +40,20 @@ namespace Betauer.Application.Monitor {
                 .Range(min, max);
         }
 
+        public static MonitorGraph Graph(this DebugOverlay overlay, string label, Func<float> func) {
+            return overlay.CreateMonitor<MonitorGraph>()
+                .Load(func)
+                .SetLabel(label)
+                .AutoRange(true);
+        }
+
+        public static MonitorGraph Graph(this DebugOverlay overlay, string label, Func<bool> func) {
+            return overlay.CreateMonitor<MonitorGraph>()
+                .Load(func)
+                .SetLabel(label)
+                .Range(0, 1);
+        }
+
         public static MonitorText MonitorInternals(this DebugOverlay overlay) {
             return overlay.Text(() => {
                     var watcherSize = DefaultObjectWatcherTask.Instance.Size.ToString();

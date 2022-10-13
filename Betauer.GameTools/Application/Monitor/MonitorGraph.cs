@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Object = Godot.Object;
 
@@ -23,21 +24,22 @@ namespace Betauer.Application.Monitor {
         private int _frameCount = 0;
         private int DataSize => _secondsHistory * Fps;
         private Func<float> _loadValue;
-        private Func<float, string> _formatValue = f => f.ToString("F");
+        private Func<float, string>? _formatValue;
 
         public Label Label { get; } = new();
         public Label CurrentValue { get; } = new();
         public LinkedList<float> Data { get; } = new();
         public Line2D BorderLine { get; } = new();
         public Line2D ChartLine { get; } = new();
-
+        
         public int ChartHeight { get; private set; } = 100;
         public int ChartWidth { get; private set; } = 300;
-        public float MaxValue { get; private set; }
-        public float MinValue { get; private set; }
+        public bool IsAutoRange { get; private set; } = true;
+        public float MaxValue { get; private set; } = 0;
+        public float MinValue { get; private set; } = 0;
         
         public MonitorGraph RemoveIfInvalid(Object target) {
-            Target = target;
+            NodeToFollow = target;
             return this;
         }
 
@@ -61,6 +63,12 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public MonitorGraph Load(Func<bool> action) {
+            _loadValue = () => action() ? 1 : 0;
+            _formatValue ??= (v) => v > 0f ? "True" : "False";
+            return this;
+        }
+
         public MonitorGraph Format(Func<float, string> action) {
             _formatValue = action;
             return this;
@@ -73,17 +81,35 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public MonitorGraph ChartSize(int width, int height) {
-            if (width == ChartWidth && height == ChartHeight) return this; // ignore if there is no change
+        public MonitorGraph SetChartSize(int width, int height) {
+            SetChartHeight(height);
+            SetChartWidth(width);
+            return this;
+        }
+
+        public MonitorGraph SetChartWidth(int width) {
+            if (width == ChartWidth) return this; // ignore if there is no change
             ChartWidth = width;
+            _dirty = true;
+            return this;
+        }
+
+        public MonitorGraph SetChartHeight(int height) {
+            if (height == ChartHeight) return this; // ignore if there is no change
             ChartHeight = height;
             _dirty = true;
+            return this;
+        }
+
+        public MonitorGraph AutoRange(bool autoRange = true) {
+            IsAutoRange = autoRange;
             return this;
         }
 
         public MonitorGraph Range(float min, float max) {
             MinValue = Mathf.Min(min, max);
             MaxValue = Mathf.Max(min, max);
+            IsAutoRange = false;
             return this;
         }
 
@@ -162,6 +188,10 @@ namespace Betauer.Application.Monitor {
 
         private void Add(float v) {
             Data.AddLast(v);
+            if (IsAutoRange) {
+                if (v > MaxValue) MaxValue = v;
+                else if (v < MinValue) MinValue = v;
+            }
             while (Data.Count > DataSize) Data.RemoveFirst();
         }
 
@@ -209,12 +239,18 @@ namespace Betauer.Application.Monitor {
                 _dirty = false;
             }
             var value = _loadValue.Invoke();
-            CurrentValue.Text = _formatValue.Invoke(value);
+            CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("F");
             Add(value);
             DumpDataToChartLine();
             UpdateSeparators();
             _frameCount ++;
-            if (_frameCount == Fps) _frameCount = 0;
+            if (_frameCount == Fps) {
+                if (IsAutoRange) {
+                    MinValue = Data.Min();
+                    MaxValue = Data.Max();
+                }
+                _frameCount = 0;
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Betauer.Application.Monitor {
         public DebugOverlay Overlay(Node2D follow) {
             return GetChildren()
                        .OfType<DebugOverlay>()
-                       .FirstOrDefault(d => d.Node2D == follow)
+                       .FirstOrDefault(d => d.NodeToFollow == follow)
                    ?? CreateOverlay().Follow(follow);
         }
 
