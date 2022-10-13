@@ -3,6 +3,9 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public class MonitorText : BaseMonitor {
+
+        public static readonly Color DefaultLabelModulateColor = new Color(0.584314f, 0.584314f, 0.584314f, 1);
+        
         private string _text = string.Empty;
         private readonly HBoxContainer _container = new();
         private Func<string>? _showValue;
@@ -52,7 +55,7 @@ namespace Betauer.Application.Monitor {
 
         public override void _Ready() {
             Label.Visible = false;
-            Label.Modulate = new Color(0.584314f, 0.584314f, 0.584314f, 1);
+            Label.Modulate = DefaultLabelModulateColor;
 
             _container.AddChild(Label);
             _container.AddChild(Content);

@@ -13,24 +13,35 @@ namespace Betauer.Application.Monitor {
             return monitorText;
         }
 
-        public static MonitorText AddText(this DebugOverlay overlay, string? prefix = null) {
-            return overlay.CreateMonitor<MonitorText>().SetLabel(prefix);
+        public static MonitorText Text(this DebugOverlay overlay, string? label = null) {
+            return overlay.CreateMonitor<MonitorText>().SetLabel(label);
         }
 
-        public static MonitorText Show(this DebugOverlay overlay, Func<string> func) {
-            return overlay.CreateMonitor<MonitorText>().Show(func);
+        public static MonitorText Text(this DebugOverlay overlay, Func<string> func) {
+            return overlay.Text("", func);
         }
 
-        public static MonitorText Show(this DebugOverlay overlay, Func<bool> func) {
-            return overlay.CreateMonitor<MonitorText>().Show(func);
+        public static MonitorText Text(this DebugOverlay overlay, string label, Func<string> func) {
+            return overlay.CreateMonitor<MonitorText>()
+                .Show(func)
+                .SetLabel(label);
         }
 
-        public static MonitorGraph Graph(this DebugOverlay overlay, Func<float> func, float min, float max) {
-            return overlay.CreateMonitor<MonitorGraph>().Load(func).Range(min, max);
+        public static MonitorText Text(this DebugOverlay overlay, string label, Func<bool> func) {
+            return overlay.CreateMonitor<MonitorText>()
+                .Show(func)
+                .SetLabel(label);
+        }
+
+        public static MonitorGraph Graph(this DebugOverlay overlay, string label, Func<float> func, float min, float max) {
+            return overlay.CreateMonitor<MonitorGraph>()
+                .Load(func)
+                .SetLabel(label)
+                .Range(min, max);
         }
 
         public static MonitorText MonitorInternals(this DebugOverlay overlay) {
-            return overlay.Show(() => {
+            return overlay.Text(() => {
                     var watcherSize = DefaultObjectWatcherTask.Instance.Size.ToString();
                     var watcherPeakSize = DefaultObjectWatcherTask.Instance.PeakSize.ToString();
                     var tweenCallbacks = DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString();
@@ -43,7 +54,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public static MonitorText MonitorFpsAndMemory(this DebugOverlay overlay) {
-            return overlay.Show(() => {
+            return overlay.Text(() => {
                 var txt = $"FPS {((int)Engine.GetFramesPerSecond()).ToString()}";
                 #if DEBUG
                     txt += $" | Static Mem: {((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()} / {((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()} | Dynamic Mem: {((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}";

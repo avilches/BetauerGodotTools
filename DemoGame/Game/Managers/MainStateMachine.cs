@@ -244,23 +244,23 @@ namespace Veronenger.Game.Managers {
         private void ConfigureDebugOverlays() {
             DefaultDebugOverlay.Theme = MyTheme;
             DefaultDebugOverlay.MonitorFpsAndMemory();
-            DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
+            DefaultDebugOverlay.Text(ScreenSettingsManager.GetStateAsString); 
             DefaultDebugOverlay.MonitorInternals();
             CreateNodeHandlerManagerDebugOverlay();
-            CreateSignalManagerDebugOverlay();
+            // CreateSignalManagerDebugOverlay();
         }
 
         private DebugOverlay CreateSignalManagerDebugOverlay() {
             var debugOverlay = DebugOverlayManager.CreateOverlay();
             debugOverlay.Theme = MyTheme;
-            debugOverlay.CreateMonitor().Show(DefaultSignalManager.Instance.GetStateAsString);
+            debugOverlay.Text(DefaultSignalManager.Instance.GetStateAsString);
             return debugOverlay;
         }
 
         private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
             var debugOverlay = DebugOverlayManager.CreateOverlay();
             debugOverlay.Theme = MyTheme;
-            debugOverlay.CreateMonitor().Show(DefaultNodeHandler.Instance.GetStateAsString);
+            debugOverlay.Text(DefaultNodeHandler.Instance.GetStateAsString);
             return debugOverlay;
         }
 

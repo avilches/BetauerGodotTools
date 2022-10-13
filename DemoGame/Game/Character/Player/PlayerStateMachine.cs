@@ -89,14 +89,15 @@ namespace Veronenger.Game.Character.Player {
             AirStates();
 
             var debugOverlay = DebugOverlayManager.Overlay(_player);
-            debugOverlay.Show(() => JumpHelperTimer.ToString()).SetLabel("JumpHelperTimer");
-            _jumpHelperState = debugOverlay.AddText("JumpHelperState");
-            debugOverlay.Show(() => FallingTimer.ToString()).SetLabel("FallingTimer");
-            _coyoteJumpState = debugOverlay.AddText("CoyoteState");
+            debugOverlay.Text("JumpHelperTimer", () => JumpHelperTimer.ToString());
+            _jumpHelperState = debugOverlay.Text("JumpHelperState");
+            debugOverlay.Text("FallingTimer", () => FallingTimer.ToString());
+            _coyoteJumpState = debugOverlay.Text("CoyoteState");
 
-            debugOverlay.Show(() => PlatformBody.Speed.ToString("F3")).SetLabel("Speed");
-            debugOverlay.Graph(() => PlatformBody.SpeedY, -PlayerConfig.JumpForce, PlayerConfig.JumpForce).SetLabel("SpeedY").Keep(10).SetColor(Colors.Fuchsia);
-            debugOverlay.Graph(() => PlatformBody.SpeedX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetLabel("SpeedX").Keep(10).SetColor(Colors.Aquamarine);
+            debugOverlay.Text("Speed", () => PlatformBody.Speed.ToString("F3"));
+            debugOverlay.Text("State", () => CurrentState.Key.ToString());
+            debugOverlay.Graph("SpeedY", () => PlatformBody.SpeedY, -PlayerConfig.JumpForce, PlayerConfig.JumpForce).Keep(10).SetColor(Colors.Fuchsia);
+            debugOverlay.Graph("SpeedX", () => PlatformBody.SpeedX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.Aquamarine);
 
         }
 

@@ -5,30 +5,33 @@ using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
     public class MonitorGraph : BaseMonitor {
-        private const int Fps = 60;
-        private int _secondsHistory = 5;
-        private int DataSize => _secondsHistory * Fps;
-        private int _frameCount = 0;
 
+        public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
+        public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
+        
+        private const int Fps = 60;
         private readonly Node2D _separatorHolder = new();
         private readonly Control _chartSpacer = new();
         private readonly List<Line2D> _separators = new();
-        private Action<Line2D> _chartLineConfig = (line2d) => { };
-        private Action<Line2D> _borderConfig = (line2d) => { };
-        private Action<Line2D> _separatorConfig = (line2d) => { };
         private readonly HBoxContainer _legendContainer = new();
+        private Action<Line2D> _chartLineConfig = line2d => { };
+        private Action<Line2D> _borderConfig = line2d => { };
+        private Action<Line2D> _separatorConfig = line2d => { };
         private Color _color = Colors.YellowGreen;
         private bool _dirty = true;
-
-        public readonly Label Label = new();
-        public readonly Label CurrentValue = new();
+        private int _secondsHistory = 5;
+        private int _frameCount = 0;
+        private int DataSize => _secondsHistory * Fps;
         private Func<float> _loadValue;
-        private Func<float, string> _formatValue = (f) => f.ToString("F");
-        public readonly LinkedList<float> Data = new();
-        private readonly Line2D _borderLine = new();
-        private readonly Line2D _chartLine = new();
+        private Func<float, string> _formatValue = f => f.ToString("F");
 
-        public int ChartHeight { get; private set; } = 10;
+        public Label Label { get; } = new();
+        public Label CurrentValue { get; } = new();
+        public LinkedList<float> Data { get; } = new();
+        public Line2D BorderLine { get; } = new();
+        public Line2D ChartLine { get; } = new();
+
+        public int ChartHeight { get; private set; } = 100;
         public int ChartWidth { get; private set; } = 300;
         public float MaxValue { get; private set; }
         public float MinValue { get; private set; }
@@ -85,13 +88,13 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            Label.Modulate = new Color(0.584314f, 0.584314f, 0.584314f, 1);
+            Label.Modulate = MonitorText.DefaultLabelModulateColor;
             _legendContainer.AddChild(Label);
             _legendContainer.AddChild(CurrentValue);
             AddChild(_chartSpacer);
             AddChild(_separatorHolder);
-            AddChild(_chartLine);
-            AddChild(_borderLine);
+            AddChild(ChartLine);
+            AddChild(BorderLine);
             AddChild(_legendContainer);
             _dirty = true;
         }
@@ -115,15 +118,15 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureBorder() {
-            _borderLine.ClearPoints();
-            _borderLine.AddPoint(new Vector2(0, 0));
-            _borderLine.AddPoint(new Vector2(ChartWidth, 0));
-            _borderLine.AddPoint(new Vector2(ChartWidth, ChartHeight));
-            _borderLine.AddPoint(new Vector2(0, ChartHeight));
-            _borderLine.AddPoint(new Vector2(0, 0));
-            _borderLine.Width = 1f;
-            _borderLine.DefaultColor = Colors.DimGray;
-            _borderConfig(_borderLine);
+            BorderLine.ClearPoints();
+            BorderLine.AddPoint(new Vector2(0, 0));
+            BorderLine.AddPoint(new Vector2(ChartWidth, 0));
+            BorderLine.AddPoint(new Vector2(ChartWidth, ChartHeight));
+            BorderLine.AddPoint(new Vector2(0, ChartHeight));
+            BorderLine.AddPoint(new Vector2(0, 0));
+            BorderLine.Width = 2f;
+            BorderLine.DefaultColor = DefaultBorderColor;
+            _borderConfig(BorderLine);
         }
 
         private void ConfigureSeparators() {
@@ -131,9 +134,8 @@ namespace Betauer.Application.Monitor {
             if (pending > 0) {
                 while (pending-- > 0) {
                     var sep = new Line2D();
-                    sep.Width = 2f;
-                    sep.DefaultColor = Colors.DarkGray;
-                    sep.Modulate = new Color(1f, 1f, 1f, 0.3f);
+                    sep.Width = 1f;
+                    sep.DefaultColor = DefaultSeparatorColor;
                     _separatorConfig(sep);
                     _separators.Add(sep);
                     _separatorHolder.AddChild(sep);
@@ -176,14 +178,14 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureChartLine() {
-            _chartLine.Width = 2f;
-            _chartLine.DefaultColor = _color;
-            _chartLineConfig(_chartLine);
+            ChartLine.Width = 2f;
+            ChartLine.DefaultColor = _color;
+            _chartLineConfig(ChartLine);
             CurrentValue.Modulate = _color;
         }
 
         private void DumpDataToChartLine() {
-            _chartLine.ClearPoints();
+            ChartLine.ClearPoints();
             var elements = _secondsHistory * 60;
             var range = MaxValue - MinValue;
             var i = 0;
@@ -192,7 +194,7 @@ namespace Betauer.Application.Monitor {
                 var percentHeight = (v - MinValue) / range;
                 var x = Mathf.Lerp(0, ChartWidth, percentWidth);
                 var y = Mathf.Lerp(0, ChartHeight, Math.Clamp(percentHeight, 0f, 1f));
-                _chartLine.AddPoint(new Vector2(x, y));
+                ChartLine.AddPoint(new Vector2(x, y));
                 i++;
             });
         }

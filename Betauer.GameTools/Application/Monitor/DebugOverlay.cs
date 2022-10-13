@@ -41,6 +41,11 @@ namespace Betauer.Application.Monitor {
             AddChild(Container);
         }
 
+        public DebugOverlay SetTheme(Theme theme) {
+            Theme = theme;
+            return this;
+        }
+
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
             TitleLabel.Visible = title != null;
@@ -89,8 +94,8 @@ namespace Betauer.Application.Monitor {
         }
 
 
-        public DebugOverlay Add(BaseMonitor baseMonitor) {
-            Container.AddChild(baseMonitor);
+        public DebugOverlay Add(Control control) {
+            Container.AddChild(control);
             return this;
         }
 

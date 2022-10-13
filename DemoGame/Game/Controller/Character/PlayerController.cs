@@ -110,22 +110,34 @@ namespace Veronenger.Game.Controller.Character {
                 PlatformManager.BodyStopFallFromPlatform(this);
             });
 
-            var debugOverlay = DebugOverlayManager.Overlay(this).Title("Player");
-            debugOverlay.Show(() => StateMachine.CurrentState.Key.ToString()).SetLabel("State");
-            debugOverlay.Show(() => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition())).SetLabel("Mouse");
-            debugOverlay.Show(() => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
-                                                    " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
-            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
-                // _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
-            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
-                // _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
-            // DebugOverlay.Create().RemoveIfInvalid(this).Show(() =>
-                // "Floor: " + IsOnFloor() + "\n" +
-                // "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
-                // "SlopeStairsDown: " + IsOnSlopeStairsDown());
+            var debugOverlay = DebugOverlayManager.Overlay(this).SetTheme(MainResourceLoader.MyTheme).Title("Player");
+            // debugOverlay.Text("Mouse", () => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
+            // debugOverlay.Text("Animation", () => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
+                                                    // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
+            debugOverlay.Text("AnimationStack",() =>
+                _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
+            debugOverlay.Text("TweenStack", () =>
+                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
+            debugOverlay.Text(() =>
+                "Floor: " + IsOnFloor() + "\n" +
+                "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
+                "SlopeStairsDown: " + IsOnSlopeStairsDown());
 
-        }
-
+            debugOverlay.Add(ButtonBar.Create()
+                .Add("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
+                .Add("DangerTween.Stop", () => DangerTween.Stop())
+                .Build()
+            );
+            debugOverlay.Add(ButtonBar.Create()
+                .Add("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce())
+                .Add("PulsateTween.Stop", () => PulsateTween.Stop())
+                .Build()
+            );
+            debugOverlay.Add(ButtonBar.Create()
+                .Add("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true))
+                .Add("SqueezeTween.Stop", () => SqueezeTween.Stop())
+                .Build()
+            );
 
         public void StopIdle() {
             DangerTween.Stop();
