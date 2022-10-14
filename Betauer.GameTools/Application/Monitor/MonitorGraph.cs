@@ -8,16 +8,35 @@ using Object = Godot.Object;
 namespace Betauer.Application.Monitor {
 
 
+
     public class MonitorGraph : BaseMonitor {
+
+        public class Separator {
+            internal readonly float Value;
+            internal readonly Line2D Line2D;
+
+            public Separator(float value) {
+                Value = value;
+                Line2D = new Line2D {
+                    DefaultColor = DefaultSeparatorColor,
+                    Width = 1,
+                    Visible = false
+                };
+                Line2D.AddPoint(Vector2.Zero);
+                Line2D.AddPoint(Vector2.Zero);
+            }
+        }
 
         public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
         public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
         
         private const int Fps = 60;
+        private readonly Node2D _timeSeparatorsHolder = new();
         private readonly Node2D _separatorsHolder = new();
         private readonly Control _chartSpacer = new();
         private readonly HBoxContainer _legend = new();
-        private readonly List<Line2D> _separators = new();
+        private readonly List<Line2D> _timeSeparators = new();
+        private readonly List<Separator> _separators = new();
         private Action<Line2D> _chartLineConfig = _ => { };
         private Action<Line2D> _borderConfig = _ => { };
         private Action<Line2D> _separatorConfig = _ => { };
@@ -116,9 +135,16 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public MonitorGraph AddSeparator(float value) {
+            var separator = new Separator(value);
+            _separators.Add(separator);
+            _separatorsHolder.AddChild(separator.Line2D);
+            return this;
+        }
 
         public override void _Ready() {
             AddChild(_chartSpacer);
+            AddChild(_timeSeparatorsHolder);
             AddChild(_separatorsHolder);
             AddChild(ChartLine);
             AddChild(BorderLine);
@@ -175,22 +201,36 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureSeparators() {
-            var pending = _secondsHistory - _separators.Count;
+            var range = MaxValue - MinValue;
+            foreach (var separator in _separators) {
+                var visible = separator.Value > MinValue && separator.Value < MaxValue;
+                separator.Line2D.Visible = visible;
+                if (visible) {
+                    var percentHeight = (separator.Value - MinValue) / range;
+                    var y = Mathf.Lerp(0, ChartHeight, percentHeight);
+                    separator.Line2D.SetPointPosition(0, new Vector2(0, y));
+                    separator.Line2D.SetPointPosition(1, new Vector2(ChartWidth, y));
+                }
+            }
+        }
+
+        private void ConfigureTimeSeparators() {
+            var pending = _secondsHistory - _timeSeparators.Count;
             if (pending > 0) {
                 while (pending-- > 0) {
                     var sep = new Line2D();
                     sep.Width = 1f;
                     sep.DefaultColor = DefaultSeparatorColor;
                     _separatorConfig.Invoke(sep);
-                    _separators.Add(sep);
-                    _separatorsHolder.AddChild(sep);
+                    _timeSeparators.Add(sep);
+                    _timeSeparatorsHolder.AddChild(sep);
                     sep.AddPoint(Vector2.Zero);
                     sep.AddPoint(Vector2.Zero);
                 }
             } else if (pending < 0) {
                 while (pending++ < 0) {
-                    _separators[^1].QueueFree(); // Delete last separator
-                    _separators.RemoveAt(_separators.Count-1);
+                    _timeSeparators[^1].QueueFree(); // Delete last separator
+                    _timeSeparators.RemoveAt(_timeSeparators.Count-1);
                 }
             }
         }
@@ -219,7 +259,7 @@ namespace Betauer.Application.Monitor {
             var sepStep = sepSize / Fps;
             var discount = sepStep * _frameCount;
             for (var i = 0; i < _secondsHistory; i++) {
-                var sep = _separators[i];
+                var sep = _timeSeparators[i];
                 var x = sepSize * (i + 1);
                 sep.SetPointPosition(0, new Vector2(x - discount, 0));
                 sep.SetPointPosition(1, new Vector2(x - discount, ChartHeight));
@@ -253,6 +293,7 @@ namespace Betauer.Application.Monitor {
                 ConfigureChartLine();
                 ConfigureChartData();
                 ConfigureSeparators();
+                ConfigureTimeSeparators();
                 ConfigureChartSpaceAndBorder();
                 _dirty = false;
             }
