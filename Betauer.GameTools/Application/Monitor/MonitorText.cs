@@ -4,7 +4,7 @@ using Godot;
 namespace Betauer.Application.Monitor {
     public class MonitorText : BaseMonitor {
 
-        public static readonly Color DefaultLabelModulateColor = new Color(0.584314f, 0.584314f, 0.584314f, 1);
+        public static readonly Color DefaultLabelColor = new Color(0.584314f, 0.584314f, 0.584314f, 1);
         
         private string _text = string.Empty;
         private readonly HBoxContainer _container = new();
@@ -35,12 +35,12 @@ namespace Betauer.Application.Monitor {
 
         public MonitorText Show(Func<bool> action) {
             var previous = false;
-            Content.Modulate = Colors.Tomato;
+            Content.AddColorOverride("font_color", Colors.Tomato);
             _showValue = () => {
                 var b = action();
                 if (b != previous) {
                     // Change this in every frame just kills the fps
-                    Content.Modulate = b ? Colors.GreenYellow : Colors.Tomato;
+                    Content.AddColorOverride("font_color", b ? Colors.GreenYellow : Colors.Tomato);
                 }
                 previous = b;
                 return b.ToString();
@@ -55,7 +55,7 @@ namespace Betauer.Application.Monitor {
 
         public override void _Ready() {
             Label.Visible = false;
-            Label.Modulate = DefaultLabelModulateColor;
+            Label.AddColorOverride("font_color", DefaultLabelColor);
 
             _container.AddChild(Label);
             _container.AddChild(Content);

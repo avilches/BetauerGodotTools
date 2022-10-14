@@ -126,7 +126,7 @@ namespace Betauer.Application.Monitor {
                 .Child(new NodeBuilder<HBoxContainer>(_legend)
                     .Child(Label, label => {
                         label.Align = Label.AlignEnum.Right;
-                        label.Modulate = MonitorText.DefaultLabelModulateColor;
+                        label.AddColorOverride("font_color", MonitorText.DefaultLabelColor);
                     })
                     .Child(CurrentValue, label => {
                         label.Align = Label.AlignEnum.Left;
@@ -230,7 +230,7 @@ namespace Betauer.Application.Monitor {
             ChartLine.Width = 2f;
             ChartLine.DefaultColor = _color;
             _chartLineConfig.Invoke(ChartLine);
-            CurrentValue.Modulate = _color;
+            CurrentValue.AddColorOverride("font_color", _color);
         }
 
         private void DumpDataToChartLine() {
