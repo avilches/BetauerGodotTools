@@ -39,7 +39,7 @@ namespace Betauer.Application.Monitor {
         public float MinValue { get; private set; } = 0;
         
         public MonitorGraph RemoveIfInvalid(Object target) {
-            NodeToFollow = target;
+            Watch = target;
             return this;
         }
 

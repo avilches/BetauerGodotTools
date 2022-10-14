@@ -2,7 +2,7 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public abstract class BaseMonitor : VBoxContainer {
-        public Object? NodeToFollow { get; set; }
+        public Object? Watch { get; set; }
         public DebugOverlay DebugOverlayOwner { get; set; }
         public bool IsEnabled => Visible;
 
@@ -16,8 +16,8 @@ namespace Betauer.Application.Monitor {
         }
         
         public override void _PhysicsProcess(float delta) {
-            var nodeToFollow = NodeToFollow ?? DebugOverlayOwner.NodeToFollow;
-            if (nodeToFollow != null && !IsInstanceValid(nodeToFollow)) {
+            var watching = Watch ?? DebugOverlayOwner.Following;
+            if (watching != null && !IsInstanceValid(watching)) {
                 QueueFree();
             } else if (!Visible) {
                 Disable();

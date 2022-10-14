@@ -9,19 +9,15 @@ namespace Betauer.Application.Monitor {
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
         private readonly DebugOverlayManager _manager;
-        private Vector2 FollowPosition => NodeToFollow != null ? NodeToFollow.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
+        private Vector2 FollowPosition => Following != null ? Following.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
         private Vector2 _offset;
-        private Node2D? _nodeToFollow;
 
         public readonly int Id;
         public readonly Label TitleLabel;
         public readonly VBoxContainer Container;
         public Color Transparent = new(1, 1, 1, 0.490196f);
         public Color Solid = new(1, 1, 1);
-        public Node2D? NodeToFollow {
-            get => _nodeToFollow;
-            set => Follow(_nodeToFollow);
-        }
+        public Node2D? Following { get; private set; }
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
@@ -52,7 +48,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Follow(Node2D followNode) {
-            NodeToFollow = followNode;
+            Following = followNode;
             _offset = Vector2.Zero;
             return this;
         }
@@ -107,12 +103,12 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Process(float delta) {
-            if (NodeToFollow != null && !IsInstanceValid(NodeToFollow)) {
+            if (Following != null && !IsInstanceValid(Following)) {
                 QueueFree();
             } else if (!Visible) {
                 Disable();
             } else {
-                if (NodeToFollow != null) {
+                if (Following != null) {
                     var newPosition = FollowPosition + _offset;
                     // Ensure the overlay doesn't go out of the screen when following the node
                     newPosition = new Vector2(
