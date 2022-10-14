@@ -1,23 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.UI;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
+
+
     public class MonitorGraph : BaseMonitor {
 
         public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
         public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
         
         private const int Fps = 60;
-        private readonly Node2D _separatorHolder = new();
+        private readonly Node2D _separatorsHolder = new();
         private readonly Control _chartSpacer = new();
+        private readonly HBoxContainer _legend = new();
         private readonly List<Line2D> _separators = new();
-        private readonly HBoxContainer _legendContainer = new();
-        private Action<Line2D> _chartLineConfig = line2d => { };
-        private Action<Line2D> _borderConfig = line2d => { };
-        private Action<Line2D> _separatorConfig = line2d => { };
+        private Action<Line2D> _chartLineConfig = _ => { };
+        private Action<Line2D> _borderConfig = _ => { };
+        private Action<Line2D> _separatorConfig = _ => { };
         private Color _color = Colors.YellowGreen;
         private bool _dirty = true;
         private int _secondsHistory = 5;
@@ -48,11 +51,11 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public MonitorGraph SetLabel(string? prefix) {
-            if (prefix == null) {
+        public MonitorGraph SetLabel(string? label) {
+            if (label == null) {
                 Label.Visible = false;
             } else {
-                Label.Text = prefix;
+                Label.Text = label;
                 Label.Visible = true;
             }
             return this;
@@ -113,15 +116,23 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+
         public override void _Ready() {
-            Label.Modulate = MonitorText.DefaultLabelModulateColor;
-            _legendContainer.AddChild(Label);
-            _legendContainer.AddChild(CurrentValue);
             AddChild(_chartSpacer);
-            AddChild(_separatorHolder);
+            AddChild(_separatorsHolder);
             AddChild(ChartLine);
             AddChild(BorderLine);
-            AddChild(_legendContainer);
+            new NodeBuilder<Label>()
+                .Child(new NodeBuilder<HBoxContainer>(_legend)
+                    .Child(Label, label => {
+                        label.Align = Label.AlignEnum.Right;
+                        label.Modulate = MonitorText.DefaultLabelModulateColor;
+                    })
+                    .Child(CurrentValue, label => {
+                        label.Align = Label.AlignEnum.Left;
+                    })
+                )
+                .SetParent(this);
             _dirty = true;
         }
 
@@ -143,7 +154,10 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        private void ConfigureBorder() {
+        private void ConfigureChartSpaceAndBorder() {
+            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the RectMinSize
+            RectMinSize = new Vector2(ChartWidth, 0);
+
             BorderLine.ClearPoints();
             BorderLine.AddPoint(new Vector2(0, 0));
             BorderLine.AddPoint(new Vector2(ChartWidth, 0));
@@ -152,7 +166,12 @@ namespace Betauer.Application.Monitor {
             BorderLine.AddPoint(new Vector2(0, 0));
             BorderLine.Width = 2f;
             BorderLine.DefaultColor = DefaultBorderColor;
-            _borderConfig(BorderLine);
+            _borderConfig.Invoke(BorderLine);
+            
+            _chartSpacer.RectMinSize = new Vector2(ChartWidth, ChartHeight);
+
+            _legend.GrowHorizontal = GrowDirection.Begin;
+            _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
         }
 
         private void ConfigureSeparators() {
@@ -162,9 +181,9 @@ namespace Betauer.Application.Monitor {
                     var sep = new Line2D();
                     sep.Width = 1f;
                     sep.DefaultColor = DefaultSeparatorColor;
-                    _separatorConfig(sep);
+                    _separatorConfig.Invoke(sep);
                     _separators.Add(sep);
-                    _separatorHolder.AddChild(sep);
+                    _separatorsHolder.AddChild(sep);
                     sep.AddPoint(Vector2.Zero);
                     sep.AddPoint(Vector2.Zero);
                 }
@@ -210,7 +229,7 @@ namespace Betauer.Application.Monitor {
         private void ConfigureChartLine() {
             ChartLine.Width = 2f;
             ChartLine.DefaultColor = _color;
-            _chartLineConfig(ChartLine);
+            _chartLineConfig.Invoke(ChartLine);
             CurrentValue.Modulate = _color;
         }
 
@@ -234,8 +253,7 @@ namespace Betauer.Application.Monitor {
                 ConfigureChartLine();
                 ConfigureChartData();
                 ConfigureSeparators();
-                ConfigureBorder();
-                _chartSpacer.RectMinSize = new Vector2(ChartWidth, ChartHeight);
+                ConfigureChartSpaceAndBorder();
                 _dirty = false;
             }
             var value = _loadValue.Invoke();
