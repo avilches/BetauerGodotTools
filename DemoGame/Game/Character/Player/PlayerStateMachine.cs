@@ -91,19 +91,21 @@ namespace Veronenger.Game.Character.Player {
             var debugOverlay = DebugOverlayManager.Overlay(_player).StopFollowing();
             debugOverlay.Text("JumpHelperTimer", () => JumpHelperTimer.ToString());
             _jumpHelperState = debugOverlay.Text("JumpHelperState");
-            debugOverlay.Text("FallingTimer", () => FallingTimer.ToString());
+            debugOverlay.Text("FallingTimer", () => FallingTimer.ToString()).Disable();
             _coyoteJumpState = debugOverlay.Text("CoyoteState");
+            _jumpHelperState.Disable();
+            _coyoteJumpState.Disable();
 
             debugOverlay.Text("State", () => CurrentState.Key.ToString());
             debugOverlay.Text("Floor", () => PlatformBody.IsOnFloor());
             debugOverlay.Text("Slope", () => PlatformBody.IsOnSlope());
-            debugOverlay.Text("Force", () => $"{PlatformBody.Force.ToString("000")} {PlatformBody.Force.Length():000}");
             debugOverlay.Text("Speed", () => $"{_player.Speed.ToString("000")} (real) {_player.Speed.Length():000}");
-            debugOverlay.Graph("Speed", () => Mathf.Abs(_player.Speed.Length()), 0, PlayerConfig.JumpForce).Keep(10).SetColor(Colors.LightSalmon).AddSeparator(0);
-            debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.Aquamarine).AddSeparator(0).AddSeparator(90);
-            debugOverlay.Graph("ForceY", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.GreenYellow).AddSeparator(0);
-            debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(50);
-            debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(50);
+            debugOverlay.Graph("Speed", () => Mathf.Abs(_player.Speed.Length()), 0, PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
+            // debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
+            debugOverlay.Text("Force", () => $"{PlatformBody.Force.ToString("000")} {PlatformBody.Force.Length():000}");
+            debugOverlay.Graph("ForceY (Gravity)", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.GreenYellow).AddSeparator(0);
+            debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(10);
+            debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(10);
 
         }
 
