@@ -33,11 +33,40 @@ namespace Betauer.Application.Monitor {
                 .SetLabel(label);
         }
 
+        public static MonitorText TextSpeed(this DebugOverlay overlay, string label = "Speed", string format = "000") {
+            if (overlay.Target is not Node2D node2D) throw new Exception("TextSpeed() needs the overlay follows a Node2D");
+            return overlay.TextSpeed(label, Speedometer2D.Position(node2D), format);
+        }
+
+        public static MonitorText TextSpeed(this DebugOverlay overlay, string label, Speedometer2D speedometer2D, string format = "000") {
+            return overlay
+                .AddSpeedometer(speedometer2D)
+                .CreateMonitor<MonitorText>()
+                .Show(() => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
+                .SetLabel(label);
+        }
+
         public static MonitorGraph Graph(this DebugOverlay overlay, string label, Func<float> func, float min, float max) {
             return overlay.CreateMonitor<MonitorGraph>()
                 .Load(func)
                 .SetLabel(label)
                 .Range(min, max);
+        }
+
+        public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label = "Speed", float limit = 0, string format = "000") {
+            if (overlay.Target is not Node2D node2D) throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
+            return overlay.GraphSpeed(label, Speedometer2D.Position(node2D), limit, format);
+        }
+
+        public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label, Speedometer2D speedometer2D, float limit = 0, string format = "000") {
+            var monitorGraph = overlay
+                .AddSpeedometer(speedometer2D)
+                .CreateMonitor<MonitorGraph>()
+                .Load(() => speedometer2D.Speed)
+                .Format((v) => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
+                .SetLabel(label);
+            if (limit > 0) monitorGraph.Range(0, limit);
+            return monitorGraph;
         }
 
         public static MonitorGraph Graph(this DebugOverlay overlay, string label, Func<float> func) {
