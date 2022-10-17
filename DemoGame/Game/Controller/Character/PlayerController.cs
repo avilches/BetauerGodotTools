@@ -12,7 +12,7 @@ using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Restorer;
-using Veronenger.Game.Character;
+using Betauer.UI;
 using Veronenger.Game.Character.Player;
 using Veronenger.Game.Controller.UI.Consoles;
 using Veronenger.Game.Managers;
@@ -38,13 +38,14 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Camera2D")] private Camera2D _camera2D;
-        [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
+        [OnReady("RayCasts/Floor")] private RayCast2D _floorRaycast;
 
         [Inject] private PlatformManager PlatformManager { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
         [Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationRun { get; private set; }
@@ -90,11 +91,11 @@ namespace Veronenger.Game.Controller.Character {
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
 
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachine.Start("Player", this, flippers, _slopeDetector, _position2D);
+            StateMachine.Start("Player", this, flippers, _floorRaycast, _position2D);
             AddChild(StateMachine);
 
             CharacterManager.RegisterPlayerController(this);
-            CharacterManager.ConfigurePlayerCollisions(this);
+            CharacterManager.ConfigurePlayerCollisions(this, _floorRaycast);
             CharacterManager.ConfigurePlayerAttackArea2D(_attackArea,
                 (enemyDamageArea2DPublisher, playerAttackArea2D) => {
                     var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
@@ -110,18 +111,16 @@ namespace Veronenger.Game.Controller.Character {
                 PlatformManager.BodyStopFallFromPlatform(this);
             });
 
-            var debugOverlay = DebugOverlayManager.Overlay(this).SetTheme(MainResourceLoader.MyTheme).Title("Player");
+            var debugOverlay = DebugOverlayManager.Overlay(this).WithTheme(MainResourceLoader.MyTheme).Title("Player")
+                .StopFollowing();
             // debugOverlay.Text("Mouse", () => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
             // debugOverlay.Text("Animation", () => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
-                                                    // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
+            // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
+            
             debugOverlay.Text("AnimationStack",() =>
                 _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
             debugOverlay.Text("TweenStack", () =>
                 _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
-            debugOverlay.Text(() =>
-                "Floor: " + IsOnFloor() + "\n" +
-                "SlopeStairsUp: " + IsOnSlopeStairsUp() + "\n" +
-                "SlopeStairsDown: " + IsOnSlopeStairsDown());
 
             debugOverlay.Add(ButtonBar.Create()
                 .Add("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
@@ -138,29 +137,14 @@ namespace Veronenger.Game.Controller.Character {
                 .Add("SqueezeTween.Stop", () => SqueezeTween.Stop())
                 .Build()
             );
-
-        public void StopIdle() {
-            DangerTween.Stop();
         }
 
-        public void StartIdle() {
-            DangerTween.PlayLoop();
-        }
-
-        public void StopModulate() {
-            PulsateTween.Stop();
-        }
-
-        public void StartModulate() {
-            PulsateTween.PlayOnce();
-        }
-
-        public void StopSqueeze() {
-            SqueezeTween.Stop();
-        }
-
-        public void StartSqueeze() {
-            SqueezeTween.PlayOnce(true);
+        public Vector2 Speed { get; private set; } = Vector2.Zero;
+        private Vector2 _prevPosition = Vector2.Zero;
+        public override void _PhysicsProcess(float delta) {
+            var position = Position * 60;
+            Speed = _prevPosition - position;
+            _prevPosition = position;
         }
 
         private IAnimation CreateReset() {
@@ -241,9 +225,13 @@ namespace Veronenger.Game.Controller.Character {
                 }
         }
 
+        public override void _Process(float delta) {
+            Update();
+        }
+
         public override void _Draw() {
-            // DrawLine(MotionBody.FloorDetector.Position, MotionBody.FloorDetector.Position + MotionBody.FloorDetector.CastTo, Colors.Red, 3F);
-            // DrawLine(_playerDetector.Position, GetLocalMousePosition(), Colors.Blue, 3F);
+            DrawLine(_floorRaycast.Position, _floorRaycast.Position + _floorRaycast.CastTo, Colors.Red, 3F);
+            // DrawLine(_floorRaycast.Position, GetLocalMousePosition(), Colors.Blue, 3F);
         }
 
         public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;

@@ -4,26 +4,18 @@ using Godot;
 namespace Veronenger.Game.Character.Enemy {
     [Service]
     public class EnemyConfig {
-        public readonly MotionConfig MotionConfig = new();
-
         public Vector2 MiniJumpOnAttack = new(130, -230);
 
+        public float MaxSpeed = 15f; // pixels/seconds
+        public float Acceleration = -1; // pixels/frame
+        public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
+        public float Friction = 0; // pixels/seconds 0=stop immediately
+
         public EnemyConfig() {
-            const float maxSpeed = 15.0f; // pixels/seconds
             const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
-            MotionConfig.ConfigureSpeed(maxSpeed, timeToMaxSpeed);
-            MotionConfig.StopIfSpeedIsLessThan = 20f; // pixels / seconds
-            MotionConfig.Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
-
-            // CONFIG: air
-            const float jumpHeight = 80f; // jump max pixels
-            const float maxJumpTime = 0.5f; // jump max time
-            (MotionConfig.Gravity, MotionConfig.JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
-            MotionConfig.JumpForceMin = MotionConfig.JumpForce / 2;
-
-            MotionConfig.MaxFallingSpeed = 2000; // max speed in free fall
-            MotionConfig.StartFallingSpeed = 100; // speed where the player changes to falling(test with fast downwards platform!)
-            MotionConfig.AirResistance = 0; // 0 = stop immediately, 1 = keep lateral movement until the end of the jump
+            Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, timeToMaxSpeed);
+            StopIfSpeedIsLessThan = 5f; // pixels / seconds
+            Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
         }
     }
 }

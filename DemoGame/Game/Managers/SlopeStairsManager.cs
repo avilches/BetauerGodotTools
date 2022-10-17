@@ -17,10 +17,11 @@ namespace Veronenger.Game.Managers {
         public readonly BodyOnArea2DEntered.Unicast EnablerTopic = new("SlopeStairsEnabler");
         public readonly BodyOnArea2DEntered.Unicast DisablerTopic = new("SlopeStairsDisabler");
 
-        public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
+        public void ConfigureCharacterCollisionsWithSlopeStairs(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
             kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, true);
         }
+        
         public void ConfigureSlopeStairs(PhysicsBody2D platform) {
             platform.AddToGroup(GROUP_SLOPE_STAIRS);
             platform.CollisionMask = 0;
@@ -71,7 +72,7 @@ namespace Veronenger.Game.Managers {
             DisablerTopic.Subscribe((area2d, _) => enterListener(area2d)).WithFilter(filter);
         }
 
-        public bool IsSlopeStairs(PhysicsBody2D platform) => platform.IsInGroup(GROUP_SLOPE_STAIRS);
+        public bool IsSlopeStairs(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_SLOPE_STAIRS);
 
         public bool HasBodyEnabledSlopeStairs(KinematicBody2D kb2d) => kb2d.GetCollisionMaskBit(LayerSlopeStairs);
         public void EnableSlopeStairsForBody(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairs, true);

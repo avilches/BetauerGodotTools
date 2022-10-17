@@ -39,13 +39,13 @@ namespace Veronenger.Game.Character.Player {
         }
 
         [Inject] private PlatformManager PlatformManager { get; set;}
-        [Inject] private PlayerConfig PlayerConfig { get; set;}
+        [Inject] public PlayerConfig PlayerConfig { get; set;}
         [Inject] private InputAction Left { get; set;}
         [Inject] private InputAction Up { get; set;}
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
         [Inject] private InputAction Float { get; set;}
-        [Inject] private KinematicPlatformMotionBody PlatformBody { get; set; }
+        [Inject] public KinematicPlatformMotionBody PlatformBody { get; set; }
         [Inject] private KinematicTopDownMotionBody TopDownBody { get; set; }
 
         private PlayerController _player;
@@ -59,9 +59,8 @@ namespace Veronenger.Game.Character.Player {
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
         private bool IsDown => YInput > 0;
-        private float SpeedX => PlatformBody.SpeedX;
-        private float SpeedY => PlatformBody.SpeedY;
-        private MotionConfig MotionConfig => PlayerConfig.MotionConfig;
+        private float ForceX => PlatformBody.ForceX;
+        private float ForceY => PlatformBody.ForceY;
 
         // State sharad between states
         private bool _coyoteJumpEnabled = false;
@@ -70,15 +69,16 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private Bus Bus { get; set; }
 
-        private Monitor _coyoteJumpState;
-        private Monitor _jumpHelperState;
+        private MonitorText _coyoteJumpState;
+        private MonitorText _jumpHelperState;
 
-        public void Start(string name, PlayerController playerController, IFlipper flippers, RayCast2D slopeDetector, Position2D position2D) {
+        public void Start(string name, PlayerController playerController, IFlipper flippers, RayCast2D floorRaycast, Position2D position2D) {
             _player = playerController;
 
-            PlatformBody.Configure(name, playerController, flippers, slopeDetector, position2D, MotionConfig.Configure);
-            TopDownBody.Configure(name, playerController, position2D, MotionConfig.Configure);
-            TopDownBody.DefaultSlideOnSlopes = true;
+            PlatformBody.Configure(name, playerController, flippers, floorRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
+            PlatformBody.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            
+            TopDownBody.Configure(name, playerController, position2D, true);
             
             AddOnExecuteStart((delta, _) => PlatformBody.StartFrame(delta));
             AddOnExecuteStart((delta, _) => TopDownBody.StartFrame(delta));
@@ -88,16 +88,22 @@ namespace Veronenger.Game.Character.Player {
             GroundStates();
             AirStates();
 
-            var debugOverlay = DebugOverlayManager.Overlay(_player);
+            var debugOverlay = DebugOverlayManager.Overlay(_player).StopFollowing();
             debugOverlay.Text("JumpHelperTimer", () => JumpHelperTimer.ToString());
             _jumpHelperState = debugOverlay.Text("JumpHelperState");
             debugOverlay.Text("FallingTimer", () => FallingTimer.ToString());
             _coyoteJumpState = debugOverlay.Text("CoyoteState");
 
-            debugOverlay.Text("Speed", () => PlatformBody.Speed.ToString("F3"));
             debugOverlay.Text("State", () => CurrentState.Key.ToString());
-            debugOverlay.Graph("SpeedY", () => PlatformBody.SpeedY, -PlayerConfig.JumpForce, PlayerConfig.JumpForce).Keep(10).SetColor(Colors.Fuchsia);
-            debugOverlay.Graph("SpeedX", () => PlatformBody.SpeedX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.Aquamarine);
+            debugOverlay.Text("Floor", () => PlatformBody.IsOnFloor());
+            debugOverlay.Text("Slope", () => PlatformBody.IsOnSlope());
+            debugOverlay.Text("Force", () => $"{PlatformBody.Force.ToString("000")} {PlatformBody.Force.Length():000}");
+            debugOverlay.Text("Speed", () => $"{_player.Speed.ToString("000")} (real) {_player.Speed.Length():000}");
+            debugOverlay.Graph("Speed", () => Mathf.Abs(_player.Speed.Length()), 0, PlayerConfig.JumpForce).Keep(10).SetColor(Colors.LightSalmon).AddSeparator(0);
+            debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.Aquamarine).AddSeparator(0).AddSeparator(90);
+            debugOverlay.Graph("ForceY", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).Keep(10).SetColor(Colors.GreenYellow).AddSeparator(0);
+            debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(50);
+            debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(50);
 
         }
 
@@ -125,6 +131,7 @@ namespace Veronenger.Game.Character.Player {
                 }
             }
 
+            var flag = false;
             State(PlayerState.Idle)
                 .Enter(() => {
                     _player.AnimationIdle.PlayLoop();
@@ -139,7 +146,7 @@ namespace Veronenger.Game.Character.Player {
                     if (XInput != 0) {
                         return context.Set(PlayerState.Run);
                     }
-                    PlatformBody.StopLateralSpeedWithFriction(MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan);
+                    PlatformBody.StopLateralSpeedWithFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 
                     if (Jump.IsJustPressed()) {
                         if (IsDown && PlatformBody.IsOnFallingPlatform()) {
@@ -149,13 +156,7 @@ namespace Veronenger.Game.Character.Player {
                         }
                     }
 
-                    // Suelo + no salto + sin movimiento
-
-                    if (!PlatformBody.IsOnMovingPlatform()) {
-                        // No gravity in moving platforms
-                        // Gravity in slopes to avoid go down slowly
-                        PlatformBody.ApplyDefaultGravity();
-                    }
+                    PlatformBody.ApplyDefaultGravity();
                     PlatformBody.MoveSnapping();
 
                     return context.None();
@@ -167,13 +168,13 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckGroundAttack();
 
-                    if (!_player.IsOnFloor()) {
+                    if (!PlatformBody.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
-                        PlatformBody.SpeedY = 0f;
+                        PlatformBody.ForceY = 0f;
                         return context.Set(PlayerState.FallShort);
                     }
 
-                    if (XInput == 0 && SpeedX == 0) {
+                    if (XInput == 0 && ForceX == 0) {
                         return context.Set(PlayerState.Idle);
                     }
 
@@ -189,14 +190,19 @@ namespace Veronenger.Game.Character.Player {
                     EnableSlopeStairs();
 
                     if (_player.IsAttacking) {
-                        PlatformBody.StopLateralSpeedWithFriction(MotionConfig.Friction,
-                            MotionConfig.StopIfSpeedIsLessThan);
+                        PlatformBody.StopLateralSpeedWithFriction(PlayerConfig.Friction,
+                            PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
-                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.Friction, 
-                            MotionConfig.StopIfSpeedIsLessThan, 0);
                         PlatformBody.Flip(XInput);
-                    }
 
+                        PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+                            PlayerConfig.StopIfSpeedIsLessThan, 0);
+
+                        if (PlatformBody.IsOnSlope()) {
+                            PlatformBody.LimitSpeed(PlayerConfig.MaxSpeed);
+                        }
+                    }
+                    PlatformBody.ApplyDefaultGravity();
                     PlatformBody.MoveSnapping();
 
                     return context.None();
@@ -223,17 +229,17 @@ namespace Veronenger.Game.Character.Player {
             if (JumpHelperTimer.IsRunning) {
                 JumpHelperTimer.Stop();
                 if (JumpHelperTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                    _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+                    _jumpHelperState.Show($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
                     return context.Set(PlayerState.Jump);
                 }
-                _jumpHelperState.SetText($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
+                _jumpHelperState.Show($"{JumpHelperTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
             }
 
             // Debug("Just grounded!");
             if (XInput == 0) {
                 if (PlatformBody.IsOnSlope()) {
                     // Evita resbalarse hacia abajo al caer sobre un slope
-                    PlatformBody.SpeedX = 0;
+                    PlatformBody.ForceX = 0;
                 }
                 return context.Set(PlayerState.Idle);
             }
@@ -255,18 +261,18 @@ namespace Veronenger.Game.Character.Player {
                 JumpHelperTimer.Restart();
                 if (FallingTimer.IsRunning) {
                     if (FallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                        _coyoteJumpState.SetText($"{FallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
+                        _coyoteJumpState.Show($"{FallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
                         return true;
                     }
-                    _coyoteJumpState.SetText($"{FallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
+                    _coyoteJumpState.Show($"{FallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
                 }
                 return false;
             }
 
             State(PlayerState.Jump)
                 .Enter(() => {
-                    PlatformBody.SpeedY = -MotionConfig.JumpForce;
-                    DebugJump($"Jump start: decelerating to {(-MotionConfig.JumpForce).ToString()}");
+                    PlatformBody.ForceY = -PlayerConfig.JumpForce;
+                    DebugJump($"Jump start: decelerating to {(-PlayerConfig.JumpForce).ToString()}");
                     _player.AnimationJump.PlayLoop();
                 })
                 .Execute(context => {
@@ -275,17 +281,18 @@ namespace Veronenger.Game.Character.Player {
                     }
                     CheckAirAttack();
 
-                    if (Jump.IsReleased() && SpeedY < -MotionConfig.JumpForceMin) {
-                        DebugJump($"Short jump: decelerating from {SpeedY.ToString()} to {(-MotionConfig.JumpForceMin).ToString()}");
-                        PlatformBody.SpeedY = -MotionConfig.JumpForceMin;
+                    if (Jump.IsReleased() && ForceY < -PlayerConfig.JumpForceMin) {
+                        DebugJump($"Short jump: decelerating from {ForceY.ToString()} to {(-PlayerConfig.JumpForceMin).ToString()}");
+                        PlatformBody.ForceY = -PlayerConfig.JumpForceMin;
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.AirResistance,
-                        MotionConfig.StopIfSpeedIsLessThan, 0);
+                    PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                        PlayerConfig.StopIfSpeedIsLessThan, 0);
                     PlatformBody.Flip(XInput);
-                    PlatformBody.Fall();
+                    PlatformBody.ApplyDefaultGravity();
+                    PlatformBody.MoveSlide(-PlayerConfig.JumpForce);
 
-                    if (SpeedY >= 0) {
+                    if (ForceY >= 0) {
                         return context.Set(PlayerState.FallShort);
                     }
 
@@ -310,21 +317,20 @@ namespace Veronenger.Game.Character.Player {
                         _coyoteJumpEnabled = false;
                         return context.Set(PlayerState.Jump);
                     }
-                    if (SpeedY > MotionConfig.StartFallingSpeed) {
+                    if (ForceY > PlayerConfig.StartFallingSpeed) {
                         return context.Set(PlayerState.FallLong);
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.AirResistance,
-                        MotionConfig.StopIfSpeedIsLessThan, 0);
+                    PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                        PlayerConfig.StopIfSpeedIsLessThan, 0);
                     PlatformBody.Flip(XInput);
-
-                    PlatformBody.Fall();
+                    PlatformBody.ApplyDefaultGravity();
+                    PlatformBody.MoveSlide();
 
                     return CheckLanding(context);
                 })
                 .Build();
                 
-
             State(PlayerState.FallLong)
                 .Enter(() => {
                     FallingTimer.Stop();
@@ -343,11 +349,11 @@ namespace Veronenger.Game.Character.Player {
                             return context.Set(PlayerState.Jump);
                         }
 
-                        PlatformBody.AddLateralSpeed(XInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed,
-                            MotionConfig.AirResistance, MotionConfig.StopIfSpeedIsLessThan, 0);
                         PlatformBody.Flip(XInput);
-
-                        PlatformBody.Fall();
+                        PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+                            PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
+                        PlatformBody.ApplyDefaultGravity();
+                        PlatformBody.MoveSlide();
 
                         return CheckLanding(context);
                     }
@@ -356,20 +362,20 @@ namespace Veronenger.Game.Character.Player {
 
             State(PlayerState.Float)
                 .Enter(() => {
-                    TopDownBody.Speed = PlatformBody.Speed;
+                    TopDownBody.Force = PlatformBody.Force;
                 })
                 .Execute(context => {
                     if (Float.IsReleased()) {
-                        PlatformBody.Speed = TopDownBody.Speed;
+                        PlatformBody.Force = TopDownBody.Force;
                         return context.Set(PlayerState.FallShort);
                     }
-                    TopDownBody.AddSpeed(XInput, YInput, MotionConfig.Acceleration, MotionConfig.MaxSpeed, MotionConfig.MaxSpeed,
-                        MotionConfig.Friction, MotionConfig.StopIfSpeedIsLessThan, 0);
+                    TopDownBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
+                        PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
                     TopDownBody.Slide();
                     return context.None();
                 }).Build();
-            
-            AddOnTransition(args => _player.Label.Text = args.To.ToString());
+
+            AddOnTransition(args => Console.WriteLine(args.To));
 
         }
     }

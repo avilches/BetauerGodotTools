@@ -18,13 +18,14 @@ autowrap = true
 
 [node name="RayCasts" type="Node2D" parent="."]
 
-[node name="SlopeDetector" type="RayCast2D" parent="RayCasts"]
+[node name="Floor" type="RayCast2D" parent="RayCasts"]
 position = Vector2( 0, -4 )
 enabled = true
-cast_to = Vector2( 0, 21 )
-collision_mask = 15
+cast_to = Vector2( 0, 12 )
+collision_layer = 0
+collision_mask = 0
 __meta__ = {
-"_editor_description_": "El rayo se usa para detectar el tipo de suelo cuando el GetSlideCollision no funciona bien. Debe empezar dentro del jugador para que funcione con una plataforma que sube rapido."
+"_editor_description_": "A helper to detect slope when IsOnFloor() returns true, but the collider normal is not a slope"
 }
 
 [node name="AttackArea" type="Area2D" parent="."]

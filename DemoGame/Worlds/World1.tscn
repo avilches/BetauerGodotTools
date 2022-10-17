@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=2]
+[gd_scene load_steps=30 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Game/Controller/Area/DeathArea2DController.cs" type="Script" id=2]
@@ -6,11 +6,12 @@
 [ext_resource path="res://Game/Controller/Platforms/PlatformFollowPathController.cs" type="Script" id=4]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-background.png" type="Texture" id=5]
 [ext_resource path="res://Game/Controller/Animation/TestPlatformController.cs" type="Script" id=6]
+[ext_resource path="res://Game/Controller/Animation/AnimatedPlatformController1.cs" type="Script" id=7]
 [ext_resource path="res://Worlds/Environment/gvania-bridge-middleground.png" type="Texture" id=8]
 [ext_resource path="res://Game/Controller/Animation/RotatingPlatformController.cs" type="Script" id=9]
 [ext_resource path="res://Game/Controller/Platforms/PlatformController.cs" type="Script" id=10]
 [ext_resource path="res://Game/Controller/Animation/RotatingChildrenAlignedController.cs" type="Script" id=11]
-[ext_resource path="res://Game/Controller/Animation/AnimatedPlatformController.cs" type="Script" id=12]
+[ext_resource path="res://Game/Controller/Animation/AnimatedPlatformController2.cs" type="Script" id=12]
 [ext_resource path="res://Game/Controller/Animation/RotatingChildrenSpacedController.cs" type="Script" id=13]
 [ext_resource path="res://Worlds/OnEnterStart.gd" type="Script" id=14]
 [ext_resource path="res://Worlds/OnEnterStop.gd" type="Script" id=15]
@@ -67,7 +68,7 @@ extents = Vector2( 300, 200 )
 [node name="World1" type="Node2D"]
 
 [node name="PositionPlayer" type="Position2D" parent="."]
-position = Vector2( 820, 160 )
+position = Vector2( 340, 120 )
 __meta__ = {
 "_gizmo_extents_": 167.7
 }
@@ -150,7 +151,7 @@ offset = Vector2( 1216, 0 )
 [node name="Platforms" type="Node" parent="."]
 
 [node name="FallMovSlopeFollow" type="KinematicBody2D" parent="Platforms"]
-position = Vector2( 74, -8 )
+position = Vector2( -15, 106 )
 collision_layer = 0
 collision_mask = 2147483648
 script = ExtResource( 4 )
@@ -242,8 +243,8 @@ one_way_collision = true
 script = ExtResource( 19 )
 
 [node name="FixedPlatform2" type="KinematicBody2D" parent="Platforms"]
-position = Vector2( 170, 99 )
-rotation = 1.40848
+position = Vector2( 256, 84 )
+rotation = 1.22697
 collision_mask = 0
 motion/sync_to_physics = true
 script = ExtResource( 10 )
@@ -256,17 +257,50 @@ scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 script = ExtResource( 19 )
 
-[node name="TweenPlatform" type="Node2D" parent="Platforms"]
-position = Vector2( 391, 101 )
+[node name="FixedPlatform3" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 295, 101 )
+rotation = 0.322886
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 10 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform3"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+script = ExtResource( 19 )
+
+[node name="TweenPlatform1" type="Node2D" parent="Platforms"]
+position = Vector2( 350, 101 )
+
+[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform1"]
+position = Vector2( -3, -12 )
+collision_mask = 0
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform1/Body"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+
+[node name="TweenPlatform2" type="Node2D" parent="Platforms"]
+position = Vector2( 350, 101 )
+
+[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform2"]
+position = Vector2( 46, 12 )
 collision_mask = 0
 script = ExtResource( 12 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform/Body"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform2/Body"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
@@ -379,7 +413,7 @@ script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 
 [node name="MultipleAligned" type="Node2D" parent="Platforms"]
-position = Vector2( 587, 76 )
+position = Vector2( 600, 76 )
 script = ExtResource( 11 )
 __meta__ = {
 "_edit_group_": true
@@ -486,7 +520,7 @@ script = ExtResource( 19 )
 color = Color( 0.054902, 0.698039, 0.141176, 1 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]
-position = Vector2( 628.212, 80.5493 )
+position = Vector2( 1046, 78 )
 script = ExtResource( 17 )
 nextScene = "res://Worlds/World2.tscn"
 

@@ -12,7 +12,7 @@ using Betauer.Signal;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
-    public class AnimatedPlatformController : KinematicBody2D {
+    public class AnimatedPlatformController2 : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         private SceneTreeTween _sceneTreeTween;
@@ -28,33 +28,23 @@ namespace Veronenger.Game.Controller.Animation {
             UpdatePosition();
         }
 
-        public async Task Configure() {
+        public void Configure() {
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
             _sceneTreeTween = SequenceAnimation.Create()
-                .Add(SequenceAnimation
-                    .Create()
-                    .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
-                    .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
-                    .Offset(new Vector2(-100, 0), 0.25f)
-                    .EndAnimate()
-                    .Parallel()
-                    .AnimateSteps(Properties.Modulate)
-                    .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
-                    .EndAnimate()
-                    .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
-                    .EndAnimate()
-                    .SetLoops(2))
-                .Add(SequenceAnimation
-                    .Create()
-                    .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
-                    .Offset(new Vector2(0, 50), 0.25f, Easings.Linear)
-                    .Offset(new Vector2(0, -50), 0.25f)
-                    .EndAnimate()
-                    .SetLoops(3))
+                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
+                .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
+                .Offset(new Vector2(-100, 0), 0.25f)
+                .EndAnimate()
+                .Parallel()
+                .AnimateSteps(Properties.Modulate)
+                .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
+                .EndAnimate()
+                .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
+                .EndAnimate()
                 .Play(this)
-                .SetLoops(3);
+                .SetLoops();
         }
 
         public void UpdatePosition() {

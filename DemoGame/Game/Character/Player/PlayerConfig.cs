@@ -1,4 +1,5 @@
 using Betauer.DI;
+using Godot;
 
 namespace Veronenger.Game.Character.Player {
     [Service]
@@ -6,24 +7,38 @@ namespace Veronenger.Game.Character.Player {
         public const float CoyoteJumpTime = 0.1f; // seconds. How much time the player can jump when falling
         public const float JumpHelperTime = 0.1f; // seconds. If the user press jump just before land
 
-        public readonly MotionConfig MotionConfig = new();
+        public float MaxSpeed = 110f; // pixels/seconds
+        public float Acceleration = -1; // pixels/frame
+        public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
+        public float Friction = 0; // pixels/seconds 0=stop immediately
+
+        public float MaxFloorGravity = 60; // pixels/seconds
+        
+        // CONFIG: air
+        public float AirGravity; // pixels/frame (it's accumulative)
+        public float JumpForce;
+        public float JumpForceMin;
+
+        public float MaxFallingSpeed = 0; // max speed in free fall
+        public float StartFallingSpeed = 0; // speed where the player changes to falling (test with fast downwards platform!)
+        public float AirResistance = 0; // 0=stop immediately, 1=keep lateral movement until the end of the jump
+
 
         public PlayerConfig() {
-            const float _maxSpeed = 110.0f; // pixels/seconds
             const float _timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
-            MotionConfig.ConfigureSpeed(_maxSpeed, _timeToMaxSpeed);
-            MotionConfig.StopIfSpeedIsLessThan = 20f; // pixels / seconds
-            MotionConfig.Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
+            Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, _timeToMaxSpeed);
+            StopIfSpeedIsLessThan = 20f; // pixels / seconds
+            Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
 
             // CONFIG: air
             const float jumpHeight = 80f; // jump max pixels
             const float maxJumpTime = 0.5f; // jump max time
-            (MotionConfig.Gravity, MotionConfig.JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
-            MotionConfig.JumpForceMin = MotionConfig.JumpForce / 2;
+            (AirGravity, JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
+            JumpForceMin = JumpForce / 2;
 
-            MotionConfig.MaxFallingSpeed = 2000; // max speed in free fall
-            MotionConfig.StartFallingSpeed = 100; // speed where the player changes to falling(test with fast downwards platform!)
-            MotionConfig.AirResistance = 0; // 0 = stop immediately, 1 = keep lateral movement until the end of the jump
+            MaxFallingSpeed = 2000; // max speed in free fall
+            StartFallingSpeed = 100; // speed where the player changes to falling(test with fast downwards platform!)
+            AirResistance = 0; // 0 = stop immediately, 1 = keep lateral movement until the end of the jump
         }
     }
 }

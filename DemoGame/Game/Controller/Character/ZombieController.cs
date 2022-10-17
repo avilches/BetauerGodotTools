@@ -3,11 +3,10 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes.Property;
 using Betauer.OnReady;
-using Betauer.StateMachine;
-using Veronenger.Game.Character;
 using Veronenger.Game.Character.Enemy;
 using Veronenger.Game.Managers;
 
@@ -36,10 +35,11 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("Label")] public Label Label;
         [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
-        [OnReady("RayCasts/SlopeDetector")] private RayCast2D _slopeDetector;
+        [OnReady("RayCasts/Floor")] private RayCast2D _floorRaycast;
 
         [Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
         [Inject] private CharacterManager CharacterManager { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationStep { get; private set; }
@@ -63,16 +63,21 @@ namespace Veronenger.Game.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
             
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachine.Start("Zombie", this, flippers, _slopeDetector, _position2D);
+            StateMachine.Start("Zombie", this, flippers, _floorRaycast, _position2D);
 
-            CharacterManager.ConfigureEnemyCollisions(this);
+            CharacterManager.ConfigureEnemyCollisions(this, _floorRaycast);
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
             CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
+            
+            var debugOverlay = DebugOverlayManager.CreateOverlay().Follow(this);
+            debugOverlay.Text("State", () => StateMachine.CurrentState.Key.ToString());
+            debugOverlay.Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}");
+            debugOverlay.Text("Force",() => StateMachine.Body.Force.ToString("F"));
         }
 
         public override void _PhysicsProcess(float delta) {
             // if (CharacterManager.PlayerController?.PlayerDetector?.Position != null) {
-                // Label.Text = "" + DegreesTo(CharacterManager.PlayerController.PlayerDetector);
+                // Title.Text = "" + DegreesTo(CharacterManager.PlayerController.PlayerDetector);
             // }
             /*
             _label.Text = "Floor: " + IsOnFloor() + "\n" +

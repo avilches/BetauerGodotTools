@@ -59,13 +59,15 @@ namespace Veronenger.Game.Managers {
             upHall.SetCollisionLayerBit(LayerRegularPlatform, true);
         }
 
-        public void ConfigurePlayerCollisions(KinematicBody2D kb2d) {
+        public void ConfigureCharacterCollisionsWithGroundAndPlatforms(KinematicBody2D kb2d, RayCast2D? rayCast2D) {
             kb2d.SetCollisionMaskBit(LayerRegularPlatform, true);
             kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
+            rayCast2D?.SetCollisionMaskBit(LayerRegularPlatform, true);
+            rayCast2D?.SetCollisionMaskBit(LayerFallPlatform, true);
         }
 
-        public bool IsMovingPlatform(KinematicBody2D platform) => platform.IsInGroup(GROUP_MOVING_PLATFORMS);
-        public bool IsFallingPlatform(PhysicsBody2D platform) => platform.IsInGroup(GROUP_FALLING_PLATFORMS);
+        public bool IsMovingPlatform(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_MOVING_PLATFORMS);
+        public bool IsFallingPlatform(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_FALLING_PLATFORMS);
 
 
         /**

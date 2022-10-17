@@ -26,11 +26,11 @@ namespace Veronenger.Game.Managers {
             PlayerController = playerController;
         }
 
-        public void ConfigurePlayerCollisions(PlayerController playerController) {
+        public void ConfigurePlayerCollisions(PlayerController playerController, RayCast2D rayCast2D) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
-            PlatformManager.ConfigurePlayerCollisions(playerController);
-            SlopeStairsManager.ConfigurePlayerCollisions(playerController);
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController, rayCast2D);
+            SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(playerController);
             
             playerController.PlayerDetector.CollisionLayer = 0;
             playerController.PlayerDetector.CollisionMask = 0;
@@ -47,12 +47,12 @@ namespace Veronenger.Game.Managers {
                 .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
 
-        public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
+        public void ConfigureEnemyCollisions(KinematicBody2D enemy, RayCast2D rayCast2D) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;
-            PlatformManager.ConfigurePlayerCollisions(enemy);
-            SlopeStairsManager.ConfigurePlayerCollisions(enemy);
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy, rayCast2D);
+            SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(enemy);
         }
 
         public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D) {

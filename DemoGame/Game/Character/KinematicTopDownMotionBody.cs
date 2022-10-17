@@ -7,18 +7,14 @@ using Betauer.DI.ServiceProvider;
 using static Godot.Mathf;
 
 namespace Veronenger.Game.Character {
-    public interface IKinematicTopDownMotionBodyConfig {
-        public bool DefaultSlideOnSlopes { set; } 
-    }
-    
     [Service(Lifetime.Transient)]
-    public class KinematicTopDownMotionBody : BaseMotionBody, IKinematicTopDownMotionBodyConfig {
+    public class KinematicTopDownMotionBody : BaseMotionBody {
 
-        public bool DefaultSlideOnSlopes { get; set; } = true;
+        public bool DefaultSlideOnSlopes;
 
-        public void Configure(string name, KinematicBody2D body, Position2D position2D, Action<IKinematicTopDownMotionBodyConfig> conf) {
+        public void Configure(string name, KinematicBody2D body, Position2D position2D, bool defaultSlideOnSlopes) {
             base.Configure(name, body, position2D);
-            conf(this);
+            DefaultSlideOnSlopes = defaultSlideOnSlopes;
         }
         
         public void AddSpeed(float xInput, float yInput, 
@@ -36,34 +32,34 @@ namespace Veronenger.Game.Character {
                     yInput = input.y;
                 }
             }
-            Accelerate(ref SpeedX, xInput, acceleration, maxSpeedX,
+            Accelerate(ref ForceX, xInput, acceleration, maxSpeedX,
                 friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
-            Accelerate(ref SpeedY, yInput, acceleration, maxSpeedY,
+            Accelerate(ref ForceY, yInput, acceleration, maxSpeedY,
                 friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
             
         }
 
         public void StopLateralSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            SlowDownSpeed(ref SpeedX, friction, stopIfSpeedIsLessThan);
+            SlowDownSpeed(ref ForceX, friction, stopIfSpeedIsLessThan);
         }
 
         public void StopVerticalSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            SlowDownSpeed(ref SpeedY, friction, stopIfSpeedIsLessThan);
+            SlowDownSpeed(ref ForceY, friction, stopIfSpeedIsLessThan);
         }
 
         public void LimitSpeed(Vector2 maxSpeed) {
-            SpeedX = Clamp(SpeedX, -maxSpeed.x, maxSpeed.x);
-            SpeedY = Clamp(SpeedY, -maxSpeed.y, maxSpeed.y);
+            ForceX = Clamp(ForceX, -maxSpeed.x, maxSpeed.x);
+            ForceY = Clamp(ForceY, -maxSpeed.y, maxSpeed.y);
         }
 
         public void Slide() => Slide(Vector2.One, DefaultSlideOnSlopes);
         public void Slide(Vector2 slowdownVector) => Slide(slowdownVector, DefaultSlideOnSlopes);
         public void Slide(bool slideOnSlopes) => Slide(Vector2.One, slideOnSlopes);
         public void Slide(Vector2 slowdownVector, bool slideOnSlopes) {
-            var remain = Body.MoveAndSlide(Speed * slowdownVector);
+            var remain = Body.MoveAndSlide(Force * slowdownVector);
             if (!slideOnSlopes) {
-                SpeedY = remain.y;
-                SpeedX = remain.x;
+                ForceY = remain.y;
+                ForceX = remain.x;
             }
         }
     }

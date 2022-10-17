@@ -8,13 +8,14 @@ namespace Veronenger.Game.Character {
         protected KinematicBody2D Body;
         protected Position2D Position2D;
         
-        public float SpeedX;
-        public float SpeedY; 
-        public Vector2 Speed {
-            get => new(SpeedX, SpeedY);
+        // Force is the desired speed to achieve. The speed should match the force, but it could be different
+        public float ForceX;
+        public float ForceY; 
+        public Vector2 Force {
+            get => new(ForceX, ForceY);
             set {
-                SpeedX = value.x;
-                SpeedY = value.y;
+                ForceX = value.x;
+                ForceY = value.y;
             }
         }
 
@@ -27,15 +28,15 @@ namespace Veronenger.Game.Character {
             LoggerMotion = LoggerFactory.GetLogger($"{name}.Motion");
         }
 
-        public void StartFrame(float delta) {
+        public virtual void StartFrame(float delta) {
             Delta = delta;
-            PreviousSpeed = Speed;
+            PreviousSpeed = Force;
         }
 
-        public void EndFrame() {
+        public virtual void EndFrame() {
             #if DEBUG
-            if (Speed != PreviousSpeed) {
-                LoggerMotion.Debug($"Motion:{Speed.ToString()} (diff {(PreviousSpeed - Speed).ToString()})");
+            if (Force != PreviousSpeed) {
+                LoggerMotion.Debug($"Motion:{Force.ToString()} (diff {(PreviousSpeed - Force).ToString()})");
             }
             #endif
         }
@@ -85,6 +86,28 @@ namespace Veronenger.Game.Character {
             } else {
                 speed = Math.Max(0, absSpeed - deceleration * delta) * Math.Sign(speed);
             }
+        }
+
+        public void LimitSpeedY(float maxSpeed) {
+            LimitSpeedY(-maxSpeed, maxSpeed);
+        }
+
+        public void LimitSpeedY(float start, float end) {
+            ForceY = Mathf.Clamp(ForceY, start, end);
+        }
+
+        public void LimitSpeedX(float maxSpeed) {
+            LimitSpeedX(-maxSpeed, maxSpeed);
+        }
+
+        public void LimitSpeedX(float start, float end) {
+            ForceX = Mathf.Clamp(ForceX, start, end);
+        }
+
+        public void LimitSpeed(float maxSpeed) {
+            var limited = Force.LimitLength(maxSpeed);
+            ForceX = limited.x;
+            ForceY = limited.y;
         }
 
         public bool IsToTheLeftOf(Node2D node2D) {
