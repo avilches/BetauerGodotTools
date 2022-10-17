@@ -3,13 +3,14 @@ using Betauer.Input;
 using Betauer.Signal;
 using Godot;
 using Color = Godot.Color;
+using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlay : PopupPanel {
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
         private readonly DebugOverlayManager _manager;
-        private Vector2 FollowPosition => Following != null ? Following.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
+        private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
         private Vector2 _offset;
 
         public readonly int Id;
@@ -17,7 +18,9 @@ namespace Betauer.Application.Monitor {
         public readonly VBoxContainer Container;
         public Color Transparent = new(1, 1, 1, 0.490196f);
         public Color Solid = new(1, 1, 1);
-        public Node2D? Following { get; private set; }
+        public Object? Target { get; private set; }
+        public bool IsFollowing { get; private set; } = false;
+        private Func<bool>? _removeIf;
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
@@ -47,8 +50,30 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public DebugOverlay RemoveIfInvalid(Object o) {
+            Target = o;
+            return this;
+        }
+
+        public DebugOverlay RemoveIf(Func<bool> removeIf) {
+            _removeIf = removeIf;
+            return this;
+        }
+
+        public DebugOverlay StopFollowing() {
+            IsFollowing = false;
+            _offset = RectPosition;
+            return this;
+        }
+
+        public DebugOverlay Offset(Vector2 offset) {
+            _offset = offset;
+            return this;
+        }
+
         public DebugOverlay Follow(Node2D followNode) {
-            Following = followNode;
+            IsFollowing = true;
+            Target = followNode;
             _offset = Vector2.Zero;
             return this;
         }
@@ -103,12 +128,13 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Process(float delta) {
-            if (Following != null && !IsInstanceValid(Following)) {
+            if ((_removeIf != null && _removeIf.Invoke()) ||
+                (Target != null && !IsInstanceValid(Target))) {
                 QueueFree();
             } else if (!Visible) {
                 Disable();
             } else {
-                if (Following != null) {
+                if (IsFollowing) {
                     var newPosition = FollowPosition + _offset;
                     // Ensure the overlay doesn't go out of the screen when following the node
                     newPosition = new Vector2(

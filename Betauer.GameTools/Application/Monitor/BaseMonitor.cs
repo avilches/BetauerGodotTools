@@ -16,7 +16,7 @@ namespace Betauer.Application.Monitor {
         }
         
         public override void _PhysicsProcess(float delta) {
-            var watching = Watch ?? DebugOverlayOwner.Following;
+            var watching = Watch ?? DebugOverlayOwner.Target;
             if (watching != null && !IsInstanceValid(watching)) {
                 QueueFree();
             } else if (!Visible) {

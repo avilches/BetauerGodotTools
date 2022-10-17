@@ -200,14 +200,14 @@ namespace Betauer.Application.Monitor {
             _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
         }
 
-        private void ConfigureSeparators() {
+        private void ConfigureValueSeparators() {
             var range = MaxValue - MinValue;
             foreach (var separator in _separators) {
                 var visible = separator.Value > MinValue && separator.Value < MaxValue;
                 separator.Line2D.Visible = visible;
                 if (visible) {
                     var percentHeight = (separator.Value - MinValue) / range;
-                    var y = Mathf.Lerp(0, ChartHeight, percentHeight);
+                    var y = ChartHeight - Mathf.Lerp(0, ChartHeight, percentHeight);
                     separator.Line2D.SetPointPosition(0, new Vector2(0, y));
                     separator.Line2D.SetPointPosition(1, new Vector2(ChartWidth, y));
                 }
@@ -283,7 +283,7 @@ namespace Betauer.Application.Monitor {
                 var percentHeight = (v - MinValue) / range;
                 var x = Mathf.Lerp(0, ChartWidth, percentWidth);
                 var y = Mathf.Lerp(0, ChartHeight, Math.Clamp(percentHeight, 0f, 1f));
-                ChartLine.AddPoint(new Vector2(x, y));
+                ChartLine.AddPoint(new Vector2(x, ChartHeight - y));
                 i++;
             });
         }
@@ -292,7 +292,7 @@ namespace Betauer.Application.Monitor {
             if (_dirty) {
                 ConfigureChartLine();
                 ConfigureChartData();
-                ConfigureSeparators();
+                ConfigureValueSeparators();
                 ConfigureTimeSeparators();
                 ConfigureChartSpaceAndBorder();
                 _dirty = false;

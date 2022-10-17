@@ -17,10 +17,17 @@ namespace Betauer.Application.Monitor {
             PauseMode = PauseModeEnum.Process;
         }
 
+        public DebugOverlay Overlay(Object target) {
+            return GetChildren()
+                       .OfType<DebugOverlay>()
+                       .FirstOrDefault(d => d.Target == target)
+                   ?? CreateOverlay().RemoveIfInvalid(target);
+        }
+
         public DebugOverlay Overlay(Node2D follow) {
             return GetChildren()
                        .OfType<DebugOverlay>()
-                       .FirstOrDefault(d => d.Following == follow)
+                       .FirstOrDefault(d => d.Target == follow)
                    ?? CreateOverlay().Follow(follow);
         }
 
