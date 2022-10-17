@@ -12,7 +12,7 @@ namespace Veronenger.Game.Character.Player {
         public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
         public float Friction = 0; // pixels/seconds 0=stop immediately
 
-        public float MaxFloorGravity = 60; // pixels/seconds
+        public float MaxFloorGravity = 1; // pixels/seconds
         
         // CONFIG: air
         public float AirGravity; // pixels/frame (it's accumulative)
@@ -25,8 +25,8 @@ namespace Veronenger.Game.Character.Player {
 
 
         public PlayerConfig() {
-            const float _timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
-            Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, _timeToMaxSpeed);
+            const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
+            Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, timeToMaxSpeed);
             StopIfSpeedIsLessThan = 20f; // pixels / seconds
             Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
 
