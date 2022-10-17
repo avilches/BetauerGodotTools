@@ -8,7 +8,7 @@ using Godot;
 namespace Betauer.Animation.Tween {
     public class SequenceAnimation : BaseAnimation<SequenceAnimation> {
         private bool _parallel = false;
-        public List<List<ITweener>> TweenList { get; protected set; } = new List<List<ITweener>>();
+        public List<List<ITweener>> TweenList { get; protected set; } = new();
 
         public static SequenceAnimation Create(Node target = null) {
             var sequenceBuilder = new SequenceAnimation().SetDefaultTarget(target);
