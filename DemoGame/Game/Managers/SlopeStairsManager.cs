@@ -4,6 +4,7 @@ using Godot;
 using Betauer.DI;
 using Veronenger.Game.Controller.Character;
 using static Veronenger.Game.LayerConstants;
+using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
 
@@ -72,7 +73,7 @@ namespace Veronenger.Game.Managers {
             DisablerTopic.Subscribe((area2d, _) => enterListener(area2d)).WithFilter(filter);
         }
 
-        public bool IsSlopeStairs(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_SLOPE_STAIRS);
+        public bool IsSlopeStairs(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_SLOPE_STAIRS);
 
         public bool HasBodyEnabledSlopeStairs(KinematicBody2D kb2d) => kb2d.GetCollisionMaskBit(LayerSlopeStairs);
         public void EnableSlopeStairsForBody(KinematicBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairs, true);

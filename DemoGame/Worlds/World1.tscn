@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=2]
+[gd_scene load_steps=31 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Game/Controller/Area/DeathArea2DController.cs" type="Script" id=2]
@@ -53,6 +53,9 @@ tracks/0/keys = {
 extents = Vector2( 24, 2 )
 
 [sub_resource type="RectangleShape2D" id=6]
+
+[sub_resource type="RectangleShape2D" id=12]
+extents = Vector2( 2, 2 )
 
 [sub_resource type="RectangleShape2D" id=7]
 
@@ -375,7 +378,7 @@ script = ExtResource( 19 )
 color = Color( 0.207843, 0.858824, 0.0784314, 1 )
 
 [node name="MultipleSpaced" type="Node2D" parent="Platforms"]
-position = Vector2( 759, 76 )
+position = Vector2( 784, 77 )
 script = ExtResource( 13 )
 __meta__ = {
 "_edit_group_": true
@@ -413,7 +416,7 @@ script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 
 [node name="MultipleAligned" type="Node2D" parent="Platforms"]
-position = Vector2( 600, 76 )
+position = Vector2( 614, 69 )
 script = ExtResource( 11 )
 __meta__ = {
 "_edit_group_": true
@@ -422,6 +425,7 @@ Radius = 60.0
 RotationDuration = 1.0
 
 [node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
 motion/sync_to_physics = true
@@ -431,12 +435,13 @@ __meta__ = {
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular1"]
 scale = Vector2( 0.4, 0.434 )
-shape = SubResource( 6 )
+shape = SubResource( 12 )
 one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
 [node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
 motion/sync_to_physics = true
@@ -446,12 +451,13 @@ __meta__ = {
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular2"]
 scale = Vector2( 0.4, 0.434 )
-shape = SubResource( 6 )
+shape = SubResource( 12 )
 one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
 [node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
 motion/sync_to_physics = true
@@ -461,12 +467,13 @@ __meta__ = {
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular3"]
 scale = Vector2( 0.4, 0.434 )
-shape = SubResource( 6 )
+shape = SubResource( 12 )
 one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
 [node name="Circular4" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
 motion/sync_to_physics = true
@@ -476,23 +483,38 @@ __meta__ = {
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular4"]
 scale = Vector2( 0.4, 0.434 )
-shape = SubResource( 6 )
+shape = SubResource( 12 )
 one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
 [node name="Circular5" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
+collision_layer = 0
 collision_mask = 0
 motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular5"]
+scale = Vector2( 0.4, 0.434 )
+shape = SubResource( 12 )
+one_way_collision = true
+script = ExtResource( 19 )
+color = Color( 0.572549, 0.584314, 0.854902, 1 )
+
+[node name="Circular6" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+scale = Vector2( 6, 1 )
+collision_mask = 0
+collision/safe_margin = 0.3
 script = ExtResource( 10 )
 __meta__ = {
 "_edit_group_": true
 }
-IsFallingPlatform = true
 IsMovingPlatform = true
 
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular5"]
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleAligned/Circular6"]
 scale = Vector2( 0.4, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true

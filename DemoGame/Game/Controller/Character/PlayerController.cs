@@ -69,6 +69,7 @@ namespace Veronenger.Game.Controller.Character {
         private Restorer _restorer;
 
         public override void _Ready() {
+            
             _animationStack = new AnimationStack("Player.AnimationStack").SetAnimationPlayer(_animationPlayer);
             AnimationIdle = _animationStack.AddLoopAnimation("Idle");
             AnimationRun = _animationStack.AddLoopAnimation("Run");
@@ -137,14 +138,6 @@ namespace Veronenger.Game.Controller.Character {
                 .Add("SqueezeTween.Stop", () => SqueezeTween.Stop())
                 .Build()
             );
-        }
-
-        public Vector2 Speed { get; private set; } = Vector2.Zero;
-        private Vector2 _prevPosition = Vector2.Zero;
-        public override void _PhysicsProcess(float delta) {
-            var position = Position * 60;
-            Speed = _prevPosition - position;
-            _prevPosition = position;
         }
 
         private IAnimation CreateReset() {
@@ -223,6 +216,17 @@ namespace Veronenger.Game.Controller.Character {
                 if (e.IsKeyPressed(KeyList.E)) {
                     _camera2D.Zoom += new Vector2(0.05f, 0.05f);
                 }
+        }
+
+        public void ChangeParent(Node? target) {
+            if (target == null) return;
+            var parent = GetParent();
+            if (target != parent) {
+                var tmp = GetGlobalTransform().BasisXform(Position);
+                parent.RemoveChild(this);
+                target.AddChild(this);
+                Position = GetGlobalTransform().BasisXformInv(tmp);
+            }
         }
 
         public override void _Process(float delta) {

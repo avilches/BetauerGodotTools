@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes;
 using Veronenger.Game.Managers;
@@ -14,29 +16,28 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
         [Inject] public PlatformManager PlatformManager { get; set;}
-
+        [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
         private SceneTreeTween _sceneTreeTween;
 
-        public override void _Ready() {
-            Configure();
-        }
-
         // var _speed = Tau / RotationDuration;
         // _angle = Wrap(_angle + _speed * delta, 0, Tau); // Infinite rotation(in radians
         private void RotateSpaced(float angle) => RotateSpaced(_platforms, angle, Radius);
 
-        private void Configure() {
+        public override void _Ready() {
             _platforms = this.GetChildren<PhysicsBody2D>();
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence = SequenceAnimation.Create(this)
+                .SetProcessMode(Tween.TweenProcessMode.Physics)
                 .AnimateSteps<float>(RotateSpaced)
                 .From(0).To(Mathf.Tau, 4, Easings.Linear)
                 .EndAnimate()
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.Play();
+            // var lastPlatform = _platforms.Last();
+            // DebugOverlayManager.Overlay(lastPlatform).GraphSpeed().SetChartSize(200, 50);
         }
 
         /*

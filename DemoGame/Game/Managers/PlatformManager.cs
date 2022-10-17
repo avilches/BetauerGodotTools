@@ -7,6 +7,7 @@ using Betauer.Bus.Signal;
 using Betauer.DI;
 using Betauer.Signal;
 using static Veronenger.Game.LayerConstants;
+using Object = Godot.Object;
 
 namespace Veronenger.Game.Managers {
     [Service]
@@ -66,8 +67,10 @@ namespace Veronenger.Game.Managers {
             rayCast2D?.SetCollisionMaskBit(LayerFallPlatform, true);
         }
 
-        public bool IsMovingPlatform(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_MOVING_PLATFORMS);
-        public bool IsFallingPlatform(Node? platform) => platform is PhysicsBody2D && platform.IsInGroup(GROUP_FALLING_PLATFORMS);
+        // It accepts Object so it can be used from a GetSlideCollision(x).Collider
+        public bool IsPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_PLATFORMS);
+        public bool IsMovingPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_MOVING_PLATFORMS);
+        public bool IsFallingPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_FALLING_PLATFORMS);
 
 
         /**

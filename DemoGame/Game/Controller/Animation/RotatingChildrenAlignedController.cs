@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -5,6 +6,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes;
 using Veronenger.Game.Managers;
@@ -14,23 +16,18 @@ namespace Veronenger.Game.Controller.Animation {
         public const float CLOCK_THREE = Mathf.Pi / 2;
         public const float CLOCK_NINE = -Mathf.Pi / 2;
 
-        [Export] public bool IsFallingPlatform = false;
-        [Export] public float Radius = 50;
+        [Export] public float Radius = 120;
         [Export] public float RotationDuration = 4.0f;
-        [Inject] public PlatformManager PlatformManager { get; set;}
+        [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
         private SceneTreeTween _tween;
-
-        public override void _Ready() {
-            Configure();
-        }
+        private SceneTreeTween _sceneTreeTween;
 
         private void RotateAligned(float angle) => RotateAligned(_platforms, angle, Radius);
 
-        private SceneTreeTween _sceneTreeTween;
-        private void Configure() {
+        public override void _Ready() {
             _sequence = SequenceAnimation.Create(this)
                 .AnimateSteps<float>(RotateAligned)
                 .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easings.QuadInOut)
@@ -42,7 +39,8 @@ namespace Veronenger.Game.Controller.Animation {
             _sceneTreeTween = _sequence.Play();
 
             _platforms = this.GetChildren<PhysicsBody2D>();
-            PlatformManager.ConfigurePlatform(_platforms.Last(), IsFallingPlatform, true);
+            // var lastPlatform = _platforms.Last();
+            // DebugOverlayManager.Overlay(lastPlatform).GraphSpeed().SetChartSize(200, 50);
         }
 
         public void Start() {

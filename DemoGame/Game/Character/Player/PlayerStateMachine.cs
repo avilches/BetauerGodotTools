@@ -97,12 +97,9 @@ namespace Veronenger.Game.Character.Player {
             _coyoteJumpState.Disable();
 
             debugOverlay.Text("State", () => CurrentState.Key.ToString());
-            debugOverlay.Text("Floor", () => PlatformBody.IsOnFloor());
-            debugOverlay.Text("Slope", () => PlatformBody.IsOnSlope());
-            debugOverlay.Text("Speed", () => $"{_player.Speed.ToString("000")} (real) {_player.Speed.Length():000}");
-            debugOverlay.Graph("Speed", () => Mathf.Abs(_player.Speed.Length()), 0, PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
-            // debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
-            debugOverlay.Text("Force", () => $"{PlatformBody.Force.ToString("000")} {PlatformBody.Force.Length():000}");
+            debugOverlay.GraphSpeed("Speed", PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
+            debugOverlay.TextSpeed("Force", Speedometer2D.From(() => PlatformBody.Force));
+            debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
             debugOverlay.Graph("ForceY (Gravity)", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.GreenYellow).AddSeparator(0);
             debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(10);
             debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(10);
@@ -158,6 +155,9 @@ namespace Veronenger.Game.Character.Player {
                         }
                     }
 
+                    // if (PlatformBody.IsOnMovingPlatform()) {
+                        // PlatformBody.Force += _player.GetFloorVelocity() * PlatformBody.Delta;
+                    // }
                     PlatformBody.ApplyDefaultGravity();
                     PlatformBody.MoveSnapping();
 
@@ -166,7 +166,9 @@ namespace Veronenger.Game.Character.Player {
                 .Build();
 
             State(PlayerState.Run)
-                .Enter(() => { _player.AnimationRun.PlayLoop(); })
+                .Enter(() => {
+                    _player.AnimationRun.PlayLoop();
+                })
                 .Execute(context => {
                     CheckGroundAttack();
 
@@ -190,6 +192,10 @@ namespace Veronenger.Game.Character.Player {
 
                     // Suelo + no salto + movimiento/inercia
                     EnableSlopeStairs();
+
+                    // if (PlatformBody.IsOnMovingPlatform()) {
+                        // PlatformBody.Force += _player.GetFloorVelocity() * PlatformBody.Delta;
+                    // }
 
                     if (_player.IsAttacking) {
                         PlatformBody.StopLateralSpeedWithFriction(PlayerConfig.Friction,

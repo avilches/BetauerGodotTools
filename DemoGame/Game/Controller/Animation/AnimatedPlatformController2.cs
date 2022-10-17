@@ -1,41 +1,29 @@
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Godot;
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes.Property;
-using Betauer.Signal;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
     public class AnimatedPlatformController2 : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
+        [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
         private SceneTreeTween _sceneTreeTween;
-
         private Vector2 _original;
-        public Vector2 Follow;
 
         public override void _Ready() {
-            Configure();
-        }
-
-        public override void _PhysicsProcess(float delta) {
-            UpdatePosition();
-        }
-
-        public void Configure() {
+            // DebugOverlayManager.Overlay(this).GraphSpeed().SetChartSize(200, 50);
+            
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
             _sceneTreeTween = SequenceAnimation.Create()
-                .AnimateStepsBy<Vector2>(nameof(Follow), Easings.CubicInOut)
-                .Offset(new Vector2(100, 0), 0.25f, Easings.Linear)
-                .Offset(new Vector2(-100, 0), 0.25f)
+                .AnimateStepsBy<Vector2>(UpdatePosition, Easings.CubicInOut)
+                .Offset(new Vector2(100, 0), 0.5f, Easings.Linear)
+                .Offset(new Vector2(-100, 0), 0.5f)
                 .EndAnimate()
                 .Parallel()
                 .AnimateSteps(Properties.Modulate)
@@ -47,16 +35,8 @@ namespace Veronenger.Game.Controller.Animation {
                 .SetLoops();
         }
 
-        public void UpdatePosition() {
-            Position = _original + Follow;
-        }
-
-        public void Start() {
-            if (_sceneTreeTween.IsValid()) _sceneTreeTween.Play();
-        }
-
-        public void Pause() {
-            if (_sceneTreeTween.IsValid()) _sceneTreeTween.Pause();
+        public void UpdatePosition(Vector2 pos) {
+            Position = _original + pos;
         }
     }
 }
