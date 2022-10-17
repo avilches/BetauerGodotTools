@@ -42,7 +42,7 @@ namespace Betauer.Application.Monitor {
         private Action<Line2D> _separatorConfig = _ => { };
         private Color _color = Colors.YellowGreen;
         private bool _dirty = true;
-        private int _secondsHistory = 5;
+        private int _secondsHistory = 10;
         private int _frameCount = 0;
         private int DataSize => _secondsHistory * Fps;
         private Func<float> _loadValue;
