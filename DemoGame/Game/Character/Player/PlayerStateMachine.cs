@@ -315,9 +315,6 @@ namespace Veronenger.Game.Character.Player {
                     FallingTimer.Restart();
                 })
                 .Execute(context => {
-                    if (PlatformBody.IsOnFloor()) {
-                        return CheckLanding(context);
-                    }
                     CheckAirAttack();
                     if (Float.IsPressed()) {
                         return context.Set(PlayerState.Float);
