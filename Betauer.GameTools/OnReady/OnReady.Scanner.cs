@@ -1,4 +1,9 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Betauer.Nodes;
 using Betauer.Reflection;
 using Godot;
 
@@ -28,12 +33,41 @@ namespace Betauer.OnReady {
                 throw new OnReadyFieldException(getterSetter.Name, target,
                     "Path returns a null value for field " + fieldInfo + ", class " + target.GetType().Name);
             }
-            if (!getterSetter.Type.IsInstanceOfType(node)) {
+            if (getterSetter.Type.IsArray) {
+                var elementType = getterSetter.Type.GetElementType()!;
+                var nodeArray = node.GetChildren().Cast<Node>().Where(child => elementType.IsInstanceOfType(child)).ToArray();
+                var elementArray = Array.CreateInstance(elementType, nodeArray.Length);
+                Array.Copy(nodeArray, elementArray, nodeArray.Length);                
+                getterSetter.SetValue(target, elementArray);
+                
+            } else if (getterSetter.Type.ImplementsInterface(typeof(IList))) {
+                IList list = (IList)Activator.CreateInstance(getterSetter.Type);
+                var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[0] : null;
+                foreach (var child in node.GetChildren()) {
+                    if (valueType == null || valueType.IsInstanceOfType(child)) list.Add(child);
+                }
+                getterSetter.SetValue(target, list);
+
+            } else if (getterSetter.Type.ImplementsInterface(typeof(IDictionary))) {
+                if (getterSetter.Type.IsGenericType &&
+                    getterSetter.Type.GenericTypeArguments[0] != typeof(string)) 
+                    throw new OnReadyFieldException(getterSetter.Name, target,
+                    $"IDictionary compatible type {node.GetType().Name} for field {fieldInfo}, class {target.GetType().Name} only accepts string as key: {getterSetter.Type.GenericTypeArguments[0]}");
+                
+                IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type);
+                var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[1] : null;
+                foreach (var child in node.GetChildren().OfType<Node>()) {
+                    if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[child.Name] = child; 
+                }
+                getterSetter.SetValue(target, dictionary);
+
+            } else if (getterSetter.Type.IsInstanceOfType(node)) {
+                getterSetter.SetValue(target, node);
+                
+            } else {
                 throw new OnReadyFieldException(getterSetter.Name, target,
-                    "Path returns an incompatible type " + node.GetType().Name + " for field " + fieldInfo +
-                    ", class " + target.GetType().Name);
+                    $"Path returns an incompatible type {node.GetType().Name} for field {fieldInfo}, class {target.GetType().Name}");
             }
-            getterSetter.SetValue(target, node);
         }
         
     }
