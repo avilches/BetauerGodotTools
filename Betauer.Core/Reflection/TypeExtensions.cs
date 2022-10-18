@@ -5,6 +5,15 @@ using System.Reflection;
 
 namespace Betauer.Reflection {
     public static partial class TypeExtensions {
+        public static bool ImplementsInterface(this Type type, Type @interface) {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (@interface == null) throw new ArgumentNullException(nameof(@interface));
+            var interfaces = type.GetInterfaces();
+            return @interface.IsGenericTypeDefinition ? 
+                interfaces.Any(item => item.IsConstructedGenericType && item.GetGenericTypeDefinition() == @interface) : 
+                interfaces.Any(item => item == @interface);
+        }
+
         private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
         
         public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
