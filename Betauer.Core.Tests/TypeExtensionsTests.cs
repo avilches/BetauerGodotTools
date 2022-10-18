@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Betauer.Reflection;
 using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class TypeExtensionsTest {
         [Test]
         public void GetNameWithoutGenerics() {

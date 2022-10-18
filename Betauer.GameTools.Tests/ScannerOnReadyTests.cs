@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Betauer.OnReady;
-using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    [Only]
     public class ScannerOnReadyTests : Node {
         [SetUp]
         public void Setup() {
