@@ -21,8 +21,8 @@ namespace Veronenger.Game.Controller.Animation {
 
             _sceneTreeTween = SequenceAnimation.Create()
                 .AnimateStepsBy<Vector2>(UpdatePosition, Easings.CubicInOut)
-                .Offset(new Vector2(0, 50), 1f, Easings.Linear)
-                .Offset(new Vector2(0, -50), 1f)
+                .Offset(new Vector2(0, -300), 2.5f)
+                .Offset(new Vector2(0, 300), 2.5f)
                 .EndAnimate()
                 .Play(this)
                 .SetLoops();

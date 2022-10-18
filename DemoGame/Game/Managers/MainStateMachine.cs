@@ -84,11 +84,14 @@ namespace Veronenger.Game.Managers {
             this.OnInput((e) => {
                 if (e.IsKeyPressed(KeyList.Q)) {
                     // _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
+                    // Engine.TimeScale -= 0.05f;
                 }
                 if (e.IsKeyPressed(KeyList.W)) {
                     // _settingsMenuScene.Scale = new Vector2(1, 1);
+                    // Engine.TimeScale = 1;
                 }
                 if (e.IsKeyPressed(KeyList.E)) {
+                    // Engine.TimeScale += 0.05f;
                     // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
                 }
                 if (e.IsKeyPressed(KeyList.Key1)) {

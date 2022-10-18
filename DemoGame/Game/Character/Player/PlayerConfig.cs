@@ -12,7 +12,8 @@ namespace Veronenger.Game.Character.Player {
         public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
         public float Friction = 0; // pixels/seconds 0=stop immediately
 
-        public float MaxFloorGravity = 1; // pixels/seconds
+        public float MaxFloorGravity = 80; // pixels/seconds. This value must be high enough to climb down a slope in constant speed.
+                                           // It should match the negative vertical speed needed to climb up a slope.
         
         // CONFIG: air
         public float AirGravity; // pixels/frame (it's accumulative)

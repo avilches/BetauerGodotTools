@@ -421,6 +421,7 @@ smoothing_speed = 10.0
 script = ExtResource( 5 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2( 0, -20 )
 shape = SubResource( 2 )
 
@@ -442,13 +443,38 @@ anims/Run = SubResource( 8 )
 [node name="ConsoleButton" parent="." instance=ExtResource( 8 )]
 position = Vector2( -28, 3 )
 
-[node name="RayCasts" type="Node2D" parent="."]
-
-[node name="Floor" type="RayCast2D" parent="RayCasts"]
-position = Vector2( 0, -4 )
+[node name="SlopeRaycast" type="RayCast2D" parent="."]
 enabled = true
-cast_to = Vector2( 0, 12 )
-collision_layer = 0
+cast_to = Vector2( 0, 8 )
+collision_mask = 0
+__meta__ = {
+"_editor_description_": "A helper to detect slope when IsOnFloor() returns true, but the collider normal is not a slope"
+}
+
+[node name="FloorRaycasts" type="Node2D" parent="."]
+
+[node name="Floor1" type="RayCast2D" parent="FloorRaycasts"]
+position = Vector2( -6, -1 )
+enabled = true
+cast_to = Vector2( 0, 3 )
+collision_mask = 0
+__meta__ = {
+"_editor_description_": "A helper to detect slope when IsOnFloor() returns true, but the collider normal is not a slope"
+}
+
+[node name="Floor2" type="RayCast2D" parent="FloorRaycasts"]
+position = Vector2( 6, -1 )
+enabled = true
+cast_to = Vector2( 0, 3 )
+collision_mask = 0
+__meta__ = {
+"_editor_description_": "A helper to detect slope when IsOnFloor() returns true, but the collider normal is not a slope"
+}
+
+[node name="Floor3" type="RayCast2D" parent="FloorRaycasts"]
+position = Vector2( 0, -1 )
+enabled = true
+cast_to = Vector2( 0, 2 )
 collision_mask = 0
 __meta__ = {
 "_editor_description_": "A helper to detect slope when IsOnFloor() returns true, but the collider normal is not a slope"

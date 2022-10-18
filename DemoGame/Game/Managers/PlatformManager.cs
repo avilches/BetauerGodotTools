@@ -60,11 +60,15 @@ namespace Veronenger.Game.Managers {
             upHall.SetCollisionLayerBit(LayerRegularPlatform, true);
         }
 
-        public void ConfigureCharacterCollisionsWithGroundAndPlatforms(KinematicBody2D kb2d, RayCast2D? rayCast2D) {
+        public void ConfigureCharacterCollisionsWithGroundAndPlatforms(KinematicBody2D kb2d) {
             kb2d.SetCollisionMaskBit(LayerRegularPlatform, true);
             kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
-            rayCast2D?.SetCollisionMaskBit(LayerRegularPlatform, true);
-            rayCast2D?.SetCollisionMaskBit(LayerFallPlatform, true);
+        }
+        
+        public void ConfigureCharacterCollisionsWithGroundAndPlatforms(RayCast2D rayCast2D) {
+            rayCast2D.CollisionMask = 0;
+            rayCast2D.SetCollisionMaskBit(LayerRegularPlatform, true);
+            rayCast2D.SetCollisionMaskBit(LayerFallPlatform, true);
         }
 
         // It accepts Object so it can be used from a GetSlideCollision(x).Collider

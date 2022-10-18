@@ -1,10 +1,9 @@
 using System;
-using System.Text;
+using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
-using Veronenger.Game.Character.Player;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Character {
@@ -18,17 +17,19 @@ namespace Veronenger.Game.Character {
         public Vector2 FloorVector { get; set; }
 
         private Logger _loggerCollision;
-        private RayCast2D _floorRaycast;
+        private List<RayCast2D>? _floorRaycast;
+        private RayCast2D? _slopeRaycast;
         private IFlipper _flippers;
 
         [Inject] private PlatformManager PlatformManager { get; set;}
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set;}
 
-        public void Configure(string name, KinematicBody2D body, IFlipper flippers, RayCast2D floorRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorVector) {
+        public void Configure(string name, KinematicBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorVector) {
             base.Configure(name, body, position2D);
             _flippers = flippers;
             _loggerCollision = LoggerFactory.GetLogger($"{name}.Collision");
             _floorRaycast = floorRaycast;
+            _slopeRaycast = slopeRaycast;
             SnapToFloorVector = snapToFloorVector;
             FloorVector = floorVector;
         }
@@ -86,14 +87,13 @@ namespace Veronenger.Game.Character {
             se para y ya no sigue a la plataforma
             */
             var stopOnSlopes = !HasFloorLateralMovement();
-            var remain = Body.MoveAndSlideWithSnap(Force, SnapToFloorVector, FloorVector, stopOnSlopes);
-            if (remain.y != 0f) {
-                // remain.y means the user was climbing
-                var onFloor = Body.GetSlideCount() > 0;
-                if (onFloor) {
+            var pendingInertia = Body.MoveAndSlideWithSnap(Force, SnapToFloorVector, FloorVector, stopOnSlopes);
+            if (pendingInertia.y != 0f) {
+                // there is a pending vertical force for the next frame (the player was sliding up/down a slope) 
+                if (Body.IsOnFloor()) {
                     // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
                     // and go up too slow
-                    ForceY = remain.y;
+                    ForceY = pendingInertia.y;
                 } else {
                     if (ForceY < 0) {
                         // User was climbing up and now it's in the air -> stop the speed.
@@ -146,6 +146,7 @@ namespace Veronenger.Game.Character {
         private bool _isOnFallingPlatform = false;
         private bool _isOnSlopeStairs = false;
         private Vector2 _colliderNormal = Vector2.Zero;
+        private Vector2 _floorVelocity = Vector2.Zero;
         private PhysicsBody2D? _platform = null;
 
         public bool IsOnFloor() => UpdateFlags()._isOnFloor;
@@ -156,6 +157,9 @@ namespace Veronenger.Game.Character {
 
         public Vector2 GetColliderNormal() => UpdateFlags()._colliderNormal;
         public PhysicsBody2D? GetPlatform() => UpdateFlags()._platform;
+
+        public Vector2 GetFloorVelocity() => UpdateFlags()._floorVelocity;
+        public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
 
         public bool IsOnSlope() => UpdateFlags()._isOnSlope;
         public bool IsOnSlopeUpRight() => IsOnSlope() && _isOnSlopeUpRight;
@@ -176,8 +180,9 @@ namespace Veronenger.Game.Character {
             _isOnFallingPlatform = false;
             _isOnSlopeStairs = false;
             _colliderNormal = Vector2.Zero;
-            _dirtyFlags = false;
+            _floorVelocity = Body.GetFloorVelocity();
             _platform = null;
+            _dirtyFlags = false;
 
             if (!_isOnFloor) {
                 _isJustTookOff = wasOnFloor;
@@ -187,19 +192,19 @@ namespace Veronenger.Game.Character {
             _isJustLanded = !wasOnFloor;
             var slideCount = Body.GetSlideCount();
             if (slideCount > 0) {
-                CheckCollisionFromMoveAndSlide(slideCount);
+                CheckMoveAndSlideCollisions(slideCount);
             }
             if (!_isOnSlope) {
-                CheckCollisionFromRaycast();
+                CheckSlopeRaycast();
             }
             return this;
         }
 
-        private void CheckCollisionFromMoveAndSlide(int slideCount) {
+        private void CheckMoveAndSlideCollisions(int slideCount) {
             Vector2 lastColliderNormal = Vector2.Zero;
             for (var i = 0; i < slideCount; i++) {
                 var collision = Body.GetSlideCollision(i);
-                if (collision == null) {
+                if (collision == null) {                                                 
                     continue;
                 }
                 var collisionCollider = collision.Collider;
@@ -214,34 +219,42 @@ namespace Veronenger.Game.Character {
                         }
                     }
                 }
-                if (_platform == null && PlatformManager.IsPlatform(collisionCollider)) {
-                    _platform = collisionCollider as PhysicsBody2D;
-                }
-                _isOnFallingPlatform = PlatformManager.IsFallingPlatform(collisionCollider);
-                _isOnMovingPlatform = PlatformManager.IsMovingPlatform(collisionCollider);
-                _isOnSlopeStairs = SlopeStairsManager.IsSlopeStairs(collisionCollider);
+                if (_platform == null && PlatformManager.IsPlatform(collisionCollider)) _platform = collisionCollider as PhysicsBody2D;
+                if (!_isOnFallingPlatform) _isOnFallingPlatform = PlatformManager.IsFallingPlatform(collisionCollider);
+                if (!_isOnMovingPlatform) _isOnMovingPlatform = PlatformManager.IsMovingPlatform(collisionCollider);
+                if (!_isOnSlopeStairs) _isOnSlopeStairs = SlopeStairsManager.IsSlopeStairs(collisionCollider);
             }
             _colliderNormal = lastColliderNormal;
         }
 
-        private void CheckCollisionFromRaycast() {
-            _floorRaycast.ForceRaycastUpdate();
-            var collisionCollider = _floorRaycast.GetCollider();
+        private void CheckSlopeRaycast() {
+            if (_slopeRaycast == null) return;
+            _slopeRaycast.ForceRaycastUpdate();
+            var collisionCollider = _slopeRaycast.GetCollider();
             if (collisionCollider == null) return;
-            _isOnFloor = true;
-            _colliderNormal = _floorRaycast.GetCollisionNormal();
+            _colliderNormal = _slopeRaycast.GetCollisionNormal();
 
             if (_colliderNormal != Vector2.Zero && Mathf.Abs(_colliderNormal.y) < 1) {
                 _isOnSlope = true;
                 _isOnSlopeUpRight = _colliderNormal.x < 0;
             }
-
-            if (!_isOnFallingPlatform) _isOnFallingPlatform = PlatformManager.IsFallingPlatform(collisionCollider);
-            if (!_isOnMovingPlatform) _isOnMovingPlatform = PlatformManager.IsMovingPlatform(collisionCollider);
-            if (!_isOnSlopeStairs) _isOnSlopeStairs = SlopeStairsManager.IsSlopeStairs(collisionCollider);
         }
 
-        public bool HasFloorLateralMovement() => Body.GetFloorVelocity().x != 0;
+        private void CheckFloorRaycast() {
+            if (_floorRaycast == null) return;
+            foreach (var floorRaycast2D in _floorRaycast) {
+                floorRaycast2D.ForceRaycastUpdate();
+                var collisionCollider = floorRaycast2D.GetCollider();
+                if (collisionCollider == null) return;
+                // _floorVelocity = collisionCollider is IHasSpeed aware ? aware.Speed : Vector2.Zero; 
+                _isOnFloor = true;
+                _colliderNormal = floorRaycast2D.GetCollisionNormal();
 
+                if (_platform == null && PlatformManager.IsPlatform(collisionCollider)) _platform = collisionCollider as PhysicsBody2D;
+                if (!_isOnFallingPlatform) _isOnFallingPlatform = PlatformManager.IsFallingPlatform(collisionCollider);
+                if (!_isOnMovingPlatform) _isOnMovingPlatform = PlatformManager.IsMovingPlatform(collisionCollider);
+                if (!_isOnSlopeStairs) _isOnSlopeStairs = SlopeStairsManager.IsSlopeStairs(collisionCollider);
+            }
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace Veronenger.Game.Character.Player {
         private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
         private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
 
-        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine") {
+        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", ProcessMode.Physics) {
         }
 
         [Inject] private PlatformManager PlatformManager { get; set;}
@@ -72,13 +72,13 @@ namespace Veronenger.Game.Character.Player {
         private MonitorText _coyoteJumpState;
         private MonitorText _jumpHelperState;
 
-        public void Start(string name, PlayerController playerController, IFlipper flippers, RayCast2D floorRaycast, Position2D position2D) {
+        public void Start(string name, PlayerController playerController, IFlipper flippers) {
             _player = playerController;
 
-            PlatformBody.Configure(name, playerController, flippers, floorRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
+            PlatformBody.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
             PlatformBody.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
             
-            TopDownBody.Configure(name, playerController, position2D, true);
+            TopDownBody.Configure(name, playerController, _player.Position2D, true);
             
             AddOnExecuteStart((delta, _) => PlatformBody.StartFrame(delta));
             AddOnExecuteStart((delta, _) => TopDownBody.StartFrame(delta));
@@ -97,12 +97,14 @@ namespace Veronenger.Game.Character.Player {
             _coyoteJumpState.Disable();
 
             debugOverlay.Text("State", () => CurrentState.Key.ToString());
-            debugOverlay.GraphSpeed("Speed", PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
-            debugOverlay.TextSpeed("Force", Speedometer2D.From(() => PlatformBody.Force));
-            debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
+            var speedometer2D = Speedometer2D.From(() => PlatformBody.Force);
+            speedometer2D.UpdateOnPhysicsProcess(this);
+            debugOverlay.TextSpeed("Force", speedometer2D);
+            // debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
             debugOverlay.Graph("ForceY (Gravity)", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.GreenYellow).AddSeparator(0);
             debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(10);
             debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(10);
+            debugOverlay.GraphSpeed("Speed", PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
 
         }
 
@@ -138,7 +140,7 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckGroundAttack();
 
-                    if (!_player.IsOnFloor()) {
+                    if (!PlatformBody.IsOnFloor()) {
                         return context.Set(PlayerState.FallShort);
                     }
 
@@ -205,7 +207,6 @@ namespace Veronenger.Game.Character.Player {
 
                         PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
-
                         if (PlatformBody.IsOnSlope()) {
                             PlatformBody.LimitSpeed(PlayerConfig.MaxSpeed);
                         }
@@ -229,7 +230,7 @@ namespace Veronenger.Game.Character.Player {
         }
 
         private ExecuteContext<PlayerState, PlayerTransition>.Response CheckLanding(ExecuteContext<PlayerState, PlayerTransition> context) {
-            if (!_player.IsOnFloor()) return context.None(); // Still in the air! :)
+            if (!PlatformBody.IsOnFloor()) return context.None(); // Still in the air! :)
 
             PlatformManager.BodyStopFallFromPlatform(_player);
 
@@ -314,6 +315,9 @@ namespace Veronenger.Game.Character.Player {
                     FallingTimer.Restart();
                 })
                 .Execute(context => {
+                    if (PlatformBody.IsOnFloor()) {
+                        return CheckLanding(context);
+                    }
                     CheckAirAttack();
                     if (Float.IsPressed()) {
                         return context.Set(PlayerState.Float);

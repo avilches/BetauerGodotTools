@@ -26,10 +26,14 @@ namespace Veronenger.Game.Managers {
             PlayerController = playerController;
         }
 
-        public void ConfigurePlayerCollisions(PlayerController playerController, RayCast2D rayCast2D) {
+        public void ConfigurePlayerCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
-            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController, rayCast2D);
+            
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController);
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController.SlopeRaycast);
+            playerController.FloorRaycasts.ForEach(PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms);
+            
             SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(playerController);
             
             playerController.PlayerDetector.CollisionLayer = 0;
@@ -47,12 +51,17 @@ namespace Veronenger.Game.Managers {
                 .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
 
-        public void ConfigureEnemyCollisions(KinematicBody2D enemy, RayCast2D rayCast2D) {
+        public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
-            enemy.CollisionLayer = 0;
-            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy, rayCast2D);
+            enemy.CollisionLayer = 0;                                       
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy);
             SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(enemy);
+        }
+
+        public void ConfigureEnemyCollisions(RayCast2D enemy) {
+            enemy.CollisionMask = 0;
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy);
         }
 
         public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D) {

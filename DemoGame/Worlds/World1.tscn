@@ -71,7 +71,7 @@ extents = Vector2( 300, 200 )
 [node name="World1" type="Node2D"]
 
 [node name="PositionPlayer" type="Position2D" parent="."]
-position = Vector2( 340, 120 )
+position = Vector2( 340, 20 )
 __meta__ = {
 "_gizmo_extents_": 167.7
 }
@@ -293,7 +293,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 
 [node name="TweenPlatform2" type="Node2D" parent="Platforms"]
-position = Vector2( 350, 101 )
+position = Vector2( 350, 120 )
 
 [node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform2"]
 position = Vector2( 46, 12 )
@@ -304,51 +304,6 @@ __meta__ = {
 }
 
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatform2/Body"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 6 )
-one_way_collision = true
-script = ExtResource( 19 )
-
-[node name="TweenPlatformTest" type="Node2D" parent="Platforms"]
-position = Vector2( 930.416, 107.51 )
-script = ExtResource( 6 )
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Body1" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
-position = Vector2( 0, -40 )
-collision_mask = 0
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body1"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 6 )
-one_way_collision = true
-script = ExtResource( 19 )
-
-[node name="Body2" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
-position = Vector2( 0, -20 )
-collision_mask = 0
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body2"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 6 )
-one_way_collision = true
-script = ExtResource( 19 )
-
-[node name="Body3" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
-collision_mask = 0
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body3"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 one_way_collision = true
@@ -377,46 +332,8 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.207843, 0.858824, 0.0784314, 1 )
 
-[node name="MultipleSpaced" type="Node2D" parent="Platforms"]
-position = Vector2( 784, 77 )
-script = ExtResource( 13 )
-__meta__ = {
-"_edit_group_": true
-}
-IsFallingPlatform = true
-RotationDuration = 10.0
-
-[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
-collision_mask = 0
-motion/sync_to_physics = true
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular1"]
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 6 )
-one_way_collision = true
-script = ExtResource( 19 )
-color = Color( 0.619608, 0.854902, 0.572549, 1 )
-
-[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
-collision_mask = 0
-motion/sync_to_physics = true
-__meta__ = {
-"_edit_group_": true
-}
-
-[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular2"]
-position = Vector2( -1, 0 )
-scale = Vector2( 2.24, 0.434 )
-shape = SubResource( 6 )
-one_way_collision = true
-script = ExtResource( 19 )
-color = Color( 0.619608, 0.854902, 0.572549, 1 )
-
 [node name="MultipleAligned" type="Node2D" parent="Platforms"]
-position = Vector2( 614, 69 )
+position = Vector2( 614, 50 )
 script = ExtResource( 11 )
 __meta__ = {
 "_edit_group_": true
@@ -520,6 +437,104 @@ shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
+
+[node name="MultipleSpaced" type="Node2D" parent="Platforms"]
+position = Vector2( 784, 77 )
+script = ExtResource( 13 )
+__meta__ = {
+"_edit_group_": true
+}
+IsFallingPlatform = true
+RotationDuration = 2.5
+
+[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular1"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+
+[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular2"]
+position = Vector2( -1, 0 )
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+
+[node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+collision_mask = 0
+motion/sync_to_physics = true
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/MultipleSpaced/Circular3"]
+position = Vector2( -1, 0 )
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+color = Color( 0.619608, 0.854902, 0.572549, 1 )
+
+[node name="TweenPlatformTest" type="Node2D" parent="Platforms"]
+position = Vector2( 930.416, 107.51 )
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Body1" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+position = Vector2( 0, -40 )
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body1"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+
+[node name="Body2" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+position = Vector2( 0, -20 )
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body2"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
+
+[node name="Body3" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+collision_mask = 0
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/TweenPlatformTest/Body3"]
+scale = Vector2( 2.24, 0.434 )
+shape = SubResource( 6 )
+one_way_collision = true
+script = ExtResource( 19 )
 
 [node name="Pauser" type="Area2D" parent="Platforms"]
 position = Vector2( 560, 130 )

@@ -54,11 +54,11 @@ namespace Veronenger.Game.Character.Enemy {
 
         public readonly EnemyStatus Status = new();
 
-        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D floorDetector, Position2D position2D) {
+        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D slopeRaycast, Position2D position2D) {
             _zombieController = zombie;
             zombie.AddChild(this);
 
-            Body.Configure(name, zombie, flippers, floorDetector, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
+            Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
 
             AddOnExecuteStart((delta, state) => Body.StartFrame(delta));

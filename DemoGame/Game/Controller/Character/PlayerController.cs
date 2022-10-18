@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.Animation;
@@ -33,12 +34,14 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("RichTextLabel")] public RichTextLabel Label;
-        [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Detector")] public Area2D PlayerDetector;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Camera2D")] private Camera2D _camera2D;
-        [OnReady("RayCasts/Floor")] private RayCast2D _floorRaycast;
+
+        [OnReady("Position2D")] public Position2D Position2D;
+        [OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
+        [OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
         [Inject] private PlatformManager PlatformManager { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
@@ -92,11 +95,11 @@ namespace Veronenger.Game.Controller.Character {
             SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
 
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachine.Start("Player", this, flippers, _floorRaycast, _position2D);
+            StateMachine.Start("Player", this, flippers);
             AddChild(StateMachine);
 
             CharacterManager.RegisterPlayerController(this);
-            CharacterManager.ConfigurePlayerCollisions(this, _floorRaycast);
+            CharacterManager.ConfigurePlayerCollisions(this);
             CharacterManager.ConfigurePlayerAttackArea2D(_attackArea,
                 (enemyDamageArea2DPublisher, playerAttackArea2D) => {
                     var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
@@ -207,15 +210,13 @@ namespace Veronenger.Game.Controller.Character {
                 }
             }
             if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
-                if (e.IsKeyPressed(KeyList.Q)) {
-                    _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
-                }
-                if (e.IsKeyPressed(KeyList.W)) {
-                    _camera2D.Zoom = new Vector2(1, 1);
-                }
-                if (e.IsKeyPressed(KeyList.E)) {
-                    _camera2D.Zoom += new Vector2(0.05f, 0.05f);
-                }
+            if (e.IsKeyPressed(KeyList.Q)) {
+                // _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
+            } else if (e.IsKeyPressed(KeyList.W)) {
+                // _camera2D.Zoom = new Vector2(1, 1);
+            } else if (e.IsKeyPressed(KeyList.E)) {
+                // _camera2D.Zoom += new Vector2(0.05f, 0.05f);
+            }
         }
 
         public void ChangeParent(Node? target) {
@@ -234,7 +235,10 @@ namespace Veronenger.Game.Controller.Character {
         }
 
         public override void _Draw() {
-            DrawLine(_floorRaycast.Position, _floorRaycast.Position + _floorRaycast.CastTo, Colors.Red, 3F);
+            DrawLine(SlopeRaycast.Position, SlopeRaycast.Position + SlopeRaycast.CastTo, Colors.Blue, 3F);
+            foreach (var floorRaycast in FloorRaycasts) {
+                DrawLine(floorRaycast.Position, floorRaycast.Position + floorRaycast.CastTo, Colors.Red, 1F);
+            }
             // DrawLine(_floorRaycast.Position, GetLocalMousePosition(), Colors.Blue, 3F);
         }
 

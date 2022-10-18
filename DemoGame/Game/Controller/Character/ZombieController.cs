@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.Animation;
@@ -33,9 +34,11 @@ namespace Veronenger.Game.Controller.Character {
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("Label")] public Label Label;
-        [OnReady("Position2D")] private Position2D _position2D;
         [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
-        [OnReady("RayCasts/Floor")] private RayCast2D _floorRaycast;
+
+        [OnReady("Position2D")] public Position2D Position2D;
+        [OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
+        [OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
         [Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
         [Inject] private CharacterManager CharacterManager { get; set; }
@@ -63,9 +66,11 @@ namespace Veronenger.Game.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
             
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachine.Start("Zombie", this, flippers, _floorRaycast, _position2D);
+            StateMachine.Start("Zombie", this, flippers, SlopeRaycast, Position2D);
 
-            CharacterManager.ConfigureEnemyCollisions(this, _floorRaycast);
+            CharacterManager.ConfigureEnemyCollisions(this);
+            CharacterManager.ConfigureEnemyCollisions(SlopeRaycast);
+            FloorRaycasts.ForEach(r => CharacterManager.ConfigureEnemyCollisions(r));
             // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
             CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
             
