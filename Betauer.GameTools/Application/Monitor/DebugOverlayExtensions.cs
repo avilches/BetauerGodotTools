@@ -35,12 +35,13 @@ namespace Betauer.Application.Monitor {
 
         public static MonitorText TextSpeed(this DebugOverlay overlay, string label = "Speed", string format = "000") {
             if (overlay.Target is not Node2D node2D) throw new Exception("TextSpeed() needs the overlay follows a Node2D");
-            return overlay.TextSpeed(label, Speedometer2D.Position(node2D), format);
+            var speedometer2D = Speedometer2D.Position(node2D);
+            speedometer2D.UpdateOnPhysicsProcess(node2D);
+            return overlay.TextSpeed(label, speedometer2D, format);
         }
 
         public static MonitorText TextSpeed(this DebugOverlay overlay, string label, Speedometer2D speedometer2D, string format = "000") {
             return overlay
-                .AddSpeedometer(speedometer2D)
                 .CreateMonitor<MonitorText>()
                 .Show(() => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
                 .SetLabel(label);
@@ -55,12 +56,13 @@ namespace Betauer.Application.Monitor {
 
         public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label = "Speed", float limit = 0, string format = "000") {
             if (overlay.Target is not Node2D node2D) throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
-            return overlay.GraphSpeed(label, Speedometer2D.Position(node2D), limit, format);
+            var speedometer2D = Speedometer2D.Position(node2D);
+            speedometer2D.UpdateOnPhysicsProcess(node2D);
+            return overlay.GraphSpeed(label, speedometer2D, limit, format);
         }
 
         public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label, Speedometer2D speedometer2D, float limit = 0, string format = "000") {
             var monitorGraph = overlay
-                .AddSpeedometer(speedometer2D)
                 .CreateMonitor<MonitorGraph>()
                 .Load(() => speedometer2D.Speed)
                 .Format((v) => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
@@ -98,7 +100,7 @@ namespace Betauer.Application.Monitor {
 
         public static MonitorText MonitorFpsAndMemory(this DebugOverlay overlay) {
             return overlay.Text(() => {
-                var txt = $"FPS {((int)Engine.GetFramesPerSecond()).ToString()}";
+                var txt = $"FPS {((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()} | TimeScale {Engine.TimeScale:0.00}";
                 #if DEBUG
                     txt += $" | Static Mem: {((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()} / {((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()} | Dynamic Mem: {((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}";
                 #endif

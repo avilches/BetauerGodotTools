@@ -1,4 +1,5 @@
 using System;
+using Betauer.Nodes;
 using Godot;
 using Object = Godot.Object;
 
@@ -24,6 +25,14 @@ namespace Betauer.Application.Monitor {
 
         private Speedometer2D(Func<Vector2> provider) {
             Provider = provider;
+        }
+
+        public INodeEvent UpdateOnPhysicsProcess(Node node) {
+            return node.OnPhysicsProcess(Update);
+        }
+
+        public INodeEvent UpdateOnProcess(Node node) {
+            return node.OnPhysicsProcess(Update);
         }
 
         public void Update(float delta) {

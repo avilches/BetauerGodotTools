@@ -22,7 +22,6 @@ namespace Betauer.Application.Monitor {
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
         private Func<bool>? _removeIf;
-        private List<Speedometer2D>? _speedometers;
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
@@ -83,12 +82,6 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Add(Control control) {
             Container.AddChild(control);
-            return this;
-        }
-
-        public DebugOverlay AddSpeedometer(Speedometer2D speedometer2D) {
-            _speedometers ??= new List<Speedometer2D>();
-            _speedometers.Add(speedometer2D);
             return this;
         }
 
@@ -157,10 +150,5 @@ namespace Betauer.Application.Monitor {
                 RectSize = Vector2.Zero;
             }
         }
-
-        public override void _PhysicsProcess(float delta) {
-            _speedometers?.ForEach(speedometer2D => speedometer2D.Update(delta));
-        }
-
     }
 }
