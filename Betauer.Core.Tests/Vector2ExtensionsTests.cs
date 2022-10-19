@@ -99,26 +99,26 @@ namespace Betauer.Tests {
         [Test]
         public void SlopeTests() {
             // The angles are normal collision, so 90º means a flat floor
-            Assert.That(90F.AngleToVector().IsFloor(), Is.True);
-            Assert.That(45F.AngleToVector().IsFloor(), Is.True);
-            Assert.That(135F.AngleToVector().IsFloor(), Is.True);
+            Assert.That(90F.AngleToVector().IsFloor(Vector2.Up), Is.True);
+            Assert.That(45F.AngleToVector().IsFloor(Vector2.Up), Is.True);
+            Assert.That(135F.AngleToVector().IsFloor(Vector2.Up), Is.True);
             
-            Assert.That(47F.AngleToVector().IsFloor(), Is.False);
-            Assert.That(42F.AngleToVector().IsFloor(), Is.False);
-            Assert.That(0F.AngleToVector().IsFloor(), Is.False);
-            Assert.That(180F.AngleToVector().IsFloor(), Is.False);
-            Assert.That(270F.AngleToVector().IsFloor(), Is.False);
+            Assert.That(47F.AngleToVector().IsFloor(Vector2.Up), Is.False);
+            Assert.That(42F.AngleToVector().IsFloor(Vector2.Up), Is.False);
+            Assert.That(0F.AngleToVector().IsFloor(Vector2.Up), Is.False);
+            Assert.That(180F.AngleToVector().IsFloor(Vector2.Up), Is.False);
+            Assert.That(270F.AngleToVector().IsFloor(Vector2.Up), Is.False);
             
             // The angles are normal collision, so 270º means a flat ceiling
-            Assert.That(270F.AngleToVector().IsCeiling(), Is.True);
-            Assert.That(315F.AngleToVector().IsCeiling(), Is.True);
-            Assert.That(225F.AngleToVector().IsCeiling(), Is.True);
+            Assert.That(270F.AngleToVector().IsCeiling(Vector2.Up), Is.True);
+            Assert.That(315F.AngleToVector().IsCeiling(Vector2.Up), Is.True);
+            Assert.That(225F.AngleToVector().IsCeiling(Vector2.Up), Is.True);
             
-            Assert.That(224F.AngleToVector().IsCeiling(), Is.False);
-            Assert.That(316F.AngleToVector().IsCeiling(), Is.False);
-            Assert.That(0F.AngleToVector().IsCeiling(), Is.False);
-            Assert.That(180F.AngleToVector().IsCeiling(), Is.False);
-            Assert.That(90F.AngleToVector().IsCeiling(), Is.False);
+            Assert.That(224F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
+            Assert.That(316F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
+            Assert.That(0F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
+            Assert.That(180F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
+            Assert.That(90F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
         }
 
     }

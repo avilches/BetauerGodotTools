@@ -56,12 +56,12 @@ namespace Betauer {
         public static bool IsDownRight(this Vector2 normal) => 
             (normal.IsDown() && normal.IsRight());
 
-        public static bool IsFloor(this Vector2 normal, float maxSlope = 0.785398f) {
-            return Mathf.Acos(normal.Dot(Vector2.Up)) <= maxSlope + 0.01f;
+        public static bool IsFloor(this Vector2 normal, Vector2 floorUpDirection, float maxSlope = 0.785398f) {
+            return Mathf.Acos(normal.Dot(floorUpDirection)) <= maxSlope + 0.01f;
         }
         
-        public static bool IsCeiling(this Vector2 normal, float maxSlope = 0.785398f) {
-            return Mathf.Acos(normal.Dot(-Vector2.Up)) <= maxSlope + 0.01f;
+        public static bool IsCeiling(this Vector2 normal, Vector2 floorUpDirection, float maxSlope = 0.785398f) {
+            return Mathf.Acos(normal.Dot(-floorUpDirection)) <= maxSlope + 0.01f;
         }
         
         
