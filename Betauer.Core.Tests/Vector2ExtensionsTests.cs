@@ -6,104 +6,135 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    [Only]
     public class Vector2ExtensionsTest {
         [Test]
+        public void UpDownTests() {
+
+            Assert.That(Vector2.Up.Down(), Is.EqualTo(Vector2.Down));
+            Assert.That(Vector2.Right.Down(), Is.EqualTo(Vector2.Left));
+            Assert.That(Vector2.Left.Down(), Is.EqualTo(Vector2.Right));
+            Assert.That(Vector2.Down.Down(), Is.EqualTo(Vector2.Up));
+
+            Assert.That(Vector2.Up.Left(), Is.EqualTo(Vector2.Left));
+            Assert.That(Vector2.Right.Left(), Is.EqualTo(Vector2.Up));
+            Assert.That(Vector2.Left.Left(), Is.EqualTo(Vector2.Down));
+            Assert.That(Vector2.Down.Left(), Is.EqualTo(Vector2.Right));
+
+            Assert.That(Vector2.Up.Right(), Is.EqualTo(Vector2.Right));
+            Assert.That(Vector2.Right.Right(), Is.EqualTo(Vector2.Down));
+            Assert.That(Vector2.Left.Right(), Is.EqualTo(Vector2.Up));
+            Assert.That(Vector2.Down.Right(), Is.EqualTo(Vector2.Left));
+        }
+
 
         public void RegularTests() {
+
             // Ok
-            Assert.That(Vector2.Up.IsUp());
-            Assert.That(Vector2.Down.IsDown());
-            Assert.That(Vector2.Right.IsRight());
-            Assert.That(Vector2.Left.IsLeft());
+            Assert.That(Vector2.Up.IsUp(Vector2.Up));
+            Assert.That(Vector2.Down.IsDown(Vector2.Up));
+            Assert.That(Vector2.Right.IsRight(Vector2.Up));
+            Assert.That(Vector2.Left.IsLeft(Vector2.Up));
             
             // No ok
-            Assert.That(Vector2.Down.IsUp(), Is.False);
-            Assert.That(Vector2.Right.IsUp(), Is.False);
-            Assert.That(Vector2.Left.IsUp(), Is.False);
+            Assert.That(Vector2.Down.IsUp(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsUp(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsUp(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsDown(), Is.False);
-            Assert.That(Vector2.Right.IsDown(), Is.False);
-            Assert.That(Vector2.Left.IsDown(), Is.False);
+            Assert.That(Vector2.Up.IsDown(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsDown(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsDown(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsRight(), Is.False);
-            Assert.That(Vector2.Down.IsRight(), Is.False);
-            Assert.That(Vector2.Left.IsRight(), Is.False);
+            Assert.That(Vector2.Up.IsRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsRight(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsLeft(), Is.False);
-            Assert.That(Vector2.Down.IsLeft(), Is.False);
-            Assert.That(Vector2.Right.IsLeft(), Is.False);
+            Assert.That(Vector2.Up.IsLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsLeft(Vector2.Up), Is.False);
 
             // 
-            Assert.That(Vector2.Up.IsUpRight(), Is.False);
-            Assert.That(Vector2.Down.IsUpRight(), Is.False);
-            Assert.That(Vector2.Right.IsUpRight(), Is.False);
-            Assert.That(Vector2.Left.IsUpRight(), Is.False);
+            Assert.That(Vector2.Up.IsUpRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsUpRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsUpRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsUpRight(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsUpLeft(), Is.False);
-            Assert.That(Vector2.Down.IsUpLeft(), Is.False);
-            Assert.That(Vector2.Right.IsUpLeft(), Is.False);
-            Assert.That(Vector2.Left.IsUpLeft(), Is.False);
+            Assert.That(Vector2.Up.IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsUpLeft(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsDownRight(), Is.False);
-            Assert.That(Vector2.Down.IsDownRight(), Is.False);
-            Assert.That(Vector2.Right.IsDownRight(), Is.False);
-            Assert.That(Vector2.Left.IsDownRight(), Is.False);
+            Assert.That(Vector2.Up.IsDownRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsDownRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsDownRight(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsDownRight(Vector2.Up), Is.False);
 
-            Assert.That(Vector2.Up.IsDownLeft(), Is.False);
-            Assert.That(Vector2.Down.IsDownLeft(), Is.False);
-            Assert.That(Vector2.Right.IsDownLeft(), Is.False);
-            Assert.That(Vector2.Left.IsDownLeft(), Is.False);
+            Assert.That(Vector2.Up.IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Down.IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Right.IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(Vector2.Left.IsDownLeft(Vector2.Up), Is.False);
         }
 
         [Test]
-        public void NonRegularTests() {
+        public void NonRegularFacingUpTests() {
 
-            Assert.That(45F.AngleToVector().IsRight(), Is.True);
-            Assert.That(45F.AngleToVector().IsUpRight(), Is.True);
-            Assert.That(45F.AngleToVector().IsUp(), Is.True);
-            Assert.That(45F.AngleToVector().IsUpLeft(), Is.False);
-            Assert.That(45F.AngleToVector().IsLeft(), Is.False);
-            Assert.That(45F.AngleToVector().IsDownLeft(), Is.False);
-            Assert.That(45F.AngleToVector().IsDown(), Is.False);
-            Assert.That(45F.AngleToVector().IsDownRight(), Is.False);
+            Assert.That(45F.AngleToVector().IsRight(Vector2.Up), Is.True);
+            Assert.That(45F.AngleToVector().IsUpRight(Vector2.Up), Is.True);
+            Assert.That(45F.AngleToVector().IsUp(Vector2.Up), Is.True);
+            Assert.That(45F.AngleToVector().IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(45F.AngleToVector().IsLeft(Vector2.Up), Is.False);
+            Assert.That(45F.AngleToVector().IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(45F.AngleToVector().IsDown(Vector2.Up), Is.False);
+            Assert.That(45F.AngleToVector().IsDownRight(Vector2.Up), Is.False);
 
-            Assert.That(135F.AngleToVector().IsRight(), Is.False);
-            Assert.That(135F.AngleToVector().IsUpRight(), Is.False);
-            Assert.That(135F.AngleToVector().IsUp(), Is.True);
-            Assert.That(135F.AngleToVector().IsUpLeft(), Is.True);
-            Assert.That(135F.AngleToVector().IsLeft(), Is.True);
-            Assert.That(135F.AngleToVector().IsDownLeft(), Is.False);
-            Assert.That(135F.AngleToVector().IsDown(), Is.False);
-            Assert.That(135F.AngleToVector().IsDownRight(), Is.False);
+            Assert.That(135F.AngleToVector().IsRight(Vector2.Up), Is.False);
+            Assert.That(135F.AngleToVector().IsUpRight(Vector2.Up), Is.False);
+            Assert.That(135F.AngleToVector().IsUp(Vector2.Up), Is.True);
+            Assert.That(135F.AngleToVector().IsUpLeft(Vector2.Up), Is.True);
+            Assert.That(135F.AngleToVector().IsLeft(Vector2.Up), Is.True);
+            Assert.That(135F.AngleToVector().IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(135F.AngleToVector().IsDown(Vector2.Up), Is.False);
+            Assert.That(135F.AngleToVector().IsDownRight(Vector2.Up), Is.False);
 
-            Assert.That(225F.AngleToVector().IsRight(), Is.False);
-            Assert.That(225F.AngleToVector().IsUpRight(), Is.False);
-            Assert.That(225F.AngleToVector().IsUp(), Is.False);
-            Assert.That(225F.AngleToVector().IsUpLeft(), Is.False);
-            Assert.That(225F.AngleToVector().IsLeft(), Is.True);
-            Assert.That(225F.AngleToVector().IsDownLeft(), Is.True);
-            Assert.That(225F.AngleToVector().IsDown(), Is.True);
-            Assert.That(225F.AngleToVector().IsDownRight(), Is.False);
+            Assert.That(225F.AngleToVector().IsRight(Vector2.Up), Is.False);
+            Assert.That(225F.AngleToVector().IsUpRight(Vector2.Up), Is.False);
+            Assert.That(225F.AngleToVector().IsUp(Vector2.Up), Is.False);
+            Assert.That(225F.AngleToVector().IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(225F.AngleToVector().IsLeft(Vector2.Up), Is.True);
+            Assert.That(225F.AngleToVector().IsDownLeft(Vector2.Up), Is.True);
+            Assert.That(225F.AngleToVector().IsDown(Vector2.Up), Is.True);
+            Assert.That(225F.AngleToVector().IsDownRight(Vector2.Up), Is.False);
 
-            Assert.That(315F.AngleToVector().IsRight(), Is.True);
-            Assert.That(315F.AngleToVector().IsUpRight(), Is.False);
-            Assert.That(315F.AngleToVector().IsUp(), Is.False);
-            Assert.That(315F.AngleToVector().IsUpLeft(), Is.False);
-            Assert.That(315F.AngleToVector().IsLeft(), Is.False);
-            Assert.That(315F.AngleToVector().IsDownLeft(), Is.False);
-            Assert.That(315F.AngleToVector().IsDown(), Is.True);
-            Assert.That(315F.AngleToVector().IsDownRight(), Is.True);
+            Assert.That(315F.AngleToVector().IsRight(Vector2.Up), Is.True);
+            Assert.That(315F.AngleToVector().IsUpRight(Vector2.Up), Is.False);
+            Assert.That(315F.AngleToVector().IsUp(Vector2.Up), Is.False);
+            Assert.That(315F.AngleToVector().IsUpLeft(Vector2.Up), Is.False);
+            Assert.That(315F.AngleToVector().IsLeft(Vector2.Up), Is.False);
+            Assert.That(315F.AngleToVector().IsDownLeft(Vector2.Up), Is.False);
+            Assert.That(315F.AngleToVector().IsDown(Vector2.Up), Is.True);
+            Assert.That(315F.AngleToVector().IsDownRight(Vector2.Up), Is.True);
         }
 
         [Test]
-        public void SlopeTests() {
+        public void NonRegularFacingRightTests() {
+            // So, if floor is facing right, a 45º angle is facing to the up-left quarter
+            Assert.That(45F.AngleToVector().IsRight(Vector2.Right), Is.False);
+            Assert.That(45F.AngleToVector().IsUpRight(Vector2.Right), Is.False);
+            Assert.That(45F.AngleToVector().IsUp(Vector2.Right), Is.True);
+            Assert.That(45F.AngleToVector().IsUpLeft(Vector2.Right), Is.True);
+            Assert.That(45F.AngleToVector().IsLeft(Vector2.Right), Is.True);
+            Assert.That(45F.AngleToVector().IsDownLeft(Vector2.Right), Is.False);
+            Assert.That(45F.AngleToVector().IsDown(Vector2.Right), Is.False);
+            Assert.That(45F.AngleToVector().IsDownRight(Vector2.Right), Is.False);
+        }
+
+        [Test]
+        public void SlopeFacingUpTests() {
             // The angles are normal collision, so 90º means a flat floor
             Assert.That(90F.AngleToVector().IsFloor(Vector2.Up), Is.True);
             Assert.That(45F.AngleToVector().IsFloor(Vector2.Up), Is.True);
             Assert.That(135F.AngleToVector().IsFloor(Vector2.Up), Is.True);
             
-            Assert.That(47F.AngleToVector().IsFloor(Vector2.Up), Is.False);
+            Assert.That(137F.AngleToVector().IsFloor(Vector2.Up), Is.False);
             Assert.That(42F.AngleToVector().IsFloor(Vector2.Up), Is.False);
             Assert.That(0F.AngleToVector().IsFloor(Vector2.Up), Is.False);
             Assert.That(180F.AngleToVector().IsFloor(Vector2.Up), Is.False);
@@ -121,5 +152,18 @@ namespace Betauer.Tests {
             Assert.That(90F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
         }
 
+        [Test]
+        public void SlopeFacingRightTests() {
+            // The angles are normal collision, so 90º means a flat floor. But, facing to the right, 0º means flat floor
+            Assert.That(45F.AngleToVector().IsFloor(Vector2.Right), Is.True);
+            Assert.That(0F.AngleToVector().IsFloor(Vector2.Right), Is.True);
+            Assert.That(315F.AngleToVector().IsFloor(Vector2.Right), Is.True);
+
+            Assert.That(314F.AngleToVector().IsFloor(Vector2.Right), Is.False);
+            Assert.That(47F.AngleToVector().IsFloor(Vector2.Right), Is.False);
+            Assert.That(270F.AngleToVector().IsFloor(Vector2.Right), Is.False);
+            Assert.That(180F.AngleToVector().IsFloor(Vector2.Right), Is.False);
+            Assert.That(90F.AngleToVector().IsFloor(Vector2.Right), Is.False);
+        }
     }
 }
