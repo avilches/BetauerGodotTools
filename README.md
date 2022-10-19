@@ -1,4 +1,8 @@
 # Betauer Godot Tools
+
+> **Warning**
+> This readme is very out of date. If you find this library useful and you are considering use it, just text me and I'll try to update this and create some kind of documentation/tutorial.
+
 The Betauer Godot Tools is a modular framework to develop Godot games. It's divided in different and independent projects that can be imported in your games easily.
                      
 ![Integration tests](https://github.com/avilches/BetauerGodotTools/actions/workflows/godot-ci.yaml/badge.svg)
