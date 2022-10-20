@@ -4,13 +4,14 @@ using Godot;
 
 namespace Veronenger.Game.Character {
     public abstract class BaseKinematicMotion {
-        protected KinematicBody2D Body;
-        protected Position2D Position2D;
+        public KinematicBody2D Body { get; private set; }
+        public Position2D Position2D { get; private set; }
+        public Vector2 FloorUpDirection;
         
         // Speed is the desired speed to achieve. The final speed should match, but it could be different because
         // the friction or collision
         public float SpeedX;
-        public float SpeedY; 
+        public float SpeedY;
         public Vector2 Speed {
             get => new(SpeedX, SpeedY);
             set {
@@ -21,9 +22,10 @@ namespace Veronenger.Game.Character {
 
         public float Delta { get; private set; } = 0;
 
-        protected void Configure(string name, KinematicBody2D body, Position2D position2D) {
+        protected void Configure(string name, KinematicBody2D body, Position2D position2D, Vector2 floorUpDirection) {
             Body = body;
             Position2D = position2D;
+            FloorUpDirection = floorUpDirection;
         }
 
         public virtual void StartFrame(float delta) {

@@ -17,7 +17,6 @@ namespace Veronenger.Game.Character {
         public float DefaultMaxFallingSpeed { get; set; } = 1000f;
         public float DefaultMaxFloorGravity { get; set; } = 1000f;
         public Vector2 SnapToFloorVector { get; set; }
-        public Vector2 FloorUpDirection { get; set; }
 
         private List<RayCast2D>? _floorRaycast;
         private RayCast2D? _slopeRaycast;
@@ -45,12 +44,11 @@ namespace Veronenger.Game.Character {
         private bool _dirtyFlags = true;
 
         public void Configure(string name, KinematicBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
-            base.Configure(name, body, position2D);
+            base.Configure(name, body, position2D, floorUpDirection);
             _flippers = flippers;
             _floorRaycast = floorRaycast;
             _slopeRaycast = slopeRaycast;
             SnapToFloorVector = snapToFloorVector;
-            FloorUpDirection = floorUpDirection;
         }
 
         public void ConfigureGravity(float gravity, float maxFallingSpeed, float maxFloorGravity) {
