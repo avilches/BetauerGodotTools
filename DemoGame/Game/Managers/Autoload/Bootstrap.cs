@@ -132,13 +132,9 @@ namespace Veronenger.Game.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(PlayerController), TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Player.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Player.AnimationStack", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Player.Collision", TraceLevel.All);
-            LoggerFactory.SetTraceLevel("Player.Motion", TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(ZombieController), TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Zombie.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Zombie.AnimationStack", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Zombie.Collision", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel("Zombie.Motion", TraceLevel.Error);
             
             // LoggerFactory.OverrideTraceLevel(TraceLevel.All);
         }

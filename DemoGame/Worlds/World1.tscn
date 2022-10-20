@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=2]
+[gd_scene load_steps=32 format=2]
 
 [ext_resource path="res://Worlds/Environment/GVaniaBridgeTileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Game/Controller/Area/DeathArea2DController.cs" type="Script" id=2]
@@ -53,6 +53,8 @@ tracks/0/keys = {
 extents = Vector2( 24, 2 )
 
 [sub_resource type="RectangleShape2D" id=6]
+
+[sub_resource type="RectangleShape2D" id=13]
 
 [sub_resource type="RectangleShape2D" id=12]
 extents = Vector2( 2, 2 )
@@ -258,6 +260,19 @@ __meta__ = {
 [node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform2"]
 scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
+script = ExtResource( 19 )
+
+[node name="FixedPlatform4" type="KinematicBody2D" parent="Platforms"]
+position = Vector2( 231, 132 )
+collision_mask = 0
+motion/sync_to_physics = true
+script = ExtResource( 10 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Collored2D" type="CollisionShape2D" parent="Platforms/FixedPlatform4"]
+shape = SubResource( 13 )
 script = ExtResource( 19 )
 
 [node name="FixedPlatform3" type="KinematicBody2D" parent="Platforms"]
