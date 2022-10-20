@@ -6,10 +6,127 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
+    public class MonitorGraph : BaseMonitor<MonitorGraph> {
 
+        public class Serie {
+            private readonly MonitorGraph _graph;
+            private Action<Line2D> _chartLineConfig = _ => { };
+            private Color _color = Colors.YellowGreen;
+            private Func<float> _loadValue;
+            private Func<float, string>? _formatValue;
 
+            public Line2D ChartLine { get; } = new();
+            public Label Label { get; } = new();
+            public Label CurrentValue { get; } = new();
+            public LinkedList<float> Data { get; } = new();
 
-    public class MonitorGraph : BaseMonitor {
+            internal Serie(MonitorGraph graph) {
+                _graph = graph;
+            }
+
+            public Serie SetColor(Color? color) {
+                _color = color ?? _graph.NextColor();
+                _graph._dirty = true;
+                return this;
+            }
+
+            public Serie SetLabel(string? label) {
+                if (label == null) {
+                    Label.Visible = false;
+                } else {
+                    Label.Text = label;
+                    Label.Visible = true;
+                }
+                return this;
+            }
+
+            public Serie Load(Func<float> action) {
+                _loadValue = action;
+                return this;
+            }
+
+            public Serie Load(Func<bool> action) {
+                _loadValue = () => action() ? MaxValue : MinValue;
+                _formatValue ??= (v) => v > 0f ? "True" : "False";
+                return this;
+            }
+
+            public Serie Format(string format) {
+                _formatValue = (v) => v.ToString(format);
+                return this;
+            }
+
+            public Serie Format(Func<float, string> action) {
+                _formatValue = action;
+                return this;
+            }
+            
+            public Serie ConfigureChartLine(Action<Line2D> conf) {
+                _chartLineConfig = conf;
+                _graph._dirty = true;
+                return this;
+            }
+
+            internal void ConfigureChartLine() {
+                ChartLine.Width = 2f;
+                ChartLine.DefaultColor = _color;
+                _chartLineConfig.Invoke(ChartLine);
+                CurrentValue.AddColorOverride("font_color", _color);
+            }
+
+            public int SecondsHistory => _graph._secondsHistory;
+            public int DataSize => _graph.DataSize;
+            public int ChartWidth => _graph.ChartWidth;
+            public int ChartHeight => _graph.ChartHeight;
+            public float MinValue => _graph.MinValue;
+            public float MaxValue => _graph.MaxValue;
+            public bool IsAutoRange => _graph.IsAutoRange;
+
+            internal void ConfigureChartData() {
+                var pending = (SecondsHistory * Fps) - Data.Count;
+                if (pending > 0) {
+                    var zero = Mathf.Lerp(MinValue, MaxValue, 0.5f);
+                    while (pending-- > 0) Data.AddFirst(zero);
+                } else if (pending < 0) {
+                    while (pending++ < 0) Data.RemoveFirst();
+                }
+            }
+
+            internal void Process(float delta) {
+                var value = _loadValue.Invoke();
+                CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("000.00");
+                Add(value);
+                DumpDataToChartLine();
+            }
+
+            internal void Add(float v) {
+                Data.AddLast(v);
+                if (IsAutoRange) {
+                    if (v > MaxValue) _graph.MaxValue = v;
+                    else if (v < MinValue) _graph.MinValue = v;
+                }
+                while (Data.Count > DataSize) Data.RemoveFirst();
+            }
+
+            public MonitorGraph EndSerie() {
+                return _graph;
+            }
+
+            internal void DumpDataToChartLine() {
+                ChartLine.ClearPoints();
+                var elements = SecondsHistory * 60;
+                var range = MaxValue - MinValue;
+                var i = 0;
+                Data.ForEach(v => {
+                    var percentWidth = (float)i / elements;
+                    var percentHeight = (v - MinValue) / range;
+                    var x = Mathf.Lerp(0, ChartWidth, percentWidth);
+                    var y = Mathf.Lerp(0, ChartHeight, Math.Clamp(percentHeight, 0f, 1f));
+                    ChartLine.AddPoint(new Vector2(x, ChartHeight - y));
+                    i++;
+                });
+            }
+        }
 
         public class Separator {
             internal readonly float Value;
@@ -27,75 +144,29 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
-        public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
-        
         private const int Fps = 60;
         private readonly Node2D _timeSeparatorsHolder = new();
         private readonly Node2D _separatorsHolder = new();
+        private readonly Node2D _lineChartHolder = new();
         private readonly Control _chartSpacer = new();
         private readonly HBoxContainer _legend = new();
         private readonly List<Line2D> _timeSeparators = new();
         private readonly List<Separator> _separators = new();
-        private Action<Line2D> _chartLineConfig = _ => { };
         private Action<Line2D> _borderConfig = _ => { };
         private Action<Line2D> _separatorConfig = _ => { };
-        private Color _color = Colors.YellowGreen;
         private bool _dirty = true;
         private int _secondsHistory = 10;
         private int _frameCount = 0;
         private int DataSize => _secondsHistory * Fps;
-        private Func<float> _loadValue;
-        private Func<float, string>? _formatValue;
+        private List<Serie> _series = new();
 
-        public Label Label { get; } = new();
-        public Label CurrentValue { get; } = new();
-        public LinkedList<float> Data { get; } = new();
         public Line2D BorderLine { get; } = new();
-        public Line2D ChartLine { get; } = new();
-        
         public int ChartHeight { get; private set; } = 100;
         public int ChartWidth { get; private set; } = 300;
         public bool IsAutoRange { get; private set; } = true;
         public float MaxValue { get; private set; } = 0;
         public float MinValue { get; private set; } = 0;
         
-        public MonitorGraph RemoveIfInvalid(Object target) {
-            Watch = target;
-            return this;
-        }
-
-        public MonitorGraph SetColor(Color color) {
-            _color = color;
-            return this;
-        }
-
-        public MonitorGraph SetLabel(string? label) {
-            if (label == null) {
-                Label.Visible = false;
-            } else {
-                Label.Text = label;
-                Label.Visible = true;
-            }
-            return this;
-        }
-
-        public MonitorGraph Load(Func<float> action) {
-            _loadValue = action;
-            return this;
-        }
-
-        public MonitorGraph Load(Func<bool> action) {
-            _loadValue = () => action() ? 1 : 0;
-            _formatValue ??= (v) => v > 0f ? "True" : "False";
-            return this;
-        }
-
-        public MonitorGraph Format(Func<float, string> action) {
-            _formatValue = action;
-            return this;
-        }
-
         public MonitorGraph Keep(int seconds) {
             if (seconds == _secondsHistory) return this; // ignore if there is no change
             _secondsHistory = Math.Max(1, seconds);
@@ -142,30 +213,33 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public Serie AddSerie(string? label = null) {
+            var serie = new Serie(this);
+            serie.SetLabel(label);
+            _series.Add(serie);
+            _lineChartHolder.AddChild(serie.ChartLine);
+            new NodeBuilder<HBoxContainer>(_legend)
+                .Child(serie.Label, label => {
+                    label.Align = Label.AlignEnum.Right;
+                    label.AddColorOverride("font_color", DefaultLabelColor);
+                })
+                .Child(serie.CurrentValue, label => {
+                    label.Align = Label.AlignEnum.Left;
+                });
+            _dirty = true;
+            return serie;
+        }
+
         public override void _Ready() {
             AddChild(_chartSpacer);
             AddChild(_timeSeparatorsHolder);
             AddChild(_separatorsHolder);
-            AddChild(ChartLine);
+            AddChild(_lineChartHolder);
             AddChild(BorderLine);
-            new NodeBuilder<Label>()
-                .Child(new NodeBuilder<HBoxContainer>(_legend)
-                    .Child(Label, label => {
-                        label.Align = Label.AlignEnum.Right;
-                        label.AddColorOverride("font_color", MonitorText.DefaultLabelColor);
-                    })
-                    .Child(CurrentValue, label => {
-                        label.Align = Label.AlignEnum.Left;
-                    })
-                )
-                .SetParent(this);
+            var label = new Label();
+            label.AddChild(_legend);
+            AddChild(label);
             _dirty = true;
-        }
-
-        public MonitorGraph ConfigureChartLine(Action<Line2D> conf) {
-            _chartLineConfig = conf;
-            _dirty = true;
-            return this;
         }
 
         public MonitorGraph ConfigureBorderLine(Action<Line2D> conf) {
@@ -235,25 +309,6 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        private void ConfigureChartData() {
-            var pending = (_secondsHistory * Fps) - Data.Count;
-            if (pending > 0) {
-                var zero = Mathf.Lerp(MinValue, MaxValue, 0.5f);
-                while (pending-- > 0) Data.AddFirst(zero);
-            } else if (pending < 0) {
-                while (pending++ < 0) Data.RemoveFirst();
-            }
-        }
-
-        private void Add(float v) {
-            Data.AddLast(v);
-            if (IsAutoRange) {
-                if (v > MaxValue) MaxValue = v;
-                else if (v < MinValue) MinValue = v;
-            }
-            while (Data.Count > DataSize) Data.RemoveFirst();
-        }
-
         private void UpdateSeparators() {
             var sepSize = (float)ChartWidth / _secondsHistory;
             var sepStep = sepSize / Fps;
@@ -266,47 +321,26 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        private void ConfigureChartLine() {
-            ChartLine.Width = 2f;
-            ChartLine.DefaultColor = _color;
-            _chartLineConfig.Invoke(ChartLine);
-            CurrentValue.AddColorOverride("font_color", _color);
-        }
-
-        private void DumpDataToChartLine() {
-            ChartLine.ClearPoints();
-            var elements = _secondsHistory * 60;
-            var range = MaxValue - MinValue;
-            var i = 0;
-            Data.ForEach(v => {
-                var percentWidth = (float)i / elements;
-                var percentHeight = (v - MinValue) / range;
-                var x = Mathf.Lerp(0, ChartWidth, percentWidth);
-                var y = Mathf.Lerp(0, ChartHeight, Math.Clamp(percentHeight, 0f, 1f));
-                ChartLine.AddPoint(new Vector2(x, ChartHeight - y));
-                i++;
-            });
-        }
-
         public override void Process(float delta) {
             if (_dirty) {
-                ConfigureChartLine();
-                ConfigureChartData();
+                foreach (var serie in _series) {
+                    serie.ConfigureChartLine();
+                    serie.ConfigureChartData();
+                }
                 ConfigureValueSeparators();
                 ConfigureTimeSeparators();
                 ConfigureChartSpaceAndBorder();
                 _dirty = false;
             }
-            var value = _loadValue.Invoke();
-            CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("F");
-            Add(value);
-            DumpDataToChartLine();
+            for (var i = 0; i < _series.Count; i++) {
+                _series[i].Process(delta);
+            }
             UpdateSeparators();
             _frameCount ++;
             if (_frameCount == Fps) {
                 if (IsAutoRange) {
-                    MinValue = Data.Min();
-                    MaxValue = Data.Max();
+                    MinValue = _series.SelectMany(s => s.Data).Min();
+                    MaxValue = _series.SelectMany(s => s.Data).Max();
                 }
                 _frameCount = 0;
             }

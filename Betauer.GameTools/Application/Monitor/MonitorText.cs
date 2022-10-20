@@ -2,9 +2,8 @@ using System;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public class MonitorText : BaseMonitor {
+    public class MonitorText : BaseMonitor<MonitorText> {
 
-        public static readonly Color DefaultLabelColor = new Color(0.584314f, 0.584314f, 0.584314f, 1);
         
         private string _text = string.Empty;
         private readonly HBoxContainer _container = new();
@@ -12,11 +11,6 @@ namespace Betauer.Application.Monitor {
 
         public readonly Label Label = new();
         public readonly Label Content = new();
-
-        public MonitorText RemoveIfInvalid(Godot.Object target) {
-            Watch = target;
-            return this;
-        }
 
         public MonitorText SetLabel(string? label) {
             if (label == null) {

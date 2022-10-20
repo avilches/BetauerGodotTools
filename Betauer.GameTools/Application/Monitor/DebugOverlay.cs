@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Betauer.Input;
 using Betauer.Signal;
 using Godot;
@@ -21,7 +22,8 @@ namespace Betauer.Application.Monitor {
         public Color Solid = new(1, 1, 1);
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
-        private Func<bool>? _removeIf;
+        public Func<bool>? RemoveIfFunc { get; private set; }
+        private Container? _nestedContainer;
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
@@ -58,7 +60,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay RemoveIf(Func<bool> removeIf) {
-            _removeIf = removeIf;
+            RemoveIfFunc = removeIf;
             return this;
         }
 
@@ -85,9 +87,26 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public DebugOverlay OpenBox(Action<HBoxContainer>? config = null) {
+            return OpenBox<HBoxContainer>(config);
+        }
+
+        public DebugOverlay OpenBox<T>(Action<T>? config = null) where T : Container{
+            var nestedContainer = Activator.CreateInstance<T>();
+            _nestedContainer = nestedContainer;
+            Container.AddChild(_nestedContainer);
+            config?.Invoke(nestedContainer);
+            return this;
+        }
+
+        public DebugOverlay CloseBox() {
+            _nestedContainer = null;
+            return this;
+        }
+        
         public DebugOverlay Add(BaseMonitor monitor) {
             monitor.DebugOverlayOwner = this;
-            Container.AddChild(monitor);
+            (_nestedContainer ?? Container).AddChild(monitor);
             return this;
         }
 
@@ -130,8 +149,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Process(float delta) {
-            if ((_removeIf != null && _removeIf.Invoke()) ||
-                (Target != null && !IsInstanceValid(Target))) {
+            if ((Target != null && !IsInstanceValid(Target)) || (RemoveIfFunc != null && RemoveIfFunc())) {
                 QueueFree();
             } else if (!Visible) {
                 Disable();
