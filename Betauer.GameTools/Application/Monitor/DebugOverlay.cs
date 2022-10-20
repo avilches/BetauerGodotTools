@@ -48,8 +48,8 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TitleLabel.Visible = title != null;
-            return this;
+            TitleLabel.Visible = !string.IsNullOrEmpty(title);
+            return this;                               
         }
 
         public DebugOverlay RemoveIfInvalid(Object o) {
