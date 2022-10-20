@@ -10,7 +10,7 @@ namespace Veronenger.Game.Character.Player {
         public float MaxSpeed = 110f; // pixels/seconds
         public float Acceleration = -1; // pixels/frame
         public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
-        public float Friction = 0; // pixels/seconds 0=stop immediately
+        public float Friction = 0.9f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
 
         public float MaxFloorGravity = 80; // pixels/seconds. This value must be high enough to climb down a slope in constant speed.
                                            // It should match the negative vertical speed needed to climb up a slope.
@@ -20,26 +20,20 @@ namespace Veronenger.Game.Character.Player {
         public float JumpForce;
         public float JumpForceMin;
 
-        public float MaxFallingSpeed = 0; // max speed in free fall
-        public float StartFallingSpeed = 0; // speed where the player changes to falling (test with fast downwards platform!)
-        public float AirResistance = 0; // 0=stop immediately, 1=keep lateral movement until the end of the jump
+        public float MaxFallingSpeed = 2000; // max speed in free fall
+        public float StartFallingSpeed = 100; // speed where the player animation changes to falling (test with fast downwards platform!)
+        public float AirResistance = 0.86f; // 0=stop immediately, 1=keep lateral movement until the end of the jump
 
 
         public PlayerConfig() {
             const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate
             Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, timeToMaxSpeed);
-            StopIfSpeedIsLessThan = 20f; // pixels / seconds
-            Friction = 0.8f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
 
             // CONFIG: air
             const float jumpHeight = 80f; // jump max pixels
             const float maxJumpTime = 0.5f; // jump max time
             (AirGravity, JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
             JumpForceMin = JumpForce / 2;
-
-            MaxFallingSpeed = 2000; // max speed in free fall
-            StartFallingSpeed = 100; // speed where the player changes to falling(test with fast downwards platform!)
-            AirResistance = 0; // 0 = stop immediately, 1 = keep lateral movement until the end of the jump
         }
     }
 }

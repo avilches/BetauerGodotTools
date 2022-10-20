@@ -4,7 +4,6 @@ using Godot;
 
 namespace Veronenger.Game.Character {
     public abstract class BaseMotionBody {
-        protected Logger LoggerMotion;
         protected KinematicBody2D Body;
         protected Position2D Position2D;
         
@@ -19,26 +18,18 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public Vector2 PreviousSpeed { get; private set; } = Vector2.Zero;
         public float Delta { get; private set; } = 0;
 
         protected void Configure(string name, KinematicBody2D body, Position2D position2D) {
             Body = body;
             Position2D = position2D;
-            LoggerMotion = LoggerFactory.GetLogger($"{name}.Motion");
         }
 
         public virtual void StartFrame(float delta) {
             Delta = delta;
-            PreviousSpeed = Force;
         }
 
         public virtual void EndFrame() {
-            #if DEBUG
-            if (Force != PreviousSpeed) {
-                LoggerMotion.Debug($"Motion:{Force.ToString()} (diff {(PreviousSpeed - Force).ToString()})");
-            }
-            #endif
         }
 
         public static void Accelerate(

@@ -58,7 +58,7 @@ namespace Veronenger.Game.Character.Enemy {
             _zombieController = zombie;
             zombie.AddChild(this);
 
-            Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorVector);
+            Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
 
             AddOnExecuteStart((delta, state) => Body.StartFrame(delta));

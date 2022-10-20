@@ -3,7 +3,7 @@ using Godot;
 namespace Veronenger.Game.Character {
     public static class MotionConfig {
 
-        public static Vector2 FloorVector = Vector2.Up;
+        public static Vector2 FloorUpDirection = Vector2.Up;
         public const float SnapLength = 12f; // be sure this value is less than the smallest tile
         public static Vector2 SnapToFloorVector = Vector2.Down * SnapLength;
 
