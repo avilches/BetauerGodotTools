@@ -6,7 +6,16 @@ namespace Veronenger.Game.Character {
     public abstract class BaseKinematicMotion {
         public KinematicBody2D Body { get; private set; }
         public Position2D Position2D { get; private set; }
-        public Vector2 FloorUpDirection;
+
+        private float _anglesToRotateFloor = 0;
+        private Vector2 _floorUpDirection = Vector2.Up;
+        public Vector2 FloorUpDirection {
+            get => _floorUpDirection;
+            set {
+                _floorUpDirection = value;
+                _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
+            }
+        }
         
         // Speed is the desired speed to achieve. The final speed should match, but it could be different because
         // the friction or collision
@@ -34,6 +43,16 @@ namespace Veronenger.Game.Character {
 
         public virtual void EndFrame() {
         }
+        
+        protected Vector2 RotateSpeed() {
+            return _anglesToRotateFloor > 0f ? Speed.Rotated(_anglesToRotateFloor) : Speed;
+        }
+
+        protected Vector2 RotateInertia(Vector2 pendingInertia) {
+            return _anglesToRotateFloor > 0f ? pendingInertia.Rotated(-_anglesToRotateFloor) : pendingInertia;
+        }
+
+
 
         public static void Accelerate(
             ref float speed, // The current speed to update 

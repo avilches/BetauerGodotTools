@@ -170,17 +170,16 @@ namespace Veronenger.Game.Character {
             */
             var stopOnSlopes = !HasFloorLateralMovement();
             var pendingInertia = Body.MoveAndSlideWithSnap(
-                Speed.Rotated(Vector2.Up.AngleTo(FloorUpDirection)), SnapToFloorVector, FloorUpDirection, stopOnSlopes);
+                RotateSpeed(), SnapToFloorVector, FloorUpDirection, stopOnSlopes);
             _dirtyFlags = true;
-            return pendingInertia.Rotated(FloorUpDirection.AngleTo(Vector2.Up));
+            return RotateInertia(pendingInertia);
         }
 
         public Vector2 MoveSlide() {
             const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
-            var pendingInertia = Body.MoveAndSlideWithSnap(
-                Speed.Rotated(Vector2.Up.AngleTo(FloorUpDirection)), Vector2.Zero, FloorUpDirection, stopOnSlopes);
+            var pendingInertia = Body.MoveAndSlideWithSnap(RotateSpeed(), Vector2.Zero, FloorUpDirection, stopOnSlopes);
             _dirtyFlags = true;
-            return pendingInertia.Rotated(FloorUpDirection.AngleTo(Vector2.Up));;
+            return RotateInertia(pendingInertia);
         }
         
         private KinematicPlatformMotion UpdateFlags() {
