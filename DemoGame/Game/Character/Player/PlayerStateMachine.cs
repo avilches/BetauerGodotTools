@@ -94,18 +94,30 @@ namespace Veronenger.Game.Character.Player {
             // debugOverlay.Text("FallingTimer", () => FallingTimer.ToString()).Disable();
             // _coyoteJumpState = debugOverlay.Text("CoyoteState");
 
-            debugOverlay.Text("State", () => CurrentState.Key.ToString());
-            var speedometer2D = Speedometer2D.From(() => PlatformBody.Force);
-            speedometer2D.UpdateOnPhysicsProcess(this);
-            debugOverlay.TextSpeed("Force", speedometer2D);
-            debugOverlay.Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.Aquamarine).AddSeparator(0);
-            debugOverlay.Graph("ForceY (Gravity)", () => PlatformBody.ForceY, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).SetColor(Colors.GreenYellow).AddSeparator(0);
-            debugOverlay.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetColor(Colors.Yellow).SetChartHeight(10);
-            debugOverlay.Graph("Slope", () => PlatformBody.IsOnSlope()).Keep(10).SetColor(Colors.LightSalmon).SetChartHeight(10);
-            debugOverlay.GraphSpeed("Speed", PlayerConfig.JumpForce*2).SetColor(Colors.LightSalmon).AddSeparator(0);
-            debugOverlay.Text("Floor", () => PlatformBody.GetFloorCollisionInfo());
-            debugOverlay.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo());
-            debugOverlay.Text("Wall", () => PlatformBody.GetWallCollisionInfo());
+            var speedometer2D = Speedometer2D.From(() => PlatformBody.Force).UpdateOnPhysicsProcess(this);
+            debugOverlay
+                .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+                .Text("Force", () => speedometer2D.GetInfo()).EndMonitor()                    
+                .OpenBox()
+                    .Vector("Force", () => PlatformBody.Force, PlayerConfig.MaxSpeed)
+                        .SetChartWidth(100)
+                    .EndMonitor()
+                    .Graph("ForceX", () => PlatformBody.ForceX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed)
+                        .AddSeparator(0)
+                        .AddSerie("Force Y").Load(() => PlatformBody.ForceY).EndSerie()
+                    .EndMonitor()
+                .CloseBox()
+                .Graph("Floor", () => PlatformBody.IsOnFloor())
+                    .Keep(10)
+                    .SetChartHeight(10)
+                    .AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
+                .EndMonitor()
+                .GraphSpeed("Speed", PlayerConfig.JumpForce*2)
+                    .AddSeparator(0)
+                .EndMonitor()
+                .Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
+                .Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
+                .Text("Wall", () => PlatformBody.GetWallCollisionInfo());
         }
 
         public void GroundStates() {
@@ -214,6 +226,7 @@ namespace Veronenger.Game.Character.Player {
                     if (PlatformBody.IsOnSlope()) {
                         // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
                         // and go up too slow
+                        // And never use the pendingInertia.x when climbing a slope!!!
                         PlatformBody.ForceY = pendingInertia.y;
                     }
 
