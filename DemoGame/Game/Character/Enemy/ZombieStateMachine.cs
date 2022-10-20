@@ -43,7 +43,7 @@ namespace Veronenger.Game.Character.Enemy {
 
         [Inject] private MainStateMachine MainStateMachine { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
-        [Inject] public KinematicPlatformMotionBody Body { get; set; }
+        [Inject] public KinematicPlatformMotion Body { get; set; }
         [Inject] private EnemyConfig EnemyConfig { get; set; }
         [Inject] private PlayerConfig PlayerConfig { get; set; }
         // State shared between states
@@ -77,7 +77,7 @@ namespace Veronenger.Game.Character.Enemy {
                         return context.None();
                     }
 
-                    if (Body.ForceY <= 0) Body.ApplyDefaultGravity();
+                    if (Body.SpeedY <= 0) Body.ApplyDefaultGravity();
 
                     Body.MoveSnapping();
                     if (StateTimer.IsAlarm()) {
@@ -136,8 +136,8 @@ namespace Veronenger.Game.Character.Enemy {
             State(ZombieState.Attacked)
                 .Enter(() => {
                     Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
-                    Body.ForceY = EnemyConfig.MiniJumpOnAttack.y;
-                    Body.ForceX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
+                    Body.SpeedY = EnemyConfig.MiniJumpOnAttack.y;
+                    Body.SpeedX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
                     _zombieController.PlayAnimationAttacked();
                     StateTimer.Restart().SetAlarm(1f);
                 })

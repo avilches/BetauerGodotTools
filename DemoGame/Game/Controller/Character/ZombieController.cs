@@ -77,7 +77,7 @@ namespace Veronenger.Game.Controller.Character {
             var debugOverlay = DebugOverlayManager.CreateOverlay().Follow(this);
             debugOverlay.Text("State", () => StateMachine.CurrentState.Key.ToString());
             debugOverlay.Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}");
-            debugOverlay.Text("Force",() => StateMachine.Body.Force.ToString("F"));
+            debugOverlay.Text("Speed",() => StateMachine.Body.Speed.ToString("F"));
         }
 
         public override void _PhysicsProcess(float delta) {

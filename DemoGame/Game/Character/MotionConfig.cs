@@ -16,10 +16,10 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public static (float gravity, float jumpForce) ConfigureJump(float jumpHeight, float maxJumpTime) {
+        public static (float gravity, float jumpSpeed) ConfigureJump(float jumpHeight, float maxJumpTime) {
             var gravity = (2 * jumpHeight) / Mathf.Pow(maxJumpTime, 2);
-            var jumpForce = gravity * maxJumpTime;
-            return (gravity, jumpForce);
+            var jumpSpeed = gravity * maxJumpTime;
+            return (gravity, jumpSpeed);
         }
     }
 }

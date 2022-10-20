@@ -17,8 +17,8 @@ namespace Veronenger.Game.Character.Player {
         
         // CONFIG: air
         public float AirGravity; // pixels/frame (it's accumulative)
-        public float JumpForce;
-        public float JumpForceMin;
+        public float JumpSpeed;
+        public float JumpSpeedMin;
 
         public float MaxFallingSpeed = 2000; // max speed in free fall
         public float StartFallingSpeed = 100; // speed where the player animation changes to falling (test with fast downwards platform!)
@@ -32,8 +32,8 @@ namespace Veronenger.Game.Character.Player {
             // CONFIG: air
             const float jumpHeight = 80f; // jump max pixels
             const float maxJumpTime = 0.5f; // jump max time
-            (AirGravity, JumpForce) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
-            JumpForceMin = JumpForce / 2;
+            (AirGravity, JumpSpeed) = MotionConfig.ConfigureJump(jumpHeight, maxJumpTime);
+            JumpSpeedMin = JumpSpeed / 2;
         }
     }
 }

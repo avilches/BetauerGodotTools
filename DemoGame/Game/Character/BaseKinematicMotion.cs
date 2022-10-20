@@ -3,18 +3,19 @@ using Betauer;
 using Godot;
 
 namespace Veronenger.Game.Character {
-    public abstract class BaseMotionBody {
+    public abstract class BaseKinematicMotion {
         protected KinematicBody2D Body;
         protected Position2D Position2D;
         
-        // Force is the desired speed to achieve. The speed should match the force, but it could be different
-        public float ForceX;
-        public float ForceY; 
-        public Vector2 Force {
-            get => new(ForceX, ForceY);
+        // Speed is the desired speed to achieve. The final speed should match, but it could be different because
+        // the friction or collision
+        public float SpeedX;
+        public float SpeedY; 
+        public Vector2 Speed {
+            get => new(SpeedX, SpeedY);
             set {
-                ForceX = value.x;
-                ForceY = value.y;
+                SpeedX = value.x;
+                SpeedY = value.y;
             }
         }
 
@@ -79,26 +80,31 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public void LimitSpeedY(float maxSpeed) {
-            LimitSpeedY(-maxSpeed, maxSpeed);
-        }
-
-        public void LimitSpeedY(float start, float end) {
-            ForceY = Mathf.Clamp(ForceY, start, end);
+        public void LimitSpeed(Vector2 maxSpeed) {
+            LimitSpeedX(maxSpeed.x);
+            LimitSpeedY(maxSpeed.y);
         }
 
         public void LimitSpeedX(float maxSpeed) {
             LimitSpeedX(-maxSpeed, maxSpeed);
         }
 
-        public void LimitSpeedX(float start, float end) {
-            ForceX = Mathf.Clamp(ForceX, start, end);
+        public void LimitSpeedY(float maxSpeed) {
+            LimitSpeedY(-maxSpeed, maxSpeed);
         }
 
-        public void LimitSpeed(float maxSpeed) {
-            var limited = Force.LimitLength(maxSpeed);
-            ForceX = limited.x;
-            ForceY = limited.y;
+        public void LimitSpeedX(float start, float end) {
+            SpeedX = Mathf.Clamp(SpeedX, start, end);
+        }
+
+        public void LimitSpeedY(float start, float end) {
+            SpeedY = Mathf.Clamp(SpeedY, start, end);
+        }
+
+        public void LimitSpeedNormalized(float maxSpeed) {
+            var limited = Speed.LimitLength(maxSpeed);
+            SpeedX = limited.x;
+            SpeedY = limited.y;
         }
 
         public bool IsToTheLeftOf(Node2D node2D) {

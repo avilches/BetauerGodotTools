@@ -12,7 +12,7 @@ using Vector2 = Godot.Vector2;
 namespace Veronenger.Game.Character {
 
     [Service(Lifetime.Transient)]
-    public class KinematicPlatformMotionBody : BaseMotionBody, IFlipper {
+    public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         public float DefaultGravity { get; set; } = 0f;
         public float DefaultMaxFallingSpeed { get; set; } = 1000f;
         public float DefaultMaxFloorGravity { get; set; } = 1000f;
@@ -119,19 +119,49 @@ namespace Veronenger.Game.Character {
 
         public void ApplyGravity(float gravity, float maxSpeed) {
             // Formula to apply gravity against floor normal, instead of just go down
-            // Force += (_colliderNormal != Vector2.Zero ? _colliderNormal : Vector2.Down) * DefaultGravity * Delta;
-            ForceY = Mathf.Min(ForceY + gravity * Delta, maxSpeed);
+            // Speed += (_colliderNormal != Vector2.Zero ? _colliderNormal : Vector2.Down) * DefaultGravity * Delta;
+            SpeedY = Mathf.Min(SpeedY + gravity * Delta, maxSpeed);
         }
 
         public void AddLateralSpeed(float xInput,
-            float acceleration, float maxSpeed,
-            float friction, float stopIfSpeedIsLessThan,
+            float acceleration,
+            float maxSpeed,
+            float friction,
+            float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
-            Accelerate(ref ForceX, xInput, acceleration, maxSpeed, friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+            
+            Accelerate(ref SpeedX, xInput, acceleration, maxSpeed, 
+                friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+        }
+        
+        public void AddSpeed(float xInput, float yInput, 
+            float acceleration,
+            float maxSpeedX,
+            float maxSpeedY,
+            float friction, 
+            float stopIfSpeedIsLessThan, 
+            float changeDirectionFactor) {
+            
+            if (xInput != 0 && yInput != 0) {
+                var input = new Vector2(xInput, yInput);
+                if (input.Length() > 1) {
+                    input = input.Normalized();
+                    xInput = input.x;
+                    yInput = input.y;
+                }
+            }
+            Accelerate(ref SpeedX, xInput, acceleration, maxSpeedX,
+                friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+            Accelerate(ref SpeedY, yInput, acceleration, maxSpeedY,
+                friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
         }
 
         public void StopLateralSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            SlowDownSpeed(ref ForceX, friction, stopIfSpeedIsLessThan);
+            SlowDownSpeed(ref SpeedX, friction, stopIfSpeedIsLessThan);
+        }
+
+        public void StopVerticalSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
+            SlowDownSpeed(ref SpeedY, friction, stopIfSpeedIsLessThan);
         }
 
         public Vector2 MoveSnapping() {
@@ -141,23 +171,24 @@ namespace Veronenger.Game.Character {
             se para y ya no sigue a la plataforma
             */
             var stopOnSlopes = !HasFloorLateralMovement();
-            var pendingInertia = Body.MoveAndSlideWithSnap(Force, SnapToFloorVector, FloorUpDirection, stopOnSlopes);
+            var pendingInertia = Body.MoveAndSlideWithSnap(Speed, SnapToFloorVector, FloorUpDirection, stopOnSlopes);
             _dirtyFlags = true;
             return pendingInertia;
         }
 
         public Vector2 MoveSlide() {
             const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
-            var remain = Body.MoveAndSlideWithSnap(Force, Vector2.Zero, FloorUpDirection, stopOnSlopes);
+            var remain = Body.MoveAndSlideWithSnap(Speed, Vector2.Zero, FloorUpDirection, stopOnSlopes);
             _dirtyFlags = true;
             return remain;
         }
         
-        private KinematicPlatformMotionBody UpdateFlags() {
+        private KinematicPlatformMotion UpdateFlags() {
             if (!_dirtyFlags) return this;
+            _dirtyFlags = false;
             
             var wasOnFloor = _isOnFloor;
-            _isOnFloor = false; // Hack time: when player collides with floor, Body.IsOnFloor() is false, which is a error
+            _isOnFloor = Body.IsOnFloor(); // Hack time: when player collides with floor, Body.IsOnFloor() is false, which is a error
             _isOnSlope = false;
             _floorNormal = Vector2.Zero;
             _floor = null;
@@ -227,7 +258,11 @@ namespace Veronenger.Game.Character {
             var collisionCollider = _slopeRaycast.GetCollider();
             if (collisionCollider == null) return;
             var normal = _slopeRaycast.GetCollisionNormal();
-            if (normal != FloorUpDirection && normal.IsFloor(FloorUpDirection)) {
+            if (normal == FloorUpDirection) {
+                _isOnFloor = true;
+                _floorNormal = normal;
+            } else if (normal.IsFloor(FloorUpDirection)) {
+                _isOnFloor = true;
                 _isOnSlope = true;
                 _floorNormal = normal;
             }
@@ -246,7 +281,7 @@ namespace Veronenger.Game.Character {
 
         public string GetFloorCollisionInfo() {
             return IsOnFloor()
-                ? $"{GetFloorNormal().ToString("0.0")} {Mathf.Rad2Deg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
+                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"-")} {GetFloorNormal().ToString("0.0")} {Mathf.Rad2Deg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
                 : "";
         }
 
@@ -258,7 +293,7 @@ namespace Veronenger.Game.Character {
 
         public string GetWallCollisionInfo() {
             return IsOnWall()
-                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.Rad2Deg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
+                ? $"{(IsOnWallRight()?"*|":"|*")} {GetWallNormal().ToString("0.0")} {Mathf.Rad2Deg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
                 : "";
         }
     }
