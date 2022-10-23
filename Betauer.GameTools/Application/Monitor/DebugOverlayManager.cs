@@ -40,8 +40,8 @@ namespace Betauer.Application.Monitor {
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {
                 if (@event.HasShift()) {
-                    _current = (_current+1) % _count;
                     var children = GetChildren().OfType<DebugOverlay>().ToList();
+                    _current = (_current + 1) % children.Count;
                     children.ForEach(overlay => overlay.Enable(overlay.Id == _current));
                 } else {
                     var children = GetChildren().OfType<DebugOverlay>().ToList();
