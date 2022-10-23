@@ -18,17 +18,14 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Overlay(Object target) {
-            return GetChildren()
+            return (GetChildren()
                        .OfType<DebugOverlay>()
                        .FirstOrDefault(d => d.Target == target)
-                   ?? CreateOverlay().RemoveIfInvalid(target);
+                   ?? CreateOverlay().RemoveIfInvalid(target)).Enable(VisibleCount >= 1);
         }
 
-        public DebugOverlay Overlay(Node2D follow) {
-            return GetChildren()
-                       .OfType<DebugOverlay>()
-                       .FirstOrDefault(d => d.Target == follow)
-                   ?? CreateOverlay().Follow(follow);
+        public DebugOverlay Follow(Node2D follow) {
+            return Overlay(follow).Follow(follow);
         }
 
         public DebugOverlay CreateOverlay() {
@@ -36,6 +33,9 @@ namespace Betauer.Application.Monitor {
             AddChild(overlay);
             return overlay;
         }
+
+        public int VisibleCount =>
+            GetChildren().OfType<DebugOverlay>().Count(debugOverlay => debugOverlay.Visible);
 
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {

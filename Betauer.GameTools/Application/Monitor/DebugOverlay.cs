@@ -110,15 +110,16 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public void Enable(bool enabled = true) {
+        public DebugOverlay Enable(bool enabled = true) {
             Visible = enabled;
             SetProcess(enabled);
             SetProcessInput(enabled);
             SetProcess(enabled);
+            return this;
         }
 
-        public void Disable() {
-            Enable(false);
+        public DebugOverlay Disable() {
+            return Enable(false);
         }
 
         public override void _Ready() {
