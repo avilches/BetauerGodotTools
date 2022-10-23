@@ -3,6 +3,8 @@ using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
+using Betauer.Nodes;
+using Veronenger.Game.Character;
 using Veronenger.Game.Managers;
 
 namespace Veronenger.Game.Controller.Animation {
@@ -10,6 +12,7 @@ namespace Veronenger.Game.Controller.Animation {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
+        [Inject] public KinematicPlatformMotion PlatformBody { get; set; }
         private SceneTreeTween _sceneTreeTween;
         private Vector2 _original;
 
@@ -18,18 +21,21 @@ namespace Veronenger.Game.Controller.Animation {
             
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
+            Motion__syncToPhysics = false;
+
+            // tween the _newPosition property and use it like this:
+            // this.OnPhysicsProcess((delta) => {
+                // var speed = _newPosition - Position;
+                // MoveAndCollide(speed);
+            // });
 
             _sceneTreeTween = SequenceAnimation.Create()
-                .AnimateStepsBy<Vector2>(UpdatePosition, Easings.CubicInOut)
+                .AnimateStepsBy<Vector2>((newPosition) => Position = _original + newPosition, Easings.CubicInOut)
                 .Offset(new Vector2(0, -300), 2.5f)
                 .Offset(new Vector2(0, 300), 2.5f)
                 .EndAnimate()
                 .Play(this)
                 .SetLoops();
-        }
-
-        public void UpdatePosition(Vector2 pos) {
-            Position = _original + pos;
         }
 
         public void Start() {
