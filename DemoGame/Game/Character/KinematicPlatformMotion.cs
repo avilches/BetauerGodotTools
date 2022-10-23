@@ -116,9 +116,7 @@ namespace Veronenger.Game.Character {
         }
 
         public void ApplyGravity(float gravity, float maxSpeed) {
-            // Formula to apply gravity against floor normal, instead of just go down
-            // Speed += (_colliderNormal != Vector2.Zero ? _colliderNormal : Vector2.Down) * DefaultGravity * Delta;
-            SpeedY = Mathf.Min(SpeedY + gravity * Delta, maxSpeed);
+            MotionY = Mathf.Min(MotionY + gravity * Delta, maxSpeed);
         }
 
         public void AddLateralSpeed(float xInput,
@@ -128,7 +126,7 @@ namespace Veronenger.Game.Character {
             float stopIfSpeedIsLessThan,
             float changeDirectionFactor) {
             
-            Accelerate(ref SpeedX, xInput, acceleration, maxSpeed, 
+            Accelerate(ref MotionX, xInput, acceleration, maxSpeed, 
                 friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
         }
         
@@ -148,18 +146,18 @@ namespace Veronenger.Game.Character {
                     yInput = input.y;
                 }
             }
-            Accelerate(ref SpeedX, xInput, acceleration, maxSpeedX,
+            Accelerate(ref MotionX, xInput, acceleration, maxSpeedX,
                 friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
-            Accelerate(ref SpeedY, yInput, acceleration, maxSpeedY,
+            Accelerate(ref MotionY, yInput, acceleration, maxSpeedY,
                 friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
         }
 
-        public void StopLateralSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            SlowDownSpeed(ref SpeedX, friction, stopIfSpeedIsLessThan);
+        public void ApplyLateralFriction(float friction, float stopIfSpeedIsLessThan) {
+            SlowDownSpeed(ref MotionX, friction, stopIfSpeedIsLessThan);
         }
 
-        public void StopVerticalSpeedWithFriction(float friction, float stopIfSpeedIsLessThan) {
-            SlowDownSpeed(ref SpeedY, friction, stopIfSpeedIsLessThan);
+        public void ApplyVerticalFriction(float friction, float stopIfSpeedIsLessThan) {
+            SlowDownSpeed(ref MotionY, friction, stopIfSpeedIsLessThan);
         }
 
         public Vector2 MoveSnapping() {
@@ -280,7 +278,7 @@ namespace Veronenger.Game.Character {
 
         public string GetFloorCollisionInfo() {
             return IsOnFloor()
-                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"-")} {GetFloorNormal().ToString("0.0")} {Mathf.Rad2Deg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
+                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.Rad2Deg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
                 : "";
         }
 
@@ -292,7 +290,7 @@ namespace Veronenger.Game.Character {
 
         public string GetWallCollisionInfo() {
             return IsOnWall()
-                ? $"{(IsOnWallRight()?"*|":"|*")} {GetWallNormal().ToString("0.0")} {Mathf.Rad2Deg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
+                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.Rad2Deg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
                 : "";
         }
     }

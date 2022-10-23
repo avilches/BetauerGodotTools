@@ -17,15 +17,15 @@ namespace Veronenger.Game.Character {
             }
         }
         
-        // Speed is the desired speed to achieve. The final speed should match, but it could be different because
+        // Motion is the desired speed to achieve. The final speed should match, but it could be different because
         // the friction or collision
-        public float SpeedX;
-        public float SpeedY;
-        public Vector2 Speed {
-            get => new(SpeedX, SpeedY);
+        public float MotionX;
+        public float MotionY;
+        public Vector2 Motion {
+            get => new(MotionX, MotionY);
             set {
-                SpeedX = value.x;
-                SpeedY = value.y;
+                MotionX = value.x;
+                MotionY = value.y;
             }
         }
 
@@ -45,7 +45,7 @@ namespace Veronenger.Game.Character {
         }
         
         protected Vector2 RotateSpeed() {
-            return _anglesToRotateFloor > 0f ? Speed.Rotated(_anglesToRotateFloor) : Speed;
+            return _anglesToRotateFloor > 0f ? Motion.Rotated(_anglesToRotateFloor) : Motion;
         }
 
         protected Vector2 RotateInertia(Vector2 pendingInertia) {
@@ -101,31 +101,31 @@ namespace Veronenger.Game.Character {
             }
         }
 
-        public void LimitSpeed(Vector2 maxSpeed) {
-            LimitSpeedX(maxSpeed.x);
-            LimitSpeedY(maxSpeed.y);
+        public void LimitMotion(Vector2 maxSpeed) {
+            LimitMotionX(maxSpeed.x);
+            LimitMotionY(maxSpeed.y);
         }
 
-        public void LimitSpeedX(float maxSpeed) {
-            LimitSpeedX(-maxSpeed, maxSpeed);
+        public void LimitMotionX(float maxSpeed) {
+            LimitMotionX(-maxSpeed, maxSpeed);
         }
 
-        public void LimitSpeedY(float maxSpeed) {
-            LimitSpeedY(-maxSpeed, maxSpeed);
+        public void LimitMotionY(float maxSpeed) {
+            LimitMotionY(-maxSpeed, maxSpeed);
         }
 
-        public void LimitSpeedX(float start, float end) {
-            SpeedX = Mathf.Clamp(SpeedX, start, end);
+        public void LimitMotionX(float start, float end) {
+            MotionX = Mathf.Clamp(MotionX, start, end);
         }
 
-        public void LimitSpeedY(float start, float end) {
-            SpeedY = Mathf.Clamp(SpeedY, start, end);
+        public void LimitMotionY(float start, float end) {
+            MotionY = Mathf.Clamp(MotionY, start, end);
         }
 
-        public void LimitSpeedNormalized(float maxSpeed) {
-            var limited = Speed.LimitLength(maxSpeed);
-            SpeedX = limited.x;
-            SpeedY = limited.y;
+        public void LimitMotionNormalized(float maxSpeed) {
+            var limited = Motion.LimitLength(maxSpeed);
+            MotionX = limited.x;
+            MotionY = limited.y;
         }
 
         public bool IsToTheLeftOf(Node2D node2D) {
