@@ -114,6 +114,9 @@ namespace Betauer.Input {
 
         
         // Mouse
+        public static bool IsMouse(this InputEvent input) =>
+            input is InputEventMouse;
+
         public static bool IsMouseMotion(this InputEvent input) =>
             input is InputEventMouseMotion;
 
