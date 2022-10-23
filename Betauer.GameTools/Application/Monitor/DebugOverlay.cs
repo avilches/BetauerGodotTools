@@ -113,6 +113,8 @@ namespace Betauer.Application.Monitor {
         public void Enable(bool enabled = true) {
             Visible = enabled;
             SetProcess(enabled);
+            SetProcessInput(enabled);
+            SetProcess(enabled);
         }
 
         public void Disable() {
@@ -125,26 +127,28 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Input(InputEvent @event) {
-            if (@event.IsDoubleClick(ButtonList.Left)) {
-                Modulate = Modulate.a <= 0.9f ? Solid : Transparent;
-                
-            } else if (_mouseInsidePanel.Inside && @event.IsLeftClick()) {
-                if (@event.IsJustPressed()) {
-                    _startDragPosition = _offset - GetGlobalMousePosition();
-                    Raise();
-                } else {
-                    _startDragPosition = null;
+            if (_mouseInsidePanel.Inside && @event.IsMouse()) {
+                if (@event.IsDoubleClick(ButtonList.Left)) {
+                    Modulate = Modulate.a <= 0.9f ? Solid : Transparent;
+
+                } else if (@event.IsLeftClick()) {
+                    if (@event.IsJustPressed()) {
+                        _startDragPosition = _offset - GetGlobalMousePosition();
+                        Raise();
+                    } else {
+                        _startDragPosition = null;
+                    }
+
+                } else if (_startDragPosition != null && @event.IsMouseMotion()) {
+                    var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
+                    var origin = FollowPosition;
+                    // TODO: GetTree().Root.Size doesn't work well with scaled viewport
+                    // Ensure the user can't drag and drop the overlay outside of the screen
+                    newPosition = new Vector2(
+                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + GetTree().Root.Size.x - RectSize.x),
+                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + GetTree().Root.Size.y - RectSize.y));
+                    _offset = newPosition;
                 }
-                
-            } else if (_mouseInsidePanel.Inside && _startDragPosition != null && @event.IsMouseMotion()) {
-                var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
-                var origin = FollowPosition;
-                // TODO: GetTree().Root.Size doesn't work well with scaled viewport
-                // Ensure the user can't drag and drop the overlay outside of the screen
-                newPosition = new Vector2(
-                    Mathf.Clamp(newPosition.x, -origin.x, -origin.x + GetTree().Root.Size.x - RectSize.x),
-                    Mathf.Clamp(newPosition.y, -origin.y, -origin.y + GetTree().Root.Size.y - RectSize.y));
-                _offset = newPosition;
             }
         }
 
