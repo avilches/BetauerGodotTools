@@ -77,24 +77,22 @@ namespace Betauer.Application.Monitor {
             LineLength.AddPoint(Vector2.Zero);
             LineLength.DefaultColor = DefaultLineLengthColor;
             LineLength.Width = 1;
-            
-            AddChild(_chartSpacer);
-            AddChild(LineLength);
-            AddChild(LineX);
-            AddChild(LineY);
-            AddChild(BorderLine);
-            new NodeBuilder<Label>()  // Make a Label as parent of the HBoxContainer is a trick to ensures the height
-                .Child(new NodeBuilder<HBoxContainer>(_legend)
-                    .Child(Label, label => {
-                        label.Align = Label.AlignEnum.Right;
-                        label.AddColorOverride("font_color", DefaultLabelColor);
-                    })
-                    .Child(CurrentValue, label => {
-                        label.Align = Label.AlignEnum.Left;
-                    })
-                )
-                .SetParent(this);
 
+            this.Scene()
+                .AddChild(_chartSpacer)
+                .AddChild(LineLength)
+                .AddChild(LineX)
+                .AddChild(LineY)
+                .AddChild(BorderLine)
+                .Child<Label>()
+                    .Child(_legend)
+                        .AddChild(Label, label => {
+                            label.Align = Label.AlignEnum.Right;
+                            label.AddColorOverride("font_color", DefaultLabelColor);
+                        })
+                        .AddChild(CurrentValue, label => {
+                            label.Align = Label.AlignEnum.Left;
+                        });
         }
 
         public override void Process(float delta) {

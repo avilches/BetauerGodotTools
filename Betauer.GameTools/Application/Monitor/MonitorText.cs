@@ -13,12 +13,8 @@ namespace Betauer.Application.Monitor {
         public readonly Label Content = new();
 
         public MonitorText SetLabel(string? label) {
-            if (label == null) {
-                Label.Visible = false;
-            } else {
-                Label.Text = label;
-                Label.Visible = true;
-            }
+            Label.Text = label;
+            Label.Visible = !string.IsNullOrWhiteSpace(label);
             return this;
         }
 

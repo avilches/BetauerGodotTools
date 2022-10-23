@@ -50,7 +50,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TitleLabel.Visible = !string.IsNullOrEmpty(title);
+            TitleLabel.Visible = !string.IsNullOrWhiteSpace(title);
             return this;                               
         }
 

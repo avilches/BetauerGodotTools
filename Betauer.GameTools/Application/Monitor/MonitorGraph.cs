@@ -218,12 +218,12 @@ namespace Betauer.Application.Monitor {
             serie.SetLabel(label);
             _series.Add(serie);
             _lineChartHolder.AddChild(serie.ChartLine);
-            new NodeBuilder<HBoxContainer>(_legend)
-                .Child(serie.Label, label => {
+            _legend.Scene()
+                .AddChild(serie.Label, label => {
                     label.Align = Label.AlignEnum.Right;
                     label.AddColorOverride("font_color", DefaultLabelColor);
                 })
-                .Child(serie.CurrentValue, label => {
+                .AddChild(serie.CurrentValue, label => {
                     label.Align = Label.AlignEnum.Left;
                 });
             _dirty = true;
@@ -231,14 +231,14 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            AddChild(_chartSpacer);
-            AddChild(_timeSeparatorsHolder);
-            AddChild(_separatorsHolder);
-            AddChild(_lineChartHolder);
-            AddChild(BorderLine);
-            var label = new Label();
-            label.AddChild(_legend);
-            AddChild(label);
+            this.Scene()
+                .AddChild(_chartSpacer)
+                .AddChild(_timeSeparatorsHolder)
+                .AddChild(_separatorsHolder)
+                .AddChild(_lineChartHolder)
+                .AddChild(BorderLine)
+                .Child<Label>()
+                    .Child(_legend);
             _dirty = true;
         }
 
