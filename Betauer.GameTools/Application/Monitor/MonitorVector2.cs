@@ -101,13 +101,14 @@ namespace Betauer.Application.Monitor {
             if (_dirty) {
                 ConfigureChart();
             }
-            var value = _loadValue.Invoke() / ChartSize;
             var center = ChartSize / 2f;
-            LineX.SetPointPosition(1, new Vector2(center + (center * value.x), center));
-            LineY.SetPointPosition(1, new Vector2(center, center + (center * value.y)));
-            LineLength.SetPointPosition(1, new Vector2(center + (center * value.x), center + (center * value.y)));
-            CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("000.00");
-            CurrentValue.Text = new Vector2(center + (center * value.x), center + (center * value.y)).ToString("000.00");;
+            var value = _loadValue.Invoke();
+            var valuePercentX = center * (value.x / MaxValue);
+            var valuePercentY = center * (value.y / MaxValue);
+            LineX.SetPointPosition(1, new Vector2(center + valuePercentX, center));
+            LineY.SetPointPosition(1, new Vector2(center, center + valuePercentY));
+            LineLength.SetPointPosition(1, new Vector2(center + valuePercentX, center + valuePercentY));
+            CurrentValue.Text = _formatValue != null ? _formatValue.Invoke(value) : value.ToString("000.00");
         }
 
         private void ConfigureChart() {
