@@ -238,7 +238,7 @@ namespace Betauer.Application.Monitor {
                 .AddChild(_lineChartHolder)
                 .AddChild(BorderLine)
                 .Child<Label>()
-                    .Child(_legend);
+                    .AddChild(_legend);
             _dirty = true;
         }
 
