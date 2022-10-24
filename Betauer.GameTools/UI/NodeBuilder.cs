@@ -5,58 +5,83 @@ using Godot;
 namespace Betauer.UI {
     public static class NodeBuilderExtensions {
 
-        public static NodeBuilder Child<T>(this Node parent) where T : Node {
-            var child = Activator.CreateInstance<T>();
-            return Child(parent, child);
-        }
-
-        public static NodeBuilder<T> Child<T>(this Node parent, T child) where T : Node {
-            var nodeBuilderParent = new NodeBuilder<Node>(null, parent);
-            return new NodeBuilder<T>(nodeBuilderParent, child);
-        }
-        
-        public static NodeBuilder<Button> Button(this Node nodeBuilder, string label, Action action) {
-            var b = new Button();
-            b.Text = label;
-            b.OnPressed(action);
-            return nodeBuilder.Child(b);
-        }
-        
-        public static NodeBuilder<Button> Button(this NodeBuilder nodeBuilder, string label, Action action) {
-            var b = new Button();
-            b.Text = label;
-            b.OnPressed(action);
-            return nodeBuilder.Child(b);
+        public static NodeBuilder<TParent> NodeBuilder<TParent>(this TParent parent) where TParent : Node {
+            return new NodeBuilder<TParent>(parent);
         }
     }
 
-    public abstract class NodeBuilder {
-        public NodeBuilder Parent { get; protected set; }
-        public Node Node { get; protected set; }
-        public NodeBuilder End() => Parent;
+    public interface INode {
+        public Node Node { get;  }
+    }
 
-        public NodeBuilder<T> Child<T>() where T : Node {
-            var child = Activator.CreateInstance<T>();
+    public class NodeBuilder<T> : INode where T : Node {
+        public T TypedNode { get; protected set; }
+        public Node Node => TypedNode;
+
+        public NodeBuilder(T typedNode) {
+            TypedNode = typedNode;
+        }
+
+        public NodeBuilder<NodeBuilder<T>, TC> Child<TC>(string? name = null) where TC : Node {
+            var child = Activator.CreateInstance<TC>();
+            if (!string.IsNullOrWhiteSpace(name)) child.Name = name;
             return Child(child);
         }
 
-        public NodeBuilder<T> Child<T>(T child) where T : Node {
-            return new NodeBuilder<T>(this, child);
+        public NodeBuilder<NodeBuilder<T>, TC> Child<TC>(TC child) where TC : Node {
+            return new NodeBuilder<NodeBuilder<T>, TC>(this, child);
+        }
+        
+        public NodeBuilder<T> Config(Action<T> config) {
+            config.Invoke(TypedNode);
+            return this;
+        }
+    
+        public NodeBuilder<NodeBuilder<T>, Button> Button(string label, Action action) {
+            var b = new Button();
+            b.Text = label;
+            b.OnPressed(action);
+            return Child(b);
         }
     }
 
-    public class NodeBuilder<TNode> : NodeBuilder where TNode : Node {
-        internal NodeBuilder(NodeBuilder? parent, TNode node, Action<Node>? config = null) {
-            Parent = parent;
-            Node = node;
-            parent?.Node.AddChild(Node);
-            config?.Invoke(Node);
+    public class NodeBuilder<TNodeBuilder, T> : INode where T : Node where TNodeBuilder : INode {
+        public Node TypedNode { get; protected set; }
+        public Node Node => TypedNode;
+
+        public TNodeBuilder Parent { get; protected set; }
+        public TNodeBuilder End() {
+            Parent.Node.AddChild(TypedNode);
+            return Parent;
         }
 
-        public NodeBuilder<TNode> Config(Action<TNode> config) {
-            config.Invoke((TNode)Node);
+        internal NodeBuilder(TNodeBuilder parent, T typedNode, Action<Node>? config = null) {
+            Parent = parent;
+            TypedNode = typedNode;
+            config?.Invoke(TypedNode);
+        }
+
+        public NodeBuilder<NodeBuilder<TNodeBuilder, T>, TC> Child<TC>(string? name = null) where TC : Node {
+            var child = Activator.CreateInstance<TC>();
+            if (!string.IsNullOrWhiteSpace(name)) child.Name = name;
+            return Child(child);
+        }
+
+        public NodeBuilder<NodeBuilder<TNodeBuilder, T>, TC> Child<TC>(TC child) where TC : Node {
+            return new NodeBuilder<NodeBuilder<TNodeBuilder, T>, TC>(this, child);
+        }
+
+        public NodeBuilder<TNodeBuilder, T> Config(Action<T> config) {
+            config.Invoke((T)TypedNode);
             return this;
         }
-
+    
+        public NodeBuilder<NodeBuilder<TNodeBuilder, T>, Button> Button(string label, Action action) {
+            var b = new Button();
+            b.Text = label;
+            b.OnPressed(action);
+            return Child(b);
+        }
+        
     }
 }

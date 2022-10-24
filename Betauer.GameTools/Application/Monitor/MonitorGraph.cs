@@ -218,20 +218,25 @@ namespace Betauer.Application.Monitor {
             serie.SetLabel(label);
             _series.Add(serie);
             _lineChartHolder.AddChild(serie.ChartLine);
-            _legend
-                .Child(serie.Label).Config(label => {
-                    label.Align = Label.AlignEnum.Right;
-                    label.AddColorOverride("font_color", DefaultLabelColor);
-                }).End()
-                .Child(serie.CurrentValue).Config(label => {
-                    label.Align = Label.AlignEnum.Left;
-                }).End();
+            _legend.NodeBuilder()
+                .Child(serie.Label)
+                    .Config(label => {
+                        label.Align = Label.AlignEnum.Right;
+                        label.AddColorOverride("font_color", DefaultLabelColor);
+                    })
+                .End()
+                .Child(serie.CurrentValue)
+                    .Config(label => {
+                        label.Align = Label.AlignEnum.Left;
+                    })
+                .End();
             _dirty = true;
             return serie;
         }
 
         public override void _Ready() {
-            this.Child(_chartSpacer).End()
+            this.NodeBuilder()
+                .Child(_chartSpacer).End()
                 .Child(_timeSeparatorsHolder).End()
                 .Child(_separatorsHolder).End()
                 .Child(_lineChartHolder).End()

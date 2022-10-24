@@ -53,7 +53,8 @@ namespace Betauer.Application.Monitor {
 
         public override void _Ready() {
             Label.AddColorOverride("font_color", DefaultLabelColor);
-            this.Child(_container)
+            this.NodeBuilder()
+                .Child(_container)
                     .Child(Label).End()
                     .Child(Content).End()
                 .End();

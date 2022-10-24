@@ -126,17 +126,17 @@ namespace Veronenger.Game.Controller.Character {
             debugOverlay.Text("TweenStack", () =>
                 _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
 
-            debugOverlay.Add(new HBoxContainer()
+            debugOverlay.Add(new HBoxContainer().NodeBuilder()
                 .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
                 .Button("DangerTween.Stop", () => DangerTween.Stop())
                 .Node
             );
-            debugOverlay.Add(new HBoxContainer()
+            debugOverlay.Add(new HBoxContainer().NodeBuilder()
                 .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce())
                 .Button("PulsateTween.Stop", () => PulsateTween.Stop())
                 .Node
             );
-            debugOverlay.Add(new HBoxContainer()
+            debugOverlay.Add(new HBoxContainer().NodeBuilder()
                 .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true))
                 .Button("SqueezeTween.Stop", () => SqueezeTween.Stop())
                 .Node

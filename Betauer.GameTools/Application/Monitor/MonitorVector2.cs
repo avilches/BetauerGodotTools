@@ -78,21 +78,25 @@ namespace Betauer.Application.Monitor {
             LineLength.DefaultColor = DefaultLineLengthColor;
             LineLength.Width = 1;
 
-            this.Child(_chartSpacer).End()
+            this.NodeBuilder()
+                .Child(_chartSpacer).End()
                 .Child(LineLength).End()
                 .Child(LineX).End()
                 .Child(LineY).End()
                 .Child(BorderLine).End()
                 .Child<Label>()
                     .Child(_legend)
-                        .Child(Label).Config(label => {
-                            label.Align = Label.AlignEnum.Right;
-                            label.AddColorOverride("font_color", DefaultLabelColor);
-                        }).End()
-                        .Child(CurrentValue).Config(label => {
-                            label.Align = Label.AlignEnum.Left;
-                        }).End()
-                    .End();
+                        .Child(Label)
+                            .Config(label => {
+                                label.Align = Label.AlignEnum.Right;
+                                label.AddColorOverride("font_color", DefaultLabelColor);
+                            })
+                        .End()
+                        .Child(CurrentValue)
+                            .Config(label => {
+                                label.Align = Label.AlignEnum.Left;
+                            }).End()
+                        .End();
         }
 
         public override void Process(float delta) {

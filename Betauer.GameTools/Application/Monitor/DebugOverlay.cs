@@ -121,30 +121,36 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            this.Child(VBoxContainer)
-                    .Child(TopBar).Config(control => {
+            this.NodeBuilder()
+                .Child(VBoxContainer)
+                    .Child(TopBar)
+                        .Config(control => {
                             control.RectMinSize = new Vector2(100, 10);
                         })
-                        .Child(TopBarColor).Config(rect => {
+                        .Child(TopBarColor)
+                            .Config(rect => {
                                 rect.Color = Colors.White;
                                 rect.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
-                        }).End()
-                        .Child(TitleLabel).Config(label => {
-                            label.AddColorOverride("font_color", Colors.White);
-                            label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
-                        }).End()
-                    .End()
-                    .Child<HBoxContainer>()
-                        .Config(buttonBar => {
-                            buttonBar.GrowHorizontal = GrowDirection.Begin;
-                            buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
-                            buttonBar.RectMinSize = Vector2.Zero;
-                        })
-                        .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); }).End()
-                        .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; }).End()
-                        .Button("*", () => _manager.All()).End()
-                        .Button("s", () => _manager.Solo(Id)).End()
-                        .Button("x", () => _manager.Mute(Id)).End()
+                            })
+                        .End()
+                        .Child(TitleLabel)
+                            .Config(label => {
+                                label.AddColorOverride("font_color", Colors.White);
+                                label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
+                            })
+                        .End()
+                        .Child<HBoxContainer>()
+                            .Config(buttonBar => {
+                                buttonBar.GrowHorizontal = GrowDirection.Begin;
+                                buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
+                                buttonBar.RectMinSize = Vector2.Zero;
+                            })
+                            .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); }).End()
+                            .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; }).End()
+                            .Button("*", () => _manager.All()).End()
+                            .Button("s", () => _manager.Solo(Id)).End()
+                            .Button("x", () => _manager.Mute(Id)).End()
+                        .End()
                     .End()
                 .End();
             MouseFilter = MouseFilterEnum.Pass;
