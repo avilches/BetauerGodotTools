@@ -81,11 +81,6 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public DebugOverlay Add(Control control) {
-            VBoxContainer.AddChild(control);
-            return this;
-        }
-
         public DebugOverlay OpenBox(Action<HBoxContainer>? config = null) {
             return OpenBox<HBoxContainer>(config);
         }
@@ -102,11 +97,15 @@ namespace Betauer.Application.Monitor {
             _nestedContainer = null;
             return this;
         }
-        
+
+        public DebugOverlay Add(Node control) {
+            (_nestedContainer ?? VBoxContainer).AddChild(control);
+            return this;
+        }
+
         public DebugOverlay Add(BaseMonitor monitor) {
             monitor.DebugOverlayOwner = this;
-            (_nestedContainer ?? VBoxContainer).AddChild(monitor);
-            return this;
+            return Add((Node)monitor);
         }
 
         public DebugOverlay Enable(bool enabled = true) {
@@ -123,31 +122,31 @@ namespace Betauer.Application.Monitor {
 
         public override void _Ready() {
             this.Child(VBoxContainer)
-                    .Child(TopBar,control => {
-                                control.RectMinSize = new Vector2(100, 10);
-                            })
-                            .Child(TopBarColor, rect => {
+                    .Child(TopBar).Config(control => {
+                            control.RectMinSize = new Vector2(100, 10);
+                        })
+                        .Child(TopBarColor).Config(rect => {
                                 rect.Color = Colors.White;
                                 rect.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
-                            })
-                                .Child(TitleLabel, label => {
-                                    label.AddColorOverride("font_color", Colors.White);
-                                    label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
-                                }).End()
-                            .End()
-                            .Child(ButtonBar.Create()
-                                .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
-                                .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; })
-                                .Button("*", () => _manager.All())
-                                .Button("s", () => _manager.Solo(Id))
-                                .Button("x", () => _manager.Mute(Id))
-                                .Build(), (buttonBar) => {
-                                    buttonBar.GrowHorizontal = GrowDirection.Begin;
-                                    buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
-                                    buttonBar.RectMinSize = Vector2.Zero;
-                            }).End()
-                        .End()
-                    .End();    
+                        }).End()
+                        .Child(TitleLabel).Config(label => {
+                            label.AddColorOverride("font_color", Colors.White);
+                            label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
+                        }).End()
+                    .End()
+                    .Child<HBoxContainer>()
+                        .Config(buttonBar => {
+                            buttonBar.GrowHorizontal = GrowDirection.Begin;
+                            buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
+                            buttonBar.RectMinSize = Vector2.Zero;
+                        })
+                        .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); }).End()
+                        .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; }).End()
+                        .Button("*", () => _manager.All()).End()
+                        .Button("s", () => _manager.Solo(Id)).End()
+                        .Button("x", () => _manager.Mute(Id)).End()
+                    .End()
+                .End();
             MouseFilter = MouseFilterEnum.Pass;
             Modulate = Transparent;
             Disable();

@@ -219,11 +219,11 @@ namespace Betauer.Application.Monitor {
             _series.Add(serie);
             _lineChartHolder.AddChild(serie.ChartLine);
             _legend
-                .Child(serie.Label, label => {
+                .Child(serie.Label).Config(label => {
                     label.Align = Label.AlignEnum.Right;
                     label.AddColorOverride("font_color", DefaultLabelColor);
                 }).End()
-                .Child(serie.CurrentValue, label => {
+                .Child(serie.CurrentValue).Config(label => {
                     label.Align = Label.AlignEnum.Left;
                 }).End();
             _dirty = true;

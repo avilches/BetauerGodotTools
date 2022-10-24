@@ -85,11 +85,11 @@ namespace Betauer.Application.Monitor {
                 .Child(BorderLine).End()
                 .Child<Label>()
                     .Child(_legend)
-                        .Child(Label, label => {
+                        .Child(Label).Config(label => {
                             label.Align = Label.AlignEnum.Right;
                             label.AddColorOverride("font_color", DefaultLabelColor);
                         }).End()
-                        .Child(CurrentValue, label => {
+                        .Child(CurrentValue).Config(label => {
                             label.Align = Label.AlignEnum.Left;
                         }).End()
                     .End();
