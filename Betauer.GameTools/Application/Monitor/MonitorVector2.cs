@@ -96,7 +96,8 @@ namespace Betauer.Application.Monitor {
                             .Config(label => {
                                 label.Align = Label.AlignEnum.Left;
                             }).End()
-                        .End();
+                        .End()
+                    .End();
         }
 
         public override void Process(float delta) {

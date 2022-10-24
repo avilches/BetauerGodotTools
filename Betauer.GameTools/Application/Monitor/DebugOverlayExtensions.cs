@@ -117,16 +117,14 @@ namespace Betauer.Application.Monitor {
 
         public static void MonitorFpsAndMemory(this DebugOverlay overlay) {
             overlay.OpenBox()
-                .Text("FPS", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").SetMinWidth(50).EndMonitor()
+                .Text("FPS", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").EndMonitor()
                 .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).EndMonitor();
-                #if DEBUG
-                
-            overlay.Text("Dynamic", 
-                    () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}").EndMonitor()
-                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).EndMonitor()
+           
+            #if DEBUG
+            overlay.Text("Dynamic", () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}").SetMinWidth(60).EndMonitor()
+                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).SetMinWidth(60).EndMonitor()
                 .Text("Peak", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).EndMonitor();
-
-                #endif
+            #endif
             overlay.CloseBox();
         }
     }

@@ -50,14 +50,12 @@ namespace Betauer.UI {
         public Node Node => TypedNode;
 
         public TNodeBuilder Parent { get; protected set; }
-        public TNodeBuilder End() {
-            Parent.Node.AddChild(TypedNode);
-            return Parent;
-        }
+        public TNodeBuilder End() => Parent;
 
         internal NodeBuilder(TNodeBuilder parent, T typedNode, Action<Node>? config = null) {
             Parent = parent;
             TypedNode = typedNode;
+            Parent.Node.AddChild(TypedNode);
             config?.Invoke(TypedNode);
         }
 
