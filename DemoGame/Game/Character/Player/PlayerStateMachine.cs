@@ -45,7 +45,7 @@ namespace Veronenger.Game.Character.Player {
         [Inject] private InputAction Jump { get; set;}
         [Inject] private InputAction Attack { get; set;}
         [Inject] private InputAction Float { get; set;}
-        [Inject] public KinematicPlatformMotion PlatformBody { get; set; }
+        [Inject] public KinematicPlatformMotion Body { get; set; }
 
         private PlayerController _player;
 
@@ -58,8 +58,8 @@ namespace Veronenger.Game.Character.Player {
         private bool IsLeft => XInput < 0;
         private bool IsUp => YInput < 0;
         private bool IsDown => YInput > 0;
-        private float MotionX => PlatformBody.MotionX;
-        private float MotionY => PlatformBody.MotionY;
+        private float MotionX => Body.MotionX;
+        private float MotionY => Body.MotionY;
 
         // State sharad between states
         private bool _coyoteJumpEnabled = false;
@@ -74,11 +74,11 @@ namespace Veronenger.Game.Character.Player {
         public void Start(string name, PlayerController playerController, IFlipper flippers) {
             _player = playerController;
 
-            PlatformBody.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
-            PlatformBody.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
+            Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
             
-            AddOnExecuteStart((delta, _) => PlatformBody.StartFrame(delta));
-            AddOnExecuteEnd((_) => PlatformBody.EndFrame());
+            AddOnExecuteStart((delta, _) => Body.StartFrame(delta));
+            AddOnExecuteEnd((_) => Body.EndFrame());
             Bus.Subscribe(Enqueue);
             GroundStates();
             AirStates();
@@ -92,23 +92,16 @@ namespace Veronenger.Game.Character.Player {
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
                 .OpenBox()
-                    .Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed)
-                        .SetChartWidth(100)
-                    .EndMonitor()
-                    .Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed)
-                        .AddSeparator(0)
-                        .AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie()
-                    .EndMonitor()
+                    .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                    .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                        .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
                 .CloseBox()
-                .Graph("Floor", () => PlatformBody.IsOnFloor())
-                    .Keep(10)
-                    .SetChartHeight(10)
-                    .AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-                .EndMonitor()
+                .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
+                    .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
                 .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
-                .Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
-                .Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
-                .Text("Wall", () => PlatformBody.GetWallCollisionInfo());
+                .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
+                .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
+                .Text("Wall", () => Body.GetWallCollisionInfo());
         }
 
         public void GroundStates() {
@@ -138,25 +131,25 @@ namespace Veronenger.Game.Character.Player {
             State(PlayerState.Idle)
                 .Enter(() => {
                     _player.AnimationIdle.PlayLoop();
-                    if (PlatformBody.IsOnSlope()) {
+                    if (Body.IsOnSlope()) {
                         // Stop go down fast when the player lands in a slope
-                        PlatformBody.MotionX = 0;
+                        Body.MotionX = 0;
                     }
                 })
                 .Execute(context => {
                     CheckGroundAttack();
 
-                    if (!PlatformBody.IsOnFloor()) {
+                    if (!Body.IsOnFloor()) {
                         return context.Set(PlayerState.FallShort);
                     }
 
                     if (XInput != 0) {
                         return context.Set(PlayerState.Run);
                     }
-                    if (PlatformBody.IsOnWall()) {
-                        PlatformBody.MotionX = 0;
+                    if (Body.IsOnWall()) {
+                        Body.MotionX = 0;
                     } else {
-                        PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+                        Body.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     }
 
                     if (Jump.IsJustPressed()) {
@@ -167,8 +160,8 @@ namespace Veronenger.Game.Character.Player {
                         }
                     }
 
-                    PlatformBody.ApplyDefaultGravity();
-                    PlatformBody.MoveSnapping();
+                    Body.ApplyDefaultGravity();
+                    Body.MoveSnapping();
 
                     return context.None();
                 })
@@ -181,9 +174,9 @@ namespace Veronenger.Game.Character.Player {
                 .Execute(context => {
                     CheckGroundAttack();
 
-                    if (!PlatformBody.IsOnFloor()) {
+                    if (!Body.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
-                        if (PlatformBody.MotionY < 0) PlatformBody.MotionY = 0f;
+                        if (Body.MotionY < 0) Body.MotionY = 0f;
                         return context.Set(PlayerState.FallShort);
                     }
 
@@ -203,22 +196,22 @@ namespace Veronenger.Game.Character.Player {
                     EnableSlopeStairs();
 
                     if (_player.IsAttacking) {
-                        PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+                        Body.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
-                        PlatformBody.Flip(XInput);
-                        PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+                        Body.Flip(XInput);
+                        Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
-                        if (PlatformBody.IsOnSlope()) {
-                            PlatformBody.LimitMotionNormalized(PlayerConfig.MaxSpeed);
+                        if (Body.IsOnSlope()) {
+                            Body.LimitMotionNormalized(PlayerConfig.MaxSpeed);
                         }
                     }
-                    PlatformBody.ApplyDefaultGravity();
-                    var pendingInertia = PlatformBody.MoveSnapping();
-                    if (PlatformBody.IsOnSlope()) {
+                    Body.ApplyDefaultGravity();
+                    var pendingInertia = Body.MoveSnapping();
+                    if (Body.IsOnSlope()) {
                         // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
                         // and go up too slow
                         // And never use the pendingInertia.x when climbing a slope!!!
-                        PlatformBody.MotionY = pendingInertia.y;
+                        Body.MotionY = pendingInertia.y;
                     }
                     
 
@@ -237,12 +230,12 @@ namespace Veronenger.Game.Character.Player {
 
         }
 
-        private bool IsOnPlatform() => PlatformManager.IsPlatform(PlatformBody.GetFloor());
-        private bool IsOnFallingPlatform() => PlatformManager.IsFallingPlatform(PlatformBody.GetFloor());
-        private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(PlatformBody.GetFloor());
+        private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
+        private bool IsOnFallingPlatform() => PlatformManager.IsFallingPlatform(Body.GetFloor());
+        private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 
         private ExecuteContext<PlayerState, PlayerTransition>.Response CheckLanding(ExecuteContext<PlayerState, PlayerTransition> context) {
-            if (!PlatformBody.IsOnFloor()) return context.None(); // Still in the air! :)
+            if (!Body.IsOnFloor()) return context.None(); // Still in the air! :)
             // IsJustLanded() is true here
             
             PlatformManager.BodyStopFallFromPlatform(_player);
@@ -285,7 +278,7 @@ namespace Veronenger.Game.Character.Player {
 
             State(PlayerState.Jump)
                 .Enter(() => {
-                    PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
+                    Body.MotionY = -PlayerConfig.JumpSpeed;
                     DebugJump($"Jump start: decelerating to {(-PlayerConfig.JumpSpeed).ToString()}");
                     _player.AnimationJump.PlayLoop();
                 })
@@ -297,15 +290,15 @@ namespace Veronenger.Game.Character.Player {
 
                     if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
                         DebugJump($"Short jump: decelerating from {MotionY.ToString()} to {(-PlayerConfig.JumpSpeedMin).ToString()}");
-                        PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
+                        Body.MotionY = -PlayerConfig.JumpSpeedMin;
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    PlatformBody.Flip(XInput);
-                    PlatformBody.ApplyDefaultGravity();
+                    Body.Flip(XInput);
+                    Body.ApplyDefaultGravity();
                     // Keep the speed from the move so if the player collides, the player could slide or stop
-                    PlatformBody.Motion = PlatformBody.MoveSlide();
+                    Body.Motion = Body.MoveSlide();
 
                     if (MotionY >= 0) {
                         return context.Set(PlayerState.FallShort);
@@ -336,12 +329,12 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(PlayerState.FallLong);
                     }
 
-                    PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    PlatformBody.Flip(XInput);
-                    PlatformBody.ApplyDefaultGravity();
+                    Body.Flip(XInput);
+                    Body.ApplyDefaultGravity();
                     // Keep the speed from the move so if the player collides, the player could slide or stop
-                    PlatformBody.Motion = PlatformBody.MoveSlide();
+                    Body.Motion = Body.MoveSlide();
 
                     return CheckLanding(context);
                 })
@@ -365,12 +358,12 @@ namespace Veronenger.Game.Character.Player {
                             return context.Set(PlayerState.Jump);
                         }
 
-                        PlatformBody.Flip(XInput);
-                        PlatformBody.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+                        Body.Flip(XInput);
+                        Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                             PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                        PlatformBody.ApplyDefaultGravity();
+                        Body.ApplyDefaultGravity();
                         // Keep the speed from the move so if the player collides, the player could slide or stop
-                        PlatformBody.Motion = PlatformBody.MoveSlide();
+                        Body.Motion = Body.MoveSlide();
 
                         return CheckLanding(context);
                     }
@@ -384,9 +377,9 @@ namespace Veronenger.Game.Character.Player {
                     if (Float.IsJustPressed()) {
                         return context.Set(PlayerState.FallShort);
                     }
-                    PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
+                    Body.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    PlatformBody.MoveSlide();
+                    Body.MoveSlide();
                     return context.None();
                 }).Build();
 

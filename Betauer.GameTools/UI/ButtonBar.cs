@@ -11,7 +11,7 @@ namespace Betauer.UI {
             _theme = theme;
         }
 
-        public ButtonBar Add(string label, Action action) {
+        public ButtonBar Button(string label, Action action) {
             var b = new Button();
             b.Text = label;
             b.OnPressed(action);
@@ -24,7 +24,7 @@ namespace Betauer.UI {
             return this;
         }
 
-        public Control Build() {
+        public HBoxContainer Build() {
             _container.Theme = _theme;
             return _container;
         }

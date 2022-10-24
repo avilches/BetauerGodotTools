@@ -115,7 +115,7 @@ namespace Veronenger.Game.Controller.Character {
                 PlatformManager.BodyStopFallFromPlatform(this);
             });
 
-            var debugOverlay = DebugOverlayManager.Overlay(this).WithTheme(MainResourceLoader.MyTheme).Title("Player")
+            var debugOverlay = DebugOverlayManager.Follow(this).WithTheme(MainResourceLoader.MyTheme).Title("Player")
                 .StopFollowing();
             // debugOverlay.Text("Mouse", () => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
             // debugOverlay.Text("Animation", () => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
@@ -127,18 +127,18 @@ namespace Veronenger.Game.Controller.Character {
                 _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
 
             debugOverlay.Add(ButtonBar.Create()
-                .Add("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
-                .Add("DangerTween.Stop", () => DangerTween.Stop())
+                .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
+                .Button("DangerTween.Stop", () => DangerTween.Stop())
                 .Build()
             );
             debugOverlay.Add(ButtonBar.Create()
-                .Add("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce())
-                .Add("PulsateTween.Stop", () => PulsateTween.Stop())
+                .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce())
+                .Button("PulsateTween.Stop", () => PulsateTween.Stop())
                 .Build()
             );
             debugOverlay.Add(ButtonBar.Create()
-                .Add("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true))
-                .Add("SqueezeTween.Stop", () => SqueezeTween.Stop())
+                .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true))
+                .Button("SqueezeTween.Stop", () => SqueezeTween.Stop())
                 .Build()
             );
         }

@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Betauer.Input;
 using Betauer.Signal;
+using Betauer.UI;
 using Godot;
 using Color = Godot.Color;
 using Object = Godot.Object;
@@ -16,8 +15,15 @@ namespace Betauer.Application.Monitor {
         private Vector2 _offset;
 
         public readonly int Id;
-        public readonly Label TitleLabel;
-        public readonly VBoxContainer Container;
+        public readonly Label TitleLabel = new() {
+            Name = "Title"
+        };
+        public readonly VBoxContainer VBoxContainer = new () {
+            Name = "MonitorList"
+        };
+
+        public readonly Control TopBar = new();
+        public readonly ColorRect TopBarColor = new();
         public Color Transparent = new(1, 1, 1, 0.490196f);
         public Color Solid = new(1, 1, 1);
         public Object? Target { get; private set; }
@@ -27,20 +33,10 @@ namespace Betauer.Application.Monitor {
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
-            _mouseInsidePanel = new Mouse.InsideControl(this);
+            _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
             _offset = new Vector2(id * 64, id * 64);
-
-            Id = id; 
             Name = $"DebugOverlay-{id}";
-            MouseFilter = MouseFilterEnum.Pass;
-            Modulate = new Color(1, 1, 1, 0.490196f);
-            Container = new VBoxContainer();
-            TitleLabel = new Label();
-            TitleLabel.AddColorOverride("font_color", Colors.White);
-            TitleLabel.Name = "Title";
-            Container.AddChild(TitleLabel);
-
-            AddChild(Container);
+            Id = id; 
         }
 
         public DebugOverlay WithTheme(Theme theme) {
@@ -50,7 +46,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TitleLabel.Visible = !string.IsNullOrWhiteSpace(title);
+            TopBar.RectMinSize = new Vector2(100, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
             return this;                               
         }
 
@@ -75,15 +71,18 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public DebugOverlay Follow(Node2D followNode) {
-            IsFollowing = true;
-            Target = followNode;
-            _offset = Vector2.Zero;
+        public DebugOverlay Follow(Node2D? followNode = null) {
+            followNode ??= Target as Node2D;
+            if (followNode != null) {
+                IsFollowing = true;
+                Target = followNode;
+                _offset = Vector2.Zero;
+            }
             return this;
         }
 
         public DebugOverlay Add(Control control) {
-            Container.AddChild(control);
+            VBoxContainer.AddChild(control);
             return this;
         }
 
@@ -91,10 +90,10 @@ namespace Betauer.Application.Monitor {
             return OpenBox<HBoxContainer>(config);
         }
 
-        public DebugOverlay OpenBox<T>(Action<T>? config = null) where T : Container{
+        public DebugOverlay OpenBox<T>(Action<T>? config = null) where T : Container {
             var nestedContainer = Activator.CreateInstance<T>();
             _nestedContainer = nestedContainer;
-            Container.AddChild(_nestedContainer);
+            VBoxContainer.AddChild(_nestedContainer);
             config?.Invoke(nestedContainer);
             return this;
         }
@@ -106,7 +105,7 @@ namespace Betauer.Application.Monitor {
         
         public DebugOverlay Add(BaseMonitor monitor) {
             monitor.DebugOverlayOwner = this;
-            (_nestedContainer ?? Container).AddChild(monitor);
+            (_nestedContainer ?? VBoxContainer).AddChild(monitor);
             return this;
         }
 
@@ -123,16 +122,40 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            PauseMode = PauseModeEnum.Process;
+            this.Child(VBoxContainer)
+                    .Child(TopBar,control => {
+                                control.RectMinSize = new Vector2(100, 10);
+                            })
+                            .Child(TopBarColor, rect => {
+                                rect.Color = Colors.White;
+                                rect.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
+                            })
+                                .Child(TitleLabel, label => {
+                                    label.AddColorOverride("font_color", Colors.White);
+                                    label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
+                                }).End()
+                            .End()
+                            .Child(ButtonBar.Create()
+                                .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
+                                .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; })
+                                .Button("*", () => _manager.All())
+                                .Button("s", () => _manager.Solo(Id))
+                                .Button("x", () => _manager.Mute(Id))
+                                .Build(), (buttonBar) => {
+                                    buttonBar.GrowHorizontal = GrowDirection.Begin;
+                                    buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
+                                    buttonBar.RectMinSize = Vector2.Zero;
+                            }).End()
+                        .End()
+                    .End();    
+            MouseFilter = MouseFilterEnum.Pass;
+            Modulate = Transparent;
             Disable();
         }
 
         public override void _Input(InputEvent @event) {
-            if (_mouseInsidePanel.Inside && @event.IsMouse()) {
-                if (@event.IsDoubleClick(ButtonList.Left)) {
-                    Modulate = Modulate.a <= 0.9f ? Solid : Transparent;
-
-                } else if (@event.IsLeftClick()) {
+            if (@event.IsMouse() && _mouseInsidePanel.Inside) {
+                if (@event.IsLeftClick()) {
                     if (@event.IsJustPressed()) {
                         _startDragPosition = _offset - GetGlobalMousePosition();
                         Raise();

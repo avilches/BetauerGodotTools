@@ -207,3 +207,9 @@ __meta__ = {
 "_edit_lock_": true
 }
 
+[node name="ZombieNode" parent="." instance=ExtResource( 6 )]
+position = Vector2( 72.4047, 141.997 )
+
+[node name="ZombieNode2" parent="." instance=ExtResource( 6 )]
+position = Vector2( 118.331, 141.06 )
+

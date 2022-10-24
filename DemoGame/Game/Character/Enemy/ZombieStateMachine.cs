@@ -1,4 +1,5 @@
 using Betauer;
+using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.StateMachine;
@@ -41,6 +42,7 @@ namespace Veronenger.Game.Character.Enemy {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
         }
 
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private MainStateMachine MainStateMachine { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
         [Inject] public KinematicPlatformMotion Body { get; set; }
@@ -63,6 +65,22 @@ namespace Veronenger.Game.Character.Enemy {
 
             AddOnExecuteStart((delta, state) => Body.StartFrame(delta));
             AddOnExecuteEnd((state) => Body.EndFrame());
+
+            var debugOverlay = DebugOverlayManager.Follow(zombie);
+
+            debugOverlay
+                .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+                .OpenBox()
+                    .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                    .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                        .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                .CloseBox()
+                .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
+                    .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
+                .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
+                .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
+                .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
+                .Text("Wall", () => Body.GetWallCollisionInfo());
 
             State(ZombieState.Idle)
                 .Enter(() => {

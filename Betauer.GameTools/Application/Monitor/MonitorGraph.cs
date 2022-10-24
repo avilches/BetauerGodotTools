@@ -218,27 +218,30 @@ namespace Betauer.Application.Monitor {
             serie.SetLabel(label);
             _series.Add(serie);
             _lineChartHolder.AddChild(serie.ChartLine);
-            _legend.Scene()
-                .AddChild(serie.Label, label => {
+            _legend
+                .Child(serie.Label, label => {
                     label.Align = Label.AlignEnum.Right;
                     label.AddColorOverride("font_color", DefaultLabelColor);
-                })
-                .AddChild(serie.CurrentValue, label => {
+                }).End()
+                .Child(serie.CurrentValue, label => {
                     label.Align = Label.AlignEnum.Left;
-                });
+                }).End();
             _dirty = true;
             return serie;
         }
 
         public override void _Ready() {
-            this.Scene()
-                .AddChild(_chartSpacer)
-                .AddChild(_timeSeparatorsHolder)
-                .AddChild(_separatorsHolder)
-                .AddChild(_lineChartHolder)
-                .AddChild(BorderLine)
+            this.Child(_chartSpacer).End()
+                .Child(_timeSeparatorsHolder).End()
+                .Child(_separatorsHolder).End()
+                .Child(_lineChartHolder).End()
+                .Child(BorderLine).End()
                 .Child<Label>()
-                    .AddChild(_legend);
+                    .Child(_legend).End()
+                .End();
+
+            _legend.GrowHorizontal = GrowDirection.Begin;
+            _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
             _dirty = true;
         }
 
@@ -270,8 +273,6 @@ namespace Betauer.Application.Monitor {
             
             _chartSpacer.RectMinSize = new Vector2(ChartWidth, ChartHeight);
 
-            _legend.GrowHorizontal = GrowDirection.Begin;
-            _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
         }
 
         private void ConfigureValueSeparators() {

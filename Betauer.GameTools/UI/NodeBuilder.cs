@@ -3,31 +3,28 @@ using Godot;
 
 namespace Betauer.UI {
     public static class NodeBuilderExtensions {
-        public static NodeBuilder Scene<T>(this T node, Action<T>? config = null) where T : Node {
-            return new NodeBuilder(null, node, config != null ? (node) => config((T)node) : null);
+
+        public static NodeBuilder Child<T>(this Node parent, Action<T>? config = null) where T : Node {
+            var child = Activator.CreateInstance<T>();
+            return Child(parent, child, config);
+        }
+
+        public static NodeBuilder Child<T>(this Node parent, T child, Action<T>? config = null) where T : Node {
+            var nodeBuilderParent = new NodeBuilder(null, parent);
+            return new NodeBuilder(nodeBuilderParent, child, config != null ? (node) => config((T)node) : null);
         }
     }
 
     public class NodeBuilder {
         public NodeBuilder Parent { get; }
         public Node Node { get; }
+        public NodeBuilder End() => Parent;
 
         internal NodeBuilder(NodeBuilder? parent, Node node, Action<Node>? config = null) {
             Parent = parent;
             Node = node;
-            parent?.AddChild(Node);
+            parent?.Node.AddChild(Node);
             config?.Invoke(Node);
-        }
-
-        public NodeBuilder AddChild<T>(Action<T>? config = null) where T : Node {
-            var child = Activator.CreateInstance<T>();
-            return AddChild(child, config);
-        }
-
-        public NodeBuilder AddChild<T>(T child, Action<T>? config = null) where T : Node {
-            Node.AddChild(child);
-            config?.Invoke(child);
-            return this;
         }
 
         public NodeBuilder Child<T>(Action<T>? config = null) where T : Node {

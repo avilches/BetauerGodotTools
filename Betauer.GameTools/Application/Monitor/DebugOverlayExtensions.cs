@@ -115,14 +115,19 @@ namespace Betauer.Application.Monitor {
 
         }
 
-        public static MonitorText MonitorFpsAndMemory(this DebugOverlay overlay) {
-            return overlay.Text(() => {
-                var txt = $"FPS {((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()} | TimeScale {Engine.TimeScale:0.00}";
+        public static void MonitorFpsAndMemory(this DebugOverlay overlay) {
+            overlay.OpenBox()
+                .Text("FPS", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").SetMinWidth(50).EndMonitor()
+                .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).EndMonitor();
                 #if DEBUG
-                    txt += $" | Static Mem: {((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()} / {((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()} | Dynamic Mem: {((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}";
+                
+            overlay.Text("Dynamic", 
+                    () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}").EndMonitor()
+                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).EndMonitor()
+                .Text("Peak", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).EndMonitor();
+
                 #endif
-                return txt;
-            });
+            overlay.CloseBox();
         }
     }
 }

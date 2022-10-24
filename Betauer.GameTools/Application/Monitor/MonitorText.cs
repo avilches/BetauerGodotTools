@@ -1,4 +1,5 @@
 using System;
+using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
@@ -9,7 +10,9 @@ namespace Betauer.Application.Monitor {
         private readonly HBoxContainer _container = new();
         private Func<string>? _showValue;
 
-        public readonly Label Label = new();
+        public readonly Label Label = new() {
+            Visible = false
+        };
         public readonly Label Content = new();
 
         public MonitorText SetLabel(string? label) {
@@ -20,6 +23,11 @@ namespace Betauer.Application.Monitor {
 
         public MonitorText Show(Func<string> action) {
             _showValue = action;
+            return this;
+        }
+
+        public MonitorText SetMinWidth(int minWidth) {
+            Content.RectMinSize = new Vector2(minWidth, Content.RectMinSize.y);
             return this;
         }
 
@@ -44,12 +52,11 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            Label.Visible = false;
             Label.AddColorOverride("font_color", DefaultLabelColor);
-
-            _container.AddChild(Label);
-            _container.AddChild(Content);
-            AddChild(_container);
+            this.Child(_container)
+                    .Child(Label).End()
+                    .Child(Content).End()
+                .End();
         }
 
         public string GetText() {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Betauer.DI;
 using Betauer.Input;
@@ -12,9 +13,12 @@ namespace Betauer.Application.Monitor {
         private int _count = 0;
         private int _current = -1;
 
+        private HashSet<int> _actives = new();
+
         public override void _Ready() {
             Layer = 1000000;
             PauseMode = PauseModeEnum.Process;
+            Visible = false;
         }
 
         public DebugOverlay Overlay(Object target) {
@@ -31,6 +35,7 @@ namespace Betauer.Application.Monitor {
         public DebugOverlay CreateOverlay() {
             var overlay = new DebugOverlay(this, _count++);
             AddChild(overlay);
+            _actives.Add(overlay.Id);
             return overlay;
         }
 
@@ -39,16 +44,43 @@ namespace Betauer.Application.Monitor {
 
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {
-                if (@event.HasShift()) {
-                    var children = GetChildren().OfType<DebugOverlay>().ToList();
-                    _current = (_current + 1) % children.Count;
-                    children.ForEach(overlay => overlay.Enable(overlay.Id == _current));
-                } else {
-                    var children = GetChildren().OfType<DebugOverlay>().ToList();
-                    var enabled = !children[0].Visible;
-                    children.ForEach(overlay => overlay.Enable(enabled));
-                }
+                if (Visible) Disable(); else Enable();
             }
+        }
+
+        public DebugOverlayManager Enable(bool enable = true) {
+            if (enable) {
+                Visible = true;
+                GetChildren().OfType<DebugOverlay>()
+                    .ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
+            } else {
+                Visible = false;
+                _actives = GetChildren().OfType<DebugOverlay>()
+                    .Where(overlay => overlay.Visible)
+                    .Select(overlay => overlay.Id)
+                    .ToHashSet();
+                GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Disable());
+            }
+            return this;
+        }
+
+        public DebugOverlayManager Disable() {
+            return Enable(false);
+        }
+
+        public void All() {
+            GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable());
+        }
+
+        public void Solo(int id) {
+            GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable(overlay.Id == id));
+        }
+
+        public DebugOverlay Find(int id) => 
+            GetChildren().OfType<DebugOverlay>().First(overlay => overlay.Id == id);
+
+        public void Mute(int id) {
+            if (VisibleCount > 1) Find(id).Disable(); else Disable();
         }
     }
 }
