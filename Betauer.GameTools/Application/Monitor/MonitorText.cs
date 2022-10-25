@@ -4,16 +4,19 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public class MonitorText : BaseMonitor<MonitorText> {
-
-        
-        private string _text = string.Empty;
-        private readonly HBoxContainer _container = new();
+        private float _timeElapsed = 0;
+        private float _time = 0;
         private Func<string>? _showValue;
+        public readonly HBoxContainer HBoxContainer = new();
 
         public readonly Label Label = new() {
+            Name = "Label",
             Visible = false
         };
-        public readonly Label Content = new();
+
+        public readonly Label Content = new() {
+            Name = "Content"
+        };
 
         public MonitorText SetLabel(string? label) {
             Label.Text = label;
@@ -28,6 +31,11 @@ namespace Betauer.Application.Monitor {
 
         public MonitorText SetMinWidth(int minWidth) {
             Content.RectMinSize = new Vector2(minWidth, Content.RectMinSize.y);
+            return this;
+        }
+
+        public MonitorText UpdateEvery(float time) {
+            _time = Math.Max(time, 0);
             return this;
         }
 
@@ -47,29 +55,27 @@ namespace Betauer.Application.Monitor {
         }
 
         public MonitorText Show(string? text) {
-            _text = text ?? string.Empty;
+            Content.Text = text ?? string.Empty;
             return this;
         }
 
         public override void _Ready() {
             Label.AddColorOverride("font_color", DefaultLabelColor);
             this.NodeBuilder()
-                .Child(_container)
+                .Child(HBoxContainer)
                     .Child(Label).End()
                     .Child(Content).End()
                 .End();
         }
 
-        public string GetText() {
-            try {
-                return _showValue != null ? _showValue.Invoke() : _text;
-            } catch (Exception e) {
-                return e.Message;
-            }
-        }
-
         public override void Process(float delta) {
-            Content.Text = GetText();
+            if (_showValue != null) {
+                _timeElapsed += delta;
+                if (_timeElapsed >= _time) {
+                    Content.Text = _showValue.Invoke();
+                    _timeElapsed -= _time;
+                }
+            }
         }
     }
 }

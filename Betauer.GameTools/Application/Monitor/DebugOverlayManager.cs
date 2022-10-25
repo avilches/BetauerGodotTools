@@ -93,7 +93,9 @@ namespace Betauer.Application.Monitor {
             GetChildren().OfType<DebugOverlay>().First(overlay => overlay.Id == id);
 
         public void Mute(int id) {
-            if (VisibleCount > 1) Find(id).Disable(); else Disable();
+            var visibleWithButtons = GetChildren().OfType<DebugOverlay>()
+                .Count(debugOverlay => debugOverlay.Visible && debugOverlay.TopBar.Visible);
+            if (visibleWithButtons > 1) Find(id).Disable(); else Disable();
         }
     }
 }

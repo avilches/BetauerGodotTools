@@ -102,30 +102,29 @@ namespace Betauer.Application.Monitor {
         }
 
 
-        public static MonitorText MonitorInternals(this DebugOverlay overlay) {
-            return overlay.Text(() => {
-                    var watcherSize = DefaultObjectWatcherTask.Instance.Size.ToString();
-                    var watcherPeakSize = DefaultObjectWatcherTask.Instance.PeakSize.ToString();
-                    var tweenCallbacks = DefaultTweenCallbackManager.Instance.ActionsByTween.Count.ToString();
-                    var objectsWithSignals = DefaultSignalManager.Instance.SignalsByObject.Count.ToString();
-                    var signals = DefaultSignalManager.Instance.SignalsByObject.Values.SelectMany(o => o.Signals)
-                        .Count().ToString();
-                    return $"Watching(peak): {watcherSize}({watcherPeakSize}) | Tweens: {tweenCallbacks} | Objects/Signals {objectsWithSignals}/{signals}";
-                });
+        public static DebugOverlay AddMonitorInternals(this DebugOverlay overlay) {
+            overlay.OpenBox()
+                .Text("Watching(peak)", () => $"{DefaultObjectWatcherTask.Instance.Size}({DefaultObjectWatcherTask.Instance.PeakSize})").UpdateEvery(1f).EndMonitor()
+                .Text("Tweens(peak)", () => $"{DefaultTweenCallbackManager.Instance.Size.ToString()}({DefaultTweenCallbackManager.Instance.PeakSize.ToString()})").UpdateEvery(1f).EndMonitor()
+                .Text("Signals(objects)", () => $"{DefaultSignalManager.Instance.Size.ToString()}({DefaultSignalManager.Instance.ObjectsSize.ToString()})").UpdateEvery(1f).EndMonitor()
+                .CloseBox();
+            return overlay;
 
         }
 
-        public static void MonitorFpsAndMemory(this DebugOverlay overlay) {
+        public static DebugOverlay AddMonitorFpsAndMemory(this DebugOverlay overlay) {
             overlay.OpenBox()
-                .Text("FPS", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").EndMonitor()
-                .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).EndMonitor();
+                .Text("FPS", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").UpdateEvery(1f).EndMonitor()
+                .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).UpdateEvery(1f).EndMonitor();
            
             #if DEBUG
-            overlay.Text("Dynamic", () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}").SetMinWidth(60).EndMonitor()
-                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).SetMinWidth(60).EndMonitor()
-                .Text("Peak", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).EndMonitor();
+            overlay
+                .Text("Dynamic", () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()}").UpdateEvery(1f).SetMinWidth(60).EndMonitor()
+                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).SetMinWidth(60).EndMonitor()
+                .Text("Peak", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor();
             #endif
             overlay.CloseBox();
+            return overlay;
         }
     }
 }

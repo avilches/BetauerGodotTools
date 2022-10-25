@@ -257,14 +257,14 @@ namespace Veronenger.Game.Managers {
         private DebugOverlay CreateSignalManagerDebugOverlay() {
             var debugOverlay = DebugOverlayManager.CreateOverlay().Solid().Title("SignalManager");
             debugOverlay.Theme = MyTheme;
-            debugOverlay.Text(DefaultSignalManager.Instance.GetStateAsString);
+            debugOverlay.Text(DefaultSignalManager.Instance.GetStateAsString).UpdateEvery(1f);
             return debugOverlay;
         }
 
         private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
             var debugOverlay = DebugOverlayManager.CreateOverlay().Solid().Title("NodeHandler Node");
             debugOverlay.Theme = MyTheme;
-            debugOverlay.Text(DefaultNodeHandler.Instance.GetStateAsString);
+            debugOverlay.Text(DefaultNodeHandler.Instance.GetStateAsString).UpdateEvery(1f);
             return debugOverlay;
         }
 

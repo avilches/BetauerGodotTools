@@ -129,11 +129,9 @@ namespace Betauer.Application.Monitor {
             return this;
         }
         
-        private void UpdateFollowButtonState() {
-            if (FollowButton != null) {
-                FollowButton.Visible = CanFollow;
-                FollowButton.Pressed = IsFollowing;
-            }
+        public DebugOverlay RemoveButtons() {
+            TopBar.Visible = false;
+            return this;
         }
 
         public DebugOverlay OpenBox(Action<HBoxContainer>? config = null) {
@@ -290,6 +288,13 @@ namespace Betauer.Application.Monitor {
                 }
                 // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
                 RectSize = Vector2.Zero;
+            }
+        }
+        
+        private void UpdateFollowButtonState() {
+            if (FollowButton != null) {
+                FollowButton.Visible = CanFollow;
+                FollowButton.Pressed = IsFollowing;
             }
         }
     }

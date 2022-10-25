@@ -22,6 +22,9 @@ namespace Betauer.Animation.Tween {
     /// </summary>
     public class TweenCallbackManager : Object {
 
+        public int Size => ActionsByTween.Count;
+        public int PeakSize { get; private set; }
+
         public readonly Dictionary<int, List<Action<object>>> ActionsByTween = new();
 
         public int GetCallbackCount(SceneTreeTween sceneTreeTween) {
@@ -43,14 +46,13 @@ namespace Betauer.Animation.Tween {
         private Array AddAction(SceneTreeTween sceneTreeTween, Action<object> action) {
             var sceneTreeTweenHash = sceneTreeTween.GetHashCode();
             var actionHash = action.GetHashCode();
-            lock (ActionsByTween) {
-                if (!ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actionList)) {
-                    actionList = ActionsByTween[sceneTreeTweenHash] = new List<Action<object>>();
-                    Watcher.IfInvalidInstance(sceneTreeTween)
-                        .Do(() => ActionsByTween.Remove(sceneTreeTweenHash), "Remove all callbacks");
-                }
-                actionList.Add(action);
+            if (!ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actionList)) {
+                actionList = ActionsByTween[sceneTreeTweenHash] = new List<Action<object>>();
+                PeakSize = Math.Max(PeakSize, Size);
+                Watcher.IfInvalidInstance(sceneTreeTween)
+                    .Do(() => ActionsByTween.Remove(sceneTreeTweenHash), "Remove all callbacks");
             }
+            actionList.Add(action);
             return new Array { sceneTreeTweenHash, actionHash };
         }
 

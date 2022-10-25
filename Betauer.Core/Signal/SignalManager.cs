@@ -16,8 +16,8 @@ namespace Betauer.Signal {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SignalManager));
 
         public readonly Dictionary<int, ObjectSignals> SignalsByObject = new();
-        public int SignalsCount => SignalsByObject.Select(o => o.Value.Count).Sum();
-        public int ObjectsCount => SignalsByObject.Count;
+        public int Size => SignalsByObject.Select(o => o.Value.Count).Sum();
+        public int ObjectsSize => SignalsByObject.Count;
 
         public class ObjectSignals {
             public readonly Object Emitter;

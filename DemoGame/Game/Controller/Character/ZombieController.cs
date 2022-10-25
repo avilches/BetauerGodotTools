@@ -77,10 +77,11 @@ namespace Veronenger.Game.Controller.Character {
 
             DebugOverlayManager.CreateOverlay()
                 .Follow(this)
-                .Title("Zombie")
+                .RemoveButtons()
+                .Offset(new Vector2(0, -100))
                 .WithTheme(MainResourceLoader.MyTheme)
                 .Text("State", () => StateMachine.CurrentState.Key.ToString()).EndMonitor()
-                .Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}").EndMonitor()
+                // .Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}").EndMonitor()
                 .Text("Speed",() => StateMachine.Body.Motion.ToString("F")).EndMonitor();
         }
 
