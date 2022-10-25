@@ -12,7 +12,7 @@ namespace Betauer.Application.Monitor {
         private Vector2? _startDragPosition = null;
         private readonly DebugOverlayManager _manager;
         private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
-        private Vector2 _offset;
+        private Vector2 _position;
 
         public readonly int Id;
         public readonly Label TitleLabel = new() {
@@ -34,7 +34,7 @@ namespace Betauer.Application.Monitor {
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
             _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
-            _offset = new Vector2(id * 64, id * 64);
+            _position = new Vector2(id * 64, id * 64);
             Name = $"DebugOverlay-{id}";
             Id = id; 
         }
@@ -62,12 +62,12 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay StopFollowing() {
             IsFollowing = false;
-            _offset = RectPosition;
+            _position = RectPosition;
             return this;
         }
 
         public DebugOverlay Offset(Vector2 offset) {
-            _offset = offset;
+            _position += offset;
             return this;
         }
 
@@ -76,7 +76,7 @@ namespace Betauer.Application.Monitor {
             if (followNode != null) {
                 IsFollowing = true;
                 Target = followNode;
-                _offset = Vector2.Zero;
+                _position = Vector2.Zero;
             }
             return this;
         }
@@ -162,7 +162,7 @@ namespace Betauer.Application.Monitor {
             if (@event.IsMouse() && _mouseInsidePanel.Inside) {
                 if (@event.IsLeftClick()) {
                     if (@event.IsJustPressed()) {
-                        _startDragPosition = _offset - GetGlobalMousePosition();
+                        _startDragPosition = _position - GetGlobalMousePosition();
                         Raise();
                     } else {
                         _startDragPosition = null;
@@ -176,7 +176,7 @@ namespace Betauer.Application.Monitor {
                     newPosition = new Vector2(
                         Mathf.Clamp(newPosition.x, -origin.x, -origin.x + GetTree().Root.Size.x - RectSize.x),
                         Mathf.Clamp(newPosition.y, -origin.y, -origin.y + GetTree().Root.Size.y - RectSize.y));
-                    _offset = newPosition;
+                    _position = newPosition;
                 }
             }
         }
@@ -188,14 +188,14 @@ namespace Betauer.Application.Monitor {
                 Disable();
             } else {
                 if (IsFollowing) {
-                    var newPosition = FollowPosition + _offset;
+                    var newPosition = FollowPosition + _position;
                     // Ensure the overlay doesn't go out of the screen when following the node
                     newPosition = new Vector2(
                         Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - RectSize.x),
                         Mathf.Clamp(newPosition.y, 0, GetTree().Root.Size.y - RectSize.y));
                     SetPosition(newPosition);
                 } else {
-                    SetPosition(_offset);
+                    SetPosition(_position);
                 }
                 // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
                 RectSize = Vector2.Zero;
