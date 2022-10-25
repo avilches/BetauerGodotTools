@@ -46,7 +46,7 @@ namespace Betauer.UI {
     }
 
     public class NodeBuilder<TNodeBuilder, T> : INode where T : Node where TNodeBuilder : INode {
-        public Node TypedNode { get; protected set; }
+        public T TypedNode { get; protected set; }
         public Node Node => TypedNode;
 
         public TNodeBuilder Parent { get; protected set; }
@@ -76,6 +76,13 @@ namespace Betauer.UI {
     
         public NodeBuilder<NodeBuilder<TNodeBuilder, T>, Button> Button(string label, Action action) {
             var b = new Button();
+            b.Text = label;
+            b.OnPressed(action);
+            return Child(b);
+        }
+        
+        public NodeBuilder<NodeBuilder<TNodeBuilder, T>, TButton> Button<TButton>(string label, Action action) where TButton : Button {
+            var b = Activator.CreateInstance<TButton>();
             b.Text = label;
             b.OnPressed(action);
             return Child(b);
