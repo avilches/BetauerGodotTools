@@ -172,10 +172,13 @@ namespace Betauer.Application.Monitor {
                     var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
                     var origin = FollowPosition;
                     // TODO: GetTree().Root.Size doesn't work well with scaled viewport
+                    var screenSize = GetTree().Root.Size;
+                    var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
+                    var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
                     // Ensure the user can't drag and drop the overlay outside of the screen
                     newPosition = new Vector2(
-                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + GetTree().Root.Size.x - RectSize.x),
-                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + GetTree().Root.Size.y - RectSize.y));
+                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
+                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
                     _position = newPosition;
                 }
             }
@@ -190,9 +193,12 @@ namespace Betauer.Application.Monitor {
                 if (IsFollowing) {
                     var newPosition = FollowPosition + _position;
                     // Ensure the overlay doesn't go out of the screen when following the node
+                    var screenSize = GetTree().Root.Size;
+                    var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
+                    var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
                     newPosition = new Vector2(
-                        Mathf.Clamp(newPosition.x, 0, GetTree().Root.Size.x - RectSize.x),
-                        Mathf.Clamp(newPosition.y, 0, GetTree().Root.Size.y - RectSize.y));
+                        Mathf.Clamp(newPosition.x, 0, screenSize.x - limitX),
+                        Mathf.Clamp(newPosition.y, 0, screenSize.y - limitY));
                     SetPosition(newPosition);
                 } else {
                     SetPosition(_position);
