@@ -83,7 +83,7 @@ namespace Veronenger.Game.Character.Player {
             GroundStates();
             AirStates();
 
-            var debugOverlay = DebugOverlayManager.Follow(_player).StopFollowing();
+            var debugOverlay = DebugOverlayManager.Overlay(_player);
             // debugOverlay.Text("JumpHelperTimer", () => JumpHelperTimer.ToString());
             // _jumpHelperState = debugOverlay.Text("JumpHelperState");
             // debugOverlay.Text("FallingTimer", () => FallingTimer.ToString()).Disable();

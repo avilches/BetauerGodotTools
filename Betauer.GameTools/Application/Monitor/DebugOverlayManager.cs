@@ -14,6 +14,8 @@ namespace Betauer.Application.Monitor {
         private int _current = -1;
 
         private HashSet<int> _actives = new();
+        private HashSet<int> _preSolo = new();
+        private bool _isSolo = false;
 
         public override void _Ready() {
             Layer = 1000000;
@@ -69,11 +71,22 @@ namespace Betauer.Application.Monitor {
         }
 
         public void All() {
+            _isSolo = false;
             GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable());
         }
 
         public void Solo(int id) {
-            GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable(overlay.Id == id));
+            if (_isSolo) {
+                GetChildren().OfType<DebugOverlay>()
+                    .ForEach(overlay => overlay.Enable(_preSolo.Contains(overlay.Id)));
+            } else {
+                _preSolo = GetChildren().OfType<DebugOverlay>()
+                    .Where(overlay => overlay.Visible)
+                    .Select(overlay => overlay.Id)
+                    .ToHashSet();
+                GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable(overlay.Id == id));
+            }
+            _isSolo = !_isSolo;
         }
 
         public DebugOverlay Find(int id) => 

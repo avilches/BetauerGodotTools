@@ -115,32 +115,23 @@ namespace Veronenger.Game.Controller.Character {
                 PlatformManager.BodyStopFallFromPlatform(this);
             });
 
-            var debugOverlay = DebugOverlayManager.Follow(this).WithTheme(MainResourceLoader.MyTheme).Title("Player")
-                .StopFollowing();
-            // debugOverlay.Text("Mouse", () => Position.DistanceTo(GetLocalMousePosition())+" "+Position.AngleTo(GetLocalMousePosition()));
-            // debugOverlay.Text("Animation", () => "Idle " + AnimationIdle.Playing + ":"+_animationStack.GetPlayingLoop()?.Name +
-            // " Attack" + AnimationAttack.Playing + ": " + _animationStack.GetPlayingOnce()?.Name).SetLabel("Animation");
-            
-            debugOverlay.Text("AnimationStack",() =>
-                _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name);
-            debugOverlay.Text("TweenStack", () =>
-                _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
-
-            debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop()).End()
-                .Button("DangerTween.Stop", () => DangerTween.Stop()).End()
-                .Node
-            );
-            debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce()).End()
-                .Button("PulsateTween.Stop", () => PulsateTween.Stop()).End()
-                .Node
-            );
-            debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true)).End()
-                .Button("SqueezeTween.Stop", () => SqueezeTween.Stop()).End()
-                .Node
-            );
+            DebugOverlayManager.Overlay(this)
+                .WithTheme(MainResourceLoader.MyTheme)
+                .Title("Player")
+                .Text("AnimationStack",() => _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name).EndMonitor()
+                .Text("TweenStack", () => _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name).EndMonitor()
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop()).End()
+                    .Button("DangerTween.Stop", () => DangerTween.Stop()).End()
+                    .TypedNode)
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce()).End()
+                    .Button("PulsateTween.Stop", () => PulsateTween.Stop()).End()
+                    .TypedNode)
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true)).End()
+                    .Button("SqueezeTween.Stop", () => SqueezeTween.Stop()).End()
+                    .TypedNode);
         }
 
         private IAnimation CreateReset() {

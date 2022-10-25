@@ -8,11 +8,19 @@ using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlay : PopupPanel {
+        public enum VisibilityStateEnum {
+            Solid, Float, SolidTransparent, FloatTransparent
+        }
+        
+        private static readonly Color ColorTransparent = new(1, 1, 1, 0.490196f);
+        private static readonly Color ColorSolid = new(1, 1, 1);
+        private static readonly Color ColorInvisible = new(1, 1, 1, 0);
+        private readonly DebugOverlayManager _manager;
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
-        private readonly DebugOverlayManager _manager;
         private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
         private Vector2 _position;
+        private Container? _nestedContainer;
 
         public readonly int Id;
         public readonly Label TitleLabel = new() {
@@ -22,25 +30,63 @@ namespace Betauer.Application.Monitor {
             Name = "MonitorList"
         };
 
-        public readonly Control TopBar = new();
-        public readonly ColorRect TopBarColor = new();
-        public Color Transparent = new(1, 1, 1, 0.490196f);
-        public Color Solid = new(1, 1, 1);
+        public readonly Control TopBar = new() {
+            Name = "TopBar"
+        };
+
+        public readonly ColorRect TopBarColor = new() {
+            Name = "TopParColorRect"
+        };
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
+        public bool CanFollow => Target is Node2D;
         public Func<bool>? RemoveIfFunc { get; private set; }
-        private Container? _nestedContainer;
+        public Button? FollowButton { get; private set; }
+        public bool IsDragging => _startDragPosition.HasValue;
+
+        private VisibilityStateEnum _visibilityState = VisibilityStateEnum.Float;
+        public VisibilityStateEnum VisibilityState {
+            get => _visibilityState;
+            set {
+                _visibilityState = value;
+                if (_visibilityState == VisibilityStateEnum.Solid) {
+                    SelfModulate = ColorSolid;
+                    Modulate = ColorSolid;
+                } else if (_visibilityState == VisibilityStateEnum.SolidTransparent) {
+                    SelfModulate = ColorSolid;
+                    Modulate = ColorTransparent;
+                } else if (_visibilityState == VisibilityStateEnum.Float) {
+                    SelfModulate = ColorInvisible;
+                    Modulate = ColorSolid;
+                } else if (_visibilityState == VisibilityStateEnum.FloatTransparent) {
+                    SelfModulate = ColorInvisible;
+                    Modulate = ColorTransparent;
+                }
+            }
+        }
+
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
             _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
             _position = new Vector2(id * 64, id * 64);
             Name = $"DebugOverlay-{id}";
-            Id = id; 
+            Id = id;
+            VisibilityState = VisibilityStateEnum.Float;
         }
 
         public DebugOverlay WithTheme(Theme theme) {
             Theme = theme;
+            return this;
+        }
+
+        public DebugOverlay Solid() {
+            VisibilityState = VisibilityStateEnum.Solid;
+            return this;
+        }
+
+        public DebugOverlay Hint(string hint) {
+            HintTooltip = hint;
             return this;
         }
 
@@ -62,6 +108,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay StopFollowing() {
             IsFollowing = false;
+            UpdateFollowButtonState();
             _position = RectPosition;
             return this;
         }
@@ -74,11 +121,19 @@ namespace Betauer.Application.Monitor {
         public DebugOverlay Follow(Node2D? followNode = null) {
             followNode ??= Target as Node2D;
             if (followNode != null) {
-                IsFollowing = true;
                 Target = followNode;
+                IsFollowing = true;
                 _position = Vector2.Zero;
             }
+            UpdateFollowButtonState();
             return this;
+        }
+        
+        private void UpdateFollowButtonState() {
+            if (FollowButton != null) {
+                FollowButton.Visible = CanFollow;
+                FollowButton.Pressed = IsFollowing;
+            }
         }
 
         public DebugOverlay OpenBox(Action<HBoxContainer>? config = null) {
@@ -145,16 +200,45 @@ namespace Betauer.Application.Monitor {
                                 buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
                                 buttonBar.RectMinSize = Vector2.Zero;
                             })
-                            .Button("f", () => { if (IsFollowing) StopFollowing(); else Follow(); }).End()
-                            .Button("o", () => { Modulate = Modulate.a <= 0.9f ? Solid : Transparent; }).End()
-                            .Button("*", () => _manager.All()).End()
-                            .Button("s", () => _manager.Solo(Id)).End()
-                            .Button("x", () => _manager.Mute(Id)).End()
+                            .Button<CheckButton>("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
+                                .Config(button => {
+                                    button.FocusMode = FocusModeEnum.None;
+                                    button.HintTooltip = "Follow";
+                                    FollowButton = button;
+                                    UpdateFollowButtonState();
+                                })
+                            .End()
+                            .Button("o", () => {
+                                    var newState = ((int)_visibilityState + 1) % 4;
+                                    VisibilityState = (VisibilityStateEnum)newState;
+                                })
+                                .Config(button => {
+                                    button.FocusMode = FocusModeEnum.None;
+                                    button.HintTooltip = "Opacity";
+                                })
+                            .End()
+                            .Button("s", () => _manager.Solo(Id))
+                                .Config(button => {
+                                    button.FocusMode = FocusModeEnum.None;
+                                    button.HintTooltip = "Solo mode";
+                                })
+                            .End()
+                            .Button("*", () => _manager.All())
+                                .Config(button => {
+                                    button.FocusMode = FocusModeEnum.None;
+                                    button.HintTooltip = "Open all";
+                                })
+                            .End()
+                            .Button("x", () => _manager.Mute(Id))
+                                .Config(button => {
+                                    button.FocusMode = FocusModeEnum.None;
+                                    button.HintTooltip = "Close";
+                                })
+                            .End()
                         .End()
                     .End()
                 .End();
             MouseFilter = MouseFilterEnum.Pass;
-            Modulate = Transparent;
             Disable();
         }
 
@@ -162,13 +246,14 @@ namespace Betauer.Application.Monitor {
             if (@event.IsMouse() && _mouseInsidePanel.Inside) {
                 if (@event.IsLeftClick()) {
                     if (@event.IsJustPressed()) {
+                        StopFollowing();
                         _startDragPosition = _position - GetGlobalMousePosition();
                         Raise();
                     } else {
                         _startDragPosition = null;
                     }
 
-                } else if (_startDragPosition != null && @event.IsMouseMotion()) {
+                } else if (IsDragging && @event.IsMouseMotion()) {
                     var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
                     var origin = FollowPosition;
                     // TODO: GetTree().Root.Size doesn't work well with scaled viewport
