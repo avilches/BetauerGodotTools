@@ -16,6 +16,8 @@ namespace Betauer.Signal {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SignalManager));
 
         public readonly Dictionary<int, ObjectSignals> SignalsByObject = new();
+        public int SignalsCount => SignalsByObject.Select(o => o.Value.Count).Sum();
+        public int ObjectsCount => SignalsByObject.Count;
 
         public class ObjectSignals {
             public readonly Object Emitter;
@@ -28,59 +30,44 @@ namespace Betauer.Signal {
                     .Do(() => signalManager.DisconnectAll(emitter), "Disconnect all signals");
             }
 
-            public int Count {
-                get {
-                    lock (Signals) {
-                        return Signals.Count;
-                    }
-                }
-            }
+            public int Count => Signals.Count;
 
             public void Add(SignalHandler signalHandler) {
-                lock (Signals) Signals.Add(signalHandler);
+                Signals.Add(signalHandler);
             }
 
             public bool Contains(SignalHandler signalHandler) {
-                lock (Signals) {
-                    return Signals.Contains(signalHandler);
-                }
+                return Signals.Contains(signalHandler);
             }
 
             public int RemoveSignalAndGetSimilarAlive(SignalHandler signalHandler) {
                 var alive = 0;
-                lock (Signals) {
-                    Signals.RemoveAll(sh => {
-                        if (sh == signalHandler) return true; // the specific handler has been found, true = delete it
-                        if (sh.Signal == signalHandler.Signal) alive++; // a signal of the same type 
-                        return false; // ignore different type signals
-                    });
-                }
+                Signals.RemoveAll(sh => {
+                    if (sh == signalHandler) return true; // the specific handler has been found, true = delete it
+                    if (sh.Signal == signalHandler.Signal) alive++; // a signal of the same type 
+                    return false; // ignore different type signals
+                });
                 return alive;
             }
 
             public int ExecuteAllSignalsAndGetAlive<T>(string signal, Action<T> execute) {
                 var alive = 0;
-                lock (Signals) {
-                    Signals.RemoveAll(sh => {
-                        if (sh is T signalHandler && sh.Signal == signal) {
-                            execute(signalHandler);
-                            if (sh.OneShot) return true; // delete all OneShot signals
-                            alive++;
-                        }
-                        return false;
-                    });
-                }
+                Signals.RemoveAll(sh => {
+                    if (sh is T signalHandler && sh.Signal == signal) {
+                        execute(signalHandler);
+                        if (sh.OneShot) return true; // delete all OneShot signals
+                        alive++;
+                    }
+                    return false;
+                });
                 return alive;
             }
 
             public IEnumerable<IGrouping<string, SignalHandler>> GroupBySignalName() {
-                lock (Signals) {
-                    return Signals.GroupBy(sh => sh.Signal);
-
-                }
+                return Signals.GroupBy(sh => sh.Signal);
             }
         }
-        
+
         public int GetSignalCount(Object origin) =>
             TryGetObjectSignals(origin.GetHashCode(), out var objectSignals) ? objectSignals.Count : 0;
 
@@ -125,7 +112,7 @@ namespace Betauer.Signal {
         }
 
         private bool TryGetObjectSignals(int objectHash, out ObjectSignals objectSignals) {
-            lock (SignalsByObject) return SignalsByObject.TryGetValue(objectHash, out objectSignals);
+            return SignalsByObject.TryGetValue(objectHash, out objectSignals);
         }
 
         public SignalHandler Connect(SignalHandler signalHandler) {
@@ -140,7 +127,7 @@ namespace Betauer.Signal {
             var originHash = origin.GetHashCode();
             if (!TryGetObjectSignals(originHash, out var objectSignals)) {
                 objectSignals = new ObjectSignals(this, origin);
-                lock (SignalsByObject) SignalsByObject[originHash] = objectSignals;
+                SignalsByObject[originHash] = objectSignals;
             }
             if (!objectSignals.Contains(signalHandler)) objectSignals.Add(signalHandler);
         }
@@ -186,7 +173,7 @@ namespace Betauer.Signal {
                     objectSignals.Emitter.Disconnect(group.Key, this, GetMethod(group.First()));
                 });
             }
-            lock (SignalsByObject) SignalsByObject.Remove(origin.GetHashCode());
+            SignalsByObject.Remove(origin.GetHashCode());
         }
 
         private static string GetMethod(SignalHandler signalHandler) =>
