@@ -22,7 +22,7 @@ namespace Betauer.Animation.Tween {
     /// </summary>
     public class TweenCallbackManager : Object {
 
-        public readonly Dictionary<int, List<Action<object>>> ActionsByTween = new Dictionary<int, List<Action<object>>>();
+        public readonly Dictionary<int, List<Action<object>>> ActionsByTween = new();
 
         public int GetCallbackCount(SceneTreeTween sceneTreeTween) {
             return ActionsByTween.TryGetValue(sceneTreeTween.GetHashCode(), out var actionList) ? actionList.Count : 0;
