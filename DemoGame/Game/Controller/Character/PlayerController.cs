@@ -127,18 +127,18 @@ namespace Veronenger.Game.Controller.Character {
                 _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name);
 
             debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop())
-                .Button("DangerTween.Stop", () => DangerTween.Stop())
+                .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop()).End()
+                .Button("DangerTween.Stop", () => DangerTween.Stop()).End()
                 .Node
             );
             debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce())
-                .Button("PulsateTween.Stop", () => PulsateTween.Stop())
+                .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce()).End()
+                .Button("PulsateTween.Stop", () => PulsateTween.Stop()).End()
                 .Node
             );
             debugOverlay.Add(new HBoxContainer().NodeBuilder()
-                .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true))
-                .Button("SqueezeTween.Stop", () => SqueezeTween.Stop())
+                .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true)).End()
+                .Button("SqueezeTween.Stop", () => SqueezeTween.Stop()).End()
                 .Node
             );
         }
