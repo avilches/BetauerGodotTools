@@ -6,46 +6,6 @@ using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public static class DebugConsoleExtensions {
-
-        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<string[], RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.CreateCommand(name, (input, output) => execute(input.Arguments, output), shortHelp, longHelp);
-        }
-        
-        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<string, RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.CreateCommand(name, (input, output) => execute(input.ArgumentString, output), shortHelp, longHelp);
-        }
-        
-        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<DebugConsole.CommandInput, RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.AddCommand(new DebugConsole.Command(name, execute, shortHelp, longHelp));
-        }
-
-        public static DebugConsole AddEngineCommand(this DebugConsole console) {
-            const string help = @"Usage:
-    [color=yellow]system ts[/color] [color=blue]<number>[/color] : set the system time scale to <number>";
-            return console.CreateCommand("system", (input, output) => {
-                if (input.Arguments.Length == 0) {
-                    output.AppendBbcode("Unknown arguments. Type [color=yellow]help system[/color] to get help");
-                    output.Newline();
-                } else {
-                    if (input.Arguments[0] == "ts" && 
-                        input.Arguments.Length > 1 &&
-                        input.Arguments[1].IsValidFloat()) {
-                        Engine.TimeScale = input.Arguments[1].ToFloat();
-                        output.AppendBbcode("Engine.set_time_scale("+input.Arguments[1]+")");
-                        output.Newline();
-                    } else {
-                        output.AppendBbcode("Unknown arguments. Type [color=yellow]help system[/color] to get help");
-                        output.Newline();
-                    }
-                }
-                
-            }, "change engine parameters like time_scale and many others", help);
-        }
-
-        
-    }
-    
     public class DebugConsole : Panel {
 
         public interface ICommand {
@@ -97,10 +57,12 @@ namespace Betauer.Application.Monitor {
         public readonly List<string> History = new();
 
         public DebugConsole() {
-            this.CreateCommand("help", OnHelp, "show this help", @"Usage:
-    help          : list all available commands
-    help <command>: show help about a specific command");
-            this.AddEngineCommand();
+            this.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
+    help           : List all available commands.
+    help <command> : Show help about a specific command.");
+            this.AddEngineTimeScale();
+            this.AddEngineTargetFps();
+            this.AddQuit();
         }
 
         public LayoutEnum Layout {
@@ -145,22 +107,21 @@ namespace Betauer.Application.Monitor {
                 WriteLine("Available commands:");
                 WriteLine();
                 foreach (var command in Commands.Values) {
-                    WriteLine($"    [color=yellow]{command.Name}[/color]: {command.ShortHelp}");
+                    WriteLine($"    [color=#ffffff]{command.Name}[/color]: {command.ShortHelp}");
                 }
                 WriteLine();
-                WriteLine("Type [color=yellow]help <command>[/color] to get more info about a command");
+                WriteLine("Type `help <command>` to get more info about a command");
             } else {
                 var commandName = arguments[0];
                 if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
                     if (command.LongHelp != null) {
-                        WriteLine($"Command [color=yellow]{command.Name}[/color] help");
+                        WriteLine($"Help for command `{command.Name}`:");
                         WriteLine(command.LongHelp);
-                        WriteLine();
                     } else {
-                        WriteLine($"No help available for command [color=yellow]{commandName}[/color].");
+                        WriteLine($"Command `{commandName}` doesn't have help.");
                     }
                 } else {
-                    WriteLine($"Error getting help. Command [color=yellow]{commandName}[/color] not found.");
+                    WriteLine($"Error getting help: command `{commandName}` not found.");
                 }
             }
         }
@@ -212,6 +173,7 @@ namespace Betauer.Application.Monitor {
                                 text.BbcodeEnabled = true;
                                 text.SelectionEnabled = true;
                                 text.ScrollFollowing = true;
+                                text.PushColor(new Color(0.75f, 0.75f, 0.75f));
                             })
                         .End()
                         .Child<HBoxContainer>()
@@ -234,6 +196,7 @@ namespace Betauer.Application.Monitor {
                                     text.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
                                     text.CaretBlink = true;
                                     text.CaretBlinkSpeed = 0.250f;
+                                    text.SetFontColor(new Color(0.75f, 0.75f, 0.75f));
                                     text.GrabFocus();
                                 })
                             .End()
@@ -275,12 +238,10 @@ namespace Betauer.Application.Monitor {
             if (!string.IsNullOrWhiteSpace(text)) {
                 text = text.Trim();
                 if (History.Count == 0 || History[^1] != text) History.Add(text);
-                if (History.Count > 1100) {
-                    History.RemoveRange(0, 100);
-                }
+                if (History.Count > 1100) History.RemoveRange(0, 100);
                 _historyPos = -1;
                 _historyBuffer = null;
-                WriteLine($">[color=gray]{text}[/color]");
+                WriteLine($"> {text}");
                 var pos = text.IndexOf(" ", StringComparison.Ordinal);
                 var commandName = pos > 0 ? text[..pos] : text;
                 if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
@@ -292,15 +253,19 @@ namespace Betauer.Application.Monitor {
                     _commandInput.Arguments = arguments;
                     command.Execute(_commandInput, ConsoleOutput);
                 } else {
-                    WriteLine("[color=#ff7085]Command not found. Type help to list all available commands.[/color]");
+                    WriteLine(ErrorCommandNotFound(commandName));
                 }
             } else {
-                WriteLine();
+                WriteLine(">");
             }
             SetConsoleInputText("");
             GetTree().SetInputAsHandled();
         }
-        
+
+        private static string ErrorCommandNotFound(string commandName) {
+            return $"Command `{commandName}` not found. Type `help` to list all available commands.";
+        }
+
 
         private void OnHistoryUp() {
             if (IsBrowsingHistory) {
