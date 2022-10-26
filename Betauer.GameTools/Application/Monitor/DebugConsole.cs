@@ -118,9 +118,9 @@ namespace Betauer.Application.Monitor {
                     AnchorBottom = 0.33f;
                 } else if (_layout == LayoutEnum.UpHalf) {
                     AnchorTop = 0;
-                    AnchorBottom = 0.5f;
+                    AnchorBottom = 0.75f;
                 } else if (_layout == LayoutEnum.DownHalf) {
-                    AnchorTop = 0.5f;
+                    AnchorTop = 0.75f;
                     AnchorBottom = 1;
                 } else if (_layout == LayoutEnum.DownThird) {
                     AnchorTop = 0.66f;
