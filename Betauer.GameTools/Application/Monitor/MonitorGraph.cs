@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 using Object = Godot.Object;
@@ -71,7 +72,7 @@ namespace Betauer.Application.Monitor {
                 ChartLine.Width = 2f;
                 ChartLine.DefaultColor = _color;
                 _chartLineConfig.Invoke(ChartLine);
-                CurrentValue.AddColorOverride("font_color", _color);
+                CurrentValue.SetFontColor(_color);
             }
 
             public int SecondsHistory => _graph._secondsHistory;
@@ -222,7 +223,7 @@ namespace Betauer.Application.Monitor {
                 .Child(serie.Label)
                     .Config(label => {
                         label.Align = Label.AlignEnum.Right;
-                        label.AddColorOverride("font_color", DefaultLabelColor);
+                        label.SetFontColor(DefaultLabelColor);
                     })
                 .End()
                 .Child(serie.CurrentValue)

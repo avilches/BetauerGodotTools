@@ -1,4 +1,5 @@
 using System;
+using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 
@@ -41,12 +42,12 @@ namespace Betauer.Application.Monitor {
 
         public MonitorText Show(Func<bool> action) {
             var previous = false;
-            Content.AddColorOverride("font_color", Colors.Tomato);
+            Content.SetFontColor(Colors.Tomato);
             _showValue = () => {
                 var b = action();
                 if (b != previous) {
                     // Change this in every frame just kills the fps
-                    Content.AddColorOverride("font_color", b ? Colors.GreenYellow : Colors.Tomato);
+                    Content.SetFontColor(b ? Colors.GreenYellow : Colors.Tomato);
                 }
                 previous = b;
                 return b.ToString();
@@ -60,7 +61,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            Label.AddColorOverride("font_color", DefaultLabelColor);
+            Label.SetFontColor(DefaultLabelColor);
             this.NodeBuilder()
                 .Child(HBoxContainer)
                     .Child(Label).End()

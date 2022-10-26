@@ -1,5 +1,6 @@
 using System;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;
@@ -12,9 +13,10 @@ namespace Betauer.Application.Monitor {
             Solid, Float, SolidTransparent, FloatTransparent
         }
         
-        private static readonly Color ColorTransparent = new(1, 1, 1, 0.490196f);
-        private static readonly Color ColorSolid = new(1, 1, 1);
-        private static readonly Color ColorInvisible = new(1, 1, 1, 0);
+        public static readonly Color ColorTransparent = new(1, 1, 1, 0.490196f);
+        public static readonly Color ColorSolid = new(1, 1, 1);
+        public static readonly Color ColorInvisible = new(1, 1, 1, 0);
+        
         private readonly DebugOverlayManager _manager;
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
@@ -188,7 +190,7 @@ namespace Betauer.Application.Monitor {
                         .End()
                         .Child(TitleLabel)
                             .Config(label => {
-                                label.AddColorOverride("font_color", Colors.White);
+                                label.SetFontColor(Colors.White);
                                 label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
                             })
                         .End()

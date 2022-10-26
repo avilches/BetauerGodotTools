@@ -1,4 +1,5 @@
 using System;
+using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 
@@ -89,7 +90,7 @@ namespace Betauer.Application.Monitor {
                         .Child(Label)
                             .Config(label => {
                                 label.Align = Label.AlignEnum.Right;
-                                label.AddColorOverride("font_color", DefaultLabelColor);
+                                label.SetFontColor(DefaultLabelColor);
                             })
                         .End()
                         .Child(CurrentValue)
