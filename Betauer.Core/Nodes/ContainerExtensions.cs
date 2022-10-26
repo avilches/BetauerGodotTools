@@ -105,5 +105,13 @@ namespace Betauer.Nodes {
             return globalFocused == null ? null : children.OfType<T>().FirstOrDefault(b => b == globalFocused);
         }
 
+        public static MarginContainer SetMargin(this MarginContainer margin, int top, int right, int bottom, int left) {
+            margin.AddConstantOverride("margin_top", top);
+            margin.AddConstantOverride("margin_right", right);
+            margin.AddConstantOverride("margin_bottom", bottom);
+            margin.AddConstantOverride("margin_left", left);
+            return margin;
+        }
+
     }
 }
