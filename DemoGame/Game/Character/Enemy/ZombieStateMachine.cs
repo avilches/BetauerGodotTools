@@ -42,7 +42,6 @@ namespace Veronenger.Game.Character.Enemy {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
         }
 
-        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private MainStateMachine MainStateMachine { get; set; }
         [Inject] private CharacterManager CharacterManager { get; set; }
@@ -67,7 +66,7 @@ namespace Veronenger.Game.Character.Enemy {
             AddOnExecuteStart((delta, state) => Body.StartFrame(delta));
             AddOnExecuteEnd((state) => Body.EndFrame());
 
-            var debugOverlay = DebugOverlayManager.Follow(zombie).WithTheme(MainResourceLoader.MyTheme);
+            var debugOverlay = DebugOverlayManager.Follow(zombie);
 
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()

@@ -245,11 +245,12 @@ namespace Veronenger.Game.Managers {
         }
 
         private void ConfigureDebugOverlays() {
-            DefaultDebugOverlay.Solid().WithTheme(MyTheme).Solid().Title("System")
+            DefaultDebugOverlay.Solid().Solid().Title("System")
                 .AddMonitorFpsAndMemory()
                 .AddMonitorInternals()
-                .Text(ScreenSettingsManager.GetStateAsString).EndMonitor(); 
-            
+                .Text(ScreenSettingsManager.GetStateAsString).EndMonitor();
+
+            DebugOverlayManager.OverlayContainer.Theme = MyTheme;
             // CreateNodeHandlerManagerDebugOverlay();
             // CreateSignalManagerDebugOverlay();
         }

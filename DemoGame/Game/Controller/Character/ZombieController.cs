@@ -43,7 +43,6 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
         [Inject] private CharacterManager CharacterManager { get; set; }
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationStep { get; private set; }
@@ -79,7 +78,6 @@ namespace Veronenger.Game.Controller.Character {
                 .Follow(this)
                 .RemoveButtons()
                 .Offset(new Vector2(0, -100))
-                .WithTheme(MainResourceLoader.MyTheme)
                 .Text("State", () => StateMachine.CurrentState.Key.ToString()).EndMonitor()
                 // .Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}").EndMonitor()
                 .Text("Speed",() => StateMachine.Body.Motion.ToString("F")).EndMonitor();

@@ -48,7 +48,6 @@ namespace Veronenger.Game.Controller.Character {
         [Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
         [Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
 
         public ILoopStatus AnimationIdle { get; private set; }
         public ILoopStatus AnimationRun { get; private set; }
@@ -116,7 +115,6 @@ namespace Veronenger.Game.Controller.Character {
             });
 
             DebugOverlayManager.Overlay(this)
-                .WithTheme(MainResourceLoader.MyTheme)
                 .Title("Player")
                 .Text("AnimationStack",() => _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name).EndMonitor()
                 .Text("TweenStack", () => _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name).EndMonitor()
