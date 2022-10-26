@@ -9,6 +9,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlay : PopupPanel {
+        private static readonly int VisibilityStateEnumSize = Enum.GetNames(typeof(VisibilityStateEnum)).Length;
         public enum VisibilityStateEnum {
             Solid, Float, SolidTransparent, FloatTransparent
         }
@@ -23,6 +24,7 @@ namespace Betauer.Application.Monitor {
         private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
         private Vector2 _position;
         private Container? _nestedContainer;
+        private VisibilityStateEnum _visibilityState = VisibilityStateEnum.Float;
 
         public readonly int Id;
         public readonly Label TitleLabel = new() {
@@ -46,7 +48,6 @@ namespace Betauer.Application.Monitor {
         public Button? FollowButton { get; private set; }
         public bool IsDragging => _startDragPosition.HasValue;
 
-        private VisibilityStateEnum _visibilityState = VisibilityStateEnum.Float;
         public VisibilityStateEnum VisibilityState {
             get => _visibilityState;
             set {
@@ -66,7 +67,6 @@ namespace Betauer.Application.Monitor {
                 }
             }
         }
-
 
         internal DebugOverlay(DebugOverlayManager manager, int id) {
             _manager = manager;
@@ -209,7 +209,7 @@ namespace Betauer.Application.Monitor {
                                 })
                             .End()
                             .Button("o", () => {
-                                    var newState = ((int)_visibilityState + 1) % 4;
+                                    var newState = ((int)_visibilityState + 1) % VisibilityStateEnumSize;
                                     VisibilityState = (VisibilityStateEnum)newState;
                                 })
                                 .Config(button => {
