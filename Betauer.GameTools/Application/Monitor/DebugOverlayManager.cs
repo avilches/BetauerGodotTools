@@ -1,26 +1,39 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
     public class DebugOverlayManager : CanvasLayer {
 
-        [Inject(Nullable = true)]
-        public InputAction? DebugOverlayAction { get; set; }
-
         private int _count = 0;
-        private int _current = -1;
-
         private HashSet<int> _actives = new();
         private HashSet<int> _preSolo = new();
         private bool _isSolo = false;
+
+        public Control OverlayContainer = new();
+
+        public DebugConsole DebugConsole = new() {
+            Visible = false
+        };
+        public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>();
+        public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
+        public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
+
+        [Inject(Nullable = true)]
+        public InputAction? DebugOverlayAction { get; set; }
 
         public override void _Ready() {
             Layer = 1000000;
             PauseMode = PauseModeEnum.Process;
             Visible = false;
+            this.NodeBuilder()
+                .Child(OverlayContainer)
+                .End()
+                .Child(DebugConsole);
         }
 
         public DebugOverlay Overlay(Object target) {
@@ -36,32 +49,43 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay CreateOverlay() {
             var overlay = new DebugOverlay(this, _count++);
-            AddChild(overlay);
+            OverlayContainer.AddChild(overlay);
             _actives.Add(overlay.Id);
             return overlay;
         }
 
-        public int VisibleCount =>
-            GetChildren().OfType<DebugOverlay>().Count(debugOverlay => debugOverlay.Visible);
-
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {
-                if (Visible) Disable(); else Enable();
+                if (@event.HasShift()) {
+                    if (Visible) {
+                        DebugConsole.Enable(!DebugConsole.Visible);
+                    } else {
+                        Enable();
+                        DebugConsole.Enable();
+                    }
+                } else {
+                    if (Visible) {
+                        Disable();
+                    } else {
+                        Enable();
+                    }
+                }
             }
         }
 
         public DebugOverlayManager Enable(bool enable = true) {
             if (enable) {
+                if (DebugConsole.Visible) DebugConsole.Enable();
                 Visible = true;
-                GetChildren().OfType<DebugOverlay>()
-                    .ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
+                Overlays.ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
             } else {
+                DebugConsole.Sleep();
                 Visible = false;
-                _actives = GetChildren().OfType<DebugOverlay>()
+                _actives = Overlays
                     .Where(overlay => overlay.Visible)
                     .Select(overlay => overlay.Id)
                     .ToHashSet();
-                GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Disable());
+                Overlays.ForEach(overlay => overlay.Disable());
             }
             return this;
         }
@@ -72,28 +96,24 @@ namespace Betauer.Application.Monitor {
 
         public void All() {
             _isSolo = false;
-            GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable());
+            Overlays.ForEach(overlay => overlay.Enable());
         }
 
         public void Solo(int id) {
             if (_isSolo) {
-                GetChildren().OfType<DebugOverlay>()
-                    .ForEach(overlay => overlay.Enable(_preSolo.Contains(overlay.Id)));
+                Overlays.ForEach(overlay => overlay.Enable(_preSolo.Contains(overlay.Id)));
             } else {
-                _preSolo = GetChildren().OfType<DebugOverlay>()
+                _preSolo = Overlays
                     .Where(overlay => overlay.Visible)
                     .Select(overlay => overlay.Id)
                     .ToHashSet();
-                GetChildren().OfType<DebugOverlay>().ForEach(overlay => overlay.Enable(overlay.Id == id));
+                Overlays.ForEach(overlay => overlay.Enable(overlay.Id == id));
             }
             _isSolo = !_isSolo;
         }
 
-        public DebugOverlay Find(int id) => 
-            GetChildren().OfType<DebugOverlay>().First(overlay => overlay.Id == id);
-
         public void Mute(int id) {
-            var visibleWithButtons = GetChildren().OfType<DebugOverlay>()
+            var visibleWithButtons = Overlays
                 .Count(debugOverlay => debugOverlay.Visible && debugOverlay.TopBar.Visible);
             if (visibleWithButtons > 1) Find(id).Disable(); else Disable();
         }
