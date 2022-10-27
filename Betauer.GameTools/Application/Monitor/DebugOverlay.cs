@@ -18,7 +18,6 @@ namespace Betauer.Application.Monitor {
         public static readonly Color ColorSolid = new(1, 1, 1);
         public static readonly Color ColorInvisible = new(1, 1, 1, 0);
         
-        private readonly DebugOverlayManager _manager;
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
         private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
@@ -41,12 +40,14 @@ namespace Betauer.Application.Monitor {
         public readonly ColorRect TopBarColor = new() {
             Name = "TopParColorRect"
         };
+        public DebugOverlayManager DebugOverlayManager { get; }
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
         public bool CanFollow => Target is Node2D;
         public Func<bool>? RemoveIfFunc { get; private set; }
         public Button? FollowButton { get; private set; }
         public bool IsDragging => _startDragPosition.HasValue;
+        public bool IsPermanent { get; set; } = true;
 
         public VisibilityStateEnum VisibilityState {
             get => _visibilityState;
@@ -68,10 +69,10 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        internal DebugOverlay(DebugOverlayManager manager, int id) {
-            _manager = manager;
+        internal DebugOverlay(DebugOverlayManager debugOverlayManager, int id) {
+            DebugOverlayManager = debugOverlayManager;
             _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
-            _position = new Vector2(id * 64, id * 64);
+            _position = new Vector2(id * 16, id * 16);
             Name = $"DebugOverlay-{id}";
             Id = id;
             VisibilityState = VisibilityStateEnum.Float;
@@ -96,6 +97,11 @@ namespace Betauer.Application.Monitor {
             TitleLabel.Text = title;
             TopBar.RectMinSize = new Vector2(100, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
             return this;                               
+        }
+
+        public DebugOverlay Permanent(bool isPermanent = true) {
+            IsPermanent = isPermanent;
+            return this;
         }
 
         public DebugOverlay RemoveIfInvalid(Object o) {
@@ -217,19 +223,19 @@ namespace Betauer.Application.Monitor {
                                     button.HintTooltip = "Opacity";
                                 })
                             .End()
-                            .Button("s", () => _manager.Solo(Id))
+                            .Button("s", () => DebugOverlayManager.Solo(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Solo mode";
                                 })
                             .End()
-                            .Button("*", () => _manager.All())
+                            .Button("*", () => DebugOverlayManager.All())
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Open all";
                                 })
                             .End()
-                            .Button("x", () => _manager.Mute(Id))
+                            .Button("x", () => DebugOverlayManager.CloseOrHide(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Close";

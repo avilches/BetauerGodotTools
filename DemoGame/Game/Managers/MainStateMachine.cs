@@ -252,22 +252,6 @@ namespace Veronenger.Game.Managers {
 
             DebugOverlayManager.OverlayContainer.Theme = MyTheme;
             DebugOverlayManager.DebugConsole.Theme =  MainResourceLoader.DebugConsoleTheme;;
-            // CreateNodeHandlerManagerDebugOverlay();
-            // CreateSignalManagerDebugOverlay();
-        }
-
-        private DebugOverlay CreateSignalManagerDebugOverlay() {
-            var debugOverlay = DebugOverlayManager.CreateOverlay().Solid().Title("SignalManager");
-            debugOverlay.Theme = MyTheme;
-            debugOverlay.Text(DefaultSignalManager.Instance.GetStateAsString).UpdateEvery(1f);
-            return debugOverlay;
-        }
-
-        private DebugOverlay CreateNodeHandlerManagerDebugOverlay() {
-            var debugOverlay = DebugOverlayManager.CreateOverlay().Solid().Title("NodeHandler Node");
-            debugOverlay.Theme = MyTheme;
-            debugOverlay.Text(DefaultNodeHandler.Instance.GetStateAsString).UpdateEvery(1f);
-            return debugOverlay;
         }
 
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {

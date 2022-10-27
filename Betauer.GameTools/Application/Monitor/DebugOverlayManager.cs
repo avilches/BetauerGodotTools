@@ -14,11 +14,8 @@ namespace Betauer.Application.Monitor {
         private HashSet<int> _preSolo = new();
         private bool _isSolo = false;
 
-        public Control OverlayContainer = new();
-
-        public DebugConsole DebugConsole = new() {
-            Visible = false
-        };
+        public readonly Control OverlayContainer = new();
+        public readonly DebugConsole DebugConsole;
         public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>();
         public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
         public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
@@ -26,7 +23,14 @@ namespace Betauer.Application.Monitor {
         [Inject(Nullable = true)]
         public InputAction? DebugOverlayAction { get; set; }
 
+        public DebugOverlayManager() {
+            DebugConsole = new DebugConsole(this) {
+                Visible = false
+            };
+        }
+
         public override void _Ready() {
+            Name = "DebugOverlayManager";
             Layer = 1000000;
             PauseMode = PauseModeEnum.Process;
             Visible = false;
@@ -36,11 +40,14 @@ namespace Betauer.Application.Monitor {
                 .Child(DebugConsole);
         }
 
+        public DebugOverlay Overlay(string title) {
+            return (Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ?? 
+                    CreateOverlay().Title(title)).Enable(VisibleCount >= 1);
+        }
+
         public DebugOverlay Overlay(Object target) {
-            return (GetChildren()
-                       .OfType<DebugOverlay>()
-                       .FirstOrDefault(d => d.Target == target)
-                   ?? CreateOverlay().RemoveIfInvalid(target)).Enable(VisibleCount >= 1);
+            return (Overlays.FirstOrDefault(d => d.Target == target) ?? 
+                    CreateOverlay().RemoveIfInvalid(target)).Enable(VisibleCount >= 1);
         }
 
         public DebugOverlay Follow(Node2D follow) {
@@ -112,10 +119,16 @@ namespace Betauer.Application.Monitor {
             _isSolo = !_isSolo;
         }
 
-        public void Mute(int id) {
+        public void CloseOrHide(int id) {
             var visibleWithButtons = Overlays
                 .Count(debugOverlay => debugOverlay.Visible && debugOverlay.TopBar.Visible);
-            if (visibleWithButtons > 1) Find(id).Disable(); else Disable();
+            if (visibleWithButtons == 1) {
+                Disable();
+            } else {
+                var debugOverlay = Find(id);
+                if (debugOverlay.IsPermanent) debugOverlay.Disable();
+                else debugOverlay.QueueFree();
+            }
         }
     }
 }

@@ -58,20 +58,21 @@ namespace Betauer.Application.Monitor {
         private LayoutEnum _layout = LayoutEnum.DownThird;
         private readonly CommandInput _commandInput = new();
 
-        public readonly Dictionary<string, ICommand> Commands = new();
-        
+        public DebugOverlayManager DebugOverlayManager { get; }
+        public readonly Dictionary<string, ICommand> Commands = new();        
         public readonly RichTextLabel ConsoleOutput = new();
         public readonly LineEdit ConsoleInput = new();
         public readonly List<string> History = new();
 
-        public DebugConsole() {
+        public DebugConsole(DebugOverlayManager debugOverlayManager) {
+            DebugOverlayManager = debugOverlayManager;
             this.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
     [color=#ffffff]help          [/color] : List all available commands.
     [color=#ffffff]help <command>[/color] : Show help about a specific command.");
             this.AddEngineTimeScale();
             this.AddEngineTargetFps();
-            this.AddClearConsole();
-            this.AddQuit();
+            this.AddClearConsoleCommand();
+            this.AddQuitCommand();
         }
 
         public LayoutEnum Layout {
@@ -103,7 +104,7 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        private DebugConsole WriteLine(string? text = null) {
+        public DebugConsole WriteLine(string? text = null) {
             if (text != null) ConsoleOutput.AppendBbcode(text);
             ConsoleOutput.Newline();
             return this;
@@ -126,9 +127,10 @@ namespace Betauer.Application.Monitor {
             } else {
                 var commandName = arguments[0];
                 if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
-                    if (command.LongHelp != null) {
-                        WriteLine($"Help for command `{command.Name}`");
+                    if (!string.IsNullOrWhiteSpace(command.LongHelp)) {
                         WriteLine(command.LongHelp);
+                    } else if (!string.IsNullOrWhiteSpace(command.ShortHelp)) {
+                        WriteLine(command.ShortHelp);
                     } else {
                         WriteLine($"No help for command `{commandName}`.");
                     }
@@ -136,6 +138,12 @@ namespace Betauer.Application.Monitor {
                     WriteLine($"Error getting help: command `{commandName}` not found.");
                 }
             }
+        }
+
+        public DebugConsole ClearScreen() {
+            ConsoleOutput.Clear();
+            ConsoleOutput.PushColor(new Color(0.85f, 0.85f, 0.85f));
+            return this;
         }
         
         public DebugConsole AddCommand(ICommand command) {
@@ -223,6 +231,7 @@ namespace Betauer.Application.Monitor {
             
             SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
             Layout = LayoutEnum.DownThird;
+            ClearScreen();
         }
 
         private void SetConsoleInputText(string text) {
