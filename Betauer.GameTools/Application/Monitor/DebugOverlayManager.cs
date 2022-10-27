@@ -14,7 +14,9 @@ namespace Betauer.Application.Monitor {
         private HashSet<int> _preSolo = new();
         private bool _isSolo = false;
 
-        public readonly Control OverlayContainer = new();
+        public readonly Control OverlayContainer = new() {
+            Name = nameof(OverlayContainer)
+        };
         public readonly DebugConsole DebugConsole;
         public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>();
         public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
@@ -25,6 +27,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlayManager() {
             DebugConsole = new DebugConsole(this) {
+                Name = nameof(DebugConsole),
                 Visible = false
             };
         }
@@ -101,12 +104,12 @@ namespace Betauer.Application.Monitor {
             return Enable(false);
         }
 
-        public void All() {
+        public void ShowAllOverlays() {
             _isSolo = false;
             Overlays.ForEach(overlay => overlay.Enable());
         }
 
-        public void Solo(int id) {
+        public void SoloOverlay(int id) {
             if (_isSolo) {
                 Overlays.ForEach(overlay => overlay.Enable(_preSolo.Contains(overlay.Id)));
             } else {
@@ -119,10 +122,8 @@ namespace Betauer.Application.Monitor {
             _isSolo = !_isSolo;
         }
 
-        public void CloseOrHide(int id) {
-            var visibleWithButtons = Overlays
-                .Count(debugOverlay => debugOverlay.Visible && debugOverlay.TopBar.Visible);
-            if (visibleWithButtons == 1) {
+        public void CloseOrHideOverlay(int id) {
+            if (VisibleCount == 1) {
                 Disable();
             } else {
                 var debugOverlay = Find(id);

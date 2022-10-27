@@ -111,7 +111,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
-            return console.CreateCommand("show-node-handler", () => {
+            return console.CreateCommand("node-handler", () => {
                 console.DebugOverlayManager
                     .Overlay("NodeHandler")
                     .Solid()
@@ -119,11 +119,11 @@ namespace Betauer.Application.Monitor {
                     .Enable()
                     .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString)
                     .UpdateEvery(1f);
-            }, "Open a window overlay with the NodeHandler info.");
+            }, "Open the NodeHandler info window.");
         }
 
         public static DebugConsole AddSignalManagerCommand(this DebugConsole console, SignalManager? signalManager = null) {
-            return console.CreateCommand("show-signals", () => {
+            return console.CreateCommand("signals", () => {
                 console.DebugOverlayManager
                     .Overlay("Signals")
                     .Permanent(false)
@@ -131,11 +131,15 @@ namespace Betauer.Application.Monitor {
                     .Enable()
                     .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString)
                     .UpdateEvery(1f);
-            }, "Open a window overlay showing all active signals.");
+            }, "Open the signals info window.");
         }
 
         public static DebugConsole AddClearConsoleCommand(this DebugConsole console) {
             return console.CreateCommand("clear", () => console.ClearConsole(), "Clear the console screen.");
+        }
+
+        public static DebugConsole AddShowAllCommand(this DebugConsole console) {
+            return console.CreateCommand("show-all", () => console.DebugOverlayManager.ShowAllOverlays(), "Show all hidden windows.");
         }
     }
 }

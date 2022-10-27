@@ -135,6 +135,7 @@ namespace Betauer.Application.Monitor {
                 .Child<MarginContainer>()
                     .Config(margin => {
                         // Full rect
+                        margin.Name = "MarginContainer";
                         margin.AnchorRight = 1;
                         margin.AnchorBottom = 1;
                         margin.SetMargin(10, 10, 10, 10);
@@ -142,11 +143,13 @@ namespace Betauer.Application.Monitor {
                     .Child<VBoxContainer>()
                         .Config(box => {
                             // Full rect
+                            box.Name = "VBoxContainer";
                             box.AnchorRight = 1;
                             box.AnchorBottom = 1;
                         })
                         .Child(ConsoleOutput)
                             .Config(text => {
+                                text.Name = nameof(ConsoleOutput);
                                 text.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
                                 text.SizeFlagsVertical = (int)SizeFlags.ExpandFill;
                                 text.BbcodeEnabled = true;
@@ -157,11 +160,13 @@ namespace Betauer.Application.Monitor {
                         .Child<HBoxContainer>()
                             .Child<Label>()
                                 .Config(label => {
+                                    label.Name = "Prompt";
                                     label.Text = ">";
                                 })
                             .End()
                             .Child(ConsoleInput)
                                 .Config(text => {
+                                    text.Name = nameof(ConsoleInput);
                                     var style = new StyleBoxFlat() {
                                         BgColor = DebugOverlay.ColorInvisible,
                                         BorderWidthTop = 0,
@@ -179,6 +184,7 @@ namespace Betauer.Application.Monitor {
                             .End()
                             .Child<HSlider>()
                                 .Config(slider => {
+                                    slider.Name = "OpacitySlider";
                                     slider.Editable = true;
                                     slider.HintTooltip = "Opacity";
                                     slider.RectMinSize = new Vector2(50, 5);

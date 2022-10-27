@@ -78,6 +78,7 @@ namespace Betauer.Application {
             DebugOverlayManager.DebugConsole.AddQuitCommand();
             DebugOverlayManager.DebugConsole.AddNodeHandlerInfoCommand();
             DebugOverlayManager.DebugConsole.AddSignalManagerCommand();
+            DebugOverlayManager.DebugConsole.AddShowAllCommand();
         }
 
         private void StartContainer() {

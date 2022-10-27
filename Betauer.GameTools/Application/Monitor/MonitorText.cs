@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public class MonitorText : BaseMonitor<MonitorText> {
-        private float _timeElapsed = 0;
+        private float _timeElapsed = -1;
         private float _time = 0;
         private Func<string>? _showValue;
         public readonly HBoxContainer HBoxContainer = new();
@@ -72,7 +72,7 @@ namespace Betauer.Application.Monitor {
         public override void Process(float delta) {
             if (_showValue != null) {
                 _timeElapsed += delta;
-                if (_timeElapsed >= _time) {
+                if (_timeElapsed >= _time || _timeElapsed - delta == -1) {
                     Content.Text = _showValue.Invoke();
                     _timeElapsed -= _time;
                 }

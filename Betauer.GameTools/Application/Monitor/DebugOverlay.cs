@@ -14,9 +14,9 @@ namespace Betauer.Application.Monitor {
             Solid, Float, SolidTransparent, FloatTransparent
         }
         
-        public static readonly Color ColorTransparent = new(1, 1, 1, 0.490196f);
-        public static readonly Color ColorSolid = new(1, 1, 1);
-        public static readonly Color ColorInvisible = new(1, 1, 1, 0);
+        public static Color ColorTransparent = new(1, 1, 1, 0.490196f);
+        public static Color ColorSolid = new(1, 1, 1);
+        public static Color ColorInvisible = new(1, 1, 1, 0);
         
         private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
@@ -29,18 +29,20 @@ namespace Betauer.Application.Monitor {
         public readonly Label TitleLabel = new() {
             Name = "Title"
         };
-        public readonly VBoxContainer VBoxContainer = new () {
-            Name = "MonitorList"
+        public readonly ScrollContainer ScrollContainer = new() {
+            Name = nameof(ScrollContainer)
         };
-
-        public readonly Control TopBar = new() {
-            Name = "TopBar"
+        public readonly VBoxContainer OverlayContent = new () {
+            Name = nameof(OverlayContent)
         };
-
+        public readonly Label TopBar = new() {
+            Name = nameof(TopBar)
+        };
         public readonly ColorRect TopBarColor = new() {
-            Name = "TopParColorRect"
+            Name = nameof(TopBarColor)
         };
         public DebugOverlayManager DebugOverlayManager { get; }
+        public Vector2 MaxSize { get; private set; } = new(600, 600);
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
         public bool CanFollow => Target is Node2D;
@@ -90,6 +92,11 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Hint(string hint) {
             HintTooltip = hint;
+            return this;
+        }
+
+        public DebugOverlay SetMaxSize(Vector2 maxSize) {
+            MaxSize = maxSize;
             return this;
         }
 
@@ -149,7 +156,7 @@ namespace Betauer.Application.Monitor {
         public DebugOverlay OpenBox<T>(Action<T>? config = null) where T : Container {
             var nestedContainer = Activator.CreateInstance<T>();
             _nestedContainer = nestedContainer;
-            VBoxContainer.AddChild(_nestedContainer);
+            OverlayContent.AddChild(_nestedContainer);
             config?.Invoke(nestedContainer);
             return this;
         }
@@ -160,7 +167,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Add(Node control) {
-            (_nestedContainer ?? VBoxContainer).AddChild(control);
+            (_nestedContainer ?? OverlayContent).AddChild(control);
             return this;
         }
 
@@ -181,12 +188,20 @@ namespace Betauer.Application.Monitor {
             return Enable(false);
         }
 
+        private void FitContent() {
+            var x = Math.Min(OverlayContent.RectSize.x + 10, MaxSize.x);
+            var y = Math.Min(OverlayContent.RectSize.y + 10, MaxSize.x);
+            ScrollContainer.RectMinSize = new Vector2(x, y);
+            TopBar.RectMinSize = new Vector2(x, 10);
+        }
+
         public override void _Ready() {
             this.NodeBuilder()
-                .Child(VBoxContainer)
+                .Child<VBoxContainer>()
                     .Child(TopBar)
                         .Config(control => {
                             control.RectMinSize = new Vector2(100, 10);
+                            control.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
                         })
                         .Child(TopBarColor)
                             .Config(rect => {
@@ -204,7 +219,8 @@ namespace Betauer.Application.Monitor {
                             .Config(buttonBar => {
                                 buttonBar.GrowHorizontal = GrowDirection.Begin;
                                 buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
-                                buttonBar.RectMinSize = Vector2.Zero;
+                                buttonBar.MarginLeft = 0;
+                                buttonBar.MarginRight = 0;
                             })
                             .Button<CheckButton>("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
                                 .Config(button => {
@@ -223,19 +239,19 @@ namespace Betauer.Application.Monitor {
                                     button.HintTooltip = "Opacity";
                                 })
                             .End()
-                            .Button("s", () => DebugOverlayManager.Solo(Id))
+                            .Button("s", () => DebugOverlayManager.SoloOverlay(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Solo mode";
                                 })
                             .End()
-                            .Button("*", () => DebugOverlayManager.All())
+                            .Button("*", () => DebugOverlayManager.ShowAllOverlays())
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Open all";
                                 })
                             .End()
-                            .Button("x", () => DebugOverlayManager.CloseOrHide(Id))
+                            .Button("x", () => DebugOverlayManager.CloseOrHideOverlay(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
                                     button.HintTooltip = "Close";
@@ -243,8 +259,19 @@ namespace Betauer.Application.Monitor {
                             .End()
                         .End()
                     .End()
+                    .Child(ScrollContainer)
+                        .Child<MarginContainer>()
+                            .Config(margin => {
+                                margin.SetMargin(0, 10, 10, 0);
+                            })
+                            .Child(OverlayContent)
+                            .End()
+                        .End()
+                    .End()
                 .End();
             MouseFilter = MouseFilterEnum.Pass;
+            OverlayContent.OnResized(FitContent);
+            FitContent();
             Disable();
         }
 
