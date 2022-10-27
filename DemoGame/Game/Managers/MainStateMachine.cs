@@ -251,6 +251,7 @@ namespace Veronenger.Game.Managers {
                 .Text(ScreenSettingsManager.GetStateAsString).EndMonitor();
 
             DebugOverlayManager.OverlayContainer.Theme = MyTheme;
+            DebugOverlayManager.DebugConsole.Theme =  MainResourceLoader.DebugConsoleTheme;;
             // CreateNodeHandlerManagerDebugOverlay();
             // CreateSignalManagerDebugOverlay();
         }

@@ -25,6 +25,8 @@ namespace Veronenger.Game.Managers {
         [Load("res://Scenes/Player.tscn")] public Func<Node2D> CreatePlayer;
 
         [Load("res://Assets/UI/my_theme.tres")] public Theme MyTheme;
+        
+        [Load("res://Assets/UI/DebugConsole.tres")] public Theme DebugConsoleTheme;
 
         public override void DoOnProgress(LoadingProgress context) {
         }

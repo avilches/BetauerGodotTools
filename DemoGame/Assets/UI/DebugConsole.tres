@@ -1,0 +1,11 @@
+[gd_resource type="Theme" load_steps=3 format=2]
+
+[ext_resource path="res://Assets/Fonts/MonospacedMenlo/Meno-Regular-16.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Assets/Fonts/MonospacedMenlo/Meno-Regular-12.tres" type="DynamicFont" id=2]
+
+[resource]
+default_font = ExtResource( 1 )
+LineEdit/fonts/font = ExtResource( 2 )
+RichTextLabel/colors/default_color = Color( 0.72, 0.72, 0.72, 1 )
+RichTextLabel/fonts/mono_font = ExtResource( 2 )
+RichTextLabel/fonts/normal_font = ExtResource( 2 )
