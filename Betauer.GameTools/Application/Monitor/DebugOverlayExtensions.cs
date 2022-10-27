@@ -117,53 +117,60 @@ namespace Betauer.Application.Monitor {
             var maxResources = 0;
             var maxObjects = 0;
 
-            overlay.OpenBox()
-                .Text("Nodes/max", () => {
-                    var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
-                    maxNodes = Math.Max(maxNodes, count);
-                    return $"{count.ToString()}/{maxNodes.ToString()}";
-                }).UpdateEvery(1f).EndMonitor()
-                .Text("Orphans nodes/max", () => {
-                    var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectOrphanNodeCount);
-                    maxOrphans = Math.Max(maxOrphans, count);
-                    return $"{count.ToString()}/{maxOrphans.ToString()}";
-                }).UpdateEvery(1f).EndMonitor()
+            overlay
+                .OpenBox()
+                    .Text("Nodes/max", () => {
+                        var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
+                        maxNodes = Math.Max(maxNodes, count);
+                        return $"{count.ToString()}/{maxNodes.ToString()}";
+                    }).UpdateEvery(1f)
+                    .EndMonitor()
+                    .Text("Orphans nodes/max", () => {
+                        var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectOrphanNodeCount);
+                        maxOrphans = Math.Max(maxOrphans, count);
+                        return $"{count.ToString()}/{maxOrphans.ToString()}";
+                    }).UpdateEvery(1f)
+                    .EndMonitor()
                 .CloseBox()
                 .OpenBox()
-                .Text("Resources in use/max", () => {
-                    var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectResourceCount);
-                    maxResources = Math.Max(maxResources, count);
-                    return $"{count.ToString()}/{maxResources.ToString()}";
-                }).UpdateEvery(1f).EndMonitor()
-                .Text("Objects/max", () => {
-                    var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectCount);
-                    maxObjects = Math.Max(maxObjects, count);
-                    return $"{count.ToString()}/{maxObjects.ToString()}";
-                }).UpdateEvery(1f).EndMonitor()
+                    .Text("Resources in use/max", () => {
+                        var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectResourceCount);
+                        maxResources = Math.Max(maxResources, count);
+                        return $"{count.ToString()}/{maxResources.ToString()}";
+                    }).UpdateEvery(1f)
+                    .EndMonitor()
+                    .Text("Objects/max", () => {
+                        var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectCount);
+                        maxObjects = Math.Max(maxObjects, count);
+                        return $"{count.ToString()}/{maxObjects.ToString()}";
+                    }).UpdateEvery(1f)
+                    .EndMonitor()
                 .CloseBox()
                 .OpenBox()
-                .Text("Watching/max", () => $"{DefaultObjectWatcherTask.Instance.Size}/{DefaultObjectWatcherTask.Instance.PeakSize}").UpdateEvery(1f).EndMonitor()
-                .Text("Tweens/max", () => $"{DefaultTweenCallbackManager.Instance.Size.ToString()}/{DefaultTweenCallbackManager.Instance.PeakSize.ToString()}").UpdateEvery(1f).EndMonitor()
-                .Text("Signals", () => $"{DefaultSignalManager.Instance.Size.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("Watching/max", () => $"{DefaultObjectWatcherTask.Instance.Size}/{DefaultObjectWatcherTask.Instance.PeakSize}").UpdateEvery(1f).EndMonitor()
+                    .Text("Tweens/max", () => $"{DefaultTweenCallbackManager.Instance.Size.ToString()}/{DefaultTweenCallbackManager.Instance.PeakSize.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("Signals", () => $"{DefaultSignalManager.Instance.Size.ToString()}").UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             return overlay;
 
         }
 
         public static DebugOverlay AddMonitorFpsAndMemory(this DebugOverlay overlay) {
-            overlay.OpenBox()
-                .Text("FPS/limit", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").UpdateEvery(1f).EndMonitor()
-                .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).UpdateEvery(1f).EndMonitor()
-                .Text("Uptime", () => {
-                    var timespan = TimeSpan.FromMilliseconds(OS.GetTicksMsec());
-                    return $"{(int)timespan.TotalMinutes}:{timespan.Seconds:00}";
-                }).UpdateEvery(1f).EndMonitor()
+            overlay
+                .OpenBox()
+                    .Text("FPS/limit", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).UpdateEvery(1f).EndMonitor()
+                    .Text("Uptime", () => {
+                        var timespan = TimeSpan.FromMilliseconds(OS.GetTicksMsec());
+                        return $"{(int)timespan.TotalMinutes}:{timespan.Seconds:00}";
+                    }).UpdateEvery(1f)
+                    .EndMonitor()
                 .CloseBox();
            
             #if DEBUG
             overlay
-                .Text("Static/max", () => $"{((long)Performance.GetMonitor(Performance.Monitor.MemoryStatic)).HumanReadableBytes()} / {((long)Performance.GetMonitor(Performance.Monitor.MemoryStaticMax)).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
-                .Text("Dynamic/max", () => $"{((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamic)).HumanReadableBytes()} / {((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
+                .Text("Static/max", () => $"{((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()} / {((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
+                .Text("Dynamic/max", () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()} / {((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             #endif
             return overlay;
