@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -63,6 +64,8 @@ namespace Betauer.Application {
                 .Where(val => OS.HasFeature(val.Key))
                 .ToDictionary(val => val.Key, val => val.Value);
         }
+
+        public static TimeSpan Uptime => TimeSpan.FromMilliseconds(OS.GetTicksMsec());
 
     }
 }

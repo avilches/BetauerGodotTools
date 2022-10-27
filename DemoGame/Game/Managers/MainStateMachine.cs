@@ -245,8 +245,9 @@ namespace Veronenger.Game.Managers {
         }
 
         private void ConfigureDebugOverlays() {
-            DefaultDebugOverlay.Solid().Solid().Title("System")
+            DefaultDebugOverlay.Solid().Title("System")
                 .AddMonitorFpsAndMemory()
+                .AddVideoInfo()
                 .AddMonitorInternals()
                 .Text(ScreenSettingsManager.GetStateAsString).EndMonitor();
 

@@ -20,8 +20,6 @@ using TraceLevel = Betauer.TraceLevel;
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
-        public static readonly DateTime StartTime = DateTime.Now;
-        public static TimeSpan Uptime => DateTime.Now.Subtract(StartTime);
         
         public Bootstrap() {
             EnableAddSingletonNodesToTree(true);
@@ -36,14 +34,19 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         private static void ShowConfig() {
-            Logger.Info($"cmd line args: {string.Join(" ", OS.GetCmdlineArgs())}");
-            Logger.Info($"app version  : {AppInfo.Version}");
-            Logger.Info($"features     : {string.Join(", ", FeatureFlags.GetActiveList())}");
-            Logger.Info($"name host    : {OS.GetName()}");
-            Logger.Info($"data dir     : {OS.GetDataDir()}");
-            Logger.Info($"user data dir: {OS.GetUserDataDir()}");
-            Logger.Info($"config dir   : {OS.GetConfigDir()}");
-            Logger.Info($"cache dir    : {OS.GetCacheDir()}");
+            Logger.Info($"executable    : {OS.GetExecutablePath()}");
+            Logger.Info($"cmd line args : {string.Join(" ", OS.GetCmdlineArgs())}");
+            Logger.Info($"app version   : {AppInfo.Version}");
+            Logger.Info($"features      : {string.Join(", ", FeatureFlags.GetActiveList())}");
+            Logger.Info($"name host     : {OS.GetName()}");
+            Logger.Info($"data dir      : {OS.GetDataDir()}");
+            Logger.Info($"user data dir : {OS.GetUserDataDir()}");
+            Logger.Info($"config dir    : {OS.GetConfigDir()}");
+            Logger.Info($"cache dir     : {OS.GetCacheDir()}");
+            Logger.Info($"permissions   : {string.Join(", ", OS.GetGrantedPermissions())}");
+            Logger.Info($"processor name: {OS.GetProcessorName()}");
+            Logger.Info($"processors    : {OS.GetProcessorCount().ToString()}");
+            Logger.Info($"locale        : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
             new[] {
                     "logging/file_logging/enable_file_logging",
                     "logging/file_logging/enable_file_logging.pc",
@@ -69,11 +72,10 @@ namespace Veronenger.Game.Managers.Autoload {
         }
 
         public override void _Ready() {
-            Logger.Info($"Bootstrap time: {Uptime.TotalMilliseconds} ms");
+            Logger.Info($"Bootstrap time: {FeatureFlags.Uptime.TotalMilliseconds} ms");
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             MainLoopNotificationsHandler.OnWmQuitRequest += () => {
-                var timespan = Uptime;
-                var elapsed = $"{(int)timespan.TotalMinutes} min {timespan.Seconds:00} sec";
+                var elapsed = $"{(int)FeatureFlags.Uptime.TotalMinutes} min {FeatureFlags.Uptime.Seconds:00} sec";
                 Logger.Info("User requested exit the application. Uptime: " + elapsed);
             };
         }
