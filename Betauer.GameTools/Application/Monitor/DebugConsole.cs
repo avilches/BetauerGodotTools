@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer.Input;
 using Betauer.Nodes;
+using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
@@ -41,8 +43,14 @@ namespace Betauer.Application.Monitor {
         }
         
         private static readonly int DebugConsoleLayoutEnumSize = Enum.GetNames(typeof(LayoutEnum)).Length;
+        private const float InitialTransparentBackground = 0.8f;
         public enum LayoutEnum {
-            UpQuarter, UpThird, UpHalf, DownHalf, DownThird, DownQuarter
+            UpQuarter = 5, 
+            UpThird = 4, 
+            UpHalf = 3, 
+            DownHalf = 2,
+            DownThird = 1,
+            DownQuarter = 0
         }
         private int _historyPos = -1;
         private string? _historyBuffer = null;
@@ -58,10 +66,11 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole() {
             this.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
-    help           : List all available commands.
-    help <command> : Show help about a specific command.");
+    [color=#ffffff]help          [/color] : List all available commands.
+    [color=#ffffff]help <command>[/color] : Show help about a specific command.");
             this.AddEngineTimeScale();
             this.AddEngineTargetFps();
+            this.AddClearConsole();
             this.AddQuit();
         }
 
@@ -80,9 +89,9 @@ namespace Betauer.Application.Monitor {
                     AnchorBottom = 0.33f;
                 } else if (_layout == LayoutEnum.UpHalf) {
                     AnchorTop = 0;
-                    AnchorBottom = 0.75f;
+                    AnchorBottom = 0.5f;
                 } else if (_layout == LayoutEnum.DownHalf) {
-                    AnchorTop = 0.75f;
+                    AnchorTop = 0.5f;
                     AnchorBottom = 1;
                 } else if (_layout == LayoutEnum.DownThird) {
                     AnchorTop = 0.66f;
@@ -99,26 +108,29 @@ namespace Betauer.Application.Monitor {
             ConsoleOutput.Newline();
             return this;
         }
+        
         private void OnHelp(string[] arguments, RichTextLabel _) {
             if (arguments.Length == 0) {
+                var commands = Commands.Values.OrderBy(command => command.Name).ToList();
+                var maxLength = commands.Max(command => command.Name.Length);
                 WriteLine();
-                WriteLine("Press Shift+Up or Shift+Down to change the console size.");
+                WriteLine("Press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
                 WriteLine();
-                WriteLine("Available commands:");
+                WriteLine("Commands:");
                 WriteLine();
-                foreach (var command in Commands.Values) {
-                    WriteLine($"    [color=#ffffff]{command.Name}[/color]: {command.ShortHelp}");
+                foreach (var command in commands) {
+                    WriteLine($"    [color=#ffffff]{command.Name.PadRight(maxLength)}[/color] : {command.ShortHelp}");
                 }
                 WriteLine();
-                WriteLine("Type `help <command>` to get more info about a command");
+                WriteLine("Type `help <command>` to get more info about a command.");
             } else {
                 var commandName = arguments[0];
                 if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
                     if (command.LongHelp != null) {
-                        WriteLine($"Help for command `{command.Name}`:");
+                        WriteLine($"Help for command `{command.Name}`");
                         WriteLine(command.LongHelp);
                     } else {
-                        WriteLine($"Command `{commandName}` doesn't have help.");
+                        WriteLine($"No help for command `{commandName}`.");
                     }
                 } else {
                     WriteLine($"Error getting help: command `{commandName}` not found.");
@@ -128,10 +140,6 @@ namespace Betauer.Application.Monitor {
         
         public DebugConsole AddCommand(ICommand command) {
             Commands[command.Name.ToLower()] = command;
-            return this;
-        }
-        public DebugConsole Awake() {
-            SetProcessInput(true);
             return this;
         }
 
@@ -173,7 +181,6 @@ namespace Betauer.Application.Monitor {
                                 text.BbcodeEnabled = true;
                                 text.SelectionEnabled = true;
                                 text.ScrollFollowing = true;
-                                text.PushColor(new Color(0.75f, 0.75f, 0.75f));
                             })
                         .End()
                         .Child<HBoxContainer>()
@@ -196,15 +203,25 @@ namespace Betauer.Application.Monitor {
                                     text.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
                                     text.CaretBlink = true;
                                     text.CaretBlinkSpeed = 0.250f;
-                                    text.SetFontColor(new Color(0.75f, 0.75f, 0.75f));
                                     text.GrabFocus();
+                                })
+                            .End()
+                            .Child<HSlider>()
+                                .Config(slider => {
+                                    slider.Editable = true;
+                                    slider.HintTooltip = "Opacity";
+                                    slider.RectMinSize = new Vector2(50, 5);
+                                    slider.Value = InitialTransparentBackground * 25f;
+                                    slider.OnValueChanged((value) => SelfModulate = new Color(1, 1, 1, value/25f));
+                                    slider.MaxValue = 25f;
+                                    slider.MinValue = 0f;
                                 })
                             .End()
                         .End()
                     .End()
                 .End();
             
-            SelfModulate = new Color(1, 1, 1, 0.8f);
+            SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
             Layout = LayoutEnum.DownThird;
         }
 
@@ -216,11 +233,11 @@ namespace Betauer.Application.Monitor {
         private void OnConsoleInputKeyEvent(InputEventKey eventKey) {
             if (eventKey.IsKeyJustPressed(KeyList.Enter) || eventKey.IsKeyJustPressed(KeyList.KpEnter)) {
                 OnTextEntered(ConsoleInput.Text);
-            } else if (eventKey.IsKeyJustPressed(KeyList.Up) && eventKey.HasShift()) {
-                var newState = Math.Max((int)_layout - 1, 0);
-                Layout = (LayoutEnum)newState;
-            } else if (eventKey.IsKeyJustPressed(KeyList.Down) && eventKey.HasShift()) {
+            } else if (eventKey.IsKeyJustPressed(KeyList.Up) && (eventKey.HasAlt() || eventKey.HasMeta())) {
                 var newState = Math.Min((int)_layout + 1, DebugConsoleLayoutEnumSize - 1);
+                Layout = (LayoutEnum)newState;
+            } else if (eventKey.IsKeyJustPressed(KeyList.Down) && (eventKey.HasAlt() || eventKey.HasMeta())) {
+                var newState = Math.Max((int)_layout - 1, 0);
                 Layout = (LayoutEnum)newState;
             } else if (eventKey.IsKeyJustPressed(KeyList.Up)) OnHistoryUp();
             else if (eventKey.IsKeyJustPressed(KeyList.Down)) OnHistoryDown();
