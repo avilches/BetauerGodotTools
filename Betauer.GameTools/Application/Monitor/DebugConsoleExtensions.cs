@@ -45,7 +45,8 @@ namespace Betauer.Application.Monitor {
                     }
                     console.WriteLine();
                     console.WriteLine("Type `help <command>` to get more info about a command.");
-                    console.WriteLine("Tip: press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
+                    console.WriteLine("Press [color=#ffffff]Tab[/color] / [color=#ffffff]Shift+Tab[/color] to autocomplete commands.");
+                    console.WriteLine("Press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
                 } else {
                     var commandName = arguments[0];
                     if (console.Commands.TryGetValue(commandName.ToLower(), out var command)) {

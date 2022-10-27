@@ -57,11 +57,14 @@ namespace Betauer.Application.Monitor {
         private bool IsBrowsingHistory => _historyPos > -1;
         private LayoutEnum _layout = LayoutEnum.DownThird;
         private readonly CommandInput _commandInput = new();
+        private bool IsAutoCompleting => _caretAutoCompleting > 0;
+        private readonly List<string> _sortedCommandList = new();        
+        private int _caretAutoCompleting = -1;
 
         public DebugOverlayManager DebugOverlayManager { get; }
         public readonly Dictionary<string, ICommand> Commands = new();        
         public readonly RichTextLabel ConsoleOutput = new();
-        public readonly LineEdit ConsoleInput = new();
+        public readonly LineEdit Prompt = new();
         public readonly List<string> History = new();
 
         public DebugConsole(DebugOverlayManager debugOverlayManager) {
@@ -111,6 +114,8 @@ namespace Betauer.Application.Monitor {
         
         public DebugConsole AddCommand(ICommand command) {
             Commands[command.Name.ToLower()] = command;
+            _sortedCommandList.Add(command.Name.ToLower());
+            _sortedCommandList.Sort();
             return this;
         }
 
@@ -121,7 +126,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole Enable(bool enable = true) {
             Visible = enable;
-            if (enable) ConsoleInput.GrabFocus();
+            if (enable) Prompt.GrabFocus();
             SetProcessInput(enable);
             return this;
         }
@@ -164,9 +169,9 @@ namespace Betauer.Application.Monitor {
                                     label.Text = ">";
                                 })
                             .End()
-                            .Child(ConsoleInput)
-                                .Config(text => {
-                                    text.Name = nameof(ConsoleInput);
+                            .Child(Prompt)
+                                .Config(prompt => {
+                                    prompt.Name = nameof(Prompt);
                                     var style = new StyleBoxFlat() {
                                         BgColor = DebugOverlay.ColorInvisible,
                                         BorderWidthTop = 0,
@@ -174,12 +179,13 @@ namespace Betauer.Application.Monitor {
                                         BorderWidthBottom = 0,
                                         BorderWidthLeft = 0
                                     };
-                                    text.AddStyleboxOverride("normal", style);
-                                    text.AddStyleboxOverride("focus", style);
-                                    text.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
-                                    text.CaretBlink = true;
-                                    text.CaretBlinkSpeed = 0.250f;
-                                    text.GrabFocus();
+                                    prompt.AddStyleboxOverride("normal", style);
+                                    prompt.AddStyleboxOverride("focus", style);
+                                    prompt.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
+                                    prompt.CaretBlink = true;
+                                    prompt.CaretBlinkSpeed = 0.250f;
+                                    prompt.GrabFocus();
+                                    prompt.OnTextChanged((_) => _caretAutoCompleting = -1);         
                                 })
                             .End()
                             .Child<HSlider>()
@@ -204,27 +210,37 @@ namespace Betauer.Application.Monitor {
         }
 
         private void SetConsoleInputText(string text) {
-            ConsoleInput.Text = text;
-            ConsoleInput.CaretPosition = text.Length;
+            Prompt.Text = text;
+            Prompt.CaretPosition = text.Length;
         }
 
         private void OnConsoleInputKeyEvent(InputEventKey eventKey) {
             if (eventKey.IsKeyJustPressed(KeyList.Enter) || eventKey.IsKeyJustPressed(KeyList.KpEnter)) {
-                OnTextEntered(ConsoleInput.Text);
+                OnTextEntered(Prompt.Text);
+                
             } else if (eventKey.IsKeyJustPressed(KeyList.Up) && (eventKey.HasAlt() || eventKey.HasMeta())) {
                 var newState = Math.Min((int)_layout + 1, DebugConsoleLayoutEnumSize - 1);
                 Layout = (LayoutEnum)newState;
+                GetTree().SetInputAsHandled();
+                
             } else if (eventKey.IsKeyJustPressed(KeyList.Down) && (eventKey.HasAlt() || eventKey.HasMeta())) {
                 var newState = Math.Max((int)_layout - 1, 0);
                 Layout = (LayoutEnum)newState;
-            } else if (eventKey.IsKeyJustPressed(KeyList.Up)) OnHistoryUp();
-            else if (eventKey.IsKeyJustPressed(KeyList.Down)) OnHistoryDown();
+                GetTree().SetInputAsHandled();
+                
+            } else if (eventKey.IsKeyJustPressed(KeyList.Up)) {
+                OnHistoryUp();
+            } else if (eventKey.IsKeyJustPressed(KeyList.Down)) {
+                OnHistoryDown();
+            } else if (eventKey.IsKeyJustPressed(KeyList.Tab)) {
+                OnAutocomplete(eventKey.HasShift() ? -1 : 1);
+            }
         }
 
         public override void _Input(InputEvent @event) {
             if (!Visible) {
                 SetProcessInput(false);
-            } else if (ConsoleInput.HasFocus() && @event is InputEventKey eventKey) {
+            } else if (Prompt.HasFocus() && @event is InputEventKey eventKey) {
                 OnConsoleInputKeyEvent(eventKey);
             }
         }
@@ -261,7 +277,6 @@ namespace Betauer.Application.Monitor {
             return $"Command `{commandName}` not found. Type `help` to list all available commands.";
         }
 
-
         private void OnHistoryUp() {
             if (IsBrowsingHistory) {
                 if (_historyPos > 0) {
@@ -270,7 +285,7 @@ namespace Betauer.Application.Monitor {
                 }
             } else if (History.Count > 0) {
                 // Start browsing
-                _historyBuffer = ConsoleInput.Text;
+                _historyBuffer = Prompt.Text;
                 _historyPos = History.Count - 1;
                 SetConsoleInputText(History[_historyPos]);
             }
@@ -286,6 +301,25 @@ namespace Betauer.Application.Monitor {
                 } else {
                     _historyPos += 1;
                     SetConsoleInputText(History[_historyPos]);
+                }
+            }
+            GetTree().SetInputAsHandled();
+        }
+
+        private void OnAutocomplete(int next) {
+            if (!IsAutoCompleting) _caretAutoCompleting = Prompt.CaretPosition;
+            var caret = _caretAutoCompleting;            
+            if (caret != 0 && Prompt.Text.IndexOf(" ", StringComparison.Ordinal) <= -1) {
+                var promptText = Prompt.Text;
+                var autocompleteFrom = promptText[..caret].ToLower();
+                var matches = _sortedCommandList
+                    .Where(command => command.StartsWith(autocompleteFrom))
+                    .ToList();
+                if (matches.Count > 0) {
+                    var found = matches.IndexOf(promptText);
+                    found =(found + next).Mod(matches.Count);
+                    Prompt.Text = matches[found];
+                    Prompt.CaretPosition = Prompt.Text.Length;
                 }
             }
             GetTree().SetInputAsHandled();
