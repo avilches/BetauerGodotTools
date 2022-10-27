@@ -85,7 +85,6 @@ namespace Betauer.Input {
             && (deviceId == -1 || input.Device == deviceId)
             && (JoystickList)k.ButtonIndex == button && input.IsReleased();
 
-        
         // Keys
         public static bool IsAnyKey(this InputEvent input) =>
             input is InputEventKey;
@@ -112,13 +111,26 @@ namespace Betauer.Input {
         public static bool IsKeyReleased(this InputEvent input, KeyList scancode) =>
             input is InputEventKey k && (KeyList)k.Scancode == scancode && input.IsReleased();
 
-        
-        // Mouse
+        /*
+         * Mouse
+         */
         public static bool IsMouse(this InputEvent input) =>
             input is InputEventMouse;
 
         public static bool IsMouseMotion(this InputEvent input) =>
             input is InputEventMouseMotion;
+
+        public static Vector2 GetMousePosition(this InputEvent input) =>
+            input is InputEventMouse m ? m.Position : Vector2.Zero;
+
+        public static Vector2 GetMouseGlobalPosition(this InputEvent input) =>
+            input is InputEventMouse m ? m.GlobalPosition : Vector2.Zero;
+
+        /*
+         * Any click
+         */
+        public static ButtonList GetClick(this InputEvent input) =>
+            input is InputEventMouseButton k ? (ButtonList)k.ButtonIndex : ButtonList.MaskXbutton2;
 
         public static bool IsClick(this InputEvent input) =>
             input is InputEventMouseButton;
@@ -127,41 +139,7 @@ namespace Betauer.Input {
             input is InputEventMouseButton k &&
             (ButtonList)k.ButtonIndex == button;
 
-        public static Vector2 GetMousePosition(this InputEvent input) =>
-            input is InputEventMouse m ? m.Position : Vector2.Zero;
-
-        public static Vector2 GetMouseGlobalPosition(this InputEvent input) =>
-            input is InputEventMouse m ? m.GlobalPosition : Vector2.Zero;
-
-        public static bool IsDoubleClick(this InputEvent input) =>
-            input is InputEventMouseButton { Doubleclick: true };
-
-        public static bool IsDoubleClick(this InputEvent input, ButtonList button) =>
-            input.IsClick(button) && input.IsDoubleClick();
-
-        public static bool IsLeftClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Left);
-
-        public static bool IsLeftDoubleClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Left) && input.IsDoubleClick();
-
-        public static bool IsMiddleClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Middle);
-
-        public static bool IsMiddleDoubleClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Middle) && input.IsDoubleClick();
-
-        public static bool IsRightClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Right);
-
-        public static bool IsRightDoubleClick(this InputEvent input) => 
-            input.IsClick(ButtonList.Right) && input.IsDoubleClick();
-
-        public static ButtonList GetClick(this InputEvent input) =>
-            input is InputEventMouseButton k ? (ButtonList)k.ButtonIndex : ButtonList.MaskXbutton2;
-
         // This include echoes
-        // TODO: it needs the Left and Right version of Pressed, JustPressed and Released
         public static bool IsClickPressed(this InputEvent input, ButtonList button) =>
             input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && k.Pressed;
 
@@ -170,6 +148,71 @@ namespace Betauer.Input {
 
         public static bool IsClickReleased(this InputEvent input, ButtonList button) =>
             input is InputEventMouseButton k && (ButtonList)k.ButtonIndex == button && input.IsReleased();
+
+        public static bool IsDoubleClick(this InputEvent input) =>
+            input is InputEventMouseButton { Doubleclick: true };
+
+        public static bool IsDoubleClick(this InputEvent input, ButtonList button) =>
+            input.IsClick(button) && input.IsDoubleClick();
+
+
+        /*
+         * Left click
+         */
+        public static bool IsLeftClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Left);
+
+        // This include echoes
+        public static bool IsLeftClickPressed(this InputEvent input) =>
+            input.IsClickPressed(ButtonList.Left);
+
+        public static bool IsLeftClickJustPressed(this InputEvent input) =>
+            input.IsClickJustPressed(ButtonList.Left);
+
+        public static bool IsLeftClickReleased(this InputEvent input) =>
+            input.IsClickReleased(ButtonList.Left);
+
+        public static bool IsLeftDoubleClick(this InputEvent input) =>
+            input.IsDoubleClick(ButtonList.Left);
+
+        /*
+         * Middle click
+         */
+        public static bool IsMiddleClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Middle);
+
+        // This include echoes
+        public static bool IsMiddleClickPressed(this InputEvent input) =>
+            input.IsClickPressed(ButtonList.Middle);
+
+        public static bool IsMiddleClickJustPressed(this InputEvent input) =>
+            input.IsClickJustPressed(ButtonList.Middle);
+
+        public static bool IsMiddleClickReleased(this InputEvent input) =>
+            input.IsClickReleased(ButtonList.Middle);
+
+        public static bool IsMiddleDoubleClick(this InputEvent input) =>
+            input.IsDoubleClick(ButtonList.Middle);
+
+        /*
+         * Right click
+         */
+        public static bool IsRightClick(this InputEvent input) => 
+            input.IsClick(ButtonList.Right);
+
+        // This include echoes
+        public static bool IsRightClickPressed(this InputEvent input) =>
+            input.IsClickPressed(ButtonList.Right);
+
+        public static bool IsRightClickJustPressed(this InputEvent input) =>
+            input.IsClickJustPressed(ButtonList.Right);
+
+        public static bool IsRightClickReleased(this InputEvent input) =>
+            input.IsClickReleased(ButtonList.Right);
+
+        public static bool IsRightDoubleClick(this InputEvent input) =>
+            input.IsDoubleClick(ButtonList.Right);
+
 
         
     }
