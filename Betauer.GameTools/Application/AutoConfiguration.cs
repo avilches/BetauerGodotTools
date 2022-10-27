@@ -16,12 +16,11 @@ namespace Betauer.Application {
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
     public abstract class AutoConfiguration : Node {
-        protected readonly Container Container = new Container();
-        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler = new();
-        protected readonly DebugOverlayManager DebugOverlayManagerInstance = new();
+        protected readonly Container Container;
+        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler;
+        protected readonly DebugOverlayManager DebugOverlayManagerInstance;
 
         [Service] public Consumer Consumer => DefaultObjectWatcherTask.Instance;
-        [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
         [Service] public SceneTree SceneTree => GetTree();
         [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
         [Service] public DebugOverlayManager DebugOverlayManager => DebugOverlayManagerInstance;
@@ -36,6 +35,14 @@ namespace Betauer.Application {
 
         public void EnableAddSingletonNodesToTree(bool enabled) => _addSingletonNodesToTree = enabled;
         public void SetObjectWatcherTimer(float watchTimer) => _objectWatcherTimer = watchTimer;
+
+
+        protected AutoConfiguration() {
+            Container = new Container();
+            MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
+            DebugOverlayManagerInstance = new DebugOverlayManager();
+            AddChild(DefaultNodeHandler.Instance);
+        }
 
         public override void _EnterTree() {
             // It can't be called before _EnterTree because the SceneTree is exposed as a service using GetTree()
@@ -63,6 +70,9 @@ namespace Betauer.Application {
             DefaultObjectWatcherTask.Instance.Start(GetTree(), _objectWatcherTimer);
             PauseMode = PauseModeEnum.Process;
             this.OnReady(() => _isReady = true, true);
+            
+            DebugOverlayManager.DebugConsole.AddNodeHandlerInfoCommand();
+            DebugOverlayManager.DebugConsole.AddSignalManagerCommand();
         }
 
         private void StartContainer() {
