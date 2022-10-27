@@ -61,6 +61,7 @@ namespace Betauer.Application.Monitor {
         private readonly List<string> _sortedCommandList = new();        
         private int _caretAutoCompleting = -1;
 
+        private readonly Mouse.InsideControl _mouseInsidePanel;
         public DebugOverlayManager DebugOverlayManager { get; }
         public readonly Dictionary<string, ICommand> Commands = new();        
         public readonly RichTextLabel ConsoleOutput = new();
@@ -69,6 +70,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole(DebugOverlayManager debugOverlayManager) {
             DebugOverlayManager = debugOverlayManager;
+            _mouseInsidePanel = new Mouse.InsideControl(ConsoleOutput).Disconnect();
         }
 
         public LayoutEnum Layout {
@@ -125,8 +127,14 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugConsole Enable(bool enable = true) {
+            if (Visible == enable) return this;
             Visible = enable;
-            if (enable) Prompt.GrabFocus();
+            if (enable) {
+                _mouseInsidePanel.Connect();
+                Prompt.GrabFocus();
+            } else {
+                _mouseInsidePanel.Disconnect();
+            }
             SetProcessInput(enable);
             return this;
         }
@@ -195,7 +203,10 @@ namespace Betauer.Application.Monitor {
                                     slider.HintTooltip = "Opacity";
                                     slider.RectMinSize = new Vector2(50, 5);
                                     slider.Value = InitialTransparentBackground * 25f;
-                                    slider.OnValueChanged((value) => SelfModulate = new Color(1, 1, 1, value/25f));
+                                    slider.OnValueChanged((value) => {
+                                        SelfModulate = new Color(1, 1, 1, value / 25f);
+                                        Prompt.GrabFocus();
+                                    });
                                     slider.MaxValue = 25f;
                                     slider.MinValue = 0f;
                                 })
@@ -242,7 +253,9 @@ namespace Betauer.Application.Monitor {
                 SetProcessInput(false);
             } else if (Prompt.HasFocus() && @event is InputEventKey eventKey) {
                 OnConsoleInputKeyEvent(eventKey);
-            }
+            } else if (@event.IsLeftClickJustPressed() && _mouseInsidePanel.Inside) {
+                Prompt.GrabFocus();
+            } 
         }
         
         private void OnTextEntered(string text) {

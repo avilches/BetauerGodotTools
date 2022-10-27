@@ -41,9 +41,10 @@ namespace Betauer.Application.Monitor {
         public Object? Watch { get; set; }
         public Func<bool>? RemoveIfFunc { get; private set; }
 
-        public TBuilder Enable(bool enabled = true) {
-            Visible = enabled;
-            SetProcess(enabled);
+        public TBuilder Enable(bool enable = true) {
+            if (Visible == enable) return this as TBuilder;
+            Visible = enable;
+            SetProcess(enable);
             return this as TBuilder;
         }
 

@@ -73,7 +73,7 @@ namespace Betauer.Application.Monitor {
 
         internal DebugOverlay(DebugOverlayManager debugOverlayManager, int id) {
             DebugOverlayManager = debugOverlayManager;
-            _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
+            _mouseInsidePanel = new Mouse.InsideControl(TopBarColor).Disconnect();
             _position = new Vector2(id * 16, id * 16);
             Name = $"DebugOverlay-{id}";
             Id = id;
@@ -176,11 +176,17 @@ namespace Betauer.Application.Monitor {
             return Add((Node)monitor);
         }
 
-        public DebugOverlay Enable(bool enabled = true) {
-            Visible = enabled;
-            SetProcess(enabled);
-            SetProcessInput(enabled);
-            SetProcess(enabled);
+        public DebugOverlay Enable(bool enable = true) {
+            if (Visible == enable) return this;
+            Visible = enable;
+            if (enable) {
+                _mouseInsidePanel.Connect();
+            } else {
+                _mouseInsidePanel.Disconnect();
+            }
+            SetProcess(enable);
+            SetProcessInput(enable);
+            SetProcess(enable);
             return this;
         }
 

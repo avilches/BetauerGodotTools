@@ -84,6 +84,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlayManager Enable(bool enable = true) {
+            if (Visible == enable) return this;
             if (enable) {
                 if (DebugConsole.Visible) DebugConsole.Enable();
                 Visible = true;
