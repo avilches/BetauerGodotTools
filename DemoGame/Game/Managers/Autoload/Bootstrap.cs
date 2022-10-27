@@ -44,6 +44,8 @@ namespace Veronenger.Game.Managers.Autoload {
             Logger.Info($"config dir    : {OS.GetConfigDir()}");
             Logger.Info($"cache dir     : {OS.GetCacheDir()}");
             Logger.Info($"permissions   : {string.Join(", ", OS.GetGrantedPermissions())}");
+            Logger.Info($"video name    : {VisualServer.GetVideoAdapterName()}");
+            Logger.Info($"video vendor  : {VisualServer.GetVideoAdapterVendor()}");
             Logger.Info($"processor name: {OS.GetProcessorName()}");
             Logger.Info($"processors    : {OS.GetProcessorCount().ToString()}");
             Logger.Info($"locale        : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
