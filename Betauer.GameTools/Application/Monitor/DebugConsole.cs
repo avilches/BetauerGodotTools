@@ -14,7 +14,7 @@ namespace Betauer.Application.Monitor {
             string Name { get; }
             string ShortHelp { get; }
             string? LongHelp { get; }
-            void Execute(CommandInput input, RichTextLabel output);
+            void Execute(CommandInput input);
         }
 
         public class CommandInput {
@@ -28,17 +28,17 @@ namespace Betauer.Application.Monitor {
             public string Name { get; }
             public string ShortHelp { get; }
             public string? LongHelp { get; }
-            private readonly Action<CommandInput, RichTextLabel> _execute;
+            private readonly Action<CommandInput> _execute;
 
-            public Command(string name, Action<CommandInput, RichTextLabel> execute, string shortHelp, string? longHelp) {
+            public Command(string name, Action<CommandInput> execute, string shortHelp, string? longHelp) {
                 Name = name;
                 ShortHelp = shortHelp;
                 LongHelp = longHelp;
                 _execute = execute;
             }
 
-            public void Execute(CommandInput input, RichTextLabel output) {
-                _execute(input, output);
+            public void Execute(CommandInput input) {
+                _execute(input);
             }
         }
         
@@ -66,13 +66,6 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole(DebugOverlayManager debugOverlayManager) {
             DebugOverlayManager = debugOverlayManager;
-            this.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
-    [color=#ffffff]help          [/color] : List all available commands.
-    [color=#ffffff]help <command>[/color] : Show help about a specific command.");
-            this.AddEngineTimeScale();
-            this.AddEngineTargetFps();
-            this.AddClearConsoleCommand();
-            this.AddQuitCommand();
         }
 
         public LayoutEnum Layout {
@@ -110,39 +103,9 @@ namespace Betauer.Application.Monitor {
             return this;
         }
         
-        private void OnHelp(string[] arguments, RichTextLabel _) {
-            if (arguments.Length == 0) {
-                var commands = Commands.Values.OrderBy(command => command.Name).ToList();
-                var maxLength = commands.Max(command => command.Name.Length);
-                WriteLine();
-                WriteLine("Press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
-                WriteLine();
-                WriteLine("Commands:");
-                WriteLine();
-                foreach (var command in commands) {
-                    WriteLine($"    [color=#ffffff]{command.Name.PadRight(maxLength)}[/color] : {command.ShortHelp}");
-                }
-                WriteLine();
-                WriteLine("Type `help <command>` to get more info about a command.");
-            } else {
-                var commandName = arguments[0];
-                if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
-                    if (!string.IsNullOrWhiteSpace(command.LongHelp)) {
-                        WriteLine(command.LongHelp);
-                    } else if (!string.IsNullOrWhiteSpace(command.ShortHelp)) {
-                        WriteLine(command.ShortHelp);
-                    } else {
-                        WriteLine($"No help for command `{commandName}`.");
-                    }
-                } else {
-                    WriteLine($"Error getting help: command `{commandName}` not found.");
-                }
-            }
-        }
-
-        public DebugConsole ClearScreen() {
+        public DebugConsole ClearConsole() {
             ConsoleOutput.Clear();
-            ConsoleOutput.PushColor(new Color(0.85f, 0.85f, 0.85f));
+            ConsoleOutput.PushColor(new Color(0.8f, 0.8f, 0.8f));
             return this;
         }
         
@@ -231,7 +194,7 @@ namespace Betauer.Application.Monitor {
             
             SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
             Layout = LayoutEnum.DownThird;
-            ClearScreen();
+            ClearConsole();
         }
 
         private void SetConsoleInputText(string text) {
@@ -277,7 +240,7 @@ namespace Betauer.Application.Monitor {
                     _commandInput.Name = commandName;
                     _commandInput.ArgumentString = argumentString;
                     _commandInput.Arguments = arguments;
-                    command.Execute(_commandInput, ConsoleOutput);
+                    command.Execute(_commandInput);
                 } else {
                     WriteLine(ErrorCommandNotFound(commandName));
                 }

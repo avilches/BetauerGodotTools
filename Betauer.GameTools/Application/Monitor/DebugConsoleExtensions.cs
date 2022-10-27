@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer.Nodes;
 using Betauer.Signal;
 using Godot;
@@ -19,41 +20,58 @@ namespace Betauer.Application.Monitor {
     }
 
     public static class DebugConsoleExtensions {
-        public static DebugConsole CreateCommand(this DebugConsole console, string name,
-            Action<string[], RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.CreateCommand(name, (input, output) => execute(input.Arguments, output), shortHelp,
-                longHelp);
+        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<string[]> executeWithArguments, string shortHelp, string? longHelp = null) {
+            return console.CreateCommand(name, (input) => executeWithArguments(input.Arguments), shortHelp, longHelp);
+        }
+
+        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action execute, string shortHelp, string? longHelp = null) {
+            return console.CreateCommand(name, executeWithCommandInput: (_) => execute(), shortHelp, longHelp);
         }
 
         public static DebugConsole CreateCommand(this DebugConsole console, string name,
-            Action<string, RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.CreateCommand(name, (input, output) => execute(input.ArgumentString, output), shortHelp,
-                longHelp);
+            Action<DebugConsole.CommandInput> executeWithCommandInput, string shortHelp, string? longHelp = null) {
+            return console.AddCommand(new DebugConsole.Command(name, executeWithCommandInput, shortHelp, longHelp));
         }
 
-        public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<RichTextLabel> execute,
-            string shortHelp, string? longHelp = null) {
-            return console.CreateCommand(name, (input, output) => {
-                var _ = input.ArgumentString;
-                execute(output);
-            }, shortHelp, longHelp);
+        public static DebugConsole AddHelpCommand(this DebugConsole console) {
+            void OnHelp(string[] arguments) {
+                if (arguments.Length == 0) {
+                    var commands = console.Commands.Values.OrderBy(command => command.Name).ToList();
+                    var maxLength = commands.Max(command => command.Name.Length);
+                    console.WriteLine("Commands:");
+                    console.WriteLine();
+                    foreach (var command in commands) {
+                        console.WriteLine($"    [color=#ffffff]{command.Name.PadRight(maxLength)}[/color] : {command.ShortHelp}");
+                    }
+                    console.WriteLine();
+                    console.WriteLine("Type `help <command>` to get more info about a command.");
+                    console.WriteLine("Tip: press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
+                } else {
+                    var commandName = arguments[0];
+                    if (console.Commands.TryGetValue(commandName.ToLower(), out var command)) {
+                        if (!string.IsNullOrWhiteSpace(command.LongHelp)) {
+                            console.WriteLine(command.LongHelp);
+                        } else if (!string.IsNullOrWhiteSpace(command.ShortHelp)) {
+                            console.WriteLine(command.ShortHelp);
+                        } else {
+                            console.WriteLine($"No help for command `{commandName}`.");
+                        }
+                    } else {
+                        console.WriteLine($"Error getting help: command `{commandName}` not found.");
+                    }
+                }
+            }
+            return console.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
+    [color=#ffffff]help          [/color] : List all available commands.
+    [color=#ffffff]help <command>[/color] : Show help about a specific command.");
+            
         }
 
-        public static DebugConsole CreateCommand(this DebugConsole console, string name,
-            Action<DebugConsole.CommandInput, RichTextLabel> execute, string shortHelp, string? longHelp = null) {
-            return console.AddCommand(new DebugConsole.Command(name, execute, shortHelp, longHelp));
-        }
-
-        public static DebugConsole CreateCommand(this DebugConsole console, string name,
-            Action execute, string shortHelp, string? longHelp = null) {
-            return console.AddCommand(new DebugConsole.Command(name, (_,_) => execute(), shortHelp, longHelp));
-        }
-
-        public static DebugConsole AddEngineTimeScale(this DebugConsole console) {
+        public static DebugConsole AddEngineTimeScaleCommand(this DebugConsole console) {
             const string help = @"Usage:
     [color=#ffffff]timescale        [/color] : Get the current time scale.
     [color=#ffffff]timescale <float>[/color] : Set the time scale to <number>.";
-            return console.CreateCommand("timescale", (input, output) => {
+            return console.CreateCommand("timescale", (input) => {
                 if (input.Arguments.Length == 0) {
                     console.WriteLine($"Current time scale: {Engine.TimeScale.ToString()}");
                 } else if (input.Arguments[0].IsValidFloat()) {
@@ -67,11 +85,11 @@ namespace Betauer.Application.Monitor {
             }, "Show or change the time scale.", help);
         }
 
-        public static DebugConsole AddEngineTargetFps(this DebugConsole console) {
+        public static DebugConsole AddEngineTargetFpsCommand(this DebugConsole console) {
             const string help = @"Usage:
     [color=#ffffff]fps          [/color] : Get the current target fps.
     [color=#ffffff]fps <integer>[/color] : Set the target fps to <number>.";
-            return console.CreateCommand("fps", (input, output) => {
+            return console.CreateCommand("fps", (input) => {
                 if (input.Arguments.Length == 0) {
                     console.WriteLine($"Current target fps: {Engine.TargetFps.ToString()}");
                 } else if (input.Arguments[0].IsValidInteger()) {
@@ -117,7 +135,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public static DebugConsole AddClearConsoleCommand(this DebugConsole console) {
-            return console.CreateCommand("clear", (output) => output.Text = "", "Clear the console screen.");
+            return console.CreateCommand("clear", () => console.ClearConsole(), "Clear the console screen.");
         }
     }
 }

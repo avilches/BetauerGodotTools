@@ -71,6 +71,11 @@ namespace Betauer.Application {
             PauseMode = PauseModeEnum.Process;
             this.OnReady(() => _isReady = true, true);
             
+            DebugOverlayManager.DebugConsole.AddHelpCommand();
+            DebugOverlayManager.DebugConsole.AddEngineTimeScaleCommand();
+            DebugOverlayManager.DebugConsole.AddEngineTargetFpsCommand();
+            DebugOverlayManager.DebugConsole.AddClearConsoleCommand();
+            DebugOverlayManager.DebugConsole.AddQuitCommand();
             DebugOverlayManager.DebugConsole.AddNodeHandlerInfoCommand();
             DebugOverlayManager.DebugConsole.AddSignalManagerCommand();
         }
