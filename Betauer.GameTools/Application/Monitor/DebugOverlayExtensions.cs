@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
 using Betauer.Animation.Tween;
+using Betauer.Application.Screen;
+using Betauer.Nodes;
 using Betauer.Memory;
 using Betauer.Signal;
+using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
@@ -102,11 +105,12 @@ namespace Betauer.Application.Monitor {
         }
 
 
-        public static DebugOverlay AddVideoInfo(this DebugOverlay overlay) {
+        public static DebugOverlay AddMonitorVideoInfo(this DebugOverlay overlay) {
             overlay.OpenBox()
-                .Text("Resolution", () => $"{OS.GetScreenSize(OS.CurrentScreen).ToString("0")}").UpdateEvery(1f).EndMonitor()
                 .Text("Driver", () => OS.GetCurrentVideoDriver().ToString()).UpdateEvery(1f).EndMonitor()
                 .Text("Screen", () => $"#{(OS.CurrentScreen + 1).ToString()}/{OS.GetScreenCount().ToString()}").UpdateEvery(1f).EndMonitor()
+                .Text("Resolution", () => $"{OS.GetScreenSize(OS.CurrentScreen).ToString("0")}").UpdateEvery(1f).EndMonitor()
+                .Text("Window", () => $"{OS.WindowSize.ToString("0")}").UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             return overlay;
         }
@@ -133,7 +137,7 @@ namespace Betauer.Application.Monitor {
                     .EndMonitor()
                 .CloseBox()
                 .OpenBox()
-                    .Text("Resources in use/max", () => {
+                    .Text("Resources/max", () => {
                         var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectResourceCount);
                         maxResources = Math.Max(maxResources, count);
                         return $"{count.ToString()}/{maxResources.ToString()}";
@@ -152,11 +156,10 @@ namespace Betauer.Application.Monitor {
                     .Text("Signals", () => $"{DefaultSignalManager.Instance.Size.ToString()}").UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             return overlay;
-
         }
 
-        public static DebugOverlay AddMonitorFpsAndMemory(this DebugOverlay overlay) {
-            overlay
+        public static DebugOverlay AddMonitorFpsTimeScaleAndUptime(this DebugOverlay overlay) {
+            return overlay
                 .OpenBox()
                     .Text("FPS/limit", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").UpdateEvery(1f).EndMonitor()
                     .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).UpdateEvery(1f).EndMonitor()
@@ -166,14 +169,129 @@ namespace Betauer.Application.Monitor {
                     }).UpdateEvery(1f)
                     .EndMonitor()
                 .CloseBox();
-           
+        }
+
+        public static DebugOverlay AddMonitorMemory(this DebugOverlay overlay) {
             #if DEBUG
             overlay
-                .Text("Static/max", () => $"{((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()} / {((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
-                .Text("Dynamic/max", () => $"{((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()} / {((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()}").UpdateEvery(1f).EndMonitor()
+                .OpenBox()
+                .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+                .Text("Max", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+                .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+                .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             #endif
             return overlay;
+        }
+        
+        public static DebugOverlay AddMonitorScreenSettings(this DebugOverlay overlay, ScreenSettingsManager screenSettingsManager) {
+            return overlay
+                .OpenBox()
+                    .Text("Strategy", () => screenSettingsManager.ScreenService.StrategyKey.ToString()).UpdateEvery(1f).EndMonitor()
+                    .Text("Stretch", () => $"{screenSettingsManager.ScreenService.ScreenConfiguration.StretchMode.ToString()}/{screenSettingsManager.ScreenService.ScreenConfiguration.StretchAspect.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("Zoom", () => screenSettingsManager.ScreenService.ScreenConfiguration.Zoom.ToString()).UpdateEvery(1f).EndMonitor()
+                    .Text("Viewport", () => $"{overlay.GetTree().Root.Size.ToString("0")}").UpdateEvery(1f).EndMonitor()
+                .CloseBox()
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Label("Strategy").End()
+                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.WindowSize), 
+                        (button) => {
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.WindowSize);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.WindowSize)
+                    .End()
+                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.ViewportSize), 
+                        (button) => {
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.ViewportSize)
+                    .End()
+                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.IntegerScale), 
+                        (button) => {
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.IntegerScale);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.IntegerScale)
+                    .End()
+                    .TypedNode)
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Label("Mode").End()
+                    .ToggleButton(nameof(SceneTree.StretchMode.Disabled), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Disabled;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Disabled)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchMode.Mode2d), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Mode2d;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Mode2d)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchMode.Viewport), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Viewport;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Viewport)
+                    .End()
+                    .TypedNode)
+                .Add(new HBoxContainer().NodeBuilder()
+                    .Label("Aspect").End()
+                    .ToggleButton(nameof(SceneTree.StretchAspect.Ignore), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Ignore;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Ignore)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchAspect.Expand), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Expand)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchAspect.Keep), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Keep;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Keep)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchAspect.KeepHeight), 
+                        (button) => {
+                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepHeight;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.KeepHeight)
+                    .End()
+                    .ToggleButton(nameof(SceneTree.StretchAspect.KeepWidth), 
+                        () => {
+                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepWidth;
+                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                        }, 
+                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.KeepWidth)
+                    .End()
+                    .TypedNode);
+            }
+
+        private static Action<Button> Toggle(Func<bool> func) {
+            return (button) => {
+                button.ToggleMode = true;
+                button.Pressed = func();
+            };
         }
     }
 }

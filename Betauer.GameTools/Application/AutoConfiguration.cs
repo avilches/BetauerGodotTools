@@ -67,6 +67,11 @@ namespace Betauer.Application {
             debugConsole.AddNodeHandlerInfoCommand();
             debugConsole.AddSignalManagerCommand();
             debugConsole.AddShowAllCommand();
+            debugConsole.AddSystemInfoCommand();
+            ScreenSettingsManager? screenSettings = Container.ResolveOr<ScreenSettingsManager>(() => null);
+            if (screenSettings != null) {
+                debugConsole.AddScreenSettingsManagerMonitor(screenSettings);
+            }
         }
 
         private void StartContainer() {

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Betauer.Application.Screen;
 using Betauer.Nodes;
 using Betauer.Signal;
 using Godot;
@@ -112,27 +113,54 @@ namespace Betauer.Application.Monitor {
         }
 
         public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
-            return console.CreateCommand("node-handler", () => {
+            const string title = nameof(NodeHandler);
+            return console.CreateCommand("show-node-handler", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
-                    .Overlay("NodeHandler")
-                    .Solid()
+                    .Overlay(title)
                     .Permanent(false)
-                    .Enable()
-                    .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString)
-                    .UpdateEvery(1f);
+                    .Solid()
+                    .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
             }, "Open the NodeHandler info window.");
         }
 
         public static DebugConsole AddSignalManagerCommand(this DebugConsole console, SignalManager? signalManager = null) {
-            return console.CreateCommand("signals", () => {
+            const string title = nameof(SignalManager);
+            return console.CreateCommand("show-signals", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
-                    .Overlay("Signals")
+                    .Overlay(title)
                     .Permanent(false)
                     .Solid()
-                    .Enable()
-                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString)
-                    .UpdateEvery(1f);
+                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
             }, "Open the signals info window.");
+        }
+
+        public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {
+            const string title = "System info";
+            return console.CreateCommand("show-system-info", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .AddMonitorFpsTimeScaleAndUptime()
+                    .AddMonitorMemory()
+                    .AddMonitorInternals();
+            }, "Open the system info window.");
+        }
+
+        public static DebugConsole AddScreenSettingsManagerMonitor(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
+            const string title = nameof(ScreenSettingsManager);
+            return console.CreateCommand("show-screen-settings", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .AddMonitorVideoInfo()
+                    .AddMonitorScreenSettings(screenSettingsManager);
+            }, "Open the screen settings info window.");
         }
 
         public static DebugConsole AddClearConsoleCommand(this DebugConsole console) {

@@ -7,7 +7,6 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Nodes;
-using Betauer.Signal;
 using Betauer.StateMachine.Async;
 using Veronenger.Game.Controller.Menu;
 
@@ -62,7 +61,6 @@ namespace Veronenger.Game.Managers {
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
-        [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
@@ -93,48 +91,6 @@ namespace Veronenger.Game.Managers {
                 if (e.IsKeyPressed(KeyList.E)) {
                     // Engine.TimeScale += 0.05f;
                     // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
-                }
-                if (e.IsKeyPressed(KeyList.Key1)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key2)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Keep;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key3)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepHeight;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key4)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepWidth;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key6)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Viewport;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key7)) {
-                    ScreenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Mode2d;
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key8)) {
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.IntegerScale);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key9)) {               
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
-                }
-                if (e.IsKeyPressed(KeyList.Key0)) {
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.WindowSize);
-                    // ScreenSettingsManager.SetWindowed(ScreenSettingsManager.WindowedResolution);
                 }
             }, PauseModeEnum.Process);
             #endif
@@ -245,12 +201,6 @@ namespace Veronenger.Game.Managers {
         }
 
         private void ConfigureDebugOverlays() {
-            DefaultDebugOverlay.Solid().Title("System")
-                .AddMonitorFpsAndMemory()
-                .AddVideoInfo()
-                .AddMonitorInternals()
-                .Text(ScreenSettingsManager.GetStateAsString).EndMonitor();
-
             DebugOverlayManager.OverlayContainer.Theme = MyTheme;
             DebugOverlayManager.DebugConsole.Theme =  MainResourceLoader.DebugConsoleTheme;;
         }
