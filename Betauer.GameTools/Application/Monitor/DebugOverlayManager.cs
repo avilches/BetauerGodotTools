@@ -18,7 +18,7 @@ namespace Betauer.Application.Monitor {
             Name = nameof(OverlayContainer)
         };
         public readonly DebugConsole DebugConsole;
-        public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>();
+        public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>().Where(IsInstanceValid);
         public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
         public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
 
