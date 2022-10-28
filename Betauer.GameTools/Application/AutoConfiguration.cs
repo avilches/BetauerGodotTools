@@ -1,4 +1,5 @@
 using Betauer.Application.Monitor;
+using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
@@ -15,16 +16,24 @@ namespace Betauer.Application {
     public abstract class AutoConfiguration : Node {
         protected readonly Container Container;
         protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandlerInstance;
-
-        [Service] public SceneTree SceneTree => GetTree();
-        [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandler => MainLoopNotificationsHandlerInstance;
-        [Service] public DebugOverlayManager DebugOverlayManager => new();
-        [Service(Lifetime.Transient)] public GodotStopwatch GodotStopwatch => new(GetTree());
-
         private readonly Options _options;
+
         public class Options {
             public bool AddSingletonNodesToTree = true;
             public float ObjectWatcherTimer = 10f;
+        }
+
+        private class Configuration {
+            private readonly AutoConfiguration _outer;
+
+            public Configuration(AutoConfiguration outer) {
+                _outer = outer;
+            }
+            
+            [Service] public SceneTree SceneTree => _outer.GetTree();
+            [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandler => _outer.MainLoopNotificationsHandlerInstance;
+            [Service] public DebugOverlayManager DebugOverlayManager => new();
+            [Service(Lifetime.Transient)] public GodotStopwatch GodotStopwatch => new(_outer.GetTree());
         }
 
         protected AutoConfiguration(Options? options = null) {
@@ -34,8 +43,7 @@ namespace Betauer.Application {
             MainLoopNotificationsHandlerInstance = new MainLoopNotificationsHandler();
             MainLoopNotificationsHandlerInstance.OnWmQuitRequest += () => {
                 LoggerFactory.EnableAutoFlush();
-                GD.Print(
-                    $"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
+                GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
             };
             
             AddChild(DefaultNodeHandler.Instance);
@@ -50,7 +58,7 @@ namespace Betauer.Application {
             DefaultObjectWatcherTask.Instance.Start(GetTree(), _options.ObjectWatcherTimer);
             PauseMode = PauseModeEnum.Process;
 
-            AddConsoleCommands(DebugOverlayManager.DebugConsole);
+            AddConsoleCommands(Container.Resolve<DebugOverlayManager>().DebugConsole);
         }
 
         /// <summary>
@@ -100,7 +108,7 @@ namespace Betauer.Application {
         public virtual void OnBuildContainer(ContainerBuilder builder) {
             builder
                 .Scan(GetType().Assembly)
-                .ScanConfiguration(this);
+                .ScanConfiguration(new Configuration(this));
             
         }
 
