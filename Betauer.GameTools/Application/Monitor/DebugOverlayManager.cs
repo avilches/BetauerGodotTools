@@ -57,8 +57,8 @@ namespace Betauer.Application.Monitor {
             return Overlay(follow).Follow(follow);
         }
 
-        public DebugOverlay CreateOverlay() {
-            var overlay = new DebugOverlay(this, _count++);
+        public DebugOverlay CreateOverlay(string? title = null) {
+            var overlay = new DebugOverlay(this, _count++).Title(title);
             OverlayContainer.AddChild(overlay);
             _actives.Add(overlay.Id);
             return overlay;
