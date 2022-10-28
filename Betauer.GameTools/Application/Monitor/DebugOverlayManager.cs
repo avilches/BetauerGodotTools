@@ -64,6 +64,12 @@ namespace Betauer.Application.Monitor {
             return overlay;
         }
 
+        public bool HasOverlay(string title) =>
+            Overlays.FirstOrDefault(overlay => overlay.TitleLabel.Text == title) != null;
+        
+        public bool HasOverlay(Object target) => 
+            Overlays.FirstOrDefault(overlay => overlay.Target == target) != null;
+
         public override void _Input(InputEvent @event) {
             if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(@event)) {
                 if (@event.HasShift()) {
