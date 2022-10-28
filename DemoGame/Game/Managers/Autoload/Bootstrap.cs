@@ -20,66 +20,39 @@ using TraceLevel = Betauer.TraceLevel;
 namespace Veronenger.Game.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
-        
-        public Bootstrap() {
-            EnableAddSingletonNodesToTree(true);
-            SetObjectWatcherTimer(1f);
-            
-            #if DEBUG
-                DevelopmentConfig();
-            #else
-                ExportConfig();
-            #endif
-            ShowConfig();
-        }
 
-        private static void ShowConfig() {
-            Logger.Info($"executable    : {OS.GetExecutablePath()}");
-            Logger.Info($"cmd line args : {string.Join(" ", OS.GetCmdlineArgs())}");
-            Logger.Info($"app version   : {AppInfo.Version}");
-            Logger.Info($"features      : {string.Join(", ", FeatureFlags.GetActiveList())}");
-            Logger.Info($"name host     : {OS.GetName()}");
-            Logger.Info($"data dir      : {OS.GetDataDir()}");
-            Logger.Info($"user data dir : {OS.GetUserDataDir()}");
-            Logger.Info($"config dir    : {OS.GetConfigDir()}");
-            Logger.Info($"cache dir     : {OS.GetCacheDir()}");
-            Logger.Info($"permissions   : {string.Join(", ", OS.GetGrantedPermissions())}");
-            Logger.Info($"video name    : {VisualServer.GetVideoAdapterName()}");
-            Logger.Info($"video vendor  : {VisualServer.GetVideoAdapterVendor()}");
-            Logger.Info($"processor name: {OS.GetProcessorName()}");
-            Logger.Info($"processors    : {OS.GetProcessorCount().ToString()}");
-            Logger.Info($"locale        : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
-            new[] {
-                    "logging/file_logging/enable_file_logging",
-                    "logging/file_logging/enable_file_logging.pc",
-                    "logging/file_logging/log_path",
-                    "logging/file_logging/log_path.standalone",
-                    "application/run/disable_stdout",
-                    "application/run/disable_stderr",
-                    "application/run/flush_stdout_on_print",
-                    "application/run/flush_stdout_on_print.debug",
-                    "application/config/use_custom_user_dir",
-                    "application/config/project_settings_override",
-                    "mono/runtime/unhandled_exception_policy",
-                    "mono/runtime/unhandled_exception_policy.standalone",
-                    "application/config/version"
-                }.ToList()
-                .ForEach(property => {
-                    if (ProjectSettings.HasSetting(property)) {
-                        Logger.Info($"- {property} = {ProjectSettings.GetSetting(property)}");
-                    } else {
-                        Logger.Info($"! {property} !");
-                    }
-                });
+        public Bootstrap() : base(new Options {
+                AddSingletonNodesToTree = true,
+                ObjectWatcherTimer = 10f,
+            }) {
+#if DEBUG
+            DevelopmentConfig();
+#else
+            ExportConfig();
+#endif
+            
+            Project.PrintOSInfo();
+            Project.PrintSettings("logging/file_logging/enable_file_logging",
+                "logging/file_logging/enable_file_logging.pc",
+                "logging/file_logging/log_path",
+                "logging/file_logging/log_path.standalone",
+                "application/run/disable_stdout",
+                "application/run/disable_stderr",
+                "application/run/flush_stdout_on_print",
+                "application/run/flush_stdout_on_print.debug",
+                "application/config/use_custom_user_dir",
+                "application/config/project_settings_override",
+                "mono/runtime/unhandled_exception_policy",
+                "mono/runtime/unhandled_exception_policy.standalone",
+                "application/config/version"
+            );
+            
         }
 
         public override void _Ready() {
-            Logger.Info($"Bootstrap time: {FeatureFlags.Uptime.TotalMilliseconds} ms");
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            MainLoopNotificationsHandler.OnWmQuitRequest += () => {
-                var elapsed = $"{(int)FeatureFlags.Uptime.TotalMinutes} min {FeatureFlags.Uptime.Seconds:00} sec";
-                Logger.Info("User requested exit the application. Uptime: " + elapsed);
-            };
+            AppTools.ConfigureExceptionHandlers(GetTree());
+            Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
         }
 
         private static void ExportConfig() {

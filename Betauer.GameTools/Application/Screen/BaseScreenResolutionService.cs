@@ -33,13 +33,13 @@ namespace Betauer.Application.Screen {
 
         public virtual void SetFullscreen() {
             if (OS.WindowFullscreen) return;
-            if (!FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
+            if (!Project.FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
             OS.WindowFullscreen = true;
             Setup();
         }
 
         public virtual void SetBorderless(bool borderless) {
-            if (IsFullscreen() || FeatureFlags.IsMacOs() || OS.WindowBorderless == borderless) return;
+            if (IsFullscreen() || Project.FeatureFlags.IsMacOs() || OS.WindowBorderless == borderless) return;
             OS.WindowBorderless = borderless;
             Setup();
         }

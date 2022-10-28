@@ -13,7 +13,6 @@ namespace Veronenger.Game.Managers {
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private StageManager StageManager { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
-        [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
         
         private Node _currentGameScene;
         private Node2D _playerScene;

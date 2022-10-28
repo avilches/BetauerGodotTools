@@ -1,12 +1,9 @@
-using System;
-using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
 using Betauer.Nodes;
 using Betauer.OnReady;
-using Betauer.Signal;
 using Betauer.Time;
 using Godot;
 using Container = Betauer.DI.Container;
@@ -17,96 +14,103 @@ namespace Betauer.Application {
      */
     public abstract class AutoConfiguration : Node {
         protected readonly Container Container;
-        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandler;
-        protected readonly DebugOverlayManager DebugOverlayManagerInstance;
+        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandlerInstance;
 
-        [Service] public Consumer Consumer => DefaultObjectWatcherTask.Instance;
         [Service] public SceneTree SceneTree => GetTree();
-        [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandlerFactory => MainLoopNotificationsHandler;
-        [Service] public DebugOverlayManager DebugOverlayManager => DebugOverlayManagerInstance;
-        [Service] public DebugOverlay DefaultDebugOverlay => DebugOverlayManagerInstance.CreateOverlay();
-        
-        [Service(Lifetime.Transient)]
-        public GodotStopwatch GodotStopwatch => new(GetTree());
+        [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandler => MainLoopNotificationsHandlerInstance;
+        [Service] public DebugOverlayManager DebugOverlayManager => new();
+        [Service(Lifetime.Transient)] public GodotStopwatch GodotStopwatch => new(GetTree());
 
-        private bool _addSingletonNodesToTree = true;
-        private float _objectWatcherTimer = 10f;
-        private bool _isReady = false;
+        private readonly Options _options;
+        public class Options {
+            public bool AddSingletonNodesToTree = true;
+            public float ObjectWatcherTimer = 10f;
+        }
 
-        public void EnableAddSingletonNodesToTree(bool enabled) => _addSingletonNodesToTree = enabled;
-        public void SetObjectWatcherTimer(float watchTimer) => _objectWatcherTimer = watchTimer;
-
-
-        protected AutoConfiguration() {
+        protected AutoConfiguration(Options? options = null) {
+            _options = options ?? new Options();
             Container = new Container();
-            MainLoopNotificationsHandler = new MainLoopNotificationsHandler();
-            DebugOverlayManagerInstance = new DebugOverlayManager();
+
+            MainLoopNotificationsHandlerInstance = new MainLoopNotificationsHandler();
+            MainLoopNotificationsHandlerInstance.OnWmQuitRequest += () => {
+                LoggerFactory.EnableAutoFlush();
+                GD.Print(
+                    $"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
+            };
+            
             AddChild(DefaultNodeHandler.Instance);
         }
 
         public override void _EnterTree() {
-            // It can't be called before _EnterTree because the SceneTree is exposed as a service using GetTree()
+            // Container can't be built before _EnterTree because the SceneTree is exposed as a service using GetTree()
             // It needs to be called in _EnterTree because the _Ready() is called after the the main scene _Ready(), so the main
             // scene will not have services injected.
             StartContainer();
 
-            MainLoopNotificationsHandler.OnWmQuitRequest += LoggerFactory.EnableAutoFlush;
-            TaskScheduler.UnobservedTaskException += (o, args) => {
-                // This event logs errors in non-awaited Task. It needs
-                var e = args.Exception;
-                GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] TaskScheduler.UnobservedTaskException:\n{e}");
-                if (FeatureFlags.IsTerminateOnExceptionEnabled()) {
-                    SceneTree.Notification(MainLoop.NotificationWmQuitRequest);
-                }
-            };
-            AppDomain.CurrentDomain.UnhandledException += (o, args) => {
-                // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
-                // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
-                // so the quit is not really needed
-                // If unhandled_exception_policy is "1" (LogError), the error is not logged neither this event is called
-                var e = args.ExceptionObject;
-                GD.PrintErr($"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] AppDomain.CurrentDomain.UnhandledException:\n{e}");
-            };
-            DefaultObjectWatcherTask.Instance.Start(GetTree(), _objectWatcherTimer);
+            DefaultObjectWatcherTask.Instance.Start(GetTree(), _options.ObjectWatcherTimer);
             PauseMode = PauseModeEnum.Process;
-            this.OnReady(() => _isReady = true, true);
-            
-            DebugOverlayManager.DebugConsole.AddHelpCommand();
-            DebugOverlayManager.DebugConsole.AddEngineTimeScaleCommand();
-            DebugOverlayManager.DebugConsole.AddEngineTargetFpsCommand();
-            DebugOverlayManager.DebugConsole.AddClearConsoleCommand();
-            DebugOverlayManager.DebugConsole.AddQuitCommand();
-            DebugOverlayManager.DebugConsole.AddNodeHandlerInfoCommand();
-            DebugOverlayManager.DebugConsole.AddSignalManagerCommand();
-            DebugOverlayManager.DebugConsole.AddShowAllCommand();
+
+            AddConsoleCommands(DebugOverlayManager.DebugConsole);
+        }
+
+        /// <summary>
+        /// Virtual method so it can be overriden to add more commands.
+        /// Just call to base.AddConsoleCommands(debugConsole) to ensure the default commands are still added.
+        /// </summary>
+        /// <param name="debugConsole"></param>
+        public virtual void AddConsoleCommands(DebugConsole debugConsole) {
+            debugConsole.AddHelpCommand();
+            debugConsole.AddEngineTimeScaleCommand();
+            debugConsole.AddEngineTargetFpsCommand();
+            debugConsole.AddClearConsoleCommand();
+            debugConsole.AddQuitCommand();
+            debugConsole.AddNodeHandlerInfoCommand();
+            debugConsole.AddSignalManagerCommand();
+            debugConsole.AddShowAllCommand();
         }
 
         private void StartContainer() {
-            if (_addSingletonNodesToTree) {
-                Container.OnCreated += (lifetime, o) => {
-                    if (o is Node node) {
-                        MarkNodeAsAlreadyInjected(node);
-                        if (lifetime == Lifetime.Singleton && node.GetParent() == null) {
-                            if (string.IsNullOrWhiteSpace(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
-                            if (_isReady) GetTree().Root.AddChild(node);
-                            else GetTree().Root.AddChildDeferred(node);
-                        }
+            Container.OnCreated += (lifetime, o) => {
+                if (o is Node node) {
+                    MarkNodeAsAlreadyInjected(node);
+                    if (string.IsNullOrWhiteSpace(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
+                    if (_options.AddSingletonNodesToTree && 
+                        lifetime == Lifetime.Singleton && 
+                        node.GetParent() == null) {
+                        GetTree().Root.AddChildDeferred(node);
                     }
-                };
-            }
-            Container.CreateBuilder()
-                .Scan(GetType().Assembly)
-                .ScanConfiguration(this)
-                .Build()
-                .InjectServices(this);
-            GetTree().OnNodeAdded(_GodotSignalNodeAdded);
+                }
+            };
+            var containerBuilder = Container.CreateBuilder();
+            OnBuildContainer(containerBuilder);
+            containerBuilder.Build().InjectServices(this);
+            GetTree().Connect("node_added", this, nameof(_GodotSignalNodeAdded));
         }
-        
-        // Method called by Godot
+
+        /// <summary>
+        /// Virtual method so it can be overriden to do more stuff with the container before it finishes.
+        /// Call to base.OnBuildContainer(builder) to scan the current assembly and use the current class as configuration. 
+        /// </summary>
+        /// <param name="???"></param>
+        public virtual void OnBuildContainer(ContainerBuilder builder) {
+            builder
+                .Scan(GetType().Assembly)
+                .ScanConfiguration(this);
+            
+        }
+
+        // Method called by Godot when a Node is added to the tree
         private void _GodotSignalNodeAdded(Node node) {
             if (node.GetScript() is CSharpScript) {
                 OnReadyScanner.ScanAndInject(node);
-                if (IsNodeInjected(node)) {
+                // If the Node has been created by Godot (through instantiating a scene) and it's added to the tree,
+                // the services will be injected.
+                // But if the Node has been created by the application through the Container, the node will already have
+                // all the dependencies injected. To avoid inject the dependencies twice (by the container and here when
+                // it's added to the tree), 
+                
+                if (IsNodeMarkedInjected(node)) {
+                    // A Node could be
                     Container.InjectServices(node);
                 }
             }
@@ -114,10 +118,10 @@ namespace Betauer.Application {
 
         private const string MetaInjected = "__injected";
         private static void MarkNodeAsAlreadyInjected(Node node) => node.SetMeta(MetaInjected, true);
-        private static bool IsNodeInjected(Node node) => !node.HasMeta(MetaInjected);
+        private static bool IsNodeMarkedInjected(Node node) => !node.HasMeta(MetaInjected);
 
         public override void _Notification(int what) {
-            MainLoopNotificationsHandler.Execute(what);
+            MainLoopNotificationsHandlerInstance.Execute(what);
         }
     }
 }

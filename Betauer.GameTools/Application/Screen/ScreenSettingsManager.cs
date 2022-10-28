@@ -12,7 +12,7 @@ namespace Betauer.Application.Screen {
         private const bool DontSave = false;
 
         private readonly ScreenConfiguration _initialScreenConfiguration;
-        private ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration);
+        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration);
         public ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
 
         private ScreenService? _service;
