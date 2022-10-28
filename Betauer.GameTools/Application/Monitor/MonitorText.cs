@@ -5,8 +5,6 @@ using Godot;
 
 namespace Betauer.Application.Monitor {
     public class MonitorText : BaseMonitor<MonitorText> {
-        private float _timeElapsed = -1;
-        private float _time = 0;
         private Func<string>? _showValue;
         public readonly HBoxContainer HBoxContainer = new();
 
@@ -35,11 +33,6 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public MonitorText UpdateEvery(float time) {
-            _time = Math.Max(time, 0);
-            return this;
-        }
-
         public MonitorText Show(Func<bool> action) {
             var previous = false;
             Content.SetFontColor(Colors.Tomato);
@@ -61,21 +54,21 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _Ready() {
-            Label.SetFontColor(DefaultLabelColor);
             this.NodeBuilder()
                 .Child(HBoxContainer)
-                    .Child(Label).End()
-                    .Child(Content).End()
+                    .Child(Label)
+                        .Config(label => {
+                            label.SetFontColor(DefaultLabelColor);
+                        })
+                    .End()
+                    .Child(Content)
+                    .End()
                 .End();
         }
 
-        public override void Process(float delta) {
+        public override void UpdateMonitor(float delta) {
             if (_showValue != null) {
-                _timeElapsed += delta;
-                if (_timeElapsed >= _time || _timeElapsed - delta == -1) {
-                    Content.Text = _showValue.Invoke();
-                    _timeElapsed -= _time;
-                }
+                Content.Text = _showValue.Invoke();
             }
         }
     }

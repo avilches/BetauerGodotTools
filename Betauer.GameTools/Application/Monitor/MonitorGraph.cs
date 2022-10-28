@@ -328,7 +328,7 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public override void Process(float delta) {
+        public override void UpdateMonitor(float delta) {
             if (_dirty) {
                 foreach (var serie in _series) {
                     serie.ConfigureChartLine();

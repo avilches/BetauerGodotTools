@@ -38,6 +38,8 @@ namespace Betauer.Application.Monitor {
     }
 
     public abstract class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
+        private float _timeElapsed = 0;
+        private float _updateEvery = 0;
         public Object? Watch { get; set; }
         public Func<bool>? RemoveIfFunc { get; private set; }
 
@@ -62,6 +64,11 @@ namespace Betauer.Application.Monitor {
             return Enable(false);
         }
         
+        public TBuilder UpdateEvery(float time) {
+            _updateEvery = Math.Max(time, 0);
+            return this as TBuilder;
+        }
+
         public override void _PhysicsProcess(float delta) {
             var watching = Watch ?? DebugOverlayOwner.Target;
             if ((watching != null && !IsInstanceValid(watching)) || (RemoveIfFunc != null && RemoveIfFunc())) {
@@ -69,10 +76,27 @@ namespace Betauer.Application.Monitor {
             } else if (!Visible) {
                 Disable();
             } else {
-                Process(delta);
+                if (DebugOverlayOwner.Visible) {
+                    if (_updateEvery > 0) {
+                        if (_timeElapsed == 0) {
+                            _timeElapsed += delta;
+                            UpdateMonitor(delta);
+                        } else {
+                            _timeElapsed += delta;
+                            if (_timeElapsed >= _updateEvery) {
+                                UpdateMonitor(delta);
+                                _timeElapsed -= _updateEvery;
+                            }
+                        }
+                    } else {
+                        UpdateMonitor(delta);
+                    }
+                } else {
+                    _timeElapsed = 0;
+                }
             }
         }
 
-        public abstract void Process(float delta);
+        public abstract void UpdateMonitor(float delta);
     }
 }

@@ -101,7 +101,7 @@ namespace Betauer.Application.Monitor {
                     .End();
         }
 
-        public override void Process(float delta) {
+        public override void UpdateMonitor(float delta) {
             if (_dirty) {
                 ConfigureChart();
             }

@@ -102,7 +102,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TopBar.RectMinSize = new Vector2(100, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
+            TopBar.RectMinSize = new Vector2(TopBar.RectMinSize.x, string.IsNullOrWhiteSpace(title) ? 10 : 20);
             return this;                               
         }
 
@@ -198,7 +198,7 @@ namespace Betauer.Application.Monitor {
             var x = Math.Min(OverlayContent.RectSize.x + 10, MaxSize.x);
             var y = Math.Min(OverlayContent.RectSize.y + 10, MaxSize.x);
             ScrollContainer.RectMinSize = new Vector2(x, y);
-            TopBar.RectMinSize = new Vector2(x, 10);
+            TopBar.RectMinSize = new Vector2(x, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
         }
 
         public override void _Ready() {
