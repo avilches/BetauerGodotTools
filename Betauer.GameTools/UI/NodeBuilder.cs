@@ -37,10 +37,43 @@ namespace Betauer.UI {
             return this;
         }
     
+        public NodeBuilder<NodeBuilder<T>, Button> Button(string label, Action<Button> action) {
+            return Button<Button>(label, action);
+        }
+
         public NodeBuilder<NodeBuilder<T>, Button> Button(string label, Action action) {
-            var b = new Button();
+            return Button<Button>(label, action);
+        }
+
+        public NodeBuilder<NodeBuilder<T>, TButton> Button<TButton>(string label, Action action) where TButton : Button {
+            return Button<TButton>(label, (_) => action());
+        }
+
+        public NodeBuilder<NodeBuilder<T>, TButton> Button<TButton>(string label, Action<TButton> action) where TButton : Button {
+            var b = Activator.CreateInstance<TButton>();
             b.Text = label;
-            b.OnPressed(action);
+            b.OnPressed(() => action(b));
+            return Child(b);
+        }
+
+        public NodeBuilder<NodeBuilder<T>, Label> Label(string label) {
+            return Child(new Label {
+                Text = label
+            });
+        }
+        
+        public NodeBuilder<NodeBuilder<T>, ToggleButton> ToggleButton(string label, Action action, Func<bool> pressedId) {
+            return ToggleButton(label, (_) => action(), pressedId);
+        }
+
+        public NodeBuilder<NodeBuilder<T>, ToggleButton> ToggleButton(string label, Action<ToggleButton> action, Func<bool> pressedId) {
+            var b = new ToggleButton();
+            b.Text = label;
+            b.PressedIf = pressedId;
+            b.OnPressed(() => {
+                action(b);
+                b.Refresh();
+            });
             return Child(b);
         }
     }
@@ -70,7 +103,7 @@ namespace Betauer.UI {
         }
 
         public NodeBuilder<TNodeBuilder, T> Config(Action<T> config) {
-            config.Invoke((T)TypedNode);
+            config.Invoke(TypedNode);
             return this;
         }
     
