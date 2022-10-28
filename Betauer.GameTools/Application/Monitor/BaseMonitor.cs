@@ -44,7 +44,7 @@ namespace Betauer.Application.Monitor {
         public TBuilder Enable(bool enable = true) {
             if (Visible == enable) return this as TBuilder;
             Visible = enable;
-            SetProcess(enable);
+            SetPhysicsProcess(enable);
             return this as TBuilder;
         }
 
