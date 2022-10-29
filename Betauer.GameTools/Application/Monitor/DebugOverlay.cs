@@ -211,8 +211,9 @@ namespace Betauer.Application.Monitor {
                         .Child(TitleLabel)
                             .Config(label => {
                                 label.SetFontColor(Colors.White);
-                                label.SetAnchorsAndMarginsPreset(LayoutPreset.Center);                        
-                            })
+                                label.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
+                                label.Align = Label.AlignEnum.Center;
+                        })
                         .End()
                         .Child<HBoxContainer>()
                             .Config(buttonBar => {
