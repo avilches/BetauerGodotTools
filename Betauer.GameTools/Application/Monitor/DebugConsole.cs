@@ -304,7 +304,7 @@ namespace Betauer.Application.Monitor {
 
         public override void _Input(InputEvent input) {
             if (!Visible) {
-                SetProcessInput(false);
+                Disable();
             } else if (Prompt.HasFocus() && input is InputEventKey eventKey) {
                 OnConsoleInputKeyEvent(eventKey);
             } else if (input.IsLeftClickJustPressed() && input.IsMouseInside(ConsoleOutput)) {

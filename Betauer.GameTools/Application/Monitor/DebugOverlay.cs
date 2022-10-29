@@ -25,9 +25,7 @@ namespace Betauer.Application.Monitor {
         private VisibilityStateEnum _visibilityState = VisibilityStateEnum.Float;
 
         public readonly int Id;
-        public readonly Label TitleLabel = new() {
-            Name = "Title"
-        };
+
         public readonly ScrollContainer ScrollContainer = new() {
             Name = nameof(ScrollContainer)
         };
@@ -39,6 +37,12 @@ namespace Betauer.Application.Monitor {
         };
         public readonly ColorRect TopBarColor = new() {
             Name = nameof(TopBarColor)
+        };
+        public readonly Label TitleLabel = new() {
+            Name = "Title"
+        };
+        public readonly HBoxContainer ButtonBar = new() {
+            Name = "ButtonBar"
         };
         public DebugOverlayManager DebugOverlayManager { get; }
         public Vector2 MaxSize { get; private set; } = new(600, 600);
@@ -179,7 +183,6 @@ namespace Betauer.Application.Monitor {
             Visible = enable;
             SetProcess(enable);
             SetProcessInput(enable);
-            SetProcess(enable);
             return this;
         }
 
@@ -215,7 +218,7 @@ namespace Betauer.Application.Monitor {
                                 label.Align = Label.AlignEnum.Center;
                         })
                         .End()
-                        .Child<HBoxContainer>()
+                        .Child(ButtonBar)
                             .Config(buttonBar => {
                                 buttonBar.GrowHorizontal = GrowDirection.Begin;
                                 buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
@@ -276,10 +279,11 @@ namespace Betauer.Application.Monitor {
 
         public override void _Input(InputEvent input) {
             if (input.IsLeftClick()) {
-                if (input.IsJustPressed() && input.IsMouseInside(TopBarColor)) {
+                if (input.IsJustPressed() && input.IsMouseInside(TopBarColor) && !input.IsMouseInside(ButtonBar)) {
                     StopFollowing();
                     Raise();
                     _startDragPosition = _position - GetGlobalMousePosition();
+                    GetTree().SetInputAsHandled();
                 } else if (input.IsReleased()) {
                     _startDragPosition = null;
                 }
