@@ -196,7 +196,7 @@ namespace Veronenger.Game.Managers {
                 
             On(MainTransition.ExitDesktop, context => context.Set(MainState.ExitDesktop));
             State(MainState.ExitDesktop)
-                .Enter(() => SceneTree.Notification(MainLoop.NotificationWmQuitRequest))
+                .Enter(() => SceneTree.QuitSafely())
                 .Build();
         }
 

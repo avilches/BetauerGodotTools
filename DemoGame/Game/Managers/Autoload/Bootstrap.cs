@@ -46,7 +46,6 @@ namespace Veronenger.Game.Managers.Autoload {
                 "mono/runtime/unhandled_exception_policy.standalone",
                 "application/config/version"
             );
-            
         }
 
         public override void _Ready() {
