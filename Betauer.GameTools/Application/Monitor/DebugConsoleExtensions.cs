@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
 using Betauer.Nodes;
 using Betauer.Signal;
@@ -21,6 +22,12 @@ namespace Betauer.Application.Monitor {
     }
 
     public static class DebugConsoleExtensions {
+        public static DebugConsole.ConditionalCommand CreateCommand(this DebugConsole console, string name, string shortHelp, string? longHelp = null, string? errorMessage = null) {
+            var command = new DebugConsole.ConditionalCommand(console, name, shortHelp, longHelp, errorMessage);
+            console.AddCommand(command);
+            return command;
+        }
+
         public static DebugConsole CreateCommand(this DebugConsole console, string name, Action<string[]> executeWithArguments, string shortHelp, string? longHelp = null) {
             return console.CreateCommand(name, (input) => executeWithArguments(input.Arguments), shortHelp, longHelp);
         }
@@ -35,74 +42,73 @@ namespace Betauer.Application.Monitor {
         }
 
         public static DebugConsole AddHelpCommand(this DebugConsole console) {
-            void OnHelp(string[] arguments) {
-                if (arguments.Length == 0) {
-                    var commands = console.Commands.Values.OrderBy(command => command.Name).ToList();
-                    var maxLength = commands.Max(command => command.Name.Length);
-                    console.WriteLine("Commands:");
-                    console.WriteLine();
-                    foreach (var command in commands) {
-                        console.WriteLine($"    [color=#ffffff]{command.Name.PadRight(maxLength)}[/color] : {command.ShortHelp}");
-                    }
-                    console.WriteLine();
-                    console.WriteLine("Type `help <command>` to get more info about a command.");
-                    console.WriteLine("Press [color=#ffffff]Tab[/color] / [color=#ffffff]Shift+Tab[/color] to autocomplete commands.");
-                    console.WriteLine("Press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position.");
-                } else {
-                    var commandName = arguments[0];
-                    if (console.Commands.TryGetValue(commandName.ToLower(), out var command)) {
-                        if (!string.IsNullOrWhiteSpace(command.LongHelp)) {
-                            console.WriteLine(command.LongHelp);
-                        } else if (!string.IsNullOrWhiteSpace(command.ShortHelp)) {
-                            console.WriteLine(command.ShortHelp);
-                        } else {
-                            console.WriteLine($"No help for command `{commandName}`.");
-                        }
+            void ShowHelp() {
+                var commands = console.Commands.Values.OrderBy(command => command.Name).ToList();
+                var maxLength = commands.Max(command => command.Name.Length);
+                console.WriteLine("Commands:");
+                console.WriteLine();
+                foreach (var command in commands) {
+                    console.WriteLine($"    [color=#ffffff]{command.Name.PadRight(maxLength)}[/color] : {command.ShortHelp}");
+                }
+                console.WriteLine();
+                console.WriteLine("Type `help <command>` to get more info about a command.");
+                console.WriteLine("Press [color=#ffffff]Tab[/color] / [color=#ffffff]Shift+Tab[/color] to autocomplete commands.");
+                console.WriteLine("Press [color=#ffffff]Alt+Up[/color] / [color=#ffffff]Alt+Down[/color] to change the console size and position."); 
+            }
+            void HelpOnCommand(string commandName) {
+                if (console.Commands.TryGetValue(commandName.ToLower(), out var command)) {
+                    if (!string.IsNullOrWhiteSpace(command.LongHelp)) {
+                        console.WriteLine(command.LongHelp);
+                    } else if (!string.IsNullOrWhiteSpace(command.ShortHelp)) {
+                        console.WriteLine(command.ShortHelp);
                     } else {
-                        console.WriteLine($"Error getting help: command `{commandName}` not found.");
+                        console.WriteLine($"No help for command `{commandName}`.");
                     }
+                } else {
+                    console.WriteLine($"Error getting help: command `{commandName}` not found.");
                 }
             }
-            return console.CreateCommand("help", OnHelp, "Show this help.", @"Usage:
+            return console.CreateCommand("help", "Show this help.", @"Usage:
     [color=#ffffff]help          [/color] : List all available commands.
-    [color=#ffffff]help <command>[/color] : Show help about a specific command.");
+    [color=#ffffff]help <command>[/color] : Show help about a specific command.")
+                .WithNoArguments(ShowHelp)
+                .ArgumentIsPresent(input => HelpOnCommand(input.Arguments[0]))
+                .End();
             
         }
 
         public static DebugConsole AddEngineTimeScaleCommand(this DebugConsole console) {
-            const string help = @"Usage:
+            return console.CreateCommand("timescale",
+                "Show or change the time scale.",
+                    @"Usage:
     [color=#ffffff]timescale        [/color] : Get the current time scale.
-    [color=#ffffff]timescale <float>[/color] : Set the time scale to <number>.";
-            return console.CreateCommand("timescale", (input) => {
-                if (input.Arguments.Length == 0) {
+    [color=#ffffff]timescale <float>[/color] : Set the time scale to <float>.",
+                    "Error: argument must be a valid float number.")
+                .WithNoArguments(() => {
                     console.WriteLine($"Current time scale: {Engine.TimeScale.ToString()}");
-                } else if (input.Arguments[0].IsValidFloat()) {
+                })
+                .ArgumentIsInteger(input => {
                     var newTimeScale = input.Arguments[0];
                     Engine.TimeScale = newTimeScale.ToFloat();
                     console.WriteLine($"New time scale: {newTimeScale}");
-                } else {
-                    console.WriteLine("Error: argument must be a valid integer.");
-                    console.WriteLine(help);
-                }
-            }, "Show or change the time scale.", help);
+                }).End();
         }
 
         public static DebugConsole AddEngineTargetFpsCommand(this DebugConsole console) {
-            const string help = @"Usage:
+            return console.CreateCommand("fps",
+                    "Show or change the target fps.",
+                    @"Usage:
     [color=#ffffff]fps          [/color] : Get the current target fps.
-    [color=#ffffff]fps <integer>[/color] : Set the target fps to <number>.";
-            return console.CreateCommand("fps", (input) => {
-                if (input.Arguments.Length == 0) {
+    [color=#ffffff]fps <integer>[/color] : Set the target fps to <number>.",
+                    "Error: argument must be a valid integer.")
+                .WithNoArguments(() => {
                     console.WriteLine($"Current target fps: {Engine.TargetFps.ToString()}");
-                } else if (input.Arguments[0].IsValidInteger()) {
+                })
+                .ArgumentIsInteger(input => {
                     var newTargetFps = input.Arguments[0];
                     Engine.TargetFps = newTargetFps.ToInt();
                     console.WriteLine($"New target fps: {newTargetFps}");
-                } else {
-                    console.WriteLine("Error: argument must be a valid integer.");
-                    console.WriteLine(help);
-                }
-            }, "Show or change the target fps.", help);
+                }).End();
         }
 
         public static DebugConsole AddQuitCommand(this DebugConsole console) {

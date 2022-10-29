@@ -42,6 +42,66 @@ namespace Betauer.Application.Monitor {
             }
         }
         
+        public class ConditionalCommand : ICommand {
+            public string Name { get; }
+            public string ShortHelp { get; }
+            public string? LongHelp { get; }
+            public string? ErrorMessage { get; }
+            private readonly List<(Func<CommandInput, bool>, Action<CommandInput>)> _execute = new();
+            private readonly DebugConsole _debugConsole;
+
+            public ConditionalCommand(DebugConsole debugConsole, string name, string shortHelp, string? longHelp, string? errorMessage) {
+                _debugConsole = debugConsole;
+                Name = name;
+                ShortHelp = shortHelp;
+                LongHelp = longHelp;
+                ErrorMessage = errorMessage;
+            }
+
+            public ConditionalCommand WithNoArguments(Action execute) {
+                _execute.Add((input => input.Arguments.Length == 0, (_) => execute()));
+                return this;
+            }
+
+            public ConditionalCommand ArgumentIsInteger(Action<CommandInput> execute) {
+                _execute.Add((input => input.Arguments.Length > 0 && input.Arguments[0].IsValidInteger(), execute));
+                return this;
+            }
+
+            public ConditionalCommand ArgumentIsFloat(Action<CommandInput> execute) {
+                _execute.Add((input => input.Arguments.Length > 0 && input.Arguments[0].IsValidFloat(), execute));
+                return this;
+            }
+
+            public ConditionalCommand ArgumentIsPresent(Action<CommandInput> execute) {
+                _execute.Add((input => input.Arguments.Length > 0, execute));
+                return this;
+            }
+
+            public ConditionalCommand ArgumentMatches(string match, Action<CommandInput> execute) {
+                _execute.Add((input => input.Arguments.Length > 0 && string.Equals(input.Arguments[0], match, StringComparison.CurrentCultureIgnoreCase), execute));
+                return this;
+            }
+
+
+            public void Execute(CommandInput input) {
+                var found = false;
+                foreach (var valueTuple in _execute) {
+                    found = valueTuple.Item1(input);
+                    if (found) {
+                        valueTuple.Item2(input);
+                        return;
+                    }
+                }
+                _debugConsole.WriteLine($"Error: {(string.IsNullOrWhiteSpace(ErrorMessage) ? "Error: wrong argument/s" : ErrorMessage)}");
+                _debugConsole.WriteLine(string.IsNullOrWhiteSpace(LongHelp) ? ShortHelp : LongHelp);
+            }
+
+            public DebugConsole End() {
+                return _debugConsole;
+            }
+        }
+        
         private static readonly int DebugConsoleLayoutEnumSize = Enum.GetNames(typeof(LayoutEnum)).Length;
         private const float InitialTransparentBackground = 0.8f;
         public enum LayoutEnum {
