@@ -39,7 +39,7 @@ namespace DemoAnimation.Game.Managers {
         private MainMenu _mainMenuScene;
 
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
-        [Inject] private DebugOverlay DefaultDebugOverlay { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -50,10 +50,8 @@ namespace DemoAnimation.Game.Managers {
                 .Enter(async () => {
                     await new ResourceLoaderContainer().From(this).Load();
                     ScreenSettingsManager.Setup();
-                    DefaultDebugOverlay.Theme = MyTheme;
-                    DefaultDebugOverlay.MonitorFpsAndMemory();
-                    DefaultDebugOverlay.CreateMonitor().Show(ScreenSettingsManager.GetStateAsString); 
-                    DefaultDebugOverlay.MonitorInternals();
+                    DebugOverlayManager.OverlayContainer.Theme = MyTheme;
+                    DebugOverlayManager.DebugConsole.Theme = MyTheme;
                     SceneTree.Root.AddChild(_mainMenuScene);
                 })
                 .Execute(context => context.Set(State.MainMenu))

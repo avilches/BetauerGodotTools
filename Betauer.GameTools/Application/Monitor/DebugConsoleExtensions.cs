@@ -138,7 +138,8 @@ namespace Betauer.Application.Monitor {
                     .Overlay(title)
                     .Permanent(false)
                     .Solid()
-                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
+                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString).UpdateEvery(1f)
+                    .EndMonitor();
             }, "Open the signals info window.");
         }
 

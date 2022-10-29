@@ -130,7 +130,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole(DebugOverlayManager debugOverlayManager) {
             DebugOverlayManager = debugOverlayManager;
-            _mouseInsidePanel = new Mouse.InsideControl(ConsoleOutput).Disconnect();
+            _mouseInsidePanel = new Mouse.InsideControl(ConsoleOutput);
         }
 
         public LayoutEnum Layout {
@@ -187,13 +187,9 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugConsole Enable(bool enable = true) {
-            if (Visible == enable) return this;
             Visible = enable;
             if (enable) {
-                _mouseInsidePanel.Connect();
                 Prompt.GrabFocus();
-            } else {
-                _mouseInsidePanel.Disconnect();
             }
             SetProcessInput(enable);
             return this;
@@ -315,6 +311,7 @@ namespace Betauer.Application.Monitor {
                 OnConsoleInputKeyEvent(eventKey);
             } else if (@event.IsLeftClickJustPressed() && _mouseInsidePanel.Inside) {
                 Prompt.GrabFocus();
+                GetTree().SetInputAsHandled();
             } 
         }
         

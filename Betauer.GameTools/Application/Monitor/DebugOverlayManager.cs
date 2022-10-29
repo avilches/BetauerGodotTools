@@ -45,12 +45,12 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Overlay(string title) {
             return (Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ?? 
-                    CreateOverlay().Title(title)).Enable(VisibleCount >= 1);
+                    CreateOverlay().Title(title)).Enable();
         }
 
         public DebugOverlay Overlay(Object target) {
             return (Overlays.FirstOrDefault(d => d.Target == target) ?? 
-                    CreateOverlay().RemoveIfInvalid(target)).Enable(VisibleCount >= 1);
+                    CreateOverlay().RemoveIfInvalid(target)).Enable();
         }
 
         public DebugOverlay Follow(Node2D follow) {
@@ -90,7 +90,6 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlayManager Enable(bool enable = true) {
-            if (Visible == enable) return this;
             if (enable) {
                 if (DebugConsole.Visible) DebugConsole.Enable();
                 Visible = true;
@@ -130,7 +129,9 @@ namespace Betauer.Application.Monitor {
         }
 
         public void CloseOrHideOverlay(int id) {
-            if (VisibleCount == 1) {
+            if (VisibleCount == 1 && !DebugConsole.Visible) {
+                // If the overlay to close is the last one (and there is no console), hide the manager instead, so
+                // when the manager is shown again, the last closed overlay will be shown.
                 Disable();
             } else {
                 var debugOverlay = Find(id);

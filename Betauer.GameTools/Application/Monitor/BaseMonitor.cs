@@ -44,7 +44,6 @@ namespace Betauer.Application.Monitor {
         public Func<bool>? RemoveIfFunc { get; private set; }
 
         public TBuilder Enable(bool enable = true) {
-            if (Visible == enable) return this as TBuilder;
             Visible = enable;
             SetPhysicsProcess(enable);
             return this as TBuilder;
