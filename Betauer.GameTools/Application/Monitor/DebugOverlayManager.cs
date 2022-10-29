@@ -18,6 +18,11 @@ namespace Betauer.Application.Monitor {
             Name = nameof(OverlayContainer)
         };
         public readonly DebugConsole DebugConsole;
+
+        public readonly Label Right = new() {
+            Name = "Right"
+        };
+        
         public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>().Where(IsInstanceValid);
         public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
         public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
@@ -38,6 +43,15 @@ namespace Betauer.Application.Monitor {
             PauseMode = PauseModeEnum.Process;
             Visible = false;
             this.NodeBuilder()
+                .Child(Right).
+                    Config(label => {
+                        label.SetAnchorsAndMarginsPreset(Control.LayoutPreset.TopRight);
+                        label.GrowHorizontal = Control.GrowDirection.Begin;
+                        label.MarginLeft = 0;
+                        label.MarginRight = 0;
+                        label.Align = Label.AlignEnum.Right;
+                })
+                .End()
                 .Child(OverlayContainer)
                 .End()
                 .Child(DebugConsole);
@@ -89,14 +103,22 @@ namespace Betauer.Application.Monitor {
             }
         }
 
+        public override void _PhysicsProcess(float delta) {
+            if (!Visible) {
+                Disable();
+            } else {
+                Right.Text = ((int)Engine.GetFramesPerSecond()).ToString();
+            }
+        }
+
         public DebugOverlayManager Enable(bool enable = true) {
+            Visible = enable;
+            SetPhysicsProcess(enable);
             if (enable) {
                 if (DebugConsole.Visible) DebugConsole.Enable();
-                Visible = true;
                 Overlays.ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
             } else {
                 DebugConsole.Sleep();
-                Visible = false;
                 _actives = Overlays
                     .Where(overlay => overlay.Visible)
                     .Select(overlay => overlay.Id)
