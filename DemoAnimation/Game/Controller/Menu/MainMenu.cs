@@ -103,8 +103,8 @@ namespace DemoAnimation.Game.Controller.Menu {
             _animatorContainer.Visible = false;
         }
 
-        public override void _Input(InputEvent @event) {
-            if (@event is InputEventKey) {
+        public override void _Input(InputEvent input) {
+            if (input is InputEventKey) {
                 _labelToAnimate.Text = _labelToAnimateTextField.Text;
             }
         }

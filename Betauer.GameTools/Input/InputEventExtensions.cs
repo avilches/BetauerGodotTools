@@ -155,7 +155,9 @@ namespace Betauer.Input {
         public static bool IsDoubleClick(this InputEvent input, ButtonList button) =>
             input.IsClick(button) && input.IsDoubleClick();
 
-
+        public static bool IsMouseInside(this InputEvent input, Control control) => 
+            control.GetGlobalRect().HasPoint(input.GetMousePosition());
+        
         /*
          * Left click
          */

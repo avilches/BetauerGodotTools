@@ -121,7 +121,6 @@ namespace Betauer.Application.Monitor {
         private readonly List<string> _sortedCommandList = new();        
         private int _caretAutoCompleting = -1;
 
-        private readonly Mouse.InsideControl _mouseInsidePanel;
         public DebugOverlayManager DebugOverlayManager { get; }
         public readonly Dictionary<string, ICommand> Commands = new();        
         public readonly RichTextLabel ConsoleOutput = new();
@@ -130,7 +129,6 @@ namespace Betauer.Application.Monitor {
 
         public DebugConsole(DebugOverlayManager debugOverlayManager) {
             DebugOverlayManager = debugOverlayManager;
-            _mouseInsidePanel = new Mouse.InsideControl(ConsoleOutput);
         }
 
         public LayoutEnum Layout {
@@ -304,12 +302,12 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public override void _Input(InputEvent @event) {
+        public override void _Input(InputEvent input) {
             if (!Visible) {
                 SetProcessInput(false);
-            } else if (Prompt.HasFocus() && @event is InputEventKey eventKey) {
+            } else if (Prompt.HasFocus() && input is InputEventKey eventKey) {
                 OnConsoleInputKeyEvent(eventKey);
-            } else if (@event.IsLeftClickJustPressed() && _mouseInsidePanel.Inside) {
+            } else if (input.IsLeftClickJustPressed() && input.IsMouseInside(ConsoleOutput)) {
                 Prompt.GrabFocus();
                 GetTree().SetInputAsHandled();
             } 

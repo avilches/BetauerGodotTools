@@ -18,7 +18,6 @@ namespace Betauer.Application.Monitor {
         public static Color ColorSolid = new(1, 1, 1);
         public static Color ColorInvisible = new(1, 1, 1, 0);
         
-        private readonly Mouse.InsideControl _mouseInsidePanel;
         private Vector2? _startDragPosition = null;
         private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
         private Vector2 _position;
@@ -73,7 +72,6 @@ namespace Betauer.Application.Monitor {
 
         internal DebugOverlay(DebugOverlayManager debugOverlayManager, int id) {
             DebugOverlayManager = debugOverlayManager;
-            _mouseInsidePanel = new Mouse.InsideControl(TopBarColor);
             _position = new Vector2(id * 16, id * 16);
             Name = $"DebugOverlay-{id}";
             Id = id;
@@ -275,30 +273,27 @@ namespace Betauer.Application.Monitor {
             FitContent();
         }
 
-        public override void _Input(InputEvent @event) {
-            if (@event.IsMouse() && _mouseInsidePanel.Inside) {
-                if (@event.IsLeftClick()) {
-                    if (@event.IsJustPressed()) {
-                        StopFollowing();
-                        _startDragPosition = _position - GetGlobalMousePosition();
-                        Raise();
-                    } else {
-                        _startDragPosition = null;
-                    }
-
-                } else if (IsDragging && @event.IsMouseMotion()) {
-                    var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
-                    var origin = FollowPosition;
-                    // TODO: GetTree().Root.Size doesn't work well with scaled viewport
-                    var screenSize = GetTree().Root.Size;
-                    var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
-                    var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
-                    // Ensure the user can't drag and drop the overlay outside of the screen
-                    newPosition = new Vector2(
-                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
-                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
-                    _position = newPosition;
+        public override void _Input(InputEvent input) {
+            if (input.IsLeftClick()) {
+                if (input.IsJustPressed() && input.IsMouseInside(TopBarColor)) {
+                    StopFollowing();
+                    Raise();
+                    _startDragPosition = _position - GetGlobalMousePosition();
+                } else if (input.IsReleased()) {
+                    _startDragPosition = null;
                 }
+            } else if (IsDragging && input.IsMouseMotion()) {
+                var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
+                var origin = FollowPosition;
+                // TODO: GetTree().Root.Size doesn't work well with scaled viewport
+                var screenSize = GetTree().Root.Size;
+                var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
+                var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
+                // Ensure the user can't drag and drop the overlay outside of the screen
+                newPosition = new Vector2(
+                    Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
+                    Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
+                _position = newPosition;
             }
         }
 
