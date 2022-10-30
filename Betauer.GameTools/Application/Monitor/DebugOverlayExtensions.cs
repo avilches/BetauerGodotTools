@@ -284,14 +284,7 @@ namespace Betauer.Application.Monitor {
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.KeepWidth)
                     .End()
-                    .TypedNode);
-            }
-
-        private static Action<Button> Toggle(Func<bool> func) {
-            return (button) => {
-                button.ToggleMode = true;
-                button.Pressed = func();
-            };
+                .TypedNode);
         }
     }
 }
