@@ -173,13 +173,59 @@ namespace Veronenger.Game.Character {
             return RotateInertia(pendingInertia);
         }
 
-        public Vector2 MoveSlide() {
+        public Vector2 Slide() {
             const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
             var pendingInertia = Body.MoveAndSlideWithSnap(RotateSpeed(), Vector2.Zero, FloorUpDirection, stopOnSlopes);
             _dirtyFlags = true;
             return RotateInertia(pendingInertia);
         }
-        
+
+        public void Stop(float friction, float stopIfSpeedIsLessThan) {
+            if (Body.IsOnWall()) {
+                MotionX = 0;
+            } else {
+                ApplyLateralFriction(friction, stopIfSpeedIsLessThan);
+            }
+            ApplyDefaultGravity();
+            MoveSnapping();
+        }
+
+        public void Run(float xInput,
+            float acceleration,
+            float maxSpeed,
+            float friction,
+            float stopIfSpeedIsLessThan,
+            float changeDirectionFactor) {
+            
+            AddLateralSpeed(xInput, acceleration, maxSpeed, friction, stopIfSpeedIsLessThan, changeDirectionFactor);
+            if (IsOnSlope()) LimitMotionNormalized(maxSpeed);
+            ApplyDefaultGravity();
+            var pendingInertia = MoveSnapping();
+            if (IsOnSlope()) {
+                // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
+                // and go up too slow
+                // And never use the pendingInertia.x when climbing a slope!!!
+                MotionY = pendingInertia.y;
+            }
+        }
+
+        public void FallLateral(float xInput,
+            float acceleration,
+            float maxSpeed,
+            float airResistance,
+            float stopIfSpeedIsLessThan,
+            float changeDirectionFactor) {
+            AddLateralSpeed(xInput, acceleration, maxSpeed, airResistance, stopIfSpeedIsLessThan, changeDirectionFactor);
+            Fall();
+        }
+
+        public void Fall() {
+            ApplyDefaultGravity();
+            // Keep the speed from the move so if the player collides, the player could slide or stop
+            Motion = Slide();
+        }
+
+
         private KinematicPlatformMotion UpdateFlags() {
             if (!_dirtyFlags) return this;
             _dirtyFlags = false;

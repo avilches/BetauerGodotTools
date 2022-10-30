@@ -146,11 +146,8 @@ namespace Veronenger.Game.Character.Player {
                     if (XInput != 0) {
                         return context.Set(PlayerState.Run);
                     }
-                    if (Body.IsOnWall()) {
-                        Body.MotionX = 0;
-                    } else {
-                        Body.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-                    }
+                    
+                    Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 
                     if (Jump.IsJustPressed()) {
                         if (IsDown && IsOnFallingPlatform()) {
@@ -159,9 +156,6 @@ namespace Veronenger.Game.Character.Player {
                             return context.Set(PlayerState.Jump);
                         }
                     }
-
-                    Body.ApplyDefaultGravity();
-                    Body.MoveSnapping();
 
                     return context.None();
                 })
@@ -176,7 +170,6 @@ namespace Veronenger.Game.Character.Player {
 
                     if (!Body.IsOnFloor()) {
                         _coyoteJumpEnabled = true;
-                        if (Body.MotionY < 0) Body.MotionY = 0f;
                         return context.Set(PlayerState.FallShort);
                     }
 
@@ -196,24 +189,12 @@ namespace Veronenger.Game.Character.Player {
                     EnableSlopeStairs();
 
                     if (_player.IsAttacking) {
-                        Body.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+                        Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
                         Body.Flip(XInput);
-                        Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+                        Body.Run(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
-                        if (Body.IsOnSlope()) {
-                            Body.LimitMotionNormalized(PlayerConfig.MaxSpeed);
-                        }
                     }
-                    Body.ApplyDefaultGravity();
-                    var pendingInertia = Body.MoveSnapping();
-                    if (Body.IsOnSlope()) {
-                        // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
-                        // and go up too slow
-                        // And never use the pendingInertia.x when climbing a slope!!!
-                        Body.MotionY = pendingInertia.y;
-                    }
-                    
 
                     return context.None();
                 })
@@ -293,12 +274,9 @@ namespace Veronenger.Game.Character.Player {
                         Body.MotionY = -PlayerConfig.JumpSpeedMin;
                     }
 
-                    Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-                        PlayerConfig.StopIfSpeedIsLessThan, 0);
                     Body.Flip(XInput);
-                    Body.ApplyDefaultGravity();
-                    // Keep the speed from the move so if the player collides, the player could slide or stop
-                    Body.Motion = Body.MoveSlide();
+                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                        PlayerConfig.StopIfSpeedIsLessThan, 0);
 
                     if (MotionY >= 0) {
                         return context.Set(PlayerState.FallShort);
@@ -329,12 +307,9 @@ namespace Veronenger.Game.Character.Player {
                         return context.Set(PlayerState.FallLong);
                     }
 
-                    Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-                        PlayerConfig.StopIfSpeedIsLessThan, 0);
                     Body.Flip(XInput);
-                    Body.ApplyDefaultGravity();
-                    // Keep the speed from the move so if the player collides, the player could slide or stop
-                    Body.Motion = Body.MoveSlide();
+                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                        PlayerConfig.StopIfSpeedIsLessThan, 0);
 
                     return CheckLanding(context);
                 })
@@ -359,11 +334,8 @@ namespace Veronenger.Game.Character.Player {
                         }
 
                         Body.Flip(XInput);
-                        Body.AddLateralSpeed(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+                        Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                             PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                        Body.ApplyDefaultGravity();
-                        // Keep the speed from the move so if the player collides, the player could slide or stop
-                        Body.Motion = Body.MoveSlide();
 
                         return CheckLanding(context);
                     }
@@ -379,7 +351,7 @@ namespace Veronenger.Game.Character.Player {
                     }
                     Body.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    Body.MoveSlide();
+                    Body.Slide();
                     return context.None();
                 }).Build();
 
