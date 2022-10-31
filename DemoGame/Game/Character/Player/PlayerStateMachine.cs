@@ -79,8 +79,7 @@ namespace Veronenger.Game.Character.Player {
             Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
             
-            AddOnExecuteStart((delta, _) => Body.StartFrame(delta));
-            AddOnExecuteEnd((_) => Body.EndFrame());
+            AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
             Bus.Subscribe(Enqueue);
             GroundStates();
             AirStates();

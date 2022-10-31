@@ -10,7 +10,7 @@ namespace Betauer.StateMachine.Sync {
         
         protected Action? EnterFunc;
         protected Action? AwakeFunc;
-        protected List<Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>> Conditions = new();
+        protected List<Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>> Conditions = new();
         protected Action ExecuteFunc;
         protected Action? SuspendFunc;
         protected Action? ExitFunc;
@@ -33,7 +33,7 @@ namespace Betauer.StateMachine.Sync {
 
         public TBuilder Condition(
             Func<bool> condition,
-            Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response> execute) {
+            Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> execute) {
             Conditions.Add(new(condition, execute));
             return this as TBuilder;
         }

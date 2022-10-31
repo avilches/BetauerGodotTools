@@ -9,14 +9,13 @@ namespace Betauer.StateMachine.Sync {
         where TTransitionKey : Enum
         where TState : class, IStateSync<TStateKey, TTransitionKey> {
 
+        
+        
         protected BaseStateMachineSync(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
-        public void Execute(float delta) {
+        public void Execute() {
             if (IsDisposed) return;
-
-            
-            
             
             var currentStateBackup = CurrentState;
             try {
@@ -31,7 +30,26 @@ namespace Betauer.StateMachine.Sync {
                 } else {
                     change = NextChange;
                 }
-                if (change.Type == TransitionType.Pop) {
+                if (change.Type == TransitionType.Set) {
+                    if (Stack.Count == 1) {
+                        var newState = Stack.Pop();
+                        ExitEvent(newState, change.State.Key);
+                        newState.Exit();
+                    } else {
+                        // Special case: 
+                        // Exit from all the states from the stack, in order
+                        while (Stack.Count > 0) {
+                            var exitingState = Stack.Pop();
+                            var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
+                            ExitEvent(exitingState, to);
+                            exitingState.Exit();
+                        }
+                    }
+                    CurrentState = TransitionTo(change, out var oldState);
+                    Stack.Push(CurrentState);
+                    EnterEvent(CurrentState, oldState.Key);
+                    CurrentState.Enter();
+                } else if (change.Type == TransitionType.Pop) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     newState.Exit();
@@ -53,47 +71,18 @@ namespace Betauer.StateMachine.Sync {
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     CurrentState.Enter();
-                } else if (change.Type == TransitionType.Set) {
-                    if (Stack.Count == 1) {
-                        var newState = Stack.Pop();
-                        ExitEvent(newState, change.State.Key);
-                        newState.Exit();
-                    } else {
-                        // Special case: 
-                        // Exit from all the states from the stack, in order
-                        while (Stack.Count > 0) {
-                            var exitingState = Stack.Pop();
-                            var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
-                            ExitEvent(exitingState, to);
-                            exitingState.Exit();
-                        }
-                    }
-                    CurrentState = TransitionTo(change, out var oldState);
-                    Stack.Push(CurrentState);
-                    EnterEvent(CurrentState, oldState.Key);
-                    CurrentState.Enter();
                 }
-                OnExecuteStart?.Invoke(delta, CurrentState.Key);
-                ExecuteContext.Delta = delta;
                 CurrentState.Execute();
-                var transition = CurrentState.Next(ExecuteContext);
-                OnExecuteEnd?.Invoke(CurrentState.Key);
+                var transition = CurrentState.Next(Context);
                 NextChange = CreateChange(transition);
                 IsInitialized = true;
-            } catch (Exception e) {
+            } catch (Exception) {
                 NextChange = NoChange;
                 CurrentState = currentStateBackup;
                 throw;
             }
+            
+            
         }
-
-        public event Action<float, TStateKey>? OnExecuteStart;
-        public event Action<TStateKey>? OnExecuteEnd;
-        
-        public void AddOnExecuteStart(Action<float, TStateKey> e) => OnExecuteStart += e;
-        public void AddOnExecuteEnd(Action<TStateKey> e) => OnExecuteEnd += e;
-        
-        public void RemoveOnExecuteStart(Action<float, TStateKey> e) => OnExecuteStart -= e;
-        public void RemoveOnExecuteEnd(Action<TStateKey> e) => OnExecuteEnd -= e;
     }
 }

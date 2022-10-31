@@ -7,23 +7,23 @@ namespace Betauer.StateMachine {
         internal TriggerContext() {
         }
         
-        public Response Push(TStateKey name) => CachePush[name]!;
-        public Response PopPush(TStateKey name) => CachePopPush[name]!;
-        public Response Pop() => CachePop;
-        public Response Set(TStateKey name) => CacheSet[name]!;
-        public Response None() => CachedNone;
-
-        internal static readonly Response CachedNone = new(TransitionType.None);
-        internal static readonly Response CachePop = new(TransitionType.Pop);
-        internal static readonly EnumDictionary<TStateKey, Response> CachePush =
-            EnumDictionary<TStateKey, Response>.Create(s => new Response(s, TransitionType.Push));
-        internal static readonly EnumDictionary<TStateKey, Response> CachePopPush =
-            EnumDictionary<TStateKey, Response>.Create(s => new Response(s, TransitionType.PopPush));
-        internal static readonly EnumDictionary<TStateKey, Response> CacheSet =
-            EnumDictionary<TStateKey, Response>.Create(s => new Response(s, TransitionType.Set));
+        public Response Push(TStateKey name) => Response.CachePush[name]!;
+        public Response PopPush(TStateKey name) => Response.CachePopPush[name]!;
+        public Response Pop() => Response.CachePop;
+        public Response Set(TStateKey name) => Response.CacheSet[name]!;
+        public Response None() => Response.CachedNone;
 
         public class Response : Transition {
             
+            internal static readonly Response CachedNone = new(TransitionType.None);
+            internal static readonly Response CachePop = new(TransitionType.Pop);
+            internal static readonly EnumDictionary<TStateKey, Response> CachePush = StateDict(s => new Response(s, TransitionType.Push));
+            internal static readonly EnumDictionary<TStateKey, Response> CachePopPush = StateDict(s => new Response(s, TransitionType.PopPush));
+            internal static readonly EnumDictionary<TStateKey, Response> CacheSet = StateDict(s => new Response(s, TransitionType.Set));
+
+            private static EnumDictionary<TStateKey, Response> StateDict(Func<TStateKey, Response> filler) =>
+                EnumDictionary<TStateKey, Response>.Create(filler);
+
             public readonly TStateKey StateKey;
 
             internal Response(TransitionType type) : base(type) {
@@ -37,14 +37,14 @@ namespace Betauer.StateMachine {
                     throw new ArgumentException("TriggerContext.Response type can't be a trigger");
             }
 
-            internal ExecuteContext<TStateKey, TTransitionKey>.Response ToTransition<TTransitionKey>()
+            internal Context<TStateKey, TTransitionKey>.Response ToTransition<TTransitionKey>()
                 where TTransitionKey : Enum {
                 return Type switch {
-                    TransitionType.None => ExecuteContext<TStateKey, TTransitionKey>.CachedNone,
-                    TransitionType.Pop => ExecuteContext<TStateKey, TTransitionKey>.CachePop,
-                    TransitionType.Push => ExecuteContext<TStateKey, TTransitionKey>.CachePush[StateKey]!,
-                    TransitionType.Set => ExecuteContext<TStateKey, TTransitionKey>.CacheSet[StateKey]!,
-                    TransitionType.PopPush => ExecuteContext<TStateKey, TTransitionKey>.CachePopPush[StateKey]!,
+                    TransitionType.None => Context<TStateKey, TTransitionKey>.Response.CachedNone,
+                    TransitionType.Pop => Context<TStateKey, TTransitionKey>.Response.CachePop,
+                    TransitionType.Push => Context<TStateKey, TTransitionKey>.Response.CachePush[StateKey]!,
+                    TransitionType.Set => Context<TStateKey, TTransitionKey>.Response.CacheSet[StateKey]!,
+                    TransitionType.PopPush => Context<TStateKey, TTransitionKey>.Response.CachePopPush[StateKey]!,
                     _ => throw new ArgumentException("TriggerContext.Response type can't be a trigger")
                 };
             }

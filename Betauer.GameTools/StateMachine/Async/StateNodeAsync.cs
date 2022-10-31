@@ -11,7 +11,7 @@ namespace Betauer.StateMachine.Async {
         
         public StateNodeAsync(TStateKey key,
             Func<Task>? enter,
-            Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
             Func<Task> execute,
             Func<Task>? exit,
             Func<Task>? suspend,

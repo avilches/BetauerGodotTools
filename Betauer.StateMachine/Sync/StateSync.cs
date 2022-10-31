@@ -9,7 +9,7 @@ namespace Betauer.StateMachine.Sync {
 
         private readonly Action? _enter;
         private readonly Action? _awake;
-        private readonly Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[]? _conditions;
+        private readonly Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[]? _conditions;
         private readonly Action? _execute;
         private readonly Action? _suspend;
         private readonly Action? _exit;
@@ -17,7 +17,7 @@ namespace Betauer.StateMachine.Sync {
         public StateSync(
             TStateKey key,
             Action? enter,
-            Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
             Action? execute,
             Action? exit,
             Action? suspend,
@@ -46,7 +46,7 @@ namespace Betauer.StateMachine.Sync {
             _execute?.Invoke();
         }
 
-        public ExecuteContext<TStateKey, TTransitionKey>.Response Next(ExecuteContext<TStateKey, TTransitionKey> ctx) {
+        public Context<TStateKey, TTransitionKey>.Response Next(Context<TStateKey, TTransitionKey> ctx) {
             var span = _conditions.AsSpan();
             for (var i = 0; i < span.Length; i++) {
                 var condition = span[i];

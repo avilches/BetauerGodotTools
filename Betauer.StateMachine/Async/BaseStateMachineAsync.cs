@@ -16,12 +16,9 @@ namespace Betauer.StateMachine.Async {
         protected BaseStateMachineAsync(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
-        public async Task Execute(float delta) {
+        public async Task Execute() {
             if (IsDisposed || !Available) return;
-            lock (LockObject) {
-                if (!Available) return;
-                Available = false;
-            }
+            Available = false;
             var currentStateBackup = CurrentState;
             try {
                 var change = NoChange;
@@ -35,7 +32,26 @@ namespace Betauer.StateMachine.Async {
                 } else {
                     change = NextChange;
                 }
-                if (change.Type == TransitionType.Pop) {
+                if (change.Type == TransitionType.Set) {
+                    if (Stack.Count == 1) {
+                        var newState = Stack.Pop();
+                        ExitEvent(newState, change.State.Key);
+                        await newState.Exit();
+                    } else {
+                        // Special case: 
+                        // Exit from all the states from the stack, in order
+                        while (Stack.Count > 0) {
+                            var exitingState = Stack.Pop();
+                            var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
+                            ExitEvent(exitingState, to);
+                            await exitingState.Exit();
+                        }
+                    }
+                    CurrentState = TransitionTo(change, out var oldState);
+                    Stack.Push(CurrentState);
+                    EnterEvent(CurrentState, oldState.Key);
+                    await CurrentState.Enter();
+                } else if (change.Type == TransitionType.Pop) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     await newState.Exit();
@@ -57,31 +73,9 @@ namespace Betauer.StateMachine.Async {
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter();
-                } else if (change.Type == TransitionType.Set) {
-                    if (Stack.Count == 1) {
-                        var newState = Stack.Pop();
-                        ExitEvent(newState, change.State.Key);
-                        await newState.Exit();
-                    } else {
-                        // Special case: 
-                        // Exit from all the states from the stack, in order
-                        while (Stack.Count > 0) {
-                            var exitingState = Stack.Pop();
-                            var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
-                            ExitEvent(exitingState, to);
-                            await exitingState.Exit();
-                        }
-                    }
-                    CurrentState = TransitionTo(change, out var oldState);
-                    Stack.Push(CurrentState);
-                    EnterEvent(CurrentState, oldState.Key);
-                    await CurrentState.Enter();
                 }
-                
-                ExecuteContext.Delta = delta;
                 await CurrentState.Execute();
-                var transition = CurrentState.Next(ExecuteContext);
-                
+                var transition = CurrentState.Next(Context);
                 NextChange = CreateChange(transition);
                 IsInitialized = true;
             } catch (Exception) {
@@ -89,9 +83,7 @@ namespace Betauer.StateMachine.Async {
                 CurrentState = currentStateBackup;
                 throw;
             } finally {
-                lock (LockObject) {
-                    Available = true;
-                }
+                Available = true;
             }
         }
     }

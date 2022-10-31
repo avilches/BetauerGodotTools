@@ -96,6 +96,7 @@ namespace Veronenger.Game.Managers {
             #endif
             
             Bus.Subscribe(Enqueue);
+            var modalResponse = false;
             
             State(MainState.Init)
                 .Execute(async () => {
@@ -175,7 +176,6 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             On(MainTransition.ModalBoxConfirmQuitGame, context => context.Push(MainState.ModalQuitGame));
-            var modalResponse = false;
             State(MainState.ModalQuitGame)
                 .On(MainTransition.Back, context => context.Pop())
                 .Execute(async () => {

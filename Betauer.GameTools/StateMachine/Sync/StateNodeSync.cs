@@ -11,7 +11,7 @@ namespace Betauer.StateMachine.Sync {
 
         public StateNodeSync(TStateKey key, 
             Action? enter,
-            Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
             Action execute,
             Action? exit, 
             Action? suspend, 

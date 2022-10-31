@@ -37,10 +37,10 @@ namespace Betauer.StateMachine {
         protected static readonly Change NoChange = new(null, TransitionType.None);
 
         protected readonly Stack<TState> Stack = new();
-        protected readonly ExecuteContext<TStateKey, TTransitionKey> ExecuteContext = new();
+        protected readonly Context<TStateKey, TTransitionKey> Context = new();
         protected readonly TriggerContext<TStateKey> TriggerContext = new();
         protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events;
-        protected Func<Exception, ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response> OnError; 
+        protected Func<Exception, Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> OnError; 
         protected Change NextChange;
         protected readonly TStateKey InitialState;
         protected bool IsInitialized = false;
@@ -59,11 +59,11 @@ namespace Betauer.StateMachine {
 
         public string? Name { get; }
 
-        public event Action<TransitionArgs<TStateKey>>? OnEnter;
-        public event Action<TransitionArgs<TStateKey>>? OnAwake;
-        public event Action<TransitionArgs<TStateKey>>? OnSuspend;
-        public event Action<TransitionArgs<TStateKey>>? OnExit;
-        public event Action<TransitionArgs<TStateKey>>? OnTransition;
+        private event Action<TransitionArgs<TStateKey>>? OnEnter;
+        private event Action<TransitionArgs<TStateKey>>? OnAwake;
+        private event Action<TransitionArgs<TStateKey>>? OnSuspend;
+        private event Action<TransitionArgs<TStateKey>>? OnExit;
+        private event Action<TransitionArgs<TStateKey>>? OnTransition;
 
         protected BaseStateMachine(TStateKey initialState, string? name = null) {
             InitialState = initialState;
@@ -115,7 +115,7 @@ namespace Betauer.StateMachine {
             return newState;
         }
 
-        protected Change CreateChange(ExecuteContext<TStateKey, TTransitionKey>.Response candidate) {
+        protected Change CreateChange(Context<TStateKey, TTransitionKey>.Response candidate) {
             if (candidate.IsTrigger() ) {
                 candidate = FindTransition(candidate.TransitionKey);
             }
@@ -139,7 +139,7 @@ namespace Betauer.StateMachine {
         }
 
 
-        protected ExecuteContext<TStateKey, TTransitionKey>.Response FindTransition(TTransitionKey name) {
+        protected Context<TStateKey, TTransitionKey>.Response FindTransition(TTransitionKey name) {
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var stateTransition)) {
                 var triggerTransition = stateTransition.Invoke(TriggerContext);
                 return triggerTransition.ToTransition<TTransitionKey>();

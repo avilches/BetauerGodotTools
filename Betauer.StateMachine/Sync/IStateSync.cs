@@ -7,7 +7,7 @@ namespace Betauer.StateMachine.Sync {
         public void Enter();
         public void Awake();
         public void Execute();
-        public ExecuteContext<TStateKey, TTransitionKey>.Response Next(ExecuteContext<TStateKey, TTransitionKey> executeContext);
+        public Context<TStateKey, TTransitionKey>.Response Next(Context<TStateKey, TTransitionKey> context);
         public void Suspend();
         public void Exit();
     }

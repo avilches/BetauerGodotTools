@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.StateMachine.Async {
-    public class StateMachineNodeAsync<TStateKey, TTransitionKey> : StateMachineNode, IStateMachineAsync<TStateKey, TTransitionKey, StateNodeAsync<TStateKey, TTransitionKey>> 
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateMachineNodeAsync<TStateKey, TTransitionKey> : 
+        StateMachineNode<TStateKey>, IStateMachineAsync<TStateKey, TTransitionKey, StateNodeAsync<TStateKey, TTransitionKey>> 
+        where TStateKey : Enum 
+        where TTransitionKey : Enum {
         
         private class RealStateMachineNodeAsync : BaseStateMachineAsync<TStateKey, TTransitionKey, IStateAsync<TStateKey, TTransitionKey>> { 
             internal RealStateMachineNodeAsync(TStateKey initialState, string? name = null) : base(initialState, name) {
@@ -31,20 +33,25 @@ namespace Betauer.StateMachine.Async {
         public void AddOnSuspend(Action<TransitionArgs<TStateKey>> e) => _stateMachine.AddOnSuspend(e);
         public void AddOnExit(Action<TransitionArgs<TStateKey>> e) => _stateMachine.AddOnExit(e);
         public void AddOnTransition(Action<TransitionArgs<TStateKey>> e) => _stateMachine.AddOnTransition(e);
-        
-        
         public void RemoveOnEnter(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnEnter(e);
         public void RemoveOnAwake(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnAwake(e);
         public void RemoveOnSuspend(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnSuspend(e);
         public void RemoveOnExit(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnExit(e);
         public void RemoveOnTransition(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnTransition(e);
-        
-        
         public StateNodeBuilderAsync<TStateKey, TTransitionKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
         public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition) => _stateMachine.On(transitionKey, transition);
         public void AddState(StateNodeAsync<TStateKey, TTransitionKey> state) => _stateMachine.AddState(state);
         public void Enqueue(TTransitionKey name) => _stateMachine.Enqueue(name);
-        public Task Execute(float delta) => _stateMachine.Execute(delta);
+
+        public Task Execute() {
+            throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
+        }
+
+        public void Execute(float delta) {
+            if (!Available) return;
+            ExecuteStart(delta, CurrentState.Key);
+            _stateMachine.Execute().ContinueWith(t => ExecuteEnd(CurrentState.Key));
+        }
 
         public override void _Input(InputEvent e) {
             if (Available) CurrentState._Input(e);

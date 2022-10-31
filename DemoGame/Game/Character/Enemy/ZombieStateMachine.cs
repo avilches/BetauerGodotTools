@@ -65,8 +65,7 @@ namespace Veronenger.Game.Character.Enemy {
             Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
 
-            AddOnExecuteStart((delta, state) => Body.StartFrame(delta));
-            AddOnExecuteEnd((state) => Body.EndFrame());
+            AddOnExecuteStart((delta, state) => Body.SetDelta(delta));
 
             var debugOverlay = DebugOverlayManager.Follow(zombie);
 

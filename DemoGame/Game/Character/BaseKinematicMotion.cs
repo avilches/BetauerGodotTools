@@ -37,13 +37,10 @@ namespace Veronenger.Game.Character {
             FloorUpDirection = floorUpDirection;
         }
 
-        public virtual void StartFrame(float delta) {
+        public void SetDelta(float delta) {
             Delta = delta;
         }
 
-        public virtual void EndFrame() {
-        }
-        
         protected Vector2 RotateSpeed() {
             return _anglesToRotateFloor > 0f ? Motion.Rotated(_anglesToRotateFloor) : Motion;
         }

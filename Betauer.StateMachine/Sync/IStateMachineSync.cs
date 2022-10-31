@@ -5,7 +5,7 @@ namespace Betauer.StateMachine.Sync {
         IStateMachine<TStateKey, TTransitionKey, TState> 
         where TTransitionKey : Enum where TStateKey : Enum {
         
-        public void Execute(float delta);
+        public void Execute();
         
     }
 }
