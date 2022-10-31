@@ -6,7 +6,7 @@ namespace Betauer.StateMachine.Async {
         where TTransitionKey : Enum where TStateKey : Enum {
         
         public bool Available { get; }
-        public Task Execute(float delta);
+        public Task Execute();
         
     }
 }
