@@ -87,7 +87,7 @@ namespace Betauer.Application.Monitor {
                 .WithNoArguments(() => {
                     console.WriteLine($"Current time scale: {Engine.TimeScale.ToString()}");
                 })
-                .ArgumentIsInteger(input => {
+                .ArgumentIsFloat(input => {
                     var newTimeScale = input.Arguments[0];
                     Engine.TimeScale = newTimeScale.ToFloat();
                     console.WriteLine($"New time scale: {newTimeScale}");
