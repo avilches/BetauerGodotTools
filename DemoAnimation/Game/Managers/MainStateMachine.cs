@@ -54,32 +54,29 @@ namespace DemoAnimation.Game.Managers {
                     DebugOverlayManager.DebugConsole.Theme = MyTheme;
                     SceneTree.Root.AddChild(_mainMenuScene);
                 })
-                .Execute(context => context.Set(State.MainMenu))
+                .Condition(() => true, context => context.Set(State.MainMenu))
                 .Build();
                 
 
             State(State.MainMenu)
+                .OnInput(e => _mainMenuScene.OnInput(e))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
-                .Execute(async context => {
-                    if (UiCancel.IsJustPressed()) {
-                        await _mainMenuScene.BackMenu();
-                    }
-                    return context.None();
-                })
                 .Build();
                 
 
+            var modalResponse = false;
             On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
             State(State.ModalExitDesktop)
                 .On(Transition.Back, context => context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
-                .Execute(async (context) => {
-                    var result = await ShowModalBox("Exit game?");
-                    return result ? context.Push(State.ExitDesktop) : context.Pop();
+                .Execute(async () => {
+                    modalResponse = await ShowModalBox("Exit game?");
                 })
+                .Condition(() => modalResponse, context => context.Set(State.MainMenu))
+                .Condition(() => !modalResponse, context => context.Pop())
                 .Build();
 
             State(State.ExitDesktop)
