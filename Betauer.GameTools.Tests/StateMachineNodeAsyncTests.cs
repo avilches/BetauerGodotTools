@@ -45,46 +45,40 @@ namespace Betauer.GameTools.Tests {
             List<string> states = new List<string>();
 
             sm.State(State.Start)
-                .Execute(async context => {
-                    states.Add("Start");
-                    await this.AwaitIdleFrame();
-                    return context.Set(State.Idle);
-                }).Build();
+                .Execute(async () => states.Add("Start"))
+                .Condition(() => true, context => context.Set(State.Idle))
+                .Build();
 
             sm.State(State.Idle)
                 .Enter(async () => {
-                    await this.AwaitIdleFrame();
+                    
                     x = 0;
                 })
-                .Execute(async context => {
-                    await this.AwaitIdleFrame();
-                    x++;
-                    await this.AwaitIdleFrame();
-                    states.Add("IdleExecute(" + x + ")");
-                    if (x == 2) {
-                        return context.Set(State.Attack);
-                    }
+                .Execute(async () => {
 
-                    return context.Set(State.Idle);
+                    x++;
+
+                    states.Add("IdleExecute(" + x + ")");
                 })
+                .Condition(() => x == 2, context => context.Set(State.Attack))
+                .Condition(() => true, context => context.Set(State.Idle))
                 .Exit(async () => {
-                    await this.AwaitIdleFrame();
+                    
                     states.Add("IdleExit(" + x + ")");
                 }).Build();
 
             sm.State(State.Attack)
-                .Execute(async context => {
+                .Execute(async () => {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
-                    return context.Set(State.End);
-                }).Build();
+                })
+                .Condition(() => true, context => context.Set(State.End))
+                .Build();
 
             sm.State(State.End)
-                .Execute(async context => {
+                .Execute(async () => {
                     x++;
                     states.Add("End(" + x + ")");
-                    await this.AwaitIdleFrame();
-                    return context.None();
                 }).Build();
 
             AddChild(sm);

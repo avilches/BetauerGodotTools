@@ -45,46 +45,40 @@ namespace Betauer.GameTools.Tests {
             List<string> states = new List<string>();
 
             sm.State(State.Start)
-                .Execute(context => {
-                    states.Add("Start");
-                    
-                    return context.Set(State.Idle);
-                }).Build();
+                .Execute(() => states.Add("Start"))
+                .Condition(() => true, context => context.Set(State.Idle))
+                .Build();
 
             sm.State(State.Idle)
                 .Enter(() => {
                     
                     x = 0;
                 })
-                .Execute(context => {
-                    
-                    x++;
-                    
-                    states.Add("IdleExecute(" + x + ")");
-                    if (x == 2) {
-                        return context.Set(State.Attack);
-                    }
+                .Execute(() => {
 
-                    return context.Set(State.Idle);
+                    x++;
+
+                    states.Add("IdleExecute(" + x + ")");
                 })
+                .Condition(() => x == 2, context => context.Set(State.Attack))
+                .Condition(() => true, context => context.Set(State.Idle))
                 .Exit(() => {
                     
                     states.Add("IdleExit(" + x + ")");
                 }).Build();
 
             sm.State(State.Attack)
-                .Execute(context => {
+                .Execute(() => {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
-                    return context.Set(State.End);
-                }).Build();
+                })
+                .Condition(() => true, context => context.Set(State.End))
+                .Build();
 
             sm.State(State.End)
-                .Execute(context => {
+                .Execute(() => {
                     x++;
                     states.Add("End(" + x + ")");
-                    
-                    return context.None();
                 }).Build();
 
             AddChild(sm);
