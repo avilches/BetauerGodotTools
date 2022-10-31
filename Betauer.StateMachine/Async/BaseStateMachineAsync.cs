@@ -38,30 +38,30 @@ namespace Betauer.StateMachine.Async {
                 if (change.Type == TransitionType.Pop) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
-                    await newState.Exit(change.State.Key);
+                    await newState.Exit();
                     CurrentState = TransitionTo(change, out var oldState);
                     AwakeEvent(CurrentState, oldState.Key);
-                    await CurrentState.Awake(oldState.Key);
+                    await CurrentState.Awake();
                 } else if (change.Type == TransitionType.Push) {
                     SuspendEvent(CurrentState, change.State!.Key);
-                    await CurrentState.Suspend(change.State!.Key);
+                    await CurrentState.Suspend();
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    await CurrentState.Enter(oldState.Key);
+                    await CurrentState.Enter();
                 } else if (change.Type == TransitionType.PopPush) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
-                    await newState.Exit(change.State.Key);
+                    await newState.Exit();
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    await CurrentState.Enter(oldState.Key);
+                    await CurrentState.Enter();
                 } else if (change.Type == TransitionType.Set) {
                     if (Stack.Count == 1) {
                         var newState = Stack.Pop();
                         ExitEvent(newState, change.State.Key);
-                        await newState.Exit(change.State.Key);
+                        await newState.Exit();
                     } else {
                         // Special case: 
                         // Exit from all the states from the stack, in order
@@ -69,17 +69,18 @@ namespace Betauer.StateMachine.Async {
                             var exitingState = Stack.Pop();
                             var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
                             ExitEvent(exitingState, to);
-                            await exitingState.Exit(to);
+                            await exitingState.Exit();
                         }
                     }
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    await CurrentState.Enter(oldState.Key);
+                    await CurrentState.Enter();
                 }
                 
                 ExecuteContext.Delta = delta;
-                var transition = await CurrentState.Execute(ExecuteContext);
+                await CurrentState.Execute();
+                var transition = CurrentState.Next(ExecuteContext);
                 
                 NextChange = CreateChange(transition);
                 IsInitialized = true;

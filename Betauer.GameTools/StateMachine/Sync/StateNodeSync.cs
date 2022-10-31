@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.StateMachine.Sync {
@@ -9,14 +10,15 @@ namespace Betauer.StateMachine.Sync {
         private readonly Action<InputEvent> _unhandledInput;
 
         public StateNodeSync(TStateKey key, 
-            Action<TStateKey>? enter,
-            Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>? execute,
-            Action<TStateKey>? exit, 
-            Action<TStateKey>? suspend, 
-            Action<TStateKey>? awake,
+            Action? enter,
+            Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Action execute,
+            Action? exit, 
+            Action? suspend, 
+            Action? awake,
             EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events,
             Action<InputEvent> input, 
-            Action<InputEvent> unhandledInput) : base(key, enter, execute, exit, suspend, awake, events) {
+            Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;
             _unhandledInput = unhandledInput;
         }

@@ -98,7 +98,7 @@ namespace Veronenger.Game.Managers {
             Bus.Subscribe(Enqueue);
             
             State(MainState.Init)
-                .Execute(async (ctx) => {
+                .Execute(async () => {
                     MainResourceLoader.OnProgress += context => {
                         // GD.Print(context.LoadPercent.ToString("P") + " = " + context.LoadedSize + " / " +
                         // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
@@ -115,8 +115,9 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Root.AddChild(_mainMenuScene);
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
-                    return ctx.Set(MainState.StartingGame);
-                }).Build();
+                })
+                .Condition(() => true, ctx => ctx.Set(MainState.StartingGame))
+                .Build();
             
             State(MainState.MainMenu)
                 .OnInput(e => _mainMenuScene.OnInput(e))
@@ -139,7 +140,7 @@ namespace Veronenger.Game.Managers {
                     await _mainMenuScene.HideMainMenu();
                     Game.Start();
                 })
-                .Execute(context => context.Set(MainState.Gaming))
+                .Condition(() => true, context => context.Set(MainState.Gaming))
                 .Build();
 
             State(MainState.Gaming)
@@ -174,12 +175,14 @@ namespace Veronenger.Game.Managers {
                 .Build();
 
             On(MainTransition.ModalBoxConfirmQuitGame, context => context.Push(MainState.ModalQuitGame));
+            var modalResponse = false;
             State(MainState.ModalQuitGame)
                 .On(MainTransition.Back, context => context.Pop())
-                .Execute(async (context) => {
-                    var result = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
-                    return result ? context.Set(MainState.MainMenu) : context.Pop();
+                .Execute(async () => {
+                    modalResponse = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 })
+                .Condition(() => modalResponse, context => context.Set(MainState.MainMenu))
+                .Condition(() => !modalResponse, context => context.Pop())
                 .Build();
                 
 
@@ -188,10 +191,11 @@ namespace Veronenger.Game.Managers {
                 .On(MainTransition.Back, context => context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
-                .Execute(async (context) => {
-                    var result = await ShowModalBox("Exit game?");
-                    return result ? context.Set(MainState.ExitDesktop) : context.Pop();
+                .Execute(async () => {
+                    modalResponse = await ShowModalBox("Exit game?");
                 })
+                .Condition(() => modalResponse, context => context.Set(MainState.ExitDesktop))
+                .Condition(() => !modalResponse, context => context.Pop())
                 .Build();
                 
             On(MainTransition.ExitDesktop, context => context.Set(MainState.ExitDesktop));

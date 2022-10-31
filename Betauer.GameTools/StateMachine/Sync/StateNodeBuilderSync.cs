@@ -10,7 +10,7 @@ namespace Betauer.StateMachine.Sync {
         }
 
         protected override IStateSync<TStateKey, TTransitionKey> CreateState() {
-            return new StateNodeSync<TStateKey, TTransitionKey>(Key, EnterFunc, ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
+            return new StateNodeSync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
         private Action<InputEvent> _input;

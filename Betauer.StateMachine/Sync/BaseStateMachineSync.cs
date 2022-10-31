@@ -34,30 +34,30 @@ namespace Betauer.StateMachine.Sync {
                 if (change.Type == TransitionType.Pop) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
-                    newState.Exit(change.State.Key);
+                    newState.Exit();
                     CurrentState = TransitionTo(change, out var oldState);
                     AwakeEvent(CurrentState, oldState.Key);
-                    CurrentState.Awake(oldState.Key);
+                    CurrentState.Awake();
                 } else if (change.Type == TransitionType.Push) {
                     SuspendEvent(CurrentState, change.State!.Key);
-                    CurrentState.Suspend(change.State!.Key);
+                    CurrentState.Suspend();
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    CurrentState.Enter(oldState.Key);
+                    CurrentState.Enter();
                 } else if (change.Type == TransitionType.PopPush) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
-                    newState.Exit(change.State.Key);
+                    newState.Exit();
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    CurrentState.Enter(oldState.Key);
+                    CurrentState.Enter();
                 } else if (change.Type == TransitionType.Set) {
                     if (Stack.Count == 1) {
                         var newState = Stack.Pop();
                         ExitEvent(newState, change.State.Key);
-                        newState.Exit(change.State.Key);
+                        newState.Exit();
                     } else {
                         // Special case: 
                         // Exit from all the states from the stack, in order
@@ -65,17 +65,18 @@ namespace Betauer.StateMachine.Sync {
                             var exitingState = Stack.Pop();
                             var to = Stack.Count > 0 ? Stack.Peek().Key : change.State.Key;
                             ExitEvent(exitingState, to);
-                            exitingState.Exit(to);
+                            exitingState.Exit();
                         }
                     }
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
-                    CurrentState.Enter(oldState.Key);
+                    CurrentState.Enter();
                 }
                 OnExecuteStart?.Invoke(delta, CurrentState.Key);
                 ExecuteContext.Delta = delta;
-                var transition = CurrentState.Execute(ExecuteContext);
+                CurrentState.Execute();
+                var transition = CurrentState.Next(ExecuteContext);
                 OnExecuteEnd?.Invoke(CurrentState.Key);
                 NextChange = CreateChange(transition);
                 IsInitialized = true;

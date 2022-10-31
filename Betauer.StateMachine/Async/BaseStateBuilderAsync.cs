@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine.Async {
@@ -7,11 +8,12 @@ namespace Betauer.StateMachine.Async {
         where TTransitionKey : Enum
         where TBuilder : class {
         
-        protected Func<TStateKey, Task>? EnterFunc;
-        protected Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteContext<TStateKey, TTransitionKey>.Response>>? ExecuteFunc;
-        protected Func<TStateKey, Task>? ExitFunc;
-        protected Func<TStateKey, Task>? SuspendFunc;
-        protected Func<TStateKey, Task>? AwakeFunc;
+        protected Func<Task>? EnterFunc;
+        protected Func<Task>? AwakeFunc;
+        protected List<Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>> Conditions = new();
+        protected Func<Task>? ExecuteFunc;
+        protected Func<Task>? ExitFunc;
+        protected Func<Task>? SuspendFunc;
         protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events;
         protected readonly TStateKey Key;
         protected readonly Action<IStateAsync<TStateKey, TTransitionKey>> OnBuild;
@@ -29,6 +31,13 @@ namespace Betauer.StateMachine.Async {
 
         protected abstract IStateAsync<TStateKey, TTransitionKey> CreateState();
 
+        public TBuilder Condition(
+            Func<bool> condition,
+            Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response> execute) {
+            Conditions.Add(new(condition, execute));
+            return this as TBuilder;
+        }
+
         public TBuilder On(
             TTransitionKey transitionKey,
             Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition) {
@@ -40,30 +49,13 @@ namespace Betauer.StateMachine.Async {
         /*
          * Enter
          */
-        // async (state) => {}
-        public TBuilder Enter(Func<TStateKey, Task> enter) {
+        public TBuilder Enter(Func<Task> enter) {
             EnterFunc = enter;
             return this as TBuilder;
         }
 
-        // async () => {}
-        public TBuilder Enter(Func<Task> enter) {
-            EnterFunc = from => enter();
-            return this as TBuilder;
-        }
-
-        // (state) => {}
-        public TBuilder Enter(Action<TStateKey> enter) {
-            EnterFunc = from => {
-                enter(from);
-                return Task.CompletedTask;
-            };
-            return this as TBuilder;
-        }
-
-        // () => {}
         public TBuilder Enter(Action enter) {
-            EnterFunc = from => {
+            EnterFunc = () => {
                 enter();
                 return Task.CompletedTask;
             };
@@ -73,81 +65,45 @@ namespace Betauer.StateMachine.Async {
         /*
          * Awake
          */
-        // async (state) => {}
-        public TBuilder Awake(Func<TStateKey, Task> awake) {
+        public TBuilder Awake(Func<Task> awake) {
             AwakeFunc = awake;
             return this as TBuilder;
         }
 
-        // async () => {}
-        public TBuilder Awake(Func<Task> awake) {
-            AwakeFunc = from => awake();
-            return this as TBuilder;
-        }
-
-        // (state) => {}
-        public TBuilder Awake(Action<TStateKey> awake) {
-            AwakeFunc = from => {
-                awake(from);
-                return Task.CompletedTask;
-            };
-            return this as TBuilder;
-        }
-
-        // () => {}
         public TBuilder Awake(Action awake) {
-            AwakeFunc = from => {
+            AwakeFunc = () => {
                 awake();
                 return Task.CompletedTask;
             };
             return this as TBuilder;
         }
 
-
         /*
          * Execute
          */
-        // async (context) => { return context...() }
-        public TBuilder Execute(
-            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteContext<TStateKey, TTransitionKey>.Response>> execute) {
+        public TBuilder Execute(Func<Task> execute) {
             ExecuteFunc = execute;
             return this as TBuilder;
         }
 
-        // (context) => { return context...() }
-        public TBuilder Execute(
-            Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response> execute) {
-            ExecuteFunc = (ctx) => Task.FromResult(execute(ctx));
+        public TBuilder Execute(Action execute) {
+            ExecuteFunc = () => {
+                execute();
+                return Task.CompletedTask;
+            };
             return this as TBuilder;
         }
 
         /*
          * Suspend
          */
-        // async (state) => {}
-        public TBuilder Suspend(Func<TStateKey, Task> suspend) {
+        public TBuilder Suspend(Func<Task> suspend) {
             SuspendFunc = suspend;
             return this as TBuilder;
         }
 
-        // async () => {}
-        public TBuilder Suspend(Func<Task> suspend) {
-            SuspendFunc = to => suspend();
-            return this as TBuilder;
-        }
-
-        // (state) => {}
-        public TBuilder Suspend(Action<TStateKey> suspend) {
-            SuspendFunc = from => {
-                suspend(from);
-                return Task.CompletedTask;
-            };
-            return this as TBuilder;
-        }
-
-        // () => {}
         public TBuilder Suspend(Action suspend) {
-            SuspendFunc = from => {
+            SuspendFunc = () => {
                 suspend();
                 return Task.CompletedTask;
             };
@@ -157,30 +113,13 @@ namespace Betauer.StateMachine.Async {
         /*
          * Exit
          */
-        // async (state) => {}
-        public TBuilder Exit(Func<TStateKey, Task> exit) {
+        public TBuilder Exit(Func<Task> exit) {
             ExitFunc = exit;
             return this as TBuilder;
         }
 
-        // async () => {}
-        public TBuilder Exit(Func<Task> exit) {
-            ExitFunc = to => exit();
-            return this as TBuilder;
-        }
-
-        // (state) => {}
-        public TBuilder Exit(Action<TStateKey> exit) {
-            ExitFunc = from => {
-                exit(from);
-                return Task.CompletedTask;
-            };
-            return this as TBuilder;
-        }
-
-        // () => {}
         public TBuilder Exit(Action exit) {
-            ExitFunc = from => {
+            ExitFunc = () => {
                 exit();
                 return Task.CompletedTask;
             };

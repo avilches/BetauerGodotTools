@@ -10,14 +10,15 @@ namespace Betauer.StateMachine.Async {
         private readonly Action<InputEvent> _unhandledInput;
         
         public StateNodeAsync(TStateKey key,
-            Func<TStateKey, Task>? enter,
-            Func<ExecuteContext<TStateKey, TTransitionKey>, Task<ExecuteContext<TStateKey, TTransitionKey>.Response>>? execute,
-            Func<TStateKey, Task>? exit,
-            Func<TStateKey, Task>? suspend,
-            Func<TStateKey, Task>? awake,
+            Func<Task>? enter,
+            Tuple<Func<bool>, Func<ExecuteContext<TStateKey, TTransitionKey>, ExecuteContext<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Func<Task> execute,
+            Func<Task>? exit,
+            Func<Task>? suspend,
+            Func<Task>? awake,
             EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events,
             Action<InputEvent> input,
-            Action<InputEvent> unhandledInput) : base(key, enter, execute, exit, suspend, awake, events) {
+            Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;
             _unhandledInput = unhandledInput;
         }

@@ -5,7 +5,7 @@ namespace Betauer.StateMachine.Async {
         where TStateKey : Enum where TTransitionKey : Enum {
         
         protected override IStateAsync<TStateKey, TTransitionKey> CreateState() {
-            return new StateAsync<TStateKey, TTransitionKey>(Key, EnterFunc, ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events);
+            return new StateAsync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions?.ToArray(),ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events);
         }
 
         public StateBuilderAsync(TStateKey key, Action<IStateAsync<TStateKey, TTransitionKey>> build) : base(key, build) {

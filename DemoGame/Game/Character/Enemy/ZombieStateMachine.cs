@@ -89,18 +89,13 @@ namespace Veronenger.Game.Character.Enemy {
                     StateTimer.Restart().SetAlarm(2f);
                     _zombieController.AnimationIdle.PlayLoop();
                 })
-                .Execute(context => {
-                    if (!_zombieController.IsOnFloor()) {
-                        // return context.Set(PlayerState.FallShort);
-                        return context.None();
-                    }
+                .Execute(() => {
                     Body.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
-                    
-                    if (StateTimer.IsAlarm()) {
-                        return context.Set(ZombieState.Patrol);
-                    }
-                    return context.None();
+                    // if (StateTimer.IsAlarm()) {
+                        // return context.Set(ZombieState.Patrol);
+                    // }
                 })
+                .Condition(() => !Body.IsOnFloor(), context => context.Set(ZombieState.FallShort))
                 .Build();
             
             State(ZombieState.Patrol)
@@ -111,40 +106,18 @@ namespace Veronenger.Game.Character.Enemy {
                 /*
                  * AnimationStep + lateral move -> wait(1,2) + stop
                  */
-                .Execute(context => {
-                    if (!_zombieController.IsOnFloor()) {
-                        _zombieController.AnimationIdle.PlayLoop();
-                        Body.Fall();
-                        return context.None();
-                        // return context.Set(PlayerState.FallShort);
-                    }
-
+                .Execute(() => {
                     Body.Run(Body.IsFacingRight ? 1 : -1, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 
-                    if (StateTimer.IsAlarm()) {
-                        Body.Flip();
-                        StateTimer.Restart().SetAlarm(2f);
-                    }
-                    return context.None();
+                    // if (StateTimer.IsAlarm()) {
+                        // Body.Flip();
+                        // StateTimer.Restart().SetAlarm(2f);
+                    // }
                 })
+                .Condition(() => !Body.IsOnFloor(), context => context.Set(ZombieState.FallShort))
                 .Build();
 
-            State(ZombieState.Chase)
-                .Enter(() => {
-                    StateTimer.Restart().SetAlarm(1f);
-                })
-                .Execute(context => {
-                    if (!_zombieController.IsOnFloor()) {
-                        return context.Set(ZombieState.Patrol);
-                    }
-                    Body.ApplyDefaultGravity();
-                    Body.ApplyLateralFriction(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
-                    Body.MoveSnapping();
-
-                    return StateTimer.IsAlarm() ? context.Set(ZombieState.Patrol) : context.None();
-                })
-                .Build();
 
             On(ZombieTransition.Attacked,
                 context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
@@ -156,13 +129,11 @@ namespace Veronenger.Game.Character.Enemy {
                     _zombieController.PlayAnimationAttacked();
                     StateTimer.Restart().SetAlarm(1f);
                 })
-                .Execute(context => {
+                .Execute(() => {
                     Body.ApplyDefaultGravity();
                     Body.Slide();
-                    if (StateTimer.IsAlarm())
-                        return context.Pop();
-                    return context.None();
                 })
+                .Condition(() => StateTimer.IsAlarm(), context => context.Pop())
                 .Build();
 
             On(ZombieTransition.Dead, context => context.Set(ZombieState.Destroy));
@@ -176,24 +147,21 @@ namespace Veronenger.Game.Character.Enemy {
                         _zombieController.AnimationDieRight.PlayOnce(true);
                     }
                 })
-                .Execute(context => {
+                .Execute(() => {
                     if (!_zombieController.AnimationDieRight.Playing && !_zombieController.AnimationDieLeft.Playing) {
                         _zombieController.QueueFree();
                     }
-                    return context.None();
                 })
                 .Build();
             AddOnTransition((args) => zombie.Label.Text = args.To.ToString());
 
             State(ZombieState.FallShort)
-                .Execute(context => {
-                    if (Body.IsOnFloor()) return context.Set(ZombieState.Idle);
+                .Execute(() => {
                     Body.ApplyDefaultGravity();
                     // Keep the speed from the move so if the player collides, the player could slide or stop
                     Body.Motion = Body.Slide();
-
-                    return context.None();
                 })
+                .Condition(() => Body.IsOnFloor(), context => context.Set(ZombieState.Idle))
                 .Build();
 
         }

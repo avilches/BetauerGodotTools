@@ -10,7 +10,7 @@ namespace Betauer.StateMachine.Async {
         }
 
         protected override IStateAsync<TStateKey, TTransitionKey> CreateState() {
-            return new StateNodeAsync<TStateKey, TTransitionKey>(Key, EnterFunc, ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
+            return new StateNodeAsync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
         private Action<InputEvent> _input;
