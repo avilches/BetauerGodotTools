@@ -139,7 +139,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuContainer(_menuBase);
-            var root = mainMenu.GetStartMenu().OnShow(() => {
+            var root = mainMenu.GetRootMenu().OnShow(() => {
                 _demoMenuContainer.Visible = false;
                 _animatorContainer.Visible = false;
             });
@@ -176,7 +176,7 @@ namespace DemoAnimation.Game.Controller.Menu {
             mainMenu.ConfigureGoTransition(GoGoodbyeAnimation, GoNewMenuAnimation);
             mainMenu.ConfigureBackTransition(BackGoodbyeAnimation, BackNewMenuAnimation);
 
-            var root = mainMenu.GetStartMenu();
+            var root = mainMenu.GetRootMenu();
             root.AddButton("S", "Start new game").OnPressed(() => {
                 mainMenu.Go("Other", "1");
             }, true);
@@ -292,5 +292,15 @@ namespace DemoAnimation.Game.Controller.Menu {
             await animation.Play(children, DelayPerTarget, 0f, MenuEffectTime, AllMenuEffectTime).AwaitFinished();
             _menuLabel.Text = "";
         }
+
+        public void OnInput(InputEvent e) {
+            if (UiCancel.IsEventJustPressed(e)) { 
+                if (!_menuContainer.IsRootMenuActive()) {
+                    _menuContainer.Back();
+                    GetTree().SetInputAsHandled();
+                }
+            }
+        }
+
     }
 }

@@ -67,7 +67,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuContainer(_menuBase);
-            var startMenu = mainMenu.GetStartMenu();
+            var startMenu = mainMenu.GetRootMenu();
             var noButton = startMenu.AddButton("No", "No");
             var yesButton = startMenu.AddButton("Yes", "Yes");
             noButton.OnPressed(() => _promise.TrySetResult(false));

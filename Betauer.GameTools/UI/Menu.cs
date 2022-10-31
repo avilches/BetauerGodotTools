@@ -62,7 +62,7 @@ namespace Betauer.UI {
             return menu;
         }
 
-        public Menu GetStartMenu() {
+        public Menu GetRootMenu() {
             return _menus.Find(menu => menu.Name == null);
         }
 
@@ -70,7 +70,7 @@ namespace Betauer.UI {
             return _menus.Find(menu => menu.Name == toMenuName);
         }
 
-        public bool IsStartMenuActive() => IsMenuActive(null);
+        public bool IsRootMenuActive() => IsMenuActive(null);
         public bool IsMenuActive(string name) => ActiveMenu.Name == name;
 
         private readonly object _lockObject = new object();
@@ -83,7 +83,7 @@ namespace Betauer.UI {
             }
             try {
                 var fromMenu = ActiveMenu;
-                var toMenu = GetStartMenu();
+                var toMenu = GetRootMenu();
                 BaseButton? toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
                 _navigationState.Clear();
                 var transition = new MenuTransition(fromMenu, null, toMenu, toButton);
@@ -167,7 +167,7 @@ namespace Betauer.UI {
         public async Task BackToStart(string? fromButtonName = null, string? rootButtonName = null,
             Func<MenuTransition, Task>? goodbyeAnimation = null,
             Func<MenuTransition, Task>? newMenuAnimation = null) {
-            if (_navigationState.Count == 0 && IsStartMenuActive()) return;
+            if (_navigationState.Count == 0 && IsRootMenuActive()) return;
             await _Back(true, fromButtonName, rootButtonName, goodbyeAnimation, newMenuAnimation);
         }
 
@@ -211,7 +211,7 @@ namespace Betauer.UI {
                 BaseButton? toButton;
                 if (backToStartMenu) {
                     _navigationState.Clear();
-                    toMenu = GetStartMenu();
+                    toMenu = GetRootMenu();
                     toButton = startMenuButtonName != null ? toMenu.GetControl<BaseButton>(startMenuButtonName) : null;
                 } else {
                     MenuState lastState = _navigationState.Last();
@@ -315,7 +315,7 @@ namespace Betauer.UI {
             _menuContainer = menuContainer;
             Name = name;
             Container = (Container)OriginalContainer.Duplicate();
-            Container.Name = name ?? "StartMenu";
+            Container.Name = name ?? "RootMenuContainer";
             Container.Visible = true;
         }
 

@@ -68,7 +68,7 @@ namespace Veronenger.Game.Controller.Menu {
             foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
 
             var mainMenu = new MenuContainer(_menuBase);
-            var startMenu = mainMenu.GetStartMenu();
+            var startMenu = mainMenu.GetRootMenu();
             startMenu.AddButton("Start", "Start").OnPressed(() => Bus.Publish(MainTransition.StartGame));
             startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainTransition.Settings));
             startMenu.AddButton("Exit", "Exit").OnPressed(() => Bus.Publish(MainTransition.ExitDesktop));
@@ -89,7 +89,7 @@ namespace Veronenger.Game.Controller.Menu {
 
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) { 
-                if (_menuContainer.IsStartMenuActive()) {
+                if (_menuContainer.IsRootMenuActive()) {
                     Bus.Publish(MainTransition.ModalBoxConfirmExitDesktop);
                 } else {
                     _menuContainer.Back();
