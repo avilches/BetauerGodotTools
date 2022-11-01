@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Betauer.StateMachine.Sync {
     public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TTransitionKey>
@@ -31,6 +30,12 @@ namespace Betauer.StateMachine.Sync {
 
         protected abstract IStateSync<TStateKey, TTransitionKey> CreateState();
 
+        public ConditionBuilder<TBuilder, TStateKey, TTransitionKey> If(Func<bool> condition) {
+            return new ConditionBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, condition, (c) => {
+                Condition(c.Condition, c.Execute);
+            });
+        }
+        
         public TBuilder Condition(
             Func<bool> condition,
             Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> execute) {

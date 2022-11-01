@@ -1,7 +1,6 @@
 using System;
 using Betauer;
 using Betauer.Application.Monitor;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
@@ -9,7 +8,6 @@ using Betauer.Input;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Time;
-using Godot;
 using Veronenger.Game.Controller.Character;
 using Veronenger.Game.Managers;
 
@@ -141,14 +139,14 @@ namespace Veronenger.Game.Character.Player {
                     CheckGroundAttack();
                     Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                 })
-                .Condition(() => !Body.IsOnFloor(),context => context.Set(PlayerState.FallShort))
-                .Condition(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform(),
+                .If(() => !Body.IsOnFloor()).Set(PlayerState.FallShort)
+                .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
                     context => {
                         PlatformManager.BodyFallFromPlatform(_player);
                         return context.Set(PlayerState.FallShort);
                     })
-                .Condition(() => Jump.IsJustPressed(), context => context.Set(PlayerState.Jump))
-                .Condition(() => XInput != 0, context => context.Set(PlayerState.Run))
+                .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
+                .If(() => XInput != 0).Set(PlayerState.Run)
                 .Build();
                 
             State(PlayerState.Run)
@@ -169,18 +167,18 @@ namespace Veronenger.Game.Character.Player {
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
                     }
                 })
-                .Condition(() => !Body.IsOnFloor(), 
+                .If(() => !Body.IsOnFloor()).Then( 
                     context => {
                         CoyoteFallingTimer.Restart();
                         return context.Set(PlayerState.FallShort);
                     })
-                .Condition(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform(),
+                .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
                     context => {
                         PlatformManager.BodyFallFromPlatform(_player);
                         return context.Set(PlayerState.FallShort);
                     })
-                .Condition(() => Jump.IsJustPressed(), context => context.Set(PlayerState.Jump))
-                .Condition(() => XInput == 0 && MotionX == 0, context => context.Set(PlayerState.Idle))
+                .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
+                .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
                 .Build();
 
             On(PlayerTransition.Death, ctx => ctx.Set(PlayerState.Death));
@@ -208,9 +206,9 @@ namespace Veronenger.Game.Character.Player {
                         }
                     }
                 })
-                .Condition(() => LastJumpOnAirTimer.IsRunning, context => context.Set(PlayerState.Jump))
-                .Condition(() => XInput == 0, context => context.Set(PlayerState.Idle))
-                .Condition(() => true, context => context.Set(PlayerState.Run))
+                .If(() => LastJumpOnAirTimer.IsRunning).Set(PlayerState.Jump)
+                .If(() => XInput == 0).Set(PlayerState.Idle)
+                .If(() => true).Set(PlayerState.Run)
                 .Build();
 
         }
@@ -257,9 +255,9 @@ namespace Veronenger.Game.Character.Player {
                     Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
-                .Condition(() => Float.IsPressed(), context => context.Set(PlayerState.Float))
-                .Condition(() => Body.IsOnFloor(), context => context.Set(PlayerState.Landing))
-                .Condition(() => MotionY >= 0, context => context.Set(PlayerState.FallShort))
+                .If(() => Float.IsPressed()).Set(PlayerState.Float)
+                .If(() => Body.IsOnFloor()).Set(PlayerState.Landing)
+                .If(() => MotionY >= 0).Set(PlayerState.FallShort)
                 .Build();
                 
 
@@ -271,10 +269,10 @@ namespace Veronenger.Game.Character.Player {
                     Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
-                .Condition(() => Float.IsPressed(), context => context.Set(PlayerState.Float))
-                .Condition(CheckCoyoteJump, context => context.Set(PlayerState.Jump))
-                .Condition(() => Body.IsOnFloor(), context => context.Set(PlayerState.Landing))
-                .Condition(() => MotionY > PlayerConfig.StartFallingSpeed, context => context.Set(PlayerState.FallLong))
+                .If(() => Float.IsPressed()).Set(PlayerState.Float)
+                .If(CheckCoyoteJump).Set(PlayerState.Jump)
+                .If(() => Body.IsOnFloor()).Set(PlayerState.Landing)
+                .If(() => MotionY > PlayerConfig.StartFallingSpeed).Set(PlayerState.FallLong)
                 .Build();
                 
             State(PlayerState.FallLong)
@@ -287,9 +285,9 @@ namespace Veronenger.Game.Character.Player {
                     Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                         PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
-                .Condition(() => Float.IsPressed(), context => context.Set(PlayerState.Float))
-                .Condition(CheckCoyoteJump, context => context.Set(PlayerState.Jump))
-                .Condition(() => Body.IsOnFloor(), context => context.Set(PlayerState.Landing))
+                .If(() => Float.IsPressed()).Set(PlayerState.Float)
+                .If(CheckCoyoteJump).Set(PlayerState.Jump)
+                .If(() => Body.IsOnFloor()).Set(PlayerState.Landing)
                 .Build();
 
             State(PlayerState.Float)
@@ -298,7 +296,7 @@ namespace Veronenger.Game.Character.Player {
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
                     Body.Slide();
                 })
-                .Condition(() => Float.IsPressed(), context => context.Set(PlayerState.FallShort))
+                .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
                 .Build();
 
             AddOnTransition(args => Console.WriteLine(args.To));

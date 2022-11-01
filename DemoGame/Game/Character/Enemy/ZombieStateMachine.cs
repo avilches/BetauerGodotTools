@@ -94,7 +94,7 @@ namespace Veronenger.Game.Character.Enemy {
                         // return context.Set(ZombieState.Patrol);
                     // }
                 })
-                .Condition(() => !Body.IsOnFloor(), context => context.Set(ZombieState.FallShort))
+                .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
                 .Build();
             
             State(ZombieState.Patrol)
@@ -114,7 +114,7 @@ namespace Veronenger.Game.Character.Enemy {
                         // StateTimer.Restart().SetAlarm(2f);
                     // }
                 })
-                .Condition(() => !Body.IsOnFloor(), context => context.Set(ZombieState.FallShort))
+                .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
                 .Build();
 
 
@@ -132,7 +132,7 @@ namespace Veronenger.Game.Character.Enemy {
                     Body.ApplyDefaultGravity();
                     Body.Slide();
                 })
-                .Condition(() => StateTimer.IsAlarm(), context => context.Pop())
+                .If(() => StateTimer.IsAlarm()).Pop()
                 .Build();
 
             On(ZombieTransition.Dead, context => context.Set(ZombieState.Destroy));
@@ -160,7 +160,9 @@ namespace Veronenger.Game.Character.Enemy {
                     // Keep the speed from the move so if the player collides, the player could slide or stop
                     Body.Motion = Body.Slide();
                 })
-                .Condition(() => Body.IsOnFloor(), context => context.Set(ZombieState.Idle))
+                // .Condition(() => Body.IsOnFloor(), context => context.Set(ZombieState.Idle))
+                .If(Body.IsOnFloor).Set(ZombieState.Idle)
+                .If(Body.IsOnFloor).Set(ZombieState.Idle)
                 .Build();
 
         }
