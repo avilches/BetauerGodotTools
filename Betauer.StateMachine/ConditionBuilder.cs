@@ -10,7 +10,7 @@ namespace Betauer.StateMachine {
         private readonly Action<ConditionBuilder<TBuilder, TStateKey, TTransitionKey>> _onBuild;
 
         internal readonly Func<bool> Condition;
-        internal Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> Execute;
+        internal Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> Execute;
 
         internal ConditionBuilder(TBuilder builder, Func<bool> condition, Action<ConditionBuilder<TBuilder, TStateKey, TTransitionKey>> onBuild) {
             _builder = builder;
@@ -45,7 +45,7 @@ namespace Betauer.StateMachine {
             return Then(context => context.Trigger(transition));
         }
 
-        public TBuilder Then(Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> execute) {
+        public TBuilder Then(Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> execute) {
             Execute = execute;
             _onBuild(this);
             return _builder;

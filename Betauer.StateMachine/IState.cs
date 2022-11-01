@@ -5,6 +5,6 @@ namespace Betauer.StateMachine {
         where TStateKey : Enum where TTransitionKey : Enum {
         
         public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events { get; }
     }
 }

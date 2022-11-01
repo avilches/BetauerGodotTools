@@ -38,7 +38,7 @@ namespace Betauer.StateMachine.Sync {
         public void RemoveOnExit(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnExit(e);
         public void RemoveOnTransition(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnTransition(e);
         public StateNodeBuilderSync<TStateKey, TTransitionKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
-        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition) => _stateMachine.On(transitionKey, transition);
+        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) => _stateMachine.On(transitionKey, transition);
         public void AddState(StateNodeSync<TStateKey, TTransitionKey> stateSync) => _stateMachine.AddState(stateSync);
         public void Enqueue(TTransitionKey name) => _stateMachine.Enqueue(name);
 

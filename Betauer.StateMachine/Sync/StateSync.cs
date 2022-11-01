@@ -5,11 +5,11 @@ namespace Betauer.StateMachine.Sync {
         where TStateKey : Enum where TTransitionKey : Enum {
         
         public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events { get; }
 
         private readonly Action? _enter;
         private readonly Action? _awake;
-        private readonly Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[]? _conditions;
+        private readonly Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[]? _conditions;
         private readonly Action? _execute;
         private readonly Action? _suspend;
         private readonly Action? _exit;
@@ -17,12 +17,12 @@ namespace Betauer.StateMachine.Sync {
         public StateSync(
             TStateKey key,
             Action? enter,
-            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[] conditions,
             Action? execute,
             Action? exit,
             Action? suspend,
             Action? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events) {
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events) {
 
             Key = key;
             _enter = enter;
@@ -46,7 +46,7 @@ namespace Betauer.StateMachine.Sync {
             _execute?.Invoke();
         }
 
-        public Context<TStateKey, TTransitionKey>.Response Next(Context<TStateKey, TTransitionKey> ctx) {
+        public Command<TStateKey, TTransitionKey> Next(ConditionContext<TStateKey, TTransitionKey> ctx) {
             var span = _conditions.AsSpan();
             for (var i = 0; i < span.Length; i++) {
                 var condition = span[i];

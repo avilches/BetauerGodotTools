@@ -9,11 +9,11 @@ namespace Betauer.StateMachine.Sync {
         
         protected Action? EnterFunc;
         protected Action? AwakeFunc;
-        protected List<Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>> Conditions = new();
+        protected List<Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>> Conditions = new();
         protected Action ExecuteFunc;
         protected Action? SuspendFunc;
         protected Action? ExitFunc;
-        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events;
+        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events;
         protected readonly TStateKey Key;
         protected readonly Action<IStateSync<TStateKey, TTransitionKey>> OnBuild;
 
@@ -38,16 +38,16 @@ namespace Betauer.StateMachine.Sync {
         
         public TBuilder Condition(
             Func<bool> condition,
-            Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> execute) {
+            Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> execute) {
             Conditions.Add(new(condition, execute));
             return this as TBuilder;
         }
 
         public TBuilder On(
             TTransitionKey transitionKey,
-            Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition) {
+            Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) {
             Events ??=
-                EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>.Create();
+                EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>.Create();
             Events.Add(transitionKey, transition);
             return this as TBuilder;
         }

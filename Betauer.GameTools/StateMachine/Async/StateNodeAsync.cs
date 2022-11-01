@@ -11,12 +11,12 @@ namespace Betauer.StateMachine.Async {
         
         public StateNodeAsync(TStateKey key,
             Func<Task>? enter,
-            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[] conditions,
             Func<Task> execute,
             Func<Task>? exit,
             Func<Task>? suspend,
             Func<Task>? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events,
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events,
             Action<InputEvent> input,
             Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;

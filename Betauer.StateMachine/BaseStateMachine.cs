@@ -37,10 +37,10 @@ namespace Betauer.StateMachine {
         protected static readonly Change NoChange = new(null, TransitionType.None);
 
         protected readonly Stack<TState> Stack = new();
-        protected readonly Context<TStateKey, TTransitionKey> Context = new();
-        protected readonly TriggerContext<TStateKey> TriggerContext = new();
-        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? Events;
-        protected Func<Exception, Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> OnError; 
+        protected readonly ConditionContext<TStateKey, TTransitionKey> ConditionContext = new();
+        protected readonly TriggerContext<TStateKey, TTransitionKey> TriggerContext = new();
+        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events;
+        protected Func<Exception, ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> OnError; 
         protected Change NextChange;
         protected readonly TStateKey InitialState;
         protected bool IsInitialized = false;
@@ -72,8 +72,8 @@ namespace Betauer.StateMachine {
         }
 
         public void On(TTransitionKey transitionKey, 
-            Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition) {
-            Events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>.Create();
+            Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) {
+            Events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>.Create();
             Events[transitionKey] = transition;
         }
 
@@ -115,10 +115,7 @@ namespace Betauer.StateMachine {
             return newState;
         }
 
-        protected Change CreateChange(Context<TStateKey, TTransitionKey>.Response candidate) {
-            if (candidate.IsTrigger() ) {
-                candidate = FindTransition(candidate.TransitionKey);
-            }
+        protected Change CreateChange(ref Command<TStateKey, TTransitionKey> candidate) {
             if (CurrentState != null && candidate.IsSet(CurrentState.Key)) {
                 return NoChange;
             }
@@ -139,14 +136,14 @@ namespace Betauer.StateMachine {
         }
 
 
-        protected Context<TStateKey, TTransitionKey>.Response FindTransition(TTransitionKey name) {
+        protected void ExecuteTransition(TTransitionKey name, out Command<TStateKey, TTransitionKey> command) {
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var stateTransition)) {
-                var triggerTransition = stateTransition.Invoke(TriggerContext);
-                return triggerTransition.ToTransition<TTransitionKey>();
+                command = stateTransition.Invoke(TriggerContext);
+                return;
             }
             if (Events != null && Events.TryGetValue(name, out var globalTrans)) {
-                var triggerTransition = globalTrans.Invoke(TriggerContext);
-                return triggerTransition.ToTransition<TTransitionKey>();
+                command = globalTrans.Invoke(TriggerContext);
+                return;
             }
             throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");
         }

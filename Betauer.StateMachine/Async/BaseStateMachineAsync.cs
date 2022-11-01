@@ -24,8 +24,8 @@ namespace Betauer.StateMachine.Async {
                 var change = NoChange;
                 if (HasNextTransitionEnqueued) {
                     HasNextTransitionEnqueued = false;
-                    var triggerTransition = FindTransition(NextTransition);
-                    change = CreateChange(triggerTransition);
+                    ExecuteTransition(NextTransition, out var transitionCommand);
+                    change = CreateChange(ref transitionCommand);
                 } else if (!IsInitialized) {
                     var state = FindState(InitialState); // Call to ensure initial state exists
                     change = new Change(state, TransitionType.Set);
@@ -75,8 +75,11 @@ namespace Betauer.StateMachine.Async {
                     await CurrentState.Enter();
                 }
                 await CurrentState.Execute();
-                var transition = CurrentState.Next(Context);
-                NextChange = CreateChange(transition);
+                var conditionCommand = CurrentState.Next(ConditionContext);
+                if (conditionCommand.IsTrigger() ) {
+                    ExecuteTransition(conditionCommand.TransitionKey, out conditionCommand);
+                }
+                NextChange = CreateChange(ref conditionCommand);
                 IsInitialized = true;
             } catch (Exception) {
                 NextChange = NoChange;

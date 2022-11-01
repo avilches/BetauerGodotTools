@@ -11,12 +11,12 @@ namespace Betauer.StateMachine.Sync {
 
         public StateNodeSync(TStateKey key, 
             Action? enter,
-            Tuple<Func<bool>, Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response>>[] conditions,
+            Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[] conditions,
             Action execute,
             Action? exit, 
             Action? suspend, 
             Action? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response>>? events,
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events,
             Action<InputEvent> input, 
             Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;

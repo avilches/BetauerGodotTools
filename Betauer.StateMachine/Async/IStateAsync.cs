@@ -8,7 +8,7 @@ namespace Betauer.StateMachine.Async {
         public Task Enter();
         public Task Awake();
         public Task Execute();
-        public Context<TStateKey, TTransitionKey>.Response Next(Context<TStateKey, TTransitionKey> context);
+        public Command<TStateKey, TTransitionKey> Next(ConditionContext<TStateKey, TTransitionKey> conditionContext);
         public Task Suspend();
         public Task Exit();
     }

@@ -6,7 +6,7 @@ namespace Betauer.StateMachine {
         where TStateKey : Enum where TTransitionKey : Enum {
         
         public void AddState(TState state);
-        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey>, TriggerContext<TStateKey>.Response> transition);
+        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition);
         public bool IsState(TStateKey state);
         public TState CurrentState { get; }
         public void Enqueue(TTransitionKey name);
