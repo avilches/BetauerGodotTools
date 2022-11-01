@@ -8,6 +8,11 @@ namespace Betauer.StateMachine.Sync {
         public StateMachineSync(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
+        public EventBuilder<StateMachineSync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> On(
+            TTransitionKey transitionKey) {
+            return On(this, transitionKey);
+        }
+
         public StateBuilderSync<TStateKey, TTransitionKey> State(TStateKey stateKey) {
             return new StateBuilderSync<TStateKey, TTransitionKey>(stateKey, AddState);
         }

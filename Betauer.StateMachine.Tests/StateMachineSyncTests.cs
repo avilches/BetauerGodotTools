@@ -9,7 +9,7 @@ using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.StateMachine.Tests {
     [TestFixture]
-    public class StateMachineTests : Node {
+    public class StateMachineSyncTests : Node {
         enum State {
             A,
             Idle,
@@ -78,7 +78,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
         public void WrongStartWithTriggering() {
             var sm = new StateMachineSync<State, Trans>(State.Global);
-            sm.On(Trans.Audio, context => context.Set(State.Audio));
+            sm.On(Trans.Audio).Then(context => context.Set(State.Audio));
             sm.State(State.Audio).Build();
 
             sm.Enqueue(Trans.Audio);
@@ -183,6 +183,9 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(x, Is.EqualTo(3));
         }
 
+        /**
+         * If with methods, instead lambda Then
+         */
         [Test(Description = "If with Set result")]
         public void IfSetResult() {
             var sm = new StateMachineSync<State, Trans>(State.A);
@@ -218,6 +221,62 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+        }
+
+        /**
+         * Transition with methods, instead of lambda Then
+         */
+        [Test(Description = "Transition with Set result")]
+        public void TransitionSetResult() {
+            var sm = new StateMachineSync<State, Trans>(State.A);
+            sm.On(Trans.Debug).Set(State.Debug);
+            sm.State(State.A).Build();
+            sm.State(State.Debug).Build();
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            sm.Enqueue(Trans.Debug);
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
+        }
+
+        [Test(Description = "Transition with Push, PopPush and Pop result")]
+        public void TransitionPushPopPushResult() {
+            var sm = new StateMachineSync<State, Trans>(State.A);
+            sm.On(Trans.Start).Push(State.Debug);
+            sm.On(Trans.MainMenu).PopPush(State.MainMenu);
+            sm.On(Trans.End).Pop();
+            sm.State(State.A).Build();
+            sm.State(State.Debug).Build();
+            sm.State(State.MainMenu).Build();
+            
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+
+            sm.Enqueue(Trans.Start);
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.Debug }));
+            
+            sm.Enqueue(Trans.MainMenu);
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.MainMenu }));
+
+            sm.Enqueue(Trans.End);
+            sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+        }
+
+        [Test(Description = "Transition with none result")]
+        // State transitions have more priority than global transitions. So, override a global with a local None will disable it
+        public void TransitionNoneResult() {
+            var sm = new StateMachineSync<State, Trans>(State.Start);
+
+            sm.On(Trans.Global).Set(State.Global);
+            sm.State(State.Start)
+                .On(Trans.Global).None().Build();
+            
+            sm.Enqueue(Trans.Global);
+            sm.Execute();
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
         }
 
         /*
@@ -294,13 +353,13 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-        [Test(Description = "State transitions have more priority than global transition")]
+        [Test(Description = "State transitions have more priority than global transitions")]
         public void StateTransitionTrigger() {
             var sm = new StateMachineSync<State, Trans>(State.Start);
 
-            sm.State(State.Start).On(Trans.Local, context => context.Push(State.Local)).Build();
-            sm.On(Trans.Global, context => context.Set(State.Global));
-            sm.On(Trans.Local, context => context.Set(State.Global));
+            sm.State(State.Start).On(Trans.Local).Then(context => context.Push(State.Local)).Build();
+            sm.On(Trans.Global).Then(context => context.Set(State.Global));
+            sm.On(Trans.Local).Then(context => context.Set(State.Global));
             sm.State(State.Global).Build();
             sm.State(State.Local).Build();
 
@@ -321,7 +380,7 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-        [Test(Description = "Transition calls inside execute has higher priority than the result returned")]
+        [Test(Description = "Transition calls inside execute has higher priority than the condition result returned")]
         public void TransitionTriggerInsideExecute() {
             var sm = new StateMachineSync<State, Trans>(State.Start);
 
@@ -334,7 +393,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Audio).Build();
             sm.State(State.Settings).Build();
                 
-            sm.On(Trans.Settings, context => context.Set(State.Settings));
+            sm.On(Trans.Settings).Then(context => context.Set(State.Settings));
 
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
@@ -348,12 +407,12 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.Audio);
 
             sm.State(State.Debug).Build();
-            sm.State(State.MainMenu).On(Trans.Audio, context => context.Push(State.Audio)).Build();
-            sm.State(State.Settings).On(Trans.Back, context => context.Set(State.MainMenu)).Build();
-            sm.State(State.Audio).On(Trans.Back, context => context.Pop()).Build();
-            sm.On(Trans.Restart, context => context.Set(State.MainMenu));
-            sm.On(Trans.Settings, context => context.Set(State.Settings));
-            sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
+            sm.State(State.MainMenu).On(Trans.Audio).Then(context => context.Push(State.Audio)).Build();
+            sm.State(State.Settings).On(Trans.Back).Then(context => context.Set(State.MainMenu)).Build();
+            sm.State(State.Audio).On(Trans.Back).Then(context => context.Pop()).Build();
+            sm.On(Trans.Restart).Then(context => context.Set(State.MainMenu));
+            sm.On(Trans.Settings).Then(context => context.Set(State.Settings));
+            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
 
             // Global event
             sm.Execute();
@@ -390,7 +449,7 @@ namespace Betauer.StateMachine.Tests {
             
             List<string> states = new List<string>();
 
-            sm.On(Trans.Debug, context => context.Set(State.Debug));
+            sm.On(Trans.Debug).Then(context => context.Set(State.Debug));
             sm.State(State.Debug)
                 .Awake(() => states.Add("Debug:awake"))
                 .Enter(() => states.Add("Debug:enter"))
@@ -400,7 +459,7 @@ namespace Betauer.StateMachine.Tests {
                 .Exit(() => states.Add("Debug:exit"))
                 .Build();
 
-            sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
+            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
             sm.State(State.MainMenu)
                 .Awake(() => states.Add("MainMenu:awake"))
                 .Enter(() => states.Add("MainMenu:enter"))
@@ -413,10 +472,10 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
                 
             
-            sm.On(Trans.Settings, context => context.Push(State.Settings));
+            sm.On(Trans.Settings).Then(context => context.Push(State.Settings));
             sm.State(State.Settings)
-                .On(Trans.Audio, context => context.Push(State.Audio))
-                .On(Trans.Back, context => context.Pop())
+                .On(Trans.Audio).Then(context => context.Push(State.Audio))
+                .On(Trans.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Settings:awake"))
                 .Enter(() => states.Add("Settings:enter"))
                 .Execute(() => states.Add("Settings"))
@@ -429,8 +488,8 @@ namespace Betauer.StateMachine.Tests {
                 
             
             sm.State(State.Audio)
-                .On(Trans.Video, context => context.PopPush(State.Video))
-                .On(Trans.Back, context => context.Pop())
+                .On(Trans.Video).Then(context => context.PopPush(State.Video))
+                .On(Trans.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Audio:awake"))
                 .Enter(() => states.Add("Audio:enter"))
                 .Execute(() => states.Add("Audio"))
@@ -443,7 +502,7 @@ namespace Betauer.StateMachine.Tests {
                 
 
             sm.State(State.Video)
-                .On(Trans.Back, context => context.Pop())
+                .On(Trans.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Video:awake"))
                 .Enter(() => states.Add("Video:enter"))
                 .Execute(() => states.Add("Video"))
@@ -508,7 +567,7 @@ namespace Betauer.StateMachine.Tests {
 
             List<string> states = new List<string>();
             var throws = 0;
-            sm.On(Trans.Debug, context => context.Set(State.Debug));
+            sm.On(Trans.Debug).Then(context => context.Set(State.Debug));
             sm.State(State.Debug)
                 .Enter(() => {
                     throws++;                    
@@ -518,7 +577,7 @@ namespace Betauer.StateMachine.Tests {
                 .If(() => true).Then(ctx => ctx.Set(State.End))
                 .Build();
 
-            sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
+            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
             sm.State(State.MainMenu)
                 .Enter(() => states.Add("MainMenu:Enter"))
                 .Execute(() => {
@@ -527,7 +586,7 @@ namespace Betauer.StateMachine.Tests {
                 })
                 .Build();
 
-            sm.On(Trans.Global, context => context.Set(State.Global));
+            sm.On(Trans.Global).Then(context => context.Set(State.Global));
             sm.State(State.Global)
                 .Enter(() => states.Add("Global:Enter"))
                 .Execute(() => states.Add("Global:Execute"))
@@ -538,7 +597,7 @@ namespace Betauer.StateMachine.Tests {
                 })
                 .Build();
 
-            sm.On(Trans.End, context => context.Set(State.End));
+            sm.On(Trans.End).Then(context => context.Set(State.End));
             sm.State(State.Start).Build();
             sm.State(State.End).Build();
             

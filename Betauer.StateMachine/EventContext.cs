@@ -1,11 +1,11 @@
 using System;
 
 namespace Betauer.StateMachine {
-    public class TriggerContext<TStateKey, TTransitionKey>
+    public class EventContext<TStateKey, TTransitionKey>
         where TStateKey : Enum 
         where TTransitionKey : Enum {
         
-        internal TriggerContext() {
+        internal EventContext() {
         }
 
         public Command<TStateKey, TTransitionKey> Push(TStateKey state) => new(TransitionType.Push, state, default);

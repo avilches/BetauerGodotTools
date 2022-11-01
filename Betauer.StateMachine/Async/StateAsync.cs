@@ -19,7 +19,7 @@ namespace Betauer.StateMachine.Async {
             Func<Task>? exit,
             Func<Task>? suspend,
             Func<Task>? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events) : base(key, events, conditions ) {
+            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events) : base(key, events, conditions ) {
 
             _enter = enter;
             _execute = execute;

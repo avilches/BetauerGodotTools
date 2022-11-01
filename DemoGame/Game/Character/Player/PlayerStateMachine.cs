@@ -181,7 +181,7 @@ namespace Veronenger.Game.Character.Player {
                 .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
                 .Build();
 
-            On(PlayerTransition.Death, ctx => ctx.Set(PlayerState.Death));
+            On(PlayerTransition.Death).Then(ctx => ctx.Set(PlayerState.Death));
             State(PlayerState.Death)
                 .Enter(() => {
                     Console.WriteLine("MUERTO");

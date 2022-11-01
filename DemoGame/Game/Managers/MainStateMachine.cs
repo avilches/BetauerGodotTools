@@ -122,8 +122,8 @@ namespace Veronenger.Game.Managers {
             
             State(MainState.MainMenu)
                 .OnInput(e => _mainMenuScene.OnInput(e))
-                .On(MainTransition.StartGame, context => context.Set(MainState.StartingGame))
-                .On(MainTransition.Settings, context => context.Push(MainState.Settings))
+                .On(MainTransition.StartGame).Then(context=> context.Set(MainState.StartingGame))
+                .On(MainTransition.Settings).Then(context=> context.Push(MainState.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
@@ -131,7 +131,7 @@ namespace Veronenger.Game.Managers {
 
             State(MainState.Settings)
                 .OnInput(e => _settingsMenuScene.OnInput(e))
-                .On(MainTransition.Back, context => context.Pop())
+                .On(MainTransition.Back).Then(context => context.Pop())
                 .Enter(() => _settingsMenuScene.ShowSettingsMenu())
                 .Exit(() => _settingsMenuScene.HideSettingsMenu())
                 .Build();
@@ -151,17 +151,17 @@ namespace Veronenger.Game.Managers {
                         GetTree().SetInputAsHandled();
                     }
                 })
-                .On(MainTransition.Back, context => context.Pop())
-                .On(MainTransition.Pause, context => context.Push(MainState.PauseMenu))
+                .On(MainTransition.Back).Then(context=> context.Pop())
+                .On(MainTransition.Pause).Then(context=> context.Push(MainState.PauseMenu))
                 .Exit(() => Game.End())
                 .Build();
             
-            On(MainTransition.EndGame, ctx => ctx.Set(MainState.MainMenu));
+            On(MainTransition.EndGame).Then(ctx => ctx.Set(MainState.MainMenu));
 
             State(MainState.PauseMenu)
                 .OnInput(e => _pauseMenuScene.OnInput(e))
-                .On(MainTransition.Back, context => context.Pop())
-                .On(MainTransition.Settings, context => context.Push(MainState.Settings))
+                .On(MainTransition.Back).Then(context=> context.Pop())
+                .On(MainTransition.Settings).Then(context=> context.Push(MainState.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())
                 .Awake(() => _pauseMenuScene.EnableMenus())
                 .Enter(async () => {
@@ -175,9 +175,9 @@ namespace Veronenger.Game.Managers {
                 })
                 .Build();
 
-            On(MainTransition.ModalBoxConfirmQuitGame, context => context.Push(MainState.ModalQuitGame));
+            On(MainTransition.ModalBoxConfirmQuitGame).Then(context=> context.Push(MainState.ModalQuitGame));
             State(MainState.ModalQuitGame)
-                .On(MainTransition.Back, context => context.Pop())
+                .On(MainTransition.Back).Then(context=> context.Pop())
                 .Execute(async () => {
                     modalResponse = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 })
@@ -186,9 +186,9 @@ namespace Veronenger.Game.Managers {
                 .Build();
                 
 
-            On(MainTransition.ModalBoxConfirmExitDesktop, context => context.Push(MainState.ModalExitDesktop));
+            On(MainTransition.ModalBoxConfirmExitDesktop).Then(context=> context.Push(MainState.ModalExitDesktop));
             State(MainState.ModalExitDesktop)
-                .On(MainTransition.Back, context => context.Pop())
+                .On(MainTransition.Back).Then(context=> context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async () => {
@@ -198,7 +198,7 @@ namespace Veronenger.Game.Managers {
                 .If(() => !modalResponse).Pop()
                 .Build();
                 
-            On(MainTransition.ExitDesktop, context => context.Set(MainState.ExitDesktop));
+            On(MainTransition.ExitDesktop).Then(context=> context.Set(MainState.ExitDesktop));
             State(MainState.ExitDesktop)
                 .Enter(() => SceneTree.QuitSafely())
                 .Build();

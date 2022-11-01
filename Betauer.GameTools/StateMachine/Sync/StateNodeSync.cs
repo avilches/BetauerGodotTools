@@ -16,7 +16,7 @@ namespace Betauer.StateMachine.Sync {
             Action? exit, 
             Action? suspend, 
             Action? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events,
+            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events,
             Action<InputEvent> input, 
             Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;

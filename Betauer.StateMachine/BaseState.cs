@@ -5,12 +5,12 @@ namespace Betauer.StateMachine {
         where TStateKey : Enum where TTransitionKey : Enum {
         
         public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events { get; }
+        public EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? Events { get; }
         private readonly Condition<TStateKey, TTransitionKey>[]? _conditions;
 
         protected BaseState(
             TStateKey key,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events,
+            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events,
             Condition<TStateKey, TTransitionKey>[]? conditions) {
             Key = key;
             _conditions = conditions;

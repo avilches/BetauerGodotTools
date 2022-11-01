@@ -18,15 +18,16 @@ namespace Betauer.StateMachine {
         protected static readonly Logger StaticLogger = LoggerFactory.GetLogger<StateMachine>();
     }
 
-    public abstract class BaseStateMachine<TStateKey, TTransitionKey, TState> : StateMachine  
-        where TStateKey : Enum 
-        where TTransitionKey : Enum 
+    public abstract class BaseStateMachine<TStateKey, TTransitionKey, TState> : StateMachine
+        where TStateKey : Enum
+        where TTransitionKey : Enum
         where TState : class, IState<TStateKey, TTransitionKey> {
-        
-        
+
+
         protected readonly struct Change {
             internal readonly TState? State;
             internal readonly TransitionType Type;
+
             internal Change(TState? state, TransitionType type) {
                 State = state;
                 if (type == TransitionType.Trigger)
@@ -34,13 +35,17 @@ namespace Betauer.StateMachine {
                 Type = type;
             }
         }
+
         protected static readonly Change NoChange = new(null, TransitionType.None);
 
         protected readonly Stack<TState> Stack = new();
         protected readonly ConditionContext<TStateKey, TTransitionKey> ConditionContext = new();
-        protected readonly TriggerContext<TStateKey, TTransitionKey> TriggerContext = new();
-        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events;
-        protected Func<Exception, ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> OnError; 
+        protected readonly EventContext<TStateKey, TTransitionKey> EventContext = new();
+        protected EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? Events;
+
+        protected Func<Exception, ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>
+            OnError;
+
         protected Change NextChange;
         protected readonly TStateKey InitialState;
         protected bool IsInitialized = false;
@@ -53,6 +58,7 @@ namespace Betauer.StateMachine {
         public readonly EnumDictionary<TStateKey, TState> States = EnumDictionary<TStateKey, TState>.Create();
         public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
         public TState CurrentState { get; protected set; }
+
         public bool IsState(TStateKey state) {
             return EqualityComparer<TStateKey>.Default.Equals(CurrentState.Key, state);
         }
@@ -71,13 +77,25 @@ namespace Betauer.StateMachine {
             Logger = name == null ? StaticLogger : LoggerFactory.GetLogger(name);
         }
 
-        public void On(TTransitionKey transitionKey, 
-            Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) {
-            Events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>.Create();
-            Events[transitionKey] = transition;
+        protected EventBuilder<TBuilder, TStateKey, TTransitionKey> On<TBuilder>(TBuilder builder,
+            TTransitionKey transitionKey) where TBuilder : class {
+            Events ??= EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>.Create();
+            return new EventBuilder<TBuilder, TStateKey, TTransitionKey>(
+                builder, transitionKey, (c) => {
+                    if (c.Execute != null) {
+                        AddEvent(transitionKey, new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Execute));
+                    } else {
+                        AddEvent(transitionKey, new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Result));
+                    }
+                });
         }
 
-        public void AddOnEnter(Action<TransitionArgs<TStateKey>> e) => OnEnter += e;
+        public void AddEvent(TTransitionKey transitionKey, Event<TStateKey, TTransitionKey> @event) {
+            Events[transitionKey] = @event;
+        }
+
+
+    public void AddOnEnter(Action<TransitionArgs<TStateKey>> e) => OnEnter += e;
         public void AddOnAwake(Action<TransitionArgs<TStateKey>> e) => OnAwake += e;
         public void AddOnSuspend(Action<TransitionArgs<TStateKey>> e) => OnSuspend += e;
         public void AddOnExit(Action<TransitionArgs<TStateKey>> e) => OnExit += e;
@@ -138,11 +156,11 @@ namespace Betauer.StateMachine {
 
         protected void ExecuteTransition(TTransitionKey name, out Command<TStateKey, TTransitionKey> command) {
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var stateTransition)) {
-                command = stateTransition.Invoke(TriggerContext);
+                command = stateTransition.GetResult(EventContext);
                 return;
             }
             if (Events != null && Events.TryGetValue(name, out var globalTrans)) {
-                command = globalTrans.Invoke(TriggerContext);
+                command = globalTrans.GetResult(EventContext);
                 return;
             }
             throw new KeyNotFoundException($"Transition {name} not found. Please add it to the StateMachine");

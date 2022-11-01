@@ -8,9 +8,18 @@ namespace Betauer.StateMachine.Async {
         where TStateKey : Enum 
         where TTransitionKey : Enum {
         
-        private class RealStateMachineNodeAsync : BaseStateMachineAsync<TStateKey, TTransitionKey, IStateAsync<TStateKey, TTransitionKey>> { 
-            internal RealStateMachineNodeAsync(TStateKey initialState, string? name = null) : base(initialState, name) {
+        private class RealStateMachineNodeAsync : BaseStateMachineAsync<TStateKey, TTransitionKey, IStateAsync<TStateKey, TTransitionKey>> {
+            private StateMachineNodeAsync<TStateKey, TTransitionKey> _owner;
+            
+            internal RealStateMachineNodeAsync(StateMachineNodeAsync<TStateKey, TTransitionKey> owner, TStateKey initialState, string? name = null) : base(initialState, name) {
+                _owner = owner;
             }
+
+            public EventBuilder<StateMachineNodeAsync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> On(
+                TTransitionKey transitionKey) {
+                return On(_owner, transitionKey);
+            }
+
             public StateNodeBuilderAsync<TStateKey, TTransitionKey> State(TStateKey stateKey) {
                 return new StateNodeBuilderAsync<TStateKey, TTransitionKey>(stateKey, AddState);
             }
@@ -24,7 +33,7 @@ namespace Betauer.StateMachine.Async {
         public string? Name => _stateMachine.Name; 
 
         public StateMachineNodeAsync(TStateKey initialState, string? name = null, ProcessMode mode = ProcessMode.Idle) {
-            _stateMachine = new RealStateMachineNodeAsync(initialState, name);
+            _stateMachine = new RealStateMachineNodeAsync(this, initialState, name);
             Mode = mode;
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
@@ -39,7 +48,8 @@ namespace Betauer.StateMachine.Async {
         public void RemoveOnExit(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnExit(e);
         public void RemoveOnTransition(Action<TransitionArgs<TStateKey>> e) => _stateMachine.RemoveOnTransition(e);
         public StateNodeBuilderAsync<TStateKey, TTransitionKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
-        public void On(TTransitionKey transitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) => _stateMachine.On(transitionKey, transition);
+        public EventBuilder<StateMachineNodeAsync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> On(TTransitionKey transitionKey) => _stateMachine.On(transitionKey);
+        public void AddEvent(TTransitionKey transitionKey, Event<TStateKey, TTransitionKey> @event) => _stateMachine.AddEvent(transitionKey, @event);
         public void AddState(StateNodeAsync<TStateKey, TTransitionKey> state) => _stateMachine.AddState(state);
         public void Enqueue(TTransitionKey name) => _stateMachine.Enqueue(name);
 

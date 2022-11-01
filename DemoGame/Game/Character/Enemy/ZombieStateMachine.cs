@@ -118,8 +118,7 @@ namespace Veronenger.Game.Character.Enemy {
                 .Build();
 
 
-            On(ZombieTransition.Attacked,
-                context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
+            On(ZombieTransition.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
             State(ZombieState.Attacked)
                 .Enter(() => {
                     Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
@@ -135,7 +134,7 @@ namespace Veronenger.Game.Character.Enemy {
                 .If(() => StateTimer.IsAlarm()).Pop()
                 .Build();
 
-            On(ZombieTransition.Dead, context => context.Set(ZombieState.Destroy));
+            On(ZombieTransition.Dead).Then(context=> context.Set(ZombieState.Destroy));
             State(ZombieState.Destroy)
                 .Enter(() => {
                     _zombieController.DisableAll();
@@ -160,7 +159,7 @@ namespace Veronenger.Game.Character.Enemy {
                     // Keep the speed from the move so if the player collides, the player could slide or stop
                     Body.Motion = Body.Slide();
                 })
-                // .Condition(() => Body.IsOnFloor(), context => context.Set(ZombieState.Idle))
+                // .If(() => Body.IsOnFloor()).Then(context=> context.Set(ZombieState.Idle))
                 .If(Body.IsOnFloor).Set(ZombieState.Idle)
                 .If(Body.IsOnFloor).Set(ZombieState.Idle)
                 .Build();

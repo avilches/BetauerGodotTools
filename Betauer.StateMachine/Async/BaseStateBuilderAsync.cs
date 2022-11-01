@@ -14,7 +14,7 @@ namespace Betauer.StateMachine.Async {
         protected Func<Task>? ExecuteFunc;
         protected Func<Task>? ExitFunc;
         protected Func<Task>? SuspendFunc;
-        protected EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events;
+        protected EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? Events;
         protected readonly TStateKey Key;
         protected readonly Action<IStateAsync<TStateKey, TTransitionKey>> OnBuild;
 
@@ -41,12 +41,15 @@ namespace Betauer.StateMachine.Async {
             });
         }
 
-        public TBuilder On(
-            TTransitionKey transitionKey,
-            Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> transition) {
-            Events ??= EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>.Create();
-            Events.Add(transitionKey, transition);
-            return this as TBuilder;
+        public EventBuilder<TBuilder, TStateKey, TTransitionKey> On(TTransitionKey transitionKey) {
+            Events ??= EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>.Create();
+            return new EventBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, transitionKey, (c) => {
+                if (c.Execute != null) {
+                    Events[transitionKey] = new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Execute);
+                } else {
+                    Events[transitionKey] = new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Result);
+                }
+            });
         }
 
         /*
