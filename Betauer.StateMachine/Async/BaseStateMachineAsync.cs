@@ -28,11 +28,11 @@ namespace Betauer.StateMachine.Async {
                     change = CreateChange(ref transitionCommand);
                 } else if (!IsInitialized) {
                     var state = FindState(InitialState); // Call to ensure initial state exists
-                    change = new Change(state, TransitionType.Set);
+                    change = new Change(state, CommandType.Set);
                 } else {
                     change = NextChange;
                 }
-                if (change.Type == TransitionType.Set) {
+                if (change.Type == CommandType.Set) {
                     if (Stack.Count == 1) {
                         var newState = Stack.Pop();
                         ExitEvent(newState, change.State.Key);
@@ -51,21 +51,21 @@ namespace Betauer.StateMachine.Async {
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter();
-                } else if (change.Type == TransitionType.Pop) {
+                } else if (change.Type == CommandType.Pop) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     await newState.Exit();
                     CurrentState = TransitionTo(change, out var oldState);
                     AwakeEvent(CurrentState, oldState.Key);
                     await CurrentState.Awake();
-                } else if (change.Type == TransitionType.Push) {
+                } else if (change.Type == CommandType.Push) {
                     SuspendEvent(CurrentState, change.State!.Key);
                     await CurrentState.Suspend();
                     CurrentState = TransitionTo(change, out var oldState);
                     Stack.Push(CurrentState);
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter();
-                } else if (change.Type == TransitionType.PopPush) {
+                } else if (change.Type == CommandType.PopPush) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.State.Key);
                     await newState.Exit();

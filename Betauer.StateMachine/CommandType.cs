@@ -1,5 +1,5 @@
 namespace Betauer.StateMachine {
-    public enum TransitionType {
+    public enum CommandType {
         Push,
         PopPush,
         Pop,

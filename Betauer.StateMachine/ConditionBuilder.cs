@@ -20,27 +20,27 @@ namespace Betauer.StateMachine {
         }
 
         public TBuilder Push(TStateKey state) {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Push, state, default));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.Push, state, default));
         }
 
         public TBuilder Set(TStateKey state) {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Set, state, default));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.Set, state, default));
         }
 
         public TBuilder PopPush(TStateKey state) {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.PopPush, state, default));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.PopPush, state, default));
         }
 
         public TBuilder Pop() {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Pop, default, default));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.Pop, default, default));
         }
 
         public TBuilder None() {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.None, default, default));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.None, default, default));
         }
 
         public TBuilder Trigger(TTransitionKey transition) {
-            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Trigger, default, transition));
+            return Then(new Command<TStateKey, TTransitionKey>(CommandType.Trigger, default, transition));
         }
 
         private TBuilder Then(Command<TStateKey, TTransitionKey> command) {

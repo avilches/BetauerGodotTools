@@ -26,17 +26,17 @@ namespace Betauer.StateMachine {
 
         protected readonly struct Change {
             internal readonly TState? State;
-            internal readonly TransitionType Type;
+            internal readonly CommandType Type;
 
-            internal Change(TState? state, TransitionType type) {
+            internal Change(TState? state, CommandType type) {
                 State = state;
-                if (type == TransitionType.Trigger)
+                if (type == CommandType.Trigger)
                     throw new ArgumentException("Change type can't be a trigger");
                 Type = type;
             }
         }
 
-        protected static readonly Change NoChange = new(null, TransitionType.None);
+        protected static readonly Change NoChange = new(null, CommandType.None);
 
         protected readonly Stack<TState> Stack = new();
         protected readonly ConditionContext<TStateKey, TTransitionKey> ConditionContext = new();
@@ -142,7 +142,7 @@ namespace Betauer.StateMachine {
                     throw new InvalidOperationException("Can't pop state: stack empty");
                 }
                 var o = Stack.Pop();
-                var transition = new Change(Stack.Peek(), TransitionType.Pop);
+                var transition = new Change(Stack.Peek(), CommandType.Pop);
                 Stack.Push(o);
                 return transition;
             }
