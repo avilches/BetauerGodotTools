@@ -61,7 +61,7 @@ namespace Betauer.StateMachine.Tests {
 
             // Start state Global not found
             Assert.ThrowsAsync<KeyNotFoundException>(async () => {
-                await sm.Execute(0);
+                await sm.Execute();
             });
         }
         
@@ -82,7 +82,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Audio).Build();
 
             sm.Enqueue(Trans.Audio);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.IsState(State.Audio), Is.True);
             Assert.That(sm.IsState(State.Global), Is.False);
@@ -259,19 +259,19 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Global).Build();
             sm.State(State.Local).Build();
 
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
             sm.Enqueue(Trans.Local);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Local));
             
             sm.Enqueue(Trans.Global);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             
             sm.Enqueue(Trans.Local);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
 
         }
@@ -291,10 +291,10 @@ namespace Betauer.StateMachine.Tests {
                 
             sm.On(Trans.Settings, context => context.Set(State.Settings));
 
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             // The second execution has scheduled the 
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
         }
 
@@ -311,30 +311,30 @@ namespace Betauer.StateMachine.Tests {
             sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
 
             // Global event
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             sm.Enqueue(Trans.Restart);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             
             // State event
             sm.Enqueue(Trans.Settings);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
             sm.Enqueue(Trans.Back);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
 
             // State event: pop
             sm.Enqueue(Trans.MainMenu);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             sm.Enqueue(Trans.Audio);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {State.MainMenu, State.Audio}));
             sm.Enqueue(Trans.Back);
-            await sm.Execute(0);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
         }
 

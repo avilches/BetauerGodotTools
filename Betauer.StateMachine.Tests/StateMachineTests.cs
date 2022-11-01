@@ -61,7 +61,7 @@ namespace Betauer.StateMachine.Tests {
 
             // Start state Global not found
             Assert.Throws<KeyNotFoundException>( () => {
-                sm.Execute(0);
+                sm.Execute();
             });
         }
         
