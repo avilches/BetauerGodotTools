@@ -82,7 +82,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Audio).Build();
 
             sm.Enqueue(Trans.Audio);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.IsState(State.Audio), Is.True);
             Assert.That(sm.IsState(State.Global), Is.False);
@@ -93,7 +93,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Set(State.Debug)).Build();
 
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute(0f));
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state changes to a not found state: PopPush")]
@@ -101,7 +101,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.PopPush(State.NotFound)).Build();
 
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute(0f));
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state changes to a not found state: Push")]
@@ -109,7 +109,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Push(State.NotFound)).Build();
 
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute(0f));
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state triggers a not found transition")]
@@ -117,7 +117,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Trigger(Trans.NotFound)).Build();
 
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute(0f));
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error not found transition")]
@@ -126,7 +126,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Build();
 
             sm.Enqueue(Trans.NotFound);
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute(0f));
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
@@ -135,7 +135,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Condition(() => true, context => context.Pop()).Build();
 
             // State ends with a wrong state
-            Assert.Throws<InvalidOperationException>(() => sm.Execute(0f));
+            Assert.Throws<InvalidOperationException>(() => sm.Execute());
         }
         
         [Test(Description = "Pop the same state in the stack is allowed")]
@@ -143,13 +143,13 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Push(State.A)).Build();
 
-            sm.Execute(0f);
+            sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
 
-            sm.Execute(0f);
+            sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A }));
 
-            sm.Execute(0f);
+            sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
         }
         
@@ -194,59 +194,37 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
                 
             states.Clear();
-            sm.Execute(100f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleEnter,IdleExecute(1)"));
 
             states.Clear();
-            sm.Execute(100f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2)"));
             states.Clear();
             
             states.Clear();
-            sm.Execute(100f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Jump)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("JumpEnter,JumpExecute(2)"));
 
             states.Clear();
-            sm.Execute(100f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Attack)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExecute"));
 
             states.Clear();
-            sm.Execute(100f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExit,IdleEnter,IdleExecute(1)"));
 
-        }
-
-
-        [Test(Description = "Check delta works")]
-        public void DeltaInExecute() {
-            var sm = new StateMachineSync<State, Trans>(State.Debug1);
-            const float expected1 = 10f;
-            const float expected2 = 10f;
-            sm.State(State.Debug1).Execute(() => {
-                // Assert.That(context.Delta, Is.EqualTo(expected1));
-            })
-            .Condition(() => true, context => context.Set(State.Debug2))
-            .Build();
- 
-            sm.State(State.Debug2)
-                // .Execute(() => 
-                // Assert.That(context.Delta, Is.EqualTo(expected2));
-                .Condition(() => true, context => context.None())
-                .Build();
-                
-            sm.Execute(expected1);
-            sm.Execute(expected2);
         }
 
         [Test(Description = "State transitions have more priority than global transition")]
@@ -259,19 +237,19 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Global).Build();
             sm.State(State.Local).Build();
 
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
             sm.Enqueue(Trans.Local);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Local));
             
             sm.Enqueue(Trans.Global);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             
             sm.Enqueue(Trans.Local);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
 
         }
@@ -291,10 +269,10 @@ namespace Betauer.StateMachine.Tests {
                 
             sm.On(Trans.Settings, context => context.Set(State.Settings));
 
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             // The second execution has scheduled the 
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
         }
 
@@ -311,73 +289,33 @@ namespace Betauer.StateMachine.Tests {
             sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
 
             // Global event
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             sm.Enqueue(Trans.Restart);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             
             // State event
             sm.Enqueue(Trans.Settings);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
             sm.Enqueue(Trans.Back);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
 
             // State event: pop
             sm.Enqueue(Trans.MainMenu);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             sm.Enqueue(Trans.Audio);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {State.MainMenu, State.Audio}));
             sm.Enqueue(Trans.Back);
-            sm.Execute(0);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
         }
 
-
-        [Test]
-        public void EnterOnPushExitOnPopSuspendAwakeListener() {
-            var sm = new StateMachineSync<State, Trans>(State.Debug);
-
-            sm.On(Trans.Settings, context => context.Push(State.Settings));
-            sm.On(Trans.Back, context => context.Pop());
-            sm.State(State.MainMenu).Build();
-            sm.State(State.Debug).Build();
-            sm.State(State.Settings).Build();
-            List<string> states = new List<string>();
-            sm.AddOnEnter((args) => states.Add(args.To + ":enter"));
-            sm.AddOnAwake((args)  => states.Add(args.To + ":awake"));
-            sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
-            sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
-            sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
-            sm.AddOnExecuteStart((float delta, State state)  => states.Add(state + ":execute.start"));
-            sm.AddOnExecuteEnd((State state)  => states.Add(state + ":execute.end"));
-
-            sm.Execute(0f);
-            sm.Enqueue(Trans.Settings);
-            sm.Execute(0f);
-            sm.Enqueue(Trans.Back);
-            sm.Execute(0f);
-            // Test listener
-            Console.WriteLine(string.Join(",", states));
-            Assert.That(string.Join(",", states), Is.EqualTo(
-                "from:Debug-to:Debug," +
-                "Debug:enter," +
-                    "Debug:execute.start,Debug:execute.end," +
-                    "Debug:suspend," +
-                    "from:Debug-to:Settings," +
-                    "Settings:enter," +
-                        "Settings:execute.start,Settings:execute.end," +
-                    "Settings:exit," +
-                    "from:Settings-to:Debug," +
-                    "Debug:awake," +
-                "Debug:execute.start,Debug:execute.end"));
-
-        }
 
         [Test]
         public void EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
@@ -447,25 +385,25 @@ namespace Betauer.StateMachine.Tests {
                 .Exit(() => states.Add("Video:exit"))
                 .Build();
             
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.MainMenu);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Settings);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Audio);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Video);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Back);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Back);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "Debug:enter,Debug,Debug:exit," +
@@ -479,13 +417,13 @@ namespace Betauer.StateMachine.Tests {
             // Test multiple exits when more than one state is in the stack and change is Replace instead of Pop
             states.Clear();
             sm.Enqueue(Trans.Settings);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Audio);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Debug);
-            sm.Execute(0f);
+            sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "MainMenu:suspend," +
@@ -539,19 +477,19 @@ namespace Betauer.StateMachine.Tests {
             
             // 1-Error when state machine is not initialized
             sm.Enqueue(Trans.Debug);
-            Assert.Throws<NullReferenceException>(() => sm.Execute(0f));
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to non-initialized state (state = null)
             Assert.That(throws, Is.EqualTo(1));
             throws = 0;
 
             // Run again, the SM enters in the initial state "Start"
-            sm.Execute(0f);
+            sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(0));
 
             // 2-Error when state machine has state. Error in Enter
             sm.Enqueue(Trans.Debug);
-            Assert.Throws<NullReferenceException>(() => sm.Execute(0f));
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(1));
@@ -559,7 +497,7 @@ namespace Betauer.StateMachine.Tests {
 
             // 3-Error when state machine has state. Error in Execute
             sm.Enqueue(Trans.MainMenu);
-            Assert.Throws<NullReferenceException>(() => sm.Execute(0f));
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(1));
@@ -567,9 +505,9 @@ namespace Betauer.StateMachine.Tests {
 
             // 4-Error when state machine has state. Error in Exit
             sm.Enqueue(Trans.Global);
-            sm.Execute(0f);
+            sm.Execute();
             sm.Enqueue(Trans.End);
-            Assert.Throws<NullReferenceException>(() => sm.Execute(0f));
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             Assert.That(throws, Is.EqualTo(1));

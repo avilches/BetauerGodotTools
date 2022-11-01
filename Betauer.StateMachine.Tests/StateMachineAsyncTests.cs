@@ -93,7 +93,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Set(State.Debug)).Build();
 
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error when a state changes to a not found state: PopPush")]
@@ -101,7 +101,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.PopPush(State.NotFound)).Build();
 
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error when a state changes to a not found state: Push")]
@@ -109,7 +109,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Push(State.NotFound)).Build();
 
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error when a state triggers a not found transition")]
@@ -117,7 +117,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Trigger(Trans.NotFound)).Build();
 
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error not found transition")]
@@ -126,7 +126,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Build();
 
             sm.Enqueue(Trans.NotFound);
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
@@ -135,7 +135,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Condition(() => true, context => context.Pop()).Build();
 
             // State ends with a wrong state
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute());
         }
         
         [Test(Description = "Pop the same state in the stack is allowed")]
@@ -143,13 +143,13 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineAsync<State, Trans>(State.A);
             sm.State(State.A).Condition(() => true, context => context.Push(State.A)).Build();
 
-            await sm.Execute(0f);
+            await sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
 
-            await sm.Execute(0f);
+            await sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A }));
 
-            await sm.Execute(0f);
+            await sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
         }
         
@@ -194,60 +194,39 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
                 
             states.Clear();
-            await sm.Execute(100f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleEnter,IdleExecute(1)"));
 
             states.Clear();
-            await sm.Execute(100f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("IdleExecute(2)"));
             states.Clear();
             
             states.Clear();
-            await sm.Execute(100f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Jump)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("JumpEnter,JumpExecute(2)"));
 
             states.Clear();
-            await sm.Execute(100f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Attack)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExecute"));
 
             states.Clear();
-            await sm.Execute(100f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Idle)); 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo("AttackExit,IdleEnter,IdleExecute(1)"));
 
         }
 
-
-        [Test(Description = "Check delta works")]
-        public async Task DeltaInExecute() {
-            var sm = new StateMachineAsync<State, Trans>(State.Debug1);
-            const float expected1 = 10f;
-            const float expected2 = 10f;
-            sm.State(State.Debug1).Execute(async () => {
-                    // Assert.That(context.Delta, Is.EqualTo(expected1));
-                })
-                .Condition(() => true, context => context.Set(State.Debug2))
-                .Build();
- 
-            sm.State(State.Debug2)
-                // .Execute(() => 
-                // Assert.That(context.Delta, Is.EqualTo(expected2));
-                .Condition(() => true, context => context.None())
-                .Build();
-                
-            await sm.Execute(expected1);
-            await sm.Execute(expected2);
-        }
 
         [Test(Description = "State transitions have more priority than global transition")]
         public async Task StateTransitionTrigger() {
@@ -357,15 +336,14 @@ namespace Betauer.StateMachine.Tests {
 
             
             
-            await sm.Execute(0f);
+            await sm.Execute();
             sm.Enqueue(Trans.Settings);
-            await sm.Execute(0f);
+            await sm.Execute();
             sm.Enqueue(Trans.Back);
-            await sm.Execute(0f);
+            await sm.Execute();
             // Test listener
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "from:Debug-to:Debug," +
                 "Debug:enter," +
                 
                     "Debug:suspend," +
@@ -447,25 +425,25 @@ namespace Betauer.StateMachine.Tests {
                 .Exit(async () => states.Add("Video:exit"))
                 .Build();
             
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.MainMenu);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Settings);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Audio);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Video);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Back);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Back);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "Debug:enter,Debug,Debug:exit," +
@@ -479,13 +457,13 @@ namespace Betauer.StateMachine.Tests {
             // Test multiple exits when more than one state is in the stack and change is Replace instead of Pop
             states.Clear();
             sm.Enqueue(Trans.Settings);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Audio);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             sm.Enqueue(Trans.Debug);
-            await sm.Execute(0f);
+            await sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
                 "MainMenu:suspend," +
@@ -539,19 +517,19 @@ namespace Betauer.StateMachine.Tests {
             
             // 1-Error when state machine is not initialized
             sm.Enqueue(Trans.Debug);
-            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute());
             // It returns to non-initialized state (state = null)
             Assert.That(throws, Is.EqualTo(1));
             throws = 0;
 
             // Run again, the SM enters in the initial state "Start"
-            await sm.Execute(0f);
+            await sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(0));
 
             // 2-Error when state machine has state. Error in Enter
             sm.Enqueue(Trans.Debug);
-            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(1));
@@ -559,7 +537,7 @@ namespace Betauer.StateMachine.Tests {
 
             // 3-Error when state machine has state. Error in Execute
             sm.Enqueue(Trans.MainMenu);
-            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             Assert.That(throws, Is.EqualTo(1));
@@ -567,9 +545,9 @@ namespace Betauer.StateMachine.Tests {
 
             // 4-Error when state machine has state. Error in Exit
             sm.Enqueue(Trans.Global);
-            await sm.Execute(0f);
+            await sm.Execute();
             sm.Enqueue(Trans.End);
-            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute(0f));
+            Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             Assert.That(throws, Is.EqualTo(1));

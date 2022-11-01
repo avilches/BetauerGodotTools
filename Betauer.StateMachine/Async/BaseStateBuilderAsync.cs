@@ -31,6 +31,12 @@ namespace Betauer.StateMachine.Async {
 
         protected abstract IStateAsync<TStateKey, TTransitionKey> CreateState();
 
+        public ConditionBuilder<TBuilder, TStateKey, TTransitionKey> If(Func<bool> condition) {
+            return new ConditionBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, condition, (c) => {
+                Condition(c.Condition, c.Execute);
+            });
+        }
+        
         public TBuilder Condition(
             Func<bool> condition,
             Func<Context<TStateKey, TTransitionKey>, Context<TStateKey, TTransitionKey>.Response> execute) {
