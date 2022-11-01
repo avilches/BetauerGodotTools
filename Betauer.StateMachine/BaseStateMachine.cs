@@ -152,7 +152,7 @@ namespace Betauer.StateMachine {
         }
 
         protected void TransitionEvent(Change change, TState from, TState to) {
-            OnTransition?.Invoke(new TransitionArgs<TStateKey>(from.Key, to.Key));
+            if (from != to) OnTransition?.Invoke(new TransitionArgs<TStateKey>(from.Key, to.Key));
             #if DEBUG
             Logger.Debug($"> {change.Type} State: \"{to.Key}\"(from:{from.Key})");
             #endif

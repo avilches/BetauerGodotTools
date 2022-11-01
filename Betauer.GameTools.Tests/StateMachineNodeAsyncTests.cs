@@ -17,7 +17,10 @@ namespace Betauer.GameTools.Tests {
             Start,
             Attack,
             End,
-            NotFound
+            NotFound,
+            MainMenu,
+            Debug,
+            Settings
         }
         enum Trans {
             NotFound
@@ -91,6 +94,51 @@ namespace Betauer.GameTools.Tests {
             Assert.That(string.Join(",", states),
                 Is.EqualTo("Start,IdleExecute(1),IdleExecute(2),IdleExit(2),AttackExecute(3),End(4)"));
          
+        }
+        
+        [Test]
+        public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
+            var sm = new StateMachineNodeAsync<State, Trans>(State.MainMenu);
+
+            sm.State(State.MainMenu)
+                .If(() => true).Set(State.Debug)
+                .Build();
+            var awake = false;
+            sm.State(State.Debug)
+                .Awake(() => awake = true)
+                .If(() => awake).Set(State.End)
+                .If(() => true).Push(State.Settings)
+                .Build();
+            sm.State(State.Settings)
+                .If(() => true).Pop()
+                .Build();
+            sm.State(State.End)
+                .Build();
+                
+            List<string> states = new List<string>();
+            sm.AddOnEnter((args) => states.Add(args.To + ":enter"));
+            sm.AddOnAwake((args)  => states.Add(args.To + ":awake"));
+            sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
+            sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
+            sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
+            sm.AddOnExecuteStart((float delta, State state)  => states.Add(state + ":execute.start"));
+            sm.AddOnExecuteEnd((State state)  => states.Add(state + ":execute.end"));
+
+            AddChild(sm);
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
+                Console.Write(sm.CurrentState?.Key + " ");
+                await this.AwaitIdleFrame();
+            }
+
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo(
+                "MainMenu:execute.start,MainMenu:enter,MainMenu:execute.end," +
+                "MainMenu:execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,Debug:execute.end," +
+                "Debug:execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,Settings:execute.end," +
+                "Settings:execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,Debug:execute.end," +
+                "Debug:execute.start,Debug:exit,from:Debug-to:End,End:enter,End:execute.end"));
         }
     }
 }
