@@ -9,40 +9,44 @@ namespace Betauer.StateMachine {
         private readonly TBuilder _builder;
         private readonly Action<ConditionBuilder<TBuilder, TStateKey, TTransitionKey>> _onBuild;
 
-        internal readonly Func<bool> Condition;
-        internal Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> Execute;
+        internal readonly Func<bool> Predicate;
+        internal Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>? Execute;
+        internal Command<TStateKey, TTransitionKey> Result;
 
-        internal ConditionBuilder(TBuilder builder, Func<bool> condition, Action<ConditionBuilder<TBuilder, TStateKey, TTransitionKey>> onBuild) {
+        internal ConditionBuilder(TBuilder builder, Func<bool> predicate, Action<ConditionBuilder<TBuilder, TStateKey, TTransitionKey>> onBuild) {
             _builder = builder;
-            Condition = condition;
+            Predicate = predicate;
             _onBuild = onBuild;
         }
 
         public TBuilder Push(TStateKey state) {
-            TStateKey s = state;
-            return Then(context => context.Push(s));
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Push, state, default));
         }
 
         public TBuilder Set(TStateKey state) {
-            TStateKey s = state;
-            return Then(context => context.Set(s));
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Set, state, default));
         }
 
         public TBuilder PopPush(TStateKey state) {
-            TStateKey s = state;
-            return Then(context => context.PopPush(s));
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.PopPush, state, default));
         }
 
         public TBuilder Pop() {
-            return Then(context => context.Pop());
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Pop, default, default));
         }
 
         public TBuilder None() {
-            return Then(context => context.None());
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.None, default, default));
         }
 
         public TBuilder Trigger(TTransitionKey transition) {
-            return Then(context => context.Trigger(transition));
+            return Then(new Command<TStateKey, TTransitionKey>(TransitionType.Trigger, default, transition));
+        }
+
+        private TBuilder Then(Command<TStateKey, TTransitionKey> command) {
+            Result = command;
+            _onBuild(this);
+            return _builder;
         }
 
         public TBuilder Then(Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> execute) {

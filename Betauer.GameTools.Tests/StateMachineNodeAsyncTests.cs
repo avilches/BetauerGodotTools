@@ -49,7 +49,7 @@ namespace Betauer.GameTools.Tests {
 
             sm.State(State.Start)
                 .Execute(async () => states.Add("Start"))
-                .Condition(() => true, context => context.Set(State.Idle))
+                .If(() => true).Then(context => context.Set(State.Idle))
                 .Build();
 
             sm.State(State.Idle)
@@ -63,8 +63,8 @@ namespace Betauer.GameTools.Tests {
 
                     states.Add("IdleExecute(" + x + ")");
                 })
-                .Condition(() => x == 2, context => context.Set(State.Attack))
-                .Condition(() => true, context => context.Set(State.Idle))
+                .If(() => x == 2).Then(context => context.Set(State.Attack))
+                .If(() => true).Then(context => context.Set(State.Idle))
                 .Exit(async () => {
                     
                     states.Add("IdleExit(" + x + ")");
@@ -75,7 +75,7 @@ namespace Betauer.GameTools.Tests {
                     x++;
                     states.Add("AttackExecute(" + x + ")");
                 })
-                .Condition(() => true, context => context.Set(State.End))
+                .If(() => true).Then(context => context.Set(State.End))
                 .Build();
 
             sm.State(State.End)

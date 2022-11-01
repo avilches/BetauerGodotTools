@@ -54,7 +54,7 @@ namespace DemoAnimation.Game.Managers {
                     DebugOverlayManager.DebugConsole.Theme = MyTheme;
                     SceneTree.Root.AddChild(_mainMenuScene);
                 })
-                .Condition(() => true, context => context.Set(State.MainMenu))
+                .If(() => true).Set(State.MainMenu)
                 .Build();
                 
 
@@ -75,8 +75,8 @@ namespace DemoAnimation.Game.Managers {
                 .Execute(async () => {
                     modalResponse = await ShowModalBox("Exit game?");
                 })
-                .Condition(() => modalResponse, context => context.Set(State.MainMenu))
-                .Condition(() => !modalResponse, context => context.Pop())
+                .If(() => modalResponse).Set(State.MainMenu)
+                .If(() => !modalResponse).Pop()
                 .Build();
 
             State(State.ExitDesktop)

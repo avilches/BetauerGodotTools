@@ -91,7 +91,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Error when a state changes to a not found state: Replace")]
         public void WrongStatesUnknownStateSet() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.Set(State.Debug)).Build();
+            sm.State(State.A).If(() => true).Then(context => context.Set(State.Debug)).Build();
 
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
@@ -99,7 +99,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Error when a state changes to a not found state: PopPush")]
         public void WrongStatesUnknownStatePushPop() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.PopPush(State.NotFound)).Build();
+            sm.State(State.A).If(() => true).Then(context => context.PopPush(State.NotFound)).Build();
 
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
@@ -107,7 +107,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Error when a state changes to a not found state: Push")]
         public void WrongStatesUnknownStatePushPush() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.Push(State.NotFound)).Build();
+            sm.State(State.A).If(() => true).Then(context => context.Push(State.NotFound)).Build();
 
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
@@ -115,7 +115,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Error when a state triggers a not found transition")]
         public void WrongStatesTriggerUnknownTransition() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.Trigger(Trans.NotFound)).Build();
+            sm.State(State.A).If(() => true).Then(context => context.Trigger(Trans.NotFound)).Build();
 
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
         }
@@ -132,7 +132,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Error when a state pop in an empty stack")]
         public void WrongStatesPopWhenEmptyStack() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.Pop()).Build();
+            sm.State(State.A).If(() => true).Then(context => context.Pop()).Build();
 
             // State ends with a wrong state
             Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute());
@@ -141,7 +141,7 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Pop the same state in the stack is allowed")]
         public async Task PopSameStateInTheStackIsAllowed() {
             var sm = new StateMachineAsync<State, Trans>(State.A);
-            sm.State(State.A).Condition(() => true, context => context.Push(State.A)).Build();
+            sm.State(State.A).If(() => true).Then(context => context.Push(State.A)).Build();
 
             await sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
@@ -152,7 +152,73 @@ namespace Betauer.StateMachine.Tests {
             await sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
         }
-        
+
+        [Test(Description = "Multiple if are loaded in order")]
+        public async Task Ifs() {
+            var sm = new StateMachineAsync<State, Trans>(State.A);
+            var x = 0;
+            sm.State(State.A)
+                .If(() => {
+                    x++;
+                    return false;
+                }).Set(State.Attack)
+                .If(() => {
+                    x++;
+                    return false;
+                }).Set(State.MainMenu)
+                .If(() => {
+                    x++;
+                    return true;
+                }).Set(State.Audio)
+                .If(() => {
+                    x++;
+                    return false;
+                }).Push(State.Debug).Build();
+            sm.State(State.Attack).Build();
+            sm.State(State.MainMenu).Build();
+            sm.State(State.Audio).Build();
+            await sm.Execute();
+            await sm.Execute();
+            Assert.That(x, Is.EqualTo(3));
+        }
+
+        [Test(Description = "If with Set result")]
+        public async Task IfSetResult() {
+            var sm = new StateMachineAsync<State, Trans>(State.A);
+            sm.State(State.A).If(() => true).Set(State.Debug).Build();
+            sm.State(State.Debug).Build();
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
+        }
+
+        [Test(Description = "If with Push, PopPush and Pop result")]
+        public async Task IfPushPopPushResult() {
+            var sm = new StateMachineAsync<State, Trans>(State.A);
+            sm.State(State.A).If(() => true).Push(State.Debug).Build();
+            sm.State(State.Debug).If(() => true).PopPush(State.MainMenu).Build();
+            sm.State(State.MainMenu).If(() => true).Pop().Build();
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.Debug }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.MainMenu }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+        }
+
+        [Test(Description = "If with none result")]
+        public async Task IfNoneResult() {
+            var sm = new StateMachineAsync<State, Trans>(State.A);
+            sm.State(State.A).If(() => true).None().Build();
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+        }
+
         /*
          * Working StateMachine
          */
@@ -172,8 +238,8 @@ namespace Betauer.StateMachine.Tests {
                     x++;
                     states.Add("IdleExecute(" + x + ")");
                 })
-                .Condition(() => x == 2, context => context.Set(State.Jump))
-                .Condition(() => true, context => context.None())
+                .If(() => x == 2).Then(context => context.Set(State.Jump))
+                .If(() => true).Then(context => context.None())
                 .Build();
 
             sm.State(State.Jump)
@@ -181,7 +247,7 @@ namespace Betauer.StateMachine.Tests {
                     states.Add("JumpEnter");
                 })
                 .Execute(async () => states.Add("JumpExecute(" + x + ")"))
-                .Condition(() => true, context => context.Set(State.Attack))
+                .If(() => true).Then(context => context.Set(State.Attack))
                 .Build();
                 
             // No exit because it's optional
@@ -189,7 +255,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Attack)
                 // No enter because it's optional
                 .Execute(async () => states.Add("AttackExecute"))
-                .Condition(() => true, context => context.Set(State.Idle))
+                .If(() => true).Then(context => context.Set(State.Idle))
                 .Exit(async () => { states.Add("AttackExit"); })
                 .Build();
                 
@@ -263,7 +329,7 @@ namespace Betauer.StateMachine.Tests {
                     sm.Enqueue(Trans.NotFound); // IGNORED!!
                     sm.Enqueue(Trans.Settings);
                 })
-                .Condition(() => true, context => context.Push(State.Audio)) // IGNORED!!
+                .If(() => true).Then(context => context.Push(State.Audio)) // IGNORED!!
                 .Build();
             sm.State(State.Audio).Build();
             sm.State(State.Settings).Build();
@@ -368,7 +434,7 @@ namespace Betauer.StateMachine.Tests {
                 .Awake(async () => states.Add("Debug:awake"))
                 .Enter(async () => states.Add("Debug:enter"))
                 .Execute(async () => states.Add("Debug"))
-                .Condition(() => true, context => context.None())
+                .If(() => true).Then(context => context.None())
                 .Suspend(async () => states.Add("Debug:suspend"))
                 .Exit(async () => states.Add("Debug:exit"))
                 .Build();
@@ -378,7 +444,7 @@ namespace Betauer.StateMachine.Tests {
                 .Awake(async () => states.Add("MainMenu:awake"))
                 .Enter(async () => states.Add("MainMenu:enter"))
                 .Execute(async () => states.Add("MainMenu"))
-                .Condition(() => true, context => context.None())
+                .If(() => true).Then(context => context.None())
                 .Suspend(async () => states.Add("MainMenu:suspend"))
                 .Exit(async ()=>{
                     states.Add("MainMenu:exit");
@@ -393,7 +459,7 @@ namespace Betauer.StateMachine.Tests {
                 .Awake(async () => states.Add("Settings:awake"))
                 .Enter(async () => states.Add("Settings:enter"))
                 .Execute(async () => states.Add("Settings"))
-                .Condition(() => true, context => context.None())
+                .If(() => true).Then(context => context.None())
                 .Suspend(async () => states.Add("Settings:suspend"))
                 .Exit(async () =>{
                     states.Add("Settings:exit");
@@ -407,7 +473,7 @@ namespace Betauer.StateMachine.Tests {
                 .Awake(async () => states.Add("Audio:awake"))
                 .Enter(async () => states.Add("Audio:enter"))
                 .Execute(async () => states.Add("Audio"))
-                .Condition(() => true, context => context.None())
+                .If(() => true).Then(context => context.None())
                 .Suspend(async () => states.Add("Audio:suspend"))
                 .Exit(async ()=> {
                     states.Add("Audio:exit");
@@ -420,7 +486,7 @@ namespace Betauer.StateMachine.Tests {
                 .Awake(async () => states.Add("Video:awake"))
                 .Enter(async () => states.Add("Video:enter"))
                 .Execute(async () => states.Add("Video"))
-                .Condition(() => true, context => context.None())
+                .If(() => true).Then(context => context.None())
                 .Suspend(async () => states.Add("Video:suspend"))
                 .Exit(async () => states.Add("Video:exit"))
                 .Build();
@@ -488,7 +554,7 @@ namespace Betauer.StateMachine.Tests {
                     throw new NullReferenceException();
                 })
                 .Execute(async () => states.Add("Debug:Execute"))
-                .Condition(() => true, ctx => ctx.Set(State.End))
+                .If(() => true).Then(ctx => ctx.Set(State.End))
                 .Build();
 
             sm.On(Trans.MainMenu, context => context.Set(State.MainMenu));
@@ -504,7 +570,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Global)
                 .Enter(async () => states.Add("Global:Enter"))
                 .Execute(async () => states.Add("Global:Execute"))
-                .Condition(() => true, ctx => ctx.Set(State.End))
+                .If(() => true).Then(ctx => ctx.Set(State.End))
                 .Exit(async () => {
                     throws++;                    
                     throw new NullReferenceException();

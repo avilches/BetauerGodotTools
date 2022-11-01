@@ -2,15 +2,11 @@ using System;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine.Async {
-    public class StateAsync<TStateKey, TTransitionKey> : IStateAsync<TStateKey, TTransitionKey>
+    public class StateAsync<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey>, IStateAsync<TStateKey, TTransitionKey>
         where TStateKey : Enum where TTransitionKey : Enum {
         
-        public TStateKey Key { get; }
-        public EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? Events { get; }
-
         private readonly Func<Task>? _enter;
         private readonly Func<Task>? _awake;
-        private readonly Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[]? _conditions;
         private readonly Func<Task>? _execute;
         private readonly Func<Task>? _suspend;
         private readonly Func<Task>? _exit;
@@ -18,21 +14,18 @@ namespace Betauer.StateMachine.Async {
         public StateAsync(
             TStateKey key,
             Func<Task>? enter,
-            Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>[] conditions,
+            Condition<TStateKey, TTransitionKey>[] conditions,
             Func<Task>? execute,
             Func<Task>? exit,
             Func<Task>? suspend,
             Func<Task>? awake,
-            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events) {
+            EnumDictionary<TTransitionKey, Func<TriggerContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>? events) : base(key, events, conditions ) {
 
-            Key = key;
             _enter = enter;
-            _conditions = conditions;
             _execute = execute;
             _exit = exit;
             _suspend = suspend;
             _awake = awake;
-            Events = events;
         }
 
         public Task Enter() {
@@ -45,17 +38,6 @@ namespace Betauer.StateMachine.Async {
 
         public Task Execute() {
             return _execute != null ? _execute.Invoke() : Task.CompletedTask;
-        }
-
-        public Command<TStateKey, TTransitionKey> Next(ConditionContext<TStateKey, TTransitionKey> ctx) {
-            var span = _conditions.AsSpan();
-            for (var i = 0; i < span.Length; i++) {
-                var condition = span[i];
-                if (condition.Item1()) {
-                    return condition.Item2(ctx);
-                }
-            }
-            return ctx.None();
         }
 
         public Task Suspend() {

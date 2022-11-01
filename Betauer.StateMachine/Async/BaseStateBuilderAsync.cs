@@ -10,7 +10,7 @@ namespace Betauer.StateMachine.Async {
         
         protected Func<Task>? EnterFunc;
         protected Func<Task>? AwakeFunc;
-        protected List<Tuple<Func<bool>, Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>>> Conditions = new();
+        protected List<Condition<TStateKey, TTransitionKey>> Conditions = new();
         protected Func<Task>? ExecuteFunc;
         protected Func<Task>? ExitFunc;
         protected Func<Task>? SuspendFunc;
@@ -33,15 +33,12 @@ namespace Betauer.StateMachine.Async {
 
         public ConditionBuilder<TBuilder, TStateKey, TTransitionKey> If(Func<bool> condition) {
             return new ConditionBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, condition, (c) => {
-                Condition(c.Condition, c.Execute);
+                if (c.Execute != null) {
+                    Conditions.Add(new Condition<TStateKey, TTransitionKey>(c.Predicate, c.Execute));
+                } else {
+                    Conditions.Add(new Condition<TStateKey, TTransitionKey>(c.Predicate, c.Result));
+                }
             });
-        }
-        
-        public TBuilder Condition(
-            Func<bool> condition,
-            Func<ConditionContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> execute) {
-            Conditions.Add(new(condition, execute));
-            return this as TBuilder;
         }
 
         public TBuilder On(

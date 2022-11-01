@@ -117,7 +117,7 @@ namespace Veronenger.Game.Managers {
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
                 })
-                .Condition(() => true, ctx => ctx.Set(MainState.StartingGame))
+                .If(() => true).Set(MainState.StartingGame)
                 .Build();
             
             State(MainState.MainMenu)
@@ -141,7 +141,7 @@ namespace Veronenger.Game.Managers {
                     await _mainMenuScene.HideMainMenu();
                     Game.Start();
                 })
-                .Condition(() => true, context => context.Set(MainState.Gaming))
+                .If(() => true).Set(MainState.Gaming)
                 .Build();
 
             State(MainState.Gaming)
@@ -181,8 +181,8 @@ namespace Veronenger.Game.Managers {
                 .Execute(async () => {
                     modalResponse = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 })
-                .Condition(() => modalResponse, context => context.Set(MainState.MainMenu))
-                .Condition(() => !modalResponse, context => context.Pop())
+                .If(() => modalResponse).Set(MainState.MainMenu)
+                .If(() => !modalResponse).Pop()
                 .Build();
                 
 
@@ -194,8 +194,8 @@ namespace Veronenger.Game.Managers {
                 .Execute(async () => {
                     modalResponse = await ShowModalBox("Exit game?");
                 })
-                .Condition(() => modalResponse, context => context.Set(MainState.ExitDesktop))
-                .Condition(() => !modalResponse, context => context.Pop())
+                .If(() => modalResponse).Set(MainState.ExitDesktop)
+                .If(() => !modalResponse).Pop()
                 .Build();
                 
             On(MainTransition.ExitDesktop, context => context.Set(MainState.ExitDesktop));
