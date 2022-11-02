@@ -69,20 +69,21 @@ namespace Betauer.StateMachine {
             Name = name;
         }
 
-        protected EventBuilder<TBuilder, TStateKey, TEventKey> On<TBuilder>(TBuilder builder,
-            TEventKey eventKey) where TBuilder : class {
-            Events ??= new();
+        protected EventBuilder<TBuilder, TStateKey, TEventKey> On<TBuilder>(TBuilder builder, TEventKey eventKey) 
+            where TBuilder : class {
+            Action<EventBuilder<TBuilder,TStateKey,TEventKey>> onBuild = (c) => {
+                if (c.Execute != null) {
+                    AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Execute));
+                } else {
+                    AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Result));
+                }
+            };
             return new EventBuilder<TBuilder, TStateKey, TEventKey>(
-                builder, eventKey, (c) => {
-                    if (c.Execute != null) {
-                        AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Execute));
-                    } else {
-                        AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Result));
-                    }
-                });
+                builder, eventKey, onBuild);
         }
 
         public void AddEvent(TEventKey eventKey, Event<TStateKey, TEventKey> @event) {
+            Events ??= new Dictionary<TEventKey, Event<TStateKey, TEventKey>>();
             Events[eventKey] = @event;
         }
 
