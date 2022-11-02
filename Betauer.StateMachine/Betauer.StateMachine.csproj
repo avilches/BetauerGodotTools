@@ -9,7 +9,4 @@
         <AssemblyName>Betauer.StateMachine</AssemblyName>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
-    </ItemGroup>
 </Project>

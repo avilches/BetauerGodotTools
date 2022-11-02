@@ -1,14 +1,14 @@
 using System;
 
 namespace Betauer.StateMachine.Sync {
-    public class StateBuilderSync<TStateKey, TTransitionKey> : BaseStateBuilderSync<StateBuilderSync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> 
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateBuilderSync<TStateKey, TEventKey> : BaseStateBuilderSync<StateBuilderSync<TStateKey, TEventKey>, TStateKey, TEventKey> 
+        where TStateKey : Enum where TEventKey : Enum {
         
-        protected override IStateSync<TStateKey, TTransitionKey> CreateState() {
-            return new StateSync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions?.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events);
+        protected override IStateSync<TStateKey, TEventKey> CreateState() {
+            return new StateSync<TStateKey, TEventKey>(Key, EnterFunc, Conditions?.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events);
         }
 
-        public StateBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TTransitionKey>> build) : base(key, build) {
+        public StateBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TEventKey>> build) : base(key, build) {
         }
     }
 }

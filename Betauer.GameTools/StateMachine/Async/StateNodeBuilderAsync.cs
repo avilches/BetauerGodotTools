@@ -2,15 +2,15 @@ using System;
 using Godot;
 
 namespace Betauer.StateMachine.Async {
-    public class StateNodeBuilderAsync<TStateKey, TTransitionKey> : 
-        BaseStateBuilderAsync<StateNodeBuilderAsync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> 
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateNodeBuilderAsync<TStateKey, TEventKey> : 
+        BaseStateBuilderAsync<StateNodeBuilderAsync<TStateKey, TEventKey>, TStateKey, TEventKey> 
+        where TStateKey : Enum where TEventKey : Enum {
         
-        public StateNodeBuilderAsync(TStateKey key, Action<IStateAsync<TStateKey, TTransitionKey>> build) : base(key, build) {
+        public StateNodeBuilderAsync(TStateKey key, Action<IStateAsync<TStateKey, TEventKey>> build) : base(key, build) {
         }
 
-        protected override IStateAsync<TStateKey, TTransitionKey> CreateState() {
-            return new StateNodeAsync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
+        protected override IStateAsync<TStateKey, TEventKey> CreateState() {
+            return new StateNodeAsync<TStateKey, TEventKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
         private Action<InputEvent> _input;
@@ -23,12 +23,12 @@ namespace Betauer.StateMachine.Async {
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public StateNodeBuilderAsync<TStateKey, TTransitionKey> OnInput(Action<InputEvent> input) {
+        public StateNodeBuilderAsync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
             _input = input;
             return this;
         }
 
-        public StateNodeBuilderAsync<TStateKey, TTransitionKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
+        public StateNodeBuilderAsync<TStateKey, TEventKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
             _unhandledInput = unhandledInput;
             return this;
         }

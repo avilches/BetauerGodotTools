@@ -1,22 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.StateMachine.Async {
-    public class StateNodeAsync<TStateKey, TTransitionKey> : StateAsync<TStateKey, TTransitionKey> 
-        where TTransitionKey : Enum where TStateKey : Enum {
+    public class StateNodeAsync<TStateKey, TEventKey> : StateAsync<TStateKey, TEventKey> 
+        where TEventKey : Enum where TStateKey : Enum {
         
         private readonly Action<InputEvent> _input;
         private readonly Action<InputEvent> _unhandledInput;
         
         public StateNodeAsync(TStateKey key,
             Func<Task>? enter,
-            Condition<TStateKey, TTransitionKey>[] conditions,
+            Condition<TStateKey, TEventKey>[] conditions,
             Func<Task> execute,
             Func<Task>? exit,
             Func<Task>? suspend,
             Func<Task>? awake,
-            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events,
+            Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events,
             Action<InputEvent> input,
             Action<InputEvent> unhandledInput) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
             _input = input;

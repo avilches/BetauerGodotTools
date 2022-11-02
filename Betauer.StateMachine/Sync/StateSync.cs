@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 
 namespace Betauer.StateMachine.Sync {
-    public class StateSync<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey>, IStateSync<TStateKey, TTransitionKey>
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateSync<TStateKey, TEventKey> : BaseState<TStateKey, TEventKey>, IStateSync<TStateKey, TEventKey>
+        where TStateKey : Enum where TEventKey : Enum {
         
         private readonly Action? _enter;
         private readonly Action? _awake;
@@ -13,12 +14,12 @@ namespace Betauer.StateMachine.Sync {
         public StateSync(
             TStateKey key,
             Action? enter,
-            Condition<TStateKey, TTransitionKey>[] conditions,
+            Condition<TStateKey, TEventKey>[] conditions,
             Action? execute,
             Action? exit,
             Action? suspend,
             Action? awake,
-            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events) : base(key, events, conditions ) {
+            Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events) : base(key, events, conditions) {
 
             _enter = enter;
             _execute = execute;

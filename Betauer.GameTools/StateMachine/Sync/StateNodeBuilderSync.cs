@@ -2,26 +2,26 @@ using System;
 using Godot;
 
 namespace Betauer.StateMachine.Sync {
-    public class StateNodeBuilderSync<TStateKey, TTransitionKey> : 
-        BaseStateBuilderSync<StateNodeBuilderSync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> 
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateNodeBuilderSync<TStateKey, TEventKey> : 
+        BaseStateBuilderSync<StateNodeBuilderSync<TStateKey, TEventKey>, TStateKey, TEventKey> 
+        where TStateKey : Enum where TEventKey : Enum {
         
-        public StateNodeBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TTransitionKey>> build) : base(key, build) {
+        public StateNodeBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TEventKey>> build) : base(key, build) {
         }
 
-        protected override IStateSync<TStateKey, TTransitionKey> CreateState() {
-            return new StateNodeSync<TStateKey, TTransitionKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
+        protected override IStateSync<TStateKey, TEventKey> CreateState() {
+            return new StateNodeSync<TStateKey, TEventKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
         private Action<InputEvent> _input;
         private Action<InputEvent> _unhandledInput;
         
-        public StateNodeBuilderSync<TStateKey, TTransitionKey> OnInput(Action<InputEvent> input) {
+        public StateNodeBuilderSync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
             _input = input;
             return this;
         }
 
-        public StateNodeBuilderSync<TStateKey, TTransitionKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
+        public StateNodeBuilderSync<TStateKey, TEventKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
             _unhandledInput = unhandledInput;
             return this;
         }

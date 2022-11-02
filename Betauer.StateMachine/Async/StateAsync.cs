@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Betauer.StateMachine.Async {
-    public class StateAsync<TStateKey, TTransitionKey> : BaseState<TStateKey, TTransitionKey>, IStateAsync<TStateKey, TTransitionKey>
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateAsync<TStateKey, TEventKey> : BaseState<TStateKey, TEventKey>, IStateAsync<TStateKey, TEventKey>
+        where TStateKey : Enum where TEventKey : Enum {
         
         private readonly Func<Task>? _enter;
         private readonly Func<Task>? _awake;
@@ -14,12 +15,12 @@ namespace Betauer.StateMachine.Async {
         public StateAsync(
             TStateKey key,
             Func<Task>? enter,
-            Condition<TStateKey, TTransitionKey>[] conditions,
+            Condition<TStateKey, TEventKey>[] conditions,
             Func<Task>? execute,
             Func<Task>? exit,
             Func<Task>? suspend,
             Func<Task>? awake,
-            EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? events) : base(key, events, conditions ) {
+            Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events) : base(key, events, conditions) {
 
             _enter = enter;
             _execute = execute;

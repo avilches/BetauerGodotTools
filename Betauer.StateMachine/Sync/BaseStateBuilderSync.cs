@@ -2,51 +2,51 @@ using System;
 using System.Collections.Generic;
 
 namespace Betauer.StateMachine.Sync {
-    public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TTransitionKey>
+    public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TEventKey>
         where TStateKey : Enum
-        where TTransitionKey : Enum
+        where TEventKey : Enum
         where TBuilder : class {
         
         protected Action? EnterFunc;
         protected Action? AwakeFunc;
-        protected List<Condition<TStateKey, TTransitionKey>> Conditions = new();
+        protected List<Condition<TStateKey, TEventKey>> Conditions = new();
         protected Action ExecuteFunc;
         protected Action? SuspendFunc;
         protected Action? ExitFunc;
-        protected EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>? Events;
+        protected Dictionary<TEventKey, Event<TStateKey, TEventKey>>? Events;
         protected readonly TStateKey Key;
-        protected readonly Action<IStateSync<TStateKey, TTransitionKey>> OnBuild;
+        protected readonly Action<IStateSync<TStateKey, TEventKey>> OnBuild;
 
-        protected BaseStateBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TTransitionKey>> build) {
+        protected BaseStateBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TEventKey>> build) {
             OnBuild = build;
             Key = key;
         }
 
-        public IStateSync<TStateKey, TTransitionKey> Build() {
-            IStateSync<TStateKey, TTransitionKey> stateSync = CreateState();
+        public IStateSync<TStateKey, TEventKey> Build() {
+            IStateSync<TStateKey, TEventKey> stateSync = CreateState();
             OnBuild(stateSync);
             return stateSync;
         }
 
-        protected abstract IStateSync<TStateKey, TTransitionKey> CreateState();
+        protected abstract IStateSync<TStateKey, TEventKey> CreateState();
 
-        public ConditionBuilder<TBuilder, TStateKey, TTransitionKey> If(Func<bool> condition) {
-            return new ConditionBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, condition, (c) => {
+        public ConditionBuilder<TBuilder, TStateKey, TEventKey> If(Func<bool> condition) {
+            return new ConditionBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, condition, (c) => {
                 if (c.Execute != null) {
-                    Conditions.Add(new Condition<TStateKey, TTransitionKey>(c.Predicate, c.Execute));
+                    Conditions.Add(new Condition<TStateKey, TEventKey>(c.Predicate, c.Execute));
                 } else {
-                    Conditions.Add(new Condition<TStateKey, TTransitionKey>(c.Predicate, c.Result));
+                    Conditions.Add(new Condition<TStateKey, TEventKey>(c.Predicate, c.Result));
                 }
             });
         }
         
-        public EventBuilder<TBuilder, TStateKey, TTransitionKey> On(TTransitionKey transitionKey) {
-            Events ??= EnumDictionary<TTransitionKey, Event<TStateKey, TTransitionKey>>.Create();
-            return new EventBuilder<TBuilder, TStateKey, TTransitionKey>(this as TBuilder, transitionKey, (c) => {
+        public EventBuilder<TBuilder, TStateKey, TEventKey> On(TEventKey eventKey) {
+            Events ??= new();
+            return new EventBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, eventKey, (c) => {
                 if (c.Execute != null) {
-                    Events[transitionKey] = new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Execute);
+                    Events[eventKey] = new Event<TStateKey, TEventKey>(c.EventKey, c.Execute);
                 } else {
-                    Events[transitionKey] = new Event<TStateKey, TTransitionKey>(c.TransitionKey, c.Result);
+                    Events[eventKey] = new Event<TStateKey, TEventKey>(c.EventKey, c.Result);
                 }
             });
         }

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 
 namespace Betauer.StateMachine {
-    public readonly struct Command<TStateKey, TTransitionKey>
+    public readonly struct Command<TStateKey, TEventKey>
         where TStateKey : Enum
-        where TTransitionKey : Enum {  
+        where TEventKey : Enum {  
         
         public readonly CommandType Type;
         public readonly TStateKey StateKey;
-        public readonly TTransitionKey TransitionKey;
+        public readonly TEventKey EventKey;
 
         public bool IsNone() => Type == CommandType.None;
         public bool IsSet() => Type == CommandType.Set;
@@ -21,10 +21,10 @@ namespace Betauer.StateMachine {
             return IsSet() && EqualityComparer<TStateKey>.Default.Equals(StateKey, key);
         }
 
-        internal Command(CommandType type, TStateKey stateKey, TTransitionKey transitionKey) {
+        internal Command(CommandType type, TStateKey stateKey, TEventKey eventKey) {
             Type = type;
             StateKey = stateKey;
-            TransitionKey = transitionKey;
+            EventKey = eventKey;
         }
     }
 }

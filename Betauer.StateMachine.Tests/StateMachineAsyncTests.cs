@@ -352,7 +352,6 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-
         [Test(Description = "State transitions have more priority than global transition")]
         public async Task StateTransitionTrigger() {
             var sm = new StateMachineAsync<State, Trans>(State.Start);

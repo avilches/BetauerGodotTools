@@ -1,25 +1,25 @@
 using System;
 
 namespace Betauer.StateMachine {
-    public class Event<TStateKey, TTransitionKey> 
+    public class Event<TStateKey, TEventKey> 
         where TStateKey : Enum
-        where TTransitionKey : Enum {
+        where TEventKey : Enum {
         
-        private TTransitionKey TransitionKey { get; }
-        private Func<EventContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>>? Execute { get; }
-        private Command<TStateKey, TTransitionKey> Result { get; }
+        private TEventKey EventKey { get; }
+        private Func<EventContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>>? Execute { get; }
+        private Command<TStateKey, TEventKey> Result { get; }
 
-        internal Event(TTransitionKey transitionKey, Func<EventContext<TStateKey, TTransitionKey>, Command<TStateKey, TTransitionKey>> execute) {
-            TransitionKey = transitionKey;
+        internal Event(TEventKey eventKey, Func<EventContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>> execute) {
+            EventKey = eventKey;
             Execute = execute;
         }
 
-        internal Event(TTransitionKey transitionKey, Command<TStateKey, TTransitionKey> result) {
-            TransitionKey = transitionKey;
+        internal Event(TEventKey eventKey, Command<TStateKey, TEventKey> result) {
+            EventKey = eventKey;
             Result = result;
         }
 
-        internal Command<TStateKey, TTransitionKey> GetResult(EventContext<TStateKey, TTransitionKey> ctx) =>
+        internal Command<TStateKey, TEventKey> GetResult(EventContext<TStateKey, TEventKey> ctx) =>
             Execute?.Invoke(ctx) ?? Result;
 
     }

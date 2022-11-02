@@ -1,20 +1,20 @@
 using System;
 
 namespace Betauer.StateMachine.Sync {
-    public class StateMachineSync<TStateKey, TTransitionKey> : 
-        BaseStateMachineSync<TStateKey, TTransitionKey, IStateSync<TStateKey, TTransitionKey>> 
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public class StateMachineSync<TStateKey, TEventKey> : 
+        BaseStateMachineSync<TStateKey, TEventKey, IStateSync<TStateKey, TEventKey>> 
+        where TStateKey : Enum where TEventKey : Enum {
         
         public StateMachineSync(TStateKey initialState, string? name = null) : base(initialState, name) {
         }
 
-        public EventBuilder<StateMachineSync<TStateKey, TTransitionKey>, TStateKey, TTransitionKey> On(
-            TTransitionKey transitionKey) {
-            return On(this, transitionKey);
+        public EventBuilder<StateMachineSync<TStateKey, TEventKey>, TStateKey, TEventKey> On(
+            TEventKey eventKey) {
+            return On(this, eventKey);
         }
 
-        public StateBuilderSync<TStateKey, TTransitionKey> State(TStateKey stateKey) {
-            return new StateBuilderSync<TStateKey, TTransitionKey>(stateKey, AddState);
+        public StateBuilderSync<TStateKey, TEventKey> State(TStateKey stateKey) {
+            return new StateBuilderSync<TStateKey, TEventKey>(stateKey, AddState);
         }
     }
 }

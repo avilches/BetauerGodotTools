@@ -2,14 +2,14 @@ using System;
 using Betauer.StateMachine.Sync;
 
 namespace Betauer.StateMachine {
-    public interface IStateMachine<TStateKey, TTransitionKey, TState>
-        where TStateKey : Enum where TTransitionKey : Enum {
+    public interface IStateMachine<TStateKey, TEventKey, TState>
+        where TStateKey : Enum where TEventKey : Enum {
         
         public void AddState(TState state);
-        public void AddEvent(TTransitionKey transitionKey, Event<TStateKey, TTransitionKey> @event);
+        public void AddEvent(TEventKey eventKey, Event<TStateKey, TEventKey> @event);
         public bool IsState(TStateKey state);
         public TState CurrentState { get; }
-        public void Enqueue(TTransitionKey name);
+        public void Enqueue(TEventKey name);
         public string? Name { get; }
         public void AddOnEnter(Action<TransitionArgs<TStateKey>> e);
         public void AddOnAwake(Action<TransitionArgs<TStateKey>> e);

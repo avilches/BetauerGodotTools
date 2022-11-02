@@ -444,6 +444,45 @@ namespace Betauer.StateMachine.Tests {
 
 
         [Test]
+        public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
+            var sm = new StateMachineSync<State, Trans>(State.Debug);
+
+            sm.On(Trans.Settings).Then(context => context.Push(State.Settings));
+            sm.On(Trans.Back).Then(context => context.Pop());
+            sm.State(State.MainMenu).Build();
+            sm.State(State.Debug).Build();
+            sm.State(State.Settings).Build();
+            List<string> states = new List<string>();
+            sm.AddOnEnter((args) => states.Add(args.To + ":enter"));
+            sm.AddOnAwake((args)  => states.Add(args.To + ":awake"));
+            sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
+            sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
+            sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
+
+            
+            
+            sm.Execute();
+            sm.Enqueue(Trans.Settings); 
+            sm.Execute();
+            sm.Enqueue(Trans.Back);
+            sm.Execute();
+            // Test listener
+            Console.WriteLine(string.Join(",", states));
+            Assert.That(string.Join(",", states), Is.EqualTo(
+                "Debug:enter," +
+                
+                "Debug:suspend," +
+                "from:Debug-to:Settings," +
+                "Settings:enter," +
+                
+                "Settings:exit," +
+                "from:Settings-to:Debug," +
+                "Debug:awake"));
+            
+
+        }
+
+        [Test]
         public void EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
             var sm = new StateMachineSync<State, Trans>(State.Debug);
             
