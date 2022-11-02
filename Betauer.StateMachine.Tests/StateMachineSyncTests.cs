@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.StateMachine.Sync;
 using Betauer.TestRunner;
-using Godot;
 using NUnit.Framework;
 using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.StateMachine.Tests {
     [TestFixture]
-    public class StateMachineSyncTests : Node {
+    public class StateMachineSyncTests {
         enum State {
             A,
             Idle,
