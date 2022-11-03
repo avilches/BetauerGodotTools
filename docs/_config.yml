@@ -1,0 +1,13 @@
+title: Betauer Godot Tools
+description: A opinionated framework to speed up the creation of games using Godot.
+remote_theme: carlosperate/jekyll-theme-rtd
+
+# Theme settings:
+site_author: Alberto Vilches
+repo_url: "https://github.com/avilches/BetauerGodotTools"
+edit_on_github: true
+github_docs_folder: true
+sticky_navigation: true
+prev_next_buttons_location: bottom
+search_enabled: true
+hljs_style: github-gist
