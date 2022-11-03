@@ -14,11 +14,11 @@ using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.UI;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller.UI.Consoles;
-using Veronenger.Game.Managers;
+using Veronenger.Character.Player;
+using Veronenger.Controller.UI.Consoles;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Character {
+namespace Veronenger.Controller.Character {
 
     public readonly struct Attack {
         public readonly float Damage;

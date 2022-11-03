@@ -8,9 +8,9 @@ using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Nodes;
 using Betauer.StateMachine.Async;
-using Veronenger.Game.Controller.Menu;
+using Veronenger.Controller.Menu;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
     
     public enum MainState {
         Init,

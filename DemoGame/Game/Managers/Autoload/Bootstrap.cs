@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
@@ -11,13 +8,15 @@ using Betauer.DI.ServiceProvider;
 using Betauer.Memory;
 using Betauer.Pool;
 using Betauer.StateMachine;
-using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Controller.Stage;
+using Godot;
+using Veronenger.Controller.Character;
+using Veronenger.Controller.Stage;
+using Veronenger.Managers;
 using Container = Betauer.DI.Container;
 using PropertyTweener = Betauer.Animation.Tween.PropertyTweener;
 using TraceLevel = Betauer.TraceLevel;
 
-namespace Veronenger.Game.Managers.Autoload {
+namespace Veronenger.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
 

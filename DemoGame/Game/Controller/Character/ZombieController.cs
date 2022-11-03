@@ -8,10 +8,10 @@ using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes.Property;
 using Betauer.OnReady;
-using Veronenger.Game.Character.Enemy;
-using Veronenger.Game.Managers;
+using Veronenger.Character.Enemy;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Character {
+namespace Veronenger.Controller.Character {
     public interface IEnemy {
         public void AttackedByPlayer(Attack attack);
     }

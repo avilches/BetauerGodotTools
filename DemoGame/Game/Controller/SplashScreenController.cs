@@ -1,17 +1,13 @@
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation.Tween;
-using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.Input;
 using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller {
+namespace Veronenger.Controller {
     public class SplashScreenController : Control {
         [Inject] private MainStateMachine MainStateMachine { get; set; }
         [Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }

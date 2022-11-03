@@ -1,9 +1,9 @@
 using Betauer;
 using Betauer.DI;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Area {
+namespace Veronenger.Controller.Area {
     public class DeathArea2DController : Area2D {
         [Inject] public CharacterManager CharacterManager { get; set; }
 

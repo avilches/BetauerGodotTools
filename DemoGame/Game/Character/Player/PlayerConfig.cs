@@ -1,7 +1,7 @@
 using Betauer.DI;
 using Godot;
 
-namespace Veronenger.Game.Character.Player {
+namespace Veronenger.Character.Player {
     [Service]
     public class PlayerConfig {
         public const float CoyoteJumpTime = 0.1f; // seconds. How much time the player can jump when falling

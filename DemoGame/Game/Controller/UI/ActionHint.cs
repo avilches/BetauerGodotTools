@@ -4,9 +4,9 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
 using Godot;
-using Veronenger.Game.Controller.UI.Consoles;
+using Veronenger.Controller.UI.Consoles;
 
-namespace Veronenger.Game.Controller.UI {
+namespace Veronenger.Controller.UI {
     public abstract class ActionHint : HBoxContainer {
         [OnReady("Label1")] private Label _label1;
         [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;

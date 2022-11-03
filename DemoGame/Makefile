@@ -14,12 +14,15 @@ GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
 GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
+SOLUTION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/name" | cut -d'=' -f2| tr -d '"')
+CSPRJ_FOLDER:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "project/c\#_project_directory" | cut -d'=' -f2| tr -d '"')
 
 .PHONY: help
 help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
-	@echo "    clean          remove all .mono folders"
+	@echo "    clean          remove all .mono and .import folders"
+	@echo "    import         import resources"
 	@echo "    test           run tests"
 	@echo "    run            run the game"
 	@echo "    editor         open the Godot editor"
@@ -44,6 +47,7 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
+	rm -rf "${ROOT_FOLDER}/.import"
 
 
 	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
@@ -51,18 +55,23 @@ clean:
 	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
 	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
 	
+.PHONY: import
+import: clean
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+ 
 .PHONY: build
 build:
-	#msbuild "${ROOT_FOLDER}/Veronenger.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/Veronenger.sln" --configuration Debug 
-
+	dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportDebug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+ 
 .PHONY: run
 run:
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "Tests/TestRunner.cs" --no-window --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --no-window --verbose
 
 .PHONY: editor
 editor:
@@ -89,6 +98,9 @@ export/linux: check-version
 release:
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
+	@echo ""
+	@echo "Using ${SOLUTION}.sln solution"
 	@echo ""
 	@echo "application.properties:"
 	@echo "    NAME            ${NAME}"
@@ -100,7 +112,7 @@ release:
 	@echo "Update project.godot and exports_presets.cfg?"
 	@echo "(CTRL+C to stop)"
 	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "export/Release.cs" --no-window
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --no-window
 
 .PHONY: export/all
 export/all: clean build release export/win export/osx export/linux
@@ -110,6 +122,8 @@ check-version:
 	@echo ""
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
+	@echo ""
 	@echo ""
 	@echo "application.properties:"
 	@echo "    VERSION         ${VERSION}"
@@ -122,5 +136,6 @@ ifneq ($(CURRENT_VERSION), $(VERSION))
 else
 	@echo "Version matches, exporting..."
 	@echo ""
+	@echo "Using ${SOLUTION}.sln solution"
 	@echo ""
 endif

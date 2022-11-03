@@ -8,10 +8,10 @@ using Betauer.Input;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Time;
-using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers;
+using Veronenger.Controller.Character;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Character.Player {
+namespace Veronenger.Character.Player {
     
     public enum PlayerState {
         Idle,

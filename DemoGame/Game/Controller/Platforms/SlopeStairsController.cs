@@ -2,9 +2,9 @@ using Godot;
 using Betauer;
 using Betauer.DI;
 using Betauer.OnReady;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Platforms {
+namespace Veronenger.Controller.Platforms {
     public class SlopeStairsController : Node {
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
 

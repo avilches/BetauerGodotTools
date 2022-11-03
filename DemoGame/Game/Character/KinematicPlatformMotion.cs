@@ -5,11 +5,11 @@ using Godot;
 using Betauer;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 using Object = Godot.Object;
 using Vector2 = Godot.Vector2;
 
-namespace Veronenger.Game.Character {
+namespace Veronenger.Character {
 
     [Service(Lifetime.Transient)]
     public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {

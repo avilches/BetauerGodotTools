@@ -2,9 +2,9 @@ using System;
 using Godot;
 using Betauer;
 using Betauer.DI;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Stage {
+namespace Veronenger.Controller.Stage {
     /**
      * Add this script to wrap all the stages in every scene.
      * Your Scene

@@ -2,9 +2,9 @@ using System.Linq;
 using Betauer.Input;
 using Betauer.OnReady;
 using Godot;
-using Veronenger.Game.Controller.UI.Consoles;
+using Veronenger.Controller.UI.Consoles;
 
-namespace Veronenger.Game.Controller.UI {
+namespace Veronenger.Controller.UI {
     public class RedefineActionButton : Button {
         [OnReady("HBox/ActionName")] private Label _actionNameLabel;
         [OnReady("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;

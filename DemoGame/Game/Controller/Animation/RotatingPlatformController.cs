@@ -1,10 +1,10 @@
 using Godot;
 using Betauer;
 using Betauer.DI;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 using static Godot.Mathf;
 
-namespace Veronenger.Game.Controller.Animation {
+namespace Veronenger.Controller.Animation {
     public class RotatingPlatformController : KinematicBody2D {
 
         [Export] public bool IsFallingPlatform = false;

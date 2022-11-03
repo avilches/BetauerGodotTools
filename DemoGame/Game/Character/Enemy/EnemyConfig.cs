@@ -1,7 +1,7 @@
 using Betauer.DI;
 using Godot;
 
-namespace Veronenger.Game.Character.Enemy {
+namespace Veronenger.Character.Enemy {
     [Service]
     public class EnemyConfig {
         public Vector2 MiniJumpOnAttack = new(130, -230);

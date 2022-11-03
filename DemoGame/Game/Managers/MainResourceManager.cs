@@ -2,10 +2,10 @@ using System;
 using Betauer.DI;
 using Betauer.Loader;
 using Godot;
-using Veronenger.Game.Controller.Menu;
-using Veronenger.Game.Controller.UI;
+using Veronenger.Controller.Menu;
+using Veronenger.Controller.UI;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
 
     [Service]
     public class MainResourceLoader : ResourceLoaderContainer {

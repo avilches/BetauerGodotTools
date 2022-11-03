@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Tween;
+using Betauer.Application;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
@@ -11,9 +12,9 @@ using Betauer.Restorer;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace Veronenger.Controller.Menu {
     public class MainMenu : Control {
         private const float FadeMainMenuEffectTime = 0.75f;
 
@@ -32,7 +33,7 @@ namespace Veronenger.Game.Controller.Menu {
         [Inject] private InputAction UiCancel { get; set; }
 
         public override void _Ready() {
-            _version.Text = AppInfo.Version + " - Betauer 2022";
+            _version.Text = $"{AppTools.GetProjectName()} {AppTools.GetProjectVersion()} - Betauer 2022";
             _menuContainer = BuildMenu();
         }
 

@@ -1,9 +1,9 @@
 using Godot;
 using Betauer;
 using Betauer.DI;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Platforms {
+namespace Veronenger.Controller.Platforms {
     public class PlatformController :KinematicBody2D {
 
         [Inject] public PlatformManager PlatformManager { get; set; }

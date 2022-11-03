@@ -1,9 +1,9 @@
 using System;
 using Betauer.Bus;
 using Betauer.DI;
-using Veronenger.Game.Character.Player;
+using Veronenger.Character.Player;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
 
     public enum GlobalEvent {
         

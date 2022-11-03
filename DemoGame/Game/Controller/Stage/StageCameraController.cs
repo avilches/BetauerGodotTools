@@ -2,9 +2,9 @@ using Godot;
 using Betauer;
 using Betauer.DI;
 using Betauer.OnReady;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Stage {
+namespace Veronenger.Controller.Stage {
     /**
      * Add this script to a Camera2D in your Player.
      * The Player should have an Area2D called 'StageDetector' children

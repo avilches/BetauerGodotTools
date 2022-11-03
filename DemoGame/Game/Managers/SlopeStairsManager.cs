@@ -2,11 +2,11 @@ using System;
 using Betauer.Bus.Signal;
 using Godot;
 using Betauer.DI;
-using Veronenger.Game.Controller.Character;
-using static Veronenger.Game.LayerConstants;
+using Veronenger.Controller.Character;
+using static Veronenger.LayerConstants;
 using Object = Godot.Object;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
 
     [Service]
     public class SlopeStairsManager {

@@ -5,7 +5,7 @@ using Betauer.DI;
 using Betauer.Nodes;
 using Godot;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
 
     [Service]
     public class Game {

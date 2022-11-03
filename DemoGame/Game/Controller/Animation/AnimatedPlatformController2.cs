@@ -4,9 +4,9 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes.Property;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Animation {
+namespace Veronenger.Controller.Animation {
     public class AnimatedPlatformController2 : KinematicBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}

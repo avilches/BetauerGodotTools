@@ -9,10 +9,10 @@ using Betauer.Restorer;
 using Betauer.Signal;
 using Betauer.UI;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 using Container = Godot.Container;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace Veronenger.Controller.Menu {
     public class PauseMenu : CanvasLayer {
         private static readonly KeyframeAnimation PartialFadeOut = KeyframeAnimation.Create()
             .SetDuration(0.3f)

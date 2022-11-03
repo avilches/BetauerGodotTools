@@ -9,9 +9,9 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Animation {
+namespace Veronenger.Controller.Animation {
     public class RotatingChildrenAlignedController : Node2D {
         public const float CLOCK_THREE = Mathf.Pi / 2;
         public const float CLOCK_NINE = -Mathf.Pi / 2;

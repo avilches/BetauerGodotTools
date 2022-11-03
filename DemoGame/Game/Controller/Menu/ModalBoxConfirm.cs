@@ -7,7 +7,7 @@ using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace Veronenger.Controller.Menu {
     public class ModalBoxConfirm : Node {
         [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;

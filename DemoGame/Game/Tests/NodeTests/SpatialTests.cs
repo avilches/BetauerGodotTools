@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Veronenger.Tests.NodeTests {
     [TestFixture]
-    [Ignore("")]
+    // [Ignore("")]
     public class SpatialTests : Spatial {
         const float marginOfError = 0.01f;
 

@@ -4,11 +4,11 @@ using Betauer.Bus.Signal;
 using Godot;
 using Betauer.DI;
 using Betauer.Signal;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller.Character;
-using static Veronenger.Game.LayerConstants;
+using Veronenger.Character.Player;
+using Veronenger.Controller.Character;
+using static Veronenger.LayerConstants;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
     [Service]
     public class CharacterManager {
         private const string GROUP_ENEMY = "enemy";

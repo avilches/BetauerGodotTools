@@ -5,9 +5,9 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.UI.Consoles {
+namespace Veronenger.Controller.UI.Consoles {
     public abstract class ConsoleButton : Sprite {
         private SpriteConfig _config;
 

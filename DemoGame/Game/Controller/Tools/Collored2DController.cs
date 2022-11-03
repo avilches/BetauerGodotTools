@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Veronenger.Game.Controller.Tools {
+namespace Veronenger.Controller.Tools {
     [Tool]
     public class Collored2DController : CollisionShape2D {
         private Color _color = Colors.White;

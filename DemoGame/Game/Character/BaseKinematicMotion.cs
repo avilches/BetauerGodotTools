@@ -2,7 +2,7 @@ using System;
 using Betauer;
 using Godot;
 
-namespace Veronenger.Game.Character {
+namespace Veronenger.Character {
     public abstract class BaseKinematicMotion {
         public KinematicBody2D Body { get; private set; }
         public Position2D Position2D { get; private set; }

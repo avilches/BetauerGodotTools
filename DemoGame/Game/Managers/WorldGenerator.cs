@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
     public class WorldGenerator {
         private TileSetController _tile;
 

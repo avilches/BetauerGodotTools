@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoGame", "DemoGame.csproj", "{15D10F92-7398-4D76-AFD5-840AB34047C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoGame", "Game\DemoGame.csproj", "{15D10F92-7398-4D76-AFD5-840AB34047C8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.TestRunner", "..\Betauer.TestRunner\Betauer.TestRunner.csproj", "{96DB9C9B-51DB-485A-9EB0-1C81C53D39D1}"
 EndProject

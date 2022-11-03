@@ -6,11 +6,11 @@ using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Time;
 using Godot;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Controller.Character;
-using Veronenger.Game.Managers;
+using Veronenger.Character.Player;
+using Veronenger.Controller.Character;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Character.Enemy {
+namespace Veronenger.Character.Enemy {
     public enum ZombieTransition {
         Dead,
         Attacked

@@ -6,10 +6,10 @@ using Betauer;
 using Betauer.Bus.Signal;
 using Betauer.DI;
 using Betauer.Signal;
-using static Veronenger.Game.LayerConstants;
+using static Veronenger.LayerConstants;
 using Object = Godot.Object;
 
-namespace Veronenger.Game.Managers {
+namespace Veronenger.Managers {
     [Service]
     public class PlatformManager {
         private const string GROUP_PLATFORMS = "platform";

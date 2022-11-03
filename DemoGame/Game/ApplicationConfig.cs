@@ -5,9 +5,9 @@ using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Godot;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game {
+namespace Veronenger {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new(
             Resolutions.FULLHD_DIV2,

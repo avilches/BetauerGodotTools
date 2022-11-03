@@ -14,10 +14,10 @@ using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.Signal;
 using Godot;
-using Veronenger.Game.Controller.UI;
-using Veronenger.Game.Managers;
+using Veronenger.Controller.UI;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace Veronenger.Controller.Menu {
     public class SettingsMenu : CanvasLayer {
         [OnReady("Panel")] 
         private Panel _panel;

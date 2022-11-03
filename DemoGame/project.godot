@@ -62,6 +62,12 @@ texture={
 file_logging/log_path="user://logs/dev.log"
 file_logging/log_path.standalone="user://logs/game.log"
 
+[mono]
+
+project/assembly_name="DemoGame"
+project/c#_project_directory="Game"
+runtime/unhandled_exception_policy.standalone=0
+
 [rendering]
 
 environment/default_clear_color=Color( 0, 0, 0, 1 )

@@ -3,7 +3,7 @@ using Godot;
 using Betauer;
 using Betauer.Nodes;
 
-namespace Veronenger.Game.Controller.Platforms {
+namespace Veronenger.Controller.Platforms {
 	public class PlatformFollowPathController : PlatformController {
 
 		[Export] public float Speed = 10;

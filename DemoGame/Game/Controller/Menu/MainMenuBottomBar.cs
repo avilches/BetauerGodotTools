@@ -5,10 +5,10 @@ using Betauer.Input;
 using Betauer.OnReady;
 using Betauer.StateMachine;
 using Godot;
-using Veronenger.Game.Controller.UI;
-using Veronenger.Game.Managers;
+using Veronenger.Controller.UI;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Menu {
+namespace Veronenger.Controller.Menu {
     public class MainMenuBottomBar : CanvasLayer {
         [OnReady("%ActionHint1")] private ActionHint _actionHint1;
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;

@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Veronenger.Game.Character {
+namespace Veronenger.Character {
     public static class MotionConfig {
 
         public static Vector2 FloorUpDirection = Vector2.Up;

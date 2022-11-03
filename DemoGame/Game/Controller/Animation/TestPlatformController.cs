@@ -8,7 +8,7 @@ using Betauer.Nodes.Property;
 using Betauer.Nodes.Property.Callback;
 using Betauer.OnReady;
 
-namespace Veronenger.Game.Controller.Animation {
+namespace Veronenger.Controller.Animation {
     public class TestPlatformController : Node2D {
         [OnReady("Body1")] private KinematicBody2D body1;
         [OnReady("Body2")] private KinematicBody2D body2;

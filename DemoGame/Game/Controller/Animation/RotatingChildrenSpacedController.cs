@@ -8,9 +8,9 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Nodes;
-using Veronenger.Game.Managers;
+using Veronenger.Managers;
 
-namespace Veronenger.Game.Controller.Animation {
+namespace Veronenger.Controller.Animation {
     public class RotatingChildrenSpacedController : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
