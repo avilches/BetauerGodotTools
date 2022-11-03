@@ -22,8 +22,8 @@ config/version="1.0.0"
 
 [autoload]
 
-Bootstrap="*res://Game/Managers/Autoload/Bootstrap.cs"
-Global="*res://Game/Managers/Autoload/Global.cs"
+Bootstrap="*res://Src/Managers/Autoload/Bootstrap.cs"
+Global="*res://Src/Managers/Autoload/Global.cs"
 
 [display]
 
@@ -64,7 +64,7 @@ file_logging/log_path.standalone="user://logs/game.log"
 
 [mono]
 
-project/c#_project_directory="Game"
+project/c#_project_directory="Src"
 runtime/unhandled_exception_policy.standalone=0
 
 [rendering]

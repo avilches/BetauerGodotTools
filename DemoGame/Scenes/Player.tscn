@@ -1,10 +1,10 @@
 [gd_scene load_steps=18 format=2]
 
-[ext_resource path="res://Game/Controller/Character/PlayerController.cs" type="Script" id=1]
+[ext_resource path="res://Src/Controller/Character/PlayerController.cs" type="Script" id=1]
 [ext_resource path="res://Characters/Player-heroine/run.png" type="Texture" id=2]
 [ext_resource path="res://Characters/Player-heroine/idle.png" type="Texture" id=3]
 [ext_resource path="res://Characters/Player-heroine/jump.png" type="Texture" id=4]
-[ext_resource path="res://Game/Controller/Stage/StageCameraController.cs" type="Script" id=5]
+[ext_resource path="res://Src/Controller/Stage/StageCameraController.cs" type="Script" id=5]
 [ext_resource path="res://Characters/Player-heroine/attack.png" type="Texture" id=6]
 [ext_resource path="res://Characters/Player-heroine/jump-attack.png" type="Texture" id=7]
 [ext_resource path="res://Assets/UI/Consoles/ConsoleButton.tscn" type="PackedScene" id=8]
