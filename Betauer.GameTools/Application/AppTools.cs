@@ -13,10 +13,13 @@ namespace Betauer.Application {
         
 
         public static T GetProjectSetting<T>(string key, T defaultValue) {
-            var value = ProjectSettings.GetSetting("display/window/size/width");
+            var value = ProjectSettings.GetSetting(key);
             if (value is T r) return r;
             return defaultValue;
         }
+
+        public static string GetProjectName() => GetProjectSetting("application/config/name", "(unknown)");
+        public static string GetProjectVersion() => GetProjectSetting("application/config/version", "");
         
         public static int GetWindowSizeWidth() => GetProjectSetting("display/window/size/width", 1024);
         public static int GetWindowSizeHeight() => GetProjectSetting("display/window/size/height", 600);
