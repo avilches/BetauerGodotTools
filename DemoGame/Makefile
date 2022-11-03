@@ -47,7 +47,6 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
-	rm -rf "${ROOT_FOLDER}/.import"
 
 
 	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
@@ -57,6 +56,7 @@ clean:
 	
 .PHONY: import
 import: clean
+	rm -rf "${ROOT_FOLDER}/.import"
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
  
 .PHONY: build

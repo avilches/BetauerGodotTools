@@ -18,7 +18,8 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
-	@echo "    clean           remove all .mono folders"
+	@echo "    clean           remove all .mono and .import folders"
+	@echo "    import          import resources"
 	@echo "    test            run tests"
 	@echo "    editor          open Godot editor"
 	@echo "    generate        execute Generator project which creates all *.cs classes"
@@ -39,16 +40,19 @@ clean:
 	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
 	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
 	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
-	
+
+.PHONY: import
+import: clean
+	rm -rf "${ROOT_FOLDER}/.import"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+ 
 .PHONY: build/debug
 build/debug:
-	#msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/Betauer.sln" --configuration Debug 
+	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: build/release
 build/release:
-#	msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/Betauer.sln" --configuration ExportRelease 
+	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: export/dll
 export/dll: clean bump build/debug build/release 

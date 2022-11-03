@@ -4,7 +4,7 @@ using Betauer;
 using Betauer.TestRunner;
 using Godot;
 
-public class TestRunner : SceneTree {
+public class RunTests : SceneTree {
     public override async void _Initialize() {
         LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
         var assemblies = new[] {
