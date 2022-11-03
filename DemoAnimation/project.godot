@@ -56,9 +56,9 @@ config/version="1.0.0"
 
 [autoload]
 
-Bootstrap="*res://Game/Managers/Autoload/Bootstrap.cs"
+Bootstrap="*res://Src/Managers/Autoload/Bootstrap.cs"
 Anima="*res://addons/anima/core/anima.gd"
-Global="*res://Game/Managers/Autoload/Global.cs"
+Global="*res://Src/Managers/Autoload/Global.cs"
 
 [display]
 

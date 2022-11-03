@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "DemoAnimation", "Game\DemoAnimation.csproj", "{15D10F92-7893-4D76-AFD5-340AB84047C3}"
+Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "DemoAnimation", "Src\DemoAnimation.csproj", "{15D10F92-7893-4D76-AFD5-340AB84047C3}"
 EndProject
 Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "Betauer.Animation", "..\Betauer.Animation\Betauer.Animation.csproj", "{D0C8449E-A8F2-4E9C-AFF9-85338ACEDA43}"
 EndProject
