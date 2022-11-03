@@ -8,6 +8,7 @@ public class RunTests : SceneTree {
     public override async void _Initialize() {
         LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
         var assemblies = new[] {
+            "Betauer.Bus.Tests",
             "Betauer.DI.Tests",
             "Betauer.GameTools.Tests",
             "Betauer.StateMachine.Tests",

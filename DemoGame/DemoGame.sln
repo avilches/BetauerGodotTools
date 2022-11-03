@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Bet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "..\Betauer.Bus\Betauer.Bus.csproj", "{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -63,5 +65,11 @@ Global
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{D4F947ED-7342-4937-8455-DD2F756923CD}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal

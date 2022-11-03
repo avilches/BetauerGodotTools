@@ -49,6 +49,7 @@ import: clean
 .PHONY: build/debug
 build/debug:
 	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportDebug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: build/release
 build/release:
@@ -61,6 +62,8 @@ export/dll: clean bump build/debug build/release
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Animation.pdb" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Core.dll" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Core.pdb" "${EXPORT_FOLDER}/ExportRelease"  
+	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Bus.dll" "${EXPORT_FOLDER}/ExportRelease"  
+	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Bus.pdb" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.DI.dll" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.DI.pdb" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.GameTools.dll" "${EXPORT_FOLDER}/ExportRelease"  
@@ -69,11 +72,28 @@ export/dll: clean bump build/debug build/release
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.TestRunner.dll" "${EXPORT_FOLDER}/ExportRelease"  
 	cp "${BUILD_FOLDER}/ExportRelease/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}/ExportRelease"
+	mkdir -p "${EXPORT_FOLDER}/ExportDebug"
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Animation.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Animation.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Core.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Core.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Bus.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Bus.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.DI.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.DI.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.GameTools.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.GameTools.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.StateMachine.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.TestRunner.dll" "${EXPORT_FOLDER}/ExportDebug"  
+	cp "${BUILD_FOLDER}/ExportDebug/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}/ExportDebug"
 	mkdir -p "${EXPORT_FOLDER}/Debug"
 	cp "${BUILD_FOLDER}/Debug/Betauer.Animation.dll" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.Animation.pdb" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.Core.dll" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.Core.pdb" "${EXPORT_FOLDER}/Debug"  
+	cp "${BUILD_FOLDER}/Debug/Betauer.Bus.dll" "${EXPORT_FOLDER}/Debug"  
+	cp "${BUILD_FOLDER}/Debug/Betauer.Bus.pdb" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.DI.dll" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.DI.pdb" "${EXPORT_FOLDER}/Debug"  
 	cp "${BUILD_FOLDER}/Debug/Betauer.GameTools.dll" "${EXPORT_FOLDER}/Debug"  

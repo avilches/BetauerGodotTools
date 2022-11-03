@@ -33,6 +33,9 @@
         <Reference Include="Betauer.Core">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Core.dll</HintPath>
         </Reference>
+        <Reference Include="Betauer.Bus">
+            <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Bus.dll</HintPath>
+        </Reference>
         <Reference Include="Betauer.DI">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.DI.dll</HintPath>
         </Reference>

@@ -11,6 +11,7 @@
     <ItemGroup>
         <ProjectReference Include="Betauer.Animation/Betauer.Animation.csproj" />
         <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="Betauer.Bus/Betauer.Bus.csproj" />
         <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
         <ProjectReference Include="Betauer.GameTools/Betauer.GameTools.csproj" />
         <ProjectReference Include="Betauer.StateMachine/Betauer.StateMachine.csproj" />
@@ -22,6 +23,7 @@
         <PackageReference Include="NUnit" Version="3.13.3" />
         <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
         <ProjectReference Include="Betauer.Core.Tests/Betauer.Core.Tests.csproj" />
+        <ProjectReference Include="Betauer.Bus.Tests/Betauer.Bus.Tests.csproj" />
         <ProjectReference Include="Betauer.DI.Tests/Betauer.DI.Tests.csproj" />
         <ProjectReference Include="Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj" />
         <ProjectReference Include="Betauer.StateMachine.Tests/Betauer.StateMachine.Tests.csproj" />

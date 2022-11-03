@@ -3,6 +3,14 @@ using System.Linq.Expressions;
 
 namespace Betauer {
     public static class EnumExtensions {
+        /// <summary>
+        /// Cast a generic enum to int without boxing (that means not allocating new memory during the conversion)
+        /// From: https://stackoverflow.com/questions/16960555/how-do-i-cast-a-generic-enum-to-int
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <returns></returns>
         public static int ToInt<TEnum>(this TEnum value) where TEnum : Enum {
             return CastEnumToIntFuncHolder<TEnum>.CastEnumToInt(value);
         }
