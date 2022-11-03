@@ -15,6 +15,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer.Signal\Betauer.Signal.csproj" />
+        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
     </ItemGroup>
 </Project>
