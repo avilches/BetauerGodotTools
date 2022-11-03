@@ -25,12 +25,12 @@ namespace Veronenger.Character.Player {
         Float,
     }
 
-    public enum PlayerTransition {
+    public enum PlayerEvent {
         Death
     }
 
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerTransition> {
+    public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
         private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
         private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
 
@@ -181,11 +181,11 @@ namespace Veronenger.Character.Player {
                 .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
                 .Build();
 
-            On(PlayerTransition.Death).Then(ctx => ctx.Set(PlayerState.Death));
+            On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
             State(PlayerState.Death)
                 .Enter(() => {
                     Console.WriteLine("MUERTO");
-                    Bus.Publish(MainTransition.EndGame);
+                    Bus.Publish(MainEvent.EndGame);
                 })
                 .Build();
 

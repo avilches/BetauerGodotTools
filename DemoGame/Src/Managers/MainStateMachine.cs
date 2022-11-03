@@ -95,7 +95,7 @@ namespace Veronenger.Managers {
             }, PauseModeEnum.Process);
             #endif
             
-            Bus.Subscribe(Enqueue);
+            Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
             var modalResponse = false;
             
             State(MainState.Init)
