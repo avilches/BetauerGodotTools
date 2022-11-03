@@ -31,9 +31,6 @@ namespace Veronenger.Character.Player {
 
     [Service(Lifetime.Transient)]
     public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
-        private static readonly Logger LoggerJumpVelocity = LoggerFactory.GetLogger("JumpVelocity");
-        private void DebugJump(string message) => LoggerJumpVelocity.Debug(message);
-
         public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", ProcessMode.Physics) {
         }
 
@@ -78,6 +75,7 @@ namespace Veronenger.Character.Player {
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
             
             AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
+            AddOnTransition(args => Console.WriteLine(args.To));
             Bus.Subscribe(Enqueue);
             GroundStates();
             AirStates();
@@ -126,6 +124,29 @@ namespace Veronenger.Character.Player {
                     }
                 }
             }
+
+            On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
+
+            State(PlayerState.Landing)
+                .Enter(() => {
+                    CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
+                    PlatformManager.BodyStopFallFromPlatform(_player);
+                })
+                .Execute(() => {
+                    if (LastJumpOnAirTimer.IsRunning) {
+                        if (LastJumpOnAirTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
+                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+                        } else {
+                            // The timer acts like a flag: if running, the player can jump, if stopped, the player can't
+                            LastJumpOnAirTimer.Stop();
+                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
+                        }
+                    }
+                })
+                .If(() => LastJumpOnAirTimer.IsRunning).Set(PlayerState.Jump)
+                .If(() => XInput == 0).Set(PlayerState.Idle)
+                .If(() => true).Set(PlayerState.Run)
+                .Build();
 
             State(PlayerState.Idle)
                 .Enter(() => {
@@ -181,34 +202,11 @@ namespace Veronenger.Character.Player {
                 .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
                 .Build();
 
-            On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
             State(PlayerState.Death)
                 .Enter(() => {
                     Console.WriteLine("MUERTO");
                     Bus.Publish(MainEvent.EndGame);
                 })
-                .Build();
-
-
-            State(PlayerState.Landing)
-                .Enter(() => {
-                    CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-                    PlatformManager.BodyStopFallFromPlatform(_player);
-                })
-                .Execute(() => {
-                    if (LastJumpOnAirTimer.IsRunning) {
-                        if (LastJumpOnAirTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
-                        } else {
-                            // The timer acts like a flag: if running, the player can jump, if stopped, the player can't
-                            LastJumpOnAirTimer.Stop();
-                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
-                        }
-                    }
-                })
-                .If(() => LastJumpOnAirTimer.IsRunning).Set(PlayerState.Jump)
-                .If(() => XInput == 0).Set(PlayerState.Idle)
-                .If(() => true).Set(PlayerState.Run)
                 .Build();
 
         }
@@ -240,14 +238,12 @@ namespace Veronenger.Character.Player {
             State(PlayerState.Jump)
                 .Enter(() => {
                     Body.MotionY = -PlayerConfig.JumpSpeed;
-                    DebugJump($"Jump start: decelerating to {(-PlayerConfig.JumpSpeed).ToString()}");
                     _player.AnimationJump.PlayLoop();
                 })
                 .Execute(() => {
                     CheckAirAttack();
 
                     if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
-                        DebugJump($"Short jump: decelerating from {MotionY.ToString()} to {(-PlayerConfig.JumpSpeedMin).ToString()}");
                         Body.MotionY = -PlayerConfig.JumpSpeedMin;
                     }
 
@@ -298,8 +294,6 @@ namespace Veronenger.Character.Player {
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
                 .Build();
-
-            AddOnTransition(args => Console.WriteLine(args.To));
 
         }
     }
