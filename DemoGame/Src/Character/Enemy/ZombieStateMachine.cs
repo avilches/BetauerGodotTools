@@ -11,7 +11,7 @@ using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Enemy {
-    public enum ZombieTransition {
+    public enum ZombieEvent {
         Dead,
         Attacked
     }
@@ -40,7 +40,7 @@ namespace Veronenger.Character.Enemy {
     }
 
     [Service(Lifetime.Transient)]
-    public class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieTransition> {
+    public class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
         }
 
@@ -118,7 +118,7 @@ namespace Veronenger.Character.Enemy {
                 .Build();
 
 
-            On(ZombieTransition.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
+            On(ZombieEvent.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
             State(ZombieState.Attacked)
                 .Enter(() => {
                     Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
@@ -134,7 +134,7 @@ namespace Veronenger.Character.Enemy {
                 .If(() => StateTimer.IsAlarm()).Pop()
                 .Build();
 
-            On(ZombieTransition.Dead).Then(context=> context.Set(ZombieState.Destroy));
+            On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
             State(ZombieState.Destroy)
                 .Enter(() => {
                     _zombieController.DisableAll();
@@ -168,7 +168,7 @@ namespace Veronenger.Character.Enemy {
 
         public void TriggerAttacked(Attack attack) {
             Status.Attack(attack);
-            Enqueue(Status.IsDead() ? ZombieTransition.Dead : ZombieTransition.Attacked);
+            Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Attacked);
         }
     }
 }

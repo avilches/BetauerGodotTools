@@ -83,7 +83,7 @@ namespace Veronenger.Managers {
             deathArea2D.CollisionMask = 0;
             // TODO: this should be a topic, so other places can subscribe like remove all bullets
             deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
-            deathArea2D.OnAreaEntered((player) => Bus.Publish(PlayerTransition.Death));
+            deathArea2D.OnAreaEntered((player) => Bus.Publish(PlayerEvent.Death));
         }
 
         public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {

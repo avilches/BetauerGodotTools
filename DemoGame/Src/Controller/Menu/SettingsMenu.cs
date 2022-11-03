@@ -248,7 +248,7 @@ namespace Veronenger.Controller.Menu {
                 GetTree().SetInputAsHandled();
                 
             } else if (UiCancel.IsEventPressed(e)) {
-                Bus.Publish(MainTransition.Back);
+                Bus.Publish(MainEvent.Back);
                 GetTree().SetInputAsHandled();
                 
             } else if (_resolutionButton.HasFocus()) {

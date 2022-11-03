@@ -24,7 +24,7 @@ namespace Veronenger.Managers {
         ExitDesktop,
     }
     
-    public enum MainTransition {
+    public enum MainEvent {
         Back,
         Pause,
         Settings,
@@ -36,7 +36,7 @@ namespace Veronenger.Managers {
     }
     
     [Service]
-    public class MainStateMachine : StateMachineNodeAsync<MainState, MainTransition> {
+    public class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
 
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
@@ -122,8 +122,8 @@ namespace Veronenger.Managers {
             
             State(MainState.MainMenu)
                 .OnInput(e => _mainMenuScene.OnInput(e))
-                .On(MainTransition.StartGame).Then(context=> context.Set(MainState.StartingGame))
-                .On(MainTransition.Settings).Then(context=> context.Push(MainState.Settings))
+                .On(MainEvent.StartGame).Then(context=> context.Set(MainState.StartingGame))
+                .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
                 .Suspend(() => _mainMenuScene.DisableMenus())
                 .Awake(() => _mainMenuScene.EnableMenus())
                 .Enter(async () => await _mainMenuScene.ShowMenu())
@@ -131,7 +131,7 @@ namespace Veronenger.Managers {
 
             State(MainState.Settings)
                 .OnInput(e => _settingsMenuScene.OnInput(e))
-                .On(MainTransition.Back).Then(context => context.Pop())
+                .On(MainEvent.Back).Then(context => context.Pop())
                 .Enter(() => _settingsMenuScene.ShowSettingsMenu())
                 .Exit(() => _settingsMenuScene.HideSettingsMenu())
                 .Build();
@@ -147,21 +147,21 @@ namespace Veronenger.Managers {
             State(MainState.Gaming)
                 .OnInput(e => {
                     if (ControllerStart.IsEventJustPressed(e)) {
-                        Enqueue(MainTransition.Pause);
+                        Enqueue(MainEvent.Pause);
                         GetTree().SetInputAsHandled();
                     }
                 })
-                .On(MainTransition.Back).Then(context=> context.Pop())
-                .On(MainTransition.Pause).Then(context=> context.Push(MainState.PauseMenu))
+                .On(MainEvent.Back).Then(context=> context.Pop())
+                .On(MainEvent.Pause).Then(context=> context.Push(MainState.PauseMenu))
                 .Exit(() => Game.End())
                 .Build();
             
-            On(MainTransition.EndGame).Then(ctx => ctx.Set(MainState.MainMenu));
+            On(MainEvent.EndGame).Then(ctx => ctx.Set(MainState.MainMenu));
 
             State(MainState.PauseMenu)
                 .OnInput(e => _pauseMenuScene.OnInput(e))
-                .On(MainTransition.Back).Then(context=> context.Pop())
-                .On(MainTransition.Settings).Then(context=> context.Push(MainState.Settings))
+                .On(MainEvent.Back).Then(context=> context.Pop())
+                .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
                 .Suspend(() => _pauseMenuScene.DisableMenus())
                 .Awake(() => _pauseMenuScene.EnableMenus())
                 .Enter(async () => {
@@ -175,9 +175,9 @@ namespace Veronenger.Managers {
                 })
                 .Build();
 
-            On(MainTransition.ModalBoxConfirmQuitGame).Then(context=> context.Push(MainState.ModalQuitGame));
+            On(MainEvent.ModalBoxConfirmQuitGame).Then(context=> context.Push(MainState.ModalQuitGame));
             State(MainState.ModalQuitGame)
-                .On(MainTransition.Back).Then(context=> context.Pop())
+                .On(MainEvent.Back).Then(context=> context.Pop())
                 .Execute(async () => {
                     modalResponse = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 })
@@ -186,9 +186,9 @@ namespace Veronenger.Managers {
                 .Build();
                 
 
-            On(MainTransition.ModalBoxConfirmExitDesktop).Then(context=> context.Push(MainState.ModalExitDesktop));
+            On(MainEvent.ModalBoxConfirmExitDesktop).Then(context=> context.Push(MainState.ModalExitDesktop));
             State(MainState.ModalExitDesktop)
-                .On(MainTransition.Back).Then(context=> context.Pop())
+                .On(MainEvent.Back).Then(context=> context.Pop())
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async () => {
@@ -198,7 +198,7 @@ namespace Veronenger.Managers {
                 .If(() => !modalResponse).Pop()
                 .Build();
                 
-            On(MainTransition.ExitDesktop).Then(context=> context.Set(MainState.ExitDesktop));
+            On(MainEvent.ExitDesktop).Then(context=> context.Set(MainState.ExitDesktop));
             State(MainState.ExitDesktop)
                 .Enter(() => SceneTree.QuitSafely())
                 .Build();

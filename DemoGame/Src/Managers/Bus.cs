@@ -10,14 +10,14 @@ namespace Veronenger.Managers {
     }
     [Service]
     public class Bus {
-        private readonly Unicast<MainTransition> _mainBus = new();
-        private readonly Unicast<PlayerTransition> _playerBus = new();
+        private readonly Unicast<MainEvent> _mainBus = new();
+        private readonly Unicast<PlayerEvent> _playerBus = new();
 
-        public Unicast<MainTransition>.EventConsumer Subscribe(Action<MainTransition> action) => _mainBus.Subscribe(action);
-        public void Publish(MainTransition transition) => _mainBus.Publish(transition);
+        public Unicast<MainEvent>.EventConsumer Subscribe(Action<MainEvent> action) => _mainBus.Subscribe(action);
+        public void Publish(MainEvent @event) => _mainBus.Publish(@event);
         
-        public Unicast<PlayerTransition>.EventConsumer Subscribe(Action<PlayerTransition> action) => _playerBus.Subscribe(action);
-        public void Publish(PlayerTransition transition) => _playerBus.Publish(transition);
+        public Unicast<PlayerEvent>.EventConsumer Subscribe(Action<PlayerEvent> action) => _playerBus.Subscribe(action);
+        public void Publish(PlayerEvent @event) => _playerBus.Publish(@event);
 
     }
 }

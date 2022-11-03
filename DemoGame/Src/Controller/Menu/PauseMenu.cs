@@ -82,23 +82,23 @@ namespace Veronenger.Controller.Menu {
 
             var mainMenu = new MenuContainer(_menuBase);
             var startMenu = mainMenu.GetRootMenu();
-            startMenu.AddButton("Resume", "Resume").OnPressed(() => Bus.Publish(MainTransition.Back));
-            startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainTransition.Settings));
-            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => Bus.Publish(MainTransition.ModalBoxConfirmQuitGame));
+            startMenu.AddButton("Resume", "Resume").OnPressed(() => Bus.Publish(MainEvent.Back));
+            startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainEvent.Settings));
+            startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => Bus.Publish(MainEvent.ModalBoxConfirmQuitGame));
             return mainMenu;
         }
 
         public void OnInput(InputEvent e) {
             if (UiCancel.IsEventJustPressed(e)) {
                 if (_menuContainer.IsRootMenuActive()) {
-                    Bus.Publish(MainTransition.Back);
+                    Bus.Publish(MainEvent.Back);
                 } else {
                     _menuContainer.Back();
                 }
                 GetTree().SetInputAsHandled();
 
             } else if (ControllerStart.IsJustPressed()) {
-                Bus.Publish(MainTransition.Back);
+                Bus.Publish(MainEvent.Back);
                 GetTree().SetInputAsHandled();
                 
             }
