@@ -18,7 +18,7 @@ GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp
 help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
-	@echo "    clean           remove all .mono and .import folders"
+	@echo "    clean           remove all .mono folders and copy again the Godot assemblies"
 	@echo "    import          import resources"
 	@echo "    test            run tests"
 	@echo "    editor          open Godot editor"

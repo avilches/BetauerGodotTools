@@ -13,6 +13,7 @@ help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
 	@echo "    clean          remove all .mono folders"
+	@echo "    import         import resources"
 	@echo "    run            run the game"
 	@echo "    editor         open the Godot editor"
 	@echo "    build/debug    build project"
@@ -28,10 +29,14 @@ clean:
 	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
 #	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
 	
+.PHONY: import
+import: clean
+	rm -rf "${ROOT_FOLDER}/.import"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+
 .PHONY: build/debug
 build:
-	#msbuild "${ROOT_FOLDER}/DemoAnimation.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/DemoAnimation.sln" --configuration Debug 
+	dotnet msbuild "${ROOT_FOLDER}/DemoAnimation.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 
 .PHONY: run
 run:

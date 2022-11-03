@@ -5,7 +5,7 @@ using Betauer.Animation.Tween;
 using Betauer.Nodes;
 using Godot;
 
-namespace DemoAnimation.Game.Managers.Autoload {
+namespace DemoAnimation.Managers.Autoload {
     public class Global : Node /* needed because it's an autoload */ {
         public override void _Ready() {
             this.DisableAllNotifications();

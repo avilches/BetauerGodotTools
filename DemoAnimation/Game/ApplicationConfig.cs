@@ -4,7 +4,7 @@ using Betauer.DI;
 using Betauer.Input;
 using Godot;
 
-namespace DemoAnimation.Game {
+namespace DemoAnimation {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV1_875,

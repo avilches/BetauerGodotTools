@@ -11,10 +11,10 @@ using Betauer.Loader;
 using Betauer.Signal;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Async;
-using DemoAnimation.Game.Controller.Menu;
+using DemoAnimation.Controller.Menu;
 using Godot;
 
-namespace DemoAnimation.Game.Managers {
+namespace DemoAnimation.Managers {
     [Service]
     public class MainStateMachine : StateMachineNodeAsync<MainStateMachine.State, MainStateMachine.Transition> {
         public enum Transition {
@@ -45,7 +45,7 @@ namespace DemoAnimation.Game.Managers {
         [Inject] private InputAction UiCancel { get; set; }
 
         public MainStateMachine() : base(State.Init) {
-            On(Transition.FinishLoading, context => context.PopPush(State.MainMenu));
+            On(Transition.FinishLoading).PopPush(State.MainMenu);
             State(State.Init)
                 .Enter(async () => {
                     await new ResourceLoaderContainer().From(this).Load();
@@ -67,9 +67,9 @@ namespace DemoAnimation.Game.Managers {
                 
 
             var modalResponse = false;
-            On(Transition.ModalBoxConfirmExitDesktop, context => context.Push(State.ModalExitDesktop));
+            On(Transition.ModalBoxConfirmExitDesktop).Push(State.ModalExitDesktop);
             State(State.ModalExitDesktop)
-                .On(Transition.Back, context => context.Pop())
+                .On(Transition.Back).Pop()
                 .Enter(() => _mainMenuScene.DimOut())
                 .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async () => {

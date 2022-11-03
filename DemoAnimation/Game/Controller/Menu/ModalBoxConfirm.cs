@@ -6,7 +6,7 @@ using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
-namespace DemoAnimation.Game.Controller.Menu {
+namespace DemoAnimation.Controller.Menu {
     public class ModalBoxConfirm : Node {
         [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;

@@ -64,7 +64,6 @@ file_logging/log_path.standalone="user://logs/game.log"
 
 [mono]
 
-project/assembly_name="DemoGame"
 project/c#_project_directory="Game"
 runtime/unhandled_exception_policy.standalone=0
 

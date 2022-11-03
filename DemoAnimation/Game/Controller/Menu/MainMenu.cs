@@ -11,10 +11,10 @@ using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.Signal;
 using Betauer.UI;
-using DemoAnimation.Game.Managers;
+using DemoAnimation.Managers;
 using Godot;
 
-namespace DemoAnimation.Game.Controller.Menu {
+namespace DemoAnimation.Controller.Menu {
     public class MainMenu : Node2D {
         private const float MenuEffectTime = 1f;
         private const float FadeMainMenuEffectTime = 0.75f;

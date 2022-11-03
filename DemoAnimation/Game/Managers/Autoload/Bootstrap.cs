@@ -4,7 +4,7 @@ using Betauer.DI;
 using Betauer.Memory;
 using TraceLevel = Betauer.TraceLevel;
 
-namespace DemoAnimation.Game.Managers.Autoload {
+namespace DemoAnimation.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         
         public override void _Ready() {

@@ -92,6 +92,11 @@ texture={
 "svg/scale": 1.0
 }
 
+[mono]
+
+project/assembly_name="DemoAnimation"
+project/c#_project_directory="Game"
+
 [rendering]
 
 environment/default_clear_color=Color( 0, 0, 0, 1 )

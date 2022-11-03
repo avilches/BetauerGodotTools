@@ -21,7 +21,7 @@ CSPRJ_FOLDER:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "project/c\#_proj
 help:
 	@echo "Usage: make [target] [target2] [target...]"
 	@echo "Goals:"
-	@echo "    clean          remove all .mono and .import folders"
+	@echo "    clean          remove all .mono folders and copy again the Godot assemblies"
 	@echo "    import         import resources"
 	@echo "    test           run tests"
 	@echo "    run            run the game"
