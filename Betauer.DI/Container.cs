@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using Betauer.DI.ServiceProvider;
-using Betauer.Reflection;
+using Betauer.Tools.Reflection;
 
 namespace Betauer.DI {
     public class Container {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Betauer.DI;
-using Betauer.Reflection;
+using Betauer.Tools.Reflection;
 using Betauer.Signal;
 using Godot;
 

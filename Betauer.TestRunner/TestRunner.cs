@@ -189,9 +189,9 @@ namespace Betauer.TestRunner {
 
         private static TestFixture CreateFixture(Type type) {
             var onlyThisType = Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute;
-            List<TestMethod> testMethods = new List<TestMethod>();
-            List<MethodInfo> setup = new List<MethodInfo>();
-            List<MethodInfo> tearDown = new List<MethodInfo>();
+            var testMethods = new List<TestMethod>();
+            var setup = new List<MethodInfo>();
+            var tearDown = new List<MethodInfo>();
             var isAnyMethodWithOnly = false;
             foreach (var method in type.GetMethods()) {
                 if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {

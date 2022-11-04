@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using Betauer.Reflection;
 using Godot;
 using File = System.IO.File;
 
@@ -70,7 +66,7 @@ namespace Betauer {
         }
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
-            return SetTraceLevel(type.GetNameWithoutGenerics(), traceLevel);
+            return SetTraceLevel(GetNameWithoutGenerics(type), traceLevel);
         }
 
         public static LoggerFactory SetTraceLevel(string type, TraceLevel traceLevel) {
@@ -101,7 +97,7 @@ namespace Betauer {
         }
 
         public static Logger GetLogger(Type type) {
-            return GetLogger(type.GetNameWithoutGenerics());
+            return GetLogger(GetNameWithoutGenerics(type));
         }
 
         public static Logger GetLogger(string type) {
@@ -124,6 +120,13 @@ namespace Betauer {
             _writers = writers;
             return this;
         }
+
+        private static string GetNameWithoutGenerics(Type type) {
+            var name = type.Name;
+            var index = name.IndexOf('`');
+            return index == -1 ? name : name[..index];
+        }
+
     }
 
     public class Logger {

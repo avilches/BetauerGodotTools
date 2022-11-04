@@ -11,5 +11,6 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj" />
     </ItemGroup>
 </Project>

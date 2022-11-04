@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Betauer.DI.ServiceProvider;
-using Betauer.Reflection;
+using Betauer.Tools.Reflection;
 
 namespace Betauer.DI {
     public static class InjectorFunction {

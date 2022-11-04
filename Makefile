@@ -5,6 +5,7 @@
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 include ${ROOT_FOLDER}/application.properties
 TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
+MODULES        := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
 
 BUILD_FOLDER   := ${ROOT_FOLDER}/.mono/temp/bin
 EXPORT_FOLDER  := ${ROOT_FOLDER}/export/releases/${VERSION}
@@ -58,50 +59,17 @@ build/release:
 .PHONY: export/dll
 export/dll: clean bump build/debug build/release 
 	mkdir -p "${EXPORT_FOLDER}/ExportRelease"
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Animation.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Animation.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Core.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Core.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Bus.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.Bus.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.DI.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.DI.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.GameTools.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.GameTools.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.StateMachine.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.TestRunner.dll" "${EXPORT_FOLDER}/ExportRelease"  
-	cp "${BUILD_FOLDER}/ExportRelease/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}/ExportRelease"
 	mkdir -p "${EXPORT_FOLDER}/ExportDebug"
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Animation.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Animation.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Core.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Core.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Bus.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.Bus.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.DI.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.DI.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.GameTools.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.GameTools.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.StateMachine.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.TestRunner.dll" "${EXPORT_FOLDER}/ExportDebug"  
-	cp "${BUILD_FOLDER}/ExportDebug/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}/ExportDebug"
 	mkdir -p "${EXPORT_FOLDER}/Debug"
-	cp "${BUILD_FOLDER}/Debug/Betauer.Animation.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.Animation.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.Core.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.Core.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.Bus.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.Bus.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.DI.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.DI.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.GameTools.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.GameTools.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.StateMachine.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.StateMachine.pdb" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.TestRunner.dll" "${EXPORT_FOLDER}/Debug"  
-	cp "${BUILD_FOLDER}/Debug/Betauer.TestRunner.pdb" "${EXPORT_FOLDER}/Debug"  
+	for dll in $(MODULES); do \
+	   echo "Copying $$dll dlls to ${EXPORT_FOLDER}"; \
+	   cp "${BUILD_FOLDER}/ExportRelease/$${dll}.dll" "${EXPORT_FOLDER}/ExportRelease"; \
+	   cp "${BUILD_FOLDER}/ExportRelease/$${dll}.pdb" "${EXPORT_FOLDER}/ExportRelease"; \
+	   cp "${BUILD_FOLDER}/ExportDebug/$${dll}.dll" "${EXPORT_FOLDER}/ExportDebug"; \
+	   cp "${BUILD_FOLDER}/ExportDebug/$${dll}.pdb" "${EXPORT_FOLDER}/ExportDebug"; \
+	   cp "${BUILD_FOLDER}/Debug/$${dll}.dll" "${EXPORT_FOLDER}/Debug"; \
+	   cp "${BUILD_FOLDER}/Debug/$${dll}.pdb" "${EXPORT_FOLDER}/Debug"; \
+	done
 
 .PHONY: bump
 bump:

@@ -58,12 +58,18 @@ clean:
 import: clean
 	rm -rf "${ROOT_FOLDER}/.import"
 	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+	@echo "project.godot:"  
+	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
  
 .PHONY: build
 build:
 	dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportDebug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
 	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	@echo "project.godot:"  
+	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
  
 .PHONY: run
 run:

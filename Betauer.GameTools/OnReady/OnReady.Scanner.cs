@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Betauer.Nodes;
-using Betauer.Reflection;
+using Betauer.Tools.Reflection;
 using Godot;
 
 namespace Betauer.OnReady {
