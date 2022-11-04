@@ -4,12 +4,12 @@ using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.GameTools.Tests {
     
     // TODO: test if a input event is processed, stop process it
     
     [TestFixture]
-    public class NodeActionExtensionsTests : Node {
+    public class NodeHandlerTests : Node {
         [Test(Description = "Test when add and remove multiple action to _Process, the process is disabled or enabled")]
         public async Task MultipleActionsPerProcessAddAndRemove() {
             var l = new Label();

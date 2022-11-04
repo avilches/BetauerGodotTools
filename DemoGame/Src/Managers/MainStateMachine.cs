@@ -10,7 +10,6 @@ using Betauer.Loader;
 using Betauer.Nodes;
 using Betauer.StateMachine.Async;
 using Veronenger.Controller.Menu;
-using Betauer.Tools.Reflection;
 
 namespace Veronenger.Managers {
     
@@ -80,7 +79,6 @@ namespace Veronenger.Managers {
 
         [PostCreate]
         private void Configure() {
-            GetType().GetGetters<InjectAttribute>(MemberTypes.All,BindingFlags.Default);
             #if DEBUG
             this.OnInput((e) => {
                 if (e.IsKeyPressed(KeyList.Q)) {
