@@ -30,6 +30,9 @@
         <Reference Include="Betauer.Animation">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Animation.dll</HintPath>
         </Reference>
+        <Reference Include="Betauer.Tools.Logging">
+            <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Tools.Logging.dll</HintPath>
+        </Reference>
         <Reference Include="Betauer.Core">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Core.dll</HintPath>
         </Reference>

@@ -13,7 +13,6 @@ using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Restorer;
-using Betauer.UI;
 using Veronenger.Character.Player;
 using Veronenger.Controller.UI.Consoles;
 using Veronenger.Managers;
@@ -29,7 +28,6 @@ namespace Veronenger.Controller.Character {
     }
     
     public sealed class PlayerController : KinematicBody2D {
-        private readonly Logger _logger = LoggerFactory.GetLogger<PlayerController>();
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;

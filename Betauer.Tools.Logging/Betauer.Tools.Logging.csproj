@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <IsPackable>false</IsPackable>
+        <LangVersion>preview</LangVersion>
+        <RootNamespace>Betauer.Tools.Logging</RootNamespace>
+        <PackageId>Betauer.Tools.Logging</PackageId>
+        <AssemblyName>Betauer.Tools.Logging</AssemblyName>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+</Project>

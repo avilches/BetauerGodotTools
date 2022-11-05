@@ -5,7 +5,7 @@
 ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 include ${ROOT_FOLDER}/application.properties
 TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
-MODULES        := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
+MODULES        := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
 
 BUILD_FOLDER   := ${ROOT_FOLDER}/.mono/temp/bin
 EXPORT_FOLDER  := ${ROOT_FOLDER}/export/releases/${VERSION}

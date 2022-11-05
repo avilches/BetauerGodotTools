@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
+using Betauer.Tools.Logging;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Betauer.Nodes.Property.Callback;

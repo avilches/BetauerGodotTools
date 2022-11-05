@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Betauer.Signal;
 using Betauer.Bus.Signal;
+using Betauer.Tools.Logging;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -12,7 +13,6 @@ namespace Betauer.Tests.Signal {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
-            LoggerFactory.SetConsoleOutput(ConsoleOutput.ConsoleWriteLine);
         }
 
         [Test]

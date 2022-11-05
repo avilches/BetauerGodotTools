@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Tools.Logging;
 using Betauer.Memory;
 using Betauer.Signal;
 using Betauer.TestRunner;

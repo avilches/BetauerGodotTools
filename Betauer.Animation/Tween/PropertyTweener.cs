@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Animation.Easing;
+using Betauer.Tools.Logging;
 using Betauer.Nodes.Property;
 using Godot;
 using Object = Godot.Object;

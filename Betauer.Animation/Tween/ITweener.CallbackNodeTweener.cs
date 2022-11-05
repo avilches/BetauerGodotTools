@@ -1,4 +1,5 @@
 using System;
+using Betauer.Tools.Logging;
 using Godot;
 using Object = Godot.Object;
 

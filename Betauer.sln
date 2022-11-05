@@ -30,6 +30,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{99035984-0652-438B-992A-A9CAA49EE5AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{F2B58A5D-591A-46F0-86F4-7432E2B232C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{23750989-C5EC-446C-ABE2-86CEB17751A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -139,5 +143,17 @@ Global
 		{99035984-0652-438B-992A-A9CAA49EE5AA}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{99035984-0652-438B-992A-A9CAA49EE5AA}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{99035984-0652-438B-992A-A9CAA49EE5AA}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2B58A5D-591A-46F0-86F4-7432E2B232C7}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal

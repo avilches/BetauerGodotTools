@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Godot;
 using File = System.IO.File;
 
-namespace Betauer {
+namespace Betauer.Tools.Logging {
     public enum TraceLevel {
         Off = 0,
         Fatal = 1,
@@ -15,14 +14,8 @@ namespace Betauer {
         All = 5,
     }
     
-    public enum ConsoleOutput {
-        GodotPrint,
-        ConsoleWriteLine,
-        Off
-    }
-
     public class LoggerFactory {
-        internal static readonly string[] TraceLevelAsString = new[] {
+        internal static readonly string[] TraceLevelAsString = {
             string.Empty,
             "[Fatal]",
             "[Error]",
@@ -32,29 +25,33 @@ namespace Betauer {
         };
 
 
-        public static LoggerFactory Instance { get; } = new LoggerFactory();
+        public static LoggerFactory Instance { get; } = new();
         internal static ITextWriter[] Writers => Instance._writers;
+        internal static ITextWriter? DefaultWriter => Instance._defaultWriter;
 
-        public Dictionary<string, Logger> Loggers { get; } = new Dictionary<string, Logger>();
+        public Dictionary<string, Logger> Loggers { get; } = new();
         private ITextWriter[] _writers = { };
+        private ITextWriter? _defaultWriter = new SimpleWriterWrapper(Console.WriteLine);
         internal bool IncludeTimestamp = true;
 
         public TraceLevel DefaultTraceLevelConfig = TraceLevel.Error;
-        public ConsoleOutput ConsoleOutput = ConsoleOutput.GodotPrint;
 
         private LoggerFactory() {
         }
 
         public static void Reset() {
             Instance.DefaultTraceLevelConfig = TraceLevel.Error;
-            Instance.ConsoleOutput = ConsoleOutput.GodotPrint;
             Instance.Loggers.Clear();
             Instance._writers = Array.Empty<ITextWriter>();
         }
 
-        public static LoggerFactory SetConsoleOutput(ConsoleOutput consoleOutput) {
-            Instance.ConsoleOutput = consoleOutput;
+        public static LoggerFactory SetDefaultWriter(ITextWriter defaultWriter) {
+            Instance._defaultWriter = defaultWriter;
             return Instance;
+        }
+
+        public static LoggerFactory AddWriter(ITextWriter writer) {
+            return Instance.AddTextWriter(writer);
         }
 
         public static LoggerFactory AddFileWriter(string logPath) {
@@ -62,7 +59,11 @@ namespace Betauer {
         }
 
         public static LoggerFactory AddTextWriter(TextWriter textWriter) {
-            return Instance.AddTextWriter(new TextWriterWrapper(textWriter));
+            return AddWriter(new TextWriterWrapper(textWriter));
+        }
+
+        public static LoggerFactory AddWriter(Action<string> writer) {
+            return AddWriter(new SimpleWriterWrapper(writer));
         }
 
         public static LoggerFactory SetTraceLevel(Type type, TraceLevel traceLevel) {
@@ -86,9 +87,9 @@ namespace Betauer {
 
         public static LoggerFactory OverrideTraceLevel(TraceLevel traceLevel) {
             SetDefaultTraceLevel(traceLevel);
-            Instance.Loggers.Values.ForEach(l => {
+            foreach (var l in Instance.Loggers.Values)  {
                 if (l.HasMaxTraceLevel) l.SetTraceLevel(traceLevel);
-            });
+            };
             return Instance;
         }
 
@@ -187,22 +188,22 @@ namespace Betauer {
             
             var levelAsString = LoggerFactory.TraceLevelAsString[(int)level];
             var data = LoggerFactory.Instance.IncludeTimestamp
-                ? new [] { StringTools.FastFormatDateTime(DateTime.Now), " ", levelAsString, " ", Engine.GetIdleFrames().ToString(), " ", _title, " ", message }
+                ? new [] { FastDateFormatter.FastFormatDateTime(DateTime.Now), " ", levelAsString, " ", " ", _title, " ", message }
                 : new [] { levelAsString, _title, message };
-            var logLine = StringTools.JoinString(data);
+            var logLine = FastDateFormatter.JoinString(data);
 
-            if (LoggerFactory.Writers.Length > 0) {
-                foreach (ITextWriter writer in LoggerFactory.Writers) {
+            var size = LoggerFactory.Writers.Length;
+            if (size > 0) {
+                Span<ITextWriter> span = LoggerFactory.Writers;
+                for (var i = 0; i < size; i++) {
+                    var writer = span[i];
                     writer.WriteLine(logLine);
                     writer.Flush();
                 }
+            } else if (LoggerFactory.DefaultWriter != null) {
+                LoggerFactory.DefaultWriter.WriteLine(logLine);
+                LoggerFactory.DefaultWriter.Flush();
             }
-
-            if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.GodotPrint) {
-                if (level <= TraceLevel.Error) GD.PrintErr(logLine);
-                else GD.Print(logLine);
-            }
-            else if (LoggerFactory.Instance.ConsoleOutput == ConsoleOutput.ConsoleWriteLine) Console.WriteLine(logLine);
         }
     }
 
@@ -210,6 +211,24 @@ namespace Betauer {
         void WriteLine(string line);
         void Flush();
         void EnableAutoFlush();
+    }
+
+    public class SimpleWriterWrapper : ITextWriter {
+        private readonly Action<string> _writer;
+
+        public SimpleWriterWrapper(Action<string> writer) {
+            _writer = writer;
+        }
+
+        public void WriteLine(string line) {
+            _writer(line);
+        }
+
+        public void Flush() {
+        }
+
+        public void EnableAutoFlush() {
+        }
     }
 
     public class TextWriterWrapper : ITextWriter {

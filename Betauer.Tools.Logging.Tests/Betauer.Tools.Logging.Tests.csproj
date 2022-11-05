@@ -4,9 +4,8 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <IsPackable>false</IsPackable>
         <LangVersion>preview</LangVersion>
-        <RootNamespace>Betauer</RootNamespace>
-        <PackageId>Betauer.GameTools</PackageId>
-        <AssemblyName>Betauer.GameTools</AssemblyName>
+        <RootNamespace>Betauer.Tests</RootNamespace>
+        <PackageId>Betauer.Tools.Logging.Tests</PackageId>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
@@ -15,10 +14,10 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer.Animation\Betauer.Animation.csproj" />
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
-        <ProjectReference Include="..\Betauer.DI\Betauer.DI.csproj" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
         <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
-        <ProjectReference Include="..\Betauer.StateMachine\Betauer.StateMachine.csproj" />
     </ItemGroup>
 </Project>

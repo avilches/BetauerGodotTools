@@ -1,3 +1,4 @@
+using Betauer.Tools.Logging;
 using Betauer.TestRunner;
 using NUnit.Framework;
 
@@ -29,7 +30,7 @@ namespace Betauer.Tests {
         }
 
         [Test]
-        public void LoggerDefault() {
+        public void TraceLevelTests() {
             Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
             Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
 
@@ -44,12 +45,10 @@ namespace Betauer.Tests {
             LoggerFactory.OverrideTraceLevel(TraceLevel.Info);
             Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
             Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
-            
+
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
             Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
             Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
-
-
         }
-
-    }}
+    }
+}

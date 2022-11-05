@@ -16,6 +16,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "..\Betauer.Bus\Betauer.Bus.csproj", "{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation.Tests", "..\Betauer.Animation.Tests\Betauer.Animation.Tests.csproj", "{4946259D-B319-412C-AEA9-E59DFE6D1AC6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus.Tests", "..\Betauer.Bus.Tests\Betauer.Bus.Tests.csproj", "{4DFFD8AD-0925-4072-937D-D7454E1865F9}"
@@ -28,7 +32,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests", "..\Betauer.StateMachine.Tests\Betauer.StateMachine.Tests.csproj", "{B6024CAE-0239-4440-BAA7-DA308173872F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "..\Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{512BA530-14C7-46CB-81EA-36BA4305B6CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,5 +131,17 @@ Global
 		{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Betauer.Animation.Tween;
+using Betauer.Tools.Logging;
 using Betauer.Memory;
 using Betauer.Signal;
 using Godot;

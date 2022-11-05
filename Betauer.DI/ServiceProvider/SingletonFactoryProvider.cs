@@ -1,4 +1,5 @@
 using System;
+using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider {
     public class SingletonFactoryProvider : BaseProvider, ISingletonProvider {

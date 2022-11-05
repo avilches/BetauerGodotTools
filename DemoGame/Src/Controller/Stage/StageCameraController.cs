@@ -1,6 +1,7 @@
 using Godot;
 using Betauer;
 using Betauer.DI;
+using Betauer.Tools.Logging;
 using Betauer.OnReady;
 using Veronenger.Managers;
 

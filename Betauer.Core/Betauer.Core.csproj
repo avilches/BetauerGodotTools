@@ -14,4 +14,7 @@
             <HintPath>$(SolutionDir)/.mono/assemblies/Debug/GodotSharp.dll</HintPath>
         </Reference>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
+    </ItemGroup>
 </Project>

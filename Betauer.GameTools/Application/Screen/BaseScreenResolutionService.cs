@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.Application.Screen {

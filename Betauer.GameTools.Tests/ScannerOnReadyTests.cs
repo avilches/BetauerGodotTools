@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Tools.Logging;
 using Betauer.OnReady;
 using Godot;
 using NUnit.Framework;

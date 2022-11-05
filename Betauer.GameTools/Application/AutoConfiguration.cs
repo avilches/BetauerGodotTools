@@ -2,6 +2,7 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
+using Betauer.Tools.Logging;
 using Betauer.Memory;
 using Betauer.Nodes;
 using Betauer.OnReady;
@@ -39,6 +40,8 @@ namespace Betauer.Application {
         protected AutoConfiguration(Options? options = null) {
             _options = options ?? new Options();
             Container = new Container();
+
+            LoggerFactory.SetDefaultWriter(new SimpleWriterWrapper((txt) => GD.Print(txt)));
 
             MainLoopNotificationsHandlerInstance = new MainLoopNotificationsHandler();
             MainLoopNotificationsHandlerInstance.OnWmQuitRequest += () => {

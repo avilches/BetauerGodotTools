@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.DI.ServiceProvider;
+using Betauer.Tools.Logging;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
