@@ -22,22 +22,16 @@ namespace Betauer.Animation.Tween {
 
         public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
             if (!Object.IsInstanceValid(sceneTreeTween)) {
-#if DEBUG
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
-#endif
                 return 0;
             }
             if (!Object.IsInstanceValid(target)) {
-#if DEBUG
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " using a freed target instance");
-#endif
                 return 0;
             }
             var start = _delay + initialDelay;
-#if DEBUG
-            Logger.Info("Adding method callback " + _methodName + "with " + _delay + "s delay. Scheduled: " +
-                        start.ToString("F"));
-#endif
+            Logger.Debug("Adding method callback " + _methodName + "with " + _delay + "s delay. Scheduled: " +
+                         start.ToString("F"));
             var methodTweener = sceneTreeTween
                 .Parallel()
                 .TweenCallback(_target ?? target, _methodName,

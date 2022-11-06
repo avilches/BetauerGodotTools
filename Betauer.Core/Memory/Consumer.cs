@@ -24,9 +24,7 @@ namespace Betauer.Memory {
             lock (_objects) {
                 return _objects.RemoveWhere(o => {
                     var consumed = o.Consume(force);
-                    #if DEBUG
                     if (consumed) Logger.Debug($"Size: {_objects.Count - 1} | - {o}");
-                    #endif
                     return consumed;
                 });
             }
@@ -35,9 +33,7 @@ namespace Betauer.Memory {
         public void Add(IObjectConsumer o) {
             if (Disposed) throw new Exception("Consumer disposed");
             lock (_objects) {
-                #if DEBUG
                 Logger.Debug($"Size: {_objects.Count + 1} | + {o}");
-                #endif
                 _objects.Add(o);
                 PeakSize = Math.Max(PeakSize, _objects.Count);
             }
@@ -48,9 +44,7 @@ namespace Betauer.Memory {
             lock (_objects) {
                 _objects.RemoveWhere(x => {
                     var matches = x == o;
-                    #if DEBUG
                     if (matches) Logger.Debug($"Size: {_objects.Count - 1} | - {o}");
-                    #endif
                     return matches;
                 });
             }

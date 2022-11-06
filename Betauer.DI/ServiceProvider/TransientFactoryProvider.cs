@@ -23,9 +23,7 @@ namespace Betauer.DI.ServiceProvider {
             context.StartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
             var instance = _factory.Invoke();
             if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.Name} {Name}");
-            #if DEBUG
-                Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");
-            #endif
+            Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");
             context.AddTransient(instance);
             context.Container.InjectServices(instance, context);
             context.EndTransient();

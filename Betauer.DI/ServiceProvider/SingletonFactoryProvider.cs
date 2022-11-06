@@ -27,9 +27,7 @@ namespace Betauer.DI.ServiceProvider {
             if (IsInstanceCreated) return Instance!;
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.TryGetSingletonFromCache(RegisterType, Name, out var singleton)) {
-                #if DEBUG
-                    Logger.Debug($"Get from context {Lifetime} {singleton.GetType().Name} exposed as {RegisterType.Name}: {singleton.GetHashCode():X}");
-                #endif
+                Logger.Debug($"Get from context {Lifetime} {singleton.GetType().Name} exposed as {RegisterType.Name}: {singleton.GetHashCode():X}");
                 return singleton;
             }
             lock (this) {
@@ -37,9 +35,7 @@ namespace Betauer.DI.ServiceProvider {
                 if (IsInstanceCreated) return Instance!;
                 Instance = _factory.Invoke();
                 if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RegisterType.Name} {Name}");
-                #if DEBUG
-                    Logger.Debug($"Creating {Lifetime.Singleton} {Instance.GetType().Name} exposed as {RegisterType.Name}: {Instance.GetHashCode():X}");
-                #endif
+                Logger.Debug($"Creating {Lifetime.Singleton} {Instance.GetType().Name} exposed as {RegisterType.Name}: {Instance.GetHashCode():X}");
                 context.AddSingleton(RegisterType, Instance, Name);
                 IsInstanceCreated = true;
                 context.Container.InjectServices(Instance, context);

@@ -57,20 +57,14 @@ namespace Betauer.DI {
                     _registry[name] = provider;
                     if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
                         _fallbackByType[provider.RegisterType] = provider;
-                        #if DEBUG
-                            Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name} | Added fallback: {provider.RegisterType.FullName}");
-                        #endif
+                        Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name} | Added fallback: {provider.RegisterType.FullName}");
                     } else {
-                        #if DEBUG
-                            Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name}");
-                        #endif                        
+                        Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name}");
                     }
             } else {
                 if (_registry.ContainsKey(provider.RegisterType.FullName)) throw new DuplicateServiceException(provider.RegisterType);
                 _registry[provider.RegisterType.FullName] = provider;
-                #if DEBUG
-                    Logger.Info($"Registered {provider.Lifetime}:{provider.ProviderType}. Name: {provider.RegisterType.FullName}");
-                #endif                
+                Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType}. Name: {provider.RegisterType.FullName}");
             }
             return provider;
         }

@@ -48,17 +48,13 @@ namespace Betauer.Animation {
             }
 
             internal virtual void ExecuteOnStart() {
-#if DEBUG
                 _logger.Debug("Start " + GetType().Name + " \"" + Name + "\"");
-#endif
                 Playing = true;
                 _onStart?.Invoke();
             }
 
             internal virtual void ExecuteOnEnd() {
-#if DEBUG
                 _logger.Debug("End " + GetType().Name + " \"" + Name + "\"");
-#endif
                 _onEnd?.Invoke();
                 Playing = false;
             }
@@ -329,9 +325,7 @@ namespace Betauer.Animation {
         */
         private void PlayLoop(LoopStatus loopAnimation) {
             if (_currentLoopAnimation == null || _currentLoopAnimation.Name != loopAnimation.Name) {
-#if DEBUG
                 _logger.Debug($"PlayLoop \"{loopAnimation.Name}\"");
-#endif
                 if (_currentOnceAnimation == null) {
                     _currentLoopAnimation?.ExecuteOnEnd();
                     _currentLoopAnimation = loopAnimation;
@@ -373,24 +367,18 @@ namespace Betauer.Animation {
             if (_currentOnceAnimation == null || _currentOnceAnimation.CanBeInterrupted ||
                 newOnceAnimation.KillPrevious || killPrevious) {
                 if (_currentOnceAnimation != null) {
-#if DEBUG
                     _logger.Debug(
                         $"PlayOnce \"{newOnceAnimation.Name}\" (Interrupting: {_currentOnceAnimation.Name}\")");
-#endif
                     _currentOnceAnimation.ExecuteOnEnd();
                 } else {
-#if DEBUG
                     _logger.Debug($"PlayOnce \"{newOnceAnimation.Name}\"");
-#endif
                 }
                 _currentLoopAnimation?.ExecuteOnEnd();
                 _currentOnceAnimation = newOnceAnimation;
                 _currentOnceAnimation.ExecuteOnStart();
             } else if (!_currentOnceAnimation.CanBeInterrupted) {
-#if DEBUG
                 _logger.Warning(
                     $"PlayOnce \"{newOnceAnimation.Name}\" not played: current animation \"{_currentOnceAnimation.Name}\" can't be interrupted)");
-#endif
             }
         }
 
@@ -400,9 +388,7 @@ namespace Betauer.Animation {
                 // so ignore the event
                 return;
             }
-#if DEBUG
             _logger.Debug("OnTweenPlayerFinishAll: \"" + _currentOnceAnimation.Name + "\"");
-#endif
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
             _currentLoopAnimation?.ExecuteOnStart();
@@ -414,9 +400,7 @@ namespace Betauer.Animation {
                 // This event is very unusual, but just in case, ignore it
                 return;
             }
-#if DEBUG
             _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
-#endif
             _currentOnceAnimation.ExecuteOnEnd();
             _currentOnceAnimation = null;
             _currentLoopAnimation?.ExecuteOnStart();

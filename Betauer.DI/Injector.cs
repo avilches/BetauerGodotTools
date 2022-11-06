@@ -33,10 +33,8 @@ namespace Betauer.DI {
         }
 
         public void InjectServices(object target, ResolveContext context) {
-            if (target is Delegate) return;
-            #if DEBUG
-                Logger.Debug($"Injecting fields in {target.GetType()}: {target.GetHashCode():x8}");
-            #endif
+            if (target is Delegate) return; 
+            Logger.Debug($"Injecting fields in {target.GetType()}: {target.GetHashCode():x8}");
             var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
             foreach (var setter in members)
                 InjectMember(target, context, setter);
@@ -53,9 +51,7 @@ namespace Betauer.DI {
             if (name != null) {
                 name = name.Trim();
                 if (_container.Contains(name)) {
-                    #if DEBUG
-                        Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name in [Inject(\"{name}\")");
-                    #endif
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name in [Inject(\"{name}\")");
                     InjectFieldByName(target, context, getterSetter, name);
                     return;
                 }
@@ -67,9 +63,7 @@ namespace Betauer.DI {
             } 
             
             if (_container.Contains(getterSetter.Name)) {
-                #if DEBUG
-                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member name: {getterSetter.Name}");
-                #endif
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member name: {getterSetter.Name}");
                 InjectFieldByName(target, context, getterSetter, getterSetter.Name);
                 return;
             }
@@ -78,9 +72,7 @@ namespace Betauer.DI {
                 ? getterSetter.Type.GetGenericArguments()[0]
                 : getterSetter.Type;
             if (_container.CreateIfNotFound || _container.Contains(realType)) {
-                #if DEBUG
-                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member type: {realType}");
-                #endif
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member type: {realType}");
                 InjectFieldByType(target, context, getterSetter);
                 return;
             }

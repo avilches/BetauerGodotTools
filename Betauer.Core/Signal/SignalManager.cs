@@ -13,8 +13,6 @@ namespace Betauer.Signal {
 
     public class SignalManager : Object {
         
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SignalManager));
-
         public readonly Dictionary<int, ObjectSignals> SignalsByObject = new();
         public int Size => SignalsByObject.Select(o => o.Value.Count).Sum();
         public int ObjectsSize => SignalsByObject.Count;
@@ -145,9 +143,6 @@ namespace Betauer.Signal {
                 !TryGetObjectSignals(signalHandler.Origin.GetHashCode(), out var objectSignals)) return signalHandler;
             var alive = objectSignals.RemoveSignalAndGetSimilarAlive(signalHandler);
             if (alive == 0) {
-                #if DEBUG
-                Logger.Debug($"Specific disconnection {objectSignals.Emitter.ToStringSafe()} signal: \"{signalHandler.Signal}\"");
-                #endif
                 objectSignals.Emitter.Disconnect(signalHandler.Signal, this, GetMethod(signalHandler));
             }
             return signalHandler;
@@ -167,9 +162,6 @@ namespace Betauer.Signal {
                 TryGetObjectSignals(origin.GetHashCode(), out var objectSignals)) {
                 
                 objectSignals.GroupBySignalName().ForEach(group => {
-                    #if DEBUG
-                    Logger.Debug($"DisconnectAll {objectSignals.Emitter.ToStringSafe()} signal: \"{group.Key}\"");
-                    #endif
                     objectSignals.Emitter.Disconnect(group.Key, this, GetMethod(group.First()));
                 });
             }
@@ -224,10 +216,6 @@ namespace Betauer.Signal {
             
             var alive = objectSignals.ExecuteAllSignalsAndGetAlive(signal, execute);
             if (alive == 0) {
-                #if DEBUG
-                Logger.Debug(
-                    $"Executing signal. Disconnecting {objectSignals.Emitter.ToStringSafe()} signal: \"{signal}\". Because this execution was the last OneShot and 0 alive");
-                #endif
                 objectSignals.Emitter.Disconnect(signal, this, signalMethodName);
             }
         }
