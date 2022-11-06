@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Nodes;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.Application {
@@ -28,24 +30,34 @@ namespace Betauer.Application {
         public static bool GetWindowVsync() => GetProjectSetting("display/window/vsync/use_vsync", true);
 
         
-        public static void ConfigureExceptionHandlers(SceneTree sceneTree) {
+        public static void ConfigureExceptionHandlers(Func<SceneTree> sceneTree) {
+            
             TaskScheduler.UnobservedTaskException += (o, args) => {
-                // This event logs errors in non-awaited Task. It needs
+                // This event logs errors in non-awaited Task, which is a weird case
                 var e = args.Exception;
-                GD.PrintErr(
-                    $"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] TaskScheduler.UnobservedTaskException:\n{e}");
+                LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
+                    .Error("TaskScheduler.UnobservedTaskException {0}", e);
                 if (Project.FeatureFlags.IsTerminateOnExceptionEnabled()) {
-                    sceneTree.Notification(MainLoop.NotificationWmQuitRequest);
+                    sceneTree().QuitSafely(1);
                 }
             };
+
+            /*
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                 // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
                 // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
                 // so the quit is not really needed
                 // If unhandled_exception_policy is "1" (LogError), the error is not logged neither this event is called
                 var e = args.ExceptionObject;
-                GD.PrintErr(
-                    $"{StringTools.FastFormatDateTime(DateTime.Now)} [Error] AppDomain.CurrentDomain.UnhandledException:\n{e}");
+                LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
+                    .Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
+            };
+            */
+            
+            GD.UnhandledException += (o, args) => {
+                var e = args.Exception;
+                LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
+                    .Error("GD.UnhandledException {0}", e);
             };
         }
 

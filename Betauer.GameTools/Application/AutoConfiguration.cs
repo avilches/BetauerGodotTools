@@ -41,11 +41,9 @@ namespace Betauer.Application {
             _options = options ?? new Options();
             Container = new Container();
 
-            LoggerFactory.SetDefaultWriter(new SimpleWriterWrapper((txt) => GD.Print(txt)));
-
             MainLoopNotificationsHandlerInstance = new MainLoopNotificationsHandler();
             MainLoopNotificationsHandlerInstance.OnWmQuitRequest += () => {
-                LoggerFactory.EnableAutoFlush();
+                LoggerFactory.SetAutoFlush(true);
                 GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
             };
             

@@ -23,6 +23,8 @@ namespace Veronenger.Managers.Autoload {
                 AddSingletonNodesToTree = true,
                 ObjectWatcherTimer = 10f,
             }) {
+            AppTools.ConfigureExceptionHandlers(GetTree);
+
 #if DEBUG
             DevelopmentConfig();
 #else
@@ -48,7 +50,6 @@ namespace Veronenger.Managers.Autoload {
 
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
-            AppTools.ConfigureExceptionHandlers(GetTree());
             Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
         }
 
