@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.StateMachine.Async {
@@ -29,6 +30,7 @@ namespace Betauer.StateMachine.Async {
 
         public IStateMachineAsync<TStateKey, TEventKey, IStateAsync<TStateKey, TEventKey>> StateMachine => _stateMachine;
         public StateNodeAsync<TStateKey, TEventKey> CurrentState => (StateNodeAsync<TStateKey, TEventKey>)_stateMachine.CurrentState;
+        private Exception? _exception = null;
         public bool Available => _stateMachine.Available;
         public string? Name => _stateMachine.Name; 
 
@@ -58,9 +60,16 @@ namespace Betauer.StateMachine.Async {
         }
 
         public void Execute(float delta) {
+            if (_exception != null) {
+                var e = _exception;
+                _exception = null;
+                throw e;
+            }
             if (!Available) return;
             ExecuteStart(delta, CurrentState.Key);
-            _stateMachine.Execute().ContinueWith(t => ExecuteEnd(CurrentState.Key));
+            _stateMachine.Execute()
+                .OnException(e => _exception = e, true)
+                .ContinueWith(t => ExecuteEnd(CurrentState.Key));
         }
 
         public override void _Input(InputEvent e) {
