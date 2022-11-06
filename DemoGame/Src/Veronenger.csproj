@@ -27,6 +27,9 @@
         <Content Include="../Worlds/**"/>
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="ZString" Version="2.5.0" />
+    </ItemGroup>
+    <ItemGroup>
         <Reference Include="Betauer.Animation">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.Animation.dll</HintPath>
         </Reference>
