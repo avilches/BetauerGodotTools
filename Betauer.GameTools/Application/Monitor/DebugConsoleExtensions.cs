@@ -93,13 +93,13 @@ namespace Betauer.Application.Monitor {
                     console.WriteLine($"New time scale: {newTimeScale}");
                 }).End();
         }
-
+                                                                        
         public static DebugConsole AddEngineTargetFpsCommand(this DebugConsole console) {
             return console.CreateCommand("fps",
                     "Show or change the target fps.",
                     @"Usage:
-    [color=#ffffff]fps          [/color] : Get the current target fps.
-    [color=#ffffff]fps <integer>[/color] : Set the target fps to <number>.",
+    [color=#ffffff]fps      [/color] : Get the current target fps.
+    [color=#ffffff]fps <int>[/color] : Set the target fps to <int>.",
                     "Error: argument must be a valid integer.")
                 .WithNoArguments(() => {
                     console.WriteLine($"Current target fps: {Engine.TargetFps.ToString()}");
@@ -112,10 +112,21 @@ namespace Betauer.Application.Monitor {
         }
 
         public static DebugConsole AddQuitCommand(this DebugConsole console) {
-            return console.CreateCommand("quit", () => {
-                console.WriteLine("Quit game, please wait...");
-                console.GetTree().Notification(MainLoop.NotificationWmQuitRequest);
-            }, "Close the application safely.");
+            return console.CreateCommand("quit", 
+                    "Quit the application safely with exit code",
+                    @"Usage:
+    [color=#ffffff]quit      [/color] : Quit the application with exit code 0.
+    [color=#ffffff]quit <int>[/color] : Quit the application with exit code <int>.",
+                    "Error: argument must be a valid integer.")
+                .WithNoArguments(() => {
+                    console.WriteLine("Quit game with exit code 0. Please wait...");
+                    console.GetTree().QuitSafely(0);
+                })
+                .ArgumentIsInteger(input => {
+                    var exitCode = input.Arguments[0].ToInt();
+                    console.WriteLine($"Quit game with exit code {exitCode.ToString()}. Please wait...");
+                    console.GetTree().QuitSafely(exitCode);
+                }).End();
         }
 
         public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
