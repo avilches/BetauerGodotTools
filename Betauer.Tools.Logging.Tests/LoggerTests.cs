@@ -18,15 +18,15 @@ namespace Betauer.Tests {
 
         [Test]
         public void LoggersAreCachedCaseInsensitive() {
-            Assert.That(LoggerFactory.Instance.Loggers.Count, Is.EqualTo(0));
+            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(0));
             Logger log = LoggerFactory.GetLogger("Pepe");
             Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
 
-            Assert.That(LoggerFactory.Instance.Loggers.Count, Is.EqualTo(1));
+            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
             Logger log2 = LoggerFactory.GetLogger("PEPE");
 
             Assert.That(log.GetHashCode(), Is.EqualTo(log2.GetHashCode()));
-            Assert.That(LoggerFactory.Instance.Loggers.Count, Is.EqualTo(1));
+            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
         }
 
         [Test]
