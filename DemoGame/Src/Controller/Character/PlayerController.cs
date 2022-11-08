@@ -101,7 +101,11 @@ namespace Veronenger.Controller.Character {
                 (enemyDamageArea2DPublisher, playerAttackArea2D) => {
                     var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
                     enemy.AttackedByPlayer(new Attack(1f));
-                    
+                });
+            
+            CharacterManager.ConfigurePlayerDamageArea2D(_damageArea,
+                (enemyAttackArea2DPublisher, playerDamageArea2D) => {
+                    var enemy = enemyAttackArea2DPublisher.GetParent<IEnemy>();
                 });
             // CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 

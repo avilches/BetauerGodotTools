@@ -29,8 +29,6 @@ namespace Veronenger.Controller.Character {
             .KeyframeTo(1.00f, Colors.White)
             .EndAnimate();
 
-        private readonly Logger _logger = LoggerFactory.GetLogger<ZombieController>();
-
         [OnReady("Sprite")] private Sprite _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
@@ -66,14 +64,14 @@ namespace Veronenger.Controller.Character {
             AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
             
-            var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+            var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea).AddNode2D(_damageArea);
             StateMachine.Start("Zombie", this, flippers, SlopeRaycast, Position2D);
 
             CharacterManager.ConfigureEnemyCollisions(this);
             CharacterManager.ConfigureEnemyCollisions(SlopeRaycast);
             FloorRaycasts.ForEach(r => CharacterManager.ConfigureEnemyCollisions(r));
-            // CharacterManager.ConfigureEnemyAttackArea2D(_attack);
             CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
+            CharacterManager.ConfigureEnemyAttackArea2D(_attackArea);
 
             DebugOverlayManager.CreateOverlay()
                 .Follow(this)
@@ -88,9 +86,9 @@ namespace Veronenger.Controller.Character {
             CollisionLayer = 0;
             CollisionMask = 0;
             _damageArea.CollisionLayer = 0;
-            // _attackArea.CollisionLayer = 0;
+            _attackArea.CollisionLayer = 0;
             _damageArea.CollisionMask = 0;
-            // _attackArea.CollisionMask = 0;
+            _attackArea.CollisionMask = 0;
         }
 
         public override void _Draw() {

@@ -21,6 +21,7 @@ namespace Veronenger.Managers {
         [Inject] private Bus Bus { get; set; }
 
         private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new("PlayerAttack");
+        private readonly AreaOnArea2DEntered.Unicast _playerDamageBus = new("PlayerDamage");
 
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
@@ -51,6 +52,16 @@ namespace Veronenger.Managers {
                 .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
 
+        // Only one player damage area is allowed.
+        // If there are more than one, change from Unicast to Multicast
+        public void ConfigurePlayerDamageArea2D(Area2D damageArea2D, Action<Area2D, Area2D> onDamage) {
+            damageArea2D.CollisionMask = 0;
+            damageArea2D.CollisionLayer = 0;
+            damageArea2D.SetCollisionMaskBit(LayerEnemy, true);
+            _playerDamageBus.Subscribe(onDamage)
+                .WithFilter(damageArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
+        }
+
         public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
@@ -59,9 +70,9 @@ namespace Veronenger.Managers {
             SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(enemy);
         }
 
-        public void ConfigureEnemyCollisions(RayCast2D enemy) {
-            enemy.CollisionMask = 0;
-            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy);
+        public void ConfigureEnemyCollisions(RayCast2D raycast) {
+            raycast.CollisionMask = 0;
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(raycast);
         }
 
         public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D) {
@@ -70,6 +81,14 @@ namespace Veronenger.Managers {
             enemyDamageArea2D.CollisionLayer = 0;
             enemyDamageArea2D.SetCollisionLayerBit(LayerEnemy, true);
             _playerAttackBus.Connect(enemyDamageArea2D);
+        }
+
+        public void ConfigureEnemyAttackArea2D(Area2D enemyAttackArea2D) {
+            if (enemyAttackArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
+            enemyAttackArea2D.CollisionMask = 0;
+            enemyAttackArea2D.CollisionLayer = 0;
+            enemyAttackArea2D.SetCollisionLayerBit(LayerEnemy, true);
+            _playerDamageBus.Connect(enemyAttackArea2D);
         }
 
         public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
