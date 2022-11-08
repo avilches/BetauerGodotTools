@@ -14,28 +14,37 @@ namespace Betauer.Application {
         public event Action OnProcess;
         public event Action OnParented;
         public event Action OnUnparented;
-        public event Action OnInstanced;
+        public event Action OnSceneInstantiated;
         public event Action OnDragBegin;
         public event Action OnDragEnd;
-        public event Action OnPathChanged;
+        public event Action OnPathRenamed;
         public event Action OnInternalProcess;
         public event Action OnInternalPhysicsProcess;
         public event Action OnPostEnterTree;
-        public event Action OnResetPhysicsInterpolation;
+        public event Action OnDisabled;
+        public event Action OnEnabled;
+        public event Action OnEditorPreSave;
+        public event Action OnEditorPostSave;
         public event Action OnWmMouseEnter;
         public event Action OnWmMouseExit;
-        public event Action OnWmFocusIn;
-        public event Action OnWmFocusOut;
-        public event Action OnWmQuitRequest;
+        public event Action OnWmWindowFocusIn;
+        public event Action OnWmWindowFocusOut;
+        public event Action OnWmCloseRequest;
         public event Action OnWmGoBackRequest;
-        public event Action OnWmUnfocusRequest;
+        public event Action OnWmSizeChanged;
+        public event Action OnWmDpiChange;
+        public event Action OnVpMouseEnter;
+        public event Action OnVpMouseExit;
         public event Action OnOsMemoryWarning;
         public event Action OnTranslationChanged;
         public event Action OnWmAbout;
         public event Action OnCrash;
         public event Action OnOsImeUpdate;
-        public event Action OnAppResumed;
-        public event Action OnAppPaused;
+        public event Action OnApplicationResumed;
+        public event Action OnApplicationPaused;
+        public event Action OnApplicationFocusIn;
+        public event Action OnApplicationFocusOut;
+        public event Action OnTextServerChanged;
         public event Action OnPostinitialize;
         public event Action OnPredelete;
 
@@ -71,8 +80,8 @@ namespace Betauer.Application {
                 case Node.NotificationUnparented:
                     OnUnparented?.Invoke();
                     break;
-                case Node.NotificationInstanced:
-                    OnInstanced?.Invoke();
+                case Node.NotificationSceneInstantiated:
+                    OnSceneInstantiated?.Invoke();
                     break;
                 case Node.NotificationDragBegin:
                     OnDragBegin?.Invoke();
@@ -80,8 +89,8 @@ namespace Betauer.Application {
                 case Node.NotificationDragEnd:
                     OnDragEnd?.Invoke();
                     break;
-                case Node.NotificationPathChanged:
-                    OnPathChanged?.Invoke();
+                case Node.NotificationPathRenamed:
+                    OnPathRenamed?.Invoke();
                     break;
                 case Node.NotificationInternalProcess:
                     OnInternalProcess?.Invoke();
@@ -92,8 +101,17 @@ namespace Betauer.Application {
                 case Node.NotificationPostEnterTree:
                     OnPostEnterTree?.Invoke();
                     break;
-                case Node.NotificationResetPhysicsInterpolation:
-                    OnResetPhysicsInterpolation?.Invoke();
+                case Node.NotificationDisabled:
+                    OnDisabled?.Invoke();
+                    break;
+                case Node.NotificationEnabled:
+                    OnEnabled?.Invoke();
+                    break;
+                case Node.NotificationEditorPreSave:
+                    OnEditorPreSave?.Invoke();
+                    break;
+                case Node.NotificationEditorPostSave:
+                    OnEditorPostSave?.Invoke();
                     break;
                 case Node.NotificationWmMouseEnter:
                     OnWmMouseEnter?.Invoke();
@@ -101,20 +119,29 @@ namespace Betauer.Application {
                 case Node.NotificationWmMouseExit:
                     OnWmMouseExit?.Invoke();
                     break;
-                case Node.NotificationWmFocusIn:
-                    OnWmFocusIn?.Invoke();
+                case Node.NotificationWmWindowFocusIn:
+                    OnWmWindowFocusIn?.Invoke();
                     break;
-                case Node.NotificationWmFocusOut:
-                    OnWmFocusOut?.Invoke();
+                case Node.NotificationWmWindowFocusOut:
+                    OnWmWindowFocusOut?.Invoke();
                     break;
-                case Node.NotificationWmQuitRequest:
-                    OnWmQuitRequest?.Invoke();
+                case Node.NotificationWmCloseRequest:
+                    OnWmCloseRequest?.Invoke();
                     break;
                 case Node.NotificationWmGoBackRequest:
                     OnWmGoBackRequest?.Invoke();
                     break;
-                case Node.NotificationWmUnfocusRequest:
-                    OnWmUnfocusRequest?.Invoke();
+                case Node.NotificationWmSizeChanged:
+                    OnWmSizeChanged?.Invoke();
+                    break;
+                case Node.NotificationWmDpiChange:
+                    OnWmDpiChange?.Invoke();
+                    break;
+                case Node.NotificationVpMouseEnter:
+                    OnVpMouseEnter?.Invoke();
+                    break;
+                case Node.NotificationVpMouseExit:
+                    OnVpMouseExit?.Invoke();
                     break;
                 case Node.NotificationOsMemoryWarning:
                     OnOsMemoryWarning?.Invoke();
@@ -131,11 +158,20 @@ namespace Betauer.Application {
                 case Node.NotificationOsImeUpdate:
                     OnOsImeUpdate?.Invoke();
                     break;
-                case Node.NotificationAppResumed:
-                    OnAppResumed?.Invoke();
+                case Node.NotificationApplicationResumed:
+                    OnApplicationResumed?.Invoke();
                     break;
-                case Node.NotificationAppPaused:
-                    OnAppPaused?.Invoke();
+                case Node.NotificationApplicationPaused:
+                    OnApplicationPaused?.Invoke();
+                    break;
+                case Node.NotificationApplicationFocusIn:
+                    OnApplicationFocusIn?.Invoke();
+                    break;
+                case Node.NotificationApplicationFocusOut:
+                    OnApplicationFocusOut?.Invoke();
+                    break;
+                case Node.NotificationTextServerChanged:
+                    OnTextServerChanged?.Invoke();
                     break;
                 case Node.NotificationPostinitialize:
                     OnPostinitialize?.Invoke();

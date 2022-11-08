@@ -76,7 +76,7 @@ namespace Veronenger.Controller.Menu {
             return mainMenu;
         }
 
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
         public void DimOut() {
             _sceneTreeTween?.Kill();
             _sceneTreeTween = Templates.FadeOut.Play(this, 0f, 1f);

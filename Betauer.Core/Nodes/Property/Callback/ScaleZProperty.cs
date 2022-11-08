@@ -7,22 +7,22 @@ namespace Betauer.Nodes.Property.Callback {
 
         public override float GetValue(Node node) {
             return node switch {
-                Spatial spatial => spatial.Scale.z,
+                Node3D node3D => node3D.Scale.z,
                 _ => throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}")
             };
         }
 
         public override void SetValue(Node node, float value) {
-            if (node is Spatial) node.SetIndexed("scale:z", value);
+            if (node is Node3D) node.SetIndexed("scale:z", value);
             else throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}");
         }
 
         public override bool IsCompatibleWith(Node node) {
-            return node is Spatial;
+            return node is Node3D;
         }
 
         public override string ToString() {
-            return "ScaleZProperty<float>(spatial: \"scale:z\")";
+            return "ScaleZProperty<float>(node3D: \"scale:z\")";
         }
     }
 }

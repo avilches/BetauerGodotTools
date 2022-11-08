@@ -22,17 +22,13 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
+	rm -rf "${ROOT_FOLDER}/.godot/mono"
 
-
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-#	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
-	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
-#	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
-	
 .PHONY: import
 import: clean
 	rm -rf "${ROOT_FOLDER}/.import"
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+	rm -rf "${ROOT_FOLDER}/.godot/imported"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --build-solutions -q
 
 .PHONY: build/debug
 build:

@@ -15,23 +15,23 @@ namespace Veronenger.Tests.MathTests {
             Assert.That(Mathf.Pi, Is.EqualTo(System.Math.PI).Within(0.0000001));
         }
 
-        // Mathf.Deg2Rad
+        // Mathf.DegToRad
 
         [Test]
         public void Deg2RadOf180ShouldBePI() {
-            Assert.That(Mathf.Deg2Rad(180), Is.EqualTo(Mathf.Pi).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(180), Is.EqualTo(Mathf.Pi).Within(marginOfError));
         }
 
 
         [Test]
         public void Deg2RadOf270ShouldBePIAndAHalf() {
-            Assert.That(Mathf.Deg2Rad(270), Is.EqualTo(Mathf.Pi + Mathf.Pi / 2).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(270), Is.EqualTo(Mathf.Pi + Mathf.Pi / 2).Within(marginOfError));
         }
 
 
         [Test]
         public void Deg2RadOf540ShouldBeThreePI() {
-            Assert.That(Mathf.Deg2Rad(540), Is.EqualTo(Mathf.Pi * 3).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(540), Is.EqualTo(Mathf.Pi * 3).Within(marginOfError));
         }
 
         // Mathf.Rad2Deg

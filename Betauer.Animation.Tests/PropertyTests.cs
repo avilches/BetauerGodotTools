@@ -289,7 +289,7 @@ namespace Betauer.Animation.Tests {
                     new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var controlX = await CreateLabel(width);
-            controlX.RectPosition = new Vector2(initialPosition, 0);
+            controlX.Position = new Vector2(initialPosition, 0);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySizeX)
                 .From(percentFrom)
@@ -298,10 +298,10 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlX)
                 .AwaitFinished();
-            Assert.That(controlX.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var controlY = await CreateLabel(width);
-            controlY.RectPosition = new Vector2(0, initialPosition);
+            controlY.Position = new Vector2(0, initialPosition);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySizeY)
                 .From(percentFrom)
@@ -310,10 +310,10 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlY)
                 .AwaitFinished();
-            Assert.That(controlY.RectPosition.y, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var control2D = await CreateLabel(width);
-            control2D.RectPosition = new Vector2(initialPosition, initialPosition);
+            control2D.Position = new Vector2(initialPosition, initialPosition);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
@@ -322,7 +322,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(control2D)
                 .AwaitFinished();
-            Assert.That(control2D.RectPosition, Is.EqualTo(
+            Assert.That(control2D.Position, Is.EqualTo(
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var node = await CreateNode();

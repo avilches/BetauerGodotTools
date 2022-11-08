@@ -55,7 +55,7 @@ namespace Betauer.Animation.Tests {
                 .Callback(() => x++);
 
             // When started, it's running
-            SceneTreeTween sceneTreeTween = t.Play();
+            Tween sceneTreeTween = t.Play();
             // TODO: can't assert for ProcessMode or SpeedScale
             Assert.That(sceneTreeTween.IsRunning(), Is.True);
 

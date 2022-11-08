@@ -16,14 +16,19 @@ namespace Betauer.Time {
     /// </summary>
     public class GodotScheduler {
         private readonly Action _action;
-        public readonly Node.PauseModeEnum PauseMode;
         private bool _paused = false;
         private bool _requestStop = false;
         private bool _running = false;
 
-        public GodotScheduler(Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public bool ProcessAlways = true;
+        public bool ProcessInPhysics = false;
+        public bool IgnoreTimeScale = false;
+
+        public GodotScheduler(Action action, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _action = action;
-            PauseMode = pauseMode;
+            ProcessAlways = processAlways;
+            ProcessInPhysics = processInPhysics;
+            IgnoreTimeScale = ignoreTimeScale;
         }
 
         public GodotScheduler Start(SceneTree sceneTree, float seconds) {
@@ -38,8 +43,7 @@ namespace Betauer.Time {
         private async void _Start(SceneTree sceneTree, float seconds) {
             _paused = false;
             while (true) {
-                var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-                await sceneTree.CreateTimer(seconds, pauseModeProcess).AwaitTimeout();
+                await sceneTree.CreateTimer(seconds, ProcessAlways, ProcessInPhysics, IgnoreTimeScale).AwaitTimeout();
                 if (_requestStop) {
                     _requestStop = false;
                     break;

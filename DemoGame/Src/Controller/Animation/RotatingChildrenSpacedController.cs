@@ -20,7 +20,7 @@ namespace Veronenger.Controller.Animation {
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
 
         // var _speed = Tau / RotationDuration;
         // _angle = Wrap(_angle + _speed * delta, 0, Tau); // Infinite rotation(in radians

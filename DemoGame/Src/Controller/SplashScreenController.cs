@@ -33,8 +33,8 @@ namespace Veronenger.Controller {
                 OS.CenterWindow();
             }
             GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,_baseResolutionSize, 1);
-            CenterContainer.RectSize = _baseResolutionSize;
-            ColorRect.RectSize = _baseResolutionSize;
+            CenterContainer.Size = _baseResolutionSize;
+            ColorRect.Size = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
             Visible = true;
             _mainResourceLoader.OnProgress += context => {

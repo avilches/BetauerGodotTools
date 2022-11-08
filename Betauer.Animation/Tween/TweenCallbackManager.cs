@@ -27,23 +27,23 @@ namespace Betauer.Animation.Tween {
 
         public readonly Dictionary<int, List<Action<object>>> ActionsByTween = new();
 
-        public int GetCallbackCount(SceneTreeTween sceneTreeTween) {
+        public int GetCallbackCount(Tween sceneTreeTween) {
             return ActionsByTween.TryGetValue(sceneTreeTween.GetHashCode(), out var actionList) ? actionList.Count : 0;
         }
 
-        public CallbackTweener TweenCallbackAction(SceneTreeTween sceneTreeTween, Action action) {
+        public CallbackTweener TweenCallbackAction(Tween sceneTreeTween, Action action) {
             void Wrapper(object _) => action(); 
             var binds = AddAction(sceneTreeTween, Wrapper);
             return sceneTreeTween.TweenCallback(this, nameof(_GodotTweenCallback), binds);
         }
 
-        public MethodTweener TweenInterpolateAction<T>(SceneTreeTween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
+        public MethodTweener TweenInterpolateAction<T>(Tween sceneTreeTween, T @from, T to, float duration, Action<T> action) {
             void Wrapper(object value) => action((T)value); 
             var binds = AddAction(sceneTreeTween, Wrapper);
             return sceneTreeTween.TweenMethod(this, nameof(_GodotTweenMethod), @from, to, duration, binds);
         }
 
-        private Array AddAction(SceneTreeTween sceneTreeTween, Action<object> action) {
+        private Array AddAction(Tween sceneTreeTween, Action<object> action) {
             var sceneTreeTweenHash = sceneTreeTween.GetHashCode();
             var actionHash = action.GetHashCode();
             if (!ActionsByTween.TryGetValue(sceneTreeTweenHash, out var actionList)) {

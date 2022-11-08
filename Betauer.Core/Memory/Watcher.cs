@@ -11,7 +11,7 @@ namespace Betauer.Memory {
 
         public static Watcher IfInvalidInstance(Object o) {
             return new Watcher(() => !Object.IsInstanceValid(o) ||
-                                     (o is SceneTreeTween tween && !tween.IsValid()))
+                                     (o is Tween tween && !tween.IsValid()))
                 .Debug($"If not valid {o.ToStringSafe()} > ");
         }
 

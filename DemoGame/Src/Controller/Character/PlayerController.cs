@@ -28,12 +28,12 @@ namespace Veronenger.Controller.Character {
     }
     
     public sealed class PlayerController : KinematicBody2D {
-        [OnReady("Sprite")] private Sprite _mainSprite;
+        [OnReady("Sprite2D")] private Sprite2D _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("RichTextLabel")] public RichTextLabel Label;
         [OnReady("Detector")] public Area2D PlayerDetector;
-        [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+        [OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
         [OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("Camera2D")] private Camera2D _camera2D;
 

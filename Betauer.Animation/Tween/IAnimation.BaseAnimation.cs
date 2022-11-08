@@ -10,17 +10,17 @@ namespace Betauer.Animation.Tween {
         public float Speed { get; protected set; } = 1.0f;
         public Godot.Tween.TweenProcessMode ProcessMode { get; protected set; } = Godot.Tween.TweenProcessMode.Idle;
 
-        public SceneTreeTween Play() {
+        public Tween Play() {
             return Play(null);
         }
 
         public abstract bool IsCompatibleWith(Node node);
 
-        public SceneTreeTween Play(float initialDelay) {
+        public Tween Play(float initialDelay) {
             return Play(null, initialDelay);
         }
 
-        public abstract SceneTreeTween Play(Node? target, float initialDelay = 0);
+        public abstract Tween Play(Node? target, float initialDelay = 0);
 
         public TBuilder SetSpeed(float speed) {
             Speed = speed;
@@ -52,18 +52,18 @@ namespace Betauer.Animation.Tween {
             return this as TBuilder;
         }
         
-        protected (Node, SceneTreeTween) CreateSceneTreeTween(Node? target) {
+        protected (Node, Tween) CreateSceneTreeTween(Node? target) {
             var realTarget = target ?? DefaultTarget ??
                 throw new InvalidAnimationException("Sequence has no target and Execute() method does not provide a target");
             
-            SceneTreeTween? sceneTreeTween = realTarget.CreateTween();
+            Tween? sceneTreeTween = realTarget.CreateTween();
             if (sceneTreeTween == null)
                 throw new InvalidAnimationException("Tween created from node " + realTarget.GetType().Name + " \'" + realTarget.Name +
                                     "\' is null: add it to the scene tree.");
             return (realTarget, sceneTreeTween);
         }
 
-        protected void ApplySceneTreeTweenConfiguration(SceneTreeTween sceneTreeTween) {
+        protected void ApplySceneTreeTweenConfiguration(Tween sceneTreeTween) {
             sceneTreeTween
                 .SetProcessMode(ProcessMode)
                 .SetSpeedScale(Speed)

@@ -7,6 +7,7 @@ using Godot;
 namespace Betauer {
     public static class VariantHelper {
         public static T SumVariant<T>(T op1, T op2) {
+            Variant a;
             if (op1 is float fromFloat && op2 is float toFloat)
                 return (T)(object)(fromFloat + toFloat);
 
@@ -78,7 +79,7 @@ namespace Betauer {
                     return Lerp(fromVector3, toVector3, t);
 
                 case Color fromColor when op2 is Color toColor:
-                    return fromColor.LinearInterpolate(toColor, t);
+                    return fromColor.Lerp(toColor, t);
                     // return Lerp(fromColor, toColor, t);
 
                 case AABB fromAabb when op2 is AABB toAabb:
@@ -201,7 +202,7 @@ namespace Betauer {
                 Lerp(from.Column2, to.Column2, t));
         }
 
-        public static Quat Lerp(Quat from, Quat to, float t) {
+        public static Quaternion Lerp(Quaternion from, Quaternion to, float t) {
             /*
             APPLY_EQUATION(x);
 			APPLY_EQUATION(y);
@@ -209,7 +210,7 @@ namespace Betauer {
 			APPLY_EQUATION(w);
              */
             // TODO: is this correct? not tested. Make a test comparing Tween node and this
-            return new Quat(
+            return new Quaternion(
                 Mathf.Lerp(from.x, to.x, t),
                 Mathf.Lerp(from.y, to.y, t),
                 Mathf.Lerp(from.z, to.z, t),

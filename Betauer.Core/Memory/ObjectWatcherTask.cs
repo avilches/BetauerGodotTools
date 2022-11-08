@@ -12,7 +12,7 @@ namespace Betauer.Memory {
 
         public ObjectWatcherTask() {
             // Process, because the Runner should run even if the SceneTree is paused
-            Scheduler = new GodotScheduler(_OnSchedule, Node.PauseModeEnum.Process);
+            Scheduler = new GodotScheduler(_OnSchedule, true, false, true);
         }
 
         public GodotScheduler Start(SceneTree sceneTree, float seconds = 10f) {

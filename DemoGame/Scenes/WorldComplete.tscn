@@ -7,7 +7,7 @@ extents = Vector2( 20, 17 )
 
 [node name="WorldComplete" type="Area2D"]
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2( 2, 35 )
 scale = Vector2( 0.320312, 0.28125 )
 texture = ExtResource( 2 )

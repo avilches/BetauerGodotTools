@@ -10,7 +10,7 @@ namespace Betauer.Restorer {
         }
 
         protected override void DoSave() {
-            _focused = _control.GetFocusOwner();
+            _focused = _control.GetViewport().GuiGetFocusOwner();
         }
 
         protected override void DoRestore() {

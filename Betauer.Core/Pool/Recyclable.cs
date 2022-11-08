@@ -27,7 +27,7 @@ namespace Betauer.Pool {
         }
     }
 
-    public abstract class GodotObjectRecyclable : Object, IRecyclable {
+    public abstract partial class GodotObjectRecyclable : Object, IRecyclable {
         private IObjectPool? _pool;
         private string _token;
         private int _usages;

@@ -13,7 +13,7 @@ namespace Veronenger.Controller.Animation {
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
         [Inject] public KinematicPlatformMotion PlatformBody { get; set; }
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
         private Vector2 _original;
 
         public override void _Ready() {

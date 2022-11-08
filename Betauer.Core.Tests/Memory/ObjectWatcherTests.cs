@@ -10,7 +10,7 @@ using Object = Godot.Object;
 
 namespace Betauer.Tests.Memory {
     [TestFixture]
-    public class ObjectWatcherTests : Node {
+    public partial class ObjectWatcherTests : Node {
         [SetUp]
         public void Setup() {
             DefaultObjectWatcherTask.Instance.Dispose();
@@ -68,7 +68,7 @@ namespace Betauer.Tests.Memory {
             Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(0));
         }
 
-        private class Dummy : DisposableGodotObject, IObjectConsumer {
+        private partial class Dummy : DisposableGodotObject, IObjectConsumer {
             internal int DisposedCalls = 0;
             internal bool MustBeFreed = false;
 

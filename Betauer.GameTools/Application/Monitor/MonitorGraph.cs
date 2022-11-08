@@ -264,8 +264,8 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureChartSpaceAndBorder() {
-            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the RectMinSize
-            RectMinSize = new Vector2(ChartWidth, 0);
+            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the MinSize
+            MinSize = new Vector2(ChartWidth, 0);
 
             BorderLine.ClearPoints();
             BorderLine.AddPoint(new Vector2(0, 0));
@@ -277,7 +277,7 @@ namespace Betauer.Application.Monitor {
             BorderLine.DefaultColor = DefaultBorderColor;
             _borderConfig.Invoke(BorderLine);
             
-            _chartSpacer.RectMinSize = new Vector2(ChartWidth, ChartHeight);
+            _chartSpacer.MinSize = new Vector2(ChartWidth, ChartHeight);
 
         }
 

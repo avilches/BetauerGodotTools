@@ -10,7 +10,7 @@ namespace Betauer.Memory {
     /// 3: It has a public Disposed bool flag you can check. No need to use Object.IsInstanceValid() anymore.
     /// 4: Optionally, it can show a message when the instance is created and disposed 
     /// </summary>
-    public abstract class DisposableGodotObject : Object {
+    public abstract partial class DisposableGodotObject : Object {
         public bool Disposed { get; private set; } = false;
 
 #if DEBUG

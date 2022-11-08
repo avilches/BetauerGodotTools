@@ -4,9 +4,9 @@ using Godot;
 
 namespace Betauer.Time {
     public static class GodotTimeoutExtensions {
-        public static GodotTimeout OnTimeout(this SceneTree sceneTree, float timeout, Action action,
-            Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
-            return new GodotTimeout(sceneTree, timeout, action, pauseMode);
+        public static GodotTimeout OnTimeout(this SceneTree sceneTree, double timeout, Action action, 
+            bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
+            return new GodotTimeout(sceneTree, timeout, action, processAlways, processInPhysics, ignoreTimeScale);
         }
     }
     
@@ -26,16 +26,21 @@ namespace Betauer.Time {
         private SceneTreeTimer? _sceneTreeTimer;
         private bool _paused = true;
         private bool _running = false;
-        private float _timeLeft = 0;
+        private double _timeLeft = 0;
         private Action _action;
 
-        public float Timeout { get; private set; } = 0;
-        public readonly Node.PauseModeEnum PauseMode;
+        public double Timeout { get; private set; } = 0;
+        public bool ProcessAlways = true;
+        public bool ProcessInPhysics = false;
+        public bool IgnoreTimeScale = false;
+
         public bool IsRunning => _running && !_paused;
 
-        public GodotTimeout(SceneTree sceneTree, float timeout, Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotTimeout(SceneTree sceneTree, double timeout, Action action, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
-            PauseMode = pauseMode;
+            ProcessAlways = processAlways;
+            ProcessInPhysics = processInPhysics;
+            IgnoreTimeScale = ignoreTimeScale;
             Timeout = _timeLeft = timeout;
             _action = action;
         }
@@ -45,13 +50,13 @@ namespace Betauer.Time {
             return this;
         }
 
-        public GodotTimeout SetTimeout(float timeout) {
+        public GodotTimeout SetTimeout(double timeout) {
             Timeout = timeout;
             Reset();
             return this;
         }
 
-        public float TimeLeft {
+        public double TimeLeft {
             get {
                 if (_running && !_paused) return _sceneTreeTimer!.TimeLeft;
                 return _timeLeft;
@@ -114,9 +119,8 @@ namespace Betauer.Time {
             return this;
         }
 
-        private SceneTreeTimer CreateTimer(float timeout) {
-            var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer =_sceneTree.CreateTimer(timeout, pauseModeProcess);
+        private SceneTreeTimer CreateTimer(double timeout) {
+            var sceneTreeTimer =_sceneTree.CreateTimer(timeout, ProcessAlways, ProcessInPhysics, IgnoreTimeScale);
             var sceneTreeTimerId = sceneTreeTimer.GetHashCode();
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (_sceneTreeTimer != null && _sceneTreeTimer.GetHashCode() == sceneTreeTimerId) {

@@ -11,15 +11,15 @@ namespace Betauer.Nodes.Property {
         }
 
         public void SetValue(Node node, object value) {
-            node.SetIndexed(GetIndexedPropertyName(node), value);
+            node.SetIndexed(GetIndexedPropertyName(node), (Variant)value);
         }
 
         public virtual TProperty GetValue(Node node) {
-            return (TProperty)node.GetIndexed(GetIndexedPropertyName(node));
+            return (TProperty)node.GetIndexed(GetIndexedPropertyName(node)).Obj;
         }
 
         public virtual void SetValue(Node node, TProperty value) {
-            node.SetIndexed(GetIndexedPropertyName(node), value);
+            node.SetIndexed(GetIndexedPropertyName(node), (Variant)(object)value);
         }
 
         public abstract bool IsCompatibleWith(Node node);

@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class RestorerTests : Node {
+    public partial class RestorerTests : Node {
 
         [Test]
         public async Task PropertyNameRestoreTests() {
@@ -17,20 +17,20 @@ namespace Betauer.Tests {
             AddChild(node2D);
             await this.AwaitIdleFrame();
             var original = new Vector2(2f, 2f);
-            control.RectScale = original;
+            control.Scale = original;
             node2D.Scale = original;
-            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(control.Scale, Is.EqualTo(original));
             Assert.That(node2D.Scale, Is.EqualTo(original));
 
             var status = control.CreateRestorer("rect_scale").Add(node2D.CreateRestorer("scale"));
             status.Save();
-            control.RectScale = Vector2.One;
+            control.Scale = Vector2.One;
             node2D.Scale = Vector2.One;;
-            Assert.That(control.RectScale, Is.EqualTo(Vector2.One));
+            Assert.That(control.Scale, Is.EqualTo(Vector2.One));
             Assert.That(node2D.Scale, Is.EqualTo(Vector2.One));
 
             status.Restore();
-            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(control.Scale, Is.EqualTo(original));
             Assert.That(node2D.Scale, Is.EqualTo(original));
         }
         
@@ -42,20 +42,20 @@ namespace Betauer.Tests {
             AddChild(node2D);
             await this.AwaitIdleFrame();
             var original = new Vector2(2f, 2f);
-            control.RectScale = original;
+            control.Scale = original;
             node2D.Scale = original;
-            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(control.Scale, Is.EqualTo(original));
             Assert.That(node2D.Scale, Is.EqualTo(original));
 
             var status = new Node[] { control, node2D }.CreateMultiRestorer(Properties.Scale2D);
             status.Save();
-            control.RectScale = Vector2.One;
+            control.Scale = Vector2.One;
             node2D.Scale = Vector2.One;;
-            Assert.That(control.RectScale, Is.EqualTo(Vector2.One));
+            Assert.That(control.Scale, Is.EqualTo(Vector2.One));
             Assert.That(node2D.Scale, Is.EqualTo(Vector2.One));
 
             status.Restore();
-            Assert.That(control.RectScale, Is.EqualTo(original));
+            Assert.That(control.Scale, Is.EqualTo(original));
             Assert.That(node2D.Scale, Is.EqualTo(original));
         }
 
@@ -66,30 +66,30 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             var original = new Vector2(2f, 3f);
 
-            control.RectPivotOffset = original;
+            control.PivotOffset = original;
             control.Modulate = new Color(0f,1f,0f);
             control.SelfModulate = new Color(0f,1f,0f);
-            control.RectScale = original;
-            control.RectPosition = original;
-            control.RectRotation = 3f;
+            control.Scale = original;
+            control.Position = original;
+            control.Rotation = 3f;
 
             var status = control.CreateRestorer();
             status.Save();
-            control.RectPivotOffset = Vector2.Zero;
+            control.PivotOffset = Vector2.Zero;
             control.Modulate = new Color(0.1f,0.2f,0.3f);
             control.SelfModulate = new Color(0.1f,0.2f,0.3f);
-            control.RectScale *= 0.2f;
-            control.RectPosition += Vector2.One;
-            control.RectRotation *= 3f;
+            control.Scale *= 0.2f;
+            control.Position += Vector2.One;
+            control.Rotation *= 3f;
 
             status.Restore();
 
-            Assert.That(control.RectPivotOffset, Is.EqualTo(original));
+            Assert.That(control.PivotOffset, Is.EqualTo(original));
             Assert.That(control.Modulate, Is.EqualTo(new Color(0f,1f,0f)));
             Assert.That(control.SelfModulate, Is.EqualTo(new Color(0f,1f,0f)));
-            Assert.That(control.RectScale, Is.EqualTo(original));
-            Assert.That(control.RectPosition, Is.EqualTo(original));
-            Assert.That(control.RectRotation, Is.EqualTo(3f));
+            Assert.That(control.Scale, Is.EqualTo(original));
+            Assert.That(control.Position, Is.EqualTo(original));
+            Assert.That(control.Rotation, Is.EqualTo(3f));
         }
 
         [Test]
@@ -103,17 +103,17 @@ namespace Betauer.Tests {
             await this.AwaitIdleFrame();
             b1.GrabFocus();
             await this.AwaitIdleFrame();
-            Assert.That(container.GetFocusOwner(), Is.EqualTo(b1));
+            Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b1));
 
             var r = container.CreateFocusOwnerRestorer();
             r.Save();
             b2.GrabFocus();
             await this.AwaitIdleFrame();
-            Assert.That(container.GetFocusOwner(), Is.EqualTo(b2));
+            Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b2));
 
             r.Restore();
             await this.AwaitIdleFrame();
-            Assert.That(container.GetFocusOwner(), Is.EqualTo(b1));
+            Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b1));
         }
 
         [Test]
@@ -196,12 +196,12 @@ namespace Betauer.Tests {
             Assert.That(sprite.Rotation, Is.EqualTo(3f));
         }
 
-        public async Task<Sprite> CreateSprite(int width = 100) {
-            Sprite sprite = new Sprite();
+        public async Task<Sprite2D> CreateSprite(int width = 100) {
+            Sprite2D sprite = new Sprite2D();
             sprite.Position = new Vector2(100, 100);
             // var gradientTexture = new GradientTexture();
             var imageTexture = new ImageTexture();
-            imageTexture.SetSizeOverride(new Vector2(width, width));
+            imageTexture.SetSizeOverride(new Vector2i(width, width));
             sprite.Texture = imageTexture;
             AddChild(sprite);
             await this.AwaitIdleFrame();

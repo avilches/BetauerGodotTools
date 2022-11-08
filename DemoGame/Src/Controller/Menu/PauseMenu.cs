@@ -51,13 +51,13 @@ namespace Veronenger.Controller.Menu {
         public Task ShowPauseMenu() {
             Show();
             PartialFadeOut.Play(_backgroundFader, 0f, 0.5f);
-            _blackBar.RectSize = new Vector2(20000, _blackBar.RectSize.y);
+            _blackBar.Size = new Vector2(20000, _blackBar.Size.y);
             _BlackBarPosition();
             return _menuContainer.Start();
         }
 
         private void _BlackBarPosition() {
-            _blackBar.RectPosition = new Vector2(-10000, _centerContainer.RectPosition.y);
+            _blackBar.Position = new Vector2(-10000, _centerContainer.Position.y);
         }
 
         public void HidePauseMenu() {

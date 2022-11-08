@@ -8,7 +8,7 @@ namespace Betauer.Nodes {
             if (_quitRequested) return;
             _quitRequested = true;
             sceneTree.SetAutoAcceptQuit(false);
-            sceneTree.Notification(MainLoop.NotificationWmQuitRequest);
+            sceneTree.Notification((int)Node.NotificationWmCloseRequest);
             LoggerFactory.SetAutoFlush(true);
             sceneTree.Quit(exitCode);
         }

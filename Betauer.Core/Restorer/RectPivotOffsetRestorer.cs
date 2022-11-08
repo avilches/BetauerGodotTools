@@ -1,20 +1,20 @@
 using Godot;
 
 namespace Betauer.Restorer {
-    public class RectPivotOffsetRestorer : Restorer {
+    public class PivotOffsetRestorer : Restorer {
         private readonly Control _node;
-        private Vector2 _originalRectPivotOffset;
+        private Vector2 _originalPivotOffset;
 
-        public RectPivotOffsetRestorer(Control node) {
+        public PivotOffsetRestorer(Control node) {
             _node = node;
         }
 
         protected override void DoSave() {
-            _originalRectPivotOffset = _node.RectPivotOffset;
+            _originalPivotOffset = _node.PivotOffset;
         }
 
         protected override void DoRestore() {
-            _node.RectPivotOffset = _originalRectPivotOffset;
+            _node.PivotOffset = _originalPivotOffset;
         }
     }
 }

@@ -47,7 +47,7 @@ collision_layer = 2048
 collision_mask = 13
 script = ExtResource( 3 )
 
-[node name="SpriteIdle" type="Sprite" parent="."]
+[node name="SpriteIdle" type="Sprite2D" parent="."]
 texture = ExtResource( 2 )
 hframes = 11
 frame = 1
@@ -56,11 +56,11 @@ frame = 1
 autoplay = "Idle"
 anims/Idle = SubResource( 1 )
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource( 4 )
 hframes = 13
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 autoplay = "Walk"
 playback_speed = 4.0
 anims/Walk = SubResource( 2 )

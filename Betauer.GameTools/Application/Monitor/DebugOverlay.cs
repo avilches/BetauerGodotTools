@@ -105,7 +105,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TopBar.RectMinSize = new Vector2(TopBar.RectMinSize.x, string.IsNullOrWhiteSpace(title) ? 10 : 20);
+            TopBar.MinSize = new Vector2(TopBar.MinSize.x, string.IsNullOrWhiteSpace(title) ? 10 : 20);
             return this;                               
         }
 
@@ -127,7 +127,7 @@ namespace Betauer.Application.Monitor {
         public DebugOverlay StopFollowing() {
             IsFollowing = false;
             UpdateFollowButtonState();
-            _position = RectPosition;
+            _position = Position;
             return this;
         }
 
@@ -191,10 +191,10 @@ namespace Betauer.Application.Monitor {
         }
 
         private void FitContent() {
-            var x = Math.Min(OverlayContent.RectSize.x + 10, MaxSize.x);
-            var y = Math.Min(OverlayContent.RectSize.y + 10, MaxSize.x);
-            ScrollContainer.RectMinSize = new Vector2(x, y);
-            TopBar.RectMinSize = new Vector2(x, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
+            var x = Math.Min(OverlayContent.Size.x + 10, MaxSize.x);
+            var y = Math.Min(OverlayContent.Size.y + 10, MaxSize.x);
+            ScrollContainer.MinSize = new Vector2(x, y);
+            TopBar.MinSize = new Vector2(x, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
         }
 
         public override void _Ready() {
@@ -202,7 +202,7 @@ namespace Betauer.Application.Monitor {
                 .Child<VBoxContainer>()
                     .Child(TopBar)
                         .Config(control => {
-                            control.RectMinSize = new Vector2(100, 10);
+                            control.MinSize = new Vector2(100, 10);
                             control.SetAnchorsAndMarginsPreset(LayoutPreset.Wide);
                         })
                         .Child(TopBarColor)
@@ -292,8 +292,8 @@ namespace Betauer.Application.Monitor {
                 var origin = FollowPosition;
                 // TODO: GetTree().Root.Size doesn't work well with scaled viewport
                 var screenSize = GetTree().Root.Size;
-                var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
-                var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
+                var limitX = Size.x >= screenSize.x ? 20 : Size.x; 
+                var limitY = Size.y >= screenSize.y ? 20 : Size.y; 
                 // Ensure the user can't drag and drop the overlay outside of the screen
                 newPosition = new Vector2(
                     Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
@@ -312,8 +312,8 @@ namespace Betauer.Application.Monitor {
                     var newPosition = FollowPosition + _position;
                     // Ensure the overlay doesn't go out of the screen when following the node
                     var screenSize = GetTree().Root.Size;
-                    var limitX = RectSize.x >= screenSize.x ? 20 : RectSize.x; 
-                    var limitY = RectSize.y >= screenSize.y ? 20 : RectSize.y; 
+                    var limitX = Size.x >= screenSize.x ? 20 : Size.x; 
+                    var limitY = Size.y >= screenSize.y ? 20 : Size.y; 
                     newPosition = new Vector2(
                         Mathf.Clamp(newPosition.x, 0, screenSize.x - limitX),
                         Mathf.Clamp(newPosition.y, 0, screenSize.y - limitY));
@@ -322,7 +322,7 @@ namespace Betauer.Application.Monitor {
                     SetPosition(_position);
                 }
                 // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
-                RectSize = Vector2.Zero;
+                Size = Vector2.Zero;
             }
         }
         

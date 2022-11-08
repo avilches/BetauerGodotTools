@@ -7,9 +7,9 @@ namespace Betauer.Nodes.Property.Callback {
 
         public override float GetValue(Node node) {
             return node switch {
-                Control control => control.RectScale.y,
+                Control control => control.Scale.y,
                 Node2D node2D => node2D.Scale.y,
-                Spatial spatial => spatial.Scale.y,
+                Node3D node3D => node3D.Scale.y,
                 _ => throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}")
             };
         }
@@ -17,16 +17,16 @@ namespace Betauer.Nodes.Property.Callback {
         public override void SetValue(Node node, float value) {
             if (node is Node2D) node.SetIndexed("scale:y", value);
             else if (node is Control control) control.SetIndexed("rect_scale:y", value);
-            else if (node is Spatial spatial) spatial.SetIndexed("scale:y", value);
+            else if (node is Node3D node3D) node3D.SetIndexed("scale:y", value);
             else throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}");
         }
 
         public override bool IsCompatibleWith(Node node) {
-            return node is Spatial || node is Control || node is Node2D;
+            return node is Node3D || node is Control || node is Node2D;
         }
 
         public override string ToString() {
-            return "ScaleYProperty<float>(node2D: \"sale:y\", control: \"rect_scale:y\", spatial: \"scale:y\")";
+            return "ScaleYProperty<float>(node2D: \"sale:y\", control: \"rect_scale:y\", node3D: \"scale:y\")";
         }
     }
 }

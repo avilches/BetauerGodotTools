@@ -22,8 +22,8 @@ namespace Veronenger.Controller.Animation {
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
-        private SceneTreeTween _tween;
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _tween;
+        private Tween _sceneTreeTween;
 
         private void RotateAligned(float angle) => RotateAligned(_platforms, angle, Radius);
 

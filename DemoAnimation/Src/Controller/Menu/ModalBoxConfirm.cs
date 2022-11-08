@@ -72,7 +72,7 @@ namespace DemoAnimation.Controller.Menu {
             var yesButton = startMenu.AddButton("Yes", "Yes");
             noButton.OnPressed(() => _promise.TrySetResult(false));
             yesButton.OnPressed(() => _promise.TrySetResult(true));
-            noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
+            noButton!.MinSize = yesButton!.MinSize = new Vector2(60, 0);
             return mainMenu;
         }
 

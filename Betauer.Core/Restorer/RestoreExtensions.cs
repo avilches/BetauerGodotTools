@@ -14,7 +14,7 @@ namespace Betauer.Restorer {
                 "global_position", "transform",
             }).ToArray();
 
-        // Node -> CanvasItem -> Node2D -> Sprite
+        // Node -> CanvasItem -> Node2D -> Sprite2D
         public static readonly string[] SpriteProperties = Node2DProperties.Concat(new[] { "offset",
             // Not tested
             "frame", "flip_h", "flip_v" }).ToArray();
@@ -71,7 +71,7 @@ namespace Betauer.Restorer {
 
         public static PropertyNameRestorer CreateRestorer(this Node node) {
             return node switch {
-                Sprite sprite => new PropertyNameRestorer(node, SpriteProperties),
+                Sprite2D sprite => new PropertyNameRestorer(node, SpriteProperties),
                 Node2D node2D => new PropertyNameRestorer(node, Node2DProperties),
                 BaseButton button => new PropertyNameRestorer(node, BaseButtonProperties),
                 Control control => new PropertyNameRestorer(node, ControlProperties),

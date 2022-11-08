@@ -20,7 +20,7 @@ namespace Betauer.Animation.Tween {
             _binds = binds;
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+        public float Start(Tween sceneTreeTween, float initialDelay, Node target) {
             if (!Object.IsInstanceValid(sceneTreeTween)) {
                 Logger.Warning("Can't start a " + nameof(MethodCallbackTweener) + " from a freed tween instance");
                 return 0;

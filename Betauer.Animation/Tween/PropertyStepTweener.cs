@@ -16,7 +16,7 @@ namespace Betauer.Animation.Tween {
             return PropertyFactory(node).IsCompatibleWith(node);
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+        public float Start(Tween sceneTreeTween, float initialDelay, Node target) {
             var property = PropertyFactory(target);
             if (!Validate(Steps.Count, target, property)) return 0;
             TProperty initialValue = property.GetValue(target);

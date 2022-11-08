@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Veronenger.Tests.NodeTests {
     [TestFixture]
     // [Ignore("")]
-    public class SpatialTests : Spatial {
+    public class SpatialTests : Node3D {
         const float marginOfError = 0.01f;
 
         [TearDown]

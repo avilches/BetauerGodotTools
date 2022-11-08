@@ -188,7 +188,7 @@ namespace DemoAnimation.Controller.Menu {
             return mainMenu;
         }
 
-        private SceneTreeTween? _effectsMenuSceneTreeTween;
+        private Tween? _effectsMenuSceneTreeTween;
         private Action? _effectsMenuOnFinish;
         private void CreateEffectsMenu(Betauer.UI.Menu effectsMenu) {
             string oldCategory = null;
@@ -231,7 +231,7 @@ namespace DemoAnimation.Controller.Menu {
         }
 
 
-        private SceneTreeTween _sceneTreeTweenDimEffect;
+        private Tween _sceneTreeTweenDimEffect;
         public void DimOut() {
             _sceneTreeTweenDimEffect?.Kill();
             _sceneTreeTweenDimEffect = Templates.FadeOut.Play(this, 0f, 1f);

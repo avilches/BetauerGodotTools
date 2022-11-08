@@ -37,8 +37,6 @@ using Range = Godot.Range;
 namespace Betauer.Signal {{
     public static partial class SignalExtensions {{
 
-        public static SignalManager SignalFactory => DefaultSignalManager.Instance;
-
         public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>
             SignalFactory.Create(target, signal, action, oneShot, deferred);
 

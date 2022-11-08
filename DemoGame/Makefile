@@ -57,7 +57,8 @@ clean:
 .PHONY: import
 import: clean
 	rm -rf "${ROOT_FOLDER}/.import"
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
+	rm -rf "${ROOT_FOLDER}/.godot/imported"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --build-solutions -q
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo "    config/name=\"${SOLUTION}\""
@@ -77,7 +78,7 @@ run:
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --no-window --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --headless --verbose
 
 .PHONY: editor
 editor:
@@ -86,19 +87,19 @@ editor:
 .PHONY: export/osx
 export/osx: check-version
 	mkdir -p ${EXPORT_OSX} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Mac OSX" "${EXPORT_OSX}/${NAME}-${VERSION}.zip" 2>&1 | tee "${EXPORT_OSX}/../osx.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Mac OSX" "${EXPORT_OSX}/${NAME}-${VERSION}.zip" 2>&1 | tee "${EXPORT_OSX}/../osx.log"
 	unzip "${EXPORT_OSX}/${NAME}-${VERSION}.zip" -d "${EXPORT_OSX}"
 	open "${EXPORT_OSX}" 
 
 .PHONY: export/win
 export/win: check-version
 	mkdir -p ${EXPORT_WIN} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Windows Desktop" "${EXPORT_WIN}/${NAME}.exe" 2>&1 | tee "${EXPORT_WIN}/../win.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Windows Desktop" "${EXPORT_WIN}/${NAME}.exe" 2>&1 | tee "${EXPORT_WIN}/../win.log"
 
 .PHONY: export/linux 
 export/linux: check-version
 	mkdir -p ${EXPORT_LINUX} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Linux/X11" "${EXPORT_LINUX}/${NAME}.x86_64" 2>&1 | tee "${EXPORT_LINUX}/../linux.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Linux/X11" "${EXPORT_LINUX}/${NAME}.x86_64" 2>&1 | tee "${EXPORT_LINUX}/../linux.log"
 
 .PHONY: release
 release:
@@ -118,7 +119,7 @@ release:
 	@echo "Update project.godot and exports_presets.cfg?"
 	@echo "(CTRL+C to stop)"
 	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --no-window
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --headless
 
 .PHONY: export/all
 export/all: clean build release export/win export/osx export/linux

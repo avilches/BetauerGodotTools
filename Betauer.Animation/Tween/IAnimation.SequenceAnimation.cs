@@ -15,7 +15,7 @@ namespace Betauer.Animation.Tween {
             return sequenceBuilder;
         }
 
-        public override SceneTreeTween Play(Node? target, float initialDelay = 0) {
+        public override Tween Play(Node? target, float initialDelay = 0) {
             if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
             var (realTarget, sceneTreeTween) = CreateSceneTreeTween(target);
             StartAction?.Invoke(realTarget);
@@ -24,7 +24,7 @@ namespace Betauer.Animation.Tween {
             return sceneTreeTween;
         }
 
-        public SceneTreeTween Play(IEnumerable<Node> nodes, float delayBetweenNodes = 0, float initialDelay = 0) {
+        public Tween Play(IEnumerable<Node> nodes, float delayBetweenNodes = 0, float initialDelay = 0) {
             if (TweenList.Count == 0) throw new Exception("Can't start a sequence without animations");
             var (_, sceneTreeTween) = CreateSceneTreeTween(nodes.First());
             nodes.ForEach(node => {
@@ -36,7 +36,7 @@ namespace Betauer.Animation.Tween {
             return sceneTreeTween;
         }
 
-        protected float ExecuteTweenList(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+        protected float ExecuteTweenList(Tween sceneTreeTween, float initialDelay, Node target) {
             float accumulatedDelay = 0;
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
@@ -211,7 +211,7 @@ namespace Betauer.Animation.Tween {
                 _sequenceAnimation = sequenceAnimation;
             }
 
-            public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target) {
+            public float Start(Tween sceneTreeTween, float initialDelay, Node target) {
                 if (_sequenceAnimation.Loops == 0) throw new InvalidAnimationException("Nested sequence can not have infinite loops (0)");
                 if (_sequenceAnimation.TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
                 var accumulated = 0f;

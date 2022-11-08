@@ -7,7 +7,7 @@ using Godot;
 namespace Betauer.Animation.Tween {
     public interface IPropertyKeyframeTweener {
         public bool IsCompatibleWith(Node node);
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration);
+        public float Start(Tween sceneTreeTween, float initialDelay, Node target, float duration);
     }
 
     public abstract class PropertyKeyframeTweener<TProperty> : PropertyTweener<TProperty>, IPropertyKeyframeTweener {
@@ -17,7 +17,7 @@ namespace Betauer.Animation.Tween {
             base(propertyFactory, defaultEasing) {
         }
 
-        public float Start(SceneTreeTween sceneTreeTween, float initialDelay, Node target, float duration) {
+        public float Start(Tween sceneTreeTween, float initialDelay, Node target, float duration) {
             var property = PropertyFactory(target);
             if (!Validate(Keyframes.Count, target, property)) return 0;
             var initialValue = property.GetValue(target);

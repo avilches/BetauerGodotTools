@@ -127,7 +127,7 @@ namespace Betauer.Animation {
 
         private class LoopTween : LoopStatus, IKillable {
             private readonly IAnimation _animation;
-            private SceneTreeTween _sceneTreeTween;
+            private Tween _sceneTreeTween;
 
             internal LoopTween(AnimationStack animationStack, Logger logger, string name, IAnimation animation) : base(
                 animationStack, logger, name) {
@@ -152,7 +152,7 @@ namespace Betauer.Animation {
 
         private class OnceTween : OnceStatus, IKillable {
             private readonly IAnimation _animation;
-            private SceneTreeTween _sceneTreeTween;
+            private Tween _sceneTreeTween;
 
             internal OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
                 bool killPrevious, IAnimation animation) :

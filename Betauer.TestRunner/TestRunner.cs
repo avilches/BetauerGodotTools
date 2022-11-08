@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 namespace Betauer.TestRunner {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,

@@ -12,14 +12,14 @@ namespace Betauer.Nodes.Property {
 
         protected override float ComputeValue(float percent) {
             var size = Node switch {
-                Sprite sprite => sprite.GetSpriteSize(),
-                Control control => control.RectSize,
+                Sprite2D sprite => sprite.GetSpriteSize(),
+                Control control => control.Size,
             };
             return _initialValue + (size.y * percent);
         }
 
         public sealed override bool IsCompatibleWith(Node node) {
-            return node is Sprite || node is Control;
+            return node is Sprite2D || node is Control;
         }
 
         public override string ToString() {

@@ -14,13 +14,16 @@ namespace Betauer.Time {
 
         private readonly SceneTree _sceneTree;
         private SceneTreeTimer _sceneTreeTimer;
-        private float _elapsed = 0;
-        private float _accumulated = 0;
-        private float _timeLeftOnPause = 0;
+        private double _elapsed = 0;
+        private double _accumulated = 0;
+        private double _timeLeftOnPause = 0;
         private bool _paused = true;
         private bool _running = false;
 
-        public readonly Node.PauseModeEnum PauseMode;
+        public bool ProcessAlways = true;
+        public bool ProcessInPhysics = false;
+        public bool IgnoreTimeScale = false;
+
         public bool IsRunning => _running && !_paused;
 
         /// <summary>
@@ -31,9 +34,11 @@ namespace Betauer.Time {
         /// PauseModeEnum.Inherit or PauseModeEnum.Stop: the timer will pause along with the SceneTree
         /// PauseModeEnum.Process: timer run always, ignoring the SceneTree.Pause state 
         /// </param>
-        public GodotStopwatch(SceneTree sceneTree, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotStopwatch(SceneTree sceneTree, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
-            PauseMode = pauseMode;
+            ProcessAlways = processAlways;
+            ProcessInPhysics = processInPhysics;
+            IgnoreTimeScale = ignoreTimeScale;
             _sceneTreeTimer = CreateTimer();
             // Not running when it starts
             _paused = true;
@@ -41,7 +46,7 @@ namespace Betauer.Time {
             _elapsed = 0;
         }
 
-        public float Elapsed {
+        public double Elapsed {
             get {
                 if (_running && !_paused) return InternalStartTime - _sceneTreeTimer.TimeLeft + _accumulated;
                 return _elapsed;
@@ -90,14 +95,14 @@ namespace Betauer.Time {
             return this;
         }
 
-        public float Alarm { get; private set; } = float.MaxValue;
+        public double Alarm { get; private set; } = double.MaxValue;
 
         public GodotStopwatch RemoveAlarm() {
-            Alarm = float.MaxValue;
+            Alarm = double.MaxValue;
             return this;
         }
 
-        public GodotStopwatch SetAlarm(float alarm) {
+        public GodotStopwatch SetAlarm(double alarm) {
             Alarm = alarm;
             return this;
         }
@@ -118,8 +123,7 @@ namespace Betauer.Time {
         }
 
         private SceneTreeTimer CreateTimer() {
-            var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer = _sceneTree.CreateTimer(InternalStartTime, pauseModeProcess);
+            var sceneTreeTimer = _sceneTree.CreateTimer(InternalStartTime, ProcessAlways, ProcessInPhysics, IgnoreTimeScale);
             // With this trick will create another timer if the current one finishes.
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (!_paused) _accumulated += InternalStartTime;

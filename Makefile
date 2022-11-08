@@ -1,18 +1,20 @@
 #!/usr/bin/env make
 
-.DEFAULT_SHELL ?= /bin/bash
-.DEFAULT_GOAL  := help
-ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+TARGET_PLATFORM  := "macos"
+GODOT_APP        := "/Applications/Godot4b4_mono.app"
+MODULES          := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
+DELAY_IMPORT     := 10
+
+.DEFAULT_SHELL   ?= /bin/bash
+.DEFAULT_GOAL    := help
+ROOT_FOLDER      := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 include ${ROOT_FOLDER}/application.properties
-TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
-MODULES        := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
+TIMESTAMP        := $(shell date "+%Y-%m-%d_%H.%M.%S")
+BUILD_FOLDER     := ${ROOT_FOLDER}/.godot/mono/temp/bin
+EXPORT_FOLDER    := ${ROOT_FOLDER}/export/releases/${VERSION}
 
-BUILD_FOLDER   := ${ROOT_FOLDER}/.mono/temp/bin
-EXPORT_FOLDER  := ${ROOT_FOLDER}/export/releases/${VERSION}
-
-TARGET_PLATFORM    ?= osx
-GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
+GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
+GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot4b4_mono.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
 
 .PHONY: help
@@ -35,29 +37,45 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
-	find "${ROOT_FOLDER}" -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/bin" -type d | xargs rm -rf
-	find "${ROOT_FOLDER}" -regex "${ROOT_FOLDER}/Betauer\.[A-Za-z\.]*/obj" -type d | xargs rm -rf
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
-	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
+	rm -rf "${ROOT_FOLDER}/.godot/mono"
 
 .PHONY: import
-import: clean
+import:
+# Delete and run editor
 	rm -rf "${ROOT_FOLDER}/.import"
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
- 
-.PHONY: build/debug
-build/debug:
-	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=Debug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportDebug" /p:GodotTargetPlatform=${TARGET_PLATFORM}
+	rm -rf "${ROOT_FOLDER}/.godot/imported"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --editor & echo "$$!" > "${ROOT_FOLDER}/.godot.editor.pid"
+	@echo "Editor pid is:" 
+	@cat "${ROOT_FOLDER}/.godot.editor.pid"
 
-.PHONY: build/release
-build/release:
-	dotnet msbuild "${ROOT_FOLDER}/Betauer.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+# Wait
+	@echo "Giving some to the editor to create the imported files..."
+	@for (( i=${DELAY_IMPORT}; i>0; i-- )) do echo "$$i..." ; sleep 1 ; done
+
+# Kill 
+	@echo "Killing editor" 
+	pkill -F "${ROOT_FOLDER}/.godot.editor.pid"
+	@rm "${ROOT_FOLDER}/.godot.editor.pid"
+ 
+.PHONY: build/Debug
+build/Debug:
+	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c Debug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/Debug"
+
+.PHONY: build/ExportDebug
+build/ExportDebug:
+	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c ExportDebug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportDebug"
+
+.PHONY: build/ExportRelease
+build/ExportRelease:
+	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c ExportRelease -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportRelease"
 
 .PHONY: export/dll
-export/dll: clean bump build/debug build/release 
+export/dll:
+	$(MAKE) bump
+	$(MAKE) clean
+	$(MAKE) build/Debug 
+	$(MAKE) build/ExportDebug 
+	$(MAKE) build/ExportRelease 
 	mkdir -p "${EXPORT_FOLDER}/ExportRelease"
 	mkdir -p "${EXPORT_FOLDER}/ExportDebug"
 	mkdir -p "${EXPORT_FOLDER}/Debug"
@@ -82,7 +100,7 @@ generate:
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "TestRunner.cs" --no-window --verbose 
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "RunTests.cs" --headless --verbose 
 
 .PHONY: editor
 editor:

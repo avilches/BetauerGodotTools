@@ -20,40 +20,30 @@ namespace Betauer.Signal {
         }
     }
 
-    public static class IsVisibilityNotifier2D {
+    public static class IsVisibleOnScreenNotifier2D {
         
         // TODO: this class is not tested
         public class InsideScreen : EnterExitHandler<InsideScreen> {
-            public readonly VisibilityNotifier2D Origin;
+            public readonly VisibleOnScreenNotifier2D Origin;
 
-            public InsideScreen(VisibilityNotifier2D origin) {
+            public InsideScreen(VisibleOnScreenNotifier2D origin) {
                 Origin = origin;
                 EnteredSignalHandler = Origin.OnScreenEntered(() => Inside = true);
                 ExitedSignalHandler = Origin.OnScreenExited(() => Inside = false);
             }
         }
+    }
+
+    public static class IsVisibleOnScreenNotifier3D {
         
         // TODO: this class is not tested
-        public class InsideViewport : EnterExitHandler<InsideViewport> {
-            public readonly VisibilityNotifier2D Origin;
-            public readonly Viewport Viewport;
+        public class InsideScreen : EnterExitHandler<InsideScreen> {
+            public readonly VisibleOnScreenNotifier3D Origin;
 
-            public InsideViewport(VisibilityNotifier2D origin, Viewport viewport) {
+            public InsideScreen(VisibleOnScreenNotifier3D origin) {
                 Origin = origin;
-                Viewport = viewport;
-                EnteredSignalHandler = Origin.OnViewportEntered((v) => {
-                    if (viewport == v) Inside = true;
-                });
-                ExitedSignalHandler = Origin.OnViewportExited((v) => {
-                    if (viewport == v) Inside = false;
-                    Inside = false;
-                });
-            }
-
-            public InsideViewport DisconnectIfInvalidViewport() {
-                EnteredSignalHandler.DisconnectIfInvalid(Viewport);
-                ExitedSignalHandler.DisconnectIfInvalid(Viewport);
-                return this;
+                EnteredSignalHandler = Origin.OnScreenEntered(() => Inside = true);
+                ExitedSignalHandler = Origin.OnScreenExited(() => Inside = false);
             }
         }
     }
@@ -70,10 +60,21 @@ namespace Betauer.Signal {
         }
         
         // TODO: this class is not tested
-        public class InsideCollisionObject : EnterExitHandler<InsideControl> {
-            public readonly CollisionObject Origin;
+        public class InsideCollisionObject3D : EnterExitHandler<InsideControl> {
+            public readonly CollisionObject3D Origin;
 
-            public InsideCollisionObject(CollisionObject origin) {
+            public InsideCollisionObject3D(CollisionObject3D origin) {
+                Origin = origin;
+                EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
+                ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);
+            }
+        }
+        
+        // TODO: this class is not tested
+        public class InsideWindow : EnterExitHandler<InsideControl> {
+            public readonly Window Origin;
+
+            public InsideWindow(Window origin) {
                 Origin = origin;
                 EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
                 ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);

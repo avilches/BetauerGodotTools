@@ -12,9 +12,9 @@ autowrap = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 
-[node name="Sprite" type="Sprite" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="."]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 
 [node name="SlopeRaycast" type="RayCast2D" parent="."]
 position = Vector2( 0, -4 )

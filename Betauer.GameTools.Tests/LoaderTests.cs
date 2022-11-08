@@ -142,7 +142,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(c.Scene<Node>("MyScene"), Is.TypeOf<Node2D>());
 
             Assert.Throws<InvalidCastException>(() => c.Resource<Node2D>("1x1-1"));
-            Assert.Throws<InvalidCastException>(() => c.Scene<Spatial>("MyScene"));
+            Assert.Throws<InvalidCastException>(() => c.Scene<Node3D>("MyScene"));
             
             Assert.Throws<KeyNotFoundException>(() => c.Resource<Texture>("NOT FOUND"));
             Assert.Throws<KeyNotFoundException>(() => c.Scene<Node>("NOT FOUND"));
@@ -167,7 +167,7 @@ namespace Betauer.GameTools.Tests {
         
         internal class ResourcesLoaderMetadataSceneWrong : ResourceLoaderContainer {
             [Load("res://test-resources/MyScene.tscn")]
-            public Spatial Spatial;
+            public Node3D Node3D;
         }
         
         internal class ResourcesLoaderMetadataFuncTypeSceneWrong : ResourceLoaderContainer {
@@ -227,10 +227,10 @@ namespace Betauer.GameTools.Tests {
 
         internal class ResourcesLoaderMetadataSceneFuncWrong : ResourceLoaderContainer {
             [Load("res://test-resources/MyScene.tscn")]
-            public Func<Spatial> SpatialFactory;
+            public Func<Node3D> SpatialFactory;
         }
 
-        [Test(Description = "The PackedScene is a Node2D. The function return Func<Spatial>. This fails only at runtime")]
+        [Test(Description = "The PackedScene is a Node2D. The function return Func<Node3D>. This fails only at runtime")]
         public async Task WrongPackedSceneFunctionReturnType() {
             var r1 = new ResourcesLoaderMetadataSceneFuncWrong();
             await r1.SetAwaiter(async () => await this.AwaitIdleFrame()).Load();

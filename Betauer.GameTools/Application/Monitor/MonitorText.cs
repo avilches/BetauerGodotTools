@@ -29,7 +29,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public MonitorText SetMinWidth(int minWidth) {
-            Content.RectMinSize = new Vector2(minWidth, Content.RectMinSize.y);
+            Content.MinSize = new Vector2(minWidth, Content.MinSize.y);
             return this;
         }
 

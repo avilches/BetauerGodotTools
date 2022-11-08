@@ -31,11 +31,11 @@ namespace Veronenger.Controller.Character {
 
         private readonly Logger _logger = LoggerFactory.GetLogger<ZombieController>();
 
-        [OnReady("Sprite")] private Sprite _mainSprite;
+        [OnReady("Sprite2D")] private Sprite2D _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;
         [OnReady("Label")] public Label Label;
-        [OnReady("Sprite/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+        [OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
         [OnReady("Position2D")] public Position2D Position2D;
         [OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
@@ -50,7 +50,7 @@ namespace Veronenger.Controller.Character {
         public IOnceStatus AnimationDieRight { get; private set; }
         public IOnceStatus AnimationDieLeft { get; private set; }
 
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
 
         public void PlayAnimationAttacked() {
             _sceneTreeTween?.Kill();

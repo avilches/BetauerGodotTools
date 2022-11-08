@@ -4,32 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer", "Betauer.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.TestRunner", "Betauer.TestRunner\Betauer.TestRunner.csproj", "{D4AF6D1E-F888-4E90-9CBB-78C086F4F1C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "Betauer.GameTools\Betauer.GameTools.csproj", "{9A1E792A-6555-4E7A-B3CA-5F7842ED4C97}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI", "Betauer.DI\Betauer.DI.csproj", "{8A2BDA10-7F1E-401F-BD36-5868FDC59D69}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "Betauer.Core\Betauer.Core.csproj", "{D7BA25F4-2EA9-4650-8ABC-D9D58886EBD8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "Betauer.Bus\Betauer.Bus.csproj", "{8109BD79-50E8-47CB-9D06-ED49A1E5BF66}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus.Tests", "Betauer.Bus.Tests\Betauer.Bus.Tests.csproj", "{3DCC95BA-06F8-409B-9504-FDFB9054C7BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation", "Betauer.Animation\Betauer.Animation.csproj", "{198CF660-6DC8-4540-8217-CF008482368E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "Betauer.StateMachine\Betauer.StateMachine.csproj", "{6A539F22-EDEE-4F3F-954E-64D92B9BDE08}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Animation.Tests", "Betauer.Animation.Tests\Betauer.Animation.Tests.csproj", "{B8DE355A-FEC3-41D5-937F-62641C5E0C63}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core.Tests", "Betauer.Core.Tests\Betauer.Core.Tests.csproj", "{4172C392-C319-4CBD-B5DC-04AC927499D1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI.Tests", "Betauer.DI.Tests\Betauer.DI.Tests.csproj", "{D63D8E1E-F03E-40B7-96F9-A7BAA276EFB1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools.Tests", "Betauer.GameTools.Tests\Betauer.GameTools.Tests.csproj", "{E9A2D5DF-8914-4723-8457-3DDCCCEDDD81}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests", "Betauer.StateMachine.Tests\Betauer.StateMachine.Tests.csproj", "{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{99035984-0652-438B-992A-A9CAA49EE5AA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{F2B58A5D-591A-46F0-86F4-7432E2B232C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{23750989-C5EC-446C-ABE2-86CEB17751A3}"

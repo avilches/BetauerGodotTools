@@ -16,7 +16,7 @@ namespace Betauer {
                 return $"{typeName} @{hashCode:x8} (disposed)";
             }
             return o switch {
-                SceneTreeTween sceneTreeTween => 
+                Tween sceneTreeTween => 
                     $"{typeName} @{hashCode:x8} ({o.GetInstanceId()}){(sceneTreeTween.IsValid() ? "" : " (invalid)")}",
                 Node node => 
                     $"{typeName} \"{node.Name}\" @{hashCode:x8} ({o.GetInstanceId()})",

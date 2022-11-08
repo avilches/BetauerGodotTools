@@ -31,7 +31,7 @@ namespace Betauer {
         }
 
         public static Vector2 AngleToVector(this float angle) {
-            var rad = Mathf.Deg2Rad(angle);
+            var rad = Mathf.DegToRad(angle);
             return new Vector2(Mathf.Cos(rad),-Mathf.Sin(rad));
         }
         

@@ -36,7 +36,7 @@ tracks/1/keys = {
 "values": [ Vector2( 0, 0 ) ]
 }
 tracks/2/type = "value"
-tracks/2/path = NodePath("../Sprite:visible")
+tracks/2/path = NodePath("../Sprite2D:visible")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/imported = false
@@ -197,12 +197,12 @@ script = ExtResource( 3 )
 position = Vector2( 0, -14 )
 shape = SubResource( 1 )
 
-[node name="Sprite" parent="." index="2"]
+[node name="Sprite2D" parent="." index="2"]
 position = Vector2( 0, -14 )
 texture = ExtResource( 2 )
 hframes = 10
 
-[node name="AnimationPlayer" parent="Sprite" index="0"]
+[node name="AnimationPlayer" parent="Sprite2D" index="0"]
 anims/Attack = SubResource( 2 )
 anims/DieLeft = SubResource( 3 )
 anims/DieRight = SubResource( 4 )

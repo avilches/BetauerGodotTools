@@ -40,8 +40,8 @@ namespace Betauer.Animation.Tests {
 
         public async Task<Label> CreateLabel(int width = 100) {
             Label control = new Label();
-            control.RectPosition = new Vector2(100, 100);
-            control.RectSize = new Vector2(width, width);
+            control.Position = new Vector2(100, 100);
+            control.Size = new Vector2(width, width);
             AddChild(control);
             await this.AwaitIdleFrame();
             return control;

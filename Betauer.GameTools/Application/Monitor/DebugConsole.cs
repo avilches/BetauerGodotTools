@@ -255,7 +255,7 @@ namespace Betauer.Application.Monitor {
                                     slider.Name = "OpacitySlider";
                                     slider.Editable = true;
                                     slider.HintTooltip = "Opacity";
-                                    slider.RectMinSize = new Vector2(50, 5);
+                                    slider.MinSize = new Vector2(50, 5);
                                     slider.Value = InitialTransparentBackground * 25f;
                                     slider.OnValueChanged((value) => {
                                         SelfModulate = new Color(1, 1, 1, value / 25f);

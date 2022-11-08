@@ -116,9 +116,9 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureChart() {
-            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the RectMinSize
-            RectMinSize = new Vector2(ChartSize, 0);
-            _chartSpacer.RectMinSize = new Vector2(ChartSize, ChartSize);
+            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the MinSize
+            MinSize = new Vector2(ChartSize, 0);
+            _chartSpacer.MinSize = new Vector2(ChartSize, ChartSize);
 
             var center = ChartSize / 2;
             LineX.SetPointPosition(0, new Vector2(center, center));

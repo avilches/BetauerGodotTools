@@ -39,7 +39,7 @@ namespace Betauer.Animation.Tween {
         }
 
         protected Tweener RunStep(
-            SceneTreeTween sceneTreeTween,
+            Tween sceneTreeTween,
             Node target, IProperty<TProperty> property, TProperty from, TProperty to, 
             float start, float duration, IEasing? easing) {
             
@@ -59,7 +59,7 @@ namespace Betauer.Animation.Tween {
         }
 
         private static Tweener RunCurveBezierStep(
-            SceneTreeTween sceneTreeTween,
+            Tween sceneTreeTween,
             Node target, IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
             // TODO: there are no tests with bezier curves. No need to test the curve, but it needs to test if the value is set
@@ -80,7 +80,7 @@ namespace Betauer.Animation.Tween {
         }
 
         private static Tweener RunEasingStep(
-            SceneTreeTween sceneTreeTween,
+            Tween sceneTreeTween,
             Node target, IProperty<TProperty> property,
             TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
             if (property is IIndexedProperty indexedProperty) {

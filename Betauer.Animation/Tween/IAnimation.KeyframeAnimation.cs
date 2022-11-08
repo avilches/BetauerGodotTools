@@ -18,11 +18,11 @@ namespace Betauer.Animation.Tween {
             return sequenceBuilder;
         }
 
-        public override SceneTreeTween Play(Node? target, float initialDelay = 0) {
+        public override Tween Play(Node? target, float initialDelay = 0) {
             return Play(target, initialDelay, -1);
         }
 
-        public SceneTreeTween Play(Node target, float initialDelay, float duration) {
+        public Tween Play(Node target, float initialDelay, float duration) {
             duration = duration > 0 ? duration : Duration;
             var (node, sceneTreeTween) = ValidateAndCreateSceneTreeTween(target, duration);
             StartAction?.Invoke(node);
@@ -33,7 +33,7 @@ namespace Betauer.Animation.Tween {
             return sceneTreeTween;
         }
         
-        public SceneTreeTween Play(IEnumerable<Node> targets, float delayPerTarget = 0, float initialDelay = 0, float durationPerTarget = -1, float maxDurationAllTargets = -1) {
+        public Tween Play(IEnumerable<Node> targets, float delayPerTarget = 0, float initialDelay = 0, float durationPerTarget = -1, float maxDurationAllTargets = -1) {
             durationPerTarget = durationPerTarget > 0 ? durationPerTarget : Duration;
             if (maxDurationAllTargets > 0) {
                 var targetCount = targets.Count();
@@ -54,7 +54,7 @@ namespace Betauer.Animation.Tween {
             return sceneTreeTween;
         }
 
-        private (Node, SceneTreeTween) ValidateAndCreateSceneTreeTween(Node? target, float duration) {
+        private (Node, Tween) ValidateAndCreateSceneTreeTween(Node? target, float duration) {
             if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a keyframe animation without animations");
             if (duration <= 0) throw new InvalidAnimationException("Keyframe animation duration should be more than 0");
             return CreateSceneTreeTween(target);

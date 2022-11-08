@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tests {
     [TestFixture]
-    public class TimeTests : Node {
+    public partial class TimeTests : Node {
 
         [SetUp]
         public void SetUp() {
