@@ -6,9 +6,9 @@
 ### Godot ###
 
 # Godot-specific ignores
-.godot/editor
-.godot/mono
-.godot/shader_cache
+.godot/editor/
+.godot/mono/
+.godot/shader_cache/
 .godot/.gdignore
 .godot/uid_cache.bin
 
