@@ -4,7 +4,7 @@ using Vector2 = Godot.Vector2;
 using Vector3 = Godot.Vector3;
 
 namespace Betauer.Core.Tests {
-    [TestFixture]
+    /*[TestFixture]
     public class VariantHelperTests {
         [Test]
         public void SumVariantInt() {
@@ -45,5 +45,5 @@ namespace Betauer.Core.Tests {
                     new Color(0.1f, 0.1f, 0.1f, 0.1f), new Color(0.1f, 0.1f, 0.1f, 0.1f)),
                 Is.EqualTo(new Color(0f, 0f, 0f, 0f)));
         }
-    }
+    }*/
 }

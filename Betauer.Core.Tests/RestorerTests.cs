@@ -6,6 +6,7 @@ using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests {
+    /*
     [TestFixture]
     public partial class RestorerTests : Node {
 
@@ -208,4 +209,5 @@ namespace Betauer.Core.Tests {
             return sprite;
         }
     }
+    */
 }

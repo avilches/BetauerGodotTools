@@ -11,7 +11,7 @@ namespace Betauer.Core.Tests {
 
         [SetUp]
         public void SetUp() {
-            Engine.TimeScale = 1;
+                Engine.TimeScale = 1;
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace Betauer.Core.Tests {
             Assert.That(steps, Is.EqualTo(5).Within(2));
             godotScheduler.Stop();
         }
-
+           /*
         [Test]
         public async Task StopwatchAlarmTests() {
             var x = new GodotStopwatch(GetTree()).Start();
@@ -357,5 +357,7 @@ namespace Betauer.Core.Tests {
             Assert.That(x.IsRunning, Is.False);
             Assert.That(timeout, Is.True);
         }
+        */
     }
+    
 }

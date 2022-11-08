@@ -9,7 +9,7 @@ using NUnit.Framework;
 using Object = Godot.Object;
 
 namespace Betauer.Core.Tests.Memory {
-    [TestFixture]
+    /*[TestFixture]
     public partial class ObjectWatcherTests : Node {
         [SetUp]
         public void Setup() {
@@ -186,5 +186,5 @@ namespace Betauer.Core.Tests.Memory {
             Assert.That(dummies3.Sum(d => d.DisposedCalls), Is.LessThanOrEqualTo(50));
             Assert.That(DefaultObjectWatcherTask.Instance.Size, Is.EqualTo(75));
         }
-    }
+    }*/
 }
