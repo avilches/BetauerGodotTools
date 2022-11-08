@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class EnumExtensions {
         /// <summary>
         /// Cast a generic enum to int without boxing (that means not allocating new memory during the conversion)

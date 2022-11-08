@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public class PositionBySizeY : ComputedProperty<float> {
         private readonly float _initialValue;
 

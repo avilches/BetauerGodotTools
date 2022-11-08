@@ -5,7 +5,7 @@ using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static partial class SignalExtensions {
 
         public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>

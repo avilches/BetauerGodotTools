@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class VariantHelper {
         public static T SumVariant<T>(T op1, T op2) {
             Variant a;

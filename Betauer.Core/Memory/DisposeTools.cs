@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Memory {
+namespace Betauer.Core.Memory {
     public static class DisposeTools {
         public static bool ShowMessageOnNewInstance = false;
         public static bool ShowWarningOnShutdownDispose = false;

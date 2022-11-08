@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class TaskExtensions {
         public static Task OnException(this Task task, Action<Exception> action, bool rethrow = false) =>
             task.ContinueWith(t => {

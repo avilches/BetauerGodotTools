@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class PivotOffsetRestorer : Restorer {
         private readonly Control _node;
         private Vector2 _originalPivotOffset;

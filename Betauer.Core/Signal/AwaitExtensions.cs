@@ -5,7 +5,7 @@ using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static partial class AwaitExtensions {
       
         public static SignalAwaiter AwaitCancelled(this AcceptDialog target) =>

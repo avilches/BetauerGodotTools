@@ -3,13 +3,13 @@
         <TargetFramework>net6.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>10.0</LangVersion>
-        <RootNamespace>Betauer</RootNamespace>
+        <RootNamespace>Betauer.Core</RootNamespace>
         <PackageId>Betauer.Core</PackageId>
         <AssemblyName>Betauer.Core</AssemblyName>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="ZString" Version="2.5.0" />
-      <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
     </ItemGroup>
 </Project>

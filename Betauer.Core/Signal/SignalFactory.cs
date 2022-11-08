@@ -2,7 +2,7 @@ using System;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static class SignalFactory {
         public static SignalHandler Create(Object origin, string signal, Action action, bool oneShot, bool deferred) {
             var callable = action.Target is Object obj ? new Callable(obj, action.Method.Name) : Callable.From(action);

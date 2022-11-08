@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Vector2 = Godot.Vector2;
 using Vector3 = Godot.Vector3;
 
-namespace Betauer.Tests {
+namespace Betauer.Core.Tests {
     [TestFixture]
     public class VariantHelperTests {
         [Test]

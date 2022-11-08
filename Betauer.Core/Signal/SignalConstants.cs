@@ -1,5 +1,5 @@
 using System;
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static partial class SignalConstants {
         public const string AcceptDialog_CancelledSignal = "cancelled";
         public const string AcceptDialog_ConfirmedSignal = "confirmed";

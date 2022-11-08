@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static partial class EnumerableExtensions {
         /// <summary>
         /// Immediately executes the given action on each element in the source sequence.

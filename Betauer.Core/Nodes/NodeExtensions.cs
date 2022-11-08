@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Nodes {
+namespace Betauer.Core.Nodes {
     public static partial class NodeExtensions {
         public static T? GetNode<T>(this Node parent) where T : Node {
             return parent.GetChildren().OfType<T>().First();

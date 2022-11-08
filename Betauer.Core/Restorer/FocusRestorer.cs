@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class FocusRestorer : Restorer {
         private Control? _focused;
         private readonly Control _control;

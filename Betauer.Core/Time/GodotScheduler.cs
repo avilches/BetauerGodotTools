@@ -1,8 +1,8 @@
 using System;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer.Time {
+namespace Betauer.Core.Time {
     /// <summary>
     /// Execute a lambda periodically. It uses internally the "timeout" signal from a SceneTree timer,
     /// so it's affected by the Engine.Timescale and the SceneTree.Pause state.

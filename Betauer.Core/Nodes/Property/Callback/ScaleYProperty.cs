@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Nodes.Property.Callback {
+namespace Betauer.Core.Nodes.Property.Callback {
     public class ScaleYProperty : Property<float> {
         internal ScaleYProperty() {
         }

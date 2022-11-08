@@ -1,8 +1,8 @@
 using System;
-using Betauer.Time;
+using Betauer.Core.Time;
 using Godot;
 
-namespace Betauer.Memory {
+namespace Betauer.Core.Memory {
     public class DefaultObjectWatcherTask {
         public static ObjectWatcherTask Instance = new();
     }

@@ -1,8 +1,8 @@
 using System;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer.Time {
+namespace Betauer.Core.Time {
     public static class GodotTimeoutExtensions {
         public static GodotTimeout OnTimeout(this SceneTree sceneTree, double timeout, Action action, 
             bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {

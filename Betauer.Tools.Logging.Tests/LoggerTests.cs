@@ -1,9 +1,6 @@
 using NUnit.Framework;
 
 namespace Betauer.Tools.Logging.Tests {
-    public class Assembly {
-    }
-
     [TestFixture]
     public class LoggerTests {
         [SetUp]

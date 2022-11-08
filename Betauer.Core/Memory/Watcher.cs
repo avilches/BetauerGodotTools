@@ -3,7 +3,7 @@ using System.Linq;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Memory {
+namespace Betauer.Core.Memory {
     public class Watcher : IObjectConsumer {
         private readonly Func<bool> _condition;
         public event Action? OnExecute;

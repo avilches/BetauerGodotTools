@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Core.Time;
 using Betauer.TestRunner;
-using Betauer.Time;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Core.Tests {
     [TestFixture]
     public partial class TimeTests : Node {
 

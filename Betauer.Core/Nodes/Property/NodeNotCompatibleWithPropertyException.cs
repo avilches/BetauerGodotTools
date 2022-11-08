@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public class NodeNotCompatibleWithPropertyException : Exception {
         public NodeNotCompatibleWithPropertyException() {
         }

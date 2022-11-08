@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public abstract class ComputedProperty<TProperty> : IProperty, IProperty<TProperty> {
         protected readonly IProperty<TProperty> Property;
         protected readonly Node Node;

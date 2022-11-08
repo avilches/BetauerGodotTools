@@ -1,7 +1,7 @@
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Godot;
 
-namespace Betauer.Nodes {
+namespace Betauer.Core.Nodes {
     /**
      * Special thanks to Alessandro Senese (Ceceppa)
      *

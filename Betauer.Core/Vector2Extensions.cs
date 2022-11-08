@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class Vector2Extensions {
         
         /// <summary>

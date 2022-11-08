@@ -1,7 +1,7 @@
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Core.Tests {
     [TestFixture]
     public class Vector2ExtensionsTest {
         [Test]

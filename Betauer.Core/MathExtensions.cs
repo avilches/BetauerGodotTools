@@ -1,4 +1,4 @@
-namespace Betauer {
+namespace Betauer.Core {
     public static class MathExtensions {
         /// <summary>
         /// Calculate a modulo operation, allowing negative numbers. The % operator in C# is not the

@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using Betauer.Nodes.Property;
-using Betauer.Restorer;
+using Betauer.Core.Nodes.Property;
+using Betauer.Core.Restorer;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Core.Tests {
     [TestFixture]
     public partial class RestorerTests : Node {
 

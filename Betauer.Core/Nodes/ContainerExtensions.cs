@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Godot;
 
-namespace Betauer.Nodes {
+namespace Betauer.Core.Nodes {
     public static partial class ContainerExtensions {
         /// <summary>
         /// It loops the children (only the buttons) and fixes all the FocusNeighbor* fields, taking into account

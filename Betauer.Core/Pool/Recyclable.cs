@@ -1,7 +1,7 @@
 using System;
 using Object = Godot.Object;
 
-namespace Betauer.Pool {
+namespace Betauer.Core.Pool {
     public interface IRecyclable {
         string GetToken();
         int GetUsages();

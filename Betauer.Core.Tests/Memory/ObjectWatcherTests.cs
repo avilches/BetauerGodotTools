@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Memory;
+using Betauer.Core.Memory;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 using Object = Godot.Object;
 
-namespace Betauer.Tests.Memory {
+namespace Betauer.Core.Tests.Memory {
     [TestFixture]
     public partial class ObjectWatcherTests : Node {
         [SetUp]

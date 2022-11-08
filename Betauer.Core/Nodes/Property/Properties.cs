@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public static partial class Properties {
         public static readonly IndexedControlOrNode2DProperty<Color> Modulate =
             new IndexedControlOrNode2DProperty<Color>("modulate", "modulate");

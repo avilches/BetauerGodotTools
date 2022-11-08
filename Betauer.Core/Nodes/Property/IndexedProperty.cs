@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public interface IIndexedProperty {
         public NodePath GetIndexedPropertyName(Node node);
     }

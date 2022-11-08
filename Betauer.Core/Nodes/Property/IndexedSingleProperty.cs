@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public static class IndexedSingleProperty {
         public static readonly Dictionary<string, IProperty> Cache = new Dictionary<string, IProperty>();
 

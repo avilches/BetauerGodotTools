@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static partial class AwaitExtensions {
         
         public static SignalAwaiter AwaitPhysicsFrame(this Node node) =>

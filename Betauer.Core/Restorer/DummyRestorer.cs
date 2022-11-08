@@ -1,4 +1,4 @@
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class DummyRestorer : Restorer {
         public static readonly Restorer Instance = new DummyRestorer();
 

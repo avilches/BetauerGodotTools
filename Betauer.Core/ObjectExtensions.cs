@@ -1,7 +1,7 @@
 
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class ObjectExtensions {
 
         public static Object FreeDeferred(this Object o) {

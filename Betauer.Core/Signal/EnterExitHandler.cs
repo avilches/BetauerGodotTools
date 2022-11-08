@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public abstract class EnterExitHandler<T> where T : class {
         public SignalHandler EnteredSignalHandler { get; protected set; }
         public SignalHandler ExitedSignalHandler { get; protected set; }

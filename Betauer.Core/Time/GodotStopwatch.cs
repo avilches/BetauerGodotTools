@@ -1,7 +1,7 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer.Time {
+namespace Betauer.Core.Time {
     /// <summary>
     /// A Stopwatch to measure elapsed time since start. It has Start/Stop and Reset.
     /// 

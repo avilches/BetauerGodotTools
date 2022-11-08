@@ -2,7 +2,7 @@ using System;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Signal {
+namespace Betauer.Core.Signal {
     public static class SignalTools {
         public static uint SignalFlags(bool oneShot, bool deferred = false) =>
             (oneShot ? (uint)Object.ConnectFlags.OneShot : 0) +

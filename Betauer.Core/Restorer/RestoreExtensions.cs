@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public static class RestoreExtensions {
         // Node -> CanvasItem
         public static readonly string[] CanvasItemProperties = { "modulate", "self_modulate" };

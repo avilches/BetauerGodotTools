@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Betauer.Tools.Logging;
 
-namespace Betauer.Memory {
+namespace Betauer.Core.Memory {
     public interface IObjectConsumer {
         public bool Consume(bool force);
     }

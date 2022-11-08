@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class PropertyRestorer : Restorer {
         private readonly Node _node;
         private readonly IProperty[] _properties;

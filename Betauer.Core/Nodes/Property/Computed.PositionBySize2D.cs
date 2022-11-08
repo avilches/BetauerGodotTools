@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public class PositionBySize2D : ComputedProperty<Vector2> {
         private readonly Vector2 _initialValue;
 

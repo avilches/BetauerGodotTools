@@ -3,7 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>10.0</LangVersion>
-        <RootNamespace>Betauer.Tests</RootNamespace>
+        <RootNamespace>Betauer.Core.Tests</RootNamespace>
         <PackageId>Betauer.Core.Tests</PackageId>
         <AssemblyName>Betauer.Core.Tests</AssemblyName>
         <Nullable>enable</Nullable>

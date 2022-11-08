@@ -2,7 +2,7 @@ using System;
 using Godot;
 using Object = Godot.Object;
 
-namespace Betauer.Memory {
+namespace Betauer.Core.Memory {
     /// <summary>
     /// 1: It shows a warning if the object is disposed in shutdown. It could mean you forget to dispose it
     /// 2: It offers you a safe OnDispose method to implement without worrying to call base.Dispose(disposing) and

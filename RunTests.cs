@@ -18,7 +18,7 @@ namespace Betauer {
 					// "Betauer.StateMachine.Tests",
 					// These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
 					// in the first seconds since start.
-					// "Betauer.Core.Tests",
+					typeof(Betauer.Core.Tests.Assembly),
 					typeof(Betauer.Tools.Logging.Tests.Assembly),
 					// "Betauer.Animation.Tests",
 				}.Select(type => type.Assembly).ToArray();

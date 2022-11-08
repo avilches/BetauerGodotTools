@@ -1,7 +1,7 @@
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class ChildFocusRestorer : Restorer {
         private Control? _focused;
         private readonly Container _container;
