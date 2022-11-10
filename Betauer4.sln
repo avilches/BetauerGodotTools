@@ -12,19 +12,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "Betauer.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "Betauer.Bus\Betauer.Bus.csproj", "{8109BD79-50E8-47CB-9D06-ED49A1E5BF66}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus.Tests", "Betauer.Bus.Tests\Betauer.Bus.Tests.csproj", "{3DCC95BA-06F8-409B-9504-FDFB9054C7BA}"
+EndProject
 
 
-
-
-
-
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "Betauer.StateMachine\Betauer.StateMachine.csproj", "{6A539F22-EDEE-4F3F-954E-64D92B9BDE08}"
+EndProject
 
 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core.Tests", "Betauer.Core.Tests\Betauer.Core.Tests.csproj", "{4172C392-C319-4CBD-B5DC-04AC927499D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI.Tests", "Betauer.DI.Tests\Betauer.DI.Tests.csproj", "{D63D8E1E-F03E-40B7-96F9-A7BAA276EFB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus.Tests", "Betauer.Bus.Tests\Betauer.Bus.Tests.csproj", "{3DCC95BA-06F8-409B-9504-FDFB9054C7BA}"
+
+
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests", "Betauer.StateMachine.Tests\Betauer.StateMachine.Tests.csproj", "{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{99035984-0652-438B-992A-A9CAA49EE5AA}"
 EndProject
