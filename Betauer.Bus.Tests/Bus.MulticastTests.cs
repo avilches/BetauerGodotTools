@@ -1,8 +1,6 @@
-using Betauer.Bus;
-using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Bus.Tests {
     [TestFixture]
     public class BusMulticastTests {
 

@@ -12,7 +12,7 @@ namespace Betauer {
 			try {
 				LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 				var assemblies = new[] {
-					// "Betauer.Bus.Tests",
+					typeof(Betauer.Bus.Tests.Assembly),
 					// "Betauer.DI.Tests",
 					// "Betauer.GameTools.Tests",
 					// "Betauer.StateMachine.Tests",
