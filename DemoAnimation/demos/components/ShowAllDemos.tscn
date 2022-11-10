@@ -41,7 +41,7 @@ corner_radius_bottom_left = 6
 [node name="ShowAllDemos" type="Button"]
 margin_right = 119.0
 margin_bottom = 28.0
-rect_min_size = Vector2( 142, 32 )
+min_size = Vector2( 142, 32 )
 mouse_default_cursor_shape = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0

@@ -29,7 +29,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_right = 1000.0
 margin_bottom = 600.0
-rect_min_size = Vector2( 1000, 600 )
+min_size = Vector2( 1000, 600 )
 script = ExtResource( 2 )
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Node2D/AnimationsPreview"]
@@ -100,7 +100,7 @@ texture = ExtResource( 1 )
 margin_left = 680.0
 margin_right = 1000.0
 margin_bottom = 600.0
-rect_min_size = Vector2( 320, 0 )
+min_size = Vector2( 320, 0 )
 custom_styles/bg = SubResource( 2 )
 
 [node name="PanelContainer" type="PanelContainer" parent="Node2D/AnimationsPreview/HBoxContainer/ScrollContainer"]

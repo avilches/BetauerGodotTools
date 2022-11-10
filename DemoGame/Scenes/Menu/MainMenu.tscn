@@ -22,7 +22,7 @@ margin_left = -302.0
 margin_top = -170.0
 margin_right = 302.0
 margin_bottom = 170.0
-rect_min_size = Vector2( 0, 340 )
+min_size = Vector2( 0, 340 )
 columns = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="GridContainer"]
@@ -34,7 +34,7 @@ margin_right = 150.0
 margin_bottom = 340.0
 grow_horizontal = 0
 grow_vertical = 0
-rect_min_size = Vector2( 150, 300 )
+min_size = Vector2( 150, 300 )
 alignment = 2
 
 [node name="Menu" type="VBoxContainer" parent="GridContainer/MarginContainer/VBoxContainer"]
@@ -77,7 +77,7 @@ margin_bottom = 340.0
 [node name="Control" type="Control" parent="GridContainer/MarginContainer/VBoxContainer/VBoxContainer"]
 margin_right = 150.0
 margin_bottom = 40.0
-rect_min_size = Vector2( 0, 40 )
+min_size = Vector2( 0, 40 )
 
 [node name="author" type="Label" parent="GridContainer/MarginContainer/VBoxContainer/VBoxContainer"]
 visible = false
@@ -99,14 +99,14 @@ text = "v0.1 - Betauer 2022"
 margin_left = 154.0
 margin_right = 604.0
 margin_bottom = 340.0
-rect_min_size = Vector2( 450, 0 )
+min_size = Vector2( 450, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Sep" type="Control" parent="GridContainer/VBoxContainer2"]
 margin_right = 450.0
 margin_bottom = 50.0
-rect_min_size = Vector2( 0, 50 )
+min_size = Vector2( 0, 50 )
 
 [node name="Title" type="Label" parent="GridContainer/VBoxContainer2"]
 margin_top = 54.0
@@ -120,7 +120,7 @@ align = 1
 margin_top = 88.0
 margin_right = 450.0
 margin_bottom = 138.0
-rect_min_size = Vector2( 0, 50 )
+min_size = Vector2( 0, 50 )
 
 [node name="CenterContainer" type="CenterContainer" parent="GridContainer/VBoxContainer2"]
 margin_top = 142.0

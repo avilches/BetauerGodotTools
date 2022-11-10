@@ -36,7 +36,7 @@ __meta__ = {
 [node name="ScaleName" type="Label" parent="."]
 margin_right = 47.0
 margin_bottom = 2.0
-rect_min_size = Vector2( 36, 0 )
+min_size = Vector2( 36, 0 )
 size_flags_vertical = 1
 custom_fonts/font = ExtResource( 1 )
 text = "Master"

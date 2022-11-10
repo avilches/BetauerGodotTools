@@ -9,7 +9,7 @@ script/source = "extends Control
 var _tile_size: Vector2
 
 func _ready():
-	var size = self.rect_size
+	var size = self.size
 	_tile_size = $tile.texture.get_size()
 
 	var max_y = ceil(size.y / _tile_size.y) + 1
@@ -40,7 +40,7 @@ func _ready():
 	print('yay, all done :)')
 
 func generate_animation(anima_tween: AnimaTween, data: Dictionary) -> void:
-	var size = self.rect_size
+	var size = self.size
 	var center_x = (size.x / 2) - (_tile_size.x / 2)
 
 	var position_frames = [

@@ -18,7 +18,7 @@ text = "Press"
 margin_left = 33.0
 margin_right = 49.0
 margin_bottom = 16.0
-rect_min_size = Vector2( 16, 16 )
+min_size = Vector2( 16, 16 )
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
