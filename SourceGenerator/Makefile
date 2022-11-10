@@ -29,7 +29,7 @@ clean:
 .PHONY: build
 build:
 	#msbuild "${ROOT_FOLDER}/Generator.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/Generator.sln" --configuration Debug 
+	dotnet build "${ROOT_FOLDER}/Generator4.sln" --configuration Debug 
 
 
 .PHONY: run

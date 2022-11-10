@@ -8,6 +8,11 @@ using Array = Godot.Collections.Array;
 
 namespace Generator {
     public class Signal {
+        private static readonly System.Collections.Generic.Dictionary<string, string> SignalMap =
+            new() {
+                { "GraphNode:Selected", "SelectedSignal" },
+            };
+
         public readonly string signal_name;
         public readonly string SignalName;
         public readonly string SignalCsharpConstantName;
@@ -18,8 +23,8 @@ namespace Generator {
         public Signal(GodotClass godotClass, string name, List<SignalArg> args) {
             GodotClass = godotClass;
             signal_name = name; // "on_button_pressed"
-            // Some signals include a "on_" prefix. The camel case version will not include it
-            SignalName = (name.StartsWith("on") ? name.Substring(2) : name).CamelCase(); // "ButtonPressed"
+            var camelCase = signal_name.CamelCase();
+            SignalName = SignalMap.ContainsKey($"{GodotClass.ClassName}:{camelCase}") ? SignalMap[$"{GodotClass.ClassName}:{camelCase}"] : camelCase; // "ButtonPressed"
             // IsStatic "VirtualServerButtonPressed"
             // !IsStatic "ButtonPressed"
             MethodName = GodotClass.IsStatic ? $"{GodotClass.ClassName}{SignalName}" : SignalName;
@@ -44,8 +49,8 @@ namespace Generator {
     public class GodotClass {
         private static readonly System.Collections.Generic.Dictionary<string, string> ClassMap =
             new() {
-                { "_VisualScriptEditor", "VisualScriptEditor" },
-                { "TCPServer", "TCP_Server" },
+                // { "_VisualScriptEditor", "VisualScriptEditor" },
+                // { "TCPServer", "TCP_Server" },
             };
 
         private static readonly System.Collections.Generic.Dictionary<string, string> ReservedNames =

@@ -3,9 +3,9 @@
         <TargetFramework>net6.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>10.0</LangVersion>
-        <RootNamespace>Betauer.Animation.Tests</RootNamespace>
-        <PackageId>Betauer.Animation.Tests</PackageId>
-        <AssemblyName>Betauer.Animation.Tests</AssemblyName>
+        <RootNamespace>Generator</RootNamespace>
+        <PackageId>Generator</PackageId>
+        <AssemblyName>Generator</AssemblyName>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 </Project>

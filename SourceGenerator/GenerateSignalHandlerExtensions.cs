@@ -23,7 +23,7 @@ namespace Generator {
             var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
             return $@"
         public static SignalHandler On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
-            On({target}, ""{signal.signal_name}"", action, oneShot, deferred);";
+            On({target}, {signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, action, oneShot, deferred);";
         }
 
         private static string GenerateBodyClass(IEnumerable<string> methods) {
@@ -34,7 +34,7 @@ using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;
 
-namespace Betauer.Signal {{
+namespace Betauer.Core.Signal {{
     public static partial class SignalExtensions {{
 
         public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>

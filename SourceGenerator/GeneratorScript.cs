@@ -23,7 +23,6 @@ namespace Generator {
             // Signal extensions
             GenerateSignalHandlerExtensions.Write(classes);
             GenerateAwaitExtensions.Write(classes);
-            GenerateSignalConstants.Write(classes);
             Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
             Quit(0);
         }
