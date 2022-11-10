@@ -4,7 +4,7 @@ using Betauer.DI;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Platforms {
-    public class PlatformController :KinematicBody2D {
+    public class PlatformController :CharacterBody2D {
 
         [Inject] public PlatformManager PlatformManager { get; set; }
         [Export] public bool IsFallingPlatform = false;

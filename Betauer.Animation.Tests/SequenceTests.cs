@@ -6,7 +6,7 @@ using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

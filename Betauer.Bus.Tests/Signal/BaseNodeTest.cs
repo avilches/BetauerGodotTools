@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Tests.Signal {
@@ -16,8 +16,8 @@ namespace Betauer.Tests.Signal {
             return area2D;
         }
 
-        public KinematicBody2D CreateKinematicBody2D(string name, int x = 0, int y = 0) {
-            var body2D = new KinematicBody2D();
+        public CharacterBody2D CreateKinematicBody2D(string name, int x = 0, int y = 0) {
+            var body2D = new CharacterBody2D();
             body2D.Position = new Vector2(x, y);
             body2D.Name = name;
             body2D.AddChild(CreateCollisionShape());
@@ -29,7 +29,7 @@ namespace Betauer.Tests.Signal {
         public CollisionShape2D CreateCollisionShape() {
             return new CollisionShape2D {
                 Shape = new RectangleShape2D {
-                    Extents = new Vector2(4, 4)
+                    Size = new Vector2(4, 4)
                 },
             };
         }

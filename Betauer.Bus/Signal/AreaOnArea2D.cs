@@ -1,4 +1,4 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Bus.Signal {

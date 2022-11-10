@@ -8,7 +8,7 @@ using Betauer.Tools.Logging;
 using Betauer.Nodes;
 using Betauer.Nodes.Property;
 using Betauer.Nodes.Property.Callback;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 using NUnit.Framework;
 using Betauer.TestRunner;

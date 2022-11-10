@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
 using Betauer.Nodes;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Application.Monitor {

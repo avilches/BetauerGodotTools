@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.Bus.Signal;
 using Betauer.Tools.Logging;
 using Betauer.TestRunner;
@@ -23,8 +23,8 @@ namespace Betauer.Tests.Signal {
             var noFilterNoOwner = 0;
             Area2D area1 = new Area2D();
             Area2D area2 = new Area2D();
-            KinematicBody2D body1 = new KinematicBody2D();
-            KinematicBody2D body2 = new KinematicBody2D();
+            CharacterBody2D body1 = new CharacterBody2D();
+            CharacterBody2D body2 = new CharacterBody2D();
             BodyShapeOnArea2DEntered.Multicast topic = new BodyShapeOnArea2DEntered.Multicast("T");
             var o = new Object();
             topic.Subscribe((_, tuple) => {
@@ -75,8 +75,8 @@ namespace Betauer.Tests.Signal {
             var calls = 0;
             Area2D area1 = new Area2D();
             Area2D area2 = new Area2D();
-            KinematicBody2D body1 = new KinematicBody2D();
-            KinematicBody2D body2 = new KinematicBody2D();
+            CharacterBody2D body1 = new CharacterBody2D();
+            CharacterBody2D body2 = new CharacterBody2D();
             BodyShapeOnArea2DEntered.Unicast topic = new BodyShapeOnArea2DEntered.Unicast("T");
             
             topic.Subscribe((_, tuple) => {

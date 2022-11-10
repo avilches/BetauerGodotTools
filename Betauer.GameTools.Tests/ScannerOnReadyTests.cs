@@ -132,7 +132,7 @@ namespace Betauer.GameTools.Tests {
             node.AddChild(new Sprite {
                 Name = "Sprite1"
             });
-            node.AddChild(new KinematicBody2D {
+            node.AddChild(new CharacterBody2D {
                 Name = "K"
             });
             node.AddChild(new Sprite {

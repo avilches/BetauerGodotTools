@@ -12,7 +12,7 @@ using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.Restorer;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 using Veronenger.Controller.UI;
 using Veronenger.Managers;

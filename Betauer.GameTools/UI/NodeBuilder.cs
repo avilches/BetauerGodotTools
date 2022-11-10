@@ -1,5 +1,5 @@
 using System;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.UI {

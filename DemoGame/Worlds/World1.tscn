@@ -155,7 +155,7 @@ offset = Vector2( 1216, 0 )
 
 [node name="Platforms" type="Node" parent="."]
 
-[node name="FallMovSlopeFollow" type="KinematicBody2D" parent="Platforms"]
+[node name="FallMovSlopeFollow" type="CharacterBody2D" parent="Platforms"]
 position = Vector2( -15, 106 )
 collision_layer = 0
 collision_mask = 2147483648
@@ -205,7 +205,7 @@ __meta__ = {
 "_editor_description_": "Este nodo es necesario porque el animation player mueve la plataforma respecto a su padre... si queremos que se mueva en el sitio, necesita un nodo que lo aisle de la escena. Si la ponemos en la escena, el aniimationplayer movera la plataforma desde la posicion 0,0 donde esta la escena..."
 }
 
-[node name="Body" type="KinematicBody2D" parent="Platforms/FallMovAnim"]
+[node name="Body" type="CharacterBody2D" parent="Platforms/FallMovAnim"]
 collision_layer = 0
 collision_mask = 0
 script = ExtResource( 10 )
@@ -232,7 +232,7 @@ shape = SubResource( 5 )
 script = ExtResource( 19 )
 color = Color( 0.764706, 0.203922, 0.203922, 1 )
 
-[node name="FixedPlatform1" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform1" type="CharacterBody2D" parent="Platforms"]
 position = Vector2( 214.213, 47.5319 )
 collision_mask = 0
 script = ExtResource( 10 )
@@ -247,7 +247,7 @@ shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 19 )
 
-[node name="FixedPlatform2" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform2" type="CharacterBody2D" parent="Platforms"]
 position = Vector2( 256, 84 )
 rotation = 1.22697
 collision_mask = 0
@@ -262,7 +262,7 @@ scale = Vector2( 2.24, 0.434 )
 shape = SubResource( 6 )
 script = ExtResource( 19 )
 
-[node name="FixedPlatform4" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform4" type="CharacterBody2D" parent="Platforms"]
 position = Vector2( 231, 132 )
 collision_mask = 0
 motion/sync_to_physics = true
@@ -275,7 +275,7 @@ __meta__ = {
 shape = SubResource( 13 )
 script = ExtResource( 19 )
 
-[node name="FixedPlatform3" type="KinematicBody2D" parent="Platforms"]
+[node name="FixedPlatform3" type="CharacterBody2D" parent="Platforms"]
 position = Vector2( 295, 101 )
 rotation = 0.322886
 collision_mask = 0
@@ -293,7 +293,7 @@ script = ExtResource( 19 )
 [node name="TweenPlatform1" type="Node2D" parent="Platforms"]
 position = Vector2( 350, 101 )
 
-[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform1"]
+[node name="Body" type="CharacterBody2D" parent="Platforms/TweenPlatform1"]
 position = Vector2( -3, -12 )
 collision_mask = 0
 script = ExtResource( 7 )
@@ -310,7 +310,7 @@ script = ExtResource( 19 )
 [node name="TweenPlatform2" type="Node2D" parent="Platforms"]
 position = Vector2( 350, 120 )
 
-[node name="Body" type="KinematicBody2D" parent="Platforms/TweenPlatform2"]
+[node name="Body" type="CharacterBody2D" parent="Platforms/TweenPlatform2"]
 position = Vector2( 46, 12 )
 collision_mask = 0
 script = ExtResource( 12 )
@@ -330,7 +330,7 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Circular" type="KinematicBody2D" parent="Platforms/Pivot"]
+[node name="Circular" type="CharacterBody2D" parent="Platforms/Pivot"]
 collision_mask = 0
 motion/sync_to_physics = true
 script = ExtResource( 9 )
@@ -356,7 +356,7 @@ __meta__ = {
 Radius = 60.0
 RotationDuration = 1.0
 
-[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular1" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
@@ -372,7 +372,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
-[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular2" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
@@ -388,7 +388,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
-[node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular3" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
@@ -404,7 +404,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
-[node name="Circular4" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular4" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
@@ -420,7 +420,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
-[node name="Circular5" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular5" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_layer = 0
 collision_mask = 0
@@ -436,7 +436,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.572549, 0.584314, 0.854902, 1 )
 
-[node name="Circular6" type="KinematicBody2D" parent="Platforms/MultipleAligned"]
+[node name="Circular6" type="CharacterBody2D" parent="Platforms/MultipleAligned"]
 scale = Vector2( 6, 1 )
 collision_mask = 0
 collision/safe_margin = 0.3
@@ -462,7 +462,7 @@ __meta__ = {
 IsFallingPlatform = true
 RotationDuration = 2.5
 
-[node name="Circular1" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+[node name="Circular1" type="CharacterBody2D" parent="Platforms/MultipleSpaced"]
 collision_mask = 0
 motion/sync_to_physics = true
 __meta__ = {
@@ -476,7 +476,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 
-[node name="Circular2" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+[node name="Circular2" type="CharacterBody2D" parent="Platforms/MultipleSpaced"]
 collision_mask = 0
 motion/sync_to_physics = true
 __meta__ = {
@@ -491,7 +491,7 @@ one_way_collision = true
 script = ExtResource( 19 )
 color = Color( 0.619608, 0.854902, 0.572549, 1 )
 
-[node name="Circular3" type="KinematicBody2D" parent="Platforms/MultipleSpaced"]
+[node name="Circular3" type="CharacterBody2D" parent="Platforms/MultipleSpaced"]
 collision_mask = 0
 motion/sync_to_physics = true
 __meta__ = {
@@ -513,7 +513,7 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Body1" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+[node name="Body1" type="CharacterBody2D" parent="Platforms/TweenPlatformTest"]
 position = Vector2( 0, -40 )
 collision_mask = 0
 __meta__ = {
@@ -526,7 +526,7 @@ shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 19 )
 
-[node name="Body2" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+[node name="Body2" type="CharacterBody2D" parent="Platforms/TweenPlatformTest"]
 position = Vector2( 0, -20 )
 collision_mask = 0
 __meta__ = {
@@ -539,7 +539,7 @@ shape = SubResource( 6 )
 one_way_collision = true
 script = ExtResource( 19 )
 
-[node name="Body3" type="KinematicBody2D" parent="Platforms/TweenPlatformTest"]
+[node name="Body3" type="CharacterBody2D" parent="Platforms/TweenPlatformTest"]
 collision_mask = 0
 __meta__ = {
 "_edit_group_": true

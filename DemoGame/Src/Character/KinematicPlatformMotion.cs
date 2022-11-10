@@ -43,7 +43,7 @@ namespace Veronenger.Character {
 
         private bool _dirtyFlags = true;
 
-        public void Configure(string name, KinematicBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
+        public void Configure(string name, CharacterBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
             base.Configure(name, body, position2D, floorUpDirection);
             _flippers = flippers;
             _floorRaycast = floorRaycast;

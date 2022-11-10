@@ -3,7 +3,7 @@ using Betauer.Bus;
 using Betauer.Bus.Signal;
 using Godot;
 using Betauer.DI;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Veronenger.Character.Player;
 using Veronenger.Controller.Character;
 using static Veronenger.LayerConstants;
@@ -51,7 +51,7 @@ namespace Veronenger.Managers {
                 .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
 
-        public void ConfigureEnemyCollisions(KinematicBody2D enemy) {
+        public void ConfigureEnemyCollisions(CharacterBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;                                       
@@ -72,9 +72,9 @@ namespace Veronenger.Managers {
             _playerAttackBus.Connect(enemyDamageArea2D);
         }
 
-        public bool IsEnemy(KinematicBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
+        public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
-        public bool IsPlayer(KinematicBody2D player) {
+        public bool IsPlayer(CharacterBody2D player) {
             return PlayerController == player;
         }
 

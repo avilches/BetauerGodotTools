@@ -11,7 +11,6 @@ using Object = Godot.Object;
 namespace Betauer.Core.Tests; 
 
 [TestFixture]
-[Only]
 public partial class SignalExtensionsTests : Node {
     [SetUp]
     public void Setup() {

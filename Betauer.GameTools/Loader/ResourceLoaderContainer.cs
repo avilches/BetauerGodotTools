@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.Tools.Reflection;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Loader {

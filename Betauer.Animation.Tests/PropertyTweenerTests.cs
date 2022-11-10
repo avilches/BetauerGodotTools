@@ -7,7 +7,7 @@ using Betauer.Animation.Tween;
 using Betauer.Nodes.Property;
 using Godot;
 using NUnit.Framework;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.TestRunner;
 using Vector2 = Godot.Vector2;
 

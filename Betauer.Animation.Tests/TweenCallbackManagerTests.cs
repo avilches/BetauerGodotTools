@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Animation.Tween;
 using Betauer.Memory;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

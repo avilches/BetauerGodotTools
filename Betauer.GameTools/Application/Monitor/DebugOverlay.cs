@@ -1,7 +1,7 @@
 using System;
 using Betauer.Input;
 using Betauer.Nodes;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
 using Color = Godot.Color;

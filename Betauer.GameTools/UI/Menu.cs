@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Nodes;
 using Betauer.Restorer;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.UI {

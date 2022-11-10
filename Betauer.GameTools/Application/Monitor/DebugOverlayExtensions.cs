@@ -4,7 +4,7 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Screen;
 using Betauer.Nodes;
 using Betauer.Memory;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
 

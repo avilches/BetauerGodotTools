@@ -8,7 +8,7 @@ using Veronenger.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class AnimatedPlatformController1 : KinematicBody2D {
+    public class AnimatedPlatformController1 : CharacterBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}

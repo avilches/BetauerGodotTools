@@ -8,6 +8,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "Betauer.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core.Tests", "Betauer.Core.Tests\Betauer.Core.Tests.csproj", "{4172C392-C319-4CBD-B5DC-04AC927499D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "Betauer.Bus\Betauer.Bus.csproj", "{8109BD79-50E8-47CB-9D06-ED49A1E5BF66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus.Tests", "Betauer.Bus.Tests\Betauer.Bus.Tests.csproj", "{3DCC95BA-06F8-409B-9504-FDFB9054C7BA}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{F2B58A5D-591A-46F0-86F4-7432E2B232C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{23750989-C5EC-446C-ABE2-86CEB17751A3}"

@@ -4,7 +4,7 @@ using Godot;
 
 namespace Veronenger.Character {
     public abstract class BaseKinematicMotion {
-        public KinematicBody2D Body { get; private set; }
+        public CharacterBody2D Body { get; private set; }
         public Position2D Position2D { get; private set; }
 
         private float _anglesToRotateFloor = 0;
@@ -31,7 +31,7 @@ namespace Veronenger.Character {
 
         public float Delta { get; private set; } = 0;
 
-        protected void Configure(string name, KinematicBody2D body, Position2D position2D, Vector2 floorUpDirection) {
+        protected void Configure(string name, CharacterBody2D body, Position2D position2D, Vector2 floorUpDirection) {
             Body = body;
             Position2D = position2D;
             FloorUpDirection = floorUpDirection;

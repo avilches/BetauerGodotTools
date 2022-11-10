@@ -8,7 +8,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Async;
 using DemoAnimation.Controller.Menu;

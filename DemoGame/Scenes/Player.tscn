@@ -404,7 +404,7 @@ extents = Vector2( 0.5, 14 )
 radius = 7.0
 height = 28.0
 
-[node name="PlayerBody" type="KinematicBody2D"]
+[node name="PlayerBody" type="CharacterBody2D"]
 collision_layer = 1024
 collision_mask = 0
 script = ExtResource( 1 )

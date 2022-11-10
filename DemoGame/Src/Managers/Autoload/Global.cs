@@ -10,7 +10,7 @@ namespace Veronenger.Managers.Autoload {
         // [Inject] private GameManager GameManager;
         [Inject] private CharacterManager CharacterManager { get; set; }
 
-        public bool IsPlayer(KinematicBody2D player) {
+        public bool IsPlayer(CharacterBody2D player) {
             return CharacterManager.IsPlayer(player);
         }
 

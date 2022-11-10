@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Betauer.Animation.Tween;
 using Betauer.Tools.Logging;
 using Betauer.Memory;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 using Object = Godot.Object;
 

@@ -27,7 +27,7 @@ namespace Veronenger.Controller.Character {
         }
     }
     
-    public sealed class PlayerController : KinematicBody2D {
+    public sealed class PlayerController : CharacterBody2D {
         [OnReady("Sprite2D")] private Sprite2D _mainSprite;
         [OnReady("AttackArea")] private Area2D _attackArea;
         [OnReady("DamageArea")] private Area2D _damageArea;

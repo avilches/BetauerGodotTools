@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Application.Screen {

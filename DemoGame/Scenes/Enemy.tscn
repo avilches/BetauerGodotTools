@@ -1,6 +1,6 @@
 [gd_scene format=2]
 
-[node name="EnemyBody" type="KinematicBody2D"]
+[node name="EnemyBody" type="CharacterBody2D"]
 collision_layer = 1024
 collision_mask = 0
 

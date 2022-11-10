@@ -18,7 +18,7 @@ namespace Veronenger.Controller.Character {
     }
     
     
-    public sealed class ZombieController : KinematicBody2D, IEnemy {
+    public sealed class ZombieController : CharacterBody2D, IEnemy {
         private static readonly KeyframeAnimation RedFlash = KeyframeAnimation.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Properties.Modulate)

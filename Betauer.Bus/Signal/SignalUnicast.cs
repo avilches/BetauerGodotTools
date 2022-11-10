@@ -1,5 +1,5 @@
 using System;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Object = Godot.Object;
 
 namespace Betauer.Bus.Signal {

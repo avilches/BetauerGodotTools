@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.Bus.Signal;
 using Betauer.Tools.Logging;
 using Betauer.TestRunner;

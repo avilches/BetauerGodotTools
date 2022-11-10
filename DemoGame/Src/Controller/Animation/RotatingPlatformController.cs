@@ -5,7 +5,7 @@ using Veronenger.Managers;
 using static Godot.Mathf;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingPlatformController : KinematicBody2D {
+    public class RotatingPlatformController : CharacterBody2D {
 
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
