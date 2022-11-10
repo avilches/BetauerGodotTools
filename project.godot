@@ -15,4 +15,4 @@ config/features=PackedStringArray("4.0", "C#")
 
 [dotnet]
 
-project/assembly_name="Betauer"
+project/assembly_name="Betauer4"

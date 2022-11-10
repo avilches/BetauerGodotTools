@@ -27,7 +27,7 @@ namespace Betauer.TestRunner {
             AwaitIdleFrame();
         
         public static SignalAwaiter AwaitIdleFrame() =>
-            SceneTree.ToSignal(SceneTree, "idle_frame");
+            SceneTree.ToSignal(SceneTree, "process_frame");
         
     }
 

@@ -4,8 +4,7 @@
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>10.0</LangVersion>
         <RootNamespace>Betauer</RootNamespace>
-        <PackageId>Betauer</PackageId>
-        <AssemblyName>Betauer</AssemblyName>
+        <PackageId>Betauer4</PackageId>
         <Nullable>enable</Nullable>
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>

@@ -59,15 +59,15 @@ import:
  
 .PHONY: build/Debug
 build/Debug:
-	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c Debug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/Debug"
+	dotnet build "${ROOT_FOLDER}/Betauer4.sln" -c Debug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/Debug"
 
 .PHONY: build/ExportDebug
 build/ExportDebug:
-	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c ExportDebug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportDebug"
+	dotnet build "${ROOT_FOLDER}/Betauer4.sln" -c ExportDebug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportDebug"
 
 .PHONY: build/ExportRelease
 build/ExportRelease:
-	dotnet build "${ROOT_FOLDER}/Betauer.sln" -c ExportRelease -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportRelease"
+	dotnet build "${ROOT_FOLDER}/Betauer4.sln" -c ExportRelease -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportRelease"
 
 .PHONY: export/dll
 export/dll:
