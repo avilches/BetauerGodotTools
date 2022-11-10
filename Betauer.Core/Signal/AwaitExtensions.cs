@@ -344,7 +344,7 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitResizeRequest(this GraphNode target) =>
             target.ToSignal(target, "resize_request");
 
-        public static SignalAwaiter AwaitSelected(this GraphNode target) =>
+        public static SignalAwaiter AwaitSelectedSignal(this GraphNode target) =>
             target.ToSignal(target, "selected");
 
         public static SignalAwaiter AwaitSlotUpdated(this GraphNode target) =>
@@ -386,7 +386,7 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitTextSubmitted(this LineEdit target) =>
             target.ToSignal(target, "text_submitted");
 
-        public static SignalAwaiter AwaitRequestPermissionsResult(this MainLoop target) =>
+        public static SignalAwaiter AwaitOnRequestPermissionsResult(this MainLoop target) =>
             target.ToSignal(target, "on_request_permissions_result");
 
         public static SignalAwaiter AwaitAboutToPopup(this MenuButton target) =>
