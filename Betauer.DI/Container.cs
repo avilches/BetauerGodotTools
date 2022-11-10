@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using Betauer.Core;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;

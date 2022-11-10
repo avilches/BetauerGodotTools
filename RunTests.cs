@@ -13,7 +13,7 @@ namespace Betauer {
 				LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 				var assemblies = new[] {
 					typeof(Betauer.Bus.Tests.Assembly),
-					// "Betauer.DI.Tests",
+					typeof(Betauer.DI.Tests.Assembly),
 					// "Betauer.GameTools.Tests",
 					// "Betauer.StateMachine.Tests",
 					// These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
