@@ -28,7 +28,7 @@ margin_left = -170.0
 margin_top = -100.0
 margin_right = 170.0
 margin_bottom = 100.0
-rect_min_size = Vector2( 300, 0 )
+min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
 theme = ExtResource( 4 )
 
@@ -37,7 +37,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 10.0
 margin_right = -10.0
-rect_min_size = Vector2( 300, 0 )
+min_size = Vector2( 300, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
@@ -45,19 +45,19 @@ size_flags_vertical = 0
 margin_right = 320.0
 margin_bottom = 125.0
 grow_vertical = 2
-rect_min_size = Vector2( 0, 125 )
+min_size = Vector2( 0, 125 )
 size_flags_vertical = 0
 
 [node name="Spacer1" type="Control" parent="Panel/VBoxContainer/VBoxContainerDouble"]
 margin_right = 320.0
 margin_bottom = 20.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="Title" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
 margin_top = 24.0
 margin_right = 320.0
 margin_bottom = 54.0
-rect_min_size = Vector2( 300, 30 )
+min_size = Vector2( 300, 30 )
 size_flags_horizontal = 3
 custom_fonts/font = ExtResource( 3 )
 text = "Are you sure?"
@@ -68,7 +68,7 @@ autowrap = true
 margin_top = 58.0
 margin_right = 320.0
 margin_bottom = 73.0
-rect_min_size = Vector2( 0, 15 )
+min_size = Vector2( 0, 15 )
 
 [node name="Subtitle" type="Label" parent="Panel/VBoxContainer/VBoxContainerDouble"]
 margin_top = 77.0
@@ -86,7 +86,7 @@ autowrap = true
 margin_top = 95.0
 margin_right = 320.0
 margin_bottom = 110.0
-rect_min_size = Vector2( 0, 15 )
+min_size = Vector2( 0, 15 )
 
 [node name="VBoxContainerSingle" type="VBoxContainer" parent="Panel/VBoxContainer"]
 visible = false

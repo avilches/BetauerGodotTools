@@ -27,10 +27,11 @@ namespace Betauer.Core.Signal {
             Connect();
         }
 
-        public bool IsValid() => Object.IsInstanceValid(Callable.Target) && Object.IsInstanceValid(Origin);
+        public bool IsValid() => (Callable.Target == null || Object.IsInstanceValid(Callable.Target)) && Object.IsInstanceValid(Origin);
 
         public void Connect() {
             if (!IsValid()) throw new Exception($"Can't connect '{Signal}' to a freed object");
+            if (Origin.IsConnected(Signal, Callable)) return;
             Error err = Origin.Connect(Signal, Callable, SignalTools.SignalFlags(OneShot, Deferred));
             if (err != Error.Ok) {
                 throw new Exception($"Connecting signal '{Signal}' from ${Origin} failed: '{err}'");
@@ -41,8 +42,9 @@ namespace Betauer.Core.Signal {
             return IsValid() && Origin.IsConnected(Signal, Callable);
         }
 
-        public void Disconnect() {
+        public SignalHandler Disconnect() {
             if (IsConnected()) Origin.Disconnect(Signal, Callable);
+            return this;
         }
     }
 }

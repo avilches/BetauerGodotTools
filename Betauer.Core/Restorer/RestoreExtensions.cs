@@ -21,10 +21,10 @@ namespace Betauer.Core.Restorer {
 
         // Node -> CanvasItem -> Control
         public static readonly string[] ControlProperties = CanvasItemProperties.Concat(new [] {
-            "rect_position",
-            "rect_scale",
-            "rect_rotation",
-            "rect_pivot_offset",
+            "position",
+            "scale",
+            "rotation",
+            "pivot_offset",
             "focus_mode",
         }).ToArray();
 

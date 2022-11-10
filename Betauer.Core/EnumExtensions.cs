@@ -1,5 +1,6 @@
 using System;
-using System.Linq.Expressions;
+using Godot;
+using Expression = System.Linq.Expressions.Expression;
 
 namespace Betauer.Core {
     public static class EnumExtensions {
@@ -25,5 +26,6 @@ namespace Betauer.Core {
                 return lambda.Compile();
             }
         }
+
     }
 }

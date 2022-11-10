@@ -16,7 +16,7 @@ namespace Betauer.Core.Nodes.Property.Callback {
 
         public override void SetValue(Node node, float value) {
             if (node is Node2D) node.SetIndexed("scale:y", value);
-            else if (node is Control control) control.SetIndexed("rect_scale:y", value);
+            else if (node is Control control) control.SetIndexed("scale:y", value);
             else if (node is Node3D node3D) node3D.SetIndexed("scale:y", value);
             else throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}");
         }
@@ -26,7 +26,7 @@ namespace Betauer.Core.Nodes.Property.Callback {
         }
 
         public override string ToString() {
-            return "ScaleYProperty<float>(node2D: \"sale:y\", control: \"rect_scale:y\", node3D: \"scale:y\")";
+            return "ScaleYProperty<float>(node2D: \"sale:y\", control: \"scale:y\", node3D: \"scale:y\")";
         }
     }
 }

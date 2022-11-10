@@ -11,15 +11,15 @@ namespace Betauer.Core.Nodes.Property {
             Property = property;
         }
 
-        object IProperty.GetValue(Node node) {
+        Variant IProperty.GetValue(Node node) {
             if (!IsCompatibleWith(node))
                 throw new NodeNotCompatibleWithPropertyException($"ComputedProperty {this} is not compatible with target type {node.GetType().Name}");
             if (Property is IProperty property) return property.GetValue(node);
-            return Property.GetValue(node);
+            return (Variant)(object)Property.GetValue(node);
         }
 
-        public void SetValue(Node node, object value) {
-            SetValue(node, (TProperty)value);
+        public void SetValue(Node node, Variant value) {
+            SetValue(node, (TProperty)(object)value);
         }
 
         public TProperty GetValue(Node node) {

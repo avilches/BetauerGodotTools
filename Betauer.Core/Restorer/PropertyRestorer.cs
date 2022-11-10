@@ -8,7 +8,7 @@ namespace Betauer.Core.Restorer {
         private readonly Node _node;
         private readonly IProperty[] _properties;
 
-        private object[] _values;
+        private Variant[] _values;
 
         public PropertyRestorer(Node node, params IProperty[] properties) {
             _node = node;

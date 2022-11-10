@@ -3,7 +3,7 @@ using Godot;
 
 namespace Betauer.Core.Nodes.Property {
     public static class IndexedSingleProperty {
-        public static readonly Dictionary<string, IProperty> Cache = new Dictionary<string, IProperty>();
+        public static readonly Dictionary<string, IProperty> Cache = new();
 
         public static IndexedSingleProperty<TProperty> Create<TProperty>(string propertyName) {
             if (Cache.TryGetValue(propertyName, out var property)) {

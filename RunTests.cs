@@ -25,6 +25,7 @@ namespace Betauer {
 				// await ConsoleTestRunner.RunTests(this, assemblies);
 				// var assemblies = new[] { Assembly.Load("Betauer.Tools.Logging.Tests") };
 				await ConsoleTestRunner.RunTests(this, assemblies);
+				Quit(0);
 			} catch (Exception e) {
 				GD.PrintErr(e);
 				Quit(1);
