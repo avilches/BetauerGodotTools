@@ -1,7 +1,7 @@
 using System;
 using Godot;
 using Betauer;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 
 namespace Veronenger.Controller.Platforms {
 	public class PlatformFollowPathController : PlatformController {

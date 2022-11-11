@@ -7,7 +7,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.StateMachine.Async;
 using Veronenger.Controller.Menu;
 

@@ -1,5 +1,5 @@
 using System;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.UI;
 using Godot;
 

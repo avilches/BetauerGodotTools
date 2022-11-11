@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.Restorer;
 using Betauer.Core.Signal;
 using Godot;

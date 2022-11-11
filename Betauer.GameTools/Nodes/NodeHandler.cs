@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Nodes {
+namespace Betauer.Core.Nodes {
     public class DefaultNodeHandler {
         public static NodeHandler Instance = new();
     }

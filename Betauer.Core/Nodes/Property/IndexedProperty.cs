@@ -17,7 +17,7 @@ namespace Betauer.Core.Nodes.Property {
 
         public virtual TProperty GetValue(Node node) {
             Variant indexed = node.GetIndexed(GetIndexedPropertyName(node));
-            return (TProperty)indexed.Obj;
+            return VariantHelper.ConvertTo<TProperty>(indexed);
         }
 
         public virtual void SetValue(Node node, TProperty value) {

@@ -28,7 +28,7 @@ namespace Betauer.Core.Nodes.Property {
         /**
          * It doesn't work combined with Scale or Position (with transform)
          */
-        public static readonly IndexedControlOrNode2DProperty<float> Rotate2D = new("rotation_degrees", "rotation");
+        public static readonly IndexedControlOrNode2DProperty<float> Rotate2D = new("rotation", "rotation");
         public static readonly IndexedControlOrNode2DProperty<float> Skew2DX = new("transform:y:x", null);
         public static readonly IndexedControlOrNode2DProperty<float> Skew2DY = new("transform:x:y", null);
     }

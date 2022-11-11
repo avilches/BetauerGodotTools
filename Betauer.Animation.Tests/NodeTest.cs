@@ -1,22 +1,22 @@
 using System.Threading.Tasks;
-using Betauer.Memory;
+using Betauer.Core.Memory;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
-    public class NodeTest : Node {
+    public partial class NodeTest : Node {
         [SetUp]
         public void RemoveWarning() {
             DisposeTools.ShowWarningOnShutdownDispose = false;
         }
 
-        public async Task<Sprite> CreateSprite(int width = 100) {
-            Sprite sprite = new Sprite();
+        public async Task<Sprite2D> CreateSprite(int width = 100) {
+            Sprite2D sprite = new Sprite2D();
             sprite.Position = new Vector2(100, 100);
             // var gradientTexture = new GradientTexture();
             var imageTexture = new ImageTexture();
-            imageTexture.SetSizeOverride(new Vector2(width, width));
+            imageTexture.SetSizeOverride(new Vector2i(width, width));
             sprite.Texture = imageTexture;
             AddChild(sprite);
             await this.AwaitIdleFrame();

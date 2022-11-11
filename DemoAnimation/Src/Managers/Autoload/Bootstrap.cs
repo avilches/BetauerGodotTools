@@ -1,7 +1,7 @@
 using Betauer;
 using Betauer.Application;
 using Betauer.DI;
-using Betauer.Memory;
+using Betauer.Core.Memory;
 using TraceLevel = Betauer.TraceLevel;
 
 namespace DemoAnimation.Managers.Autoload {

@@ -299,7 +299,7 @@ margin_left = 174.0
 margin_right = 344.0
 margin_bottom = 31.0
 min_size = Vector2( 170, 30 )
-text = "Sprite node
+text = "Sprite2D node
 (Node2D)"
 
 [node name="Sep2" type="Control" parent="HBoxContainer/Animator"]
@@ -314,6 +314,6 @@ margin_right = 344.0
 margin_bottom = 371.0
 texture = ExtResource( 1 )
 
-[node name="SpriteToAnimate" type="Sprite" parent="HBoxContainer/Animator"]
+[node name="SpriteToAnimate" type="Sprite2D" parent="HBoxContainer/Animator"]
 position = Vector2( 237, 307 )
 texture = ExtResource( 1 )

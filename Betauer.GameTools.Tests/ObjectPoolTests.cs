@@ -1,5 +1,5 @@
 using Betauer.Application;
-using Betauer.Memory;
+using Betauer.Core.Memory;
 using Betauer.Pool;
 using Godot;
 using NUnit.Framework;

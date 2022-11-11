@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
 using Betauer.Tools.Logging;
-using Betauer.Nodes;
-using Betauer.Nodes.Property;
-using Betauer.Nodes.Property.Callback;
+using Betauer.Core.Nodes;
+using Betauer.Core.Nodes.Property;
+using Betauer.Core.Nodes.Property.Callback;
 using Betauer.Core.Signal;
 using Godot;
 using NUnit.Framework;
@@ -16,7 +15,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class PropertyTests : NodeTest {
+    public partial class PropertyTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -152,7 +151,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(values1rk.Last(), Is.EqualTo(23));
         }
 
-        private float _stringProperty = 0;
+        public float _stringProperty = 0;
 
         [Test(Description = "classic string property tween")]
         public async Task StringProperty() {

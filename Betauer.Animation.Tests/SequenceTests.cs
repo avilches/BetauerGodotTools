@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
-using Betauer.Nodes;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes;
+using Betauer.Core.Nodes.Property;
 using Betauer.Core.Signal;
 using Betauer.TestRunner;
 using Godot;
@@ -13,7 +12,7 @@ using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class SequenceTests : NodeTest {
+    public partial class SequenceTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;

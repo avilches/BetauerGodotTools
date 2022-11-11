@@ -3,7 +3,7 @@ using Betauer.Animation.Tween;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.Core.Signal;

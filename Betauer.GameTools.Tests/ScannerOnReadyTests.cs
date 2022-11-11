@@ -18,13 +18,13 @@ namespace Betauer.GameTools.Tests {
 
             [OnReady("myControl/mySprite")] internal Node2D node2d;
 
-            [OnReady("myControl/mySprite")] internal Sprite sprite;
+            [OnReady("myControl/mySprite")] internal Sprite2D sprite;
 
             [OnReady("myControl/mySprite", Nullable = true)]
             internal IDisposable disposable;
 
             [OnReady("xxxxxxxxxxxxxx", Nullable = true)]
-            internal Sprite allowNulls;
+            internal Sprite2D allowNulls;
         }
 
         [Test(Description = "Fail if not found")]
@@ -44,7 +44,7 @@ namespace Betauer.GameTools.Tests {
             control.Name = "myControl";
             myArea2D.AddChild(control);
 
-            var sprite = new Sprite();
+            var sprite = new Sprite2D();
             sprite.Name = "mySprite";
             control.AddChild(sprite);
 
@@ -78,13 +78,13 @@ namespace Betauer.GameTools.Tests {
         }
 
         internal class NodeWithChildren : Node {
-            [OnReady("Children")] internal List<Sprite> listSprites;
+            [OnReady("Children")] internal List<Sprite2D> listSprites;
             [OnReady("Children")] internal List<Node> listNodes;
 
-            [OnReady("Children")] internal Sprite[] arraySprites;
+            [OnReady("Children")] internal Sprite2D[] arraySprites;
             [OnReady("Children")] internal Node[] arrayNodes;
 
-            [OnReady("Children")] internal Dictionary<string, Sprite> dictSprites;
+            [OnReady("Children")] internal Dictionary<string, Sprite2D> dictSprites;
             [OnReady("Children")] internal Dictionary<string, Node> dictNodes;
         }
 
@@ -129,13 +129,13 @@ namespace Betauer.GameTools.Tests {
             var node = new Node();
             node.Name = name;
 
-            node.AddChild(new Sprite {
+            node.AddChild(new Sprite2D {
                 Name = "Sprite1"
             });
             node.AddChild(new CharacterBody2D {
                 Name = "K"
             });
-            node.AddChild(new Sprite {
+            node.AddChild(new Sprite2D {
                 Name = "Sprite2"
             });
             return node;

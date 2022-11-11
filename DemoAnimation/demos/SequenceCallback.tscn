@@ -220,7 +220,7 @@ margin_top = 158.0
 margin_right = 268.0
 margin_bottom = 188.0
 
-[node name="check1" type="Sprite" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="check1" type="Sprite2D" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer"]
 texture = ExtResource( 3 )
 centered = false
 
@@ -237,7 +237,7 @@ margin_top = 212.0
 margin_right = 268.0
 margin_bottom = 242.0
 
-[node name="check2" type="Sprite" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="check2" type="Sprite2D" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer2"]
 texture = ExtResource( 3 )
 centered = false
 
@@ -254,7 +254,7 @@ margin_top = 266.0
 margin_right = 268.0
 margin_bottom = 296.0
 
-[node name="check3" type="Sprite" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer3"]
+[node name="check3" type="Sprite2D" parent="SequenceCallback/MarginContainer/VBoxContainer/HBoxContainer3"]
 texture = ExtResource( 3 )
 centered = false
 

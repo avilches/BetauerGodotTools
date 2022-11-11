@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class BezierCurveTests : NodeTest {
+    public partial class BezierCurveTests : NodeTest {
         [Test]
         public void BezierCurveTest() {
             // Two identical curves, but different instances

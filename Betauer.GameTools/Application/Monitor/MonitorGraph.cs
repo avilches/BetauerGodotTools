@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.UI;
 using Godot;
 using Object = Godot.Object;

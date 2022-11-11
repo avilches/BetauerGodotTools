@@ -3,7 +3,7 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 using Godot;
 using Veronenger.Managers;

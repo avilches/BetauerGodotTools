@@ -6,7 +6,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Memory;
+using Betauer.Core.Memory;
 using Betauer.Pool;
 using Betauer.StateMachine;
 using Godot;

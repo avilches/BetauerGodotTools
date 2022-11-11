@@ -68,7 +68,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="tile" type="Sprite" parent="."]
+[node name="tile" type="Sprite2D" parent="."]
 texture = ExtResource( 2 )
 
 [node name="Grid" type="Node" parent="."]

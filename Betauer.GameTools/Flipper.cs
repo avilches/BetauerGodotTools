@@ -24,7 +24,7 @@ namespace Betauer {
             SetFlippers(flippers);
         }
 
-        public FlipperList AddSprite(Sprite sprite) {
+        public FlipperList AddSprite(Sprite2D sprite) {
             AddFlipper(new SpriteFlipper(sprite));
             return this;
         }
@@ -108,8 +108,8 @@ namespace Betauer {
         }
     }
 
-    public class SpriteFlipper : Flipper<Sprite> {
-        public SpriteFlipper(Sprite node2D) : base(node2D) {
+    public class SpriteFlipper : Flipper<Sprite2D> {
+        public SpriteFlipper(Sprite2D node2D) : base(node2D) {
         }
 
         public override bool LoadIsFacingRight() {

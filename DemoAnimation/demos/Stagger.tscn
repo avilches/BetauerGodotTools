@@ -49,7 +49,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="ball" type="Sprite" parent="."]
+[node name="ball" type="Sprite2D" parent="."]
 position = Vector2( 109.5, 108.5 )
 scale = Vector2( 0.766667, 0.766667 )
 texture = ExtResource( 1 )

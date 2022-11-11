@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Input;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;

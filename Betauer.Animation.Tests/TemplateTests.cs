@@ -1,11 +1,10 @@
-using Betauer.Animation.Tween;
 using Godot;
 using NUnit.Framework;
 using Betauer.TestRunner;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class TemplateTests : NodeTest {
+    public partial class TemplateTests : NodeTest {
         [Test]
         public void TemplateNamesCheck() {
             Assert.That(Templates.Bounce, Is.EqualTo(Templates.Get<KeyframeAnimation>("bOunce")));

@@ -20,7 +20,7 @@ namespace Betauer {
 					// in the first seconds since start.
 					typeof(Betauer.Core.Tests.Assembly),
 					typeof(Betauer.Tools.Logging.Tests.Assembly),
-					// "Betauer.Animation.Tests",
+					typeof(Betauer.Animation.Tests.Assembly),
 				}.Select(type => type.Assembly).ToArray();
 				// await ConsoleTestRunner.RunTests(this, assemblies);
 				// var assemblies = new[] { Assembly.Load("Betauer.Tools.Logging.Tests") };

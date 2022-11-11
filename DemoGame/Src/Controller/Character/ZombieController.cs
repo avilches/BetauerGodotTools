@@ -7,7 +7,7 @@ using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Tools.Logging;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 using Veronenger.Character.Enemy;
 using Veronenger.Managers;

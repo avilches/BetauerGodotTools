@@ -33,7 +33,7 @@ namespace DemoAnimation.Controller.Menu {
         private Label _labelToAnimate;
 
         [OnReady("HBoxContainer/Animator/SpriteToAnimate")]
-        private Sprite _logo;
+        private Sprite2D _logo;
 
         [OnReady("HBoxContainer/Animator/TextureRectToAnimate")]
         private TextureRect _texture;

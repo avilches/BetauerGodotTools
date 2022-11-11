@@ -3,7 +3,7 @@ using Betauer.Animation.Easing;
 using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {

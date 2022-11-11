@@ -9,7 +9,7 @@ using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.OnReady;
 using Betauer.Restorer;
 using Betauer.Core.Signal;

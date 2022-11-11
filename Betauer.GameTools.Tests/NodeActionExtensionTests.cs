@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

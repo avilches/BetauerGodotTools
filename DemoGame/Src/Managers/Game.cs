@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Godot;
 
 namespace Veronenger.Managers {

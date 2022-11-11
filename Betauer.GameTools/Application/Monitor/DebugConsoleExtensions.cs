@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Godot;
 
