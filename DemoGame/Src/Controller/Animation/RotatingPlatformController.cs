@@ -18,7 +18,7 @@ namespace Veronenger.Controller.Animation {
             Configure();
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             UpdateAngle(delta);
             UpdatePosition();
         }
@@ -28,7 +28,7 @@ namespace Veronenger.Controller.Animation {
             _speed = Tau / RotationDuration;
         }
 
-        private void UpdateAngle(float delta) {
+        private void UpdateAngle(double delta) {
             _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
         }
 

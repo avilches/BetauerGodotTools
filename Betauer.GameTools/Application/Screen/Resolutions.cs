@@ -73,7 +73,7 @@ namespace Betauer.Application.Screen {
         /// <param name="aspectRatios"></param>
         /// <returns></returns>
         public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
-            if (maxSize == null) maxSize = new Resolution(OS.GetScreenSize());
+            if (maxSize == null) maxSize = new Resolution(DisplayServer.WindowGetSize());
             var maxScale = Resolution.CalculateMaxScale(from.Size, maxSize.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
             for (var scale = 1; scale <= maxScale; scale++) {
@@ -92,7 +92,7 @@ namespace Betauer.Application.Screen {
                             // 2520x1080 = 2,3333 21:9
                             var newWidth = scaledResolution.y * aspectRatio.Ratio;
                             if (newWidth <= maxSize.x) {
-                                var newResolution = new Vector2(newWidth, scaledResolution.y);
+                                var newResolution = new Vector2i((int)newWidth, scaledResolution.y);
                                 var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
@@ -104,7 +104,7 @@ namespace Betauer.Application.Screen {
                             // 1920x1440 = 1,3333 3:4
                             var newHeight = scaledResolution.x / aspectRatio.Ratio;
                             if (newHeight <= maxSize.y) {
-                                var newResolution = new Vector2(scaledResolution.x, newHeight);
+                                var newResolution = new Vector2i(scaledResolution.x, (int)newHeight);
                                 var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
@@ -116,7 +116,7 @@ namespace Betauer.Application.Screen {
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min) {
-            return Clamp(resolutions, min, OS.GetScreenSize());
+            return Clamp(resolutions, min, DisplayServer.WindowGetSize());
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {

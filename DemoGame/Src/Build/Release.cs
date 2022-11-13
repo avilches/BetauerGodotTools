@@ -138,6 +138,6 @@ namespace Veronenger.Build {
             return data;
         }
 
-        public override bool _Idle(float delta) => true;
+        public override bool _Idle(double delta) => true;
     }
 }

@@ -72,11 +72,11 @@ namespace DemoAnimation.Controller.Menu {
             var yesButton = startMenu.AddButton("Yes", "Yes");
             noButton.OnPressed(() => _promise.TrySetResult(false));
             yesButton.OnPressed(() => _promise.TrySetResult(true));
-            noButton!.MinSize = yesButton!.MinSize = new Vector2(60, 0);
+            noButton!.CustomMinimumSize = yesButton!.CustomMinimumSize = new Vector2(60, 0);
             return mainMenu;
         }
 
-        public override void _Process(float delta) {
+        public override void _Process(double delta) {
             if (UiCancel.IsJustPressed()) {
                 _promise.TrySetResult(false);
             }

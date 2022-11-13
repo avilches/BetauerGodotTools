@@ -12,8 +12,8 @@ namespace Betauer.Application.Screen {
 
         protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
         protected List<AspectRatio> AspectRatios => ScreenConfiguration.AspectRatios;
-        protected SceneTree.StretchMode StretchMode => ScreenConfiguration.StretchMode;
-        protected SceneTree.StretchAspect StretchAspect => ScreenConfiguration.StretchAspect;
+        protected Window.ContentScaleModeEnum StretchMode => ScreenConfiguration.StretchMode;
+        protected Window.ContentScaleAspectEnum StretchAspect => ScreenConfiguration.StretchAspect;
         protected float Zoom => ScreenConfiguration.Zoom;
 
         protected BaseScreenResolutionService(SceneTree tree) {
@@ -30,33 +30,37 @@ namespace Betauer.Application.Screen {
             Setup();
         }
 
-        public virtual bool IsFullscreen() => OS.WindowFullscreen;
+        public virtual bool IsFullscreen() {
+            var mode = DisplayServer.WindowGetMode();
+            return mode == DisplayServer.WindowMode.Fullscreen ||
+                   mode == DisplayServer.WindowMode.ExclusiveFullscreen;
+        }
 
         public virtual void SetFullscreen() {
-            if (OS.WindowFullscreen) return;
-            if (!Project.FeatureFlags.IsMacOs()) OS.WindowBorderless = false;
-            OS.WindowFullscreen = true;
+            if (IsFullscreen()) return;
+            // if (!Project.FeatureFlags.IsMacOs()) DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
             Setup();
         }
 
         public virtual void SetBorderless(bool borderless) {
-            if (IsFullscreen() || Project.FeatureFlags.IsMacOs() || OS.WindowBorderless == borderless) return;
-            OS.WindowBorderless = borderless;
+            if (IsFullscreen() || Project.FeatureFlags.IsMacOs() || DisplayServer.WindowGetFlag(DisplayServer.WindowFlags.Borderless) == borderless) return;
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, borderless);
             Setup();
         }
 
         public virtual void SetWindowed(Resolution resolution) {
-            var screenSize = OS.GetScreenSize();
+            var screenSize = DisplayServer.WindowGetRealSize();
             if (resolution.x > screenSize.x || resolution.y > screenSize.y) {
-                SetFullscreen();
+                // SetFullscreen();
                 return;
             }
             if (resolution.x < DownScaledMinimumResolution.x || 
                 resolution.y < DownScaledMinimumResolution.y) {
                 resolution = DownScaledMinimumResolution;
             }
-            if (OS.WindowFullscreen) OS.WindowFullscreen = false;
-            OS.WindowSize = resolution.Size;
+            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
+            DisplayServer.WindowSetSize(resolution.Size);
             Setup();
         }
 
@@ -65,9 +69,8 @@ namespace Betauer.Application.Screen {
         }
 
         public virtual void CenterWindow() {
-            if (OS.WindowFullscreen) return;
-            OS.CenterWindow();
-            // TODO why this instead of OS.CenterWindow()
+            if (IsFullscreen()) return;
+            // TODO Godot 4: 
             // var currentScreen = OS.CurrentScreen;
             // var screenSize = OS.GetScreenSize(currentScreen);
             // var windowSize = OS.WindowSize;

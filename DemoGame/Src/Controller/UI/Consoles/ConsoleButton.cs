@@ -36,11 +36,11 @@ namespace Veronenger.Controller.UI.Consoles {
         }
 
         public string? Animation = null;
-        public JoystickList Button = JoystickList.InvalidOption;
+        public JoyButton Button = JoyButton.Invalid;
         public bool IsAxis = false;
         private State _state = State.Normal;
 
-        public void SetButton(bool isAxis, JoystickList button, State state) {
+        public void SetButton(bool isAxis, JoyButton button, State state) {
             Animation = null;
             IsAxis = isAxis;
             Button = button;
@@ -57,11 +57,11 @@ namespace Veronenger.Controller.UI.Consoles {
             Refresh();
         }
 
-        public void SetAxis(JoystickList button, bool animate) {
+        public void SetAxis(JoyButton button, bool animate) {
             SetButton(true, button, animate ? State.Animated : State.Normal);
         }
 
-        public void SetButton(JoystickList button, bool pressed) {
+        public void SetButton(JoyButton button, bool pressed) {
             SetButton(false, button, pressed ? State.Pressed : State.Normal);
         }
 
@@ -83,7 +83,7 @@ namespace Veronenger.Controller.UI.Consoles {
 
         public void InputAction(bool isAxis, InputAction action, State state) {
             if (isAxis) {
-                SetButton(true, (JoystickList)action.Axis, state);
+                SetButton(true, (JoyButton)action.Axis, state);
             } else {
                 var buttons = action.Buttons;
                 if (buttons.Count > 0) SetButton(false, buttons[0], state);
@@ -115,16 +115,16 @@ namespace Veronenger.Controller.UI.Consoles {
         
         public abstract Texture Texture { get; }
 
-        public int GetFrame(JoystickList button, bool isAxis) => Get(button, isAxis)?.Frame ?? 0;
-        public int GetFramePressed(JoystickList button, bool isAxis) => Get(button, isAxis)?.FramePressed ?? 0;
+        public int GetFrame(JoyButton button, bool isAxis) => Get(button, isAxis)?.Frame ?? 0;
+        public int GetFramePressed(JoyButton button, bool isAxis) => Get(button, isAxis)?.FramePressed ?? 0;
 
-        public ConsoleButtonView? Get(JoystickList button, bool isAxis) =>
+        public ConsoleButtonView? Get(JoyButton button, bool isAxis) =>
             _mapping.TryGetValue((int)button + (isAxis ? AxisOffset : 0), out var o) ? o : null;
 
         public abstract void ConfigureButtons();
         public abstract ConsoleButtonView CreateDefaultView();
 
-        protected void Button(JoystickList joystickList, string animation, int frame, int framePressed) =>
+        protected void Button(JoyButton joystickList, string animation, int frame, int framePressed) =>
             Add((int)joystickList, animation, frame, framePressed);
         
         protected void Axis(int axis, string animation, int frame, int framePressed) =>
@@ -142,30 +142,30 @@ namespace Veronenger.Controller.UI.Consoles {
         public override Texture Texture => _mainResourceLoader.Xbox360ButtonsTexture;
 
         public override void ConfigureButtons() {
-            Button(JoystickList.XboxA, "A", 13, 14);
-            Button(JoystickList.XboxB, "B", 49, 50);
-            Button(JoystickList.XboxX, "X", 25, 26);
-            Button(JoystickList.XboxY, "Y", 37, 38);
+            Button(JoyButton.XboxA, "A", 13, 14);
+            Button(JoyButton.XboxB, "B", 49, 50);
+            Button(JoyButton.XboxX, "X", 25, 26);
+            Button(JoyButton.XboxY, "Y", 37, 38);
 
-            Button(JoystickList.L, null, 46, 45); // LB
-            Button(JoystickList.R, null, 58, 57); // RB
-            Button(JoystickList.AnalogL2, null, 22, 21); // LT
-            Button(JoystickList.AnalogR2, null, 34, 33); // RT
+            Button(JoyButton.L, null, 46, 45); // LB
+            Button(JoyButton.R, null, 58, 57); // RB
+            Button(JoyButton.AnalogL2, null, 22, 21); // LT
+            Button(JoyButton.AnalogR2, null, 34, 33); // RT
 
-            Button(JoystickList.Select, "", 16, 15);
-            Button(JoystickList.Start, "", 19, 20);
-            Button(JoystickList.Guide, "", 17, 18); // Xbox Button (big button between select & start)
+            Button(JoyButton.Select, "", 16, 15);
+            Button(JoyButton.Start, "", 19, 20);
+            Button(JoyButton.Guide, "", 17, 18); // Xbox Button (big button between select & start)
 
-            Button(JoystickList.DpadRight, "", 28, 27);
-            Button(JoystickList.DpadDown, "", 29, 27);
-            Button(JoystickList.DpadLeft, "", 30, 27);
-            Button(JoystickList.DpadUp, "", 31, 27);
-
-            // Right analog Click
-            Button(JoystickList.R3, "", 39, 44);
+            Button(JoyButton.DpadRight, "", 28, 27);
+            Button(JoyButton.DpadDown, "", 29, 27);
+            Button(JoyButton.DpadLeft, "", 30, 27);
+            Button(JoyButton.DpadUp, "", 31, 27);
 
             // Right analog Click
-            Button(JoystickList.L3, "left click", 51, 56);
+            Button(JoyButton.R3, "", 39, 44);
+
+            // Right analog Click
+            Button(JoyButton.L3, "left click", 51, 56);
 
 
             // Right analog stick:

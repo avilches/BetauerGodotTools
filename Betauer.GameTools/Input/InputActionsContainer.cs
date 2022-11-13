@@ -14,11 +14,11 @@ namespace Betauer.Input {
             return ActionList.Find(action => action.IsEvent(inputEvent, echo));
         }
 
-        public InputAction? FindAction(JoystickList button) {
+        public InputAction? FindAction(JoyButton button) {
             return ActionList.Find(action => action.HasButton(button));
         }
 
-        public InputAction? FindAction(KeyList key) {
+        public InputAction? FindAction(Key key) {
             return ActionList.Find(action => action.HasKey(key));
         }
 

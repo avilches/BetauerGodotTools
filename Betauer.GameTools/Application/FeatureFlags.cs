@@ -7,7 +7,7 @@ namespace Betauer.Application {
     public static partial class Project {
         
         public static void PrintSettings(params string[] settingNames) {
-            settingNames.ForEach(property => {
+            Array.ForEach(settingNames, property => {
                 if (ProjectSettings.HasSetting(property)) {
                     GD.Print($"- {property} = {ProjectSettings.GetSetting(property)}");
                 } else {
@@ -17,24 +17,33 @@ namespace Betauer.Application {
         }
         
         public static void PrintOSInfo() {
-            GD.Print($"executable    : {OS.GetExecutablePath()}");
-            GD.Print($"process id    : {OS.GetProcessId().ToString()}");
-            GD.Print($"cmd line args : {string.Join(" ", OS.GetCmdlineArgs())}");
-            GD.Print($"features      : {string.Join(", ", FeatureFlags.GetActiveList())}");
-            GD.Print($"name host     : {OS.GetName()}");
-            GD.Print($"data dir      : {OS.GetDataDir()}");
-            GD.Print($"user data dir : {OS.GetUserDataDir()}");
-            GD.Print($"config dir    : {OS.GetConfigDir()}");
-            GD.Print($"cache dir     : {OS.GetCacheDir()}");
-            GD.Print($"permissions   : {string.Join(", ", OS.GetGrantedPermissions())}");
-            GD.Print($"video name    : {VisualServer.GetVideoAdapterName()}");
-            GD.Print($"video vendor  : {VisualServer.GetVideoAdapterVendor()}");
-            GD.Print($"processor name: {OS.GetProcessorName()}");
-            GD.Print($"processors    : {OS.GetProcessorCount().ToString()}");
-            GD.Print($"locale        : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
+            GD.Print($"executable path : {OS.GetExecutablePath()}");
+            GD.Print($"cmd args        : {string.Join(" ", OS.GetCmdlineArgs())}");
+            GD.Print($"cmd user args   : {string.Join(" ", OS.GetCmdlineUserArgs())}");
+            GD.Print($"ThreadCallerId  : {OS.GetThreadCallerId()}");
+            GD.Print($"MainThreadId    : {OS.GetMainThreadId()}");
+            GD.Print($"Process id      : {OS.GetProcessId().ToString()}");
+            GD.Print($"Video name      : {string.Join(" ", OS.GetVideoAdapterDriverInfo())}");
+            GD.Print($"Processor name  : {OS.GetProcessorName()}");
+            GD.Print($"Processors      : {OS.GetProcessorCount().ToString()}");
+            GD.Print($"Unique id       : {OS.GetUniqueId()}");
+            GD.Print($"Locale          : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
+            GD.Print($"Features        : {string.Join(", ", FeatureFlags.GetActiveList())}");
+            GD.Print($"Permissions     : {string.Join(", ", OS.GetGrantedPermissions())}");
+            GD.Print($"Name host       : {OS.GetName()}");
+            GD.Print($"Distribution    : {OS.GetDistributionName()}");
+            GD.Print($"Version         : {OS.GetVersion()}");
+            GD.Print($"Model name      : {OS.GetModelName()}");
+            GD.Print($"Data dir        : {OS.GetDataDir()}");
+            GD.Print($"User data dir   : {OS.GetUserDataDir()}");
+            GD.Print($"Config dir      : {OS.GetConfigDir()}");
+            GD.Print($"Cache dir       : {OS.GetCacheDir()}");
+            GD.Print($"--verbose       : {OS.IsStdoutVerbose()}");
+            GD.Print($"Debug/editor    : {OS.IsDebugBuild()}");
+            GD.Print($"Standalone      : {FeatureFlags.IsExported()}");
         }
         
-        public static TimeSpan Uptime => TimeSpan.FromMilliseconds(OS.GetTicksMsec());
+        public static TimeSpan Uptime => TimeSpan.FromMilliseconds(Time.GetTicksMsec());
 
         public static class FeatureFlags {
             public static readonly Dictionary<string, string> Description = new() {

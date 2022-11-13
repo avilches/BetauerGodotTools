@@ -597,7 +597,7 @@ namespace Betauer.Animation.Tests {
             sprite.Scale = original;
             // GD.Print(sprite.Offset);
             // GD.Print(sprite.GlobalPosition);
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
 
             var pivotCenterBottom = sprite.SetRotateOriginToBottomCenter();
             // GD.Print(sprite.Offset);

@@ -16,7 +16,7 @@ public partial class RestorerTests : Node {
         var node2D = new Node2D();
         AddChild(control);
         AddChild(node2D);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var original = new Vector2(2f, 2f);
         control.Scale = original;
         node2D.Scale = original;
@@ -41,7 +41,7 @@ public partial class RestorerTests : Node {
         var node2D = new Node2D();
         AddChild(control);
         AddChild(node2D);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var original = new Vector2(2f, 2f);
         control.Scale = original;
         node2D.Scale = original;
@@ -64,7 +64,7 @@ public partial class RestorerTests : Node {
     public async Task DefaultControlRestoreTests() {
         var control = new Control();
         AddChild(control);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var original = new Vector2(2f, 3f);
 
         control.PivotOffset = original;
@@ -101,19 +101,19 @@ public partial class RestorerTests : Node {
         container.AddChild(b1);
         container.AddChild(b2);
         AddChild(container);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         b1.GrabFocus();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b1));
 
         var r = container.CreateFocusOwnerRestorer();
         r.Save();
         b2.GrabFocus();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b2));
 
         r.Restore();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b1));
     }
 
@@ -167,7 +167,7 @@ public partial class RestorerTests : Node {
     public async Task Node2DRestoreTests() {
         var sprite = new Node2D();
         AddChild(sprite);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var original = new Vector2(2f, 3f);
 
         sprite.GlobalPosition = original;
@@ -205,7 +205,7 @@ public partial class RestorerTests : Node {
         imageTexture.SetSizeOverride(new Vector2i(width, width));
         sprite.Texture = imageTexture;
         AddChild(sprite);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         return sprite;
     }
 }

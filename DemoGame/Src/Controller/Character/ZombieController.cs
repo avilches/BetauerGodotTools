@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Tools.Logging;

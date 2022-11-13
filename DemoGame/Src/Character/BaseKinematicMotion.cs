@@ -37,7 +37,7 @@ namespace Veronenger.Character {
             FloorUpDirection = floorUpDirection;
         }
 
-        public void SetDelta(float delta) {
+        public void SetDelta(double delta) {
             Delta = delta;
         }
 
@@ -67,7 +67,7 @@ namespace Veronenger.Character {
             // the speed will be the half
             float changeDirectionFactor,
             
-            float delta) {
+            double delta) {
             if (amount != 0) {
                 var directionChanged = speed != 0 && Math.Sign(speed) != Math.Sign(amount);
                 var frameAcceleration = amount * acceleration * delta;
@@ -89,7 +89,7 @@ namespace Veronenger.Character {
             }
         }
 
-        public static void Decelerate(ref float speed, float deceleration, float stopIfSpeedIsLessThan, float delta) {
+        public static void Decelerate(ref float speed, float deceleration, float stopIfSpeedIsLessThan, double delta) {
             var absSpeed = Math.Abs(speed);
             if (absSpeed < stopIfSpeedIsLessThan) {
                 speed = 0;

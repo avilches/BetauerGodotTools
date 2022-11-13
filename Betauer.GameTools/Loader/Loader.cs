@@ -36,38 +36,39 @@ namespace Betauer.Loader {
                 progress(loadingProgress.Update(totalSize, totalLoadedSize, resourcePath, resourceSize, 0));
             }
 
-            using (var loader = ResourceLoader.LoadInteractive(resourcePath)) {
-                if (loader == null) {
-                    throw new Exception($"Resource not found: {resourcePath}");                    
-                }
-                var stages = loader.GetStageCount();
-                // Resource resource = null;
-                Error pollResult = Error.Ok;
-                var stage = 0;
-                while (pollResult != Error.FileEof) {
-                    pollResult = loader.Poll();
-                    if (pollResult == Error.Ok) {
-                        stage++;
-                        var resourceLoadedSize = (int)((float)stage / stages * resourceSize);
-                        if (progress != null && loadingProgress != null) {
-                            progress(loadingProgress.Update(totalSize, totalLoadedSize + resourceLoadedSize,
-                                resourcePath, resourceSize, resourceLoadedSize));
-                        }
-                        if (awaiter != null && stopwatch.Elapsed.Seconds > maxTime) {
-                            await awaiter();
-                            stopwatch.Restart();
-                        }
-                    } else if (pollResult != Error.FileEof) {
-                        throw new Exception($"Error loading resource {resourcePath}: {pollResult}");
-                    }
-                }
-                resource = loader.GetResource();
-            }
-            if (progress != null && loadingProgress != null) {
-                progress(loadingProgress.Update(totalSize, totalSize, resourcePath, resourceSize, resourceSize));
-                if (awaiter != null) await awaiter(); // At least one to update the final status
-            }
-            resourceMetadata.Resource = resource;
+            // TODO Godot 4
+            // using (var loader = ResourceLoader.LoadInteractive(resourcePath)) {
+            //     if (loader == null) {
+            //         throw new Exception($"Resource not found: {resourcePath}");                    
+            //     }
+            //     var stages = loader.GetStageCount();
+            //     // Resource resource = null;
+            //     Error pollResult = Error.Ok;
+            //     var stage = 0;
+            //     while (pollResult != Error.FileEof) {
+            //         pollResult = loader.Poll();
+            //         if (pollResult == Error.Ok) {
+            //             stage++;
+            //             var resourceLoadedSize = (int)((float)stage / stages * resourceSize);
+            //             if (progress != null && loadingProgress != null) {
+            //                 progress(loadingProgress.Update(totalSize, totalLoadedSize + resourceLoadedSize,
+            //                     resourcePath, resourceSize, resourceLoadedSize));
+            //             }
+            //             if (awaiter != null && stopwatch.Elapsed.Seconds > maxTime) {
+            //                 await awaiter();
+            //                 stopwatch.Restart();
+            //             }
+            //         } else if (pollResult != Error.FileEof) {
+            //             throw new Exception($"Error loading resource {resourcePath}: {pollResult}");
+            //         }
+            //     }
+            //     resource = loader.GetResource();
+            // }
+            // if (progress != null && loadingProgress != null) {
+            //     progress(loadingProgress.Update(totalSize, totalSize, resourcePath, resourceSize, resourceSize));
+            //     if (awaiter != null) await awaiter(); // At least one to update the final status
+            // }
+            // resourceMetadata.Resource = resource;
         }
     }
 }

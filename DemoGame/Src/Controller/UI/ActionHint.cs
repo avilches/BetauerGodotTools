@@ -27,7 +27,7 @@ namespace Veronenger.Controller.UI {
         private string? _key;
         
         // If using gamepad
-        private JoystickList _button;
+        private JoyButton _button;
         private bool _isAxis;
         private bool _animateButton;
         
@@ -35,7 +35,7 @@ namespace Veronenger.Controller.UI {
 
         public ActionHint InputAction(InputAction action, bool isAxis, bool animate) {
             if (isAxis) {
-                _button = (JoystickList)action.Axis;
+                _button = (JoyButton)action.Axis;
                 _isAxis = true;
                 var keyList = new List<string>(2);
                 var keys = action.Keys;
@@ -50,7 +50,7 @@ namespace Veronenger.Controller.UI {
 
             } else {
                 var buttons = action.Buttons;
-                _button = buttons.Count > 0 ? buttons[0] : JoystickList.InvalidOption;
+                _button = buttons.Count > 0 ? buttons[0] : JoyButton.Invalid;
                 _isAxis = false;
 
                 var keys = action.Keys;
@@ -70,7 +70,7 @@ namespace Veronenger.Controller.UI {
                 _keyButton.Text = _key;
             } else {
                 _keyButton.Visible = false;
-                if (_button != JoystickList.InvalidOption) {
+                if (_button != JoyButton.Invalid) {
                     _consoleButton.Visible = true;
                     _consoleButton.SetButton(_isAxis, _button, _animateButton ? ConsoleButton.State.Animated : ConsoleButton.State.Normal);
                 } else {

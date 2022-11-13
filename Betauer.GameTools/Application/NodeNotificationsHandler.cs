@@ -48,7 +48,7 @@ namespace Betauer.Application {
         public event Action OnPostinitialize;
         public event Action OnPredelete;
 
-        public void Execute(int what) {
+        public void Execute(long what) {
             switch (what) {
                 case Node.NotificationEnterTree:
                     OnEnterTree?.Invoke();

@@ -21,7 +21,7 @@ public partial class SignalExtensionsTests : Node {
     public async Task ConnectAndDisconnectLambdaTests() {
         var b1 = new CheckButton();
         AddChild(b1);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var executed1 = 0;
 
         SignalHandler p1 = b1.OnPressed(() => executed1 ++);
@@ -53,7 +53,7 @@ public partial class SignalExtensionsTests : Node {
     public async Task OneShotTest() {
         var b1 = new CheckButton();
         AddChild(b1);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var executed1 = 0;
 
         SignalHandler p1 = b1.OnPressed(() => executed1 ++, true);
@@ -70,7 +70,7 @@ public partial class SignalExtensionsTests : Node {
     public async Task SignalToLambdaDeferredTest() {
         var b1 = new CheckButton();
         AddChild(b1);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var executed1 = 0;
 
         SignalHandler p1 = b1.OnPressed(() => executed1 ++, false, true);
@@ -80,7 +80,7 @@ public partial class SignalExtensionsTests : Node {
         b1.EmitSignal("pressed");
         Assert.That(executed1, Is.EqualTo(0));
             
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         Assert.That(executed1, Is.EqualTo(3));
     }
 
@@ -88,7 +88,7 @@ public partial class SignalExtensionsTests : Node {
     public async Task SignalToLambdaOneShotDeferredTest() {
         var b1 = new CheckButton();
         AddChild(b1);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         var executed1 = 0;
 
         SignalHandler p1 = b1.OnPressed(() => executed1 ++, true, true);
@@ -98,7 +98,7 @@ public partial class SignalExtensionsTests : Node {
         Assert.That(executed1, Is.EqualTo(0));
         Assert.That(p1.IsConnected(), Is.False);
             
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         Assert.That(executed1, Is.EqualTo(1));
     }
 
@@ -106,7 +106,7 @@ public partial class SignalExtensionsTests : Node {
     public async Task SignalParameterTest() {
         var b1 = new CheckButton();
         AddChild(b1);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
             
         b1.AddUserSignal("1p");
         b1.AddUserSignal("2p");

@@ -23,10 +23,10 @@ namespace Betauer.TestRunner {
         public static SignalAwaiter AwaitPhysicsFrame() =>
             SceneTree.ToSignal(SceneTree, "physics_frame");
 
-        public static SignalAwaiter AwaitIdleFrame(this object _) =>
-            AwaitIdleFrame();
+        public static SignalAwaiter AwaitProcessFrame(this object _) =>
+            AwaitProcessFrame();
         
-        public static SignalAwaiter AwaitIdleFrame() =>
+        public static SignalAwaiter AwaitProcessFrame() =>
             SceneTree.ToSignal(SceneTree, "process_frame");
         
     }
@@ -93,10 +93,11 @@ namespace Betauer.TestRunner {
                 Node? node = fixtureInstance as Node;
                 try {
                     Stopwatch.Start();
-                    fixtureInstance = Activator.CreateInstance(FixtureType); 
+                    fixtureInstance = Activator.CreateInstance(FixtureType);
+                    node = fixtureInstance as Node;
                     if (node != null) {
                         sceneTree.Root.AddChild(node);
-                        await TestExtensions.AwaitIdleFrame();
+                        await TestExtensions.AwaitProcessFrame();
                     }
                     if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(fixtureInstance, EmptyParameters);
                     var obj = Method.Invoke(fixtureInstance, EmptyParameters);
@@ -108,7 +109,7 @@ namespace Betauer.TestRunner {
                             if (next is Task coTask) {
                                 await coTask;
                             } else {
-                                await TestExtensions.AwaitIdleFrame();
+                                await TestExtensions.AwaitProcessFrame();
                             }
                         }
                     }
@@ -127,7 +128,7 @@ namespace Betauer.TestRunner {
                 }
                 if (Godot.Object.IsInstanceValid(node)) {
                     node.QueueFree();
-                    await TestExtensions.AwaitIdleFrame();
+                    await TestExtensions.AwaitProcessFrame();
                 }
                 Stopwatch.Stop();
             }

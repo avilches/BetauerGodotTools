@@ -19,6 +19,8 @@ namespace Betauer.Application.Screen {
 
         protected override void Setup() {
             // Enforce minimum resolution.
+            // TODO Godot 4
+            /*
             OS.MinWindowSize = ScreenConfiguration.DownScaledMinimumResolution.Size;
             if (OS.WindowSize < OS.MinWindowSize) {
                 OS.WindowSize = OS.MinWindowSize;
@@ -26,15 +28,21 @@ namespace Betauer.Application.Screen {
             OS.WindowResizable = ScreenConfiguration.IsResizeable;
             var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
             var keepRatio = KeepRatio(new Resolution(windowSize));
-            Tree.SetScreenStretch(StretchMode, StretchAspect, keepRatio.Size, Zoom);
+            // Tree.SetScreenStretch(StretchMode, StretchAspect, keepRatio.Size, Zoom);
+            Tree.Root.ContentScaleMode = StretchMode;
+            Tree.Root.ContentScaleAspect = StretchAspect;
+            Tree.Root.ContentScaleFactor = Zoom;
+            Tree.Root.ContentScaleSize = keepRatio.Size;
+            
             _state = $"ResizeViewport: {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {keepRatio.x}x{keepRatio.y}";
             Logger.Debug(_state);
+            */
         }
 
         public Resolution KeepRatio(Resolution resolution) {
             return StretchAspect switch {
-                SceneTree.StretchAspect.KeepHeight => new Resolution(resolution.x, (int)(resolution.x / BaseResolution.AspectRatio.Ratio)),
-                SceneTree.StretchAspect.KeepWidth => new Resolution((int)(resolution.y * BaseResolution.AspectRatio.Ratio), resolution.y),
+                Window.ContentScaleAspectEnum.KeepHeight => new Resolution(resolution.x, (int)(resolution.x / BaseResolution.AspectRatio.Ratio)),
+                Window.ContentScaleAspectEnum.KeepWidth => new Resolution((int)(resolution.y * BaseResolution.AspectRatio.Ratio), resolution.y),
                 _ => resolution
             };
         }

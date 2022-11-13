@@ -16,7 +16,7 @@ namespace Veronenger.Controller.Platforms {
 			Configure();
 		}
 
-		public override void _PhysicsProcess(float delta) {
+		public override void _PhysicsProcess(double delta) {
 			if (!Enabled) return;
 			UpdatePosition(delta);
 		}
@@ -36,7 +36,7 @@ namespace Veronenger.Controller.Platforms {
 			}
 		}
 
-		private void UpdatePosition(float delta) {
+		private void UpdatePosition(double delta) {
 			Position = _original + PathFollow2D.Position;
 			PathFollow2D.Offset += Speed * delta;
 		}

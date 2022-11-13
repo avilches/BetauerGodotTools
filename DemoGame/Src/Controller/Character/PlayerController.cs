@@ -4,7 +4,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Camera;
 using Betauer.Application.Monitor;
 using Betauer.DI;
@@ -12,7 +12,7 @@ using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Veronenger.Character.Player;
 using Veronenger.Controller.UI.Consoles;
 using Veronenger.Managers;
@@ -78,7 +78,7 @@ namespace Veronenger.Controller.Character {
             AnimationAttack = _animationStack.AddOnceAnimation("Attack");
             AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-            _cameraController = new DragCameraController(_camera2D, ButtonList.Middle, 1.8f, 100f);
+            _cameraController = new DragCameraController(_camera2D, MouseButton.Middle, 1.8f, 100f);
             this.OnInput((e) => _cameraController.DragCamera(e));
 
             _tweenStack = new AnimationStack("Player.AnimationStack");
@@ -197,11 +197,11 @@ namespace Veronenger.Controller.Character {
                 }
             }
             if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
-            if (e.IsKeyPressed(KeyList.Q)) {
+            if (e.IsKeyPressed(Key.Q)) {
                 // _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
-            } else if (e.IsKeyPressed(KeyList.W)) {
+            } else if (e.IsKeyPressed(Key.W)) {
                 // _camera2D.Zoom = new Vector2(1, 1);
-            } else if (e.IsKeyPressed(KeyList.E)) {
+            } else if (e.IsKeyPressed(Key.E)) {
                 // _camera2D.Zoom += new Vector2(0.05f, 0.05f);
             }
         }
@@ -217,7 +217,7 @@ namespace Veronenger.Controller.Character {
             }
         }
 
-        public override void _Process(float delta) {
+        public override void _Process(double delta) {
             Update();
         }
 

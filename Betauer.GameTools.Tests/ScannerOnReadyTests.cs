@@ -2,18 +2,19 @@ using System;
 using System.Collections.Generic;
 using Betauer.Tools.Logging;
 using Betauer.OnReady;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class ScannerOnReadyTests : Node {
+    public partial class ScannerOnReadyTests : Node {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
         }
 
-        internal class MyArea2D : Area2D {
+        internal partial class MyArea2D : Area2D {
             [OnReady("myControl/mySprite")] internal Node2D prop { set; get; }
 
             [OnReady("myControl/mySprite")] internal Node2D node2d;
@@ -77,7 +78,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(e!.Message.Contains("incompatible type"));
         }
 
-        internal class NodeWithChildren : Node {
+        internal partial class NodeWithChildren : Node {
             [OnReady("Children")] internal List<Sprite2D> listSprites;
             [OnReady("Children")] internal List<Node> listNodes;
 
@@ -97,22 +98,22 @@ namespace Betauer.GameTools.Tests {
             OnReadyScanner.ScanAndInject(nodeWithChildren);
 
             Assert.That(nodeWithChildren.listSprites.Count, Is.EqualTo(2));
-            Assert.That(nodeWithChildren.listSprites[0].Name, Is.EqualTo("Sprite1"));
-            Assert.That(nodeWithChildren.listSprites[1].Name, Is.EqualTo("Sprite2"));
+            Assert.That(nodeWithChildren.listSprites[0].Name.ToString(), Is.EqualTo("Sprite1"));
+            Assert.That(nodeWithChildren.listSprites[1].Name.ToString(), Is.EqualTo("Sprite2"));
             
             Assert.That(nodeWithChildren.listNodes.Count, Is.EqualTo(3));
-            Assert.That(nodeWithChildren.listNodes[0].Name, Is.EqualTo("Sprite1"));
-            Assert.That(nodeWithChildren.listNodes[1].Name, Is.EqualTo("K"));
-            Assert.That(nodeWithChildren.listNodes[2].Name, Is.EqualTo("Sprite2"));
+            Assert.That(nodeWithChildren.listNodes[0].Name.ToString(), Is.EqualTo("Sprite1"));
+            Assert.That(nodeWithChildren.listNodes[1].Name.ToString(), Is.EqualTo("K"));
+            Assert.That(nodeWithChildren.listNodes[2].Name.ToString(), Is.EqualTo("Sprite2"));
             
             Assert.That(nodeWithChildren.arraySprites.Length, Is.EqualTo(2));
-            Assert.That(nodeWithChildren.arraySprites[0].Name, Is.EqualTo("Sprite1"));
-            Assert.That(nodeWithChildren.arraySprites[1].Name, Is.EqualTo("Sprite2"));
+            Assert.That(nodeWithChildren.arraySprites[0].Name.ToString(), Is.EqualTo("Sprite1"));
+            Assert.That(nodeWithChildren.arraySprites[1].Name.ToString(), Is.EqualTo("Sprite2"));
 
             Assert.That(nodeWithChildren.arrayNodes.Length, Is.EqualTo(3));
-            Assert.That(nodeWithChildren.arrayNodes[0].Name, Is.EqualTo("Sprite1"));
-            Assert.That(nodeWithChildren.arrayNodes[1].Name, Is.EqualTo("K"));
-            Assert.That(nodeWithChildren.arrayNodes[2].Name, Is.EqualTo("Sprite2"));
+            Assert.That(nodeWithChildren.arrayNodes[0].Name.ToString(), Is.EqualTo("Sprite1"));
+            Assert.That(nodeWithChildren.arrayNodes[1].Name.ToString(), Is.EqualTo("K"));
+            Assert.That(nodeWithChildren.arrayNodes[2].Name.ToString(), Is.EqualTo("Sprite2"));
 
 
             Assert.That(nodeWithChildren.dictSprites.Count, Is.EqualTo(2));

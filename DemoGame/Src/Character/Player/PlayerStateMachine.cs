@@ -7,7 +7,7 @@ using Betauer.Input;
 
 using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
-using Betauer.Time;
+using Betauer.Core.Time;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
@@ -31,7 +31,7 @@ namespace Veronenger.Character.Player {
 
     [Service(Lifetime.Transient)]
     public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
-        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", ProcessMode.Physics) {
+        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", true) {
         }
 
         [Inject] private PlatformManager PlatformManager { get; set;}

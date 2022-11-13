@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Tools.Reflection;
 using Betauer.Core.Signal;
@@ -35,7 +36,7 @@ namespace Betauer.Loader {
                 (T)((object)Registry[res].Resource): 
                 throw new KeyNotFoundException($"Resource with name {res} not found");
         
-        public T? Scene<T>(string res) where T : class => Resource<PackedScene>(res).Instance<T>();
+        public T? Scene<T>(string res) where T : class => Resource<PackedScene>(res).Instantiate<T>();
 
         public virtual void DoOnProgress(LoadingProgress progress) {
         }
@@ -61,12 +62,12 @@ namespace Betauer.Loader {
         }
 
         public ResourceLoaderContainer From(params object[] sources) {
-            sources.ForEach(source => From(source));
+            Array.ForEach(sources, source => From(source));
             return this;
         }
 
         public ResourceLoaderContainer Inject(params object[] targets) {
-            targets.ForEach(target => Inject(target));
+            Array.ForEach(targets, target => Inject(target));
             return this;
         }
 
@@ -85,7 +86,7 @@ namespace Betauer.Loader {
             
             // Load resources
             Func<Task> awaiter = Awaiter ?? (async () => {
-                if (SceneTree != null) await SceneTree.AwaitIdleFrame();
+                if (SceneTree != null) await SceneTree.AwaitProcessFrame();
                 else await Task.Delay(10);
             });
             Unload();
@@ -170,7 +171,7 @@ namespace Betauer.Loader {
                     return packedSceneToInstanceFunction;
                 } else if (typeof(Node).IsAssignableFrom(type)) {
                     // [Resource/Load] private Node(or child of) field
-                    Node nodeCreated = packedScene.Instance();
+                    Node nodeCreated = packedScene.Instantiate();
                     if (type.IsInstanceOfType(nodeCreated)) {
                         return nodeCreated;
                     }
@@ -184,7 +185,7 @@ namespace Betauer.Loader {
         
         private static class CreatePackedScene {
             private static Func<T> PackedSceneToInstance<T>(PackedScene value) where T : class =>
-                () => value.Instance<T>();
+                () => value.Instantiate<T>();
 
             private static readonly MethodInfo ComposeMethod = typeof(CreatePackedScene)
                 .GetMethod(nameof(PackedSceneToInstance), BindingFlags.Static | BindingFlags.NonPublic)!;

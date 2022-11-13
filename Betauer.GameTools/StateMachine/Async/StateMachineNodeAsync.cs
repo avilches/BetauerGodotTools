@@ -1,16 +1,17 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Core;
 using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.StateMachine.Async {
-    public class StateMachineNodeAsync<TStateKey, TEventKey> : 
+    public partial class StateMachineNodeAsync<TStateKey, TEventKey> : 
         StateMachineNode<TStateKey>, IStateMachineAsync<TStateKey, TEventKey, StateNodeAsync<TStateKey, TEventKey>> 
         where TStateKey : Enum 
         where TEventKey : Enum {
         
         private class RealStateMachineNodeAsync : BaseStateMachineAsync<TStateKey, TEventKey, IStateAsync<TStateKey, TEventKey>> {
-            private StateMachineNodeAsync<TStateKey, TEventKey> _owner;
+            private readonly StateMachineNodeAsync<TStateKey, TEventKey> _owner;
             
             internal RealStateMachineNodeAsync(StateMachineNodeAsync<TStateKey, TEventKey> owner, TStateKey initialState, string? name = null) : base(initialState, name) {
                 _owner = owner;
@@ -34,9 +35,9 @@ namespace Betauer.StateMachine.Async {
         public bool Available => _stateMachine.Available;
         public string? Name => _stateMachine.Name; 
 
-        public StateMachineNodeAsync(TStateKey initialState, string? name = null, ProcessMode mode = ProcessMode.Idle) {
+        public StateMachineNodeAsync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
             _stateMachine = new RealStateMachineNodeAsync(this, initialState, name);
-            Mode = mode;
+            ProcessInPhysics = processInPhysics;
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
         public void AddOnEnter(Action<TransitionArgs<TStateKey>> e) => _stateMachine.AddOnEnter(e);
@@ -59,7 +60,7 @@ namespace Betauer.StateMachine.Async {
             throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
         }
 
-        public void Execute(float delta) {
+        public void Execute(double delta) {
             if (_exception != null) {
                 var e = _exception;
                 _exception = null;
@@ -80,13 +81,13 @@ namespace Betauer.StateMachine.Async {
             if (Available) CurrentState._UnhandledInput(e);
         }
 
-        public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) Execute(delta);
+        public override void _PhysicsProcess(double delta) {
+            if (ProcessInPhysics) Execute(delta);
             else SetPhysicsProcess(false);
         }
 
-        public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) Execute(delta);
+        public override void _Process(double delta) {
+            if (!ProcessInPhysics) Execute(delta);
             else SetProcess(false);
         }
     }

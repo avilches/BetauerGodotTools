@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.TestRunner;
@@ -12,7 +14,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class ScreenSettingsManagerTests : Node {
+    public partial class ScreenSettingsManagerTests : Node {
 
         const string SettingsFile = "./test-screen-settings.ini";
 
@@ -23,11 +25,10 @@ namespace Betauer.GameTools.Tests {
         }
 
         internal static ScreenConfiguration InitialScreenConfiguration =
-            new ScreenConfiguration(
+            new(Resolutions.FULLHD,
                 Resolutions.FULLHD,
-                Resolutions.FULLHD,
-                SceneTree.StretchMode.Mode2d, 
-                SceneTree.StretchAspect.KeepHeight);
+                Window.ContentScaleModeEnum.CanvasItems, 
+                Window.ContentScaleAspectEnum.KeepHeight);
 
         [Configuration]
         internal class ScreenSettingsManagerConfig {
@@ -88,10 +89,10 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue("Video", "Fullscreen", "X"), Is.False);
-            Assert.That(cf.GetValue("Video", "PixelPerfect", "X"), Is.True);
-            Assert.That(cf.GetValue("Video", "VSync", "X"), Is.True);
-            Assert.That(cf.GetValue("Video", "WindowedResolution", "X"), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<bool>("Video", "Fullscreen", true), Is.False);
+            Assert.That(cf.GetValue<bool>("Video", "PixelPerfect"), Is.True);
+            Assert.That(cf.GetValue<bool>("Video", "VSync"), Is.True);
+            Assert.That(cf.GetValue<Vector2i>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
             
             s.SetFullscreen(true, false);
             s.SetPixelPerfect(false, false);
@@ -103,10 +104,10 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.VSync, Is.True);
             Assert.That(s.WindowedResolution, Is.EqualTo(Resolutions.WXGA));
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue("Video", "Fullscreen", "X"), Is.False);
-            Assert.That(cf.GetValue("Video", "PixelPerfect", "X"), Is.True);
-            Assert.That(cf.GetValue("Video", "VSync", "X"), Is.True);
-            Assert.That(cf.GetValue("Video", "WindowedResolution", "X"), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<bool>("Video", "Fullscreen", true), Is.False);
+            Assert.That(cf.GetValue<bool>("Video", "PixelPerfect"), Is.True);
+            Assert.That(cf.GetValue<bool>("Video", "VSync"), Is.True);
+            Assert.That(cf.GetValue<Vector2i>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
         }
         
         [Test]

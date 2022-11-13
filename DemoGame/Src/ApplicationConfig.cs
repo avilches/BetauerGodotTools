@@ -12,8 +12,8 @@ namespace Veronenger {
         public static readonly ScreenConfiguration Configuration = new(
             Resolutions.FULLHD_DIV2,
             Resolutions.FULLHD,
-            SceneTree.StretchMode.Mode2d, // (viewport is blur)
-            SceneTree.StretchAspect.Keep,
+            Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)
+            Window.ContentScaleAspectEnum.Keep,
             Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9), 
             true,
             1f);
@@ -51,25 +51,25 @@ namespace Veronenger {
         [Service]
         private InputAction LMB => InputAction.Create("LMB")
             .KeepProjectSettings()
-            .Mouse(ButtonList.Left)
+            .Mouse(MouseButton.Left)
             .Build();
 
         [Service]
         private InputAction RMB => InputAction.Create("RMB")
             .KeepProjectSettings()
-            .Mouse(ButtonList.Right)
+            .Mouse(MouseButton.Right)
             .Build();
 
         [Service]
         private InputAction MWU => InputAction.Create("MWU")
             .KeepProjectSettings()
-            .Mouse(ButtonList.WheelUp)
+            .Mouse(MouseButton.WheelUp)
             .Build();
 
         [Service]
         private InputAction MWD => InputAction.Create("MWD")
             .KeepProjectSettings()
-            .Mouse(ButtonList.WheelDown)
+            .Mouse(MouseButton.WheelDown)
             .Build();
     }
 
@@ -152,14 +152,14 @@ namespace Veronenger {
 
         [Service]
         private InputAction ControllerSelect => InputAction.Create("select")
-            .Keys(KeyList.Tab)
-            .Buttons(JoystickList.Select)
+            .Keys(Key.Tab)
+            .Buttons(JoyButton.Select)
             .Build();
 
         [Service]
         private InputAction ControllerStart => InputAction.Create("start")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.Start)
+            .Keys(Key.Escape)
+            .Buttons(JoyButton.Start)
             .Build();
     }
 
@@ -167,58 +167,58 @@ namespace Veronenger {
     public class Actions {
         [Service]
         private InputAction Up => InputAction.Configurable("up")
-            .Keys(KeyList.Up)
-            .Buttons(JoystickList.DpadUp)
+            .Keys(Key.Up)
+            .Buttons(JoyButton.DpadUp)
             .NegativeAxis(1, "down")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction Down => InputAction.Configurable("down")
-            .Keys(KeyList.Down)
-            .Buttons(JoystickList.DpadDown)
+            .Keys(Key.Down)
+            .Buttons(JoyButton.DpadDown)
             .PositiveAxis(1, "up")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction Left => InputAction.Configurable("left")
-            .Keys(KeyList.Left)
-            .Buttons(JoystickList.DpadLeft)
+            .Keys(Key.Left)
+            .Buttons(JoyButton.DpadLeft)
             .NegativeAxis(0, "right")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction Right => InputAction.Configurable("right")
-            .Keys(KeyList.Right)
-            .Buttons(JoystickList.DpadRight)
+            .Keys(Key.Right)
+            .Buttons(JoyButton.DpadRight)
             .PositiveAxis(0, "left")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction Jump => InputAction.Configurable("Jump")
-            .Keys(KeyList.Space)
-            .Buttons(JoystickList.XboxA)
+            .Keys(Key.Space)
+            .Buttons(JoyButton.XboxA)
             .Build();
 
         [Service]
         private InputAction Attack => InputAction.Configurable("Attack")
-            .Keys(KeyList.C)
-            .Mouse(ButtonList.Left)
-            .Buttons(JoystickList.XboxB)
+            .Keys(Key.C)
+            .Mouse(MouseButton.Left)
+            .Buttons(JoyButton.XboxB)
             .Build();
 
         [Service]
         private InputAction Float => InputAction.Configurable("Float")
-            .Keys(KeyList.F)
-            .Buttons(JoystickList.XboxY)
+            .Keys(Key.F)
+            .Buttons(JoyButton.XboxY)
             .Build();
 
         [Service]
         private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
-            .Keys(KeyList.F9)
+            .Keys(Key.F9)
             .Build();
 
     }

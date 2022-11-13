@@ -1,6 +1,5 @@
 using Betauer.Application;
-using Betauer.Core.Memory;
-using Betauer.Pool;
+using Betauer.Core.Pool;
 using Godot;
 using NUnit.Framework;
 
@@ -14,7 +13,7 @@ namespace Betauer.GameTools.Tests {
         }
     }
 
-    public class GR : GodotObjectRecyclable {
+    public partial class GR : GodotObjectRecyclable {
         public static int Created = 0;
 
         public GR() {

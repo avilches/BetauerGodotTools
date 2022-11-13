@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -8,7 +9,7 @@ using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public class DebugConsole : Panel {
+    public partial class DebugConsole : Panel {
 
         public interface ICommand {
             string Name { get; }
@@ -161,7 +162,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugConsole WriteLine(string? text = null) {
-            if (text != null) ConsoleOutput.AppendBbcode(text);
+            if (text != null) ConsoleOutput.AppendText(text);
             ConsoleOutput.Newline();
             return this;
         }
@@ -241,11 +242,11 @@ namespace Betauer.Application.Monitor {
                                         BorderWidthBottom = 0,
                                         BorderWidthLeft = 0
                                     };
-                                    prompt.AddStyleboxOverride("normal", style);
-                                    prompt.AddStyleboxOverride("focus", style);
+                                    prompt.AddThemeStyleboxOverride("normal", style);
+                                    prompt.AddThemeStyleboxOverride("focus", style);
                                     prompt.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
                                     prompt.CaretBlink = true;
-                                    prompt.CaretBlinkSpeed = 0.250f;
+                                    prompt.CaretBlinkInterval = 0.250f;
                                     prompt.GrabFocus();
                                     prompt.OnTextChanged((_) => _caretAutoCompleting = -1);         
                                 })
@@ -254,8 +255,8 @@ namespace Betauer.Application.Monitor {
                                 .Config(slider => {
                                     slider.Name = "OpacitySlider";
                                     slider.Editable = true;
-                                    slider.HintTooltip = "Opacity";
-                                    slider.MinSize = new Vector2(50, 5);
+                                    // slider.HintTooltip = "Opacity";
+                                    slider.CustomMinimumSize = new Vector2(50, 5);
                                     slider.Value = InitialTransparentBackground * 25f;
                                     slider.OnValueChanged((value) => {
                                         SelfModulate = new Color(1, 1, 1, value / 25f);
@@ -276,28 +277,28 @@ namespace Betauer.Application.Monitor {
 
         private void SetConsoleInputText(string text) {
             Prompt.Text = text;
-            Prompt.CaretPosition = text.Length;
+            Prompt.CaretColumn = text.Length;
         }
 
         private void OnConsoleInputKeyEvent(InputEventKey eventKey) {
-            if (eventKey.IsKeyJustPressed(KeyList.Enter) || eventKey.IsKeyJustPressed(KeyList.KpEnter)) {
+            if (eventKey.IsKeyJustPressed(Key.Enter) || eventKey.IsKeyJustPressed(Key.KpEnter)) {
                 OnTextEntered(Prompt.Text);
                 
-            } else if (eventKey.IsKeyJustPressed(KeyList.Up) && (eventKey.HasAlt() || eventKey.HasMeta())) {
+            } else if (eventKey.IsKeyJustPressed(Key.Up) && (eventKey.HasAlt() || eventKey.HasMeta())) {
                 var newState = Math.Min((int)_layout + 1, DebugConsoleLayoutEnumSize - 1);
                 Layout = (LayoutEnum)newState;
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
                 
-            } else if (eventKey.IsKeyJustPressed(KeyList.Down) && (eventKey.HasAlt() || eventKey.HasMeta())) {
+            } else if (eventKey.IsKeyJustPressed(Key.Down) && (eventKey.HasAlt() || eventKey.HasMeta())) {
                 var newState = Math.Max((int)_layout - 1, 0);
                 Layout = (LayoutEnum)newState;
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
                 
-            } else if (eventKey.IsKeyJustPressed(KeyList.Up)) {
+            } else if (eventKey.IsKeyJustPressed(Key.Up)) {
                 OnHistoryUp();
-            } else if (eventKey.IsKeyJustPressed(KeyList.Down)) {
+            } else if (eventKey.IsKeyJustPressed(Key.Down)) {
                 OnHistoryDown();
-            } else if (eventKey.IsKeyJustPressed(KeyList.Tab)) {
+            } else if (eventKey.IsKeyJustPressed(Key.Tab)) {
                 OnAutocomplete(eventKey.HasShift() ? -1 : 1);
             }
         }
@@ -309,7 +310,7 @@ namespace Betauer.Application.Monitor {
                 OnConsoleInputKeyEvent(eventKey);
             } else if (input.IsLeftClickJustPressed() && input.IsMouseInside(ConsoleOutput)) {
                 Prompt.GrabFocus();
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
             } 
         }
         
@@ -338,7 +339,7 @@ namespace Betauer.Application.Monitor {
                 WriteLine(">");
             }
             SetConsoleInputText("");
-            GetTree().SetInputAsHandled();
+            GetViewport().SetInputAsHandled();
         }
 
         private static string ErrorCommandNotFound(string commandName) {
@@ -357,7 +358,7 @@ namespace Betauer.Application.Monitor {
                 _historyPos = History.Count - 1;
                 SetConsoleInputText(History[_historyPos]);
             }
-            GetTree().SetInputAsHandled();
+            GetViewport().SetInputAsHandled();
         }
 
         private void OnHistoryDown() {
@@ -371,11 +372,11 @@ namespace Betauer.Application.Monitor {
                     SetConsoleInputText(History[_historyPos]);
                 }
             }
-            GetTree().SetInputAsHandled();
+            GetViewport().SetInputAsHandled();
         }
 
         private void OnAutocomplete(int next) {
-            if (!IsAutoCompleting) _caretAutoCompleting = Prompt.CaretPosition;
+            if (!IsAutoCompleting) _caretAutoCompleting = Prompt.CaretColumn;
             var caret = _caretAutoCompleting;            
             if (caret != 0 && Prompt.Text.IndexOf(" ", StringComparison.Ordinal) <= -1) {
                 var promptText = Prompt.Text;
@@ -387,10 +388,10 @@ namespace Betauer.Application.Monitor {
                     var found = matches.IndexOf(promptText);
                     found =(found + next).Mod(matches.Count);
                     Prompt.Text = matches[found];
-                    Prompt.CaretPosition = Prompt.Text.Length;
+                    Prompt.CaretColumn = Prompt.Text.Length;
                 }
             }
-            GetTree().SetInputAsHandled();
+            GetViewport().SetInputAsHandled();
         }
     }
 }

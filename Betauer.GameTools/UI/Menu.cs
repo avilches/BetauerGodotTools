@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.Nodes;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Godot;
 
@@ -264,7 +264,7 @@ namespace Betauer.UI {
                     /*
                      * 2) Wait one frame, so the container can arrange the children positions safely.
                      */ 
-                    await Parent.AwaitIdleFrame();
+                    await Parent.AwaitProcessFrame();
                     /*
                      * 3) Restore the old modulates and start the animation.
                      */
@@ -366,7 +366,7 @@ namespace Betauer.UI {
         }
 
         public TScene Add<TScene>(PackedScene button) where TScene : Node {
-            var instance = button.Instance<TScene>();
+            var instance = button.Instantiate<TScene>();
             Container.AddChild(instance);
             return instance;
         }
@@ -383,7 +383,7 @@ namespace Betauer.UI {
 
         internal void Show(BaseButton? focused = null) {
             _onShow?.Invoke();
-            Parent.AddChildBelowNode(OriginalContainer, Container);
+            Parent.AddChild(Container);
             Refresh(focused);
         }
 
@@ -409,7 +409,7 @@ namespace Betauer.UI {
             return Container.GetVisibleControl<Control>();
         }
 
-        public Restorer.Restorer DisableButtons(bool storeFocus = true) {
+        public Restorer DisableButtons(bool storeFocus = true) {
             return Container.DisableButtons(storeFocus);
         }
     }

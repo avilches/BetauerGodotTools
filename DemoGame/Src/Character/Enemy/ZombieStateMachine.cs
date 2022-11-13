@@ -5,7 +5,7 @@ using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
-using Betauer.Time;
+using Betauer.Core.Time;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Controller.Character;

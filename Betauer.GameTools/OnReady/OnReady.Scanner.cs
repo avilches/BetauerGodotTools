@@ -56,8 +56,8 @@ namespace Betauer.OnReady {
                 
                 IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type);
                 var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[1] : null;
-                foreach (var child in node.GetChildren().OfType<Node>()) {
-                    if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[child.Name] = child; 
+                foreach (var child in node.GetChildren()) {
+                    if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[(string)child.Name] = child; 
                 }
                 getterSetter.SetValue(target, dictionary);
 

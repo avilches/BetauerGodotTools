@@ -83,7 +83,8 @@ namespace Betauer.Application.Screen {
         }
 
         public void SetVSync(bool vsync, bool save = true) {
-            OS.VsyncEnabled = vsync;
+            // TODO Godot 4: allow more VSync modes
+            DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
             if (save) _vSync.Value = vsync;
         }
 
@@ -115,7 +116,7 @@ namespace Betauer.Application.Screen {
         private Vector2 _screenSize = Vector2.Zero;
 
         // Detect current screen change or monitor resolution (screen size) changed
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             var screenSize = OS.GetScreenSize();
             if (_currentScreen != OS.CurrentScreen || screenSize != _screenSize) {
                 _screenSize = screenSize;

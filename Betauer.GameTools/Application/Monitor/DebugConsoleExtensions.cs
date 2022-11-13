@@ -9,7 +9,7 @@ using Godot;
 namespace Betauer.Application.Monitor {
     public static class RichTextLabelExtensions {
         public static RichTextLabel AppendBbcodeLine(this RichTextLabel richTextLabel, string? text = null) {
-            if (text != null) richTextLabel.AppendBbcode(text);
+            if (text != null) richTextLabel.AppendText(text);
             richTextLabel.Newline();
             return richTextLabel;
         }
@@ -94,7 +94,7 @@ namespace Betauer.Application.Monitor {
                 }).End();
         }
                                                                         
-        public static DebugConsole AddEngineTargetFpsCommand(this DebugConsole console) {
+        public static DebugConsole AddEngineMaxFpsCommand(this DebugConsole console) {
             return console.CreateCommand("fps",
                     "Show or change the target fps.",
                     @"Usage:
@@ -102,12 +102,12 @@ namespace Betauer.Application.Monitor {
     [color=#ffffff]fps <int>[/color] : Set the target fps to <int>.",
                     "Error: argument must be a valid integer.")
                 .WithNoArguments(() => {
-                    console.WriteLine($"Current target fps: {Engine.TargetFps.ToString()}");
+                    console.WriteLine($"Current target fps: {Engine.MaxFps.ToString()}");
                 })
                 .ArgumentIsInteger(input => {
-                    var newTargetFps = input.Arguments[0];
-                    Engine.TargetFps = newTargetFps.ToInt();
-                    console.WriteLine($"New target fps: {newTargetFps}");
+                    var newMaxFps = input.Arguments[0];
+                    Engine.MaxFps = newMaxFps.ToInt();
+                    console.WriteLine($"New target fps: {newMaxFps}");
                 }).End();
         }
 
@@ -139,19 +139,6 @@ namespace Betauer.Application.Monitor {
                     .Solid()
                     .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
             }, "Open the NodeHandler info window.");
-        }
-
-        public static DebugConsole AddSignalManagerCommand(this DebugConsole console, SignalManager? signalManager = null) {
-            const string title = nameof(SignalManager);
-            return console.CreateCommand("show-signals", () => {
-                if (console.DebugOverlayManager.HasOverlay(title)) return;
-                console.DebugOverlayManager
-                    .Overlay(title)
-                    .Permanent(false)
-                    .Solid()
-                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString).UpdateEvery(1f)
-                    .EndMonitor();
-            }, "Open the signals info window.");
         }
 
         public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {

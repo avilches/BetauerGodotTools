@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Betauer.UI;
 using DemoAnimation.Managers;
@@ -297,7 +297,7 @@ namespace DemoAnimation.Controller.Menu {
             if (UiCancel.IsEventJustPressed(e)) { 
                 if (!_menuContainer.IsRootMenuActive()) {
                     _menuContainer.Back();
-                    GetTree().SetInputAsHandled();
+                    GetViewport().SetInputAsHandled();
                 }
             }
         }

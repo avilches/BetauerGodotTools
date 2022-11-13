@@ -13,15 +13,15 @@ namespace Betauer.Application.Screen {
 
     public class ScaledResolution : Resolution, IEquatable<ScaledResolution> {
         public static readonly IEqualityComparer<ScaledResolution> ComparerByBaseSize = new ScaledResolutionComparer();
-        public readonly Vector2 Base;
+        public readonly Vector2i Base;
         public readonly Vector2 Scale;
 
-        public ScaledResolution(Vector2 @base, Vector2 size) : base(size) {
+        public ScaledResolution(Vector2i @base, Vector2i size) : base(size) {
             Base = @base;
             Scale = size / @base;
         }
 
-        public ScaledResolution(Vector2 @base, int x, int y) : this(@base, new Vector2(x, y)) {
+        public ScaledResolution(Vector2i @base, int x, int y) : this(@base, new Vector2i(x, y)) {
         }
 
         public bool HasSameAspectRatio() => Math.Abs(Scale.x - Scale.y) < 0.00001f;

@@ -36,7 +36,7 @@ namespace Betauer.Tests.Signal {
         
         
         public async Task ForceCollision(Area2D area2D, Node2D body) {
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
             body.Position = area2D.Position = Vector2.Zero;
             var x = 0;
             while (!CollideWith(area2D, body) && x < 60) {
@@ -53,7 +53,7 @@ namespace Betauer.Tests.Signal {
         }
 
         public async Task ForceNotCollision(Area2D area2D, Node2D body) {
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
             area2D.Position = new Vector2(-2000, -2000);
             body.Position = new Vector2(2000, 2000);
             var x = 0;

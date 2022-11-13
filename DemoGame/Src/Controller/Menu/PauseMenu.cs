@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
@@ -95,11 +95,11 @@ namespace Veronenger.Controller.Menu {
                 } else {
                     _menuContainer.Back();
                 }
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
 
             } else if (ControllerStart.IsJustPressed()) {
                 Bus.Publish(MainEvent.Back);
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
                 
             }
         }

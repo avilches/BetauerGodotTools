@@ -14,7 +14,7 @@ namespace Betauer {
 				var assemblies = new[] {
 					typeof(Betauer.Bus.Tests.Assembly),
 					typeof(Betauer.DI.Tests.Assembly),
-					// "Betauer.GameTools.Tests",
+					typeof(Betauer.GameTools.Tests.Assembly),
 					typeof(Betauer.StateMachine.Tests.Assembly),
 					// These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
 					// in the first seconds since start.

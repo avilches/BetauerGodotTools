@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
@@ -93,14 +93,14 @@ namespace DemoAnimation.Managers {
             ModalBoxConfirm modalBoxConfirm =
                 (ModalBoxConfirm)ResourceLoader.Load<PackedScene>("res://Scenes/Menu/ModalBoxConfirm.tscn").Instance();
             modalBoxConfirm.Title(title, subtitle);
-            modalBoxConfirm.PauseMode = Node.PauseModeEnum.Process;
+            modalBoxConfirm.ProcessMode = Node.ProcessModeEnum.Process;
             SceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();
             return result;
         }
         private async Task AddSceneDeferred(Node scene) {
-            await SceneTree.AwaitIdleFrame();
+            await SceneTree.AwaitProcessFrame();
             SceneTree.Root.AddChild(scene);
         }
 

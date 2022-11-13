@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.OnReady;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Godot;
 using Veronenger.Controller.UI;
@@ -245,15 +245,15 @@ namespace Veronenger.Controller.Menu {
             // }
             if (IsWaitingFromRedefineInputEvent()) {
                 RedefineControlFromInputEvent(e);
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
                 
             } else if (UiCancel.IsEventPressed(e)) {
                 Bus.Publish(MainEvent.Back);
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
                 
             } else if (_resolutionButton.HasFocus()) {
                 if (ProcessChangeResolution(e)) {
-                    GetTree().SetInputAsHandled();
+                    GetViewport().SetInputAsHandled();
                 }
             }
         }
@@ -275,8 +275,8 @@ namespace Veronenger.Controller.Menu {
         }
 
         private void RedefineControlFromInputEvent(InputEvent e) {
-            if (!e.IsKey(KeyList.Escape)) {
-                if (_redefineButtonSelected!.IsKey && e.IsAnyKey() && !e.IsKey(KeyList.Escape)) {
+            if (!e.IsKey(Key.Escape)) {
+                if (_redefineButtonSelected!.IsKey && e.IsAnyKey() && !e.IsKey(Key.Escape)) {
                     var otherRedefine = _keyboardControls.GetChildren<RedefineActionButton>()
                         .Find(r => r.InputAction.HasKey(e.GetKey()));
                     if (otherRedefine != null && otherRedefine != _redefineButtonSelected) {

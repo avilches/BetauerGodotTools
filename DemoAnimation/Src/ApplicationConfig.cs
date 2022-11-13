@@ -9,8 +9,8 @@ namespace DemoAnimation {
         public static readonly ScreenConfiguration Configuration = new ScreenConfiguration(
             Resolutions.FULLHD_DIV1_875,
             Resolutions.FULLHD_DIV1_875,
-            SceneTree.StretchMode.Viewport,
-            SceneTree.StretchAspect.Keep,
+            Window.ContentScaleModeEnum.Viewport,
+            Window.ContentScaleAspectEnum.Keep,
             Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9, AspectRatios.Ratio12_5));
     }
 
@@ -61,19 +61,19 @@ namespace DemoAnimation {
 
         [Service]
         private InputAction ControllerSelect => InputAction.Create("select")
-            .Keys(KeyList.Tab)
-            .Buttons(JoystickList.Select)
+            .Keys(Key.Tab)
+            .Buttons(JoyButton.Select)
             .Build();
 
         [Service]
         private InputAction ControllerStart => InputAction.Create("start")
-            .Keys(KeyList.Escape)
-            .Buttons(JoystickList.Start)
+            .Keys(Key.Escape)
+            .Buttons(JoyButton.Start)
             .Build();
         
         [Service]
         private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
-            .Keys(KeyList.F9)
+            .Keys(Key.F9)
             .Build();
 
     }

@@ -14,7 +14,7 @@ namespace Betauer.Core.Restorer {
         /// <summary>
         /// Warning: always call to Restore() in a process_frame, not in a tween/signal callback
         /// <code>
-        /// await this.AwaitIdleFrame();
+        /// await this.AwaitProcessFrame();
         /// restorer.Restore();
         /// </code>
         /// </summary>

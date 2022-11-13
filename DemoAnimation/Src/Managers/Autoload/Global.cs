@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Core.Nodes;
 using Godot;
 

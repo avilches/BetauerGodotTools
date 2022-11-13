@@ -2,7 +2,7 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Nodes.Property.Callback;

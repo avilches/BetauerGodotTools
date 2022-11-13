@@ -20,6 +20,7 @@ namespace Betauer.Core {
                 ulong valueUlong => valueUlong,
                 float valueFloat => valueFloat,
                 double valueDouble => valueDouble,
+                string valueString => valueString,
                 Vector2 valueVector2 => valueVector2,
                 Vector2i valueVector2i => valueVector2i,
                 Rect2 valueRect2 => valueRect2,
@@ -47,22 +48,23 @@ namespace Betauer.Core {
                 Vector2[] valueArrayVector2 => valueArrayVector2.AsSpan(),
                 Vector3[] valueArrayVector3 => valueArrayVector3.AsSpan(),
                 Color[] valueArrayColor => valueArrayColor.AsSpan(),
-                Object[] valueObject => valueObject, 
-                StringName[] valueArrayStringName => valueArrayStringName.AsSpan(), 
-                NodePath[] valueArrayNodePath => valueArrayNodePath.AsSpan(), 
-                RID[] valueArrayRid => valueArrayRid.AsSpan(), 
-                Object valueObject => valueObject, 
-                StringName valueStringName => valueStringName, 
-                NodePath valueNodePath => valueNodePath, 
-                RID valueRid => valueRid, 
-                Dictionary valueDictionary => valueDictionary, 
-                Array valueArray => valueArray, 
-                _ => throw new Exception("Unknown variant")
+                Object[] valueObject => valueObject,
+                StringName[] valueArrayStringName => valueArrayStringName.AsSpan(),
+                NodePath[] valueArrayNodePath => valueArrayNodePath.AsSpan(),
+                RID[] valueArrayRid => valueArrayRid.AsSpan(),
+                Object valueObject => valueObject,
+                StringName valueStringName => valueStringName,
+                NodePath valueNodePath => valueNodePath,
+                RID valueRid => valueRid,
+                Dictionary valueDictionary => valueDictionary,
+                Array valueArray => valueArray,
+                _ => throw new Exception("CreateFrom<T>: Unknown variant for type: "+typeof(T).Name)
             };
-        }                
+        }
 
         public static T ConvertTo<T>(Variant value) {
             var t = typeof(T);
+            if (t == typeof(object)) return (T)ConvertTo(value);
             if (t == typeof(bool)) return (T)(object)value.AsBool();
             if (t == typeof(char)) return (T)(object)value.AsChar();
             if (t == typeof(sbyte)) return (T)(object)value.AsSByte();
@@ -83,11 +85,11 @@ namespace Betauer.Core {
             if (t == typeof(Transform2D)) return (T)(object)value.AsTransform2D();
             if (t == typeof(Vector3)) return (T)(object)value.AsVector3();
             if (t == typeof(Vector3i)) return (T)(object)value.AsVector3i();
+            if (t == typeof(Vector4)) return (T)(object)value.AsVector4();
+            if (t == typeof(Vector4i)) return (T)(object)value.AsVector4i();
             if (t == typeof(Basis)) return (T)(object)value.AsBasis();
             if (t == typeof(Quaternion)) return (T)(object)value.AsQuaternion();
             if (t == typeof(Transform3D)) return (T)(object)value.AsTransform3D();
-            if (t == typeof(Vector4)) return (T)(object)value.AsVector4();
-            if (t == typeof(Vector4i)) return (T)(object)value.AsVector4i();
             if (t == typeof(Projection)) return (T)(object)value.AsProjection();
             if (t == typeof(AABB)) return (T)(object)value.AsAABB();
             if (t == typeof(Color)) return (T)(object)value.AsColor();
@@ -104,8 +106,6 @@ namespace Betauer.Core {
             if (t == typeof(Span<Vector3>)) return (T)(object)value.AsVector3Array();
             if (t == typeof(Span<Color>)) return (T)(object)value.AsColorArray();
             if (t == typeof(Object[])) return (T)(object)value.AsGodotObjectArray<Object>();
-            // if (t == typeof(Dictionary<TKey, TValue>>) return (T)(object)value.AsGodotDictionary<TKey, TValue>());
-            // if (t == typeof(Godot.Collections.Array<T>>)) return (T)(object)value.AsGodotArray();
             if (t == typeof(Span<StringName>)) return (T)(object)value.AsSystemArrayOfStringName();
             if (t == typeof(Span<NodePath>)) return (T)(object)value.AsSystemArrayOfNodePath();
             if (t == typeof(Span<RID>)) return (T)(object)value.AsSystemArrayOfRID();
@@ -115,9 +115,55 @@ namespace Betauer.Core {
             if (t == typeof(RID)) return (T)(object)value.AsRID();
             if (t == typeof(Dictionary)) return (T)(object)value.AsGodotDictionary();
             if (t == typeof(Array)) return (T)(object)value.AsGodotArray();
-            throw new Exception("Unknown variant");
-        }                
-        
+            // if (t == typeof(Dictionary<TKey, TValue>>) return (T)(object)value.AsGodotDictionary<TKey, TValue>());
+            // if (t == typeof(Godot.Collections.Array<T>>)) return (T)(object)value.AsGodotArray();
+            throw new Exception("ConverTo<T>: Unknown variant for type: " + typeof(T).Name);
+        }
+
+        public static object? ConvertTo(Variant op1) {
+            return op1.VariantType switch {
+                Variant.Type.Nil => null,
+                Variant.Type.Bool => op1.AsBool(),
+                Variant.Type.Int => op1.AsInt64(),
+                Variant.Type.Float => op1.AsDouble(),
+                Variant.Type.String => op1.AsString(),
+                Variant.Type.Vector2 => op1.AsVector2(),
+                Variant.Type.Vector2i => op1.AsVector2i(),
+                Variant.Type.Rect2 => op1.AsRect2(),
+                Variant.Type.Rect2i => op1.AsRect2i(),
+                Variant.Type.Vector3 => op1.AsVector3(),
+                Variant.Type.Vector3i => op1.AsVector3i(),
+                Variant.Type.Transform2d => op1.AsTransform2D(),
+                Variant.Type.Vector4 => op1.AsVector4(),
+                Variant.Type.Vector4i => op1.AsVector4i(),
+                Variant.Type.Plane => op1.AsPlane(),
+                Variant.Type.Quaternion => op1.AsQuaternion(),
+                Variant.Type.Aabb => op1.AsAABB(),
+                Variant.Type.Basis => op1.AsBasis(),
+                Variant.Type.Transform3d => op1.AsTransform3D(),
+                Variant.Type.Projection => op1.AsProjection(),
+                Variant.Type.Color => op1.AsColor(),
+                Variant.Type.StringName => op1.AsStringName(),
+                Variant.Type.NodePath => op1.AsNodePath(),
+                Variant.Type.Rid => op1.AsRID(),
+                Variant.Type.Object => op1.AsGodotObject(),
+                Variant.Type.Callable => op1.AsCallable(),
+                Variant.Type.Signal => op1.AsSignalInfo(),
+                Variant.Type.Dictionary => op1.AsGodotDictionary(),
+                Variant.Type.Array => op1.AsGodotArray(),
+                Variant.Type.PackedByteArray => op1.AsByteArray(),
+                Variant.Type.PackedInt32Array => op1.AsInt32Array(),
+                Variant.Type.PackedInt64Array => op1.AsInt64Array(),
+                Variant.Type.PackedFloat32Array => op1.AsFloat32Array(),
+                Variant.Type.PackedFloat64Array => op1.AsFloat64Array(),
+                Variant.Type.PackedStringArray => op1.AsStringArray(),
+                Variant.Type.PackedVector2Array => op1.AsVector2Array(),
+                Variant.Type.PackedVector3Array => op1.AsVector3Array(),
+                Variant.Type.PackedColorArray => op1.AsColorArray(),
+                _ => throw new Exception("ConverTo: Unknown variant type: "+op1.VariantType)
+            };
+        }
+
         public static T Add<T>(T op1, T op2) {
             return op1 switch {
                 char fromChar when op2 is char toChar => (T)(object)(fromChar + toChar),
@@ -139,7 +185,7 @@ namespace Betauer.Core {
                 Vector4i fromVector4i when op2 is Vector4i toVector4i => (T)(object)(fromVector4i + toVector4i),
                 Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (T)(object)(fromQuaternion + toQuaternion),
                 Color fromColor when op2 is Color toColor => (T)(object)(fromColor + toColor),
-                _ => throw new Exception($"Sum Variant {op1?.GetType().Name} + {op2?.GetType().Name} not implemented")
+                _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
             };
         }
 
@@ -164,11 +210,12 @@ namespace Betauer.Core {
                 Vector4i fromVector4i when op2 is Vector4i toVector4i => (T)(object)(fromVector4i - toVector4i),
                 Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (T)(object)(fromQuaternion - toQuaternion),
                 Color fromColor when op2 is Color toColor => (T)(object)(fromColor - toColor),
-                _ => throw new Exception($"Subtract Variant {op1?.GetType().Name} - {op2?.GetType().Name} not implemented")
+                _ => throw new Exception($"Subtract Variant: {op1?.GetType().Name} not implemented")
             };
         }
 
         public static Variant AddVariant(Variant op1, Variant op2, float t) {
+            if (op1.VariantType != op2.VariantType) throw new Exception($"AddVariant: types are not equal: {op1.VariantType}  {op2.VariantType}");
             if (op1.VariantType == Variant.Type.Bool) return (op1.AsBool() ? 1 : 0) + (op2.AsBool() ? 1 : 0);
             if (op1.VariantType == Variant.Type.Int) return op1.AsInt64() + op2.AsInt64(); 
             if (op1.VariantType == Variant.Type.Float) return op1.AsDouble() + op2.AsDouble(); 
@@ -202,10 +249,11 @@ namespace Betauer.Core {
             } 
             if (op1.VariantType == Variant.Type.Transform3d) return op1.AsTransform3D() * op2.AsTransform3D(); 
             if (op1.VariantType == Variant.Type.Color) return op1.AsColor() + op2.AsColor();
-            throw new Exception($"Add Variant: {op1.VariantType} + {op2.VariantType} not implemented");
+            throw new Exception($"AddVariant: {op1.VariantType} not implemented");
         }
 
         public static Variant SubtractVariant(Variant op1, Variant op2, float t) {
+            if (op1.VariantType != op2.VariantType) throw new Exception($"SubtractVariant: types are not equal: {op1.VariantType}  {op2.VariantType}");
             if (op1.VariantType == Variant.Type.Bool) return (op1.AsBool() ? 1 : 0) - (op2.AsBool() ? 1 : 0);
             if (op1.VariantType == Variant.Type.Int) return op1.AsInt64() - op2.AsInt64(); 
             if (op1.VariantType == Variant.Type.Float) return op1.AsDouble() - op2.AsDouble(); 
@@ -239,10 +287,11 @@ namespace Betauer.Core {
             } 
             if (op1.VariantType == Variant.Type.Transform3d) return op1.AsTransform3D().Inverse() * op2.AsTransform3D(); 
             if (op1.VariantType == Variant.Type.Color) return op1.AsColor() - op2.AsColor();
-            throw new Exception($"Subtract Variant: {op1.VariantType} - {op2.VariantType} not implemented");
+            throw new Exception($"Subtract Variant: {op1.VariantType} type not implemented");
         }
 
         public static Variant LerpVariant(Variant op1, Variant op2, float t) {
+            if (op1.VariantType != op2.VariantType) throw new Exception($"LerpVariant: types are not equal: {op1.VariantType}  {op2.VariantType}");
             if (op1.VariantType == Variant.Type.Bool) return Lerp(op1.AsBool(), op2.AsBool(), t);
             if (op1.VariantType == Variant.Type.Int) return Lerp(op1.AsInt64(), op2.AsInt64(), t); 
             if (op1.VariantType == Variant.Type.Float) return Lerp(op1.AsDouble(), op2.AsDouble(), t); 
@@ -261,7 +310,7 @@ namespace Betauer.Core {
             if (op1.VariantType == Variant.Type.Basis) return op1.AsBasis().Lerp(op2.AsBasis(), t); 
             if (op1.VariantType == Variant.Type.Transform3d) return op1.AsTransform3D().InterpolateWith(op2.AsTransform3D(), t); 
             if (op1.VariantType == Variant.Type.Color) return op1.AsColor().Lerp(op2.AsColor(), t);
-            throw new Exception($"Lerp Variant {op1.VariantType} to {op2.VariantType} not implemented");
+            throw new Exception($"LerpVariant: {op1.VariantType} type not implemented");
         }
 
         public static T LerpVariant<T>(T op1, T op2, float t) {
@@ -293,7 +342,7 @@ namespace Betauer.Core {
                 AABB fromAABB when op2 is AABB toAABB => (T)(object)fromAABB.Lerp(toAABB, t),
                 Color fromColor when op2 is Color toColor => (T)(object)fromColor.Lerp(toColor, t),
                 Plane fromPlane when op2 is Plane toPlane => (T)(object)fromPlane.Lerp(toPlane, t),
-                _ => throw new Exception($"Lerp Variant {op1?.GetType().Name} to {op2?.GetType().Name} not implemented")
+                _ => throw new Exception($"LerpVariant<T>: {op1?.GetType().Name} type not implemented")
             };
         }
 

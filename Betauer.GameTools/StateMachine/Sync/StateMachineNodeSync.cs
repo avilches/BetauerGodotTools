@@ -2,7 +2,7 @@ using System;
 using Godot;
 
 namespace Betauer.StateMachine.Sync {
-    public class StateMachineNodeSync<TStateKey, TEventKey> : 
+    public partial class StateMachineNodeSync<TStateKey, TEventKey> : 
         StateMachineNode<TStateKey>, IStateMachineSync<TStateKey, TEventKey, StateNodeSync<TStateKey, TEventKey>> 
         where TStateKey : Enum 
         where TEventKey : Enum {
@@ -31,9 +31,9 @@ namespace Betauer.StateMachine.Sync {
         
         public string? Name => _stateMachine.Name; 
 
-        public StateMachineNodeSync(TStateKey initialState, string? name = null, ProcessMode mode = ProcessMode.Idle) {
+        public StateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
             _stateMachine = new RealStateMachineNode(this, initialState, name);
-            Mode = mode;
+            ProcessInPhysics = processInPhysics;
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
         public void AddOnEnter(Action<TransitionArgs<TStateKey>> e) => _stateMachine.AddOnEnter(e);
@@ -56,7 +56,7 @@ namespace Betauer.StateMachine.Sync {
             throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
         }
 
-        public void Execute(float delta) {
+        public void Execute(double delta) {
             ExecuteStart(delta, CurrentState.Key);
             _stateMachine.Execute();
             ExecuteEnd(CurrentState.Key);
@@ -70,13 +70,13 @@ namespace Betauer.StateMachine.Sync {
             CurrentState._UnhandledInput(e);
         }
 
-        public override void _PhysicsProcess(float delta) {
-            if (Mode == ProcessMode.Physics) Execute(delta);
+        public override void _PhysicsProcess(double delta) {
+            if (ProcessInPhysics) Execute(delta);
             else SetPhysicsProcess(false);
         }
 
-        public override void _Process(float delta) {
-            if (Mode == ProcessMode.Idle) Execute(delta);
+        public override void _Process(double delta) {
+            if (!ProcessInPhysics) Execute(delta);
             else SetProcess(false);
         }
     }

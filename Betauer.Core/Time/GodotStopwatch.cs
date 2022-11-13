@@ -30,9 +30,6 @@ namespace Betauer.Core.Time {
         /// Creates a new Stopwatch not running, so it needs to be started with Start() 
         /// </summary>
         /// <param name="sceneTree"></param>
-        /// <param name="pauseMode">
-        /// PauseModeEnum.Inherit or PauseModeEnum.Stop: the timer will pause along with the SceneTree
-        /// PauseModeEnum.Process: timer run always, ignoring the SceneTree.Pause state 
         /// </param>
         public GodotStopwatch(SceneTree sceneTree, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;

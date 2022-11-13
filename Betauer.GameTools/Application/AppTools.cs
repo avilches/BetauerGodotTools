@@ -43,6 +43,7 @@ namespace Betauer.Application {
             };
 
             /*
+            // TODO Godot 4
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                 // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
                 // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
@@ -52,13 +53,13 @@ namespace Betauer.Application {
                 LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
                     .Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
             };
-            */
             
             GD.UnhandledException += (o, args) => {
                 var e = args.Exception;
                 LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
                     .Error("GD.UnhandledException {0}", e);
             };
+            */
         }
 
     }

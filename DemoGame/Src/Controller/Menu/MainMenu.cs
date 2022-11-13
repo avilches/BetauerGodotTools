@@ -2,13 +2,13 @@ using System;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
@@ -95,7 +95,7 @@ namespace Veronenger.Controller.Menu {
                 } else {
                     _menuContainer.Back();
                 }
-                GetTree().SetInputAsHandled();
+                GetViewport().SetInputAsHandled();
             }
         }
 

@@ -71,7 +71,7 @@ namespace Veronenger.Managers {
         [Inject] private Bus Bus { get; set; }
 
         public override void _Ready() {
-            PauseMode = PauseModeEnum.Process;
+            ProcessMode = ProcessModeEnum.Process;
         }
 
         public MainStateMachine() : base(MainState.Init) {
@@ -81,19 +81,19 @@ namespace Veronenger.Managers {
         private void Configure() {
             #if DEBUG
             this.OnInput((e) => {
-                if (e.IsKeyPressed(KeyList.Q)) {
+                if (e.IsKeyPressed(Key.Q)) {
                     // _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
                     // Engine.TimeScale -= 0.05f;
                 }
-                if (e.IsKeyPressed(KeyList.W)) {
+                if (e.IsKeyPressed(Key.W)) {
                     // _settingsMenuScene.Scale = new Vector2(1, 1);
                     // Engine.TimeScale = 1;
                 }
-                if (e.IsKeyPressed(KeyList.E)) {
+                if (e.IsKeyPressed(Key.E)) {
                     // Engine.TimeScale += 0.05f;
                     // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
                 }
-            }, PauseModeEnum.Process);
+            }, ProcessModeEnum.Process);
             #endif
             
             Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
@@ -110,7 +110,7 @@ namespace Veronenger.Managers {
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
-                    _settingsMenuScene.PauseMode = _pauseMenuScene.PauseMode = PauseModeEnum.Process;
+                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Process;
 
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
@@ -149,7 +149,7 @@ namespace Veronenger.Managers {
                 .OnInput(e => {
                     if (ControllerStart.IsEventJustPressed(e)) {
                         Enqueue(MainEvent.Pause);
-                        GetTree().SetInputAsHandled();
+                        GetViewport().SetInputAsHandled();
                     }
                 })
                 .On(MainEvent.Back).Then(context=> context.Pop())
@@ -214,7 +214,7 @@ namespace Veronenger.Managers {
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
-            modalBoxConfirm.PauseMode = PauseModeEnum.Process;
+            modalBoxConfirm.ProcessMode = ProcessModeEnum.Process;
             SceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();

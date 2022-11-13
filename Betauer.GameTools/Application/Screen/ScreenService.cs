@@ -24,7 +24,8 @@ namespace Betauer.Application.Screen {
             _strategies[ScreenStrategyKey.ViewportSize] = new ResizeViewportStrategy(_tree);
             _strategies[ScreenStrategyKey.IntegerScale] = new ResizeIntegerScaledStrategy(_tree);
             SetScreenConfiguration(initialScreenConfiguration, strategyKey);
-            tree.OnScreenResized(OnScreenResized);
+            // TODO Godot 4
+            DisplayServer.WindowSetRectChangedCallback(Callable.From(OnScreenResized));
         }
 
         private void OnScreenResized() {
@@ -49,7 +50,7 @@ namespace Betauer.Application.Screen {
             ScreenStrategyImpl = _strategies[StrategyKey];
             ScreenStrategyImpl.SetScreenConfiguration(ScreenConfiguration);
             
-            OS.WindowResizable = ScreenConfiguration.IsResizeable;
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfiguration.IsResizeable);
         }
         
         public string GetStateAsString() => ScreenStrategyImpl.GetStateAsString();

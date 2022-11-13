@@ -1,19 +1,18 @@
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Core.Memory;
-using Betauer.Pool;
+using Betauer.Core.Pool;
 using Betauer.StateMachine;
 using Godot;
 using Veronenger.Controller.Character;
 using Veronenger.Controller.Stage;
 using Container = Betauer.DI.Container;
-using PropertyTweener = Betauer.Animation.Tween.PropertyTweener;
+using PropertyTweener = Betauer.Animation.PropertyTweener;
 
 namespace Veronenger.Managers.Autoload {
     public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
@@ -64,10 +63,6 @@ namespace Veronenger.Managers.Autoload {
         }
 
         private static void DevelopmentConfig() {
-            DisposeTools.ShowWarningOnShutdownDispose = true;
-            DisposeTools.ShowMessageOnNewInstance = false;
-            DisposeTools.ShowMessageOnDispose = true;
-
             // All enabled, then disabled one by one, so developers can enable just one 
             LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 

@@ -1,5 +1,5 @@
 using System;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
@@ -32,7 +32,7 @@ namespace Veronenger.Controller {
                 OS.WindowSize = _screenSettingsManager.WindowedResolution.Size;
                 OS.CenterWindow();
             }
-            GetTree().SetScreenStretch(SceneTree.StretchMode.Mode2d, SceneTree.StretchAspect.Keep,_baseResolutionSize, 1);
+            GetTree().SetScreenStretch(Window.ContentScaleModeEnum.CanvasItems, Window.ContentScaleAspectEnum.Keep,_baseResolutionSize, 1);
             CenterContainer.Size = _baseResolutionSize;
             ColorRect.Size = _baseResolutionSize;
             ColorRect.Color = Colors.Aqua.Darkened(0.9f);
@@ -50,7 +50,7 @@ namespace Veronenger.Controller {
                 .Play();
         }
 
-        public override void _Process(float delta) {
+        public override void _Process(double delta) {
             if (!MainStateMachine.IsState(MainState.Init)) QueueFree();
         }
 

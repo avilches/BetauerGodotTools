@@ -1,3 +1,4 @@
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 using Vector2 = Godot.Vector2;
@@ -76,7 +77,7 @@ public class VariantHelperTests {
         AssertVariant(uint.MaxValue);
         AssertVariant(uint.MinValue);
 
-        AssertVariant(ulong.MaxValue);
+        AssertVariant((ulong)long.MaxValue);
         AssertVariant(ulong.MinValue);
 
         AssertVariant(float.MaxValue);
@@ -101,11 +102,16 @@ public class VariantHelperTests {
         AssertVariant(new AABB(1, 2, 3, 4, 5, 6));
         AssertVariant(new Color(1, 2, 3, 4));
         AssertVariant(new Plane(1, 2, 3, 4));
+        
+        Assert.That(VariantHelper.ConvertTo(new Variant()), Is.Null);
     }
 
     public static void AssertVariant<T>(T value) {
         var variant = VariantHelper.CreateFrom(value);
         T convertTo = VariantHelper.ConvertTo<T>(variant);
         Assert.That(value, Is.EqualTo(convertTo));
+
+        object o = VariantHelper.ConvertTo(variant);
+        Assert.That(value, Is.EqualTo(o));
     }
 }

@@ -40,9 +40,9 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public void Update(float delta) {
+        public void Update(double delta) {
             var position = Provider.Invoke();
-            SpeedVector = (_prevPosition - position) / delta;
+            SpeedVector = (_prevPosition - position) / (float)delta;
             Speed = SpeedVector.Length();
             _prevPosition = position;
             MaxSpeed = Math.Max(MaxSpeed, Speed);

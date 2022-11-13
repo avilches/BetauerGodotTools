@@ -70,9 +70,9 @@ public partial class TimeTests : Node {
     [Test]
     public async Task StopwatchAlarmTests() {
         var x = new GodotStopwatch(GetTree()).Start();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsAlarm(), Is.False);
 
@@ -112,25 +112,25 @@ public partial class TimeTests : Node {
         // It starts stopped
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
 
         // If reset, it's still stopped
         x.Reset();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
 
         // Start
         x.Start();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsRunning, Is.True);
         var elapsed = x.Elapsed;
@@ -139,9 +139,9 @@ public partial class TimeTests : Node {
         x.Start();
         x.Start();
         x.Start();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(elapsed));
         Assert.That(x.IsRunning, Is.True);
 
@@ -149,9 +149,9 @@ public partial class TimeTests : Node {
         x.Reset();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsRunning, Is.True);
 
@@ -159,9 +159,9 @@ public partial class TimeTests : Node {
         x.Restart();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsRunning, Is.True);
 
@@ -172,9 +172,9 @@ public partial class TimeTests : Node {
         elapsed = x.Elapsed;
         x.Stop();
         x.Stop();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.EqualTo(elapsed));
         Assert.That(x.IsRunning, Is.False);
 
@@ -182,9 +182,9 @@ public partial class TimeTests : Node {
         x.Start();
         Assert.That(x.Elapsed, Is.EqualTo(elapsed));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(elapsed));
         Assert.That(x.IsRunning, Is.True);
 
@@ -192,25 +192,25 @@ public partial class TimeTests : Node {
         x.Restart();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsRunning, Is.True);
 
         // Reset() when stopped
         x.Stop();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
         Assert.That(x.IsRunning, Is.False);
         x.Reset();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
     }
@@ -237,25 +237,25 @@ public partial class TimeTests : Node {
         // It starts stopped
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.False);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.False);
 
         // If reset, it's still stopped
         x.Reset();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.False);
 
         // Start
         x.Start();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.True);
         var timeLeft = x.TimeLeft;
@@ -264,9 +264,9 @@ public partial class TimeTests : Node {
         x.Start();
         x.Start();
         x.Start();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(timeLeft));
         Assert.That(x.IsRunning, Is.True);
 
@@ -274,9 +274,9 @@ public partial class TimeTests : Node {
         x.Reset();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.True);
 
@@ -284,9 +284,9 @@ public partial class TimeTests : Node {
         x.Restart();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.True);
 
@@ -297,9 +297,9 @@ public partial class TimeTests : Node {
         timeLeft = x.TimeLeft;
         x.Stop();
         x.Stop();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.EqualTo(timeLeft));
         Assert.That(x.IsRunning, Is.False);
 
@@ -307,9 +307,9 @@ public partial class TimeTests : Node {
         x.Start();
         Assert.That(x.TimeLeft, Is.EqualTo(timeLeft));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(timeLeft));
         Assert.That(x.IsRunning, Is.True);
 
@@ -317,33 +317,33 @@ public partial class TimeTests : Node {
         x.Restart();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.True);
 
         // Reset() when stopped
         x.Stop();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.False);
         x.Reset();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.False);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.False);
 
         // Set timeout is a reset;
         x.SetTimeout(0.1f);
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
+        await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.EqualTo(0.1f));
         Assert.That(x.IsRunning, Is.False);
 
@@ -351,7 +351,7 @@ public partial class TimeTests : Node {
         Assert.That(timeout, Is.False);
         Assert.That(x.TimeLeft, Is.EqualTo(0.1f));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitIdleFrame();
+        await this.AwaitProcessFrame();
         await Task.Delay(200);
         Assert.That(x.TimeLeft, Is.EqualTo(0f));
         Assert.That(x.IsRunning, Is.False);

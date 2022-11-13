@@ -3,10 +3,10 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Core.Memory;
 using Betauer.Core.Nodes;
+using Betauer.Core.Signal;
 using Betauer.OnReady;
-using Betauer.Time;
+using Betauer.Core.Time;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -14,14 +14,13 @@ namespace Betauer.Application {
     /**
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
-    public abstract class AutoConfiguration : Node {
+    public abstract partial class AutoConfiguration : Node {
         protected readonly Container Container;
-        protected readonly MainLoopNotificationsHandler MainLoopNotificationsHandlerInstance;
+        protected readonly NodeNotificationsHandler NodeNotificationsHandlerInstance;
         private readonly Options _options;
 
         public class Options {
             public bool AddSingletonNodesToTree = true;
-            public float ObjectWatcherTimer = 10f;
         }
 
         private class Configuration {
@@ -32,7 +31,7 @@ namespace Betauer.Application {
             }
             
             [Service] public SceneTree SceneTree => _outer.GetTree();
-            [Service] public MainLoopNotificationsHandler MainLoopNotificationsHandler => _outer.MainLoopNotificationsHandlerInstance;
+            [Service] public NodeNotificationsHandler NodeNotificationsHandler => _outer.NodeNotificationsHandlerInstance;
             [Service] public DebugOverlayManager DebugOverlayManager => new();
             [Service(Lifetime.Transient)] public GodotStopwatch GodotStopwatch => new(_outer.GetTree());
         }
@@ -41,8 +40,8 @@ namespace Betauer.Application {
             _options = options ?? new Options();
             Container = new Container();
 
-            MainLoopNotificationsHandlerInstance = new MainLoopNotificationsHandler();
-            MainLoopNotificationsHandlerInstance.OnWmQuitRequest += () => {
+            NodeNotificationsHandlerInstance = new NodeNotificationsHandler();
+            NodeNotificationsHandlerInstance.OnWmCloseRequest += () => {
                 LoggerFactory.SetAutoFlush(true);
                 GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
             };
@@ -56,8 +55,7 @@ namespace Betauer.Application {
             // scene will not have services injected.
             StartContainer();
 
-            DefaultObjectWatcherTask.Instance.Start(GetTree(), _options.ObjectWatcherTimer);
-            PauseMode = PauseModeEnum.Process;
+            ProcessMode = ProcessModeEnum.Always;
 
             AddConsoleCommands(Container.Resolve<DebugOverlayManager>().DebugConsole);
         }
@@ -70,11 +68,10 @@ namespace Betauer.Application {
         public virtual void AddConsoleCommands(DebugConsole debugConsole) {
             debugConsole.AddHelpCommand();
             debugConsole.AddEngineTimeScaleCommand();
-            debugConsole.AddEngineTargetFpsCommand();
+            debugConsole.AddEngineMaxFpsCommand();
             debugConsole.AddClearConsoleCommand();
             debugConsole.AddQuitCommand();
             debugConsole.AddNodeHandlerInfoCommand();
-            debugConsole.AddSignalManagerCommand();
             debugConsole.AddShowAllCommand();
             debugConsole.AddSystemInfoCommand();
             ScreenSettingsManager? screenSettings = Container.ResolveOr<ScreenSettingsManager>(() => null);
@@ -98,7 +95,7 @@ namespace Betauer.Application {
             var containerBuilder = Container.CreateBuilder();
             OnBuildContainer(containerBuilder);
             containerBuilder.Build().InjectServices(this);
-            GetTree().Connect("node_added", this, nameof(_GodotSignalNodeAdded));
+            GetTree().OnNodeAdded(_GodotSignalNodeAdded);
         }
 
         /// <summary>
@@ -115,7 +112,7 @@ namespace Betauer.Application {
 
         // Method called by Godot when a Node is added to the tree
         private void _GodotSignalNodeAdded(Node node) {
-            if (node.GetScript() is CSharpScript) {
+            if (node.GetScript().AsGodotObject() is CSharpScript) {
                 OnReadyScanner.ScanAndInject(node);
                 // If the Node has been created by Godot (through instantiating a scene) and it's added to the tree,
                 // the services will be injected.
@@ -134,8 +131,8 @@ namespace Betauer.Application {
         private static void MarkNodeAsAlreadyInjected(Node node) => node.SetMeta(MetaInjected, true);
         private static bool IsNodeMarkedInjected(Node node) => !node.HasMeta(MetaInjected);
 
-        public override void _Notification(int what) {
-            MainLoopNotificationsHandlerInstance.Execute(what);
+        public override void _Notification(long what) {
+            NodeNotificationsHandlerInstance.Execute(what);
         }
     }
 }

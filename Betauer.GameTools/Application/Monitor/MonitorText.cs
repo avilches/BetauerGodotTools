@@ -4,7 +4,7 @@ using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public class MonitorText : BaseMonitor<MonitorText> {
+    public partial class MonitorText : BaseMonitor<MonitorText> {
         private Func<string>? _showValue;
         public readonly HBoxContainer HBoxContainer = new();
 
@@ -29,7 +29,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public MonitorText SetMinWidth(int minWidth) {
-            Content.MinSize = new Vector2(minWidth, Content.MinSize.y);
+            Content.CustomMinimumSize = new Vector2(minWidth, Content.CustomMinimumSize.y);
             return this;
         }
 
@@ -66,7 +66,7 @@ namespace Betauer.Application.Monitor {
                 .End();
         }
 
-        public override void UpdateMonitor(float delta) {
+        public override void UpdateMonitor(double delta) {
             if (_showValue != null) {
                 Content.Text = _showValue.Invoke();
             }
