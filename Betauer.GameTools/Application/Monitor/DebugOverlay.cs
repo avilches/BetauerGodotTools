@@ -94,8 +94,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Hint(string hint) {
-            // TODO Godot 4
-            // HintTooltip = hint;
+            TooltipText = hint;
             return this;
         }
 
@@ -227,7 +226,7 @@ namespace Betauer.Application.Monitor {
                             .Button<CheckButton>("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
-                                    // button.HintTooltip = "Follow";
+                                    button.TooltipText = "Follow";
                                     FollowButton = button;
                                     UpdateFollowButtonState();
                                 })
@@ -238,25 +237,25 @@ namespace Betauer.Application.Monitor {
                                 })
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
-                                    // button.HintTooltip = "Opacity";
+                                    button.TooltipText = "Opacity";
                                 })
                             .End()
                             .Button("s", () => DebugOverlayManager.SoloOverlay(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
-                                    // button.HintTooltip = "Solo mode";
+                                    button.TooltipText = "Solo mode";
                                 })
                             .End()
                             .Button("*", () => DebugOverlayManager.ShowAllOverlays())
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
-                                    // button.HintTooltip = "Open all";
+                                    button.TooltipText = "Open all";
                                 })
                             .End()
                             .Button("x", () => DebugOverlayManager.CloseOrHideOverlay(Id))
                                 .Config(button => {
                                     button.FocusMode = FocusModeEnum.None;
-                                    // button.HintTooltip = "Close";
+                                    button.TooltipText = "Close";
                                 })
                             .End()
                         .End()

@@ -13,6 +13,7 @@ TIMESTAMP        := $(shell date "+%Y-%m-%d_%H.%M.%S")
 BUILD_FOLDER     := ${ROOT_FOLDER}/.godot/mono/temp/bin
 EXPORT_FOLDER    := ${ROOT_FOLDER}/export/releases/${VERSION}
 
+
 GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
 GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot4b4_mono.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
@@ -26,8 +27,9 @@ help:
 	@echo "    test            run tests"
 	@echo "    editor          open Godot editor"
 	@echo "    generate        execute Generator project which creates all *.cs classes"
-	@echo "    build/debug     build all projects with Configuration='Debug'"
-	@echo "    build/release   build all projects with Configuration='ExportRelease'"
+	@echo "    build/Debug           dotnet build all projects with Configuration='Debug'"
+	@echo "    build/ExportDebug     dotnet build all projects with Configuration='ExportDebug'"
+	@echo "    build/ExportRelease   dotnet build all projects with Configuration='ExportRelease'"
 	@echo "    export/dll      build Debug and ExportRelease + copy dlls to export folder"
 	@echo ""
 	@echo "application.properties:"
@@ -53,8 +55,8 @@ import:
 	@for (( i=${DELAY_IMPORT}; i>0; i-- )) do echo "$$i..." ; sleep 1 ; done
 
 # Kill 
-	@echo "Killing editor" 
-	pkill -F "${ROOT_FOLDER}/.godot.editor.pid"
+	@echo "Killing editor..." 
+	@pkill -F "${ROOT_FOLDER}/.godot.editor.pid"
 	@rm "${ROOT_FOLDER}/.godot.editor.pid"
  
 .PHONY: build/Debug

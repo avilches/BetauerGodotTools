@@ -255,7 +255,7 @@ namespace Betauer.Application.Monitor {
                                 .Config(slider => {
                                     slider.Name = "OpacitySlider";
                                     slider.Editable = true;
-                                    // slider.HintTooltip = "Opacity";
+                                    slider.TooltipText = "Opacity";
                                     slider.CustomMinimumSize = new Vector2(50, 5);
                                     slider.Value = InitialTransparentBackground * 25f;
                                     slider.OnValueChanged((value) => {
