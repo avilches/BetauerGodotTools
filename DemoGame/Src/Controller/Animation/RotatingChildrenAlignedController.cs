@@ -1,18 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Core.Nodes;
-using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingChildrenAlignedController : Node2D {
+    public partial class RotatingChildrenAlignedController : Node2D {
         public const float CLOCK_THREE = Mathf.Pi / 2;
         public const float CLOCK_NINE = -Mathf.Pi / 2;
 

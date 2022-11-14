@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation;
 using Betauer.Application.Screen;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
@@ -18,7 +15,7 @@ using Veronenger.Controller.UI;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-    public class SettingsMenu : CanvasLayer {
+    public partial class SettingsMenu : CanvasLayer {
         [OnReady("Panel")] 
         private Panel _panel;
 
@@ -83,10 +80,10 @@ namespace Veronenger.Controller.Menu {
             ConfigureScreenSettingsButtons();
             ConfigureControls();
 
-            _fullscreenButtonWrapper.Pressed = _screenSettingsManager.Fullscreen;
-            _pixelPerfectButtonWrapper.Pressed = _screenSettingsManager.PixelPerfect;
-            _vsyncButtonWrapper.Pressed = _screenSettingsManager.VSync;
-            _borderlessButtonWrapper.Pressed = _screenSettingsManager.Borderless;
+            _fullscreenButtonWrapper.ButtonPressed = _screenSettingsManager.Fullscreen;
+            _pixelPerfectButtonWrapper.ButtonPressed = _screenSettingsManager.PixelPerfect;
+            _vsyncButtonWrapper.ButtonPressed = _screenSettingsManager.VSync;
+            _borderlessButtonWrapper.ButtonPressed = _screenSettingsManager.Borderless;
             _borderlessButtonWrapper.SetFocusDisabled(_screenSettingsManager.Fullscreen);
 
             _resolutionButton.SetFocusDisabled(_screenSettingsManager.Fullscreen);
@@ -122,7 +119,7 @@ namespace Veronenger.Controller.Menu {
                 _resolutionButton.SetFocusDisabled(isChecked);
                 _borderlessButtonWrapper.SetFocusDisabled(isChecked);
                 if (isChecked) {
-                    _borderlessButtonWrapper.Pressed = false;
+                    _borderlessButtonWrapper.ButtonPressed = false;
                 }
                 _screenSettingsManager.SetFullscreen(isChecked);
                 CheckIfResolutionStillMatches();
@@ -134,7 +131,7 @@ namespace Veronenger.Controller.Menu {
             _resolutionButton.OnFocusExited(UpdateResolutionButton);
             _pixelPerfectButtonWrapper.OnFocusEntered(MainStateMachine.MainMenuBottomBarScene.ConfigureSettingsChangeBack);
             _pixelPerfectButtonWrapper.OnPressed(() => {
-                _screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.Pressed);
+                _screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
                 CheckIfResolutionStillMatches();
             });
 

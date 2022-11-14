@@ -1,0 +1,38 @@
+<Project Sdk="Godot.NET.Sdk/4.0.0-beta.4">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>10.0</LangVersion>
+        <RootNamespace>Veronenger</RootNamespace>
+        <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <Compile Include="**/*.cs" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+        
+        <ProjectReference Include="../../Betauer.TestRunner/Betauer.TestRunner.csproj" />
+        
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
+        <Compile Include="**/*.cs" Exclude="Build/**;Tests/**" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="../*" Exclude="../mono_crash*" />
+        <Content Include="../Assets/**" />
+        <Content Include="../Characters/**" />
+        <Content Include="../Docs/*" />
+        <Content Include="../export/*" />
+        <Content Include="../Scenes/**" />
+        <Content Include="../Worlds/**" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../Betauer.GameTools/Betauer.GameTools.csproj" />
+        <ProjectReference Include="../../Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="../../Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="../../Betauer.Bus/Betauer.Bus.csproj" />
+        <ProjectReference Include="../../Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="../../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
+        <ProjectReference Include="../../Betauer.StateMachine/Betauer.StateMachine.csproj" />
+    </ItemGroup>
+</Project>

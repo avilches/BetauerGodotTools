@@ -1,5 +1,4 @@
 using System;
-using Betauer.Bus;
 using Betauer.Bus.Signal;
 using Godot;
 using Betauer.DI;
@@ -38,7 +37,7 @@ namespace Veronenger.Managers {
             
             playerController.PlayerDetector.CollisionLayer = 0;
             playerController.PlayerDetector.CollisionMask = 0;
-            playerController.PlayerDetector.SetCollisionMaskBit(LayerPlayerStageDetector, true);
+            playerController.PlayerDetector.SetCollisionMaskValue(LayerPlayerStageDetector, true);
         }
 
         // Only one player attack area is allowed.
@@ -46,7 +45,7 @@ namespace Veronenger.Managers {
         public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D, Area2D> onAttack) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
-            attackArea2D.SetCollisionMaskBit(LayerEnemy, true);
+            attackArea2D.SetCollisionMaskValue(LayerEnemy, true);
             _playerAttackBus.Subscribe(onAttack)
                 .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
         }
@@ -68,7 +67,7 @@ namespace Veronenger.Managers {
             if (enemyDamageArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
             enemyDamageArea2D.CollisionMask = 0;
             enemyDamageArea2D.CollisionLayer = 0;
-            enemyDamageArea2D.SetCollisionLayerBit(LayerEnemy, true);
+            enemyDamageArea2D.SetCollisionLayerValue(LayerEnemy, true);
             _playerAttackBus.Connect(enemyDamageArea2D);
         }
 
@@ -82,14 +81,14 @@ namespace Veronenger.Managers {
             deathArea2D.CollisionLayer = 0;
             deathArea2D.CollisionMask = 0;
             // TODO: this should be a topic, so other places can subscribe like remove all bullets
-            deathArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
+            deathArea2D.SetCollisionLayerValue(LayerPlayerStageDetector, true);
             deathArea2D.OnAreaEntered((player) => Bus.Publish(PlayerEvent.Death));
         }
 
         public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
             sceneChangeArea2D.CollisionLayer = 0;
             sceneChangeArea2D.CollisionMask = 0;
-            sceneChangeArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
+            sceneChangeArea2D.SetCollisionLayerValue(LayerPlayerStageDetector, true);
             sceneChangeArea2D.OnAreaEntered((player) => Game.QueueChangeSceneWithPlayer(scene));
         }
     }

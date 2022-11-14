@@ -8,7 +8,7 @@ using Veronenger.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class AnimatedPlatformController1 : CharacterBody2D {
+    public partial class AnimatedPlatformController1 : CharacterBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
@@ -21,7 +21,8 @@ namespace Veronenger.Controller.Animation {
             
             PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
-            Motion__syncToPhysics = false;
+            // TODO Godot 4
+            // Motion__syncToPhysics = false;
 
             // tween the _newPosition property and use it like this:
             // this.OnPhysicsProcess((delta) => {

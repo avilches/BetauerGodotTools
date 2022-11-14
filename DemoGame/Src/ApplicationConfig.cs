@@ -80,28 +80,28 @@ namespace Veronenger {
         [Service]
         private InputAction UiUp => InputAction.Create("ui_up")
             .KeepProjectSettings()
-            .NegativeAxis(1, "ui_down")
+            .NegativeAxis(JoyAxis.LeftY, "ui_down")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction UiDown => InputAction.Create("ui_down")
             .KeepProjectSettings()
-            .PositiveAxis(1, "ui_up")
+            .PositiveAxis(JoyAxis.LeftY, "ui_up")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction UiLeft => InputAction.Create("ui_left")
             .KeepProjectSettings()
-            .NegativeAxis(0, "ui_right")
+            .NegativeAxis(JoyAxis.LeftX, "ui_right")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction UiRight => InputAction.Create("ui_right")
             .KeepProjectSettings()
-            .PositiveAxis(0, "ui_left")
+            .PositiveAxis(JoyAxis.LeftX, "ui_left")
             .DeadZone(0.5f)
             .Build();
 
@@ -153,7 +153,7 @@ namespace Veronenger {
         [Service]
         private InputAction ControllerSelect => InputAction.Create("select")
             .Keys(Key.Tab)
-            .Buttons(JoyButton.Select)
+            .Buttons(JoyButton.Back)
             .Build();
 
         [Service]
@@ -169,7 +169,7 @@ namespace Veronenger {
         private InputAction Up => InputAction.Configurable("up")
             .Keys(Key.Up)
             .Buttons(JoyButton.DpadUp)
-            .NegativeAxis(1, "down")
+            .NegativeAxis(JoyAxis.LeftY, "down")
             .DeadZone(0.5f)
             .Build();
 
@@ -177,7 +177,7 @@ namespace Veronenger {
         private InputAction Down => InputAction.Configurable("down")
             .Keys(Key.Down)
             .Buttons(JoyButton.DpadDown)
-            .PositiveAxis(1, "up")
+            .PositiveAxis(JoyAxis.LeftY, "up")
             .DeadZone(0.5f)
             .Build();
 
@@ -185,7 +185,7 @@ namespace Veronenger {
         private InputAction Left => InputAction.Configurable("left")
             .Keys(Key.Left)
             .Buttons(JoyButton.DpadLeft)
-            .NegativeAxis(0, "right")
+            .NegativeAxis(JoyAxis.LeftX, "right")
             .DeadZone(0.5f)
             .Build();
 
@@ -193,27 +193,27 @@ namespace Veronenger {
         private InputAction Right => InputAction.Configurable("right")
             .Keys(Key.Right)
             .Buttons(JoyButton.DpadRight)
-            .PositiveAxis(0, "left")
+            .PositiveAxis(JoyAxis.LeftX, "left")
             .DeadZone(0.5f)
             .Build();
 
         [Service]
         private InputAction Jump => InputAction.Configurable("Jump")
             .Keys(Key.Space)
-            .Buttons(JoyButton.XboxA)
+            .Buttons(JoyButton.A)
             .Build();
 
         [Service]
         private InputAction Attack => InputAction.Configurable("Attack")
             .Keys(Key.C)
             .Mouse(MouseButton.Left)
-            .Buttons(JoyButton.XboxB)
+            .Buttons(JoyButton.B)
             .Build();
 
         [Service]
         private InputAction Float => InputAction.Configurable("Float")
             .Keys(Key.F)
-            .Buttons(JoyButton.XboxY)
+            .Buttons(JoyButton.Y)
             .Build();
 
         [Service]

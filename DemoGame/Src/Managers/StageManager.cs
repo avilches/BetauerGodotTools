@@ -30,7 +30,7 @@ namespace Veronenger.Managers {
             _exitStageTopic.Connect(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
-            stageArea2D.SetCollisionLayerBit(LayerPlayerStageDetector, true);
+            stageArea2D.SetCollisionLayerValue(LayerPlayerStageDetector, true);
         }
 
         public void OnEnterStage(Area2D stageEnteredArea2D, Area2D stageDetector) {
@@ -91,7 +91,9 @@ namespace Veronenger.Managers {
 
         public Rect2 CreateAbsoluteRect2() {
             RectangleShape2D shape2D = (Area2D.GetChild(0) as CollisionShape2D)?.Shape as RectangleShape2D;
-            return new Rect2(Area2D.GlobalPosition - shape2D.Extents, shape2D.Extents * 2f);
+            // TODO Godot 4
+            // return new Rect2(Area2D.GlobalPosition - shape2D.Extents, shape2D.Extents * 2f);
+            return new Rect2(Area2D.GlobalPosition - shape2D.Size / 2, shape2D.Size);
         }
 
         public Stage(Area2D area2D) {

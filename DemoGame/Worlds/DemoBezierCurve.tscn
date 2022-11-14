@@ -3,10 +3,10 @@
 [sub_resource type="GDScript" id=1]
 script/source = "extends Node2D
 
-onready var P0 = $Position2D1
-onready var P1 = $Position2D2
-onready var P2 = $Position2D3
-onready var P3 = $Position2D4
+onready var P0 = $Marker2D1
+onready var P1 = $Marker2D2
+onready var P2 = $Marker2D3
+onready var P3 = $Marker2D4
 
 func _ready():
 	print(\"ready\")
@@ -52,14 +52,14 @@ func _draw():
 position = Vector2( 100, 100 )
 script = SubResource( 1 )
 
-[node name="Position2D1" type="Position2D" parent="."]
+[node name="Marker2D1" type="Marker2D" parent="."]
 position = Vector2( 0, 100.377 )
 
-[node name="Position2D2" type="Position2D" parent="."]
+[node name="Marker2D2" type="Marker2D" parent="."]
 position = Vector2( 75.5, 50 )
 
-[node name="Position2D3" type="Position2D" parent="."]
+[node name="Marker2D3" type="Marker2D" parent="."]
 position = Vector2( 85.6, 6 )
 
-[node name="Position2D4" type="Position2D" parent="."]
+[node name="Marker2D4" type="Marker2D" parent="."]
 position = Vector2( 100, 100 )

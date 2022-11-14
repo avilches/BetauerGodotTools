@@ -1,15 +1,13 @@
 using System.Collections.Generic;
-using Betauer;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
-using Betauer.StateMachine;
 using Godot;
 using Veronenger.Controller.UI;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-    public class MainMenuBottomBar : CanvasLayer {
+    public partial class MainMenuBottomBar : CanvasLayer {
         [OnReady("%ActionHint1")] private ActionHint _actionHint1;
         [OnReady("%ActionHint2")] private ActionHint _actionHint2;
         [OnReady("%ActionHint3")] private ActionHint _actionHint3;

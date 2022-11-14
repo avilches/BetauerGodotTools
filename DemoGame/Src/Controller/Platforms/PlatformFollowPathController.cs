@@ -1,10 +1,9 @@
 using System;
 using Godot;
-using Betauer;
 using Betauer.Core.Nodes;
 
 namespace Veronenger.Controller.Platforms {
-	public class PlatformFollowPathController : PlatformController {
+	public partial class PlatformFollowPathController : PlatformController {
 
 		[Export] public float Speed = 10;
 		[Export] public PathFollow2D? PathFollow2D;
@@ -38,7 +37,7 @@ namespace Veronenger.Controller.Platforms {
 
 		private void UpdatePosition(double delta) {
 			Position = _original + PathFollow2D.Position;
-			PathFollow2D.Offset += Speed * delta;
+			PathFollow2D.Progress += Speed * (float)delta;
 		}
 	}
 }

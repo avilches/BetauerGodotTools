@@ -19,22 +19,22 @@ namespace Veronenger.Managers {
         public readonly BodyOnArea2DEntered.Unicast DisablerTopic = new("SlopeStairsDisabler");
 
         public void ConfigureCharacterCollisionsWithSlopeStairs(CharacterBody2D kb2d) {
-            kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
-            kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, true);
+            kb2d.SetCollisionMaskValue(LayerSlopeStairs, false);
+            kb2d.SetCollisionMaskValue(LayerSlopeStairsCover, true);
         }
         
         public void ConfigureSlopeStairs(PhysicsBody2D platform) {
             platform.AddToGroup(GROUP_SLOPE_STAIRS);
             platform.CollisionMask = 0;
             platform.CollisionLayer = 0;
-            platform.SetCollisionLayerBit(LayerSlopeStairs, true);
+            platform.SetCollisionLayerValue(LayerSlopeStairs, true);
         }
 
         public void ConfigureSlopeStairsCover(PhysicsBody2D platform) {
             // platform.AddToGroup("slope_stairs_cover");
             platform.CollisionMask = 0;
             platform.CollisionLayer = 0;
-            platform.SetCollisionLayerBit(LayerSlopeStairsCover, true);
+            platform.SetCollisionLayerValue(LayerSlopeStairsCover, true);
         }
 
         public void ConfigureSlopeStairsDown(Area2D area2D) {
@@ -75,13 +75,13 @@ namespace Veronenger.Managers {
 
         public bool IsSlopeStairs(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_SLOPE_STAIRS);
 
-        public bool HasBodyEnabledSlopeStairs(CharacterBody2D kb2d) => kb2d.GetCollisionMaskBit(LayerSlopeStairs);
-        public void EnableSlopeStairsForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairs, true);
-        public void DisableSlopeStairsForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairs, false);
+        public bool HasBodyEnabledSlopeStairs(CharacterBody2D kb2d) => kb2d.GetCollisionMaskValue(LayerSlopeStairs);
+        public void EnableSlopeStairsForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskValue(LayerSlopeStairs, true);
+        public void DisableSlopeStairsForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskValue(LayerSlopeStairs, false);
 
-        public bool HasBodyEnabledSlopeStairsCover(CharacterBody2D kb2d) => kb2d.GetCollisionMaskBit(LayerSlopeStairsCover);
-        public void EnableSlopeStairsCoverForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, true);
-        public void DisableSlopeStairsCoverForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskBit(LayerSlopeStairsCover, false);
+        public bool HasBodyEnabledSlopeStairsCover(CharacterBody2D kb2d) => kb2d.GetCollisionMaskValue(LayerSlopeStairsCover);
+        public void EnableSlopeStairsCoverForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskValue(LayerSlopeStairsCover, true);
+        public void DisableSlopeStairsCoverForBody(CharacterBody2D kb2d) => kb2d.SetCollisionMaskValue(LayerSlopeStairsCover, false);
 
     }
 }

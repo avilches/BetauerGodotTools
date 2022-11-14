@@ -6,17 +6,18 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=4
+config_version=5
 
 [application]
 
-config/name="DemoGame"
+config/name="DemoGame4"
 run/main_scene="res://Scenes/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
+config/features=PackedStringArray("4.0")
 boot_splash/fullsize=false
 boot_splash/use_filter=false
-boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
+boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 config/icon="res://icon.png"
 config/version="1.0.0"
 
@@ -27,12 +28,15 @@ Global="*res://Src/Managers/Autoload/Global.cs"
 
 [display]
 
+window/stretch/mode="viewport"
 window/size/width=640
 window/size/height=360
 window/size/test_width=960
 window/size/test_height=540
-window/stretch/mode="viewport"
-window/stretch/aspect="keep"
+
+[dotnet]
+
+project/assembly_name="DemoGame4"
 
 [importer_defaults]
 
@@ -69,6 +73,6 @@ runtime/unhandled_exception_policy.standalone=0
 
 [rendering]
 
-environment/default_clear_color=Color( 0, 0, 0, 1 )
+environment/default_clear_color=Color(0, 0, 0, 1)
 environment/default_environment="res://default_env.tres"
 quality/2d/use_nvidia_rect_flicker_workaround=true

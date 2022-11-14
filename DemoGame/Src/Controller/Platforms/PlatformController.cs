@@ -1,10 +1,9 @@
 using Godot;
-using Betauer;
 using Betauer.DI;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Platforms {
-    public class PlatformController :CharacterBody2D {
+    public partial class PlatformController :CharacterBody2D {
 
         [Inject] public PlatformManager PlatformManager { get; set; }
         [Export] public bool IsFallingPlatform = false;

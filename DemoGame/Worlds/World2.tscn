@@ -16,7 +16,7 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="PositionPlayer" type="Position2D" parent="."]
+[node name="PositionPlayer" type="Marker2D" parent="."]
 position = Vector2( 338, 92 )
 
 [node name="WorldComplete" parent="." instance=ExtResource( 3 )]

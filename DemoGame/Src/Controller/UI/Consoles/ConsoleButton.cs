@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using Betauer;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
@@ -8,7 +6,7 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.UI.Consoles {
-    public abstract class ConsoleButton : Sprite2D {
+    public abstract partial class ConsoleButton : Sprite2D {
         private SpriteConfig _config;
 
         [Inject] protected Xbox360SpriteConfig Xbox360 { get; set; }
@@ -26,7 +24,7 @@ namespace Veronenger.Controller.UI.Consoles {
         
         public void Configure(SpriteConfig config) {
             _config = config;
-            Texture = _config.Texture;
+            Texture = _config.Texture2D;
         }
 
         public enum State {
@@ -113,7 +111,7 @@ namespace Veronenger.Controller.UI.Consoles {
         
         private const int AxisOffset = 1000;
         
-        public abstract Texture Texture { get; }
+        public abstract Texture2D Texture2D { get; }
 
         public int GetFrame(JoyButton button, bool isAxis) => Get(button, isAxis)?.Frame ?? 0;
         public int GetFramePressed(JoyButton button, bool isAxis) => Get(button, isAxis)?.FramePressed ?? 0;
@@ -124,8 +122,11 @@ namespace Veronenger.Controller.UI.Consoles {
         public abstract void ConfigureButtons();
         public abstract ConsoleButtonView CreateDefaultView();
 
-        protected void Button(JoyButton joystickList, string animation, int frame, int framePressed) =>
-            Add((int)joystickList, animation, frame, framePressed);
+        protected void Button(JoyButton joyButton, string animation, int frame, int framePressed) =>
+            Add((int)joyButton, animation, frame, framePressed);
+        
+        protected void Button(JoyAxis joyAxis, string animation, int frame, int framePressed) =>
+            Add((int)joyAxis, animation, frame, framePressed);
         
         protected void Axis(int axis, string animation, int frame, int framePressed) =>
             Add(axis + AxisOffset, animation, frame, framePressed);
@@ -139,20 +140,20 @@ namespace Veronenger.Controller.UI.Consoles {
         public override ConsoleButtonView CreateDefaultView() => new(null, 0, 0);
 
         [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
-        public override Texture Texture => _mainResourceLoader.Xbox360ButtonsTexture;
+        public override Texture2D Texture2D => _mainResourceLoader.Xbox360ButtonsTexture2D;
 
         public override void ConfigureButtons() {
-            Button(JoyButton.XboxA, "A", 13, 14);
-            Button(JoyButton.XboxB, "B", 49, 50);
-            Button(JoyButton.XboxX, "X", 25, 26);
-            Button(JoyButton.XboxY, "Y", 37, 38);
+            Button(JoyButton.A, "A", 13, 14);
+            Button(JoyButton.B, "B", 49, 50);
+            Button(JoyButton.X, "X", 25, 26);
+            Button(JoyButton.Y, "Y", 37, 38);
 
-            Button(JoyButton.L, null, 46, 45); // LB
-            Button(JoyButton.R, null, 58, 57); // RB
-            Button(JoyButton.AnalogL2, null, 22, 21); // LT
-            Button(JoyButton.AnalogR2, null, 34, 33); // RT
+            Button(JoyButton.LeftShoulder, null, 46, 45); // LB
+            Button(JoyButton.RightShoulder, null, 58, 57); // RB
+            Button(JoyAxis.TriggerLeft, null, 22, 21); // LT
+            Button(JoyAxis.TriggerRight, null, 34, 33); // RT
 
-            Button(JoyButton.Select, "", 16, 15);
+            Button(JoyButton.Back, "", 16, 15);
             Button(JoyButton.Start, "", 19, 20);
             Button(JoyButton.Guide, "", 17, 18); // Xbox Button (big button between select & start)
 
@@ -162,10 +163,10 @@ namespace Veronenger.Controller.UI.Consoles {
             Button(JoyButton.DpadUp, "", 31, 27);
 
             // Right analog Click
-            Button(JoyButton.R3, "", 39, 44);
+            Button(JoyButton.RightStick, "", 39, 44);
 
             // Right analog Click
-            Button(JoyButton.L3, "left click", 51, 56);
+            Button(JoyButton.LeftStick, "left click", 51, 56);
 
 
             // Right analog stick:
@@ -190,7 +191,7 @@ namespace Veronenger.Controller.UI.Consoles {
     [Service]
     public class XboxOneSpriteConfig : Xbox360SpriteConfig {
         [Inject] private MainResourceLoader _mainResourceLoader { get; set; }
-        public override Texture Texture => _mainResourceLoader.XboxOneButtonsTexture;
+        public override Texture2D Texture2D => _mainResourceLoader.XboxOneButtonsTexture2D;
     }
 
     public class ConsoleButtonView {
@@ -203,6 +204,5 @@ namespace Veronenger.Controller.UI.Consoles {
             Frame = frame;
             FramePressed = framePressed;
         }
-
     }
 }

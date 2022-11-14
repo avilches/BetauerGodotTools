@@ -72,7 +72,7 @@ extents = Vector2( 300, 200 )
 
 [node name="World1" type="Node2D"]
 
-[node name="PositionPlayer" type="Position2D" parent="."]
+[node name="PositionPlayer" type="Marker2D" parent="."]
 position = Vector2( 340, 20 )
 __meta__ = {
 "_gizmo_extents_": 167.7

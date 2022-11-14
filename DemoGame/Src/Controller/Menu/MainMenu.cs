@@ -1,10 +1,6 @@
-using System;
 using System.Threading.Tasks;
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation;
 using Betauer.Application;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
@@ -15,7 +11,7 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-    public class MainMenu : Control {
+    public partial class MainMenu : Control {
         private const float FadeMainMenuEffectTime = 0.75f;
 
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Godot;
 using Betauer;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Veronenger.Managers;
@@ -43,8 +44,8 @@ namespace Veronenger.Character {
 
         private bool _dirtyFlags = true;
 
-        public void Configure(string name, CharacterBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Position2D position2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
-            base.Configure(name, body, position2D, floorUpDirection);
+        public void Configure(string name, CharacterBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Marker2D marker2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
+            base.Configure(name, body, marker2D, floorUpDirection);
             _flippers = flippers;
             _floorRaycast = floorRaycast;
             _slopeRaycast = slopeRaycast;
@@ -83,8 +84,9 @@ namespace Veronenger.Character {
         public bool IsOnFloor() => UpdateFlags()._isOnFloor;
         public bool IsOnSlope() => UpdateFlags()._isOnSlope;
         public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsUpLeft(FloorUpDirection);
-        public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
-        public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
+        // TODO Godot 4
+        // public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
+        // public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
         // Floor collider
         public Vector2 GetFloorNormal() => UpdateFlags()._floorNormal;
         public Object? GetFloor() => UpdateFlags()._floor;
@@ -166,18 +168,31 @@ namespace Veronenger.Character {
             Hay un bug conocido: si la plataforma que se mueve tiene slope, entonces para que detected el slope como suelo,
             se para y ya no sigue a la plataforma
             */
-            var stopOnSlopes = !HasFloorLateralMovement();
-            var pendingInertia = Body.MoveAndSlideWithSnap(
-                RotateSpeed(), SnapToFloorVector, FloorUpDirection, stopOnSlopes);
+            // TODO: Godot 4
+            var stopOnSlopes = true; //!HasFloorLateralMovement();
+            Body.Velocity = RotateSpeed();
+            Body.FloorSnapLength = SnapToFloorVector.Length();
+            Body.UpDirection = FloorUpDirection;
+            Body.FloorStopOnSlope = stopOnSlopes;
+            // Body.MaxSlides = ...
+            // Body.FloorMaxAngle = ...
+            Body.MoveAndSlide();
             _dirtyFlags = true;
-            return RotateInertia(pendingInertia);
+            return RotateInertia(Body.Velocity);
         }
 
         public Vector2 Slide() {
             const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
-            var pendingInertia = Body.MoveAndSlideWithSnap(RotateSpeed(), Vector2.Zero, FloorUpDirection, stopOnSlopes);
+
+            // TODO: Godot 4
+            Body.Velocity = RotateSpeed();
+            Body.FloorSnapLength = 0;
+            Body.UpDirection = Vector2.Zero;
+            Body.FloorStopOnSlope = stopOnSlopes;
+
+            Body.MoveAndSlide();
             _dirtyFlags = true;
-            return RotateInertia(pendingInertia);
+            return RotateInertia(Body.Velocity);
         }
 
         public void Stop(float friction, float stopIfSpeedIsLessThan) {
@@ -263,12 +278,12 @@ namespace Veronenger.Character {
         }
 
         private void CheckMoveAndSlideCollisions() {
-            var slideCount = Body.GetSlideCount();
+            var slideCount = Body.GetSlideCollisionCount();
             if (slideCount == 0) return;
             for (var i = 0; i < slideCount; i++) {
                 var collision = Body.GetSlideCollision(i);
-                var collider = collision.Collider;
-                var normal = collision.Normal;
+                var collider = collision.GetCollider();
+                var normal = collision.GetNormal();
                 if (collision == null || normal == Vector2.Zero) continue;
                 if (normal == FloorUpDirection) {
                     _isOnFloor = true;
@@ -324,19 +339,19 @@ namespace Veronenger.Character {
 
         public string GetFloorCollisionInfo() {
             return IsOnFloor()
-                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.Rad2Deg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
+                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
                 : "";
         }
 
         public string GetCeilingCollisionInfo() {
             return IsOnCeiling()
-                ? $"{GetCeilingNormal().ToString("0.0")} {Mathf.Rad2Deg(GetCeilingNormal().Angle()):0.0}º [{GetCeiling()?.GetType().Name}] {GetCeilingNode()?.Name}"
+                ? $"{GetCeilingNormal().ToString("0.0")} {Mathf.RadToDeg(GetCeilingNormal().Angle()):0.0}º [{GetCeiling()?.GetType().Name}] {GetCeilingNode()?.Name}"
                 : "";
         }
 
         public string GetWallCollisionInfo() {
             return IsOnWall()
-                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.Rad2Deg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
+                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.RadToDeg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
                 : "";
         }
     }

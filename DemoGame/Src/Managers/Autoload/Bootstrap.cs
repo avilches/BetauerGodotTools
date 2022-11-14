@@ -15,12 +15,11 @@ using Container = Betauer.DI.Container;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
 
 namespace Veronenger.Managers.Autoload {
-    public class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
+    public partial class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
 
         public Bootstrap() : base(new Options {
                 AddSingletonNodesToTree = true,
-                ObjectWatcherTimer = 10f,
             }) {
             AppTools.ConfigureExceptionHandlers(GetTree);
 
@@ -78,7 +77,6 @@ namespace Veronenger.Managers.Autoload {
 
             // GameTools
             LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
-            LoggerFactory.SetTraceLevel(typeof(Consumer), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(ObjectPool), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Error);
 
@@ -86,7 +84,6 @@ namespace Veronenger.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(AnimationStack), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(CallbackNodeTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(CallbackTweener), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(MethodCallbackTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PauseTweener), TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 

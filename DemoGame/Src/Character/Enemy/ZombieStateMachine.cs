@@ -42,7 +42,7 @@ namespace Veronenger.Character.Enemy {
     }
 
     [Service(Lifetime.Transient)]
-    public class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
+    public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
         }
 
@@ -70,11 +70,11 @@ namespace Veronenger.Character.Enemy {
 
         public readonly EnemyStatus Status = new();
 
-        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D slopeRaycast, Position2D position2D) {
+        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D slopeRaycast, Marker2D marker2D) {
             _zombieController = zombie;
             zombie.AddChild(this);
 
-            Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
+            Body.Configure(name, zombie, flippers, null, slopeRaycast, marker2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
 
             AddOnExecuteStart((delta, state) => Body.SetDelta(delta));

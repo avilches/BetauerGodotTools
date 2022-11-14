@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Betauer;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
@@ -8,7 +7,7 @@ using Betauer.UI;
 using Godot;
 
 namespace Veronenger.Controller.Menu {
-    public class ModalBoxConfirm : Node {
+    public partial class ModalBoxConfirm : Node {
         [OnReady("Panel/VBoxContainer/Menu")]
         private Godot.Container _menuBase;
 

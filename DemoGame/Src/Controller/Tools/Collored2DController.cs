@@ -2,7 +2,7 @@ using Godot;
 
 namespace Veronenger.Controller.Tools {
     [Tool]
-    public class Collored2DController : CollisionShape2D {
+    public partial class Collored2DController : CollisionShape2D {
         private Color _color = Colors.White;
         private bool _enabled_editor = true;
         private bool _enabled_game = true;
@@ -12,7 +12,7 @@ namespace Veronenger.Controller.Tools {
             get => _color;
             set {
                 _color = value;
-                Update();
+                QueueRedraw();
             }
         }
 
@@ -21,7 +21,7 @@ namespace Veronenger.Controller.Tools {
             get => _enabled_editor;
             set {
                 _enabled_editor = value;
-                Update();
+                QueueRedraw();
             }
         }
 
@@ -30,12 +30,12 @@ namespace Veronenger.Controller.Tools {
             get => _enabled_game;
             set {
                 _enabled_game = value;
-                Update();
+                QueueRedraw();
             }
         }
 
         public override void _Draw() {
-            if (Engine.EditorHint) {
+            if (Engine.IsEditorHint()) {
                 if (!_enabled_editor) return;
             } else {
                 if (!_enabled_game) return;
@@ -44,8 +44,10 @@ namespace Veronenger.Controller.Tools {
             var shape2D = Shape;
             switch (shape2D) {
                 case RectangleShape2D r: {
-                    var rExtents = r.Extents;
-                    DrawRect(new Rect2(-rExtents, rExtents * 2.0f), color);
+                    // TODO Godot 4
+                    // var rExtents = r.Extents;
+                    // DrawRect(new Rect2(-rExtents, rExtents * 2.0f), color);
+                    DrawRect(new Rect2(-r.Size / 2, r.Size), color);
                     break;
                 }
                 case CircleShape2D c:

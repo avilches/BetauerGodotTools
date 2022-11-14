@@ -1,17 +1,14 @@
 using System.Collections.Generic;
-using System.Linq;
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingChildrenSpacedController : Node2D {
+    public partial class RotatingChildrenSpacedController : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;

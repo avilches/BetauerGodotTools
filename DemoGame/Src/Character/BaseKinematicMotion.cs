@@ -5,7 +5,7 @@ using Godot;
 namespace Veronenger.Character {
     public abstract class BaseKinematicMotion {
         public CharacterBody2D Body { get; private set; }
-        public Position2D Position2D { get; private set; }
+        public Marker2D Marker2D { get; private set; }
 
         private float _anglesToRotateFloor = 0;
         private Vector2 _floorUpDirection = Vector2.Up;
@@ -31,13 +31,17 @@ namespace Veronenger.Character {
 
         public float Delta { get; private set; } = 0;
 
-        protected void Configure(string name, CharacterBody2D body, Position2D position2D, Vector2 floorUpDirection) {
+        protected void Configure(string name, CharacterBody2D body, Marker2D marker2D, Vector2 floorUpDirection) {
             Body = body;
-            Position2D = position2D;
+            Marker2D = marker2D;
             FloorUpDirection = floorUpDirection;
         }
 
         public void SetDelta(double delta) {
+            Delta = (float)delta;
+        }
+
+        public void SetDelta(float delta) {
             Delta = delta;
         }
 
@@ -67,7 +71,7 @@ namespace Veronenger.Character {
             // the speed will be the half
             float changeDirectionFactor,
             
-            double delta) {
+            float delta) {
             if (amount != 0) {
                 var directionChanged = speed != 0 && Math.Sign(speed) != Math.Sign(amount);
                 var frameAcceleration = amount * acceleration * delta;
@@ -89,7 +93,7 @@ namespace Veronenger.Character {
             }
         }
 
-        public static void Decelerate(ref float speed, float deceleration, float stopIfSpeedIsLessThan, double delta) {
+        public static void Decelerate(ref float speed, float deceleration, float stopIfSpeedIsLessThan, float delta) {
             var absSpeed = Math.Abs(speed);
             if (absSpeed < stopIfSpeedIsLessThan) {
                 speed = 0;
@@ -134,7 +138,7 @@ namespace Veronenger.Character {
         }
 
         public float DegreesTo(Node2D node2D) {
-            return Mathf.Rad2Deg(Body.ToLocal(node2D.GlobalPosition).AngleTo(Position2D.Position));
+            return Mathf.RadToDeg(Body.ToLocal(node2D.GlobalPosition).AngleTo(Marker2D.Position));
         }
     }
 }

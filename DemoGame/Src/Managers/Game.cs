@@ -1,6 +1,4 @@
 using System;
-using System.Threading.Tasks;
-using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 using Godot;
@@ -34,16 +32,16 @@ namespace Veronenger.Managers {
         public void QueueChangeSceneWithPlayer(string sceneName) {
             StageManager.ClearTransition();
             _currentGameScene.QueueFree();
-            var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instance();
+            var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instantiate();
             AddPlayerToScene(nextScene);
             _currentGameScene = nextScene;
             SceneTree.Root.AddChildDeferred(nextScene);
         }
         
         private void AddPlayerToScene(Node nextScene) {
-            var position2D = nextScene.GetNode<Node2D>("PositionPlayer");
-            if (position2D == null) throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.Filename);
-            AddPlayerToScene(nextScene, position2D.GlobalPosition);
+            var marker2D = nextScene.GetNode<Node2D>("PositionPlayer");
+            if (marker2D == null) throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.SceneFilePath);
+            AddPlayerToScene(nextScene, marker2D.GlobalPosition);
         }
 
         private void AddPlayerToScene(Node nextScene, Vector2 position) {
@@ -54,7 +52,7 @@ namespace Veronenger.Managers {
         }
 
         public void End() {
-            _currentGameScene.PrintStrayNodes();
+            _currentGameScene.PrintOrphanNodes();
             _currentGameScene.QueueFree();
             _currentGameScene = null;
         }

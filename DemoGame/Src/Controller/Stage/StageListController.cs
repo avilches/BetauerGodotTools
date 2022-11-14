@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using Betauer;
 using Betauer.DI;
 using Veronenger.Managers;
 
@@ -16,7 +15,7 @@ namespace Veronenger.Controller.Stage {
      *        +- ...
      * Non Area2D elements will be ignored. Non RectangleShape2D collision shapes will be ignored too.
      */
-    public class StageListController : Node {
+    public partial class StageListController : Node {
         [Inject] public StageManager StageManager { get; set;}
 
         public override void _Ready() {

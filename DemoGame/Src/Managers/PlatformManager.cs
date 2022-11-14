@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Godot;
-using Betauer;
 using Betauer.Bus.Signal;
 using Betauer.DI;
-using Betauer.Core.Signal;
 using static Veronenger.LayerConstants;
 using Object = Godot.Object;
 
@@ -43,13 +40,14 @@ namespace Veronenger.Managers {
                         AddArea2DFallingPlatformExit(area2D);
                     }
                 platform.AddToGroup(GROUP_FALLING_PLATFORMS);
-                platform.SetCollisionLayerBit(LayerFallPlatform, true);
+                platform.SetCollisionLayerValue(LayerFallPlatform, true);
             } else {
-                platform.SetCollisionLayerBit(LayerRegularPlatform, true);
+                platform.SetCollisionLayerValue(LayerRegularPlatform, true);
             }
 
             if (moving) {
-                if (platform is CharacterBody2D kb2d) kb2d.Motion__syncToPhysics = true;
+                // TODO Godot 4: discover how to enable/disable sync to physics 
+                // if (platform is CharacterBody2D kb2d) kb2d.Motion__syncToPhysics = true;
                 platform.AddToGroup(GROUP_MOVING_PLATFORMS);
             }
         }
@@ -57,18 +55,18 @@ namespace Veronenger.Managers {
         public void ConfigureArea2DAsPlatform(Area2D upHall) {
             upHall.CollisionMask = 0;
             upHall.CollisionLayer = 0;
-            upHall.SetCollisionLayerBit(LayerRegularPlatform, true);
+            upHall.SetCollisionLayerValue(LayerRegularPlatform, true);
         }
 
         public void ConfigureCharacterCollisionsWithGroundAndPlatforms(CharacterBody2D kb2d) {
-            kb2d.SetCollisionMaskBit(LayerRegularPlatform, true);
-            kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
+            kb2d.SetCollisionMaskValue(LayerRegularPlatform, true);
+            kb2d.SetCollisionMaskValue(LayerFallPlatform, true);
         }
         
         public void ConfigureCharacterCollisionsWithGroundAndPlatforms(RayCast2D rayCast2D) {
             rayCast2D.CollisionMask = 0;
-            rayCast2D.SetCollisionMaskBit(LayerRegularPlatform, true);
-            rayCast2D.SetCollisionMaskBit(LayerFallPlatform, true);
+            rayCast2D.SetCollisionMaskValue(LayerRegularPlatform, true);
+            rayCast2D.SetCollisionMaskValue(LayerFallPlatform, true);
         }
 
         // It accepts Object so it can be used from a GetSlideCollision(x).Collider
@@ -82,16 +80,16 @@ namespace Veronenger.Managers {
          */
         // Provoca la caida del jugador desde la plataforma quitando la mascara
         public void BodyFallFromPlatform(CharacterBody2D kb2d) {
-            kb2d.SetCollisionMaskBit(LayerFallPlatform, false);
+            kb2d.SetCollisionMaskValue(LayerFallPlatform, false);
         }
 
-        public bool IsBodyFallingFromPlatform(CharacterBody2D kb2d) => !kb2d.GetCollisionMaskBit(LayerFallPlatform);
+        public bool IsBodyFallingFromPlatform(CharacterBody2D kb2d) => !kb2d.GetCollisionMaskValue(LayerFallPlatform);
         // Para la caida del jugador
 
         public BodyOnArea2DEntered.Unicast PlatformBodyOutTopicBodyOnArea2D = new("PlatformBodyOut");
         
         public void BodyStopFallFromPlatform(CharacterBody2D kb2d) {
-            kb2d.SetCollisionMaskBit(LayerFallPlatform, true);
+            kb2d.SetCollisionMaskValue(LayerFallPlatform, true);
         }
 
         private void AddArea2DFallingPlatformExit(Area2D area2D) => PlatformBodyOutTopicBodyOnArea2D.Connect(area2D);

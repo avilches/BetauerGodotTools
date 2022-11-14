@@ -5,7 +5,7 @@ using Veronenger.Managers;
 using static Godot.Mathf;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingPlatformController : CharacterBody2D {
+    public partial class RotatingPlatformController : CharacterBody2D {
 
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
@@ -29,7 +29,7 @@ namespace Veronenger.Controller.Animation {
         }
 
         private void UpdateAngle(double delta) {
-            _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
+            _angle = Wrap(_angle + _speed * (float)delta, 0, Tau); // # Infinite rotation(in radians)
         }
 
         private void UpdatePosition() {

@@ -1,11 +1,10 @@
 using Godot;
-using Betauer;
 using Betauer.DI;
 using Betauer.OnReady;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Platforms {
-    public class SlopeStairsController : Node {
+    public partial class SlopeStairsController : Node {
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
 
         [OnReady("SlopeStairs")] StaticBody2D slopeStairs;

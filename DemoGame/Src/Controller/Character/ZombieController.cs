@@ -18,7 +18,7 @@ namespace Veronenger.Controller.Character {
     }
     
     
-    public sealed class ZombieController : CharacterBody2D, IEnemy {
+    public partial class ZombieController : CharacterBody2D, IEnemy {
         private static readonly KeyframeAnimation RedFlash = KeyframeAnimation.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Properties.Modulate)
@@ -37,7 +37,7 @@ namespace Veronenger.Controller.Character {
         [OnReady("Label")] public Label Label;
         [OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-        [OnReady("Position2D")] public Position2D Position2D;
+        [OnReady("Marker2D")] public Marker2D Marker2D;
         [OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
         [OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
@@ -67,7 +67,7 @@ namespace Veronenger.Controller.Character {
             AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
             
             var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-            StateMachine.Start("Zombie", this, flippers, SlopeRaycast, Position2D);
+            StateMachine.Start("Zombie", this, flippers, SlopeRaycast, Marker2D);
 
             CharacterManager.ConfigureEnemyCollisions(this);
             CharacterManager.ConfigureEnemyCollisions(SlopeRaycast);

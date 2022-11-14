@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Betauer.Animation;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes.Property;
@@ -13,7 +12,7 @@ using Veronenger.Managers;
 using Container = Godot.Container;
 
 namespace Veronenger.Controller.Menu {
-    public class PauseMenu : CanvasLayer {
+    public partial class PauseMenu : CanvasLayer {
         private static readonly KeyframeAnimation PartialFadeOut = KeyframeAnimation.Create()
             .SetDuration(0.3f)
             .AnimateKeys(Properties.Opacity)
@@ -45,7 +44,8 @@ namespace Veronenger.Controller.Menu {
         public override void _Ready() {
             _menuContainer = BuildMenu();
             Hide();
-            GetTree().OnScreenResized(_BlackBarPosition).DisconnectIfInvalid(this);
+            // TODO Godot 4: this relocate the pause manu black background when screen is resized
+            // GetTree().OnScreenResized(_BlackBarPosition).DisconnectIfInvalid(this);
         }
 
         public Task ShowPauseMenu() {

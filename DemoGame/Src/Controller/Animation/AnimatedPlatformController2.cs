@@ -7,7 +7,7 @@ using Betauer.Core.Nodes.Property;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class AnimatedPlatformController2 : CharacterBody2D {
+    public partial class AnimatedPlatformController2 : CharacterBody2D {
         [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}

@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Godot;
@@ -37,7 +36,7 @@ namespace Veronenger.Managers {
     }
     
     [Service]
-    public class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
+    public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
 
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
@@ -71,7 +70,7 @@ namespace Veronenger.Managers {
         [Inject] private Bus Bus { get; set; }
 
         public override void _Ready() {
-            ProcessMode = ProcessModeEnum.Process;
+            ProcessMode = ProcessModeEnum.Always;
         }
 
         public MainStateMachine() : base(MainState.Init) {
@@ -93,7 +92,7 @@ namespace Veronenger.Managers {
                     // Engine.TimeScale += 0.05f;
                     // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
                 }
-            }, ProcessModeEnum.Process);
+            }, ProcessModeEnum.Always);
             #endif
             
             Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
@@ -110,7 +109,7 @@ namespace Veronenger.Managers {
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
-                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Process;
+                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
@@ -214,7 +213,7 @@ namespace Veronenger.Managers {
         private async Task<bool> ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
-            modalBoxConfirm.ProcessMode = ProcessModeEnum.Process;
+            modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;
             SceneTree.Root.AddChild(modalBoxConfirm);
             var result = await modalBoxConfirm.AwaitResult();
             modalBoxConfirm.QueueFree();

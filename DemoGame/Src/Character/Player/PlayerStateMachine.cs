@@ -30,7 +30,7 @@ namespace Veronenger.Character.Player {
     }
 
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
+    public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
         public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", true) {
         }
 
@@ -71,7 +71,7 @@ namespace Veronenger.Character.Player {
         public void Start(string name, PlayerController playerController, IFlipper flippers) {
             _player = playerController;
 
-            Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
+            Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Marker2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
             Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
             
             AddOnExecuteStart((delta, _) => Body.SetDelta(delta));

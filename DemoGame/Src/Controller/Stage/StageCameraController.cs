@@ -1,5 +1,4 @@
 using Godot;
-using Betauer;
 using Betauer.DI;
 using Betauer.Tools.Logging;
 using Betauer.OnReady;
@@ -15,7 +14,7 @@ namespace Veronenger.Controller.Stage {
      *   +- StageDetector : Area2D
      *   +- StageCameraController (this class)
      */
-    public class StageCameraController : Camera2D {
+    public partial class StageCameraController : Camera2D {
 
         [Inject] public StageManager StageManager { get; set;}
 

@@ -5,7 +5,7 @@ using Godot;
 using Veronenger.Controller.UI.Consoles;
 
 namespace Veronenger.Controller.UI {
-    public class RedefineActionButton : Button {
+    public partial class RedefineActionButton : Button {
         [OnReady("HBox/ActionName")] private Label _actionNameLabel;
         [OnReady("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
         [OnReady("HBox/Key")] private Label _keyLabel;
@@ -46,5 +46,4 @@ namespace Veronenger.Controller.UI {
             }
         }
     }
-    
 }
