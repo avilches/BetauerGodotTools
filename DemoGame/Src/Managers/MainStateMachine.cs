@@ -117,7 +117,7 @@ namespace Veronenger.Managers {
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
                 })
-                .If(() => true).Set(MainState.StartingGame)
+                .If(() => true).Set(MainState.MainMenu)
                 .Build();
             
             State(MainState.MainMenu)

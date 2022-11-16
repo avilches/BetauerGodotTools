@@ -1,17 +1,17 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=3 format=3 uid="uid://pso6kw7ga7vn"]
 
-[ext_resource path="res://icon.png" type="Texture" id=2]
+[ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2"]
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 20, 17 )
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(40, 34)
 
 [node name="WorldComplete" type="Area2D"]
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2( 2, 35 )
-scale = Vector2( 0.320312, 0.28125 )
-texture = ExtResource( 2 )
+position = Vector2(2, 35)
+scale = Vector2(0.320312, 0.28125)
+texture = ExtResource("2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 2, 37 )
-shape = SubResource( 1 )
+position = Vector2(2, 37)
+shape = SubResource("1")

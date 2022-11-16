@@ -16,7 +16,7 @@ namespace Veronenger.Managers {
         private Node2D _playerScene;
 
         public void StartNew() {
-            _currentGameScene = MainResourceLoader.CreateWorld2Empty();
+            // _currentGameScene = MainResourceLoader.CreateWorld2Empty();
             var tileMap = _currentGameScene.GetNode<TileMap>("RealTileMap");
             new WorldGenerator().Generate(tileMap);
             AddPlayerToScene(_currentGameScene, Vector2.Zero);
@@ -24,7 +24,7 @@ namespace Veronenger.Managers {
         }
 
         public void Start() {
-            _currentGameScene = MainResourceLoader.CreateWorld2();
+            // _currentGameScene = MainResourceLoader.CreateWorld2();
             AddPlayerToScene(_currentGameScene);
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }

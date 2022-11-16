@@ -25,7 +25,8 @@ namespace Betauer.Application.Screen {
             _strategies[ScreenStrategyKey.IntegerScale] = new ResizeIntegerScaledStrategy(_tree);
             SetScreenConfiguration(initialScreenConfiguration, strategyKey);
             // TODO Godot 4
-            DisplayServer.WindowSetRectChangedCallback(Callable.From(OnScreenResized));
+            _tree.Root.OnSizeChanged(OnScreenResized);
+            DisplayServer.WindowSetRectChangedCallback(Callable.From((int screen) => OnScreenResized()));
         }
 
         private void OnScreenResized() {
