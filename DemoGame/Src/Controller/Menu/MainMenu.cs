@@ -11,15 +11,23 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-	public partial class MainMenu : Control {
+	public partial class MainMenu : CanvasLayer {
 		private const float FadeMainMenuEffectTime = 0.75f;
 
+		[OnReady("%MainMenu")]
+		private Control _base;
 
-		[OnReady("GridContainer/MarginContainer/VBoxContainer/Menu")]
+		[OnReady("%Menu")]
 		private Godot.Container _menuBase;
 
-		[OnReady("GridContainer/MarginContainer/VBoxContainer/VBoxContainer/ver")]
+		[OnReady("%Version")]
 		private Label _version;
+
+		[OnReady("%Author")]
+		private Label _author;
+
+		[OnReady("%Title")]
+		private Label _title;
 
 		private MenuContainer _menuContainer;
 
@@ -38,9 +46,9 @@ namespace Veronenger.Controller.Menu {
 			Visible = true;
 			var modulate = Colors.White;
 			modulate.a = 0;
-			Modulate = modulate;
+			_base.Modulate = modulate;
 			await _menuContainer.Start();
-			await Templates.FadeIn.Play(this, 0f, FadeMainMenuEffectTime).AwaitFinished();
+			await Templates.FadeIn.Play(_base, 0f, FadeMainMenuEffectTime).AwaitFinished();
 			GetTree().Root.GuiDisableInput = false;
 		}
 
@@ -75,13 +83,13 @@ namespace Veronenger.Controller.Menu {
 		private Tween _sceneTreeTween;
 		public void DimOut() {
 			_sceneTreeTween?.Kill();
-			_sceneTreeTween = Templates.FadeOut.Play(this, 0f, 1f);
+			_sceneTreeTween = Templates.FadeOut.Play(_base, 0f, 1f);
 		}
 
 		public void RollbackDimOut() {
 			_sceneTreeTween?.Kill();
 			_sceneTreeTween = null;
-			Modulate = Colors.White;
+			_base.Modulate = Colors.White;
 		}
 
 		public void OnInput(InputEvent e) {

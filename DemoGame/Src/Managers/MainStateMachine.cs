@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Application;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
@@ -8,12 +10,14 @@ using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Core.Nodes;
 using Betauer.StateMachine.Async;
+using Veronenger.Controller;
 using Veronenger.Controller.Menu;
 
 namespace Veronenger.Managers {
     
     public enum MainState {
         Init,
+        InitDone,
         MainMenu,
         Settings,
         StartingGame,
@@ -100,16 +104,19 @@ namespace Veronenger.Managers {
             
             State(MainState.Init)
                 .Execute(async () => {
-                    MainResourceLoader.OnProgress += context => {
-                        // GD.Print(context.LoadPercent.ToString("P") + " = " + context.LoadedSize + " / " +
-                        // context.TotalSize + " resource " + context.ResourceLoadedPercent.ToString("P") + " = " +
-                        // context.ResourceLoadedSize + " / " + context.ResourceSize + " " + context.ResourcePath);
-                    };
+                    CanvasLayer splashScreen = SceneTree.GetMainScene() as CanvasLayer;
+                    splashScreen!.Layer = int.MaxValue;
+                    MainResourceLoader.OnProgress += progress => GD.Print(progress+" %");
                     await MainResourceLoader.From(this).Load();
+                    _mainMenuScene.Layer = 0;
+                    _pauseMenuScene.Layer = 1;
+                    _settingsMenuScene.Layer = 2;
+                    MainMenuBottomBarScene.Layer = 100;
+                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
+
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
-                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
@@ -117,7 +124,18 @@ namespace Veronenger.Managers {
                     SceneTree.Root.AddChild(MainMenuBottomBarScene);
                     AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
                 })
-                .If(() => true).Set(MainState.MainMenu)
+                .If(() => true).Set(MainState.InitDone)
+                .Build();
+
+            var splashFinished = false;
+            State(MainState.InitDone)
+                .OnInput((e) => {
+                    if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                        (SceneTree.GetMainScene() as SplashScreenController)!.QueueFree();
+                        splashFinished = true;
+                    }
+                })
+                .If(() => splashFinished).Set(MainState.MainMenu)
                 .Build();
             
             State(MainState.MainMenu)

@@ -1,10 +1,10 @@
 [gd_scene load_steps=6 format=3 uid="uid://d3oetnugexew"]
 
 [ext_resource type="Script" path="res://Src/Controller/Menu/SettingsMenu.cs" id="1"]
-[ext_resource type="Theme" path="res://Assets/UI/my_theme.tres" id="2"]
-[ext_resource type="PackedScene" path="res://Scenes/UI/FlatButton.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://Scenes/UI/CheckButton.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://Scenes/UI/RedefineActionButton.tscn" id="5"]
+[ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
+[ext_resource type="PackedScene" uid="uid://etv0voa53luq" path="res://Scenes/UI/FlatButton.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://bcmwxxdfmwf7a" path="res://Scenes/UI/CheckButton.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://c4cm73gj1or01" path="res://Scenes/UI/RedefineActionButton.tscn" id="5"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 layer = 101
@@ -16,6 +16,12 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -270.0
+offset_right = 150.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("2")
 
 [node name="SettingsBox" type="VBoxContainer" parent="Panel"]
@@ -23,13 +29,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/SettingsBox"]
 layout_mode = 2
-offset_right = 42.0
+offset_right = 300.0
 offset_bottom = 17.0
 size_flags_horizontal = 3
 text = "Settings"
@@ -37,36 +45,36 @@ text = "Settings"
 [node name="Title2" type="Label" parent="Panel/SettingsBox"]
 layout_mode = 2
 offset_top = 21.0
-offset_right = 42.0
+offset_right = 300.0
 offset_bottom = 35.0
 size_flags_horizontal = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/SettingsBox"]
 layout_mode = 2
 offset_top = 39.0
-offset_right = 42.0
-offset_bottom = 47.0
+offset_right = 300.0
+offset_bottom = 540.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 follow_focus = true
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel/SettingsBox/ScrollContainer"]
 layout_mode = 2
-offset_right = 144.0
-offset_bottom = 202.0
+offset_right = 300.0
+offset_bottom = 501.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Menu" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer"]
 layout_mode = 2
-offset_right = 144.0
-offset_bottom = 202.0
+offset_right = 300.0
+offset_bottom = 501.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VideoTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 layout_mode = 2
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 17.0
 size_flags_horizontal = 3
 text = "Video"
@@ -74,42 +82,42 @@ text = "Video"
 [node name="Fullscreen" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
 layout_mode = 2
 offset_top = 21.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 38.0
 text = " Fullscreen"
 
 [node name="Resolution" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("3")]
 layout_mode = 2
 offset_top = 42.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 57.0
 text = " Resolution"
 
 [node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
 layout_mode = 2
 offset_top = 61.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 78.0
 text = " Pixel perfect"
 
 [node name="Borderless" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
 layout_mode = 2
 offset_top = 82.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 99.0
 text = " Borderless window"
 
 [node name="VSync" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
 layout_mode = 2
 offset_top = 103.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 120.0
 text = " Vertical sync"
 
 [node name="GamepadTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 layout_mode = 2
 offset_top = 124.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 141.0
 size_flags_horizontal = 3
 text = "Gamepad"
@@ -117,71 +125,71 @@ text = "Gamepad"
 [node name="GamepadControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 layout_mode = 2
 offset_top = 145.0
-offset_right = 144.0
-offset_bottom = 161.0
+offset_right = 300.0
+offset_bottom = 310.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
 layout_mode = 2
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 1.0
 
 [node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 5.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 6.0
 
 [node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 10.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 11.0
 
 [node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 15.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 16.0
 
 [node name="KeyboardTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 layout_mode = 2
-offset_top = 165.0
-offset_right = 144.0
-offset_bottom = 182.0
+offset_top = 314.0
+offset_right = 300.0
+offset_bottom = 331.0
 size_flags_horizontal = 3
 text = "Keyboard"
 
 [node name="KeyboardControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 layout_mode = 2
-offset_top = 186.0
-offset_right = 144.0
-offset_bottom = 202.0
+offset_top = 335.0
+offset_right = 300.0
+offset_bottom = 501.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
 layout_mode = 2
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 1.0
 
 [node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 5.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 6.0
 
 [node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 10.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 11.0
 
 [node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
 layout_mode = 2
 offset_top = 15.0
-offset_right = 144.0
+offset_right = 300.0
 offset_bottom = 16.0
 
 [node name="RedefineBox" type="VBoxContainer" parent="Panel"]
@@ -190,6 +198,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
 alignment = 1

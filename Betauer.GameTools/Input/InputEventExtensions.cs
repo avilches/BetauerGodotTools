@@ -126,7 +126,7 @@ namespace Betauer.Input {
         public static MouseButton GetClick(this InputEvent input) =>
             input is InputEventMouseButton k ? (MouseButton)k.ButtonIndex : MouseButton.MaskXbutton2;
 
-        public static bool IsClick(this InputEvent input) =>
+        public static bool IsAnyClick(this InputEvent input) =>
             input is InputEventMouseButton;
 
         public static bool IsClick(this InputEvent input, MouseButton button) =>

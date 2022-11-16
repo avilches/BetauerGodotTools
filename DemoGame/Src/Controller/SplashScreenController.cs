@@ -1,4 +1,3 @@
-using System;
 using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
@@ -9,17 +8,14 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller {
-	public partial class SplashScreenController : Control {
+	public partial class SplashScreenController : CanvasLayer {
 		[Inject] private MainStateMachine MainStateMachine { get; set; }
 		[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 		[Inject] private SettingsContainer _settingsContainer { get; set; }
 		[Inject] private MainResourceLoader _mainResourceLoader { get; set; }
 
-		[OnReady("ColorRect")] private ColorRect ColorRect;
-		[OnReady("ColorRect/CenterContainer")] private CenterContainer CenterContainer;
-
-		[OnReady("ColorRect/CenterContainer/TextureRect")]
-		private TextureRect _sprite;
+		[OnReady("%SplashScreen")] private Control _base;
+		[OnReady("%TextureRect")] private TextureRect _sprite;
 
 		private Vector2 _baseResolutionSize;
 		private bool _loadFinished = false;
@@ -34,13 +30,6 @@ namespace Veronenger.Controller {
 				// OS.CenterWindow();
 			}
 			// GetTree().SetScreenStretch(Window.ContentScaleModeEnum.CanvasItems, Window.ContentScaleAspectEnum.Keep,_baseResolutionSize, 1);
-			CenterContainer.Size = _baseResolutionSize;
-			ColorRect.Size = _baseResolutionSize;
-			ColorRect.Color = Colors.Aqua.Darkened(0.9f);
-			Visible = true;
-			_mainResourceLoader.OnProgress += context => {
-				// GD.Print("SPLASH " + context.TotalLoadedPercent);
-			};
 			SequenceAnimation
 				.Create(_sprite)
 				.AnimateSteps(Properties.Modulate)
@@ -49,10 +38,6 @@ namespace Veronenger.Controller {
 				.EndAnimate()
 				.SetInfiniteLoops()
 				.Play();
-		}
-
-		public override void _Process(double delta) {
-			if (!MainStateMachine.IsState(MainState.Init)) QueueFree();
 		}
 	}
 }

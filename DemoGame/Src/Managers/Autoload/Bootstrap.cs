@@ -1,3 +1,4 @@
+using System.Linq;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation;
@@ -29,8 +30,9 @@ namespace Veronenger.Managers.Autoload {
             ExportConfig();
 #endif
             
-            Project.PrintOSInfo();
-            Project.PrintSettings("logging/file_logging/enable_file_logging",
+            GD.Print(string.Join("\n", Project.GetOSInfo()));
+            GD.Print(string.Join("\n", Project.GetSettings(
+                "logging/file_logging/enable_file_logging",
                 "logging/file_logging/enable_file_logging.pc",
                 "logging/file_logging/log_path",
                 "logging/file_logging/log_path.standalone",
@@ -43,7 +45,7 @@ namespace Veronenger.Managers.Autoload {
                 "mono/runtime/unhandled_exception_policy",
                 "mono/runtime/unhandled_exception_policy.standalone",
                 "application/config/version"
-            );
+            )));
         }
 
         public override void _Ready() {
