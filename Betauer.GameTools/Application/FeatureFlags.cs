@@ -1,50 +1,60 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Godot;
 
 namespace Betauer.Application {
     public static partial class Project {
-        
-        public static void PrintSettings(params string[] settingNames) {
-            Array.ForEach(settingNames, property => {
-                if (ProjectSettings.HasSetting(property)) {
-                    GD.Print($"- {property} = {ProjectSettings.GetSetting(property)}");
-                } else {
-                    GD.Print($"! {property} !");
-                }
-            });
-        }
-        
-        public static void PrintOSInfo() {
-            GD.Print($"executable path : {OS.GetExecutablePath()}");
-            GD.Print($"cmd args        : {string.Join(" ", OS.GetCmdlineArgs())}");
-            GD.Print($"cmd user args   : {string.Join(" ", OS.GetCmdlineUserArgs())}");
-            GD.Print($"ThreadCallerId  : {OS.GetThreadCallerId()}");
-            GD.Print($"MainThreadId    : {OS.GetMainThreadId()}");
-            GD.Print($"Process id      : {OS.GetProcessId().ToString()}");
-            GD.Print($"Video name      : {string.Join(" ", OS.GetVideoAdapterDriverInfo())}");
-            GD.Print($"Processor name  : {OS.GetProcessorName()}");
-            GD.Print($"Processors      : {OS.GetProcessorCount().ToString()}");
-            GD.Print($"Unique id       : {OS.GetUniqueId()}");
-            GD.Print($"Locale          : {OS.GetLocale()}/{OS.GetLocaleLanguage()}");
-            GD.Print($"Features        : {string.Join(", ", FeatureFlags.GetActiveList())}");
-            GD.Print($"Permissions     : {string.Join(", ", OS.GetGrantedPermissions())}");
-            GD.Print($"Name host       : {OS.GetName()}");
-            GD.Print($"Distribution    : {OS.GetDistributionName()}");
-            GD.Print($"Version         : {OS.GetVersion()}");
-            GD.Print($"Model name      : {OS.GetModelName()}");
-            GD.Print($"Data dir        : {OS.GetDataDir()}");
-            GD.Print($"User data dir   : {OS.GetUserDataDir()}");
-            GD.Print($"Config dir      : {OS.GetConfigDir()}");
-            GD.Print($"Cache dir       : {OS.GetCacheDir()}");
-            GD.Print($"--verbose       : {OS.IsStdoutVerbose()}");
-            GD.Print($"Debug/editor    : {OS.IsDebugBuild()}");
-            GD.Print($"Standalone      : {FeatureFlags.IsExported()}");
-        }
-        
-        public static TimeSpan Uptime => TimeSpan.FromMilliseconds(Time.GetTicksMsec());
 
+        public static string[] GetSettings(params string[] settingNames) {
+            var maxLength = settingNames.Max(s => s.Length);
+            return settingNames.Select(property =>
+                ProjectSettings.HasSetting(property) ? 
+                    $"- {property.PadRight(maxLength)} = {ProjectSettings.GetSetting(property).ToString()}":
+                    $"! {property}"
+                ).ToArray();
+        }
+
+        public static string[] GetOSInfo() => new[] {
+            $"executable path : {OS.GetExecutablePath()}",
+            $"cmd args        : {string.Join(" ", OS.GetCmdlineArgs())}",
+            $"cmd user args   : {string.Join(" ", OS.GetCmdlineUserArgs())}",
+            $"ThreadCallerId  : {OS.GetThreadCallerId()}",
+            $"MainThreadId    : {OS.GetMainThreadId()}",
+            $"Process id      : {OS.GetProcessId().ToString()}",
+            $"Video name      : {string.Join(" ", OS.GetVideoAdapterDriverInfo())}",
+            $"Processor name  : {OS.GetProcessorName()}",
+            $"Processors      : {OS.GetProcessorCount().ToString()}",
+            $"Unique id       : {OS.GetUniqueId()}",
+            $"Locale          : {OS.GetLocale()}/{OS.GetLocaleLanguage()}",
+            $"Features        : {string.Join(", ", FeatureFlags.GetActiveList())}",
+            $"Permissions     : {string.Join(", ", OS.GetGrantedPermissions())}",
+            $"Name host       : {OS.GetName()}",
+            $"Distribution    : {OS.GetDistributionName()}",
+            $"Version         : {OS.GetVersion()}",
+            $"Model name      : {OS.GetModelName()}",
+            $"Data dir        : {OS.GetDataDir()}",
+            $"User data dir   : {OS.GetUserDataDir()}",
+            $"Config dir      : {OS.GetConfigDir()}",
+            $"Cache dir       : {OS.GetCacheDir()}",
+            $"--verbose       : {OS.IsStdoutVerbose()}",
+            $"Debug/editor    : {OS.IsDebugBuild()}",
+            $"Standalone      : {FeatureFlags.IsExported()}",
+        };
+
+    public static TimeSpan Uptime => TimeSpan.FromMilliseconds(Time.GetTicksMsec());
+
+        public static void SetSetting<T>(string key, T value) {
+            var variantValue = VariantHelper.CreateFrom(value);
+            ProjectSettings.SetSetting(key, variantValue);
+        }
+        public static T GetSetting<T>(string key, T @default = default) {
+            if (!ProjectSettings.HasSetting(key)) return @default;
+            var variantValue = ProjectSettings.GetSetting(key);
+            return VariantHelper.ConvertTo<T>(variantValue);
+        }
+        
         public static class FeatureFlags {
             public static readonly Dictionary<string, string> Description = new() {
                 { "Android", "Running on Android" },
