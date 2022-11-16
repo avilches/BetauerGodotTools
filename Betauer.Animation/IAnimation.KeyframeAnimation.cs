@@ -95,7 +95,7 @@ namespace Betauer.Animation {
 
         public PropertyKeyframeTweenerAbsolute<TProperty> AnimateKeys<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateKeys(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateKeys((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyKeyframeTweenerAbsolute<TProperty> AnimateKeys<TProperty>(
@@ -133,7 +133,7 @@ namespace Betauer.Animation {
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateKeysBy<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateKeysBy(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateKeysBy((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateKeysBy<TProperty>(
@@ -171,7 +171,7 @@ namespace Betauer.Animation {
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateRelativeKeys<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateRelativeKeys(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateRelativeKeys((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyKeyframeTweenerOffset<TProperty> AnimateRelativeKeys<TProperty>(

@@ -111,7 +111,7 @@ namespace Betauer.Animation {
 
         public PropertyStepTweenerAbsolute<TProperty> AnimateSteps<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateSteps(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateSteps((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyStepTweenerAbsolute<TProperty> AnimateSteps<TProperty>(
@@ -145,7 +145,7 @@ namespace Betauer.Animation {
 
         public PropertyStepTweenerOffset<TProperty> AnimateStepsBy<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateStepsBy(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateStepsBy((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyStepTweenerOffset<TProperty> AnimateStepsBy<TProperty>(
@@ -180,7 +180,7 @@ namespace Betauer.Animation {
 
         public PropertyStepTweenerOffset<TProperty> AnimateRelativeSteps<TProperty>(
             string property, IEasing? easing = null) {
-            return AnimateRelativeSteps(IndexedSingleProperty.Create<TProperty>(property), easing);
+            return AnimateRelativeSteps((IndexedSingleProperty<TProperty>)property, easing);
         }
 
         public PropertyStepTweenerOffset<TProperty> AnimateRelativeSteps<TProperty>(

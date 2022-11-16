@@ -3,16 +3,17 @@ using Godot;
 
 namespace Betauer.Core.Nodes.Property {
     public static partial class Properties {
-        public static readonly IndexedControlOrNode2DProperty<Color> Modulate = new("modulate", "modulate");
-        public static readonly IndexedControlOrNode2DProperty<float> ModulateR = new("modulate:r", "modulate:r");
-        public static readonly IndexedControlOrNode2DProperty<float> ModulateG = new("modulate:g", "modulate:g");
-        public static readonly IndexedControlOrNode2DProperty<float> ModulateB = new("modulate:b", "modulate:b");
-        public static readonly IndexedControlOrNode2DProperty<float> Opacity = new("modulate:a", "modulate:a");
+        public static readonly IndexedProperty<Color> Modulate = IndexedSingleProperty.Create<Color>("modulate", typeof(CanvasItem));
+        public static readonly IndexedProperty<float> ModulateR = IndexedSingleProperty.Create<float>("modulate:r", typeof(CanvasItem));
+        public static readonly IndexedProperty<float> ModulateG = IndexedSingleProperty.Create<float>("modulate:g", typeof(CanvasItem));
+        public static readonly IndexedProperty<float> ModulateB = IndexedSingleProperty.Create<float>("modulate:b", typeof(CanvasItem));
+        public static readonly IndexedProperty<float> Opacity = IndexedSingleProperty.Create<float>("modulate:a", typeof(CanvasItem));
 
         /*
          * "transform.origin" matrix is used to change the position instead of "position:x" because it's safe to use
          * along with the SkewX/SkewY properties, which they use the transform.origin too.
          */
+        // TODO Godot 4: check if this still works or it can be merged into a Node2D "position"
         public static readonly IndexedControlOrNode2DProperty<Vector2> Position2D = new("transform:origin", "position");
         public static readonly IndexedControlOrNode2DProperty<float> PositionX = new("transform:origin:x", "position:x");
         public static readonly IndexedControlOrNode2DProperty<float> PositionY = new("transform:origin:y", "position:y");

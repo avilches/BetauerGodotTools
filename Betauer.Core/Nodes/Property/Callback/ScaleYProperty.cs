@@ -22,7 +22,7 @@ namespace Betauer.Core.Nodes.Property.Callback {
         }
 
         public override bool IsCompatibleWith(Node node) {
-            return node is Node3D || node is Control || node is Node2D;
+            return node is Node3D or Control or Node2D;
         }
 
         public override string ToString() {

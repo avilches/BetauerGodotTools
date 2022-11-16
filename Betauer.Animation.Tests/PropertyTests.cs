@@ -451,7 +451,48 @@ namespace Betauer.Animation.Tests {
         }
 
 
+        [Test(Description = "IndexedProperty compatibleWith")]
+        public async Task IndexedPropertyCompatibleWithTests() {
+            
+            IndexedSingleProperty.Cache.Clear();
+
+            Assert.Throws<ArgumentException>(() => IndexedSingleProperty.Create<Vector2>("x", typeof(Array)));
+
+            var a1 = IndexedSingleProperty.Create<Vector2>("position", typeof(Node));
+            Assert.That(a1.IsCompatibleWith(new Node()));
+            Assert.That(a1.IsCompatibleWith(new Node2D()));
+
+            var c1 = IndexedSingleProperty.Create<Vector2>("x", typeof(Control));
+            Assert.That(!c1.IsCompatibleWith(new Node()));
+            Assert.That(!c1.IsCompatibleWith(new Node2D()));
+            Assert.That(c1.IsCompatibleWith(new Control()));
+            Assert.That(c1.IsCompatibleWith(new Label()));
+
+        }
+
         public Vector2 follow;
+        
+        [Test(Description = "Custom IndexedProperty + test cache")]
+        public async Task IndexedPropertyTests() {
+            
+            IndexedSingleProperty.Cache.Clear();
+
+            var a1 = (IndexedSingleProperty<Vector2>)"position";
+            var a2 = (IndexedSingleProperty<Vector2>)"position";
+            Assert.That(a1.IsCompatibleWith(new Node()));
+            Assert.That(a1.IsCompatibleWith(new Node2D()));
+
+            Assert.That(a1 == a2);
+
+            var b1 = (IndexedSingleProperty<Vector2>)"x";
+            var b2 = (IndexedSingleProperty<Vector2>)"x";
+            Assert.That(b1 == b2);
+            Assert.That(a1 != b1);
+
+            var c1 = IndexedSingleProperty.Create<Vector2>("x", typeof(Control));
+            var c2 = IndexedSingleProperty.Create<Vector2>("x", typeof(Node2D));
+            Assert.That(c1 != c2);
+        }
 
         [Test(Description = "Custom IndexedProperty + test cache")]
         public async Task TweenPropertyBasicPropertyString() {
@@ -463,7 +504,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(follow, Is.EqualTo(Vector2.Up));
 
             follow = Vector2.Zero;
-            await CreateTweenPropertyVariants(this, IndexedSingleProperty.Create<Vector2>(nameof(follow)), Vector2.Zero,
+            await CreateTweenPropertyVariants(this, IndexedSingleProperty.Create<Vector2>(nameof(follow), typeof(Node)), Vector2.Zero,
                 Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
             
