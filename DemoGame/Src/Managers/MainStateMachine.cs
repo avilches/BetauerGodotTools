@@ -114,6 +114,7 @@ namespace Veronenger.Managers {
                     MainMenuBottomBarScene.Layer = 100;
                     _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
+                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
@@ -130,10 +131,10 @@ namespace Veronenger.Managers {
             var splashFinished = false;
             State(MainState.InitDone)
                 .OnInput((e) => {
-                    if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
-                        (SceneTree.GetMainScene() as SplashScreenController)!.QueueFree();
-                        splashFinished = true;
-                    }
+                    // if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                    (SceneTree.GetMainScene() as SplashScreenController)?.QueueFree();
+                    splashFinished = true;
+                    // }
                 })
                 .If(() => splashFinished).Set(MainState.MainMenu)
                 .Build();

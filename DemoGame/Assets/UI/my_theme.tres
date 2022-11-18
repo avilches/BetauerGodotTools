@@ -1,6 +1,5 @@
-[gd_resource type="Theme" load_steps=9 format=3 uid="uid://dn6b2pnskhdh0"]
+[gd_resource type="Theme" load_steps=10 format=3 uid="uid://dn6b2pnskhdh0"]
 
-[ext_resource type="FontFile" uid="uid://bftt6w2q1fe0h" path="res://Assets/Fonts/UnnamedFont.tres" id="1"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/ButtonStyle_Pressed.tres" id="2"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/ButtonStyle_Normal.tres" id="3"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/ButtonStyle_Focussed.tres" id="4"]
@@ -8,6 +7,8 @@
 [ext_resource type="Texture2D" uid="uid://crkrymnrg68h5" path="res://Assets/UI/Images/ToggleOff.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://b26vfepu7fwb3" path="res://Assets/UI/Images/ToggleOn.png" id="7"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/ButtonStyle_Disabled.tres" id="8"]
+[ext_resource type="FontFile" uid="uid://cw5qr6x6l0tjv" path="res://Assets/Fonts/UnnamedFont.ttf" id="9_gdgyh"]
+[ext_resource type="StyleBox" uid="uid://b5viotspd66s8" path="res://Assets/UI/PanelStyle.tres" id="9_mb4lu"]
 
 [resource]
 Button/colors/font_color = Color(0.88, 0.88, 0.88, 1)
@@ -16,13 +17,13 @@ Button/colors/font_color_focus = Color(0.94, 0.94, 0.94, 1)
 Button/colors/font_color_hover = Color(0.94, 0.94, 0.94, 1)
 Button/colors/font_color_pressed = Color(1, 1, 1, 1)
 Button/constants/hseparation = 2
-Button/fonts/font = ExtResource("1")
+Button/fonts/font = ExtResource("9_gdgyh")
 Button/styles/disabled = ExtResource("8")
 Button/styles/focus = ExtResource("4")
 Button/styles/hover = ExtResource("5")
 Button/styles/normal = ExtResource("3")
 Button/styles/pressed = ExtResource("2")
-CheckButton/fonts/font = ExtResource("1")
+CheckButton/fonts/font = ExtResource("9_gdgyh")
 CheckButton/icons/off = ExtResource("6")
 CheckButton/icons/off_disabled = ExtResource("6")
 CheckButton/icons/on = ExtResource("7")
@@ -40,6 +41,6 @@ Label/constants/line_spacing = 3
 Label/constants/shadow_as_outline = 0
 Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
-Label/fonts/font = ExtResource("1")
+Label/fonts/font = ExtResource("9_gdgyh")
 Label/styles/normal = null
-Panel/styles/panel = null
+Panel/styles/panel = ExtResource("9_mb4lu")

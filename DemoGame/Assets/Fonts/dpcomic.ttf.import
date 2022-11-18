@@ -2,7 +2,7 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bt4lrg2m4d6x4"
+uid="uid://dgrdge8rewkst"
 path="res://.godot/imported/dpcomic.ttf-5c9fbf652c5be772a44e243b4f8ca8d9.fontdata"
 
 [deps]
@@ -13,20 +13,32 @@ dest_files=["res://.godot/imported/dpcomic.ttf-5c9fbf652c5be772a44e243b4f8ca8d9.
 [params]
 
 Rendering=null
-antialiasing=1
-generate_mipmaps=false
-multichannel_signed_distance_field=false
+antialiasing=0
+generate_mipmaps=true
+multichannel_signed_distance_field=true
 msdf_pixel_range=8
 msdf_size=48
 force_autohinter=false
-hinting=1
+hinting=2
 subpixel_positioning=1
 oversampling=0.0
 Fallbacks=null
 fallbacks=[]
 Compress=null
-compress=true
-preload=[]
+compress=false
+preload=[{
+"chars": [0, 12, 13, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126],
+"glyphs": [],
+"name": "New Configuration",
+"size": 0,
+"variation_embolden": 0.0
+}, {
+"chars": [],
+"glyphs": [],
+"name": "New Configuration2",
+"size": 0,
+"variation_embolden": 0.0
+}]
 language_support={}
 script_support={}
 opentype_features={}
