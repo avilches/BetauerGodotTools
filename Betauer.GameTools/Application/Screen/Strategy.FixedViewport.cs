@@ -18,25 +18,14 @@ namespace Betauer.Application.Screen {
         }
 
         protected override void Setup() {
-            // Enforce minimum resolution.
-            // TODO Godot 4
-            /*
-            OS.MinWindowSize = ScreenConfiguration.DownScaledMinimumResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
-            OS.WindowResizable = ScreenConfiguration.IsResizeable;
-            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
-            // Tree.SetScreenStretch(StretchMode, StretchAspect, BaseResolution.Size, Zoom);
             Tree.Root.ContentScaleMode = StretchMode;
             Tree.Root.ContentScaleAspect = StretchAspect;
             Tree.Root.ContentScaleFactor = Zoom;
             Tree.Root.ContentScaleSize = BaseResolution.Size;
             
-            
+            var windowSize = DisplayServer.WindowGetSize();
             _state = $"FixedViewport: {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}";
             Logger.Debug(_state);
-            */
         }
         
         private string _state;

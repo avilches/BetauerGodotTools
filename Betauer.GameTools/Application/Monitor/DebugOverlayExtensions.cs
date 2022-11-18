@@ -190,21 +190,21 @@ namespace Betauer.Application.Monitor {
                     .Label("Strategy").End()
                     .ToggleButton(nameof(ScreenService.ScreenStrategyKey.WindowSize), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.WindowSize);
+                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.WindowSize);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.WindowSize)
                     .End()
                     .ToggleButton(nameof(ScreenService.ScreenStrategyKey.ViewportSize), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
+                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.ViewportSize);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.ViewportSize)
                     .End()
                     .ToggleButton(nameof(ScreenService.ScreenStrategyKey.IntegerScale), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.IntegerScale);
+                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.IntegerScale);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.IntegerScale)

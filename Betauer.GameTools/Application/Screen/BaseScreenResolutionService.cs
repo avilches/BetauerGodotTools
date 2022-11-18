@@ -32,8 +32,7 @@ namespace Betauer.Application.Screen {
 
         public virtual bool IsFullscreen() {
             var mode = DisplayServer.WindowGetMode();
-            return mode == DisplayServer.WindowMode.Fullscreen ||
-                   mode == DisplayServer.WindowMode.ExclusiveFullscreen;
+            return mode is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
         }
 
         public virtual void SetFullscreen() {
@@ -61,6 +60,8 @@ namespace Betauer.Application.Screen {
             }
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
             DisplayServer.WindowSetSize(resolution.Size);
+            DisplayServer.WindowSetMinSize(DownScaledMinimumResolution.Size);
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfiguration.IsResizeable);
             Setup();
         }
 

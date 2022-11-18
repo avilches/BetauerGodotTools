@@ -66,25 +66,31 @@ namespace Betauer.Application.Screen {
             ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
         }
 
+        public void SetStrategy(ScreenService.ScreenStrategyKey strategy) {
+            ScreenService.SetStrategy(strategy);
+        }
+
         public bool IsFullscreen() => ScreenService.IsFullscreen();
         public List<ScaledResolution> GetResolutions() => ScreenService.GetResolutions();
 
         public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
-            var strategy = pixelPerfect
-                ? ScreenService.ScreenStrategyKey.IntegerScale
-                : ScreenService.ScreenStrategyKey.ViewportSize;
-            ScreenService.SetStrategy(strategy);
+            // TODO Godot 4
+            // var strategy = pixelPerfect
+                // ? ScreenService.ScreenStrategyKey.WindowSize // IntegerScale
+                // : ScreenService.ScreenStrategyKey.ViewportSize;
+            // ScreenService.SetStrategy(strategy);
             if (save) _pixelPerfect.Value = pixelPerfect;
         }
 
         public void SetBorderless(bool borderless, bool save = true) {
-            ScreenService.SetBorderless(borderless);
+            // TODO Godot 4
+            // ScreenService.SetBorderless(borderless);
             if (save) _borderless.Value = borderless;
         }
 
         public void SetVSync(bool vsync, bool save = true) {
             // TODO Godot 4: allow more VSync modes
-            DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
+            // DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
             if (save) _vSync.Value = vsync;
         }
 

@@ -22,23 +22,18 @@ namespace Betauer.Application.Screen {
             // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
             // Mode2D shows betters fonts
             // TODO Godot 4
+            
+            // Tree.Root.ContentScaleMode = Window.ContentScaleModeEnum.Disabled;
+            // Tree.Root.ContentScaleAspect = Window.ContentScaleAspectEnum.Ignore;
+            // Tree.Root.ContentScaleFactor = 1;
+            // Tree.Root.ContentScaleSize = BaseResolution.Size;
             /*
-            // Enforce minimum resolution.
-            OS.MinWindowSize = ScreenConfiguration.BaseResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
-            OS.WindowResizable = ScreenConfiguration.IsResizeable;
-            Tree.Root.ContentScaleMode = Window.ContentScaleModeEnum.Disabled;
-            Tree.Root.ContentScaleAspect = Window.ContentScaleAspectEnum.Ignore;
-            Tree.Root.ContentScaleFactor = 1;
-            Tree.Root.ContentScaleSize = BaseResolution.Size;
             var rootViewport = Tree.Root;
-            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
+            var windowSize = DisplayServer.WindowGetSize();
             var scale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
             var screenSize = BaseResolution.Size;
             var viewportSize = screenSize * scale;
-            var overScan = ((windowSize - viewportSize) / scale).Floor();
+            var overScan = ((windowSize - viewportSize) / scale); // .Floor();
 
             switch (StretchAspect) {
                 case Window.ContentScaleAspectEnum.KeepWidth: {
@@ -62,12 +57,12 @@ namespace Betauer.Application.Screen {
 
             viewportSize = screenSize * scale;
             var margin = (windowSize - viewportSize) / 2;
-            var margin2 = margin.Ceil();
-            margin = margin.Floor();
+            var margin2 = margin; // .Ceil();
+            margin = margin; //.Floor();
             var attachToScreenRect = new Rect2(margin, viewportSize);
             
             if (StretchMode == Window.ContentScaleModeEnum.Viewport) {
-                rootViewport.Size = (screenSize / Zoom).Floor();
+                rootViewport.Size = (screenSize / (int)Zoom); // .Floor();
                 rootViewport.SetAttachToScreenRect(attachToScreenRect);
                 rootViewport.SizeOverrideStretch = false;
                 rootViewport.SetSizeOverride(false);
