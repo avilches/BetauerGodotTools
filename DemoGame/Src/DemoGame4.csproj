@@ -1,4 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.0.0-beta.4">
+<Project Sdk="Godot.NET.Sdk/4.0.0-beta.5">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -10,9 +10,9 @@
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">
         <Compile Include="**/*.cs" />
         <PackageReference Include="NUnit" Version="3.13.3" />
-        
+
         <ProjectReference Include="../../Betauer.TestRunner/Betauer.TestRunner.csproj" />
-        
+
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
         <Compile Include="**/*.cs" Exclude="Build/**;Tests/**" />
