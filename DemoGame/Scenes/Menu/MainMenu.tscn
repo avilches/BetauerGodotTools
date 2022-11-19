@@ -4,7 +4,7 @@
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
 [ext_resource type="Script" path="res://Src/Controller/Menu/MainMenu.cs" id="4"]
 
-[node name="CanvasLayer" type="CanvasLayer"]
+[node name="MainMenuLayer" type="CanvasLayer"]
 script = ExtResource("4")
 
 [node name="MainMenu" type="HBoxContainer" parent="."]

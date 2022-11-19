@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bcmwxxdfmwf7a" path="res://Scenes/UI/CheckButton.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://c4cm73gj1or01" path="res://Scenes/UI/RedefineActionButton.tscn" id="5"]
 
-[node name="CanvasLayer" type="CanvasLayer"]
+[node name="SettingsLayer" type="CanvasLayer"]
 layer = 101
 script = ExtResource("1")
 

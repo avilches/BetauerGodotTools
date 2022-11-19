@@ -198,7 +198,8 @@ namespace Veronenger.Managers {
             State(MainState.ModalQuitGame)
                 .On(MainEvent.Back).Then(context=> context.Pop())
                 .Execute(async () => {
-                    modalResponse = await ShowModalBox("Quit game?", "Any progress not saved will be lost");
+                    var modalBoxConfirm = ShowModalBox("Quit game?", "Any progress not saved will be lost");
+                    modalResponse = await modalBoxConfirm.AwaitResult();
                 })
                 .If(() => modalResponse).Set(MainState.MainMenu)
                 .If(() => !modalResponse).Pop()
@@ -208,10 +209,10 @@ namespace Veronenger.Managers {
             On(MainEvent.ModalBoxConfirmExitDesktop).Then(context=> context.Push(MainState.ModalExitDesktop));
             State(MainState.ModalExitDesktop)
                 .On(MainEvent.Back).Then(context=> context.Pop())
-                .Enter(() => _mainMenuScene.DimOut())
-                .Exit(() => _mainMenuScene.RollbackDimOut())
                 .Execute(async () => {
-                    modalResponse = await ShowModalBox("Exit game?");
+                    var modalBoxConfirm = ShowModalBox("Exit game?");
+                    modalBoxConfirm.FadeBackgroundOut(1, 0.5f);
+                    modalResponse = await modalBoxConfirm.AwaitResult();
                 })
                 .If(() => modalResponse).Set(MainState.ExitDesktop)
                 .If(() => !modalResponse).Pop()
@@ -229,14 +230,13 @@ namespace Veronenger.Managers {
             DebugOverlayManager.DebugConsole.Theme =  MainResourceLoader.DebugConsoleTheme;;
         }
 
-        private async Task<bool> ShowModalBox(string title, string subtitle = null) {
+        private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;
             SceneTree.Root.AddChild(modalBoxConfirm);
-            var result = await modalBoxConfirm.AwaitResult();
-            modalBoxConfirm.QueueFree();
-            return result;
+            modalBoxConfirm.AwaitResult().ContinueWith(task => modalBoxConfirm.QueueFree());
+            return modalBoxConfirm;
         }
     }
 }

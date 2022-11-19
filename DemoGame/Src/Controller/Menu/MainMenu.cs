@@ -11,11 +11,8 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-	public partial class MainMenu : CanvasLayer {
+	public partial class MainMenu : CanvasFaderLayer {
 		private const float FadeMainMenuEffectTime = 0.75f;
-
-		[OnReady("%MainMenu")]
-		private Control _base;
 
 		[OnReady("%Menu")]
 		private Godot.Container _menuBase;
@@ -44,11 +41,7 @@ namespace Veronenger.Controller.Menu {
 		public async Task ShowMenu() {
 			GetTree().Root.GuiDisableInput = true;
 			Visible = true;
-			var modulate = Colors.White;
-			modulate.a = 0;
-			_base.Modulate = modulate;
 			await _menuContainer.Start();
-			await Templates.FadeIn.Play(_base, 0f, FadeMainMenuEffectTime).AwaitFinished();
 			GetTree().Root.GuiDisableInput = false;
 		}
 
@@ -78,18 +71,6 @@ namespace Veronenger.Controller.Menu {
 			startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainEvent.Settings));
 			startMenu.AddButton("Exit", "Exit").OnPressed(() => Bus.Publish(MainEvent.ExitDesktop));
 			return mainMenu;
-		}
-
-		private Tween _sceneTreeTween;
-		public void DimOut() {
-			_sceneTreeTween?.Kill();
-			_sceneTreeTween = Templates.FadeOut.Play(_base, 0f, 1f);
-		}
-
-		public void RollbackDimOut() {
-			_sceneTreeTween?.Kill();
-			_sceneTreeTween = null;
-			_base.Modulate = Colors.White;
 		}
 
 		public void OnInput(InputEvent e) {

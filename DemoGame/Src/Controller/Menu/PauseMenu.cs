@@ -12,15 +12,7 @@ using Veronenger.Managers;
 using Container = Godot.Container;
 
 namespace Veronenger.Controller.Menu {
-	public partial class PauseMenu : CanvasLayer {
-		private static readonly KeyframeAnimation PartialFadeOut = KeyframeAnimation.Create()
-			.SetDuration(0.3f)
-			.AnimateKeys(Properties.Opacity)
-			.From(0)
-			.KeyframeTo(1f, 0.4f)
-			.EndAnimate();
-
-		[OnReady("BackgroundFader")] private ColorRect _backgroundFader;
+	public partial class PauseMenu : CanvasFaderLayer {
 		[OnReady("Node2D/BlackBar")] private ColorRect _blackBar;
 
 		[OnReady("CenterContainer")]
@@ -50,7 +42,7 @@ namespace Veronenger.Controller.Menu {
 
 		public Task ShowPauseMenu() {
 			Show();
-			PartialFadeOut.Play(_backgroundFader, 0f, 0.5f);
+			FadeBackgroundOut(0.4f, 0.5f);
 			_blackBar.Size = new Vector2(20000, _blackBar.Size.y);
 			_BlackBarPosition();
 			return _menuContainer.Start();

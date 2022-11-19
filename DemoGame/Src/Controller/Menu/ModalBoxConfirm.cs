@@ -8,9 +8,7 @@ using Betauer.UI;
 using Godot;
 
 namespace Veronenger.Controller.Menu {
-	public partial class ModalBoxConfirm : CanvasLayer {
-		// [OnReady("Panel/VBoxContainer/Menu")]
-		// private Godot.Container _menuBase;
+	public partial class ModalBoxConfirm : CanvasFaderLayer {
 
 		[OnReady("%ContainerDouble")]
 		private Godot.Container _containerDouble;
@@ -24,12 +22,8 @@ namespace Veronenger.Controller.Menu {
 		[OnReady("%STitle")]
 		private Label _titleSingle;
 
-		[OnReady("ColorRect")] private ColorRect _colorRect;
-
 		[OnReady("%Accept")] private Button _acceptButton;
 		[OnReady("%Cancel")] private Button _cancelButton;
-
-		// private MenuContainer _menuContainer;
 
 		[Inject] private InputAction UiCancel { get; set; }
 
@@ -39,27 +33,11 @@ namespace Veronenger.Controller.Menu {
 		private string? _subtitleText;
 		private string _acceptText = "Accept";
 		private string _cancelText = "Cancel";
-		private Style _style = Style.None;
-
-		public enum Style {
-			FadeToBlack,
-			Dim,
-			None                          
-		}
+		private bool _acceptIsDefault = true;
 
 		public ModalBoxConfirm Title(string title, string subtitle = null) {
 			_titleText = title;
 			_subtitleText = subtitle;
-			return this;
-		}
-
-		public ModalBoxConfirm FadeToBlack() {
-			_style = Style.FadeToBlack;
-			return this;
-		}
-
-		public ModalBoxConfirm Dim() {
-			_style = Style.Dim;
 			return this;
 		}
 
@@ -68,8 +46,12 @@ namespace Veronenger.Controller.Menu {
 			_cancelText = cancel;
 			return this;
 		}
+
+		public ModalBoxConfirm SetAcceptIsDefault(bool acceptIsDefault) {
+			_acceptIsDefault = acceptIsDefault;
+			return this;
+		}
 		
-		private Tween _sceneTreeTween;
 		public override void _Ready() {
 			// TODO i18n
 			if (_subtitleText != null) {
@@ -84,19 +66,12 @@ namespace Veronenger.Controller.Menu {
 			}
 			_acceptButton.Text = $"  {_acceptText}  ";
 			_cancelButton.Text = $"  {_cancelText}  ";
-			_acceptButton.OnPressed(() => _promise.TrySetResult(true));
-			_cancelButton.OnPressed(() => _promise.TrySetResult(false));
-			
-			if (_style == Style.Dim) {
-				_colorRect.Visible = true;
-				_sceneTreeTween?.Kill();
-				_sceneTreeTween = Templates.FadeOut.Play(_colorRect, 0f, 1f);
-			} else if (_style == Style.FadeToBlack) {
-				_colorRect.Visible = true;
-				_sceneTreeTween?.Kill();
-				_sceneTreeTween = Templates.FadeOut.Play(_colorRect, 0f, 1f);
+			_acceptButton.OnPressed(() => SetResult(true));
+			_cancelButton.OnPressed(() => SetResult(false));
+			if (_acceptIsDefault) {
+				_acceptButton.GrabFocus();
 			} else {
-				_colorRect.Visible = false;
+				_cancelButton.GrabFocus();
 			}
 		}
 
@@ -104,10 +79,15 @@ namespace Veronenger.Controller.Menu {
 			return _promise.Task;
 		}
 
-		public override void _Process(double delta) {
-			if (UiCancel.IsJustPressed()) {
-				_promise.TrySetResult(false);
+		public override void _Input(InputEvent e) {
+			if (UiCancel.IsEventJustPressed(e)) {
+				SetResult(false);
+				GetViewport().SetInputAsHandled();
 			}
+		}
+
+		private void SetResult(bool result) {
+			_promise.TrySetResult(result);
 		}
 	}
 }
