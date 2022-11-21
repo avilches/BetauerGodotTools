@@ -8,10 +8,11 @@ using Veronenger.Controller.UI.Consoles;
 
 namespace Veronenger.Controller.UI {
 	public partial class ActionHint : HBoxContainer {
-		[OnReady("Label1")] private Label _label1;
-		// [OnReady("Control/ConsoleButton")] private ConsoleButton _consoleButton;
-		[OnReady("KeyButton")] private Label _keyButton;
-		[OnReady("Label2")] private Label _label2;
+		[OnReady("%Label1")] private Label _label1;
+		[OnReady("%ControlConsoleButton")] private Control _controlConsoleButton;
+		[OnReady("%ConsoleButton")] private ConsoleButton _consoleButton;
+		[OnReady("%KeyButton")] private Label _keyButton;
+		[OnReady("%Label2")] private Label _label2;
 		[Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
 
@@ -63,27 +64,26 @@ namespace Veronenger.Controller.UI {
 		}
 
 		public ActionHint Refresh() {
-			/*
+			
 			if (_key == null) return this;
 			if (_isUsingKeyboard) {
 				_keyButton.Visible = true;
-				_consoleButton.Visible = false;
+				_controlConsoleButton.Visible = false;
 				_keyButton.Text = _key;
 			} else {
 				_keyButton.Visible = false;
 				if (_button != JoyButton.Invalid) {
-					_consoleButton.Visible = true;
+					_controlConsoleButton.Visible = true;
 					_consoleButton.SetButton(_isAxis, _button, _animateButton ? ConsoleButton.State.Animated : ConsoleButton.State.Normal);
 				} else {
-					_consoleButton.Visible = false;
+					_controlConsoleButton.Visible = false;
 				}
 			}
-		*/
 			return this;
 		}
 
 		public override void _Input(InputEvent e) {
-			if (e.IsAnyKey() && !_isUsingKeyboard) {
+			if ((e.IsAnyKey() || e.IsMouse()) && !_isUsingKeyboard) {
 				_isUsingKeyboard = true;
 				Refresh();
 			} else if ((e.IsAnyButton() || e.IsAnyAxis()) && _isUsingKeyboard) {

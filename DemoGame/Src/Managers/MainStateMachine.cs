@@ -12,6 +12,7 @@ using Betauer.Core.Nodes;
 using Betauer.StateMachine.Async;
 using Veronenger.Controller;
 using Veronenger.Controller.Menu;
+using Veronenger.Controller.UI.Consoles;
 
 namespace Veronenger.Managers {
     

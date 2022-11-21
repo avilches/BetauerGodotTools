@@ -6,7 +6,7 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.UI.Consoles {
-	public abstract partial class ConsoleButton : Sprite2D {
+	public partial class ConsoleButton : Sprite2D {
 		private SpriteConfig _config;
 
 		[Inject] protected Xbox360SpriteConfig Xbox360 { get; set; }

@@ -51,25 +51,25 @@ namespace Veronenger {
         [Service]
         private InputAction LMB => InputAction.Create("LMB")
             .KeepProjectSettings()
-            .Mouse(MouseButton.Left)
+            .Click(MouseButton.Left)
             .Build();
 
         [Service]
         private InputAction RMB => InputAction.Create("RMB")
             .KeepProjectSettings()
-            .Mouse(MouseButton.Right)
+            .Click(MouseButton.Right)
             .Build();
 
         [Service]
         private InputAction MWU => InputAction.Create("MWU")
             .KeepProjectSettings()
-            .Mouse(MouseButton.WheelUp)
+            .Click(MouseButton.WheelUp)
             .Build();
 
         [Service]
         private InputAction MWD => InputAction.Create("MWD")
             .KeepProjectSettings()
-            .Mouse(MouseButton.WheelDown)
+            .Click(MouseButton.WheelDown)
             .Build();
     }
 
@@ -108,6 +108,7 @@ namespace Veronenger {
         [Service]
         private InputAction UiAccept => InputAction.Create("ui_accept")
             .KeepProjectSettings()
+            .Buttons(JoyButton.A)
             .Build();
 
         [Service]
@@ -148,6 +149,7 @@ namespace Veronenger {
         [Service]
         private InputAction UiCancel => InputAction.Create("ui_cancel")
             .KeepProjectSettings()
+            .Buttons(JoyButton.B)
             .Build();
 
         [Service]
@@ -206,7 +208,7 @@ namespace Veronenger {
         [Service]
         private InputAction Attack => InputAction.Configurable("Attack")
             .Keys(Key.C)
-            .Mouse(MouseButton.Left)
+            .Click(MouseButton.Left)
             .Buttons(JoyButton.B)
             .Build();
 

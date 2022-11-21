@@ -1,36 +1,50 @@
-[gd_scene load_steps=3 format=3 uid="uid://bel6oboteo5ww"]
+[gd_scene load_steps=4 format=3 uid="uid://bel6oboteo5ww"]
 
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
 [ext_resource type="Script" path="res://Src/Controller/UI/ActionHint.cs" id="3"]
+[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
 
 [node name="HBoxContainer" type="HBoxContainer"]
+texture_filter = 2
 script = ExtResource("3")
 
 [node name="Label1" type="Label" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
 offset_right = 29.0
 offset_bottom = 17.0
 theme = ExtResource("2")
 text = "Press"
 
-[node name="Control" type="Control" parent="."]
+[node name="ControlConsoleButton" type="Control" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(14, 16)
 layout_mode = 2
 anchors_preset = 0
 offset_left = 33.0
-offset_right = 33.0
+offset_right = 47.0
+offset_bottom = 16.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
+[node name="ConsoleButton" parent="ControlConsoleButton" instance=ExtResource("3_svs2b")]
+unique_name_in_owner = true
+position = Vector2(7, 8)
+
 [node name="KeyButton" type="Label" parent="."]
-visible = false
+unique_name_in_owner = true
 layout_mode = 2
+offset_left = 51.0
+offset_right = 65.0
+offset_bottom = 17.0
 theme = ExtResource("2")
 text = "[E]"
 
 [node name="Label2" type="Label" parent="."]
+unique_name_in_owner = true
 layout_mode = 2
-offset_left = 37.0
-offset_right = 78.0
+offset_left = 69.0
+offset_right = 110.0
 offset_bottom = 17.0
 theme = ExtResource("2")
 text = "to jump"
