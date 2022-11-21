@@ -12,7 +12,7 @@ namespace Betauer.Application.Screen {
         private const bool DontSave = false;
 
         private readonly ScreenConfiguration _initialScreenConfiguration;
-        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration);
+        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration, FixedViewportStrategy.Instance);
         public ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
 
         private ScreenService? _service;
@@ -62,11 +62,11 @@ namespace Betauer.Application.Screen {
             }
         }
 
-        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.ScreenStrategyKey? strategy = null) {
-            ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
+        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration) {
+            ScreenService.SetScreenConfiguration(screenConfiguration);
         }
 
-        public void SetStrategy(ScreenService.ScreenStrategyKey strategy) {
+        public void SetStrategy(IScreenStrategy strategy) {
             ScreenService.SetStrategy(strategy);
         }
 
@@ -111,10 +111,6 @@ namespace Betauer.Application.Screen {
 
         public void CenterWindow() {
             ScreenService.CenterWindow();
-        }
-
-        public string GetStateAsString() {
-            return ScreenService.GetStateAsString();
         }
 
         /*

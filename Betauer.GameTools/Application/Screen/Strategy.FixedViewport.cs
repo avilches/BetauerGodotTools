@@ -10,25 +10,17 @@ namespace Betauer.Application.Screen {
     /// controls (and fonts!) doesn't keep the aspect ratio (they shrink or expand)
     /// </summary>
     public class FixedViewportStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public FixedViewportStrategy(SceneTree tree) : base(tree) {
-        }
-
+        public static readonly FixedViewportStrategy Instance = new();
+        
         public List<ScaledResolution> GetResolutions() {
             return Resolutions.Clamp(DownScaledMinimumResolution.Size).ExpandResolutions(BaseResolution, AspectRatios).ToList();
         }
 
-        protected override void Setup() {
-            Tree.Root.ContentScaleMode = StretchMode;
-            Tree.Root.ContentScaleAspect = StretchAspect;
-            Tree.Root.ContentScaleFactor = Zoom;
-            Tree.Root.ContentScaleSize = BaseResolution.Size;
-            
-            var windowSize = DisplayServer.WindowGetSize();
-            _state = $"FixedViewport: {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {BaseResolution.x}x{BaseResolution.y}";
-            Logger.Debug(_state);
+        protected override void DoApply() {
+            SceneTree.Root.ContentScaleMode = ScaleMode;
+            SceneTree.Root.ContentScaleAspect = ScaleAspect;
+            SceneTree.Root.ContentScaleFactor = ScaleFactor;
+            SceneTree.Root.ContentScaleSize = BaseResolution.Size;
         }
-        
-        private string _state;
-        public override string GetStateAsString() => _state;
     }
 }

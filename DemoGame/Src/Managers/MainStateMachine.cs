@@ -114,7 +114,6 @@ namespace Veronenger.Managers {
                     BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
                     _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
-                    ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!

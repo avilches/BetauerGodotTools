@@ -10,6 +10,7 @@ using Veronenger.Managers;
 namespace Veronenger {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new(
+            FixedViewportStrategy.Instance, 
             Resolutions.FULLHD_DIV2,
             Resolutions.FULLHD_DIV2,
             Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)

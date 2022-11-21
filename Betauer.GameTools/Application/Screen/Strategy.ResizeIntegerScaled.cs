@@ -10,14 +10,13 @@ namespace Betauer.Application.Screen {
      * 
      */
     public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public ResizeIntegerScaledStrategy(SceneTree tree) : base(tree) {
-        }
+        public static readonly ResizeIntegerScaledStrategy Instance = new();
 
         public List<ScaledResolution> GetResolutions() {
             return BaseResolution.ExpandResolutionByWith(BaseResolution, AspectRatios);
         }
         
-        protected override void Setup() {
+        protected override void DoApply() {
             // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
             // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
             // Mode2D shows betters fonts
@@ -81,10 +80,6 @@ namespace Betauer.Application.Screen {
 
             _state = $"ResizeIntegerScaled {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}";
             */
-            Logger.Debug(_state);
         }
-        
-        private string _state;
-        public override string GetStateAsString() => _state;
     }
 }

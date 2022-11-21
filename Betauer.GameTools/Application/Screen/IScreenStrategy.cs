@@ -8,8 +8,8 @@ namespace Betauer.Application.Screen {
         void SetWindowed(Resolution resolution);
         List<ScaledResolution> GetResolutions();
         void Disable();
-        void SetScreenConfiguration(ScreenConfiguration screenConfiguration);
+        void Apply();
+        void SetScreenService(ScreenService screenService);
         void CenterWindow();
-        string GetStateAsString();
     }
 }

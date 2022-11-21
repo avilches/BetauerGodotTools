@@ -5,29 +5,34 @@ using Godot;
 namespace Betauer.Application.Screen {
     public abstract class BaseScreenResolutionService : IScreenResizeHandler {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(BaseScreenResolutionService));
-        protected readonly SceneTree Tree;
-        protected ScreenConfiguration ScreenConfiguration;
+        protected ScreenService ScreenService;
+        protected SceneTree SceneTree => ScreenService.SceneTree;
+
+        protected ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
         protected Resolution DownScaledMinimumResolution => ScreenConfiguration.DownScaledMinimumResolution;
         protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
 
         protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
         protected List<AspectRatio> AspectRatios => ScreenConfiguration.AspectRatios;
-        protected Window.ContentScaleModeEnum StretchMode => ScreenConfiguration.StretchMode;
-        protected Window.ContentScaleAspectEnum StretchAspect => ScreenConfiguration.StretchAspect;
-        protected float Zoom => ScreenConfiguration.Zoom;
+        protected Window.ContentScaleModeEnum ScaleMode => ScreenConfiguration.ScaleMode;
+        protected Window.ContentScaleAspectEnum ScaleAspect => ScreenConfiguration.ScaleAspect;
+        protected float ScaleFactor => ScreenConfiguration.ScaleFactor;
 
-        protected BaseScreenResolutionService(SceneTree tree) {
-            Tree = tree;
+        public virtual void Apply() {
+            DoApply();
+            var windowSize = DisplayServer.WindowGetSize();
+            var viewport = SceneTree.Root;
+            var viewportResolution = viewport.Size;
+            Logger.Debug($"{GetType().Name}: {viewport.ContentScaleMode}/{viewport.ContentScaleAspect} | Zoom {viewport.ContentScaleFactor} | WindowSize {windowSize.x}x{windowSize.y} | ContentScaleSize {viewport.ContentScaleSize.x}x{viewport.ContentScaleSize.y} | Viewport {viewportResolution.x}x{viewportResolution.y}");
         }
 
-        protected abstract void Setup();
+        protected abstract void DoApply();
 
         public virtual void Disable() {
         }
 
-        public virtual void SetScreenConfiguration(ScreenConfiguration screenConfiguration) {
-            ScreenConfiguration = screenConfiguration;
-            Setup();
+        public void SetScreenService(ScreenService screenService) {
+            ScreenService = screenService;
         }
 
         public virtual bool IsFullscreen() {
@@ -39,13 +44,13 @@ namespace Betauer.Application.Screen {
             if (IsFullscreen()) return;
             // if (!Project.FeatureFlags.IsMacOs()) DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
             DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
-            Setup();
+            DoApply();
         }
 
         public virtual void SetBorderless(bool borderless) {
             if (IsFullscreen() || Project.FeatureFlags.IsMacOs() || DisplayServer.WindowGetFlag(DisplayServer.WindowFlags.Borderless) == borderless) return;
             DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, borderless);
-            Setup();
+            Apply();
         }
 
         public virtual void SetWindowed(Resolution resolution) {
@@ -62,11 +67,11 @@ namespace Betauer.Application.Screen {
             DisplayServer.WindowSetSize(resolution.Size);
             DisplayServer.WindowSetMinSize(DownScaledMinimumResolution.Size);
             DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfiguration.IsResizeable);
-            Setup();
+            Apply();
         }
 
         public virtual void OnScreenResized() {
-            Setup();
+            Apply();
         }
 
         public virtual void CenterWindow() {
@@ -79,7 +84,5 @@ namespace Betauer.Application.Screen {
             // OS.WindowPosition = centeredPos;
             // OS.CurrentScreen = currentScreen;
         }
-
-        public abstract string GetStateAsString();
     }
 }

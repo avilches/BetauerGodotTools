@@ -70,6 +70,7 @@ namespace Betauer.UI {
             var b = new ToggleButton();
             b.Text = label;
             b.PressedIf = pressedId;
+            // TODO use Button group instead
             b.OnPressed(() => {
                 action(b);
                 b.Refresh();

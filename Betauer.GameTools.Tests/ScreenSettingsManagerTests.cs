@@ -25,15 +25,15 @@ namespace Betauer.GameTools.Tests {
         }
 
         internal static ScreenConfiguration InitialScreenConfiguration =
-            new(Resolutions.FULLHD,
+            new(DoNothingStrategy.Instance,
+                Resolutions.FULLHD,
                 Resolutions.FULLHD,
                 Window.ContentScaleModeEnum.CanvasItems, 
                 Window.ContentScaleAspectEnum.KeepHeight);
 
         [Configuration]
         internal class ScreenSettingsManagerConfig {
-            [Service] private ScreenSettingsManager ScreenSettingsManager => 
-                new ScreenSettingsManager(InitialScreenConfiguration);
+            [Service] private ScreenSettingsManager ScreenSettingsManager => new(InitialScreenConfiguration);
         }
 
         [Configuration]

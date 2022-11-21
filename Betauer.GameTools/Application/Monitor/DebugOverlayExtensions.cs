@@ -181,102 +181,113 @@ namespace Betauer.Application.Monitor {
         public static DebugOverlay AddMonitorScreenSettings(this DebugOverlay overlay, ScreenSettingsManager screenSettingsManager) {
             return overlay
                 .OpenBox()
-                    .Text("Strategy", () => screenSettingsManager.ScreenService.StrategyKey.ToString()).UpdateEvery(1f).EndMonitor()
-                    .Text("Stretch", () => $"{screenSettingsManager.ScreenService.ScreenConfiguration.StretchMode.ToString()}/{screenSettingsManager.ScreenService.ScreenConfiguration.StretchAspect.ToString()}").UpdateEvery(1f).EndMonitor()
-                    .Text("Zoom", () => screenSettingsManager.ScreenService.ScreenConfiguration.Zoom.ToString()).UpdateEvery(1f).EndMonitor()
+                    .Text("Strategy", () => screenSettingsManager.ScreenService.GetType().Name).UpdateEvery(1f).EndMonitor()
+                    .Text("Stretch", () => $"{screenSettingsManager.ScreenService.ScreenConfiguration.ScaleMode.ToString()}/{screenSettingsManager.ScreenService.ScreenConfiguration.ScaleAspect.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("Zoom", () => screenSettingsManager.ScreenService.ScreenConfiguration.ScaleFactor.ToString()).UpdateEvery(1f).EndMonitor()
                     .Text("Viewport", () => $"{overlay.GetTree().Root.Size.ToString("0")}").UpdateEvery(1f).EndMonitor()
                 .CloseBox()
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Strategy").End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.WindowSize), 
+                    .ToggleButton(nameof(DoNothingStrategy), 
                         (button) => {
-                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.WindowSize);
+                            screenSettingsManager.SetStrategy(DoNothingStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.WindowSize)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is DoNothingStrategy)
                     .End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.ViewportSize), 
+                    .ToggleButton(nameof(FixedViewportStrategy), 
                         (button) => {
-                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.ViewportSize);
+                            screenSettingsManager.SetStrategy(FixedViewportStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.ViewportSize)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is FixedViewportStrategy)
                     .End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.IntegerScale), 
+                    .ToggleButton(nameof(ResizeViewportStrategy), 
                         (button) => {
-                            screenSettingsManager.SetStrategy(ScreenService.ScreenStrategyKey.IntegerScale);
+                            screenSettingsManager.SetStrategy(ResizeViewportStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.IntegerScale)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeViewportStrategy)
+                    .End()
+                    .ToggleButton(nameof(ResizeIntegerScaledStrategy), 
+                        (button) => {
+                            screenSettingsManager.SetStrategy(ResizeIntegerScaledStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeIntegerScaledStrategy)
                     .End()
                     .TypedNode)
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Mode").End()
                     .ToggleButton(nameof(Window.ContentScaleModeEnum.Disabled), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = Window.ContentScaleModeEnum.Disabled;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Disabled;
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == Window.ContentScaleModeEnum.Disabled)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Disabled)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleModeEnum.CanvasItems), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = Window.ContentScaleModeEnum.CanvasItems;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.CanvasItems;
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == Window.ContentScaleModeEnum.CanvasItems)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.CanvasItems)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleModeEnum.Viewport), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = Window.ContentScaleModeEnum.Viewport;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Viewport;
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == Window.ContentScaleModeEnum.Viewport)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Viewport)
                     .End()
                     .TypedNode)
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Aspect").End()
                     .ToggleButton(nameof(Window.ContentScaleAspectEnum.Ignore), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = Window.ContentScaleAspectEnum.Ignore;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Ignore;
+                            screenSettingsManager.ScreenService.Apply();
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == Window.ContentScaleAspectEnum.Ignore)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Ignore)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleAspectEnum.Expand), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = Window.ContentScaleAspectEnum.Expand;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Expand;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == Window.ContentScaleAspectEnum.Expand)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Expand)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleAspectEnum.Keep), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = Window.ContentScaleAspectEnum.Keep;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Keep;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == Window.ContentScaleAspectEnum.Keep)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Keep)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleAspectEnum.KeepHeight), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = Window.ContentScaleAspectEnum.KeepHeight;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.KeepHeight;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
                             button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == Window.ContentScaleAspectEnum.KeepHeight)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.KeepHeight)
                     .End()
                     .ToggleButton(nameof(Window.ContentScaleAspectEnum.KeepWidth), 
                         () => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = Window.ContentScaleAspectEnum.KeepWidth;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.KeepWidth;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == Window.ContentScaleAspectEnum.KeepWidth)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.KeepWidth)
                     .End()
                 .TypedNode);
         }
