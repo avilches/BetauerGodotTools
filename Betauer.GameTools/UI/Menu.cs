@@ -384,6 +384,7 @@ namespace Betauer.UI {
         internal void Show(BaseButton? focused = null) {
             _onShow?.Invoke();
             Parent.AddChild(Container);
+            Parent.MoveChild(Container, OriginalContainer.GetIndex());
             Refresh(focused);
         }
 
