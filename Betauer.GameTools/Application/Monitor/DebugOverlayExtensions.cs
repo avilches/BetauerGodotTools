@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Betauer.Application.Screen;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Input;
 using Betauer.UI;
 using Godot;
 
@@ -175,6 +179,59 @@ namespace Betauer.Application.Monitor {
                 // .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             #endif
+            return overlay;
+        }
+        
+        public static DebugOverlay AddMonitorInputEvent(this DebugOverlay overlay, InputActionsContainer inputActionsContainer, int history = 10) {
+            var inputs = new LinkedList<string>();
+            overlay.OnInput(e => {
+                var pressed = e.IsJustPressed()?"just pressed":e.IsPressed()?"pressed":e.IsReleased()?"released": "unknown";
+                var modifiers = new List<string>(5);
+                if (e.HasShift()) modifiers.Add("Shift");
+                if (e.HasAlt()) modifiers.Add("Alt");
+                if (e.HasControl()) modifiers.Add("Ctrl");
+                if (e.HasMeta()) modifiers.Add("Meta");
+                var action = inputActionsContainer.FindAction(e);
+                var actionName = action != null ? $" | Action [{action.Name}]" : "";
+                if (e.IsAnyKey()) {
+                    modifiers.Add(e.GetKeyString());
+                    inputs.AddLast($"Key {(int)e.GetKey()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyClick()) {
+                    modifiers.Add(e.GetClick().ToString());
+                    inputs.AddLast($"Click {(int)e.GetClick()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyButton()) {
+                    modifiers.Add(e.GetButton().ToString());
+                    inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
+                } else if (e.IsAnyAxis())
+                    inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {pressed} | {e.GetAxisValue()} {actionName}");
+                else if (e.IsMouseMotion())
+                    inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
+                if (inputs.Count > history) inputs.RemoveFirst();
+            });
+            overlay.Text(() => string.Join('\n', inputs)).EndMonitor();
+            return overlay;
+        }
+        
+        public static DebugOverlay AddMonitorInputAction(this DebugOverlay overlay, InputActionsContainer inputActionsContainer) {
+            overlay
+                .Text(() => {
+                    var s = new StringBuilder();
+                    foreach (var inputAction in inputActionsContainer.ActionList) {
+                        var keys = inputAction.Keys.Select(key => key.ToString()).ToList();
+                        keys.AddRange(inputAction.Buttons.Select(button => button.ToString()));
+                        s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
+                        if (inputAction.HasAxis()) {
+                            s.Append($" AxisValue:{inputAction.AxisValue} DeadZone:{inputAction.DeadZone}");
+                        }
+                        if (inputAction.HasMouseButton()) {
+                            s.Append($" Mouse:{inputAction.MouseButton}");
+                        }
+                        if (inputAction.IsPressed(true)) s.Append(" [Exact pressed]");
+                        else if (inputAction.IsPressed()) s.Append(" [Pressed]");
+                        s.Append('\n');
+                    }
+                    return s.ToString();
+                }).EndMonitor();
             return overlay;
         }
         

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
+using Betauer.Input;
 using Godot;
 
 namespace Betauer.Application.Monitor {
@@ -131,7 +132,7 @@ namespace Betauer.Application.Monitor {
 
         public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
             const string title = nameof(NodeHandler);
-            return console.CreateCommand("show-node-handler", () => {
+            return console.CreateCommand("node-handler", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -143,7 +144,7 @@ namespace Betauer.Application.Monitor {
 
         public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {
             const string title = "System info";
-            return console.CreateCommand("show-system-info", () => {
+            return console.CreateCommand("system-info", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -155,9 +156,9 @@ namespace Betauer.Application.Monitor {
             }, "Open the system info window.");
         }
 
-        public static DebugConsole AddScreenSettingsManagerMonitor(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
+        public static DebugConsole AddScreenSettingsCommand(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
             const string title = nameof(ScreenSettingsManager);
-            return console.CreateCommand("show-screen-settings", () => {
+            return console.CreateCommand("screen-settings", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -166,6 +167,30 @@ namespace Betauer.Application.Monitor {
                     .AddMonitorVideoInfo()
                     .AddMonitorScreenSettings(screenSettingsManager);
             }, "Open the screen settings info window.");
+        }
+
+        public static DebugConsole AddInputMapCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
+            const string title = nameof(InputActionsContainer);
+            return console.CreateCommand("input-map", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .AddMonitorInputAction(inputActionsContainer);
+            }, "Open the input map window.");
+        }
+
+        public static DebugConsole AddInputEventCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
+            const string title = "Input event logger";
+            return console.CreateCommand("input-event", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .AddMonitorInputEvent(inputActionsContainer);
+            }, "Open the input event logger window.");
         }
 
         public static DebugConsole AddClearConsoleCommand(this DebugConsole console) {

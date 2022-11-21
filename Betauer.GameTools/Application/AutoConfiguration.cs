@@ -7,6 +7,7 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Betauer.OnReady;
 using Betauer.Core.Time;
+using Betauer.Input;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -76,7 +77,12 @@ namespace Betauer.Application {
             debugConsole.AddSystemInfoCommand();
             ScreenSettingsManager? screenSettings = Container.ResolveOr<ScreenSettingsManager>(() => null);
             if (screenSettings != null) {
-                debugConsole.AddScreenSettingsManagerMonitor(screenSettings);
+                debugConsole.AddScreenSettingsCommand(screenSettings);
+            }
+            InputActionsContainer? inputActionsContainer = Container.ResolveOr<InputActionsContainer>(() => null);
+            if (inputActionsContainer != null) {
+                debugConsole.AddInputMapCommand(inputActionsContainer);
+                debugConsole.AddInputEventCommand(inputActionsContainer);
             }
         }
 
