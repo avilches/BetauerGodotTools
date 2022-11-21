@@ -63,7 +63,7 @@ namespace Veronenger.Controller.Menu {
 		}
 
 		public MenuContainer BuildMenu() {
-			foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
+			foreach (var child in _menuBase.GetChildren()) child?.Free();
 
 			var mainMenu = new MenuContainer(_menuBase);
 			var startMenu = mainMenu.GetRootMenu();

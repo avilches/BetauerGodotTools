@@ -7,7 +7,7 @@ using Veronenger.Controller.UI;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Menu {
-	public partial class MainMenuBottomBar : CanvasLayer {
+	public partial class BottomBar : CanvasLayer {
 		[OnReady("%ActionHint1")] private ActionHint _actionHint1;
 		[OnReady("%ActionHint2")] private ActionHint _actionHint2;
 		[OnReady("%ActionHint3")] private ActionHint _actionHint3;
@@ -25,12 +25,12 @@ namespace Veronenger.Controller.Menu {
 			_actionHintList.Add(_actionHint4);
 		}
 
-		public MainMenuBottomBar HideAll() {
+		public BottomBar HideAll() {
 			_actionHint1.Visible = _actionHint2.Visible = _actionHint3.Visible = _actionHint4.Visible = false;
 			return this;
 		}
 
-		public MainMenuBottomBar AddButton(string? label1, InputAction inputAction, bool isAxis, string? label2,
+		public BottomBar AddButton(string? label1, InputAction inputAction, bool isAxis, string? label2,
 			bool animate = true) {
 			ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible);
 			hint.Labels(label1, label2).InputAction(inputAction, isAxis, animate);

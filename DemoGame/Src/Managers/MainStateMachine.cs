@@ -45,8 +45,8 @@ namespace Veronenger.Managers {
         [Load("res://Scenes/Menu/MainMenu.tscn")]
         private MainMenu _mainMenuScene;
 
-        [Load("res://Scenes/Menu/MainMenuBottomBar.tscn")]
-        public MainMenuBottomBar MainMenuBottomBarScene;
+        [Load("res://Scenes/Menu/BottomBar.tscn")]
+        public BottomBar BottomBarScene;
 
         [Load("res://Scenes/Menu/PauseMenu.tscn")]
         private PauseMenu _pauseMenuScene;
@@ -108,10 +108,10 @@ namespace Veronenger.Managers {
                     splashScreen!.Layer = int.MaxValue;
                     MainResourceLoader.OnProgress += progress => GD.Print(progress+" %");
                     await MainResourceLoader.From(this).Load();
-                    _mainMenuScene.Layer = 0;
-                    _pauseMenuScene.Layer = 1;
-                    _settingsMenuScene.Layer = 2;
-                    MainMenuBottomBarScene.Layer = 100;
+                    _mainMenuScene.Layer = CanvasLayerConstants.MainMenu;
+                    _pauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
+                    _settingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
+                    BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
                     _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
                     ScreenSettingsManager.SetScreenConfiguration(ScreenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
@@ -122,8 +122,8 @@ namespace Veronenger.Managers {
                     SceneTree.Root.AddChild(_pauseMenuScene);
                     SceneTree.Root.AddChild(_settingsMenuScene);
                     SceneTree.Root.AddChild(_mainMenuScene);
-                    SceneTree.Root.AddChild(MainMenuBottomBarScene);
-                    AddOnTransition((args) => MainMenuBottomBarScene.UpdateState(args.To));
+                    SceneTree.Root.AddChild(BottomBarScene);
+                    AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
                 .If(() => true).Set(MainState.InitDone)
                 .Build();
@@ -232,6 +232,7 @@ namespace Veronenger.Managers {
 
         private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
             ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
+            modalBoxConfirm.Layer = CanvasLayerConstants.ModalBox;
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;
             SceneTree.Root.AddChild(modalBoxConfirm);

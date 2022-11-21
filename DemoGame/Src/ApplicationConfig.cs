@@ -11,7 +11,7 @@ namespace Veronenger {
     public static class ApplicationConfig {
         public static readonly ScreenConfiguration Configuration = new(
             Resolutions.FULLHD_DIV2,
-            Resolutions.FULLHD,
+            Resolutions.FULLHD_DIV2,
             Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)
             Window.ContentScaleAspectEnum.Keep,
             Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9), 
@@ -30,20 +30,19 @@ namespace Veronenger {
 
         // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
         [Service("Settings.Screen.Fullscreen")]
-        public ISetting<bool> Fullscreen =>  Setting<bool>.Save("Video", "Fullscreen", true);
+        public ISetting<bool> Fullscreen => Setting<bool>.Save("Video", "Fullscreen", true);
 
         // [Setting(Section = "Video", Name = "VSync", Default = false)]
         [Service("Settings.Screen.VSync")]
-        public ISetting<bool> VSync =>  Setting<bool>.Save("Video", "VSync", false);
+        public ISetting<bool> VSync => Setting<bool>.Save("Video", "VSync", false);
 
         // [Setting(Section = "Video", Name = "Borderless", Default = false)]
         [Service("Settings.Screen.Borderless")]
-        public ISetting<bool> Borderless =>  Setting<bool>.Save("Video", "Borderless", false);
+        public ISetting<bool> Borderless => Setting<bool>.Save("Video", "Borderless", false);
 
         // [Setting(Section = "Video", Name = "WindowedResolution")]
         [Service("Settings.Screen.WindowedResolution")]
-        public ISetting<Resolution> WindowedResolution =>
-            Setting<Resolution>.Save("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
+        public ISetting<Resolution> WindowedResolution => Setting<Resolution>.Save("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
     }
 
     [Configuration]
