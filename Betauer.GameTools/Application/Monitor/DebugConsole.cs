@@ -120,7 +120,7 @@ namespace Betauer.Application.Monitor {
         private readonly CommandInput _commandInput = new();
         private bool IsAutoCompleting => _caretAutoCompleting > 0;
         private readonly List<string> _sortedCommandList = new();        
-        private int _caretAutoCompleting = -1;
+        private int _caretAutoCompleting = 0;
 
         public DebugOverlayManager DebugOverlayManager { get; }
         public readonly Dictionary<string, ICommand> Commands = new();        
@@ -248,7 +248,7 @@ namespace Betauer.Application.Monitor {
                                     prompt.CaretBlink = true;
                                     prompt.CaretBlinkInterval = 0.250f;
                                     prompt.GrabFocus();
-                                    prompt.OnTextChanged((_) => _caretAutoCompleting = -1);         
+                                    prompt.OnTextChanged((_) => _caretAutoCompleting = 0);         
                                 })
                             .End()
                             .Child<HSlider>()
@@ -278,6 +278,7 @@ namespace Betauer.Application.Monitor {
         private void SetConsoleInputText(string text) {
             Prompt.Text = text;
             Prompt.CaretColumn = text.Length;
+            _caretAutoCompleting = 0;
         }
 
         private void OnConsoleInputKeyEvent(InputEventKey eventKey) {
