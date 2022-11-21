@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
@@ -15,9 +16,14 @@ namespace Betauer.Application {
         
 
         public static T GetProjectSetting<T>(string key, T defaultValue) {
-            var value = ProjectSettings.GetSetting(key);
-            if (value is T r) return r;
-            return defaultValue;
+            if (!ProjectSettings.HasSetting(key)) return defaultValue;
+            var variant = ProjectSettings.GetSetting(key);
+            return VariantHelper.ConvertTo<T>(variant);
+        }
+
+        public static void SetProjectSetting<T>(string key, T value) {
+            var variant = VariantHelper.CreateFrom(value);
+            ProjectSettings.SetSetting(key, variant);
         }
 
         public static string GetProjectName() => GetProjectSetting("application/config/name", "(unknown)");
