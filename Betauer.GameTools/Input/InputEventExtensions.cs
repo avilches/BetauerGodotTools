@@ -58,7 +58,7 @@ namespace Betauer.Input {
             && k.ButtonIndex == button;
 
         public static JoyButton GetButton(this InputEvent input) =>
-            input is InputEventJoypadButton k ? (JoyButton)k.ButtonIndex : JoyButton.Invalid;
+            input is InputEventJoypadButton k ? k.ButtonIndex : JoyButton.Invalid;
 
         public static float GetButtonPressure(this InputEvent input) =>
             input is InputEventJoypadButton k ? k.Pressure : 0f;
@@ -89,6 +89,9 @@ namespace Betauer.Input {
         public static Key GetKey(this InputEvent input) =>
             input is InputEventKey k ? k.Keycode : Key.Unknown;
 
+        public static string GetKeyStringWithModifiers(this InputEvent input) =>
+            input is InputEventKey k ? OS.GetKeycodeString(k.GetKeycodeWithModifiers()) : "";
+
         public static string GetKeyString(this InputEvent input) =>
             input is InputEventKey k ? OS.GetKeycodeString(k.Keycode) : "";
 
@@ -115,33 +118,33 @@ namespace Betauer.Input {
             input is InputEventMouseMotion;
 
         public static Vector2 GetMousePosition(this InputEvent input) =>
-            input is InputEventMouse m ? m.Position : Vector2.Zero;
+            input is InputEventMouseMotion m ? m.Position : Vector2.Zero;
 
         public static Vector2 GetMouseGlobalPosition(this InputEvent input) =>
-            input is InputEventMouse m ? m.GlobalPosition : Vector2.Zero;
+            input is InputEventMouseMotion m ? m.GlobalPosition : Vector2.Zero;
 
         /*
          * Any click
          */
         public static MouseButton GetClick(this InputEvent input) =>
-            input is InputEventMouseButton k ? (MouseButton)k.ButtonIndex : MouseButton.MaskXbutton2;
+            input is InputEventMouseButton k ? k.ButtonIndex : MouseButton.MaskXbutton2;
 
         public static bool IsAnyClick(this InputEvent input) =>
             input is InputEventMouseButton;
 
         public static bool IsClick(this InputEvent input, MouseButton button) =>
             input is InputEventMouseButton k &&
-            (MouseButton)k.ButtonIndex == button;
+            k.ButtonIndex == button;
 
         // This include echoes
         public static bool IsClickPressed(this InputEvent input, MouseButton button) =>
-            input is InputEventMouseButton k && (MouseButton)k.ButtonIndex == button && k.Pressed;
+            input is InputEventMouseButton k && k.ButtonIndex == button && k.Pressed;
 
         public static bool IsClickJustPressed(this InputEvent input, MouseButton button) =>
-            input is InputEventMouseButton k && (MouseButton)k.ButtonIndex == button && input.IsJustPressed();
+            input is InputEventMouseButton k && k.ButtonIndex == button && input.IsJustPressed();
 
         public static bool IsClickReleased(this InputEvent input, MouseButton button) =>
-            input is InputEventMouseButton k && (MouseButton)k.ButtonIndex == button && input.IsReleased();
+            input is InputEventMouseButton k && k.ButtonIndex == button && input.IsReleased();
 
         public static bool IsDoubleClick(this InputEvent input) =>
             input is InputEventMouseButton { DoubleClick: true };

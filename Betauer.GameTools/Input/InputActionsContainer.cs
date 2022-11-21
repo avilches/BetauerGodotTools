@@ -3,8 +3,8 @@ using Godot;
 
 namespace Betauer.Input {
     public class InputActionsContainer {
-        public readonly List<InputAction> ActionList = new List<InputAction>();
-        public readonly Dictionary<string, InputAction> ActionMap = new Dictionary<string, InputAction>();
+        public readonly List<InputAction> ActionList = new();
+        public readonly Dictionary<string, InputAction> ActionMap = new();
         
         public InputAction? FindAction(string name) {
             return ActionMap.TryGetValue(name, out var action) ? action : null;
