@@ -1,6 +1,6 @@
 [gd_scene load_steps=13 format=3 uid="uid://bm8nfxhxh5yr2"]
 
-[ext_resource type="Texture2D" uid="uid://dwmbl4tf32eii" path="res://Assets/UI/Consoles/Xbox One Controller Updated.png" id="1_ycult"]
+[ext_resource type="Texture2D" uid="uid://8wapku1mj6g2" path="res://Assets/UI/Consoles/Xbox 360 Controller Updated.png" id="1_rhh4j"]
 [ext_resource type="Script" path="res://Src/Controller/UI/Consoles/ConsoleButton.cs" id="2"]
 
 [sub_resource type="Animation" id="7"]
@@ -168,8 +168,7 @@ _data = {
 }
 
 [node name="Sprite2D" type="Sprite2D"]
-texture_filter = 1
-texture = ExtResource("1_ycult")
+texture = ExtResource("1_rhh4j")
 hframes = 12
 vframes = 12
 frame = 51

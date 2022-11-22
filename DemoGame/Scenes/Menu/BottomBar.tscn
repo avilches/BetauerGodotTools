@@ -18,35 +18,30 @@ grow_horizontal = 0
 grow_vertical = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
-layout_mode = 2
-offset_right = 324.0
+offset_right = 452.0
 offset_bottom = 17.0
 theme = ExtResource("2")
 alignment = 2
 
 [node name="ActionHint1" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-layout_mode = 2
-offset_right = 78.0
+offset_right = 110.0
 offset_bottom = 17.0
 
 [node name="ActionHint2" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-layout_mode = 2
-offset_left = 82.0
-offset_right = 160.0
+offset_left = 114.0
+offset_right = 224.0
 offset_bottom = 17.0
 
 [node name="ActionHint3" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-layout_mode = 2
-offset_left = 164.0
-offset_right = 242.0
+offset_left = 228.0
+offset_right = 338.0
 offset_bottom = 17.0
 
 [node name="ActionHint4" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-layout_mode = 2
-offset_left = 246.0
-offset_right = 324.0
+offset_left = 342.0
+offset_right = 452.0
 offset_bottom = 17.0

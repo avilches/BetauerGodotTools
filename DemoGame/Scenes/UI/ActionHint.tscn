@@ -5,12 +5,10 @@
 [ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
 
 [node name="HBoxContainer" type="HBoxContainer"]
-texture_filter = 2
 script = ExtResource("3")
 
 [node name="Label1" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
 offset_right = 29.0
 offset_bottom = 17.0
 theme = ExtResource("2")
@@ -19,7 +17,7 @@ text = "Press"
 [node name="ControlConsoleButton" type="Control" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(14, 16)
-layout_mode = 2
+layout_mode = 3
 anchors_preset = 0
 offset_left = 33.0
 offset_right = 47.0
@@ -33,7 +31,6 @@ position = Vector2(7, 8)
 
 [node name="KeyButton" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
 offset_left = 51.0
 offset_right = 65.0
 offset_bottom = 17.0
@@ -42,7 +39,6 @@ text = "[E]"
 
 [node name="Label2" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 2
 offset_left = 69.0
 offset_right = 110.0
 offset_bottom = 17.0

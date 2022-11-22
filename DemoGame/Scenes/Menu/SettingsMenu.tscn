@@ -24,7 +24,6 @@ theme = ExtResource("2")
 metadata/_edit_use_anchors_ = true
 
 [node name="SettingsBox" type="VBoxContainer" parent="Panel"]
-layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -37,9 +36,8 @@ size_flags_vertical = 2
 alignment = 1
 
 [node name="SettingsTitle" type="Label" parent="Panel/SettingsBox"]
-layout_mode = 2
 offset_right = 284.0
-offset_bottom = 33.0
+offset_bottom = 32.0
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("3_c42cs")
 theme_override_font_sizes/font_size = 32
@@ -47,15 +45,13 @@ text = "Settings"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Label" parent="Panel/SettingsBox"]
-layout_mode = 2
-offset_top = 36.0
+offset_top = 35.0
 offset_right = 284.0
-offset_bottom = 49.6667
+offset_bottom = 48.6667
 size_flags_horizontal = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/SettingsBox"]
-layout_mode = 2
-offset_top = 54.0
+offset_top = 53.0
 offset_right = 284.0
 offset_bottom = 366.0
 size_flags_horizontal = 3
@@ -63,7 +59,6 @@ size_flags_vertical = 3
 follow_focus = true
 
 [node name="MarginContainer" type="MarginContainer" parent="Panel/SettingsBox/ScrollContainer"]
-layout_mode = 2
 offset_right = 276.0
 offset_bottom = 328.0
 size_flags_horizontal = 3
@@ -73,7 +68,6 @@ theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 3
 
 [node name="Menu" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer"]
-layout_mode = 2
 offset_left = 4.0
 offset_right = 270.0
 offset_bottom = 325.0
@@ -81,7 +75,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="VideoTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
-layout_mode = 2
 offset_right = 266.0
 offset_bottom = 18.0
 size_flags_horizontal = 3
@@ -89,42 +82,36 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Video"
 
 [node name="Fullscreen" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
-layout_mode = 2
 offset_top = 22.0
 offset_right = 266.0
 offset_bottom = 39.0
 text = " Fullscreen"
 
 [node name="Resolution" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("3")]
-layout_mode = 2
 offset_top = 43.0
 offset_right = 266.0
 offset_bottom = 58.0
 text = " Resolution"
 
 [node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
-layout_mode = 2
 offset_top = 62.0
 offset_right = 266.0
 offset_bottom = 79.0
 text = " Pixel perfect"
 
 [node name="Borderless" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
-layout_mode = 2
 offset_top = 83.0
 offset_right = 266.0
 offset_bottom = 100.0
 text = " Borderless window"
 
 [node name="VSync" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
-layout_mode = 2
 offset_top = 104.0
 offset_right = 266.0
 offset_bottom = 121.0
 text = " Vertical sync"
 
 [node name="GamepadTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
-layout_mode = 2
 offset_top = 125.0
 offset_right = 266.0
 offset_bottom = 143.0
@@ -133,7 +120,6 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Gamepad"
 
 [node name="GamepadControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
-layout_mode = 2
 offset_top = 147.0
 offset_right = 266.0
 offset_bottom = 223.0
@@ -141,7 +127,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -151,7 +136,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -162,7 +146,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -173,7 +156,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -184,7 +166,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="KeyboardTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
-layout_mode = 2
 offset_top = 227.0
 offset_right = 266.0
 offset_bottom = 245.0
@@ -193,7 +174,6 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Keyboard"
 
 [node name="KeyboardControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
-layout_mode = 2
 offset_top = 249.0
 offset_right = 266.0
 offset_bottom = 325.0
@@ -201,7 +181,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -211,7 +190,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -222,7 +200,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -233,7 +210,6 @@ grow_horizontal = 1
 grow_vertical = 1
 
 [node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("5")]
-layout_mode = 2
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0
@@ -245,7 +221,6 @@ grow_vertical = 1
 
 [node name="RedefineBox" type="VBoxContainer" parent="Panel"]
 visible = false
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -257,28 +232,25 @@ alignment = 1
 
 [node name="Spacer1" type="Control" parent="Panel/RedefineBox"]
 visible = false
-layout_mode = 2
+layout_mode = 3
 anchors_preset = 0
 
 [node name="Message" type="Label" parent="Panel/RedefineBox"]
-layout_mode = 2
 size_flags_horizontal = 3
 text = "Press key or button for"
 
 [node name="Spacer2" type="Control" parent="Panel/RedefineBox"]
-layout_mode = 2
+layout_mode = 3
 anchors_preset = 0
 
 [node name="ActionName" type="Label" parent="Panel/RedefineBox"]
-layout_mode = 2
 size_flags_horizontal = 3
 text = "Jump"
 
 [node name="Spacer3" type="Control" parent="Panel/RedefineBox"]
-layout_mode = 2
+layout_mode = 3
 anchors_preset = 0
 
 [node name="Message2" type="Label" parent="Panel/RedefineBox"]
-layout_mode = 2
 size_flags_horizontal = 3
 text = "(Escape to cancel)"

@@ -89,13 +89,13 @@ namespace Veronenger.Controller.Menu {
 			_resolutionButton.SetFocusDisabled(_screenSettingsManager.Fullscreen);
 			UpdateResolutionButton();
 
-			_panel.Hide();
+			Hide();
 			_restorer = _panel.CreateRestorer();
 			_restorer.Save(); 
 		}
 
 		public async Task ShowSettingsMenu() {
-			_panel.Show();
+			Show();
 			_settingsBox.Show();
 			_scrollContainer.ScrollVertical = 0;
 			_redefineBox.Hide();
@@ -105,7 +105,7 @@ namespace Veronenger.Controller.Menu {
 
 		public async Task HideSettingsMenu() {
 			await Templates.BounceOut.Play(_panel, 0f, 0.2f).AwaitFinished();
-			_panel.Hide();
+			Hide();
 			_restorer.Restore();
 		}
 

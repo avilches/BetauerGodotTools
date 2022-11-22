@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://b8qpyxwnc1oyv"]
+[gd_scene load_steps=18 format=3 uid="uid://b8qpyxwnc1oyv"]
 
 [ext_resource type="Script" path="res://Src/Controller/Character/PlayerController.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://be6ln20ldxv2h" path="res://Characters/Player-heroine/run.png" id="2"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://Src/Controller/Stage/StageCameraController.cs" id="5"]
 [ext_resource type="Texture2D" uid="uid://cur1u2umtfp2h" path="res://Characters/Player-heroine/attack.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://wx17wyrajir7" path="res://Characters/Player-heroine/jump-attack.png" id="7"]
-[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="8"]
 
 [sub_resource type="RectangleShape2D" id="2"]
 size = Vector2(14, 40)
@@ -437,9 +436,6 @@ frame = 1
 libraries = {
 "": SubResource("AnimationLibrary_3u6sx")
 }
-
-[node name="ConsoleButton" parent="." instance=ExtResource("8")]
-position = Vector2(-28, 3)
 
 [node name="SlopeRaycast" type="RayCast2D" parent="."]
 collision_mask = 0

@@ -75,12 +75,10 @@ namespace Betauer.Application {
             debugConsole.AddNodeHandlerInfoCommand();
             debugConsole.AddShowAllCommand();
             debugConsole.AddSystemInfoCommand();
-            ScreenSettingsManager? screenSettings = Container.ResolveOr<ScreenSettingsManager>(() => null);
-            if (screenSettings != null) {
+            if (Container.TryResolve<ScreenSettingsManager>(out var screenSettings)) {
                 debugConsole.AddScreenSettingsCommand(screenSettings);
             }
-            InputActionsContainer? inputActionsContainer = Container.ResolveOr<InputActionsContainer>(() => null);
-            if (inputActionsContainer != null) {
+            if (Container.TryResolve<InputActionsContainer>(out var inputActionsContainer)) {
                 debugConsole.AddInputMapCommand(inputActionsContainer);
                 debugConsole.AddInputEventCommand(inputActionsContainer);
             }
@@ -108,7 +106,7 @@ namespace Betauer.Application {
         /// Virtual method so it can be overriden to do more stuff with the container before it finishes.
         /// Call to base.OnBuildContainer(builder) to scan the current assembly and use the current class as configuration. 
         /// </summary>
-        /// <param name="???"></param>
+        /// <param name="builder"></param>
         public virtual void OnBuildContainer(ContainerBuilder builder) {
             builder
                 .Scan(GetType().Assembly)

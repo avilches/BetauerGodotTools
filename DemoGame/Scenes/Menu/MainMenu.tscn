@@ -1,10 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://bjx7gbqxh6m7q"]
+[gd_scene load_steps=5 format=3 uid="uid://bjx7gbqxh6m7q"]
 
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
-[ext_resource type="FontFile" uid="uid://cw5qr6x6l0tjv" path="res://Assets/Fonts/UnnamedFont.ttf" id="3_d7rq8"]
+[ext_resource type="FontFile" uid="uid://cbvctfjiggye1" path="res://Assets/Fonts/UnnamedFont.ttf" id="3_d7rq8"]
 [ext_resource type="Script" path="res://Src/Controller/Menu/MainMenu.cs" id="4"]
-[ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="4_6lj1k"]
 
 [node name="MainMenuLayer" type="CanvasLayer"]
 script = ExtResource("4")
@@ -27,12 +26,12 @@ size_flags_horizontal = 3
 [node name="MarginContainer" type="MarginContainer" parent="MainMenu"]
 layout_mode = 2
 offset_right = 105.0
-offset_bottom = 201.0
+offset_bottom = 231.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer"]
 layout_mode = 2
 offset_right = 105.0
-offset_bottom = 201.0
+offset_bottom = 231.0
 grow_horizontal = 0
 grow_vertical = 0
 alignment = 2
@@ -41,44 +40,44 @@ alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 offset_right = 105.0
-offset_bottom = 176.0
+offset_bottom = 206.0
 size_flags_vertical = 3
 theme = ExtResource("2")
 alignment = 2
 
 [node name="New game" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
 layout_mode = 2
-offset_top = 104.0
+offset_top = 134.0
 offset_right = 105.0
-offset_bottom = 119.0
+offset_bottom = 149.0
 text = "New game"
 
 [node name="Continue" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
 layout_mode = 2
-offset_top = 123.0
+offset_top = 153.0
 offset_right = 105.0
-offset_bottom = 138.0
+offset_bottom = 168.0
 text = "Continue"
 
 [node name="Settings" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
 layout_mode = 2
-offset_top = 142.0
+offset_top = 172.0
 offset_right = 105.0
-offset_bottom = 157.0
+offset_bottom = 187.0
 text = "Settings"
 
 [node name="Quit" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
 layout_mode = 2
-offset_top = 161.0
+offset_top = 191.0
 offset_right = 105.0
-offset_bottom = 176.0
+offset_bottom = 206.0
 text = "Exit"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer/VBoxContainer"]
 layout_mode = 2
-offset_top = 180.0
+offset_top = 210.0
 offset_right = 105.0
-offset_bottom = 201.0
+offset_bottom = 231.0
 
 [node name="Sep" type="Control" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -106,42 +105,41 @@ text = "v0.1 - Betauer 2022"
 [node name="VBoxContainer2" type="VBoxContainer" parent="MainMenu"]
 layout_mode = 2
 offset_left = 109.0
-offset_right = 385.0
-offset_bottom = 201.0
+offset_right = 473.0
+offset_bottom = 231.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Sep" type="Control" parent="MainMenu/VBoxContainer2"]
 layout_mode = 2
 anchors_preset = 0
-offset_right = 276.0
+offset_right = 364.0
 
 [node name="Title" type="Label" parent="MainMenu/VBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 offset_top = 4.0
-offset_right = 276.0
-offset_bottom = 65.0
-theme_override_fonts/font = ExtResource("4_6lj1k")
+offset_right = 364.0
+offset_bottom = 95.0
 theme_override_font_sizes/font_size = 64
 text = "Veronenger"
 
 [node name="Sep2" type="Control" parent="MainMenu/VBoxContainer2"]
 layout_mode = 2
 anchors_preset = 0
-offset_top = 69.0
-offset_right = 276.0
-offset_bottom = 69.0
+offset_top = 99.0
+offset_right = 364.0
+offset_bottom = 99.0
 
 [node name="CenterContainer" type="CenterContainer" parent="MainMenu/VBoxContainer2"]
 layout_mode = 2
-offset_top = 73.0
-offset_right = 276.0
-offset_bottom = 201.0
+offset_top = 103.0
+offset_right = 364.0
+offset_bottom = 231.0
 
 [node name="TextureRect" type="TextureRect" parent="MainMenu/VBoxContainer2/CenterContainer"]
 layout_mode = 2
-offset_left = 74.0
-offset_right = 202.0
+offset_left = 118.0
+offset_right = 246.0
 offset_bottom = 128.0
 texture = ExtResource("1")
