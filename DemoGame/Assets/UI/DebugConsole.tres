@@ -4,7 +4,12 @@
 
 [resource]
 default_font = ExtResource("1_fcg7b")
+Label/font_sizes/font_size = 12
+Label/fonts/font = ExtResource("1_fcg7b")
+LineEdit/font_sizes/font_size = 12
 LineEdit/fonts/font = ExtResource("1_fcg7b")
 RichTextLabel/colors/default_color = Color(0.72, 0.72, 0.72, 1)
+RichTextLabel/font_sizes/bold_font_size = 12
+RichTextLabel/font_sizes/normal_font_size = 12
 RichTextLabel/fonts/mono_font = ExtResource("1_fcg7b")
 RichTextLabel/fonts/normal_font = ExtResource("1_fcg7b")

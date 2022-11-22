@@ -32,11 +32,11 @@ namespace Betauer.Application.Monitor {
         public readonly VBoxContainer OverlayContent = new () {
             Name = nameof(OverlayContent)
         };
-        public readonly Label TopBar = new() {
-            Name = nameof(TopBar)
+        public readonly Control TitleBar = new() {
+            Name = nameof(TitleBar)
         };
-        public readonly ColorRect TopBarColor = new() {
-            Name = nameof(TopBarColor)
+        public readonly ColorRect TitleBackground = new() {
+            Name = nameof(TitleBackground)
         };
         public readonly Label TitleLabel = new() {
             Name = "Title"
@@ -45,7 +45,8 @@ namespace Betauer.Application.Monitor {
             Name = "ButtonBar"
         };
         public DebugOverlayManager DebugOverlayManager { get; }
-        public Vector2 MaxSize { get; private set; } = new(600, 600);
+        public Vector2 MaxSize { get; private set; } = new(400, 400);
+        public Vector2 MinSize { get; private set; } = new(100, 100);
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
         public bool CanFollow => Target is Node2D;
@@ -81,6 +82,11 @@ namespace Betauer.Application.Monitor {
             Id = id;
             VisibilityState = VisibilityStateEnum.Float;
             Visible = true; 
+            
+            var styleBox = new StyleBoxFlat();
+            styleBox.BgColor = new Color(0.2f, 0.2f, 0.2f);
+            AddThemeStyleboxOverride("panel", styleBox);
+
         }
 
         public DebugOverlay WithTheme(Theme theme) {
@@ -103,9 +109,13 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public DebugOverlay SetMinSize(Vector2 minSize) {
+            MinSize = minSize;
+            return this;
+        }
+
         public DebugOverlay Title(string? title) {
             TitleLabel.Text = title;
-            TopBar.CustomMinimumSize = new Vector2(TopBar.CustomMinimumSize.x, string.IsNullOrWhiteSpace(title) ? 10 : 20);
             return this;                               
         }
 
@@ -148,7 +158,7 @@ namespace Betauer.Application.Monitor {
         }
         
         public DebugOverlay RemoveButtons() {
-            TopBar.Visible = false;
+            ButtonBar.Visible = false;
             return this;
         }
 
@@ -190,84 +200,89 @@ namespace Betauer.Application.Monitor {
             return Enable(false);
         }
 
+        private int TitleHeight = 20;
+        private int MarginScrollBar = 10;
         private void FitContent() {
-            var x = Math.Min(OverlayContent.Size.x + 10, MaxSize.x);
-            var y = Math.Min(OverlayContent.Size.y + 10, MaxSize.x);
-            ScrollContainer.CustomMinimumSize = new Vector2(x, y);
-            TopBar.CustomMinimumSize = new Vector2(x, string.IsNullOrWhiteSpace(TitleLabel.Text) ? 10 : 20);
+            TitleBar.Visible = !string.IsNullOrWhiteSpace(TitleLabel.Text);
+            var realTitleHeight = TitleBar.Visible ? TitleHeight : 0;
+            var contentSize = OverlayContent.Size.Clamp(MinSize, MaxSize);
+            
+            // Panel size
+            CustomMinimumSize = new Vector2(contentSize.x + MarginScrollBar, contentSize.y + MarginScrollBar + realTitleHeight);
+            
+            ScrollContainer.CustomMinimumSize = contentSize;
+            TitleBar.CustomMinimumSize = new Vector2(contentSize.x + MarginScrollBar, realTitleHeight);
+            ButtonBar.SetAnchorsAndOffsetsPreset(LayoutPreset.TopRight);
         }
 
         public override void _Ready() {
             this.NodeBuilder()
                 .Child<VBoxContainer>()
-                    .Child(TopBar)
-                        .Config(control => {
-                            control.CustomMinimumSize = new Vector2(100, 10);
-                            control.SetAnchorsAndOffsetsPreset(LayoutPreset.HcenterWide);
-                        })
-                        .Child(TopBarColor)
+                    .Child(TitleBar)
+                        .Child(TitleBackground)
                             .Config(rect => {
-                                rect.Color = Colors.White;
-                                rect.SetAnchorsAndOffsetsPreset(LayoutPreset.HcenterWide);
+                                rect.Color = Colors.Black;
+                                rect.Modulate = new Color(1, 1, 1, 0.4f);
+                                rect.SetAnchorsPreset(LayoutPreset.FullRect);
                             })
                         .End()
                         .Child(TitleLabel)
                             .Config(label => {
                                 label.SetFontColor(Colors.White);
-                                label.SetAnchorsAndOffsetsPreset(LayoutPreset.HcenterWide);
+                                label.SetAnchorsPreset(LayoutPreset.FullRect);
                                 label.HorizontalAlignment = HorizontalAlignment.Center;
                         })
-                        .End()
-                        .Child(ButtonBar)
-                            .Config(buttonBar => {
-                                buttonBar.GrowHorizontal = GrowDirection.Begin;
-                                buttonBar.SetAnchorsPreset(LayoutPreset.TopRight);
-                            })
-                            .Button<CheckButton>("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
-                                .Config(button => {
-                                    button.FocusMode = FocusModeEnum.None;
-                                    button.TooltipText = "Follow";
-                                    FollowButton = button;
-                                    UpdateFollowButtonState();
-                                })
-                            .End()
-                            .Button("o", () => {
-                                    var newState = ((int)_visibilityState + 1) % VisibilityStateEnumSize;
-                                    VisibilityState = (VisibilityStateEnum)newState;
-                                })
-                                .Config(button => {
-                                    button.FocusMode = FocusModeEnum.None;
-                                    button.TooltipText = "Opacity";
-                                })
-                            .End()
-                            .Button("s", () => DebugOverlayManager.SoloOverlay(Id))
-                                .Config(button => {
-                                    button.FocusMode = FocusModeEnum.None;
-                                    button.TooltipText = "Solo mode";
-                                })
-                            .End()
-                            .Button("*", () => DebugOverlayManager.ShowAllOverlays())
-                                .Config(button => {
-                                    button.FocusMode = FocusModeEnum.None;
-                                    button.TooltipText = "Open all";
-                                })
-                            .End()
-                            .Button("x", () => DebugOverlayManager.CloseOrHideOverlay(Id))
-                                .Config(button => {
-                                    button.FocusMode = FocusModeEnum.None;
-                                    button.TooltipText = "Close";
-                                })
-                            .End()
                         .End()
                     .End()
                     .Child(ScrollContainer)
                         .Child<MarginContainer>()
                             .Config(margin => {
-                                margin.SetMargin(0, 10, 10, 0);
+                                margin.SetMargin(0, MarginScrollBar, MarginScrollBar, 0);
                             })
                             .Child(OverlayContent)
                             .End()
                         .End()
+                    .End()
+                .End()
+                .Child<HBoxContainer>(ButtonBar)
+                    .Config(buttonBar => {
+                        buttonBar.Alignment = BoxContainer.AlignmentMode.End;
+                        buttonBar.SetAnchorsAndOffsetsPreset(LayoutPreset.TopRight);
+                    })
+                    .Button<CheckButton>("f", () => { if (IsFollowing) StopFollowing(); else Follow(); })
+                        .Config(button => {
+                            button.FocusMode = FocusModeEnum.None;
+                            button.TooltipText = "Follow";
+                            FollowButton = button;
+                            UpdateFollowButtonState();
+                        })
+                    .End()
+                    .Button("o", () => {
+                            var newState = ((int)_visibilityState + 1) % VisibilityStateEnumSize;
+                            VisibilityState = (VisibilityStateEnum)newState;
+                        })
+                        .Config(button => {
+                            button.FocusMode = FocusModeEnum.None;
+                            button.TooltipText = "Opacity";
+                        })
+                    .End()
+                    .Button("s", () => DebugOverlayManager.SoloOverlay(Id))
+                        .Config(button => {
+                            button.FocusMode = FocusModeEnum.None;
+                            button.TooltipText = "Solo mode";
+                        })
+                    .End()
+                    .Button("*", () => DebugOverlayManager.ShowAllOverlays())
+                        .Config(button => {
+                            button.FocusMode = FocusModeEnum.None;
+                            button.TooltipText = "Open all";
+                        })
+                    .End()
+                    .Button("x", () => DebugOverlayManager.CloseOrHideOverlay(Id))
+                        .Config(button => {
+                            button.FocusMode = FocusModeEnum.None;
+                            button.TooltipText = "Close";
+                        })
                     .End()
                 .End();
             MouseFilter = MouseFilterEnum.Pass;
@@ -277,9 +292,9 @@ namespace Betauer.Application.Monitor {
 
         public override void _Input(InputEvent input) {
             if (input.IsLeftClick()) {
-                if (input.IsJustPressed() && input.IsMouseInside(TopBarColor) && !input.IsMouseInside(ButtonBar)) {
+                if (input.IsJustPressed() && input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar)) {
                     StopFollowing();
-                    // Raise();
+                    GetParent().MoveChild(this, -1);
                     _startDragPosition = _position - GetGlobalMousePosition();
                     GetViewport().SetInputAsHandled();
                 } else if (input.IsReleased()) {
