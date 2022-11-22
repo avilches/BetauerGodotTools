@@ -183,12 +183,13 @@ namespace Betauer.Application.Monitor {
 
         public static DebugConsole AddInputEventCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
             const string title = "Input event logger";
-            return console.CreateCommand("input-event", () => {
+            return console.CreateCommand("input-logger", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
                     .Permanent(false)
                     .Solid()
+                    .SetMinSize(new Vector2(300,200))
                     .AddMonitorInputEvent(inputActionsContainer);
             }, "Open the input event logger window.");
         }

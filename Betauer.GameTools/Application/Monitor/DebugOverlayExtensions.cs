@@ -204,8 +204,8 @@ namespace Betauer.Application.Monitor {
                     inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
                 } else if (e.IsAnyAxis())
                     inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {pressed} | {e.GetAxisValue()} {actionName}");
-                else if (e.IsMouseMotion())
-                    inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
+                // else if (e.IsMouseMotion())
+                    // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
                 if (inputs.Count > history) inputs.RemoveFirst();
             });
             overlay.Text(() => string.Join('\n', inputs)).EndMonitor();
