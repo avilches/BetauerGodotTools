@@ -71,7 +71,7 @@ namespace Betauer.DI {
             var realType = getterSetter.Type.IsGenericType && getterSetter.Type.GetGenericTypeDefinition() == typeof(Factory<>)
                 ? getterSetter.Type.GetGenericArguments()[0]
                 : getterSetter.Type;
-            if (_container.CreateIfNotFound || _container.Contains(realType)) {
+            if (_container.Contains(realType)) {
                 Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member type: {realType}");
                 InjectFieldByType(target, context, getterSetter);
                 return;

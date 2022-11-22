@@ -17,7 +17,7 @@ namespace Betauer.DI.Tests {
 
     [TestFixture]
     public class ContainerTests : Node {
-        [Test(Description = "ResolveOrNull tests")]
+        [Test(Description = "ResolveOr tests")]
         public void ResolveOrNullTests() {
             var di = new Container();
             var c = new ClassWith1Interface();
@@ -46,6 +46,15 @@ namespace Betauer.DI.Tests {
             Assert.Throws<KeyNotFoundException>(() => di.Resolve<IInterface1>());
             Assert.Throws<KeyNotFoundException>(() => di.Resolve<IInterface1>("X"));
             Assert.Throws<KeyNotFoundException>(() => di.Resolve("X"));
+        }
+
+        [Test(Description = "Resolve by name using a wrong type")]
+        public void ResolveByNameWithWrongNameTests() {
+            var di = new ContainerBuilder()
+                .Transient<ClassWith1Interface>("P").Build();
+
+            Assert.Throws<InvalidCastException>(() => di.Resolve<Node>("P"));
+            Assert.Throws<InvalidCastException>(() => di.TryResolve<Node>("P", out var r));
         }
 
         [Test(Description = "InvalidCastException when register type is not compatible with the provider type")]
@@ -83,7 +92,7 @@ namespace Betauer.DI.Tests {
             Assert.Throws<MissingMethodException>(() => di.Resolve(typeof(AbstractClass)));
         }
 
-        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: type")]
+        [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
         public void TypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(ClassWith1Interface),new ClassWith1Interface()).Build(),
@@ -115,10 +124,15 @@ namespace Betauer.DI.Tests {
 
                 Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
+                
+                Assert.That(c.TryResolve<ClassWith1Interface>(out var r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<IInterface1>(out var i), Is.False);
+                Assert.That(i, Is.Null);
             }
         }
         
-        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: othertype")]
+        [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: othertype")]
         public void OtherTypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(IInterface1),new ClassWith1Interface()).Build(),
@@ -149,10 +163,16 @@ namespace Betauer.DI.Tests {
 
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
+                
+                Assert.That(c.TryResolve<ClassWith1Interface>(out var r), Is.False);
+                Assert.That(r, Is.Null);
+                Assert.That(c.TryResolve<IInterface1>(out var i), Is.True);
+                Assert.That(i, Is.TypeOf<ClassWith1Interface>());
+
             }
         }
         
-        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: name")]
+        [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name")]
         public void NameTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(ClassWith1Interface),new ClassWith1Interface(), "P").Build(),
@@ -177,13 +197,6 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Contains<ClassWith1Interface>());
                 Assert.That(!c.Contains<IInterface1>());
 
-                Assert.That(c.Resolve<ClassWith1Interface>("P"), Is.TypeOf<ClassWith1Interface>());
-                Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
-                Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
-                Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
-                Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
-                Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
-
                 Assert.That(c.GetProvider<ClassWith1Interface>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.GetProvider<IInterface1>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.GetProvider<object>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
@@ -203,10 +216,30 @@ namespace Betauer.DI.Tests {
                 Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
                 Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
                 Assert.That(provider, Is.Null);
+                
+                Assert.That(c.Resolve<ClassWith1Interface>("P"), Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
+                Assert.Throws<KeyNotFoundException>(() => c.Resolve<IInterface1>());
+
+                Assert.That(c.TryResolve<ClassWith1Interface>("P", out var r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<IInterface1>("P", out var i), Is.True);
+                Assert.That(i, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<object>("P", out var o), Is.True);
+                Assert.That(o, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve("P", out r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<ClassWith1Interface>(out r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<IInterface1>(out i), Is.False);
+                Assert.That(i, Is.Null);
             }
         }
 
-        [Test(Description = "Resolve, Contains, TryGetProvider and GetProvider: name other type")]
+        [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name other type")]
         public void NameOtherTypeTest() {
             Func<Container>[] x = {
                 () => new ContainerBuilder().Static(typeof(IInterface1),new ClassWith1Interface(), "P").Build(),
@@ -256,6 +289,19 @@ namespace Betauer.DI.Tests {
                 Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
                 Assert.Throws<KeyNotFoundException>(() => c.Resolve<ClassWith1Interface>());
                 Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
+
+                Assert.That(c.TryResolve<ClassWith1Interface>("P", out var r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<IInterface1>("P", out var i), Is.True);
+                Assert.That(i, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<object>("P", out var o), Is.True);
+                Assert.That(o, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve("P", out r), Is.True);
+                Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+                Assert.That(c.TryResolve<ClassWith1Interface>(out r), Is.False);
+                Assert.That(r, Is.Null);
+                Assert.That(c.TryResolve<IInterface1>(out i), Is.True);
+                Assert.That(i, Is.TypeOf<ClassWith1Interface>());
             }
         }
 
@@ -517,7 +563,7 @@ namespace Betauer.DI.Tests {
 
         }
 
-        [Test(Description = "Test OnCreate")]
+        [Test(Description = "Test OnCreated")]
         public void OnCreateTests() {
             var singletons = new List<object>();
             var transients = new List<object>();
