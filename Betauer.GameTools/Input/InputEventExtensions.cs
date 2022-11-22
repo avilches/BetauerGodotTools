@@ -118,10 +118,10 @@ namespace Betauer.Input {
             input is InputEventMouseMotion;
 
         public static Vector2 GetMousePosition(this InputEvent input) =>
-            input is InputEventMouseMotion m ? m.Position : Vector2.Zero;
+            input is InputEventMouse m ? m.Position : Vector2.Zero;
 
         public static Vector2 GetMouseGlobalPosition(this InputEvent input) =>
-            input is InputEventMouseMotion m ? m.GlobalPosition : Vector2.Zero;
+            input is InputEventMouse m ? m.GlobalPosition : Vector2.Zero;
 
         /*
          * Any click
