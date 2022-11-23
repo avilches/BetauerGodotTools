@@ -77,6 +77,7 @@ runtime/unhandled_exception_policy.standalone=0
 
 [rendering]
 
+2d/snap/snap_2d_transforms_to_pixel=true
 textures/canvas_textures/default_texture_filter=0
 environment/default_clear_color=Color(0, 0, 0, 1)
 environment/default_environment="res://default_env.tres"
