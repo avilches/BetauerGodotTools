@@ -225,10 +225,8 @@ namespace Veronenger.Controller.Menu {
 			if (scaledResolution.Size == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
 				res += " (Original)";
 			} else if (scaledResolution.Base == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
-				if (scaledResolution.IsPixelPerfectScale()) {
-					res += " (x" + scaledResolution.GetPixelPerfectScale() + ")";
-				} else if (scaledResolution.IsPixelPerfectDownScale()) {
-					res += " (" + scaledResolution.GetPixelPerfectScale() + ")";
+				if (scaledResolution.IsScaleYInteger()) {
+					res += " (x" + scaledResolution.Scale.y + ")";
 				}
 			}
 			_resolutionButton.Text = prefix + res + suffix;

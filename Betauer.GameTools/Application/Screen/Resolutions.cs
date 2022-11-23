@@ -80,7 +80,7 @@ namespace Betauer.Application.Screen {
         /// <param name="aspectRatios"></param>
         /// <returns></returns>
         public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
-            if (maxSize == null) maxSize = new Resolution(DisplayServer.WindowGetSize());
+            if (maxSize == null) maxSize = new Resolution(DisplayServer.ScreenGetSize());
             var maxScale = Resolution.CalculateMaxScale(from.Size, maxSize.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
             for (var scale = 1; scale <= maxScale; scale++) {
@@ -123,7 +123,7 @@ namespace Betauer.Application.Screen {
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min) {
-            return Clamp(resolutions, min, DisplayServer.WindowGetSize());
+            return Clamp(resolutions, min, DisplayServer.ScreenGetSize());
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {

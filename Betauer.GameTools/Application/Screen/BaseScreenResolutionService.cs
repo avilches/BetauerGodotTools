@@ -54,7 +54,7 @@ namespace Betauer.Application.Screen {
         }
 
         public virtual void SetWindowed(Resolution resolution) {
-            var screenSize = DisplayServer.WindowGetRealSize();
+            var screenSize = DisplayServer.ScreenGetSize();
             if (resolution.x > screenSize.x || resolution.y > screenSize.y) {
                 // SetFullscreen();
                 return;

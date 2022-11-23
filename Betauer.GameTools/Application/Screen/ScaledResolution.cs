@@ -18,16 +18,17 @@ namespace Betauer.Application.Screen {
 
         public ScaledResolution(Vector2i @base, Vector2i size) : base(size) {
             Base = @base;
-            Scale = size / @base;
+            Scale = new Vector2(size.x, size.y) / @base;
         }
 
         public ScaledResolution(Vector2i @base, int x, int y) : this(@base, new Vector2i(x, y)) {
         }
 
         public bool HasSameAspectRatio() => Math.Abs(Scale.x - Scale.y) < 0.00001f;
-        public bool IsPixelPerfectScale() => HasSameAspectRatio() && IsInteger(Scale.x);
-        public bool IsPixelPerfectDownScale() => HasSameAspectRatio() && 
-                                                 Scale.x is 0.5f or 0.25f or 0.125f or 0.0625f;
+        public bool IsScaleXInteger() => IsInteger(Scale.x);
+        public bool IsScaleYInteger() => IsInteger(Scale.y);
+        /*
+        public bool IsPixelPerfectDownScale() => Scale.x is 0.5f or 0.25f or 0.125f or 0.0625f;
 
         // Please check IsPixelPerfectScale/IsPixelPerfectDownScale before to use these values
         public string GetPixelPerfectScale() =>
@@ -39,7 +40,8 @@ namespace Betauer.Application.Screen {
                 0.0625f => "1/16",
                 _ => Scale.x.ToString()
             };
-
+        */
+        
         /**
          * Two ScaledResolutions are equal if the base and the size are equals
          * Scale is a computed value (size / base)
