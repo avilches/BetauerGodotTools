@@ -46,7 +46,7 @@ namespace Betauer.Application.Monitor {
         };
         public DebugOverlayManager DebugOverlayManager { get; }
         public Vector2 MaxSize { get; private set; } = new(400, 400);
-        public Vector2 MinSize { get; private set; } = new(100, 100);
+        public Vector2 MinSize { get; private set; } = new(50, 50);
         public Object? Target { get; private set; }
         public bool IsFollowing { get; private set; } = false;
         public bool CanFollow => Target is Node2D;
@@ -81,12 +81,10 @@ namespace Betauer.Application.Monitor {
             Name = $"DebugOverlay-{id}";
             Id = id;
             VisibilityState = VisibilityStateEnum.Float;
-            Visible = true; 
+            Visible = true;
             
-            var styleBox = new StyleBoxFlat();
-            styleBox.BgColor = new Color(0.2f, 0.2f, 0.2f);
-            AddThemeStyleboxOverride("panel", styleBox);
-
+            // Default colors
+            SetColors(new(0.2f, 0.2f, 0.2f), Colors.White, Colors.Black);
         }
 
         public DebugOverlay WithTheme(Theme theme) {
@@ -94,13 +92,17 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public DebugOverlay Solid() {
-            VisibilityState = VisibilityStateEnum.Solid;
+        public DebugOverlay SetColors(Color backgroundColor, Color titleColor, Color titleBackgroundColor) {
+            TitleBackground.Color = titleBackgroundColor;
+            AddThemeStyleboxOverride("panel", new StyleBoxFlat {
+                BgColor = backgroundColor
+            });
+            TitleLabel.SetFontColor(titleColor);
             return this;
         }
 
-        public DebugOverlay Hint(string hint) {
-            TooltipText = hint;
+        public DebugOverlay Solid() {
+            VisibilityState = VisibilityStateEnum.Solid;
             return this;
         }
 
@@ -200,18 +202,19 @@ namespace Betauer.Application.Monitor {
             return Enable(false);
         }
 
-        private int TitleHeight = 20;
         private int MarginScrollBar = 10;
+        
         private void FitContent() {
-            TitleBar.Visible = !string.IsNullOrWhiteSpace(TitleLabel.Text);
-            var realTitleHeight = TitleBar.Visible ? TitleHeight : 0;
-            var contentSize = OverlayContent.Size.Clamp(MinSize, MaxSize);
+            var hasTitle = !string.IsNullOrWhiteSpace(TitleLabel.Text);
+            var realTitleHeight = hasTitle ? TitleLabel.Size.y: 0;
+            var contentSize = OverlayContent.Size.Clamp(MinSize, MaxSize) + new Vector2(MarginScrollBar, MarginScrollBar);
             
             // Panel size
-            CustomMinimumSize = new Vector2(contentSize.x + MarginScrollBar, contentSize.y + MarginScrollBar + realTitleHeight);
-            
+            CustomMinimumSize = new Vector2(contentSize.x, contentSize.y + realTitleHeight);
             ScrollContainer.CustomMinimumSize = contentSize;
-            TitleBar.CustomMinimumSize = new Vector2(contentSize.x + MarginScrollBar, realTitleHeight);
+            
+            TitleBar.CustomMinimumSize = new Vector2(contentSize.x, realTitleHeight);
+            TitleBar.Visible = hasTitle;
             ButtonBar.SetAnchorsAndOffsetsPreset(LayoutPreset.TopRight);
         }
 
@@ -221,15 +224,12 @@ namespace Betauer.Application.Monitor {
                     .Child(TitleBar)
                         .Child(TitleBackground)
                             .Config(rect => {
-                                rect.Color = Colors.Black;
-                                rect.Modulate = new Color(1, 1, 1, 0.4f);
                                 rect.SetAnchorsPreset(LayoutPreset.FullRect);
                             })
                         .End()
                         .Child(TitleLabel)
                             .Config(label => {
-                                label.SetFontColor(Colors.White);
-                                label.SetAnchorsPreset(LayoutPreset.FullRect);
+                                label.SetAnchorsPreset(LayoutPreset.TopWide);
                                 label.HorizontalAlignment = HorizontalAlignment.Center;
                         })
                         .End()
@@ -246,6 +246,7 @@ namespace Betauer.Application.Monitor {
                 .End()
                 .Child<HBoxContainer>(ButtonBar)
                     .Config(buttonBar => {
+                        buttonBar.Visible = false;
                         buttonBar.Alignment = BoxContainer.AlignmentMode.End;
                         buttonBar.SetAnchorsAndOffsetsPreset(LayoutPreset.TopRight);
                     })
@@ -296,22 +297,25 @@ namespace Betauer.Application.Monitor {
                     StopFollowing();
                     GetParent().MoveChild(this, -1);
                     _startDragPosition = _position - GetGlobalMousePosition();
-                    GetViewport().SetInputAsHandled();
+                    AcceptEvent();
                 } else if (input.IsReleased()) {
                     _startDragPosition = null;
                 }
-            } else if (IsDragging && input.IsMouseMotion()) {
-                var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
-                var origin = FollowPosition;
-                // TODO: GetTree().Root.Size doesn't work well with scaled viewport
-                var screenSize = GetTree().Root.Size;
-                var limitX = Size.x >= screenSize.x ? 20 : Size.x; 
-                var limitY = Size.y >= screenSize.y ? 20 : Size.y; 
-                // Ensure the user can't drag and drop the overlay outside of the screen
-                newPosition = new Vector2(
-                    Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
-                    Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
-                _position = newPosition;
+            } else if (input.IsMouseMotion()) {
+                ButtonBar.Visible = input.IsMouseInside(TitleBackground);
+                if (IsDragging) {
+                    var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
+                    var origin = FollowPosition;
+                    // TODO: GetTree().Root.Size doesn't work well with scaled viewport
+                    var screenSize = GetTree().Root.Size;
+                    var limitX = Size.x >= screenSize.x ? 20 : Size.x;
+                    var limitY = Size.y >= screenSize.y ? 20 : Size.y;
+                    // Ensure the user can't drag and drop the overlay outside of the screen
+                    newPosition = new Vector2(
+                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
+                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
+                    _position = newPosition;
+                }
             }
         }
 

@@ -189,7 +189,7 @@ namespace Betauer.Application.Monitor {
                     .Overlay(title)
                     .Permanent(false)
                     .Solid()
-                    .SetMinSize(new Vector2(300,200))
+                    .SetMinSize(new Vector2(300,100))
                     .AddMonitorInputEvent(inputActionsContainer);
             }, "Open the input event logger window.");
         }

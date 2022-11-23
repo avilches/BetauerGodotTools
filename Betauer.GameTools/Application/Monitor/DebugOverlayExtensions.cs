@@ -217,8 +217,8 @@ namespace Betauer.Application.Monitor {
                 .Text(() => {
                     var s = new StringBuilder();
                     foreach (var inputAction in inputActionsContainer.ActionList) {
-                        var keys = inputAction.Keys.Select(key => key.ToString()).ToList();
-                        keys.AddRange(inputAction.Buttons.Select(button => button.ToString()));
+                        var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
+                        keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
                         s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
                         if (inputAction.HasAxis()) {
                             s.Append($" AxisValue:{inputAction.AxisValue} DeadZone:{inputAction.DeadZone}");
