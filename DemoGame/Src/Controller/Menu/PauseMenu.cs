@@ -13,8 +13,6 @@ using Container = Godot.Container;
 
 namespace Veronenger.Controller.Menu {
 	public partial class PauseMenu : CanvasFaderLayer {
-		[OnReady("Node2D/BlackBar")] private ColorRect _blackBar;
-
 		[OnReady("CenterContainer")]
 		private Container _centerContainer;
 
@@ -36,20 +34,12 @@ namespace Veronenger.Controller.Menu {
 		public override void _Ready() {
 			_menuContainer = BuildMenu();
 			Hide();
-			// TODO Godot 4: this relocate the pause manu black background when screen is resized
-			// GetTree().OnScreenResized(_BlackBarPosition).DisconnectIfInvalid(this);
 		}
 
 		public Task ShowPauseMenu() {
 			Show();
 			FadeBackgroundOut(0.4f, 0.5f);
-			_blackBar.Size = new Vector2(20000, _blackBar.Size.y);
-			_BlackBarPosition();
 			return _menuContainer.Start();
-		}
-
-		private void _BlackBarPosition() {
-			_blackBar.Position = new Vector2(-10000, _centerContainer.Position.y);
 		}
 
 		public void HidePauseMenu() {
