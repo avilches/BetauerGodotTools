@@ -85,10 +85,9 @@ namespace Veronenger.Controller.Character {
 				.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
 				
 			_restorer.Save();
-			Action restorePlayer = () => _restorer.Restore();
-			PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(restorePlayer);
-			DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorePlayer);
-			SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorePlayer);
+			PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(_restorer.Restore);
+			DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(_restorer.Restore);
+			SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
 
 			var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
 			StateMachine.Start("Player", this, flippers);
