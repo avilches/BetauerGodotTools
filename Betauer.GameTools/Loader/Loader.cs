@@ -15,8 +15,13 @@ namespace Betauer.Loader {
                 Path = path;
             }
         }
-        
-        public static async Task<IEnumerable<Resource>> Load(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
+
+        public static async Task<IEnumerable<Resource>> Load(IEnumerable<string> resourcesToLoad, Func<Task> awaiter,
+            Action<float>? progressAction = null) {
+            return resourcesToLoad.Select(r => ResourceLoader.Load(r));
+        }
+
+        public static async Task<IEnumerable<Resource>> Load2(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
             Action<float>? progressAction = null) {
             if (awaiter == null) throw new ArgumentNullException(nameof(awaiter));
             progressAction?.Invoke(0f);
