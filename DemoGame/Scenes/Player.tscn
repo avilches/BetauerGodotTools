@@ -1,8 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://b8qpyxwnc1oyv"]
+[gd_scene load_steps=19 format=3 uid="uid://b8qpyxwnc1oyv"]
 
 [ext_resource type="Script" path="res://Src/Controller/Character/PlayerController.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://be6ln20ldxv2h" path="res://Characters/Player-heroine/run.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://ccomndmgo8gbx" path="res://Characters/Player-heroine/idle.png" id="3"]
+[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
 [ext_resource type="Texture2D" uid="uid://y06xdeo3475b" path="res://Characters/Player-heroine/jump.png" id="4"]
 [ext_resource type="Script" path="res://Src/Controller/Stage/StageCameraController.cs" id="5"]
 [ext_resource type="Texture2D" uid="uid://cur1u2umtfp2h" path="res://Characters/Player-heroine/attack.png" id="6"]
@@ -479,3 +480,5 @@ shape = SubResource("10")
 [node name="Marker2D" type="Marker2D" parent="."]
 
 [node name="PlayerNode" type="Node2D" parent="."]
+
+[node name="ConsoleButton" parent="." instance=ExtResource("3_svs2b")]
