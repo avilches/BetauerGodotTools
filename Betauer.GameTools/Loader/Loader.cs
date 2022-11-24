@@ -21,12 +21,14 @@ namespace Betauer.Loader {
             return resourcesToLoad.Select(r => ResourceLoader.Load(r));
         }
 
-        public static async Task<IEnumerable<Resource>> Load2(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
+        public static async Task<IEnumerable<Resource>> Load3(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
             Action<float>? progressAction = null) {
             if (awaiter == null) throw new ArgumentNullException(nameof(awaiter));
             progressAction?.Invoke(0f);
             var resources = resourcesToLoad.Select(resourcePath => {
-                ResourceLoader.LoadThreadedRequest(resourcePath);
+                var error = ResourceLoader.LoadThreadedRequest(resourcePath);
+                if (error != Error.Ok) throw new ResourceLoaderException($"Error request loading {resourcePath}: {error}");
+                GD.Print($"Request loading {resourcePath}");
                 return new ResourceProgress(resourcePath);
             }).ToArray();
             var progressArray = new Godot.Collections.Array {
@@ -37,19 +39,22 @@ namespace Betauer.Loader {
                 foreach (var resource in resources) {
                     if (resource.Resource == null) {
                         var status = ResourceLoader.LoadThreadedGetStatus(resource.Path, progressArray);
+                        var progress = progressArray[0].AsSingle();
+                        GD.Print($"Get status {resource.Path}: {status} progress: {progress}");
                         if (status == ResourceLoader.ThreadLoadStatus.Loaded) {
                             resource.Progress = 1f;
                             resource.Resource = ResourceLoader.LoadThreadedGet(resource.Path);
                         } else if (status == ResourceLoader.ThreadLoadStatus.InProgress) {
-                            resource.Progress = progressArray[0].AsSingle();
+                            resource.Progress = progress;
                         } else {
-                            throw new ResourceLoaderException($"Error loading {resource.Path}: {status}");
+                            throw new ResourceLoaderException($"Error get status {resource.Path}: {status}");
                         } 
                     }
                 }
                 pending = resources.Any(r => r.Resource == null);
                 if (pending) {
-                    progressAction?.Invoke(resources.Sum(r => r.Progress));
+                    var totalProgress = resources.Sum(r => r.Progress) / resources.Length;
+                    progressAction?.Invoke(totalProgress);
                     await awaiter();
                 }
             }
