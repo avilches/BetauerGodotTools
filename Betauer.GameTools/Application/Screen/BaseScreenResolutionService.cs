@@ -43,8 +43,8 @@ namespace Betauer.Application.Screen {
         public virtual void SetFullscreen() {
             if (IsFullscreen()) return;
             // if (!Project.FeatureFlags.IsMacOs()) DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
-            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
-            DoApply();
+            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+            Apply();
         }
 
         public virtual void SetBorderless(bool borderless) {
