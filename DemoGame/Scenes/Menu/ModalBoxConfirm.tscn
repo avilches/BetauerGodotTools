@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Src/Controller/Menu/ModalBoxConfirm.cs" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="4"]
 
-[node name="CanvasLayer" type="CanvasLayer"]
+[node name="ModalBoxConfirm" type="CanvasLayer"]
 layer = 101
 script = ExtResource("1")
 

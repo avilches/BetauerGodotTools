@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.Core.Nodes.Property;
@@ -10,10 +9,13 @@ namespace Betauer.UI;
 public abstract partial class CanvasFaderLayer : CanvasLayer {
 
     public readonly ColorRect ColorRectBackground = new() {
-        Modulate = Colors.White
+        Name = "BackgroundFader",
+        Color = Colors.Black,
     };
+    
     public readonly ColorRect ColorRectForeground = new() {
-        Modulate = Colors.White
+        Name = "ForegroundFader",
+        Color = Colors.Black,
     };
 
     private Tween? _tween;
@@ -26,26 +28,17 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
     public void Disable() {
         _disabled = true;
     }
-    
-    private void CheckColorRectPosition() {
-        if (ColorRectBackground.GetParent() == null) {
-            ColorRectBackground.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-            ColorRectForeground.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-            ColorRectBackground.Color = Colors.Black;
-            ColorRectForeground.Color = Colors.Black;
-            ColorRectBackground.Modulate = Colors.Transparent;
-            ColorRectForeground.Modulate = Colors.Transparent;
-            AddChild(ColorRectBackground);
-            AddChild(ColorRectForeground);
-        }
-        MoveChild(ColorRectBackground, 0);
-        MoveChild(ColorRectForeground, -1);
-    }
 
     public void SetFadeToColor(Color black) {
-        CheckColorRectPosition();
         ColorRectBackground.Color = black;
         ColorRectForeground.Color = black;
+    }
+
+    public void BlockBackgroundInput() {
+        if (_busy) return;
+        ResetFade();
+        ColorRectBackground.Visible = true;
+
     }
 
     public async Task FadeBackgroundOut(float opacity = 0.4f, float time = 0.3f) {
@@ -54,6 +47,8 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
         try {
             CheckColorRectPosition();
             ResetFade();
+            _busy = true;
+            ColorRectBackground.Visible = true;
             _tween = KeyframeAnimation.Create()
                 .SetDuration(time)
                 .AnimateKeys(Properties.Opacity)
@@ -72,6 +67,8 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
         try {
             CheckColorRectPosition();
             ResetFade();
+            _busy = true;
+            ColorRectForeground.Visible = true;
             _tween = KeyframeAnimation.Create()
                 .SetDuration(time)
                 .AnimateKeys(Properties.Opacity)
@@ -92,5 +89,21 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
         _tween?.Kill();
         ColorRectBackground.Modulate = Colors.Transparent;
         ColorRectForeground.Modulate = Colors.Transparent;
+        ColorRectBackground.Visible = false;
+        ColorRectForeground.Visible = false;
+        _busy = false;
     }
+    
+    private void CheckColorRectPosition() {
+        if (ColorRectBackground.GetParent() == null) {
+            ColorRectBackground.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            ColorRectForeground.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            AddChild(ColorRectBackground); 
+            AddChild(ColorRectForeground);
+        }
+        MoveChild(ColorRectBackground, 0);
+        MoveChild(ColorRectForeground, -1);
+    }
+
+
 }

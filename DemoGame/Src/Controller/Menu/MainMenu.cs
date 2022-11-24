@@ -47,7 +47,8 @@ namespace Veronenger.Controller.Menu {
 
 		public async Task HideMainMenu() {
 			GetTree().Root.GuiDisableInput = true;
-			await FadeOut(/*FadeMainMenuEffectTime*/0.1f);
+			await FadeToBlack(/*FadeMainMenuEffectTime*/0.1f);
+			ResetFade();
 			Visible = false;
 			GetTree().Root.GuiDisableInput = false;
 		}
