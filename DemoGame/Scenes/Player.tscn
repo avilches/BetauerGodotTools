@@ -445,14 +445,17 @@ collision_mask = 0
 
 [node name="Floor1" type="RayCast2D" parent="FloorRaycasts"]
 position = Vector2(-6, -1)
+target_position = Vector2(0, 8)
 collision_mask = 0
 
 [node name="Floor2" type="RayCast2D" parent="FloorRaycasts"]
 position = Vector2(6, -1)
+target_position = Vector2(0, 8)
 collision_mask = 0
 
 [node name="Floor3" type="RayCast2D" parent="FloorRaycasts"]
 position = Vector2(0, -1)
+target_position = Vector2(0, 8)
 collision_mask = 0
 
 [node name="Detector" type="Area2D" parent="."]
