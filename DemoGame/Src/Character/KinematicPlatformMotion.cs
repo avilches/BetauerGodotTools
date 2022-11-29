@@ -170,6 +170,7 @@ namespace Veronenger.Character {
             */
             // TODO: Godot 4
             var stopOnSlopes = true; //!HasFloorLateralMovement();
+            Body.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
             Body.Velocity = RotateSpeed();
             Body.FloorSnapLength = SnapToFloorVector.Length();
             Body.UpDirection = FloorUpDirection;
@@ -185,9 +186,25 @@ namespace Veronenger.Character {
             const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
 
             // TODO: Godot 4
+            Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
             Body.Velocity = RotateSpeed();
             Body.FloorSnapLength = 0;
-            Body.UpDirection = Vector2.Zero;
+            Body.UpDirection = FloorUpDirection;
+            Body.FloorStopOnSlope = stopOnSlopes;
+
+            Body.MoveAndSlide();
+            _dirtyFlags = true;
+            return RotateInertia(Body.Velocity);
+        }
+
+        public Vector2 Float() {
+            const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
+
+            // TODO: Godot 4
+            Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
+            Body.Velocity = RotateSpeed();
+            Body.FloorSnapLength = 0;
+            Body.UpDirection = FloorUpDirection;
             Body.FloorStopOnSlope = stopOnSlopes;
 
             Body.MoveAndSlide();

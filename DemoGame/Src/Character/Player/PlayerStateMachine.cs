@@ -290,7 +290,7 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     Body.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    Body.Slide();
+                    Body.Float();
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
                 .Build();
