@@ -106,6 +106,9 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public DebugOverlay SetMaxSize(int x, int y) => SetMaxSize(new Vector2(x, y));
+        public DebugOverlay SetMinSize(int x, int y) => SetMinSize(new Vector2(x, y));
+
         public DebugOverlay SetMaxSize(Vector2 maxSize) {
             MaxSize = maxSize;
             return this;
