@@ -91,7 +91,9 @@ namespace Betauer.Core {
             return Mathf.Acos(normal.Dot(-floorUpDirection)) <= maxSlope + 0.01f;
         }
         
-        
+        public static bool IsWall(this Vector2 normal, Vector2 floorUpDirection, float maxSlope = 0.785398f) {
+            return !normal.IsFloor(floorUpDirection, maxSlope) && !normal.IsCeiling(floorUpDirection, maxSlope);
+        }
         
     }
 }
