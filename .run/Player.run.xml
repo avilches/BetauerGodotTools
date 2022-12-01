@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Player" type="RunExe" factoryName=".NET Executable">
+    <option name="EXE_PATH" value="/Applications/Godot4b7_mono.app/Contents/MacOS/Godot" />
+    <option name="PROGRAM_PARAMETERS" value="--path &quot;$PROJECT_DIR$&quot;" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="PASS_PARENT_ENVS" value="1" />
+    <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    <option name="USE_MONO" value="0" />
+    <option name="RUNTIME_ARGUMENTS" value="" />
+    <option name="RUNTIME_TYPE" value="coreclr" />
+    <method v="2">
+      <option name="Build Solution" enabled="true" />
+    </method>
+  </configuration>
+</component>
