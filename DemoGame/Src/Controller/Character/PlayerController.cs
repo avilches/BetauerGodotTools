@@ -37,7 +37,6 @@ namespace Veronenger.Controller.Character {
 		[OnReady("Camera2D")] private Camera2D _camera2D;
 
 		[OnReady("Marker2D")] public Marker2D Marker2D;
-		[OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
 		[OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 		[Inject] private PlatformManager PlatformManager { get; set; }
@@ -74,7 +73,7 @@ namespace Veronenger.Controller.Character {
 			AnimationRun = _animationStack.AddLoopAnimation("Run");
 			AnimationJump = _animationStack.AddLoopAnimation("Jump");
 			AnimationFall = _animationStack.AddLoopAnimation("Fall");
-			AnimationAttack = _animationStack.AddOnceAnimation("Attack");
+			AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes()).OnEnd(() => _attackArea.EnableAllShapes(false));
 			AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
 			_cameraController = new DragCameraController(_camera2D, MouseButton.Middle, 1.8f, 100f);
@@ -90,17 +89,13 @@ namespace Veronenger.Controller.Character {
 			SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
 
 			var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+			_attackArea.EnableAllShapes(false);
 			StateMachine.Start("Player", this, flippers);
-			AddChild(StateMachine);
 
 			CharacterManager.RegisterPlayerController(this);
 			CharacterManager.ConfigurePlayerCollisions(this);
-			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea,
-				(enemyDamageArea2DPublisher, playerAttackArea2D) => {
-					var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
-					enemy.AttackedByPlayer(new Attack(1f));
-					
-				});
+			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea);
+			_attackArea.Monitoring = false;
 			// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
 			SlopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
@@ -220,7 +215,6 @@ namespace Veronenger.Controller.Character {
 		}
 
 		public override void _Draw() {
-			DrawLine(SlopeRaycast.Position, SlopeRaycast.Position + SlopeRaycast.TargetPosition, Colors.Blue, 3F);
 			foreach (var floorRaycast in FloorRaycasts) {
 				DrawLine(floorRaycast.Position, floorRaycast.Position + floorRaycast.TargetPosition, Colors.Red, 1F);
 			}

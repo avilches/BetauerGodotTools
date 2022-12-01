@@ -4,6 +4,19 @@ using Godot;
 
 namespace Betauer.Core.Nodes {
     public static partial class NodeExtensions {
+        public static void DisableAllShapes(this Node parent) {
+            parent.EnableAllShapes(false);
+        }
+
+        public static void EnableAllShapes(this Node parent, bool enable = true) {
+            parent.GetChildren().ForEach(node => {
+                if (node is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !enable;
+                else if (node is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !enable; 
+                else if (node is CollisionPolygon3D collisionPolygon3D) collisionPolygon3D.Disabled = !enable;
+                else if (node is CollisionShape3D collisionShape3D) collisionShape3D.Disabled = !enable; 
+            });
+        }
+
         public static T? GetNode<T>(this Node parent) where T : Node {
             return parent.GetChildren().OfType<T>().First();
         }

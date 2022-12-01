@@ -38,7 +38,6 @@ namespace Veronenger.Controller.Character {
 		[OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
 		[OnReady("Marker2D")] public Marker2D Marker2D;
-		[OnReady("SlopeRaycast")] public RayCast2D SlopeRaycast;
 		[OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 		[Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
@@ -67,13 +66,17 @@ namespace Veronenger.Controller.Character {
 			AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 			
 			var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-			StateMachine.Start("Zombie", this, flippers, SlopeRaycast, Marker2D);
+			StateMachine.Start("Zombie", this, flippers, Marker2D);
 
 			CharacterManager.ConfigureEnemyCollisions(this);
-			CharacterManager.ConfigureEnemyCollisions(SlopeRaycast);
 			FloorRaycasts.ForEach(r => CharacterManager.ConfigureEnemyCollisions(r));
 			// CharacterManager.ConfigureEnemyAttackArea2D(_attack);
-			CharacterManager.ConfigureEnemyDamageArea2D(_damageArea);
+			CharacterManager.ConfigureEnemyDamageArea2D(_damageArea, (playerAttackArea2D) => {
+				GD.Print("Attacking");
+				// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
+				AttackedByPlayer(new Attack(1f));
+					
+			});
 
 			DebugOverlayManager.CreateOverlay()
 				.Follow(this)

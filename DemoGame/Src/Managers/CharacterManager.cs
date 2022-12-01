@@ -19,7 +19,7 @@ namespace Veronenger.Managers {
         [Inject] public SlopeStairsManager SlopeStairsManager { get; set; }
         [Inject] private Bus Bus { get; set; }
 
-        private readonly AreaOnArea2DEntered.Unicast _playerAttackBus = new("PlayerAttack");
+        private readonly Area2DInArea2DCollision _playerAttackCollision = new(LayerEnemy);
 
         public void RegisterPlayerController(PlayerController playerController) {
             PlayerController = playerController;
@@ -30,7 +30,6 @@ namespace Veronenger.Managers {
             playerController.CollisionMask = 0;
             
             PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController);
-            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(playerController.SlopeRaycast);
             playerController.FloorRaycasts.ForEach(PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms);
             
             SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(playerController);
@@ -40,14 +39,10 @@ namespace Veronenger.Managers {
             playerController.PlayerDetector.SetCollisionMaskValue(LayerPlayerStageDetector, true);
         }
 
-        // Only one player attack area is allowed.
-        // If there are more than one, change from Unicast to Multicast
-        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D, Action<Area2D, Area2D> onAttack) {
+        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
-            attackArea2D.SetCollisionMaskValue(LayerEnemy, true);
-            _playerAttackBus.Subscribe(onAttack)
-                .WithFilter(attackArea2D); // Filter is redundant in unicast: publisher (the enemy) changes, but the attack area is always the same!
+            _playerAttackCollision.Detect(attackArea2D);
         }
 
         public void ConfigureEnemyCollisions(CharacterBody2D enemy) {
@@ -58,17 +53,16 @@ namespace Veronenger.Managers {
             SlopeStairsManager.ConfigureCharacterCollisionsWithSlopeStairs(enemy);
         }
 
-        public void ConfigureEnemyCollisions(RayCast2D enemy) {
-            enemy.CollisionMask = 0;
-            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(enemy);
+        public void ConfigureEnemyCollisions(RayCast2D raycast) {
+            raycast.CollisionMask = 0;
+            PlatformManager.ConfigureCharacterCollisionsWithGroundAndPlatforms(raycast);
         }
 
-        public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D) {
+        public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {
             if (enemyDamageArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
             enemyDamageArea2D.CollisionMask = 0;
             enemyDamageArea2D.CollisionLayer = 0;
-            enemyDamageArea2D.SetCollisionLayerValue(LayerEnemy, true);
-            _playerAttackBus.Connect(enemyDamageArea2D);
+            _playerAttackCollision.OnArea2DEnteredIn(enemyDamageArea2D, onAttack);
         }
 
         public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

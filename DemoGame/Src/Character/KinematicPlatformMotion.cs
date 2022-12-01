@@ -14,13 +14,6 @@ namespace Veronenger.Character {
 
     [Service(Lifetime.Transient)]
     public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
-        public float DefaultGravity { get; set; } = 0f;
-        public float DefaultMaxFallingSpeed { get; set; } = 1000f;
-        public float DefaultMaxFloorGravity { get; set; } = 1000f;
-        public Vector2 SnapToFloorVector { get; set; }
-
-        private List<RayCast2D>? _floorRaycast;
-        private RayCast2D? _slopeRaycast;
         private IFlipper _flippers;
 
         private bool _isJustLanded = false;
@@ -39,23 +32,10 @@ namespace Veronenger.Character {
 
         // Ceiling
         private bool _isOnCeiling = false;
-        private Vector2 _ceilingNormal = Vector2.Zero;
-        private Object? _ceiling = null;
 
-        private bool _dirtyFlags = true;
-
-        public void Configure(string name, CharacterBody2D body, IFlipper flippers, List<RayCast2D>? floorRaycast, RayCast2D? slopeRaycast, Marker2D marker2D, Vector2 snapToFloorVector, Vector2 floorUpDirection) {
+        public void Configure(string name, CharacterBody2D body, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection) {
             base.Configure(name, body, marker2D, floorUpDirection);
             _flippers = flippers;
-            _floorRaycast = floorRaycast;
-            _slopeRaycast = slopeRaycast;
-            SnapToFloorVector = snapToFloorVector;
-        }
-
-        public void ConfigureGravity(float gravity, float maxFallingSpeed, float maxFloorGravity) {
-            DefaultGravity = gravity;
-            DefaultMaxFallingSpeed = maxFallingSpeed;
-            DefaultMaxFloorGravity = maxFloorGravity;
         }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
@@ -77,45 +57,27 @@ namespace Veronenger.Character {
             }
         }
 
-        public bool IsJustLanded() => UpdateFlags()._isJustLanded;
-        public bool IsJustTookOff() => UpdateFlags()._isJustTookOff;
+        public bool IsJustLanded() => _isJustLanded;
+        public bool IsJustTookOff() => _isJustTookOff;
 
         // Floor
-        public bool IsOnFloor() => UpdateFlags()._isOnFloor;
-        public bool IsOnSlope() => UpdateFlags()._isOnSlope;
+        public bool IsOnFloor() => _isOnFloor;
+        public bool IsOnSlope() => _isOnSlope;
         public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsUpLeft(FloorUpDirection);
-        // TODO Godot 4
+
         // public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
         // public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
         // Floor collider
-        public Vector2 GetFloorNormal() => UpdateFlags()._floorNormal;
-        public Object? GetFloor() => UpdateFlags()._floor;
-        public Node? GetFloorNode() => UpdateFlags()._floor as Node;
-        public PhysicsBody2D? GetFloorPhysicsBody2D() => UpdateFlags()._floor as PhysicsBody2D;
-        public TileMap? GetFloorTileMap() => UpdateFlags()._floor as TileMap;
+        public Vector2 GetFloorNormal() => _floorNormal;
 
         // Wall
-        public bool IsOnWall() => UpdateFlags()._isOnWall;
+        public bool IsOnWall() => _isOnWall;
         public bool IsOnWallRight() => IsOnWall() && GetWallNormal().IsLeft(FloorUpDirection);
-        // Wall collider
-        public Vector2 GetWallNormal() => UpdateFlags()._wallNormal;
-        public Object? GetWall() => UpdateFlags()._wall;
-        public Node? GetWallNode() => GetWall() as Node;
-        public TileMap? GetWallTileMap() => GetWall() as TileMap;
-        public PhysicsBody2D? GetWallPhysicsBody2D() => GetWall() as PhysicsBody2D;
+        public Vector2 GetWallNormal() => _wallNormal;
 
         // Ceiling
-        public bool IsOnCeiling() => UpdateFlags()._isOnCeiling;
-        // Ceiling collider
-        public Vector2 GetCeilingNormal() => UpdateFlags()._ceilingNormal;
-        public Object? GetCeiling() => UpdateFlags()._ceiling;
-        public Node? GetCeilingNode() => GetCeiling() as Node;
-        public TileMap? GetCeilingTileMap() => GetCeiling() as TileMap;
-        public PhysicsBody2D? GetCeilingPhysicsBody2D() => GetCeiling() as PhysicsBody2D;
-
-        public void ApplyDefaultGravity(float factor = 1.0F) {
-            ApplyGravity(DefaultGravity * factor, IsOnFloor() ? DefaultMaxFloorGravity : DefaultMaxFallingSpeed);
-        }
+        public bool IsOnCeiling() => _isOnCeiling;
+        public Vector2 GetCeilingNormal() => FirstCeilingCollision()?.GetNormal() ?? Vector2.Zero;
 
         public void ApplyGravity(float gravity, float maxSpeed) {
             MotionY = Mathf.Min(MotionY + gravity * Delta, maxSpeed);
@@ -162,67 +124,16 @@ namespace Veronenger.Character {
             SlowDownSpeed(ref MotionY, friction, stopIfSpeedIsLessThan);
         }
 
-        public Vector2 MoveSnapping() {
-            /* stopOnSlopes debe ser true para que no se resbale en las pendientes, pero tiene que ser false si se
-            mueve una plataforma y nos queremos quedar pegados
-            Hay un bug conocido: si la plataforma que se mueve tiene slope, entonces para que detected el slope como suelo,
-            se para y ya no sigue a la plataforma
-            */
-            // TODO: Godot 4
-            var stopOnSlopes = true; //!HasFloorLateralMovement();
-            Body.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
-            Body.Velocity = RotateSpeed();
-            Body.FloorSnapLength = SnapToFloorVector.Length();
-            Body.UpDirection = FloorUpDirection;
-            Body.FloorStopOnSlope = stopOnSlopes;
-            // Body.MaxSlides = ...
-            // Body.FloorMaxAngle = ...
-            Body.MoveAndSlide();
-            _dirtyFlags = true;
-            return RotateInertia(Body.Velocity);
-        }
-
-        public Vector2 Slide() {
-            const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
-
-            // TODO: Godot 4
-            Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
-            Body.Velocity = RotateSpeed();
-            Body.FloorSnapLength = 0;
-            Body.UpDirection = FloorUpDirection;
-            Body.FloorStopOnSlope = stopOnSlopes;
-
-            Body.MoveAndSlide();
-            _dirtyFlags = true;
-            return RotateInertia(Body.Velocity);
-        }
-
-        public Vector2 Float() {
-            const bool stopOnSlopes = true; // true, so if the player lands in a slope, it will stick on it
-
-            // TODO: Godot 4
-            Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
-            Body.Velocity = RotateSpeed();
-            Body.FloorSnapLength = 0;
-            Body.UpDirection = FloorUpDirection;
-            Body.FloorStopOnSlope = stopOnSlopes;
-
-            Body.MoveAndSlide();
-            _dirtyFlags = true;
-            return RotateInertia(Body.Velocity);
-        }
-
         public void Stop(float friction, float stopIfSpeedIsLessThan) {
-            if (Body.IsOnWall()) {
+            if (IsOnWall()) {
                 MotionX = 0;
             } else {
                 ApplyLateralFriction(friction, stopIfSpeedIsLessThan);
             }
-            ApplyDefaultGravity();
-            MoveSnapping();
+            Move();
         }
 
-        public void Run(float xInput,
+        public void Lateral(float xInput,
             float acceleration,
             float maxSpeed,
             float friction,
@@ -230,145 +141,90 @@ namespace Veronenger.Character {
             float changeDirectionFactor) {
             
             AddLateralSpeed(xInput, acceleration, maxSpeed, friction, stopIfSpeedIsLessThan, changeDirectionFactor);
-            if (IsOnSlope()) LimitMotionNormalized(maxSpeed);
-            ApplyDefaultGravity();
-            var pendingInertia = MoveSnapping();
-            if (IsOnSlope()) {
-                // Ensure the body can climb up or down slopes. Without this, the player will go down too fast
-                // and go up too slow
-                // And never use the pendingInertia.x when climbing a slope!!!
-                MotionY = pendingInertia.y;
-            }
+            Move();
         }
 
-        public void FallLateral(float xInput,
-            float acceleration,
-            float maxSpeed,
-            float airResistance,
-            float stopIfSpeedIsLessThan,
-            float changeDirectionFactor) {
-            AddLateralSpeed(xInput, acceleration, maxSpeed, airResistance, stopIfSpeedIsLessThan, changeDirectionFactor);
-            Fall();
+        public bool Move() {
+            Body.Velocity = GetRotatedVelocity();
+            var collide = Body.MoveAndSlide();
+            Motion = RollbackRotateVelocity(Body.Velocity);
+            UpdateFlags();
+            return collide;
         }
 
-        public void Fall() {
-            ApplyDefaultGravity();
-            // Keep the speed from the move so if the player collides, the player could slide or stop
-            Motion = Slide();
-        }
-
-
-        private KinematicPlatformMotion UpdateFlags() {
-            if (!_dirtyFlags) return this;
-            _dirtyFlags = false;
-            
+        private void UpdateFlags() {
             var wasOnFloor = _isOnFloor;
-            _isOnFloor = Body.IsOnFloor(); // Hack time: when player collides with floor, Body.IsOnFloor() is false, which is a error
+            _isOnFloor = Body.IsOnFloor();
             _isOnSlope = false;
-            _floorNormal = Vector2.Zero;
+            _floorNormal = Body.GetFloorNormal();
             _floor = null;
 
-            _isOnWall = false; // Hack time: when player collides with ceiling, Body.IsOnWall() is true, which is a error
-            _wallNormal = Vector2.Zero;
+            _isOnWall = Body.IsOnWall();
+            _wallNormal = Body.GetWallNormal();
             _wall = null;
 
-            _isOnCeiling = false;  // Hack time: when player collides with ceiling, Body.IsOnCeiling() is false, which is a error 
-            _ceilingNormal = Vector2.Zero;
-            _ceiling = null;
+            _isOnCeiling = Body.IsOnCeiling(); 
 
             _isJustLanded = false;
             _isJustTookOff = false;
 
-            CheckMoveAndSlideCollisions();
-
             if (_isOnFloor) {
                 _isJustLanded = !wasOnFloor;
-                if (!_isOnSlope) {
-                    // Just in case the move_and_slide collisions didn't detect the slope, use the raycast as backup
-                    CheckSlopeRaycast();
-                }
+                _isOnSlope = _floorNormal != FloorUpDirection;
             } else {
                 _isJustTookOff = wasOnFloor;
             }
-
-            return this;
         }
 
-        private void CheckMoveAndSlideCollisions() {
+        private T? FirstFloorCollider<T>() where T : Object {
+            return IsOnFloor() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsFloor(FloorUpDirection))?.GetCollider() as T : null;
+        }
+
+        private T? FirstCeilingCollider<T>() where T : Object {
+            return IsOnCeiling() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsCeiling(FloorUpDirection))?.GetCollider() as T : null;
+        }
+
+        private T? FirstWallCollider<T>() where T : Object {
+            return IsOnWall() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsWall(FloorUpDirection))?.GetCollider() as T : null;
+        }
+        
+        private KinematicCollision2D? FirstFloorCollision() {
+            return IsOnFloor() ? FindCollisions(col => col.GetNormal().IsFloor(FloorUpDirection)) : null;
+        }
+
+        private KinematicCollision2D? FirstCeilingCollision() {
+            return IsOnCeiling() ? FindCollisions(col => col.GetNormal().IsCeiling(FloorUpDirection)) : null;
+        }
+
+        private KinematicCollision2D? FirstWallCollision() {
+            return IsOnWall() ? FindCollisions(col => col.GetNormal().IsWall(FloorUpDirection)) : null;
+        }
+
+        private KinematicCollision2D? FindCollisions(Func<KinematicCollision2D, bool> predicate) {
             var slideCount = Body.GetSlideCollisionCount();
-            if (slideCount == 0) return;
+            if (slideCount == 0) return null;
             for (var i = 0; i < slideCount; i++) {
                 var collision = Body.GetSlideCollision(i);
-                var collider = collision.GetCollider();
-                var normal = collision.GetNormal();
-                if (collision == null || normal == Vector2.Zero) continue;
-                if (normal == FloorUpDirection) {
-                    _isOnFloor = true;
-                    if (!_isOnSlope) {
-                        _floorNormal = normal;
-                        _floor = collider;
-                    }
-                } else if (normal.IsFloor(FloorUpDirection)) {
-                    _isOnFloor = true;
-                    if (!_isOnSlope) {
-                        _isOnSlope = true;
-                        _floorNormal = normal;
-                        _floor = collider;
-                    }
-                } else if (normal.IsCeiling(FloorUpDirection)) {
-                    _isOnCeiling = true;
-                    _ceilingNormal = normal;
-                    _ceiling = collider;
-                } else {
-                    _isOnWall = true;
-                    _wallNormal = normal;
-                    _wall = collider;
-                }
+                if (predicate(collision)) return collision;
             }
-        }
-
-        private void CheckSlopeRaycast() {
-            if (_slopeRaycast == null) return;
-            _slopeRaycast.ForceRaycastUpdate();
-            var collisionCollider = _slopeRaycast.GetCollider();
-            if (collisionCollider == null) return;
-            var normal = _slopeRaycast.GetCollisionNormal();
-            if (normal == FloorUpDirection) {
-                _isOnFloor = true;
-                _floorNormal = normal;
-            } else if (normal.IsFloor(FloorUpDirection)) {
-                _isOnFloor = true;
-                _isOnSlope = true;
-                _floorNormal = normal;
-            }
-        }
-
-        private void CheckFloorRaycast() {
-            if (_floorRaycast == null) return;
-            foreach (var floorRaycast2D in _floorRaycast) {
-                floorRaycast2D.ForceRaycastUpdate();
-                var collisionCollider = floorRaycast2D.GetCollider();
-                if (collisionCollider == null) return;
-                _isOnFloor = true;
-                _floorNormal = floorRaycast2D.GetCollisionNormal();
-            }
+            return null;
         }
 
         public string GetFloorCollisionInfo() {
-            return IsOnFloor()
-                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{GetFloor()?.GetType().Name}] {GetFloorNode()?.Name}"
+            return IsOnFloor() 
+                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{FirstFloorCollider<Node>()?.GetType().Name}] {FirstFloorCollider<Node>()?.Name}"
                 : "";
         }
 
         public string GetCeilingCollisionInfo() {
             return IsOnCeiling()
-                ? $"{GetCeilingNormal().ToString("0.0")} {Mathf.RadToDeg(GetCeilingNormal().Angle()):0.0}º [{GetCeiling()?.GetType().Name}] {GetCeilingNode()?.Name}"
+                ? $"{FirstCeilingCollision()?.GetNormal().ToString("0.0")} {Mathf.RadToDeg(FirstCeilingCollision()?.GetNormal().Angle() ?? 0f):0.0}º [{FirstCeilingCollider<Node>()?.GetType().Name}] {FirstCeilingCollider<Node>()?.Name}"
                 : "";
         }
 
         public string GetWallCollisionInfo() {
             return IsOnWall()
-                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.RadToDeg(GetWallNormal().Angle()):0.0}º [{GetWall()?.GetType().Name}] {GetWallNode()?.Name}"
+                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.RadToDeg(GetWallNormal().Angle()):0.0}º [{FirstWallCollider<Node>()?.GetType().Name}] {FirstWallCollider<Node>()?.Name}"
                 : "";
         }
     }

@@ -14,6 +14,7 @@ namespace Veronenger.Character {
             set {
                 _floorUpDirection = value;
                 _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
+                Body.UpDirection = FloorUpDirection;
             }
         }
         
@@ -45,11 +46,11 @@ namespace Veronenger.Character {
             Delta = delta;
         }
 
-        protected Vector2 RotateSpeed() {
+        protected Vector2 GetRotatedVelocity() {
             return _anglesToRotateFloor > 0f ? Motion.Rotated(_anglesToRotateFloor) : Motion;
         }
 
-        protected Vector2 RotateInertia(Vector2 pendingInertia) {
+        protected Vector2 RollbackRotateVelocity(Vector2 pendingInertia) {
             return _anglesToRotateFloor > 0f ? pendingInertia.Rotated(-_anglesToRotateFloor) : pendingInertia;
         }
 

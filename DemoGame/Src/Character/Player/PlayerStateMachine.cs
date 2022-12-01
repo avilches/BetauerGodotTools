@@ -8,6 +8,7 @@ using Betauer.Input;
 using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Core.Time;
+using Godot;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
@@ -70,9 +71,13 @@ namespace Veronenger.Character.Player {
 
         public void Start(string name, PlayerController playerController, IFlipper flippers) {
             _player = playerController;
+            playerController.AddChild(this);
 
-            Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Marker2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
-            Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            Body.Configure(name, playerController, flippers, _player.Marker2D, MotionConfig.FloorUpDirection);
+            playerController.FloorStopOnSlope = true;
+            // playerController.FloorBlockOnWall = true;
+            playerController.FloorConstantSpeed = true;
+            playerController.FloorSnapLength = MotionConfig.SnapLength;
             
             AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
             AddOnTransition(args => Console.WriteLine(args.To));
@@ -88,6 +93,7 @@ namespace Veronenger.Character.Player {
 
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+                .SetMaxSize(1000, 1000)
                 .OpenBox()
                     .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
                     .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
@@ -95,10 +101,15 @@ namespace Veronenger.Character.Player {
                 .CloseBox()
                 .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
                     .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-                .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
+                .GraphSpeed("Speed", _player , PlayerConfig.JumpSpeed*2, "000").EndMonitor()
                 .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
                 .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
-                .Text("Wall", () => Body.GetWallCollisionInfo());
+                .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor()
+                .Disable();
+        }
+
+        public void ApplyDefaultGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
         }
 
         public void GroundStates() {
@@ -158,6 +169,7 @@ namespace Veronenger.Character.Player {
                 })
                 .Execute(() => {
                     CheckGroundAttack();
+                    ApplyDefaultGravity();
                     Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(PlayerState.FallShort)
@@ -180,11 +192,12 @@ namespace Veronenger.Character.Player {
                     // Suelo + no salto + movimiento/inercia
                     EnableSlopeStairs();
 
+                    ApplyDefaultGravity();
                     if (_player.IsAttacking) {
                         Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
                         Body.Flip(XInput);
-                        Body.Run(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+                        Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
                     }
                 })
@@ -248,7 +261,8 @@ namespace Veronenger.Character.Player {
                     }
 
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    ApplyDefaultGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -262,7 +276,8 @@ namespace Veronenger.Character.Player {
                     CheckAirAttack();
 
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    ApplyDefaultGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -278,7 +293,8 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     CheckAirAttack();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+                    ApplyDefaultGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                         PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -287,12 +303,18 @@ namespace Veronenger.Character.Player {
                 .Build();
 
             State(PlayerState.Float)
+                .Enter(() => {
+                    Body.Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
+                })
                 .Execute(() => {
                     Body.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    Body.Float();
+                    Body.Move();
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
+                .Exit(() => {
+                    Body.Body.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
+                })
                 .Build();
 
         }

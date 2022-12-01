@@ -12,10 +12,6 @@ collision_mask = 0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 
-[node name="SlopeRaycast" type="RayCast2D" parent="."]
-position = Vector2(0, -4)
-collision_mask = 0
-
 [node name="FloorRaycasts" type="Node2D" parent="."]
 
 [node name="Floor1" type="RayCast2D" parent="FloorRaycasts"]

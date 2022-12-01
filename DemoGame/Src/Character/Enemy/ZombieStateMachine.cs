@@ -70,12 +70,19 @@ namespace Veronenger.Character.Enemy {
 
         public readonly EnemyStatus Status = new();
 
-        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D slopeRaycast, Marker2D marker2D) {
+        public void ApplyDefaultGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public void Start(string name, ZombieController zombie, IFlipper flippers, Marker2D marker2D) {
             _zombieController = zombie;
             zombie.AddChild(this);
 
-            Body.Configure(name, zombie, flippers, null, slopeRaycast, marker2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
-            Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            Body.Configure(name, zombie, flippers, marker2D, MotionConfig.FloorUpDirection);
+            zombie.FloorStopOnSlope = true;
+            // playerController.FloorBlockOnWall = true;
+            zombie.FloorConstantSpeed = true;
+            zombie.FloorSnapLength = MotionConfig.SnapLength;
 
             AddOnExecuteStart((delta, state) => Body.SetDelta(delta));
             AddOnTransition((args) => zombie.Label.Text = args.To.ToString());
@@ -85,16 +92,16 @@ namespace Veronenger.Character.Enemy {
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
                 .OpenBox()
-                    .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-                    .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-                        .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
                 .CloseBox()
                 .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
-                    .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-                .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
+                .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
+                .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor()
                 .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
                 .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
-                .Text("Wall", () => Body.GetWallCollisionInfo());
+                .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor();
 
             On(ZombieEvent.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
             On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
@@ -109,6 +116,7 @@ namespace Veronenger.Character.Enemy {
                     _zombieController.AnimationIdle.PlayLoop();
                 })
                 .Execute(() => {
+                    ApplyDefaultGravity();
                     Body.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
@@ -122,7 +130,8 @@ namespace Veronenger.Character.Enemy {
                 })
                 .Execute(() => {
                     Body.Flip(XInput);
-                    Body.Run(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
+                    ApplyDefaultGravity();
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
@@ -139,8 +148,8 @@ namespace Veronenger.Character.Enemy {
                     StateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
-                    Body.Slide();
+                    ApplyDefaultGravity();
+                    Body.Move();
                 })
                 .If(() => StateTimer.IsAlarm()).Pop()
                 .Build();
@@ -169,9 +178,9 @@ namespace Veronenger.Character.Enemy {
                     // _player.AnimationJump.PlayLoop();
                 })
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
+                    ApplyDefaultGravity();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => MotionY >= 0).Set(ZombieState.FallShort)
@@ -180,9 +189,9 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.FallShort)
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
+                    ApplyDefaultGravity();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(Body.IsOnFloor).Set(ZombieState.Landing)
