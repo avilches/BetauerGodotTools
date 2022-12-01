@@ -52,7 +52,10 @@ namespace Betauer.Application.Monitor {
         }
 
         public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label = "Speed", float limit = 0, string format = "000.00") {
-            if (overlay.Target is not Node2D node2D) throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
+            if (overlay.Target is CharacterBody2D characterBody2D)
+                return overlay.GraphSpeed(label, characterBody2D, limit, format);
+            if (overlay.Target is not Node2D node2D) 
+                throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
             var speedometer2D = Speedometer2D.Position(node2D);
             speedometer2D.UpdateOnPhysicsProcess(node2D);
             return overlay.GraphSpeed(label, speedometer2D, limit, format);
@@ -63,7 +66,19 @@ namespace Betauer.Application.Monitor {
                 .CreateMonitor<MonitorGraph>()
                 .AddSerie()
                 .Load(() => speedometer2D.Speed)
-                .Format((v) => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
+                .Format((v) => $"{speedometer2D.Speed.ToString(format)} {speedometer2D.SpeedVector.ToString(format)}")
+                .SetLabel(label)
+                .EndSerie();
+            if (limit > 0) monitorGraph.Range(0, limit);
+            return monitorGraph;
+        }
+
+        public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label, CharacterBody2D characterBody2D, float limit = 0, string format = "000.00") {
+            var monitorGraph = overlay
+                .CreateMonitor<MonitorGraph>()
+                .AddSerie()
+                .Load(() => characterBody2D.GetRealVelocity().Length())
+                .Format((v) => $"{characterBody2D.GetRealVelocity().Length().ToString(format)} {characterBody2D.GetRealVelocity().ToString(format)}")
                 .SetLabel(label)
                 .EndSerie();
             if (limit > 0) monitorGraph.Range(0, limit);
