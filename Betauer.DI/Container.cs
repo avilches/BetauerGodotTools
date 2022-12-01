@@ -141,6 +141,11 @@ namespace Betauer.DI {
                 context.End();
                 return true;
             }
+            if (CreateIfNotFound) {
+                CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
+                // ReSharper disable once TailRecursiveCall
+                return TryResolve(type, out instance);
+            }
             instance = null;
             return false;
         }

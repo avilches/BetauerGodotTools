@@ -21,9 +21,10 @@ namespace Betauer.Loader {
             progressAction?.Invoke(0f);
             var resourcePaths = resourcePathsToLoadEnum.ToArray();
             var count = 0f;
-            return resourcePaths.Select(r => {
+            return resourcePaths.Select(path => {
                 count++;
-                var resource = ResourceLoader.Load(r);
+                var resource = ResourceLoader.Load(path);
+                if (resource == null) throw new ResourceLoaderException($"Resource {path} not found");
                 progressAction?.Invoke(count / resourcePaths.Length);
                 return resource;
             });

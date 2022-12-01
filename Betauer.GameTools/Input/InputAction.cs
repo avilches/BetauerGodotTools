@@ -306,7 +306,7 @@ namespace Betauer.Input {
 
         private bool ImportKey(string value) {
             try {
-                var key = value.IsValidInteger() ? (Key)value.ToInt() : Parse<Key>(value); 
+                var key = int.TryParse(value, out _) ? (Key)value.ToInt() : Parse<Key>(value); 
                 AddKey(key);
                 return true;
             } catch (Exception) {
@@ -316,7 +316,7 @@ namespace Betauer.Input {
 
         private bool ImportButton(string value) {
             try {
-                var joyButton = value.IsValidInteger() ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
+                var joyButton = int.TryParse(value, out _) ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
                 AddButton(joyButton);
                 return true;
             } catch (Exception) {
@@ -326,7 +326,7 @@ namespace Betauer.Input {
 
         private bool ImportAxis(string value) {
             try {
-                var axis = value.IsValidInteger() ? (JoyAxis)value.ToInt() : Parse<JoyAxis>(value); 
+                var axis = int.TryParse(value, out _) ? (JoyAxis)value.ToInt() : Parse<JoyAxis>(value); 
                 SetAxis(axis);
                 return true;
             } catch (Exception) {
