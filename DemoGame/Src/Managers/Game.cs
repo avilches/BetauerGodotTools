@@ -52,7 +52,7 @@ namespace Veronenger.Managers {
         }
 
         public void End() {
-            _currentGameScene.PrintOrphanNodes();
+            Node.PrintOrphanNodes();
             _currentGameScene.QueueFree();
             _currentGameScene = null;
         }

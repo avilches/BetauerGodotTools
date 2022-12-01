@@ -1,7 +1,7 @@
 #!/usr/bin/env make
 
 TARGET_PLATFORM  := "macos"
-GODOT_APP        := "/Applications/Godot4b6_mono.app"
+GODOT_APP        := "/Applications/Godot4b7_mono.app"
 
 
 

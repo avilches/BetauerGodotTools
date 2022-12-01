@@ -156,4 +156,8 @@ Global
 		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = DemoGame\.run\Editor.run.xml
+		File = DemoGame\.run\Player.run.xml
+	EndGlobalSection
 EndGlobal
