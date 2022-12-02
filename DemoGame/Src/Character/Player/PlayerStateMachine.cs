@@ -51,8 +51,8 @@ namespace Veronenger.Character.Player {
         private AxisAction VerticalMotion => Up.AxisAction;
         private float XInput => LateralMotion.Strength;
         private float YInput => VerticalMotion.Strength;
-        private bool IsRight => XInput > 0;
-        private bool IsLeft => XInput < 0;
+        private bool IsPressingRight => XInput > 0;
+        private bool IsPressingLeft => XInput < 0;
         private bool IsPressingUp => YInput < 0;
         private bool IsPressingDown => YInput > 0;
         private float MotionX => Body.MotionX;
@@ -120,22 +120,6 @@ namespace Veronenger.Character.Player {
                 return true;
             }
 
-            void EnableSlopeStairs() {
-                if (_player.IsOnSlopeStairsDown()) {
-                    if (IsPressingUp) {
-                        _player.EnableSlopeStairs();
-                    } else {
-                        _player.DisableSlopeStairs();
-                    }
-                } else if (_player.IsOnSlopeStairsUp()) {
-                    if (IsPressingDown) {
-                        _player.EnableSlopeStairs();
-                    } else {
-                        _player.DisableSlopeStairs();
-                    }
-                }
-            }
-
             On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
 
             State(PlayerState.Landing)
@@ -162,10 +146,6 @@ namespace Veronenger.Character.Player {
             State(PlayerState.Idle)
                 .Enter(() => {
                     _player.AnimationIdle.PlayLoop();
-                    if (Body.IsOnSlope()) {
-                        // Stop go down fast when the player lands in a slope
-                        Body.MotionX = 0;
-                    }
                 })
                 .Execute(() => {
                     CheckGroundAttack();
@@ -188,9 +168,6 @@ namespace Veronenger.Character.Player {
                 })
                 .Execute(() => {
                     CheckGroundAttack();
-
-                    // Suelo + no salto + movimiento/inercia
-                    EnableSlopeStairs();
 
                     ApplyDefaultGravity();
                     if (_player.IsAttacking) {

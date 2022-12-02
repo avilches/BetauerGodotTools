@@ -17,9 +17,7 @@ namespace Veronenger.Managers {
         [Load("res://Scenes/UI/RedefineActionButton.tscn")]
         public Func<RedefineActionButton> RedefineActionButtonFactory;
         
-        // [Load("res://Worlds/World1.tscn")] public Func<Node> CreateWorld1;
-        [Load("res://Worlds/World3.tscn")] public Func<Node> CreateWorld2;
-        // [Load("res://Worlds/World2-empty.tscn")] public Func<Node> CreateWorld2Empty;
+        [Load("res://Worlds/World3.tscn")] public Func<Node> CreateWorld3;
 
         [Load("res://Scenes/Player.tscn")] public Func<Node2D> CreatePlayer;
 

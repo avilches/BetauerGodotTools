@@ -11,9 +11,15 @@ namespace Veronenger.Managers {
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private StageManager StageManager { get; set; }
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
+        [Inject] private PlatformManager PlatformManager { get; set; }
+        
         
         private Node _currentGameScene;
         private Node2D _playerScene;
+
+        public void Start() {
+            StartWorld3();
+        }
 
         public void StartNew() {
             // _currentGameScene = MainResourceLoader.CreateWorld2Empty();
@@ -23,8 +29,11 @@ namespace Veronenger.Managers {
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }
 
-        public void Start() {
-            _currentGameScene = MainResourceLoader.CreateWorld2();
+        public void StartWorld3() {
+            _currentGameScene = MainResourceLoader.CreateWorld3();
+
+            var tileMap = _currentGameScene.GetNode<TileMap>("TileMap");
+            PlatformManager.ConfigureTileMapCollision(tileMap);
             AddPlayerToScene(_currentGameScene);
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }
@@ -37,7 +46,7 @@ namespace Veronenger.Managers {
             _currentGameScene = nextScene;
             SceneTree.Root.AddChildDeferred(nextScene);
         }
-        
+
         private void AddPlayerToScene(Node nextScene) {
             var marker2D = nextScene.GetNode<Node2D>("PositionPlayer");
             if (marker2D == null) throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.SceneFilePath);

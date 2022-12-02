@@ -1,6 +1,7 @@
 using Godot;
 using Betauer;
 using Betauer.Bus.Signal;
+using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.Tools.Logging;
 using Veronenger.Controller.Stage;
@@ -30,7 +31,7 @@ namespace Veronenger.Managers {
             _exitStageTopic.Connect(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
-            stageArea2D.SetCollisionLayerValue(LayerPlayerStageDetector, true);
+            stageArea2D.AddToLayer(LayerPlayerStageDetector);
         }
 
         public void OnEnterStage(Area2D stageEnteredArea2D, Area2D stageDetector) {

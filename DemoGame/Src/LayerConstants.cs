@@ -1,8 +1,6 @@
 namespace Veronenger {
     public static class LayerConstants {
         public const int LayerRegularPlatform = 1;
-        public const int LayerSlopeStairs = 2;
-        public const int LayerSlopeStairsCover = 3;
         public const int LayerFallPlatform = 4;
         // public const int LayerPlayer = 10;
         public const int LayerEnemy = 11;

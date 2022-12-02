@@ -41,7 +41,6 @@ namespace Veronenger.Controller.Character {
 
 		[Inject] private PlatformManager PlatformManager { get; set; }
 		[Inject] private CharacterManager CharacterManager { get; set; }
-		[Inject] private SlopeStairsManager SlopeStairsManager { get; set; }
 		[Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
 		[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
@@ -56,11 +55,6 @@ namespace Veronenger.Controller.Character {
 		public ILoopStatus DangerTween;
 		public IOnceStatus SqueezeTween;
 
-		/**
-		 * The Player needs to know if its body is overlapping the StairsUp and StairsDown.
-		 */
-		public bool IsOnSlopeStairsUp() => SlopeStairsManager.UpOverlap(this);
-		public bool IsOnSlopeStairsDown() => SlopeStairsManager.DownOverlap(this);
 		private DragCameraController _cameraController;
 		private AnimationStack _animationStack;
 		private AnimationStack _tweenStack;
@@ -97,9 +91,6 @@ namespace Veronenger.Controller.Character {
 			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea);
 			_attackArea.Monitoring = false;
 			// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
-
-			SlopeStairsManager.SubscribeSlopeStairsEnabler(this, (area2D) => EnableSlopeStairs());
-			SlopeStairsManager.SubscribeSlopeStairsDisabler(this, (area2D) => DisableSlopeStairs());
 
 			PlatformManager.SubscribeFallingPlatformOut(this, (area2D) => {
 				PlatformManager.BodyStopFallFromPlatform(this);
@@ -168,16 +159,6 @@ namespace Veronenger.Controller.Character {
 				.EndAnimate()
 				.SetLoops(2);
 			return seq;
-		}
-
-		public void EnableSlopeStairs() {
-			SlopeStairsManager.DisableSlopeStairsCoverForBody(this);
-			SlopeStairsManager.EnableSlopeStairsForBody(this);
-		}
-
-		public void DisableSlopeStairs() {
-			SlopeStairsManager.EnableSlopeStairsCoverForBody(this);
-			SlopeStairsManager.DisableSlopeStairsForBody(this);
 		}
 
 		public override void _Input(InputEvent e) {
