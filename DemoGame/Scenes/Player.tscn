@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://Src/Controller/Character/PlayerController.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://be6ln20ldxv2h" path="res://Characters/Player-heroine/run.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://ccomndmgo8gbx" path="res://Characters/Player-heroine/idle.png" id="3"]
-[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
 [ext_resource type="Texture2D" uid="uid://y06xdeo3475b" path="res://Characters/Player-heroine/jump.png" id="4"]
 [ext_resource type="Script" path="res://Src/Controller/Stage/StageCameraController.cs" id="5"]
 [ext_resource type="Texture2D" uid="uid://cur1u2umtfp2h" path="res://Characters/Player-heroine/attack.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://wx17wyrajir7" path="res://Characters/Player-heroine/jump-attack.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="9_vfn0h"]
 
 [sub_resource type="RectangleShape2D" id="2"]
 size = Vector2(14, 40)
@@ -322,15 +322,16 @@ _data = {
 "Run": SubResource("8")
 }
 
-[sub_resource type="RectangleShape2D" id="9"]
-size = Vector2(1, 28)
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_xcg3o"]
+a = Vector2(0, -16)
+b = Vector2(0, 25)
 
 [sub_resource type="CapsuleShape2D" id="10"]
-radius = 7.0
-height = 28.0
+radius = 5.0
+height = 38.0
 
 [node name="PlayerBody" type="CharacterBody2D"]
-collision_layer = 1024
+collision_layer = 0
 collision_mask = 0
 script = ExtResource("1")
 
@@ -341,16 +342,14 @@ current = true
 script = ExtResource("5")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
 position = Vector2(0, -20)
 shape = SubResource("2")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(83.4929, -10.62)
-texture = ExtResource("7")
+texture = ExtResource("3")
 offset = Vector2(-83.4929, -21.38)
-hframes = 3
-frame = 1
+hframes = 4
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 libraries = {
@@ -380,7 +379,7 @@ collision_layer = 0
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Detector"]
-shape = SubResource("9")
+shape = SubResource("SegmentShape2D_xcg3o")
 
 [node name="AttackArea" type="Area2D" parent="."]
 collision_layer = 0
@@ -400,4 +399,11 @@ shape = SubResource("10")
 
 [node name="PlayerNode" type="Node2D" parent="."]
 
-[node name="ConsoleButton" parent="." instance=ExtResource("3_svs2b")]
+[node name="Light" type="PointLight2D" parent="."]
+position = Vector2(0, -20)
+color = Color(1, 0.811765, 0.717647, 1)
+blend_mode = 2
+shadow_enabled = true
+shadow_filter_smooth = 5.0
+texture = ExtResource("9_vfn0h")
+texture_scale = 0.25

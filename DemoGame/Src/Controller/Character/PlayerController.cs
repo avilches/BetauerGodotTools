@@ -13,7 +13,6 @@ using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Core.Restorer;
 using Veronenger.Character.Player;
-using Veronenger.Controller.UI.Consoles;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Character {
@@ -33,7 +32,6 @@ namespace Veronenger.Controller.Character {
 		[OnReady("RichTextLabel")] public RichTextLabel Label;
 		[OnReady("Detector")] public Area2D PlayerDetector;
 		[OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
-		[OnReady("ConsoleButton")] private ConsoleButton _consoleButton;
 		[OnReady("Camera2D")] private Camera2D _camera2D;
 
 		[OnReady("Marker2D")] public Marker2D Marker2D;
@@ -89,6 +87,8 @@ namespace Veronenger.Controller.Character {
 			CharacterManager.RegisterPlayerController(this);
 			CharacterManager.ConfigurePlayerCollisions(this);
 			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea);
+			this.AddToLayer(LayerConstants.LayerPlayer);
+			
 			_attackArea.Monitoring = false;
 			// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
@@ -162,14 +162,6 @@ namespace Veronenger.Controller.Character {
 		}
 
 		public override void _Input(InputEvent e) {
-			if (e.IsAnyButton()) {
-				_consoleButton.SetButton(e.GetButton(), e.IsPressed());
-				if (e.IsPressed()) {
-					_consoleButton.Modulate = Colors.White;
-				} else {
-					Templates.FadeOut.Play(_consoleButton, 0, 0.6f);
-				}
-			}
 			if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
 			if (e.IsKeyPressed(Key.Q)) {
 				// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);

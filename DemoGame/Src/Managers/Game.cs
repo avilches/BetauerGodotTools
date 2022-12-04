@@ -1,7 +1,10 @@
 using System;
+using System.Linq;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 using Godot;
+using Veronenger.Controller.Character;
 
 namespace Veronenger.Managers {
 
@@ -32,10 +35,32 @@ namespace Veronenger.Managers {
         public void StartWorld3() {
             _currentGameScene = MainResourceLoader.CreateWorld3();
 
-            var tileMap = _currentGameScene.GetNode<TileMap>("TileMap");
-            PlatformManager.ConfigureTileMapCollision(tileMap);
+            _currentGameScene.GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
+            _currentGameScene.GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
+            _currentGameScene.GetNode<Node>("Lights").GetChildren().OfType<PointLight2D>().ForEach(light => {
+                if (light.Name.ToString().StartsWith("Candle")) {
+                    CandleOff(light);
+                }
+            });
             AddPlayerToScene(_currentGameScene);
             SceneTree.Root.AddChildDeferred(_currentGameScene);
+        }
+
+        private void CandleOff(PointLight2D light) {
+            light.Enabled = true;
+            light.Color = new Color("ffd1c8");
+            light.TextureScale = 0.2f;
+            light.ShadowEnabled = true;
+            light.ShadowFilter = Light2D.ShadowFilterEnum.None;
+            light.GetNode<Area2D>("Area2D")
+                ?.OnBodyEntered(LayerConstants.LayerPlayer, (PlayerController player) => CandleOn(light));
+        }
+
+        private void CandleOn(PointLight2D light) {
+            light.Enabled = true;
+            light.Color = new Color("ffd1c8");
+            light.TextureScale = 0.8f;
+            // light.ShadowEnabled = false;
         }
 
         public void QueueChangeSceneWithPlayer(string sceneName) {

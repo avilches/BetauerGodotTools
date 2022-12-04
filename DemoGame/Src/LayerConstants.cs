@@ -2,7 +2,7 @@ namespace Veronenger {
     public static class LayerConstants {
         public const int LayerRegularPlatform = 1;
         public const int LayerFallPlatform = 4;
-        // public const int LayerPlayer = 10;
+        public const int LayerPlayer = 10;
         public const int LayerEnemy = 11;
         public const int LayerPlayerStageDetector = 12; // this should be a 1px vertical line
     }
