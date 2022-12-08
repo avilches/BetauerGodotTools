@@ -1,10 +1,9 @@
-[gd_scene load_steps=19 format=3 uid="uid://b8qpyxwnc1oyv"]
+[gd_scene load_steps=18 format=3 uid="uid://b8qpyxwnc1oyv"]
 
 [ext_resource type="Script" path="res://Src/Controller/Character/PlayerController.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://be6ln20ldxv2h" path="res://Characters/Player-heroine/run.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://ccomndmgo8gbx" path="res://Characters/Player-heroine/idle.png" id="3"]
 [ext_resource type="Texture2D" uid="uid://y06xdeo3475b" path="res://Characters/Player-heroine/jump.png" id="4"]
-[ext_resource type="Script" path="res://Src/Controller/Stage/StageCameraController.cs" id="5"]
 [ext_resource type="Texture2D" uid="uid://cur1u2umtfp2h" path="res://Characters/Player-heroine/attack.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://wx17wyrajir7" path="res://Characters/Player-heroine/jump-attack.png" id="7"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="9_vfn0h"]
@@ -339,7 +338,6 @@ script = ExtResource("1")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 current = true
-script = ExtResource("5")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -20)

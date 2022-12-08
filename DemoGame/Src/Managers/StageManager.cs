@@ -1,10 +1,9 @@
+using System;
 using Godot;
-using Betauer;
 using Betauer.Bus.Signal;
 using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.Tools.Logging;
-using Veronenger.Controller.Stage;
 using static Veronenger.LayerConstants;
 
 namespace Veronenger.Managers {
@@ -12,71 +11,75 @@ namespace Veronenger.Managers {
     [Service]
     public class StageManager {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(StageManager));
-        private Stage _enteredStage;
+        private Area2D? _enteredStage;
         private bool _exitedStage;
-        private Stage _currentStage;
-        private StageCameraController _stageCameraController;
+        private Area2D? _currentStage;
+        private Camera2D _camera2D;
+        private bool IsValidStageChange => _exitedStage && _enteredStage != null;
 
         private readonly AreaOnArea2DEntered.Unicast _enterStageTopic = new("StageTopic");
         private readonly AreaOnArea2DExited.Unicast _exitStageTopic = new("StageTopic");
 
-        public void ConfigureStageCamera(StageCameraController stageCameraController, Area2D stageDetector) {
-            _stageCameraController = stageCameraController;
-            _enterStageTopic.Subscribe(OnEnterStage).WithFilter(stageDetector);
-            _exitStageTopic.Subscribe(OnExitStage).WithFilter(stageDetector);
+        public void ConfigureStageCamera(Camera2D stageCameraController, Area2D stageDetector) {
+            _camera2D = stageCameraController;
+            stageDetector.OnAreaEntered(LayerPlayerStageDetector, OnEnterStage);
+            stageDetector.OnAreaExited(LayerPlayerStageDetector, OnExitStage);
         }
 
         public void ConfigureStage(Area2D stageArea2D) {
-            _enterStageTopic.Connect(stageArea2D);
-            _exitStageTopic.Connect(stageArea2D);
+            ValidateStageArea2D(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
             stageArea2D.AddToLayer(LayerPlayerStageDetector);
         }
 
-        public void OnEnterStage(Area2D stageEnteredArea2D, Area2D stageDetector) {
-            var stageToEnter = new Stage(stageEnteredArea2D);
-            var stageDetectorName = stageDetector.Name;
+        private void ValidateStageArea2D(Area2D area2D) {
+            var childCount = area2D.GetChildCount();
+            if (childCount != 1) {
+                throw new Exception(
+                    $"Stage {area2D.Name} has {childCount} children. It should have only 1 RectangleShape2D");
+            }
+            var nodeChild = area2D.GetChild(0);
+            if (nodeChild is CollisionShape2D collisionShape2D && collisionShape2D.Shape is RectangleShape2D) {
+                return;
+            }
+            throw new Exception(
+                $"Stage {area2D.Name}/{nodeChild.Name} is not a CollisionShape2D with a RectangleShape2D shape");
+        }
+
+        public void OnEnterStage(Area2D stageToEnter) {
             if (_currentStage == null) {
-                Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" and no current stage: changing now");
                 ChangeStage(stageToEnter);
                 return;
             }
-            if (stageEnteredArea2D.Equals(_currentStage.Area2D)) {
-                Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\" but it's the same as current stage: ignoring!");
-                return;
-            }
-            Logger.Debug($"\"{stageDetectorName}\" entered to \"{stageEnteredArea2D.Name}\". Transition enter is ok.");
             _enteredStage = stageToEnter;
-            CheckChangeStage(stageDetectorName, false);
-        }
-
-        public void OnExitStage(Area2D stageExitedArea2D, Area2D stageDetector) {
-            var stageDetectorName = stageDetector.Name;
-            var stageExitedName = stageExitedArea2D.Name;
-            if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage.Area2D)) {
-                _enteredStage = null;
-                _exitedStage = false;
-                Logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\" == entered stage. Rollback whole transition.");
-            }
-            Logger.Debug($"\"{stageDetectorName}\" exited from \"{stageExitedName}\". Transition exit is ok.");
-            _exitedStage = true;
-            CheckChangeStage(stageDetectorName, true);
-        }
-
-        private void CheckChangeStage(string stageDetectorName, bool enterFirstThenExit) {
-            if (_exitedStage && _enteredStage != null) {
-                var reversedFirstExitThenEnter = enterFirstThenExit ? "" : " REVERSED (first exit -> then enter)";
-                Logger.Debug($"\"{stageDetectorName}\" transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" {reversedFirstExitThenEnter}");
+            if (IsValidStageChange) {
+                Logger.Debug($"Transition finished. Exit: \"{_currentStage.Name}\" -> Enter: \"{_enteredStage.Name}\" REVERSED (first exit -> then enter)");
                 ChangeStage(_enteredStage);
             }
         }
 
-        private void ChangeStage(Stage newStage) {
+        public void OnExitStage(Area2D stageExitedArea2D) {
+            if (_enteredStage != null && stageExitedArea2D.Equals(_enteredStage)) {
+                _enteredStage = null;
+                _exitedStage = false;
+            }
+            _exitedStage = true;
+            if (IsValidStageChange) {
+                Logger.Debug($"Transition finished. Exit: \"{_currentStage!.Name}\" -> Enter: \"{_enteredStage!.Name}\"");
+                ChangeStage(_enteredStage);
+            }
+        }
+
+        private void ChangeStage(Area2D newStage) {
+            ClearTransition();
             _currentStage = newStage;
-            _enteredStage = null;
-            _exitedStage = false;
-            _stageCameraController.ChangeStage(_currentStage.CreateAbsoluteRect2());
+            var rect2 = CreateAbsoluteRect2(_currentStage);
+            Logger.Debug($"Camera {rect2.Position} {rect2.End}");
+            _camera2D.LimitLeft = (int)rect2.Position.x;
+            _camera2D.LimitTop = (int)rect2.Position.y;
+            _camera2D.LimitRight = (int)rect2.End.x;
+            _camera2D.LimitBottom = (int)rect2.End.y;
         }
 
         public void ClearTransition() {
@@ -84,22 +87,11 @@ namespace Veronenger.Managers {
             _currentStage = null;
             _enteredStage = null;
         }
-    }
-
-    public class Stage {
-        public readonly Area2D Area2D;
-        public readonly string Name;
-
-        public Rect2 CreateAbsoluteRect2() {
+        
+        public Rect2 CreateAbsoluteRect2(Area2D Area2D) {
             RectangleShape2D shape2D = (Area2D.GetChild(0) as CollisionShape2D)?.Shape as RectangleShape2D;
-            // TODO Godot 4
-            // return new Rect2(Area2D.GlobalPosition - shape2D.Extents, shape2D.Extents * 2f);
             return new Rect2(Area2D.GlobalPosition - shape2D.Size / 2, shape2D.Size);
         }
 
-        public Stage(Area2D area2D) {
-            Area2D = area2D;
-            Name = area2D.Name;
-        }
     }
 }

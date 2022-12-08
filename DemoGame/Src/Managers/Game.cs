@@ -16,9 +16,8 @@ namespace Veronenger.Managers {
         [Inject] private MainResourceLoader MainResourceLoader { get; set; }
         [Inject] private PlatformManager PlatformManager { get; set; }
         
-        
         private Node _currentGameScene;
-        private Node2D _playerScene;
+        private PlayerController _playerScene;
 
         public void Start() {
             StartWorld3();
@@ -42,7 +41,9 @@ namespace Veronenger.Managers {
                     CandleOff(light);
                 }
             });
+            _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
             AddPlayerToScene(_currentGameScene);
+            
             SceneTree.Root.AddChildDeferred(_currentGameScene);
         }
 

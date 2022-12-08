@@ -2,6 +2,7 @@ using System;
 using Betauer.DI;
 using Betauer.Loader;
 using Godot;
+using Veronenger.Controller.Character;
 using Veronenger.Controller.UI;
 
 namespace Veronenger.Managers {
@@ -19,7 +20,7 @@ namespace Veronenger.Managers {
         
         [Load("res://Worlds/World3.tscn")] public Func<Node> CreateWorld3;
 
-        [Load("res://Scenes/Player.tscn")] public Func<Node2D> CreatePlayer;
+        [Load("res://Scenes/Player.tscn")] public Func<PlayerController> CreatePlayer;
 
         [Load("res://Assets/UI/my_theme.tres")] public Theme MyTheme;
         

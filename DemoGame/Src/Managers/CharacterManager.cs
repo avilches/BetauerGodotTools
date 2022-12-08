@@ -33,9 +33,6 @@ namespace Veronenger.Managers {
                 rayCast2D.DetectLayer(LayerFallPlatform);
             });
             
-            playerController.PlayerDetector.CollisionLayer = 0;
-            playerController.PlayerDetector.CollisionMask = 0;
-            playerController.PlayerDetector.DetectLayer(LayerPlayerStageDetector);
         }
 
         public void ConfigurePlayerAttackArea2D(Area2D attackArea2D) {
@@ -83,7 +80,7 @@ namespace Veronenger.Managers {
         public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
             sceneChangeArea2D.CollisionLayer = 0;
             sceneChangeArea2D.CollisionMask = 0;
-            sceneChangeArea2D.AddToLayer(LayerPlayerStageDetector);
+            sceneChangeArea2D.DetectLayer(LayerPlayerStageDetector);
             sceneChangeArea2D.OnAreaEntered((player) => Game.QueueChangeSceneWithPlayer(scene));
         }
     }

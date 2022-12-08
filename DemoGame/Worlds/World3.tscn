@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cm161vuipf1uh"]
+[gd_scene load_steps=11 format=3 uid="uid://cm161vuipf1uh"]
 
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
 [ext_resource type="PackedScene" uid="uid://djnw3c8f2iq4d" path="res://Scenes/Zombie.tscn" id="3_ailyd"]
@@ -17,6 +17,9 @@ polygon = PackedVector2Array(-395, 23, -395, 27, -466, 28, -466, 86, -172, 85, -
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_65pi2"]
 polygon = PackedVector2Array(-479, 6, -479, 13, -416, 13, -416, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5fj3v"]
+size = Vector2(960, 540)
 
 [node name="World3" type="Node2D"]
 
@@ -171,3 +174,33 @@ occluder = SubResource("OccluderPolygon2D_y1eih")
 
 [node name="LightOccluder2D" type="LightOccluder2D" parent="Shadows"]
 occluder = SubResource("OccluderPolygon2D_65pi2")
+
+[node name="Stages" type="Node" parent="."]
+
+[node name="Area2D1" type="Area2D" parent="Stages"]
+visible = false
+position = Vector2(-960, -340)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D1"]
+shape = SubResource("RectangleShape2D_5fj3v")
+
+[node name="Area2D3" type="Area2D" parent="Stages"]
+visible = false
+position = Vector2(0, -340)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D3"]
+shape = SubResource("RectangleShape2D_5fj3v")
+
+[node name="Area2D4" type="Area2D" parent="Stages"]
+visible = false
+position = Vector2(-960, 200)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D4"]
+shape = SubResource("RectangleShape2D_5fj3v")
+
+[node name="Area2D5" type="Area2D" parent="Stages"]
+visible = false
+position = Vector2(0, 200)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D5"]
+shape = SubResource("RectangleShape2D_5fj3v")

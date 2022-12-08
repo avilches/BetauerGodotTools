@@ -41,6 +41,7 @@ namespace Veronenger.Controller.Character {
 		[Inject] private CharacterManager CharacterManager { get; set; }
 		[Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
 		[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+		[Inject] private StageManager StageManager { get; set; }
 
 		public ILoopStatus AnimationIdle { get; private set; }
 		public ILoopStatus AnimationRun { get; private set; }
@@ -87,6 +88,13 @@ namespace Veronenger.Controller.Character {
 			CharacterManager.RegisterPlayerController(this);
 			CharacterManager.ConfigurePlayerCollisions(this);
 			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea);
+
+			PlayerDetector.CollisionLayer = 0;
+			PlayerDetector.CollisionMask = 0;
+			
+			StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
+			
+			
 			this.AddToLayer(LayerConstants.LayerPlayer);
 			
 			_attackArea.Monitoring = false;
