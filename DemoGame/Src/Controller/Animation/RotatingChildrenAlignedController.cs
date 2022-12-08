@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
@@ -33,7 +34,7 @@ namespace Veronenger.Controller.Animation {
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.Play();
 
-            _platforms = this.GetChildren<PhysicsBody2D>();
+            _platforms = this.GetChildren().OfType<PhysicsBody2D>().ToList();
             // var lastPlatform = _platforms.Last();
             // DebugOverlayManager.Overlay(lastPlatform).GraphSpeed().SetChartSize(200, 50);
         }

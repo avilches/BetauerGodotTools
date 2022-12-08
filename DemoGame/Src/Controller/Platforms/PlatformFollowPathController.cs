@@ -24,9 +24,9 @@ namespace Veronenger.Controller.Platforms {
 			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
-				var path2D = this.GetNode<Path2D>();
+				var path2D = this.FirstNode<Path2D>();
 				if (path2D != null) {
-					PathFollow2D = path2D.GetNode<PathFollow2D>();
+					PathFollow2D = path2D.FirstNode<PathFollow2D>();
 				}
 			}
 

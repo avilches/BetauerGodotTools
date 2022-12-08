@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -17,8 +18,16 @@ namespace Betauer.Core.Nodes {
             });
         }
 
-        public static T? GetNode<T>(this Node parent) where T : Node {
-            return parent.GetChildren().OfType<T>().First();
+        public static T FirstNode<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
+            return predicate != null ? 
+                parent.GetChildren().OfType<T>().First(predicate) : 
+                parent.GetChildren().OfType<T>().First();
+        }
+
+        public static T? FirstNodeOrNull<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
+            return predicate != null ? 
+                parent.GetChildren().OfType<T>().FirstOrDefault(predicate) : 
+                parent.GetChildren().OfType<T>().FirstOrDefault();
         }
 
         public static Node AddChildDeferred(this Node parent, Node child) {
@@ -29,10 +38,6 @@ namespace Betauer.Core.Nodes {
         public static Node RemoveChildDeferred(this Node parent, Node child) {
             parent.CallDeferred("remove_child", child);
             return parent;
-        }
-
-        public static List<T> GetChildren<T>(this Node parent) where T : class {
-            return parent.GetChildren().OfType<T>().ToList();
         }
 
         public static void DisableAllNotifications(this Node node) {

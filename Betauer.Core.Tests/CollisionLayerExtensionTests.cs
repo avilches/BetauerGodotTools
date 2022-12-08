@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests; 
 
 [TestFixture]
-[Only]
 public class CollisionLayerExtensionTests {
 
     [Test]

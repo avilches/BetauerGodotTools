@@ -399,7 +399,7 @@ namespace Betauer.UI {
         }
 
         public List<Control> GetChildren() {
-            return Container.GetChildren<Control>();
+            return Container.GetChildren().OfType<Control>().ToList();
         }
 
         public BaseButton? GetChildFocused() {

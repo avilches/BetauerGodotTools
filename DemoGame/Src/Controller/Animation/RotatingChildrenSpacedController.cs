@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
@@ -24,7 +25,7 @@ namespace Veronenger.Controller.Animation {
         private void RotateSpaced(float angle) => RotateSpaced(_platforms, angle, Radius);
 
         public override void _Ready() {
-            _platforms = this.GetChildren<PhysicsBody2D>();
+            _platforms = this.GetChildren().OfType<PhysicsBody2D>().ToList();
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence = SequenceAnimation.Create(this)
                 .SetProcessMode(Tween.TweenProcessMode.Physics)

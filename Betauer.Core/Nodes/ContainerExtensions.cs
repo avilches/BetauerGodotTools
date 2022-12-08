@@ -89,7 +89,7 @@ namespace Betauer.Core.Nodes {
                         control.Position.y + control.Size.y <= bottomVisible)
                     .ToList();
             }
-            return container.GetChildren<T>();
+            return container.GetChildren().OfType<T>().ToList();
         }
         
         /// <summary>

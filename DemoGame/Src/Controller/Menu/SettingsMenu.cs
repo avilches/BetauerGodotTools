@@ -272,8 +272,7 @@ namespace Veronenger.Controller.Menu {
 		private void RedefineControlFromInputEvent(InputEvent e) {
 			if (!e.IsKey(Key.Escape)) {
 				if (_redefineButtonSelected!.IsKey && e.IsAnyKey() && !e.IsKey(Key.Escape)) {
-					var otherRedefine = _keyboardControls.GetChildren<RedefineActionButton>()
-						.Find(r => r.InputAction.HasKey(e.GetKey()));
+					var otherRedefine = _keyboardControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasKey(e.GetKey()));
 					if (otherRedefine != null && otherRedefine != _redefineButtonSelected) {
 						// Swap: set to the other the current key
 						otherRedefine.InputAction.ClearKeys().AddKey(_redefineButtonSelected!.InputAction.Keys[0]).Save().Setup();
@@ -282,8 +281,7 @@ namespace Veronenger.Controller.Menu {
 					_redefineButtonSelected!.InputAction.ClearKeys().AddKey(e.GetKey()).Save().Setup();
 					_redefineButtonSelected.Refresh();
 				} else if (_redefineButtonSelected!.IsButton && e.IsAnyButton()) {
-					var otherRedefine = _gamepadControls.GetChildren<RedefineActionButton>()
-						.Find(r => r.InputAction.HasButton(e.GetButton()));
+					var otherRedefine = _gamepadControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasButton(e.GetButton()));
 					if (otherRedefine != null && otherRedefine != _redefineButtonSelected) {
 						// Swap: set to the other the current key
 						otherRedefine.InputAction.ClearButtons().AddButton(_redefineButtonSelected!.InputAction.Buttons[0]).Save().Setup();

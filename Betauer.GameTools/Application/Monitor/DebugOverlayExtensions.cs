@@ -264,7 +264,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.SetStrategy(DoNothingStrategy.Instance);
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.ScreenStrategy is DoNothingStrategy)
                     .End()
@@ -272,7 +272,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.SetStrategy(FixedViewportStrategy.Instance);
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.ScreenStrategy is FixedViewportStrategy)
                     .End()
@@ -280,7 +280,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.SetStrategy(ResizeViewportStrategy.Instance);
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeViewportStrategy)
                     .End()
@@ -288,7 +288,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.SetStrategy(ResizeIntegerScaledStrategy.Instance);
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeIntegerScaledStrategy)
                     .End()
@@ -299,7 +299,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Disabled;
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Disabled)
                     .End()
@@ -307,7 +307,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.CanvasItems;
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.CanvasItems)
                     .End()
@@ -315,7 +315,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Viewport;
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Viewport)
                     .End()
@@ -326,7 +326,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Ignore;
                             screenSettingsManager.ScreenService.Apply();
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Ignore)
                     .End()
@@ -334,7 +334,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Expand;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Expand)
                     .End()
@@ -342,7 +342,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Keep;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Keep)
                     .End()
@@ -350,7 +350,7 @@ namespace Betauer.Application.Monitor {
                         (button) => {
                             screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.KeepHeight;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
                         () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.KeepHeight)
                     .End()

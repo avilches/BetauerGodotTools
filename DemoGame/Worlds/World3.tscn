@@ -21,6 +21,7 @@ polygon = PackedVector2Array(-479, 6, -479, 13, -416, 13, -416, 6)
 [node name="World3" type="Node2D"]
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
+visible = false
 color = Color(0.0862745, 0.0862745, 0.0862745, 1)
 
 [node name="PositionPlayer" type="Marker2D" parent="."]
