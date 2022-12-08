@@ -132,8 +132,7 @@ public static class CollisionLayerExtensions {
     }
 
     public static void AddToLayer(this TileMap tileMap, int tileSetPhysicsLayer, int layer) {
-        var mask = tileMap.TileSet.GetPhysicsLayerCollisionLayer(tileSetPhysicsLayer);
-        mask |= (uint)1 << (layer - 1);
+        var mask = BitTools.EnableBit(tileMap.TileSet.GetPhysicsLayerCollisionLayer(tileSetPhysicsLayer), (uint)layer);
         tileMap.TileSet.SetPhysicsLayerCollisionLayer(tileSetPhysicsLayer, mask);
     }
 
@@ -147,9 +146,7 @@ public static class CollisionLayerExtensions {
         o.SetCollisionLayerValue(layer, false);
 
     public static void RemoveFromLayer(this TileMap tileMap, int tileSetPhysicsLayer, int layer) {
-        var mask = tileMap.TileSet.GetPhysicsLayerCollisionLayer(tileSetPhysicsLayer);
-        var layerMask = (uint)1 << (layer - 1);
-        mask &= ~layerMask;
+        var mask = BitTools.DisableBit(tileMap.TileSet.GetPhysicsLayerCollisionLayer(tileSetPhysicsLayer), (uint)layer);
         tileMap.TileSet.SetPhysicsLayerCollisionLayer(tileSetPhysicsLayer, mask);
     }
 
@@ -186,8 +183,7 @@ public static class CollisionLayerExtensions {
     }
 
     public static void DetectLayer(this TileMap tileMap, int tileSetPhysicsLayer, int layer) {
-        var mask = tileMap.TileSet.GetPhysicsLayerCollisionMask(tileSetPhysicsLayer);
-        mask |= (uint)1 << (layer - 1);
+        var mask = BitTools.EnableBit(tileMap.TileSet.GetPhysicsLayerCollisionMask(tileSetPhysicsLayer), (uint)layer);
         tileMap.TileSet.SetPhysicsLayerCollisionMask(tileSetPhysicsLayer, mask);
     }
 
@@ -216,11 +212,8 @@ public static class CollisionLayerExtensions {
         o.SetCollisionMaskValue(layer, false);
 
     public static void IgnoreLayer(this TileMap tileMap, int tileSetPhysicsLayer, int layer) {
-        var mask = tileMap.TileSet.GetPhysicsLayerCollisionMask(tileSetPhysicsLayer);
-        var layerMask = (uint)1 << (layer - 1);
-        mask &= ~layerMask;
+        var mask = BitTools.DisableBit(tileMap.TileSet.GetPhysicsLayerCollisionMask(tileSetPhysicsLayer), (uint)layer);
         tileMap.TileSet.SetPhysicsLayerCollisionMask(tileSetPhysicsLayer, mask);
-        
     }
     
 }
