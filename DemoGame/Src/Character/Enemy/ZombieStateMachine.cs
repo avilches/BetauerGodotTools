@@ -70,7 +70,11 @@ namespace Veronenger.Character.Enemy {
 
         public readonly EnemyStatus Status = new();
 
-        public void ApplyDefaultGravity(float factor = 1.0F) {
+        public void ApplyFloorGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public void ApplyAirGravity(float factor = 1.0F) {
             Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
         }
 
@@ -116,7 +120,7 @@ namespace Veronenger.Character.Enemy {
                     _zombieController.AnimationIdle.PlayLoop();
                 })
                 .Execute(() => {
-                    ApplyDefaultGravity();
+                    ApplyFloorGravity();
                     Body.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
@@ -130,7 +134,7 @@ namespace Veronenger.Character.Enemy {
                 })
                 .Execute(() => {
                     Body.Flip(XInput);
-                    ApplyDefaultGravity();
+                    ApplyFloorGravity();
                     Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
@@ -148,7 +152,7 @@ namespace Veronenger.Character.Enemy {
                     StateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(() => {
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Move();
                 })
                 .If(() => StateTimer.IsAlarm()).Pop()
@@ -178,7 +182,7 @@ namespace Veronenger.Character.Enemy {
                     // _player.AnimationJump.PlayLoop();
                 })
                 .Execute(() => {
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Flip(XInput);
                     Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
@@ -189,7 +193,7 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.FallShort)
                 .Execute(() => {
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Flip(XInput);
                     Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);

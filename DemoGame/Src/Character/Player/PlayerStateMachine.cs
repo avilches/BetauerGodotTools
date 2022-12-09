@@ -111,7 +111,11 @@ namespace Veronenger.Character.Player {
             // debugOverlay.AddChild(new Consol);
         }
 
-        public void ApplyDefaultGravity(float factor = 1.0F) {
+        public void ApplyFloorGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public void ApplyAirGravity(float factor = 1.0F) {
             Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
         }
 
@@ -152,7 +156,7 @@ namespace Veronenger.Character.Player {
                 })
                 .Execute(() => {
                     CheckGroundAttack();
-                    ApplyDefaultGravity();
+                    ApplyFloorGravity();
                     Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(PlayerState.FallShort)
@@ -172,7 +176,7 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     CheckGroundAttack();
 
-                    ApplyDefaultGravity();
+                    ApplyFloorGravity();
                     if (_player.IsAttacking) {
                         Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
@@ -241,7 +245,7 @@ namespace Veronenger.Character.Player {
                     }
 
                     Body.Flip(XInput);
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
@@ -256,7 +260,7 @@ namespace Veronenger.Character.Player {
                     CheckAirAttack();
 
                     Body.Flip(XInput);
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
@@ -273,7 +277,7 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     CheckAirAttack();
                     Body.Flip(XInput);
-                    ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                         PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
