@@ -100,10 +100,6 @@ namespace Veronenger.Controller.Character {
 			_attackArea.Monitoring = false;
 			// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 
-			PlatformManager.SubscribeFallingPlatformOut(this, (area2D) => {
-				PlatformManager.BodyStopFallFromPlatform(this);
-			});
-
 			// DebugOverlayManager.Overlay(this)
 			//     .Title("Player")
 			//     .Text("AnimationStack",() => _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name).EndMonitor()

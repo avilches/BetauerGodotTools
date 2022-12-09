@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer;
 using Betauer.Application.Monitor;
 using Betauer.DI;
@@ -64,7 +65,7 @@ namespace Veronenger.Character.Player {
         [Inject] private Bus Bus { get; set; }
 
         // private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
-        // private bool IsOnFallingPlatform() => PlatformManager.IsFallingPlatform(Body.GetFloor());
+        private bool IsOnFallingPlatform() => Body.IsOnFloor() && PlatformManager.IsFallingPlatform(Body.GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
         // private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
         private MonitorText? _coyoteMonitor;
         private MonitorText? _jumpHelperMonitor;
@@ -127,12 +128,22 @@ namespace Veronenger.Character.Player {
                 return true;
             }
 
+            PhysicsBody2D? fallingPlatform = null;
+            void FallFromPlatform() {
+                fallingPlatform = Body.GetFloorCollider<PhysicsBody2D>()!;
+                PlatformManager.RemovePlatformCollision(fallingPlatform);
+            }
+
+            void FinishFallFromPlatform() {
+                if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
+            }
+
             On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
 
             State(PlayerState.Landing)
                 .Enter(() => {
+                    FinishFallFromPlatform();
                     CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-                    PlatformManager.BodyStopFallFromPlatform(_player);
                 })
                 .Execute(() => {
                     if (LastJumpOnAirTimer.IsRunning) {
@@ -160,15 +171,15 @@ namespace Veronenger.Character.Player {
                     Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(PlayerState.FallShort)
-                // .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
-                    // context => {
-                        // PlatformManager.BodyFallFromPlatform(_player);
-                        // return context.Set(PlayerState.FallShort);
-                    // })
+                .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+                    context => {
+                        FallFromPlatform();
+                        return context.Set(PlayerState.FallShort);
+                    })
                 .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
                 .If(() => XInput != 0).Set(PlayerState.Run)
                 .Build();
-                
+
             State(PlayerState.Run)
                 .Enter(() => {
                     _player.AnimationRun.PlayLoop();
@@ -190,11 +201,11 @@ namespace Veronenger.Character.Player {
                         CoyoteFallingTimer.Restart();
                         return context.Set(PlayerState.FallShort);
                     })
-                // .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
-                    // context => {
-                        // PlatformManager.BodyFallFromPlatform(_player);
-                        // return context.Set(PlayerState.FallShort);
-                    // })
+                .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+                    context => {
+                        FallFromPlatform();
+                        return context.Set(PlayerState.FallShort);
+                    })
                 .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
                 .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
                 .Build();

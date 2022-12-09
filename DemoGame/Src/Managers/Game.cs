@@ -20,6 +20,7 @@ namespace Veronenger.Managers {
         private PlayerController _playerScene;
 
         public void Start() {
+            StageManager.ClearTransition();
             StartWorld3();
         }
 
@@ -41,6 +42,7 @@ namespace Veronenger.Managers {
                     CandleOff(light);
                 }
             });
+            PlatformManager.ConfigurePlatformsCollisions();
             _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
             AddPlayerToScene(_currentGameScene);
             

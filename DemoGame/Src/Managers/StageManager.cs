@@ -17,9 +17,6 @@ namespace Veronenger.Managers {
         private Camera2D _camera2D;
         private bool IsValidStageChange => _exitedStage && _enteredStage != null;
 
-        private readonly AreaOnArea2DEntered.Unicast _enterStageTopic = new("StageTopic");
-        private readonly AreaOnArea2DExited.Unicast _exitStageTopic = new("StageTopic");
-
         public void ConfigureStageCamera(Camera2D stageCameraController, Area2D stageDetector) {
             _camera2D = stageCameraController;
             stageDetector.OnAreaEntered(LayerPlayerStageDetector, OnEnterStage);

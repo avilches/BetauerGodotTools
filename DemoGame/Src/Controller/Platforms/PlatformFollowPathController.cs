@@ -3,7 +3,7 @@ using Godot;
 using Betauer.Core.Nodes;
 
 namespace Veronenger.Controller.Platforms {
-	public partial class PlatformFollowPathController : PlatformController {
+	public partial class PlatformFollowPathController : StaticBody2D {
 
 		[Export] public float Speed = 10;
 		[Export] public PathFollow2D? PathFollow2D;
@@ -21,7 +21,6 @@ namespace Veronenger.Controller.Platforms {
 		}
 
 		private void Configure() {
-			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
 				var path2D = this.FirstNode<Path2D>();

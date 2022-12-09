@@ -8,7 +8,6 @@ using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
     public partial class AnimatedPlatformController2 : CharacterBody2D {
-        [Export] public bool IsFallingPlatform = false;
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
         private Tween _sceneTreeTween;
@@ -17,7 +16,6 @@ namespace Veronenger.Controller.Animation {
         public override void _Ready() {
             // DebugOverlayManager.Overlay(this).GraphSpeed().SetChartSize(200, 50);
             
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
             _sceneTreeTween = SequenceAnimation.Create()

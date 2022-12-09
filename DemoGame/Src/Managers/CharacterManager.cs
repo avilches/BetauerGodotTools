@@ -27,10 +27,8 @@ namespace Veronenger.Managers {
             playerController.CollisionMask = 0;
             
             playerController.DetectLayer(LayerRegularPlatform);
-            playerController.DetectLayer(LayerFallPlatform);
             playerController.FloorRaycasts.ForEach(rayCast2D => {
                 rayCast2D.DetectLayer(LayerRegularPlatform);
-                rayCast2D.DetectLayer(LayerFallPlatform);
             });
             
         }
@@ -46,14 +44,12 @@ namespace Veronenger.Managers {
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;                                       
             enemy.DetectLayer(LayerRegularPlatform);
-            enemy.DetectLayer(LayerFallPlatform);
         }
 
         public void ConfigureEnemyCollisions(RayCast2D rayCast2D) {
             rayCast2D.CollisionMask = 0;
             rayCast2D.CollisionMask = 0;
             rayCast2D.DetectLayer(LayerRegularPlatform);
-            rayCast2D.DetectLayer(LayerFallPlatform);
         }
 
         public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {

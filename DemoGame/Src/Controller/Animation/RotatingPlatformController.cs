@@ -7,7 +7,6 @@ using static Godot.Mathf;
 namespace Veronenger.Controller.Animation {
     public partial class RotatingPlatformController : CharacterBody2D {
 
-        [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
         [Inject] public PlatformManager PlatformManager { get; set;}
@@ -24,7 +23,6 @@ namespace Veronenger.Controller.Animation {
         }
 
         private void Configure() {
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _speed = Tau / RotationDuration;
         }
 

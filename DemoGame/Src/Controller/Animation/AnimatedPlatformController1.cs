@@ -8,8 +8,7 @@ using Veronenger.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public partial class AnimatedPlatformController1 : CharacterBody2D {
-        [Export] public bool IsFallingPlatform = false;
+    public partial class AnimatedPlatformController1 : StaticBody2D {
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
         [Inject] public KinematicPlatformMotion PlatformBody { get; set; }
@@ -19,7 +18,6 @@ namespace Veronenger.Controller.Animation {
         public override void _Ready() {
             // DebugOverlayManager.Overlay(this).GraphSpeed().SetChartSize(200, 50);
             
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
             // TODO Godot 4
             // Motion__syncToPhysics = false;
