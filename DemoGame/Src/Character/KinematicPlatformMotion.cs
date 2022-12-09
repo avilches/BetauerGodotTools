@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Godot;
 using Betauer;
 using Betauer.Core;
+using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Veronenger.Managers;
@@ -60,24 +62,28 @@ namespace Veronenger.Character {
         public bool IsJustLanded() => _isJustLanded;
         public bool IsJustTookOff() => _isJustTookOff;
 
-        // Floor
+        // Floor flags
         public bool IsOnFloor() => _isOnFloor;
         public bool IsOnSlope() => _isOnSlope;
         public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsUpLeft(FloorUpDirection);
-
-        // public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
-        // public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
         // Floor collider
         public Vector2 GetFloorNormal() => _floorNormal;
+        public T? GetFloorCollider<T>() where T : Node => GetFloorColliders<T>().FirstOrDefault();
+        // public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
+        // public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
 
-        // Wall
+        // Wall flags
         public bool IsOnWall() => _isOnWall;
         public bool IsOnWallRight() => IsOnWall() && GetWallNormal().IsLeft(FloorUpDirection);
+        // Wall collider
         public Vector2 GetWallNormal() => _wallNormal;
+        public T? GetWallCollider<T>() where T : Node => GetWallColliders<T>().FirstOrDefault();
 
-        // Ceiling
+        // Ceiling flags
         public bool IsOnCeiling() => _isOnCeiling;
-        public Vector2 GetCeilingNormal() => FirstCeilingCollision()?.GetNormal() ?? Vector2.Zero;
+        // Ceiling collider
+        public Vector2 GetCeilingNormal() => GetCeilingCollisions().FirstOrDefault()?.GetNormal() ?? Vector2.Zero;
+        public T? GetCeilingCollider<T>() where T : Node => GetCeilingColliders<T>().FirstOrDefault();
 
         public void ApplyGravity(float gravity, float maxSpeed) {
             MotionY = Mathf.Min(MotionY + gravity * Delta, maxSpeed);
@@ -176,56 +182,34 @@ namespace Veronenger.Character {
             }
         }
 
-        private T? FirstFloorCollider<T>() where T : Object {
-            return IsOnFloor() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsFloor(FloorUpDirection))?.GetCollider() as T : null;
-        }
-
-        private T? FirstCeilingCollider<T>() where T : Object {
-            return IsOnCeiling() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsCeiling(FloorUpDirection))?.GetCollider() as T : null;
-        }
-
-        private T? FirstWallCollider<T>() where T : Object {
-            return IsOnWall() ? FindCollisions(col => col.GetCollider() is T && col.GetNormal().IsWall(FloorUpDirection))?.GetCollider() as T : null;
-        }
-        
-        private KinematicCollision2D? FirstFloorCollision() {
-            return IsOnFloor() ? FindCollisions(col => col.GetNormal().IsFloor(FloorUpDirection)) : null;
-        }
-
-        private KinematicCollision2D? FirstCeilingCollision() {
-            return IsOnCeiling() ? FindCollisions(col => col.GetNormal().IsCeiling(FloorUpDirection)) : null;
-        }
-
-        private KinematicCollision2D? FirstWallCollision() {
-            return IsOnWall() ? FindCollisions(col => col.GetNormal().IsWall(FloorUpDirection)) : null;
-        }
-
-        private KinematicCollision2D? FindCollisions(Func<KinematicCollision2D, bool> predicate) {
-            var slideCount = Body.GetSlideCollisionCount();
-            if (slideCount == 0) return null;
-            for (var i = 0; i < slideCount; i++) {
-                var collision = Body.GetSlideCollision(i);
-                if (predicate(collision)) return collision;
-            }
-            return null;
-        }
+        public IEnumerable<T> GetFloorColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetFloorColliders(FloorUpDirection, predicate); 
+        public IEnumerable<T> GetWallColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetWallColliders(FloorUpDirection, predicate); 
+        public IEnumerable<T> GetCeilingColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetCeilingColliders(FloorUpDirection, predicate); 
+        public IEnumerable<KinematicCollision2D> GetFloorCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetFloorCollisions(FloorUpDirection, predicate); 
+        public IEnumerable<KinematicCollision2D> GetWallCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetWallCollisions(FloorUpDirection, predicate); 
+        public IEnumerable<KinematicCollision2D> GetCeilingCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetCeilingCollisions(FloorUpDirection, predicate); 
 
         public string GetFloorCollisionInfo() {
-            return IsOnFloor() 
-                ? $"{(IsOnSlope()?IsOnSlopeUpRight()?"/":"\\":"flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{FirstFloorCollider<Node>()?.GetType().Name}] {FirstFloorCollider<Node>()?.Name}"
-                : "";
-        }
-
-        public string GetCeilingCollisionInfo() {
-            return IsOnCeiling()
-                ? $"{FirstCeilingCollision()?.GetNormal().ToString("0.0")} {Mathf.RadToDeg(FirstCeilingCollision()?.GetNormal().Angle() ?? 0f):0.0}º [{FirstCeilingCollider<Node>()?.GetType().Name}] {FirstCeilingCollider<Node>()?.Name}"
-                : "";
+            if (!IsOnFloor()) return "";
+            var collider = (Node)GetFloorCollisions().FirstOrDefault()?.GetCollider();
+            if (collider == null) {
+                // return "!!!!!";
+                throw new Exception("Not enough gravity on floor");
+            }
+            return $"{(IsOnSlope() ? IsOnSlopeUpRight() ? "/" : "\\" : "flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{collider.GetType().Name}] {collider.Name}";
         }
 
         public string GetWallCollisionInfo() {
-            return IsOnWall()
-                ? $"{(IsOnWallRight()?"R":"L")} {GetWallNormal().ToString("0.0")} {Mathf.RadToDeg(GetWallNormal().Angle()):0.0}º [{FirstWallCollider<Node>()?.GetType().Name}] {FirstWallCollider<Node>()?.Name}"
-                : "";
+            if (!IsOnWall()) return "";
+            var collider = (Node)GetWallCollisions().FirstOrDefault()!.GetCollider();
+            return $"{(IsOnWallRight() ? "R" : "L")} {GetWallNormal().ToString("0.0")} {Mathf.RadToDeg(GetWallNormal().Angle()):0.0}º [{collider.GetType().Name}] {collider.Name}";
+        }
+
+        public string GetCeilingCollisionInfo() {
+            if (!IsOnCeiling()) return "";
+            var firstCeilingCollision = GetCeilingCollisions().FirstOrDefault();
+            var collider = (Node)firstCeilingCollision!.GetCollider();
+            return $"{firstCeilingCollision.GetNormal().ToString("0.0")} {Mathf.RadToDeg(firstCeilingCollision.GetNormal().Angle()):0.0}º [{collider.GetType().Name}] {collider.Name}";
         }
     }
 }
