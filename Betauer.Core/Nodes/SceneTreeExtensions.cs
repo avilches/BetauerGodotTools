@@ -5,10 +5,10 @@ using Godot;
 namespace Betauer.Core.Nodes {
     public static partial class SceneTreeExtensions {
 
-        public static Node GetMainScene(this SceneTree sceneTree) {
+        public static T GetMainScene<T>(this SceneTree sceneTree) where T : Node {
             if (!ProjectSettings.HasSetting("application/run/main_scene")) return null;
             var mainScene = ProjectSettings.GetSetting("application/run/main_scene").AsString();
-            return sceneTree.Root.GetChildren().FirstOrDefault(n => n.SceneFilePath == mainScene, null);
+            return sceneTree.Root.GetChildren().FirstOrDefault(n => n.SceneFilePath == mainScene, null) as T;
         }
 
         private static bool _quitRequested = false;

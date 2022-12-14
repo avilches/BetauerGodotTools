@@ -176,6 +176,7 @@ position = Vector2(-426, -50)
 occluder = SubResource("OccluderPolygon2D_y1eih")
 
 [node name="LightOccluder2D" type="LightOccluder2D" parent="Shadows"]
+position = Vector2(7, 0)
 occluder = SubResource("OccluderPolygon2D_65pi2")
 
 [node name="Stages" type="Node" parent="."]
@@ -210,7 +211,7 @@ shape = SubResource("RectangleShape2D_5fj3v")
 [node name="Platforms" type="Node" parent="."]
 
 [node name="OneWay" type="StaticBody2D" parent="Platforms" groups=["falling_platform", "platform"]]
-position = Vector2(-386, 8)
+position = Vector2(-472, 8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Platforms/OneWay"]
 shape = SubResource("SegmentShape2D_nwf1l")
