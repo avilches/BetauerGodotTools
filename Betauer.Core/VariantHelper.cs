@@ -7,6 +7,7 @@ using Array = Godot.Collections.Array;
 namespace Betauer.Core {
     public static class VariantHelper {
         public static Variant CreateFrom<T>(T value) {
+            if (typeof(T) != typeof(object)) return Variant.From(value);
             return value switch {
                 bool valueBool => valueBool,
                 char valueChar => valueChar,
@@ -63,61 +64,7 @@ namespace Betauer.Core {
         }
 
         public static T ConvertTo<T>(Variant value) {
-            var t = typeof(T);
-            if (t == typeof(object)) return (T)ConvertTo(value);
-            if (t == typeof(bool)) return (T)(object)value.AsBool();
-            if (t == typeof(char)) return (T)(object)value.AsChar();
-            if (t == typeof(sbyte)) return (T)(object)value.AsSByte();
-            if (t == typeof(short)) return (T)(object)value.AsInt16();
-            if (t == typeof(int)) return (T)(object)value.AsInt32();
-            if (t == typeof(long)) return (T)(object)value.AsInt64();
-            if (t == typeof(byte)) return (T)(object)value.AsByte();
-            if (t == typeof(ushort)) return (T)(object)value.AsUInt16();
-            if (t == typeof(uint)) return (T)(object)value.AsUInt32();
-            if (t == typeof(ulong)) return (T)(object)value.AsUInt64();
-            if (t == typeof(float)) return (T)(object)value.AsSingle();
-            if (t == typeof(double)) return (T)(object)value.AsDouble();
-            if (t == typeof(string)) return (T)(object)value.AsString();
-            if (t == typeof(Vector2)) return (T)(object)value.AsVector2();
-            if (t == typeof(Vector2i)) return (T)(object)value.AsVector2i();
-            if (t == typeof(Rect2)) return (T)(object)value.AsRect2();
-            if (t == typeof(Rect2i)) return (T)(object)value.AsRect2i();
-            if (t == typeof(Transform2D)) return (T)(object)value.AsTransform2D();
-            if (t == typeof(Vector3)) return (T)(object)value.AsVector3();
-            if (t == typeof(Vector3i)) return (T)(object)value.AsVector3i();
-            if (t == typeof(Vector4)) return (T)(object)value.AsVector4();
-            if (t == typeof(Vector4i)) return (T)(object)value.AsVector4i();
-            if (t == typeof(Basis)) return (T)(object)value.AsBasis();
-            if (t == typeof(Quaternion)) return (T)(object)value.AsQuaternion();
-            if (t == typeof(Transform3D)) return (T)(object)value.AsTransform3D();
-            if (t == typeof(Projection)) return (T)(object)value.AsProjection();
-            if (t == typeof(AABB)) return (T)(object)value.AsAABB();
-            if (t == typeof(Color)) return (T)(object)value.AsColor();
-            if (t == typeof(Plane)) return (T)(object)value.AsPlane();
-            if (t == typeof(Callable)) return (T)(object)value.AsCallable();
-            if (t == typeof(SignalInfo)) return (T)(object)value.AsSignalInfo();
-            if (t == typeof(Span<byte>)) return (T)(object)value.AsByteArray();
-            if (t == typeof(Span<int>)) return (T)(object)value.AsInt32Array();
-            if (t == typeof(Span<long>)) return (T)(object)value.AsInt64Array();
-            if (t == typeof(Span<float>)) return (T)(object)value.AsFloat32Array();
-            if (t == typeof(Span<double>)) return (T)(object)value.AsFloat64Array();
-            if (t == typeof(Span<string>)) return (T)(object)value.AsStringArray();
-            if (t == typeof(Span<Vector2>)) return (T)(object)value.AsVector2Array();
-            if (t == typeof(Span<Vector3>)) return (T)(object)value.AsVector3Array();
-            if (t == typeof(Span<Color>)) return (T)(object)value.AsColorArray();
-            if (t == typeof(Object[])) return (T)(object)value.AsGodotObjectArray<Object>();
-            if (t == typeof(Span<StringName>)) return (T)(object)value.AsSystemArrayOfStringName();
-            if (t == typeof(Span<NodePath>)) return (T)(object)value.AsSystemArrayOfNodePath();
-            if (t == typeof(Span<RID>)) return (T)(object)value.AsSystemArrayOfRID();
-            if (t == typeof(Object)) return (T)(object)value.AsGodotObject();
-            if (t == typeof(StringName)) return (T)(object)value.AsStringName();
-            if (t == typeof(NodePath)) return (T)(object)value.AsNodePath();
-            if (t == typeof(RID)) return (T)(object)value.AsRID();
-            if (t == typeof(Dictionary)) return (T)(object)value.AsGodotDictionary();
-            if (t == typeof(Array)) return (T)(object)value.AsGodotArray();
-            // if (t == typeof(Dictionary<TKey, TValue>>) return (T)(object)value.AsGodotDictionary<TKey, TValue>());
-            // if (t == typeof(Godot.Collections.Array<T>>)) return (T)(object)value.AsGodotArray();
-            throw new Exception("ConverTo<T>: Unknown variant for type: " + typeof(T).Name);
+            return typeof(T) == typeof(object) ? (T)ConvertTo(value) : value.As<T>();
         }
 
         public static object? ConvertTo(Variant op1) {
@@ -160,7 +107,7 @@ namespace Betauer.Core {
                 Variant.Type.PackedVector2Array => op1.AsVector2Array(),
                 Variant.Type.PackedVector3Array => op1.AsVector3Array(),
                 Variant.Type.PackedColorArray => op1.AsColorArray(),
-                _ => throw new Exception("ConverTo: Unknown variant type: "+op1.VariantType)
+                _ => throw new Exception("ConvertTo: Unknown variant type: "+op1.VariantType)
             };
         }
 
