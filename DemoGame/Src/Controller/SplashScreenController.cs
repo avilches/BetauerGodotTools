@@ -12,7 +12,6 @@ namespace Veronenger.Controller {
 		[Inject] private MainStateMachine MainStateMachine { get; set; }
 		[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 		[Inject] private SettingsContainer _settingsContainer { get; set; }
-		[Inject] private MainResourceLoader _mainResourceLoader { get; set; }
 
 		[OnReady("%SplashScreen")] private Control _base;
 		[OnReady("%TextureRect")] private TextureRect _sprite;

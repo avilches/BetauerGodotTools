@@ -106,7 +106,7 @@ test:
 
 .PHONY: editor
 editor:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor --verbose
 
 .PHONY: export/osx
 export/osx: check-version

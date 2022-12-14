@@ -1,24 +1,17 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Betauer.Application;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Loader;
 using Betauer.Core.Nodes;
 using Betauer.StateMachine.Async;
 using Veronenger.Controller;
 using Veronenger.Controller.Menu;
-using Veronenger.Controller.UI.Consoles;
 
 namespace Veronenger.Managers {
     
     public enum MainState {
         Init,
-        InitDone,
         MainMenu,
         Settings,
         StartingGame,
@@ -43,34 +36,23 @@ namespace Veronenger.Managers {
     [Service]
     public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
 
-        [Load("res://Scenes/Menu/MainMenu.tscn")]
-        private MainMenu _mainMenuScene;
-
-        [Load("res://Scenes/Menu/BottomBar.tscn")]
-        public BottomBar BottomBarScene;
-
-        [Load("res://Scenes/Menu/PauseMenu.tscn")]
-        private PauseMenu _pauseMenuScene;
-
-        [Load("res://Scenes/Menu/SettingsMenu.tscn")]
-        private SettingsMenu _settingsMenuScene;
-
-        [Load("res://Scenes/Menu/ModalBoxConfirm.tscn")]
-        private Func<ModalBoxConfirm> CreateModalBoxConfirm;
-
-        [Load("res://Assets/UI/my_theme.tres")]
-        private Theme MyTheme;
-
+        [Inject] private MainMenu MainMenuScene { get; set; }
+        [Inject] public BottomBar BottomBarScene { get; set; }
+        [Inject] private PauseMenu PauseMenuScene { get; set; }
+        [Inject] private SettingsMenu SettingsMenuScene { get; set; }
+        [Inject] private Factory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
+        [Inject] private Theme MyTheme { get; set; }
         [Inject] private Game Game { get; set; }
 
         [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
         [Inject] private SceneTree SceneTree { get; set; }
-        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
         [Inject] private InputAction ControllerStart { get; set; }
+        
+        [Inject] private Theme DebugConsoleTheme { get; set; }
 
         [Inject] private Bus Bus { get; set; }
 
@@ -104,31 +86,24 @@ namespace Veronenger.Managers {
             var modalResponse = false;
             var splashScreen = SceneTree.GetMainScene<SplashScreenController>();
             splashScreen.Layer = int.MaxValue;
-            MainResourceLoader.OnProgress += progress => GD.Print($"{progress} %");
-            State(MainState.Init)
-                .Enter(async () => {
-                    await MainResourceLoader.From(this).Load();
-                })
-                .If(() => true).Set(MainState.InitDone)
-                .Build();
 
             var endSplash = false;
-            State(MainState.InitDone)
+            State(MainState.Init)
                 .Enter(() => {
                     splashScreen.Stop();
-                    _mainMenuScene.Layer = CanvasLayerConstants.MainMenu;
-                    _pauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
-                    _settingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
+                    MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
+                    PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
+                    SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
                     BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
-                    _settingsMenuScene.ProcessMode = _pauseMenuScene.ProcessMode = ProcessModeEnum.Always;
+                    SettingsMenuScene.ProcessMode = PauseMenuScene.ProcessMode = ProcessModeEnum.Always;
 
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
 
-                    SceneTree.Root.AddChild(_pauseMenuScene);
-                    SceneTree.Root.AddChild(_settingsMenuScene);
-                    SceneTree.Root.AddChild(_mainMenuScene);
+                    SceneTree.Root.AddChild(PauseMenuScene);
+                    SceneTree.Root.AddChild(SettingsMenuScene);
+                    SceneTree.Root.AddChild(MainMenuScene);
                     SceneTree.Root.AddChild(BottomBarScene);
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
@@ -142,24 +117,24 @@ namespace Veronenger.Managers {
                 .Build();
             
             State(MainState.MainMenu)
-                .OnInput(e => _mainMenuScene.OnInput(e))
+                .OnInput(e => MainMenuScene.OnInput(e))
                 .On(MainEvent.StartGame).Then(context=> context.Set(MainState.StartingGame))
                 .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
-                .Suspend(() => _mainMenuScene.DisableMenus())
-                .Awake(() => _mainMenuScene.EnableMenus())
-                .Enter(async () => await _mainMenuScene.ShowMenu())
+                .Suspend(() => MainMenuScene.DisableMenus())
+                .Awake(() => MainMenuScene.EnableMenus())
+                .Enter(async () => await MainMenuScene.ShowMenu())
                 .Build();
 
             State(MainState.Settings)
-                .OnInput(e => _settingsMenuScene.OnInput(e))
+                .OnInput(e => SettingsMenuScene.OnInput(e))
                 .On(MainEvent.Back).Then(context => context.Pop())
-                .Enter(() => _settingsMenuScene.ShowSettingsMenu())
-                .Exit(() => _settingsMenuScene.HideSettingsMenu())
+                .Enter(() => SettingsMenuScene.ShowSettingsMenu())
+                .Exit(() => SettingsMenuScene.HideSettingsMenu())
                 .Build();
 
             State(MainState.StartingGame)
                 .Enter(async () => {
-                    await _mainMenuScene.HideMainMenu();
+                    await MainMenuScene.HideMainMenu();
                     Game.Start();
                 })
                 .If(() => true).Set(MainState.Gaming)
@@ -180,18 +155,18 @@ namespace Veronenger.Managers {
             On(MainEvent.EndGame).Then(ctx => ctx.Set(MainState.MainMenu));
 
             State(MainState.PauseMenu)
-                .OnInput(e => _pauseMenuScene.OnInput(e))
+                .OnInput(e => PauseMenuScene.OnInput(e))
                 .On(MainEvent.Back).Then(context=> context.Pop())
                 .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
-                .Suspend(() => _pauseMenuScene.DisableMenus())
-                .Awake(() => _pauseMenuScene.EnableMenus())
+                .Suspend(() => PauseMenuScene.DisableMenus())
+                .Awake(() => PauseMenuScene.EnableMenus())
                 .Enter(async () => {
                     SceneTree.Paused = true;
-                    await _pauseMenuScene.ShowPauseMenu();
+                    await PauseMenuScene.ShowPauseMenu();
                 })
                 .Exit(() => {
-                    _pauseMenuScene.EnableMenus();
-                    _pauseMenuScene.HidePauseMenu();
+                    PauseMenuScene.EnableMenus();
+                    PauseMenuScene.HidePauseMenu();
                     SceneTree.Paused = false;
                 })
                 .Build();
@@ -229,11 +204,11 @@ namespace Veronenger.Managers {
 
         private void ConfigureDebugOverlays() {
             DebugOverlayManager.OverlayContainer.Theme = MyTheme;
-            DebugOverlayManager.DebugConsole.Theme =  MainResourceLoader.DebugConsoleTheme;;
+            DebugOverlayManager.DebugConsole.Theme =  DebugConsoleTheme;;
         }
 
         private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
-            ModalBoxConfirm modalBoxConfirm = CreateModalBoxConfirm();
+            var modalBoxConfirm = ModalBoxConfirm.Get();
             modalBoxConfirm.Layer = CanvasLayerConstants.ModalBox;
             modalBoxConfirm.Title(title, subtitle);
             modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;

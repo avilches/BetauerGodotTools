@@ -1,10 +1,16 @@
+using System;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Bus;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Input;
+using Betauer.Loader;
 using Godot;
+using Veronenger.Controller.Character;
+using Veronenger.Controller.Menu;
+using Veronenger.Controller.UI;
 using Veronenger.Managers;
 
 namespace Veronenger {
@@ -44,6 +50,64 @@ namespace Veronenger {
 		// [Setting(Section = "Video", Name = "WindowedResolution")]
 		[Service("Settings.Screen.WindowedResolution")]
 		public ISetting<Resolution> WindowedResolution => Setting<Resolution>.Save("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
+	}
+
+	[Configuration]
+	public class Resources {
+		
+		[Service] 
+		public Texture2D Xbox360Buttons => (Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
+
+		[Service]
+		public Texture2D XboxOneButtons => (Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
+
+		[Service]
+		public Theme MyTheme => (Theme)ResourceLoader.Load("res://Assets/UI/my_theme.tres");
+
+		[Service]
+		public Theme DebugConsoleTheme => (Theme)ResourceLoader.Load("res://Assets/UI/DebugConsole.tres");
+		
+		[Service]
+		[Lazy]
+		public RedefineActionButton RedefineActionButton =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/UI/RedefineActionButton.tscn"))
+			.Instantiate<RedefineActionButton>();
+
+		[Service(Lifetime.Transient)]
+		public Node World3 =>
+			((PackedScene)ResourceLoader.Load("res://Worlds/World3.tscn"))
+			.Instantiate<Node>();
+        
+		[Service(Lifetime.Transient)]
+		public PlayerController Player =>
+			((PackedScene)ResourceLoader.Load("res://cenes/Player.tscn"))
+			.Instantiate<PlayerController>();
+
+		[Service]
+		public MainMenu MainMenuScene =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/MainMenu.tscn"))
+			.Instantiate<MainMenu>();
+
+		[Service]
+		public BottomBar BottomBarScene =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/BottomBar.tscn"))
+			.Instantiate<BottomBar>();
+
+		[Service]
+		public PauseMenu PauseMenuScene =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/PauseMenu.tscn"))
+			.Instantiate<PauseMenu>();
+
+		[Service]
+		public SettingsMenu SettingsMenuScene =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/SettingsMenu.tscn"))
+			.Instantiate<SettingsMenu>();
+
+		[Service(Lifetime.Transient)]
+		public ModalBoxConfirm ModalBoxConfirm =>
+			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/ModalBoxConfirm.tscn"))
+			.Instantiate<ModalBoxConfirm>();
+		
 	}
 
 	[Configuration]

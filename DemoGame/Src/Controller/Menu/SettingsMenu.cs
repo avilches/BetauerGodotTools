@@ -71,7 +71,6 @@ namespace Veronenger.Controller.Menu {
 		[Inject] private InputAction Left { get; set; }
 		[Inject] private InputAction Right { get; set; }
 		
-		[Inject] private MainResourceLoader MainResourceLoader { get; set; }
 		[Inject] private Bus Bus { get; set; }
 
 		private Restorer _restorer;
@@ -164,8 +163,10 @@ namespace Veronenger.Controller.Menu {
 			});
 		}
 
+		[Inject] private Factory<RedefineActionButton> RedefineActionButton { get; set; }
+
 		private void AddConfigureControl(string name, InputAction action, bool isKey) {
-			var button = MainResourceLoader.RedefineActionButtonFactory();
+			var button = RedefineActionButton.Get();
 			button.OnPressed(() => ShowRedefineActionPanel(button));
 			button.OnFocusEntered(MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack);
 			button.SetInputAction(name, action, isKey);

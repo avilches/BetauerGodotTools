@@ -11,7 +11,6 @@ namespace Veronenger.Controller.UI.Consoles {
 
 		[Inject] protected Xbox360SpriteConfig Xbox360 { get; set; }
 		[Inject] protected XboxOneSpriteConfig XboxOne { get; set; }
-		[Inject] protected MainResourceLoader MainResourceLoader { get; set; }
 
 		[OnReady("AnimationPlayer")] private AnimationPlayer _animation;
 
@@ -136,8 +135,9 @@ namespace Veronenger.Controller.UI.Consoles {
 	public class Xbox360SpriteConfig : SpriteConfig {
 		public override ConsoleButtonView CreateDefaultView() => new(null, 0, 0);
 
-		[Inject] private MainResourceLoader _mainResourceLoader { get; set; }
-		public override Texture2D Texture2D => _mainResourceLoader.Xbox360ButtonsTexture2D;
+		public Texture2D Xbox360Buttons { get; set; }
+
+		public override Texture2D Texture2D => Xbox360Buttons;
 
 		public override void ConfigureButtons() {
 			Button(JoyButton.A, "A", 13, 14);
@@ -188,8 +188,9 @@ namespace Veronenger.Controller.UI.Consoles {
 
 	[Service]
 	public class XboxOneSpriteConfig : Xbox360SpriteConfig {
-		[Inject] private MainResourceLoader _mainResourceLoader { get; set; }
-		public override Texture2D Texture2D => _mainResourceLoader.XboxOneButtonsTexture2D;
+		public Texture2D XboxOneButtons { get; set; }
+
+		public override Texture2D Texture2D => XboxOneButtons;
 	}
 
 	public class ConsoleButtonView {

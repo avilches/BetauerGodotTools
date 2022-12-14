@@ -13,8 +13,9 @@ namespace Veronenger.Managers {
 
         [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private StageManager StageManager { get; set; }
-        [Inject] private MainResourceLoader MainResourceLoader { get; set; }
         [Inject] private PlatformManager PlatformManager { get; set; }
+        [Inject] private Factory<Node> World3 { get; set; }
+        [Inject] private Factory<PlayerController> Player { get; set; }
         
         private Node _currentGameScene;
         private PlayerController _playerScene;
@@ -33,7 +34,7 @@ namespace Veronenger.Managers {
         }
 
         public void StartWorld3() {
-            _currentGameScene = MainResourceLoader.CreateWorld3();
+            _currentGameScene = World3.Get();
 
             _currentGameScene.GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
             _currentGameScene.GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
@@ -82,7 +83,7 @@ namespace Veronenger.Managers {
         }
 
         private void AddPlayerToScene(Node nextScene, Vector2 position) {
-            _playerScene = MainResourceLoader.CreatePlayer();
+            _playerScene = Player.Get();
             nextScene.AddChild(_playerScene);
             // TODO: this shows a warning "!is_inside_tree()" is true. Returned: get_transform()" but it still works 
             _playerScene.GlobalPosition = position;
