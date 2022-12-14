@@ -102,13 +102,20 @@ namespace Veronenger.Managers {
             
             Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
             var modalResponse = false;
-            
+            var splashScreen = SceneTree.GetMainScene<SplashScreenController>();
+            splashScreen.Layer = int.MaxValue;
+            MainResourceLoader.OnProgress += progress => GD.Print($"{progress} %");
             State(MainState.Init)
-                .Execute(async () => {
-                    CanvasLayer splashScreen = SceneTree.GetMainScene() as CanvasLayer;
-                    splashScreen!.Layer = int.MaxValue;
-                    MainResourceLoader.OnProgress += progress => GD.Print(progress+" %");
+                .Enter(async () => {
                     await MainResourceLoader.From(this).Load();
+                })
+                .If(() => true).Set(MainState.InitDone)
+                .Build();
+
+            var endSplash = false;
+            State(MainState.InitDone)
+                .Enter(() => {
+                    splashScreen.Stop();
                     _mainMenuScene.Layer = CanvasLayerConstants.MainMenu;
                     _pauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
                     _settingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
@@ -125,18 +132,13 @@ namespace Veronenger.Managers {
                     SceneTree.Root.AddChild(BottomBarScene);
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
-                .If(() => true).Set(MainState.InitDone)
-                .Build();
-
-            var splashFinished = false;
-            State(MainState.InitDone)
                 .OnInput((e) => {
-                    // if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
-                    (SceneTree.GetMainScene() as SplashScreenController)?.QueueFree();
-                    splashFinished = true;
-                    // }
+                    if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                        splashScreen.QueueFree();
+                        endSplash = true;
+                    }
                 })
-                .If(() => splashFinished).Set(MainState.MainMenu)
+                .If(() => endSplash).Set(MainState.MainMenu)
                 .Build();
             
             State(MainState.MainMenu)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -69,6 +70,7 @@ namespace Betauer.Loader {
         private const MemberTypes MemberFlags = MemberTypes.Field | MemberTypes.Property;
 
         public async Task Load() {
+            var timer = Stopwatch.StartNew();
             if (_sources == null || _sources.Count == 0)
                 throw new ResourceLoaderException("Can't load: no sources defines with From(...)");
             
@@ -106,6 +108,7 @@ namespace Betauer.Loader {
                     }
                 }
             }
+            GD.Print($"Load time: {timer.ElapsedMilliseconds}ms");
         }
 
         public ResourceLoaderContainer Unload() {

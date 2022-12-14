@@ -7,7 +7,7 @@ using Godot;
 namespace Betauer.Loader {
     public static class Loader {
         private class ResourceProgress {
-            internal string Path;
+            internal readonly string Path;
             internal Resource? Resource;
             internal float Progress = 0;
 
@@ -30,7 +30,7 @@ namespace Betauer.Loader {
             });
         }
 
-        public static async Task<IEnumerable<Resource>> Load3(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
+        public static async Task<IEnumerable<Resource>> LoadThreaded(IEnumerable<string> resourcesToLoad, Func<Task> awaiter, 
             Action<float>? progressAction = null) {
             if (awaiter == null) throw new ArgumentNullException(nameof(awaiter));
             progressAction?.Invoke(0f);
@@ -49,11 +49,12 @@ namespace Betauer.Loader {
                     if (resource.Resource == null) {
                         var status = ResourceLoader.LoadThreadedGetStatus(resource.Path, progressArray);
                         var progress = progressArray[0].AsSingle();
-                        GD.Print($"Get status {resource.Path}: {status} progress: {progress}");
                         if (status == ResourceLoader.ThreadLoadStatus.Loaded) {
+                            GD.Print($"...{resource.Path}: {status} progress: {progress} DONE!");
                             resource.Progress = 1f;
                             resource.Resource = ResourceLoader.LoadThreadedGet(resource.Path);
                         } else if (status == ResourceLoader.ThreadLoadStatus.InProgress) {
+                            GD.Print($"{resource.Path}: {status} progress: {progress}");
                             resource.Progress = progress;
                         } else {
                             throw new ResourceLoaderException($"Error get status {resource.Path}: {status}");

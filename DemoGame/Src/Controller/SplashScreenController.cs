@@ -17,20 +17,19 @@ namespace Veronenger.Controller {
 		[OnReady("%SplashScreen")] private Control _base;
 		[OnReady("%TextureRect")] private TextureRect _sprite;
 
-		private Vector2 _baseResolutionSize;
-		private bool _loadFinished = false;
-
+		private Tween? _tween;
+		
 		public override void _Ready() {
-			_baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
 			// TODO Godot 4
-			if (_screenSettingsManager.Fullscreen) {
+			// Vector2 _baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
+			// if (_screenSettingsManager.Fullscreen) {
 				// OS.WindowFullscreen = true;
-			} else {
+			// } else {
 				// OS.WindowSize = _screenSettingsManager.WindowedResolution.Size;
 				// OS.CenterWindow();
-			}
+			// }
 			// GetTree().SetScreenStretch(Window.ContentScaleModeEnum.CanvasItems, Window.ContentScaleAspectEnum.Keep,_baseResolutionSize, 1);
-			SequenceAnimation
+			_tween = SequenceAnimation
 				.Create(_sprite)
 				.AnimateSteps(Properties.Modulate)
 				.From(Colors.White)
@@ -38,6 +37,11 @@ namespace Veronenger.Controller {
 				.EndAnimate()
 				.SetInfiniteLoops()
 				.Play();
+		}
+
+		public void Stop() {
+			_tween?.Kill();
+			_tween = null;
 		}
 	}
 }

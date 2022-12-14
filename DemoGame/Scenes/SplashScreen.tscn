@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://dvvip0qvxekg7"]
 
-[ext_resource type="Script" path="res://Src/Controller/SplashScreenController.cs" id="1"]
+[ext_resource type="Script" path="res://Src/Controller/SplashScreenController.cs" id="1_ktmno"]
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
-script = ExtResource("1")
+script = ExtResource("1_ktmno")
 
 [node name="SplashScreen" type="Control" parent="."]
 unique_name_in_owner = true
@@ -17,6 +17,7 @@ grow_vertical = 2
 
 [node name="ColorRect" type="ColorRect" parent="SplashScreen"]
 unique_name_in_owner = true
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -25,6 +26,7 @@ grow_vertical = 2
 color = Color(0.0431373, 0.0352941, 0.27451, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="SplashScreen/ColorRect"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -35,8 +37,5 @@ size_flags_vertical = 3
 
 [node name="TextureRect" type="TextureRect" parent="SplashScreen/ColorRect/CenterContainer"]
 unique_name_in_owner = true
-offset_left = 896.0
-offset_top = 476.0
-offset_right = 1024.0
-offset_bottom = 604.0
+layout_mode = 2
 texture = ExtResource("2")

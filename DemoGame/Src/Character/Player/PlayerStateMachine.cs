@@ -135,7 +135,7 @@ namespace Veronenger.Character.Player {
             }
 
             void FinishFallFromPlatform() {
-                if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
+                 if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
             }
 
             On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
