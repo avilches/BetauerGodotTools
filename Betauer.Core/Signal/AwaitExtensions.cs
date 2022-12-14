@@ -29,11 +29,11 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitFrameChanged(this AnimatedSprite3D target) =>
             target.ToSignal(target, "frame_changed");
 
-        public static SignalAwaiter AwaitTracksChanged(this Animation target) =>
-            target.ToSignal(target, "tracks_changed");
-
         public static SignalAwaiter AwaitAnimationAdded(this AnimationLibrary target) =>
             target.ToSignal(target, "animation_added");
+
+        public static SignalAwaiter AwaitAnimationChanged(this AnimationLibrary target) =>
+            target.ToSignal(target, "animation_changed");
 
         public static SignalAwaiter AwaitAnimationRemoved(this AnimationLibrary target) =>
             target.ToSignal(target, "animation_removed");
@@ -413,20 +413,11 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitServerDisconnected(this MultiplayerAPI target) =>
             target.ToSignal(target, "server_disconnected");
 
-        public static SignalAwaiter AwaitConnectionFailed(this MultiplayerPeer target) =>
-            target.ToSignal(target, "connection_failed");
-
-        public static SignalAwaiter AwaitConnectionSucceeded(this MultiplayerPeer target) =>
-            target.ToSignal(target, "connection_succeeded");
-
         public static SignalAwaiter AwaitPeerConnected(this MultiplayerPeer target) =>
             target.ToSignal(target, "peer_connected");
 
         public static SignalAwaiter AwaitPeerDisconnected(this MultiplayerPeer target) =>
             target.ToSignal(target, "peer_disconnected");
-
-        public static SignalAwaiter AwaitServerDisconnected(this MultiplayerPeer target) =>
-            target.ToSignal(target, "server_disconnected");
 
         public static SignalAwaiter AwaitDespawned(this MultiplayerSpawner target) =>
             target.ToSignal(target, "despawned");
@@ -592,6 +583,12 @@ namespace Betauer.Core.Signal {
 
         public static SignalAwaiter AwaitSleepingStateChanged(this RigidBody3D target) =>
             target.ToSignal(target, "sleeping_state_changed");
+
+        public static SignalAwaiter AwaitPeerAuthenticating(this SceneMultiplayer target) =>
+            target.ToSignal(target, "peer_authenticating");
+
+        public static SignalAwaiter AwaitPeerAuthenticationFailed(this SceneMultiplayer target) =>
+            target.ToSignal(target, "peer_authentication_failed");
 
         public static SignalAwaiter AwaitPeerPacket(this SceneMultiplayer target) =>
             target.ToSignal(target, "peer_packet");

@@ -50,11 +50,11 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnFrameChanged(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimatedSprite3D.SignalName.FrameChanged, action, oneShot, deferred);
 
-        public static SignalHandler OnTracksChanged(this Animation target, Action action, bool oneShot = false, bool deferred = false) =>
-            On(target, Animation.SignalName.TracksChanged, action, oneShot, deferred);
-
         public static SignalHandler OnAnimationAdded(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationLibrary.SignalName.AnimationAdded, action, oneShot, deferred);
+
+        public static SignalHandler OnAnimationChanged(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
+            On(target, AnimationLibrary.SignalName.AnimationChanged, action, oneShot, deferred);
 
         public static SignalHandler OnAnimationRemoved(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationLibrary.SignalName.AnimationRemoved, action, oneShot, deferred);
@@ -305,7 +305,7 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnConnectionDragEnded(this GraphEdit target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, GraphEdit.SignalName.ConnectionDragEnded, action, oneShot, deferred);
 
-        public static SignalHandler OnConnectionDragStarted(this GraphEdit target, Action<System.String, System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) =>
+        public static SignalHandler OnConnectionDragStarted(this GraphEdit target, Action<Godot.StringName, System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) =>
             On(target, GraphEdit.SignalName.ConnectionDragStarted, action, oneShot, deferred);
 
         public static SignalHandler OnConnectionFromEmpty(this GraphEdit target, Action<Godot.StringName, System.Int32, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
@@ -434,20 +434,11 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnServerDisconnected(this MultiplayerAPI target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, MultiplayerAPI.SignalName.ServerDisconnected, action, oneShot, deferred);
 
-        public static SignalHandler OnConnectionFailed(this MultiplayerPeer target, Action action, bool oneShot = false, bool deferred = false) =>
-            On(target, MultiplayerPeer.SignalName.ConnectionFailed, action, oneShot, deferred);
-
-        public static SignalHandler OnConnectionSucceeded(this MultiplayerPeer target, Action action, bool oneShot = false, bool deferred = false) =>
-            On(target, MultiplayerPeer.SignalName.ConnectionSucceeded, action, oneShot, deferred);
-
         public static SignalHandler OnPeerConnected(this MultiplayerPeer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
             On(target, MultiplayerPeer.SignalName.PeerConnected, action, oneShot, deferred);
 
         public static SignalHandler OnPeerDisconnected(this MultiplayerPeer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
             On(target, MultiplayerPeer.SignalName.PeerDisconnected, action, oneShot, deferred);
-
-        public static SignalHandler OnServerDisconnected(this MultiplayerPeer target, Action action, bool oneShot = false, bool deferred = false) =>
-            On(target, MultiplayerPeer.SignalName.ServerDisconnected, action, oneShot, deferred);
 
         public static SignalHandler OnDespawned(this MultiplayerSpawner target, Action<Node> action, bool oneShot = false, bool deferred = false) =>
             On(target, MultiplayerSpawner.SignalName.Despawned, action, oneShot, deferred);
@@ -613,6 +604,12 @@ namespace Betauer.Core.Signal {
 
         public static SignalHandler OnSleepingStateChanged(this RigidBody3D target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, RigidBody3D.SignalName.SleepingStateChanged, action, oneShot, deferred);
+
+        public static SignalHandler OnPeerAuthenticating(this SceneMultiplayer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
+            On(target, SceneMultiplayer.SignalName.PeerAuthenticating, action, oneShot, deferred);
+
+        public static SignalHandler OnPeerAuthenticationFailed(this SceneMultiplayer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
+            On(target, SceneMultiplayer.SignalName.PeerAuthenticationFailed, action, oneShot, deferred);
 
         public static SignalHandler OnPeerPacket(this SceneMultiplayer target, Action<System.Int32, System.Byte[]> action, bool oneShot = false, bool deferred = false) =>
             On(target, SceneMultiplayer.SignalName.PeerPacket, action, oneShot, deferred);

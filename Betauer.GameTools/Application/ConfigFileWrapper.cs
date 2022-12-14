@@ -10,7 +10,7 @@ namespace Betauer.Application {
             var variantValue = VariantHelper.CreateFrom(value);
             configFile.SetValue(section, key, variantValue);
         }
-        public static T GetValue<T>(this ConfigFile configFile, string section, string key, T @default = default) {
+        public static T GetValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T @default = default) {
             var variantDefault = VariantHelper.CreateFrom(@default);
             var variantValue = configFile.GetValue(section, key, variantDefault);
             return VariantHelper.ConvertTo<T>(variantValue);
