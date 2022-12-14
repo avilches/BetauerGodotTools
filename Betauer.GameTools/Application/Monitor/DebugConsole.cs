@@ -65,7 +65,7 @@ namespace Betauer.Application.Monitor {
             }
 
             public ConditionalCommand ArgumentIsInteger(Action<CommandInput> execute) {
-                _execute.Add((input => input.Arguments.Length > 0 && input.Arguments[0].IsValidInteger(), execute));
+                _execute.Add((input => input.Arguments.Length > 0 && input.Arguments[0].IsValidInt(), execute));
                 return this;
             }
 

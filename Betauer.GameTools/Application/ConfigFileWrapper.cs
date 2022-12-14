@@ -34,7 +34,7 @@ namespace Betauer.Application {
         }
 
         public ConfigFileWrapper SetPassword(string password) {
-            EncryptionKey = password.ToUTF8();
+            EncryptionKey = password.ToUTF8Buffer();
             return this;
         }
 

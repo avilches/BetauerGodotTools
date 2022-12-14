@@ -9,8 +9,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.0.0-beta.4" />
-        <PackageReference Include="Godot.SourceGenerators" Version="4.0.0-beta.4" />
+        <PackageReference Include="GodotSharp" Version="4.0.0-beta.8" />
+        <PackageReference Include="Godot.SourceGenerators" Version="4.0.0-beta.8" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Animation\Betauer.Animation.csproj" />

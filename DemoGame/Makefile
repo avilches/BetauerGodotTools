@@ -1,7 +1,7 @@
 #!/usr/bin/env make
 
 TARGET_PLATFORM  := "macos"
-GODOT_APP        := "/Applications/Godot4b7_mono.app"
+GODOT_APP        := "/Applications/Godot-4.0.0-beta.8.app"
 
 
 
@@ -13,9 +13,10 @@ TIMESTAMP        := $(shell date "+%Y-%m-%d_%H.%M.%S")
 EXPORT_OSX       := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
 EXPORT_WIN       := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
 EXPORT_LINUX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
+DELAY_IMPORT     := 15
 
 GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
-GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot4b4_mono.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
+GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.0-beta.8.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
 SOLUTION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/name" | cut -d'=' -f2| tr -d '"')
@@ -65,7 +66,7 @@ import:
 	@cat "${ROOT_FOLDER}/.godot.editor.pid"
 
 # Wait
-	@echo "Giving some to the editor to create the imported files..."
+	@echo "Giving some time to the editor to create the imported files..."
 	@for (( i=${DELAY_IMPORT}; i>0; i-- )) do echo "$$i..." ; sleep 1 ; done
 
 # Kill 
@@ -97,7 +98,7 @@ build/ExportRelease:
  
 .PHONY: run
 run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --verbose
 
 .PHONY: test
 test:
