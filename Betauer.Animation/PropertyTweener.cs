@@ -87,8 +87,8 @@ namespace Betauer.Animation {
             if (property is IIndexedProperty indexedProperty) {
                 return sceneTreeTween
                     .Parallel()
-                    .TweenProperty(target, indexedProperty.GetIndexedPropertyName(target), VariantHelper.CreateFrom(to), duration)
-                    .From(VariantHelper.CreateFrom(from))
+                    .TweenProperty(target, indexedProperty.GetIndexedPropertyName(target), Variant.From(to), duration)
+                    .From(Variant.From(from))
                     .SetTrans(godotEasing.TransitionType)
                     .SetEase(godotEasing.EaseType)
                     .SetDelay(start);
@@ -100,7 +100,7 @@ namespace Betauer.Animation {
                             // Logger.Debug("\"" + context.Target.Name + "\" " + context.Target.GetType().Name + "." + property.GetPropertyName(target) + ": " 
                             // + " value:" + value+"");
                             property.SetValue(target, value);
-                        }), VariantHelper.CreateFrom(from), VariantHelper.CreateFrom(to), duration)
+                        }), Variant.From(from), Variant.From(to), duration)
                     .SetTrans(godotEasing.TransitionType)
                     .SetEase(godotEasing.EaseType)
                     .SetDelay(start);

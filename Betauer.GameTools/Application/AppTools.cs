@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
@@ -15,14 +14,14 @@ namespace Betauer.Application {
             System.IO.Path.Combine(GetUserFolder(), System.IO.Path.GetFileName(file));
         
 
-        public static T GetProjectSetting<T>(string key, T defaultValue) {
+        public static T GetProjectSetting<[MustBeVariant] T>(string key, T defaultValue) {
             if (!ProjectSettings.HasSetting(key)) return defaultValue;
             var variant = ProjectSettings.GetSetting(key);
-            return VariantHelper.ConvertTo<T>(variant);
+            return variant.As<T>();
         }
 
         public static void SetProjectSetting<T>(string key, T value) {
-            var variant = VariantHelper.CreateFrom(value);
+            var variant = Variant.From(value);
             ProjectSettings.SetSetting(key, variant);
         }
 

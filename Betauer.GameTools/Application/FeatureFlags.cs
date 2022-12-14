@@ -46,13 +46,13 @@ namespace Betauer.Application {
     public static TimeSpan Uptime => TimeSpan.FromMilliseconds(Time.GetTicksMsec());
 
         public static void SetSetting<T>(string key, T value) {
-            var variantValue = VariantHelper.CreateFrom(value);
+            var variantValue = Variant.From(value);
             ProjectSettings.SetSetting(key, variantValue);
         }
-        public static T GetSetting<T>(string key, T @default = default) {
+        public static T GetSetting<[MustBeVariant] T>(string key, T @default = default) {
             if (!ProjectSettings.HasSetting(key)) return @default;
             var variantValue = ProjectSettings.GetSetting(key);
-            return VariantHelper.ConvertTo<T>(variantValue);
+            return variantValue.As<T>();
         }
         
         public static class FeatureFlags {

@@ -17,11 +17,11 @@ namespace Betauer.Core.Nodes.Property {
 
         public virtual TProperty GetValue(Node node) {
             Variant indexed = node.GetIndexed(GetIndexedPropertyName(node));
-            return VariantHelper.ConvertTo<TProperty>(indexed);
+            return indexed.As<TProperty>();
         }
 
         public virtual void SetValue(Node node, TProperty value) {
-            node.SetIndexed(GetIndexedPropertyName(node), VariantHelper.CreateFrom(value));
+            node.SetIndexed(GetIndexedPropertyName(node), Variant.From(value));
         }
 
         public abstract bool IsCompatibleWith(Node node);
