@@ -41,7 +41,10 @@ window/size/test_height=1080
 [dotnet]
 
 project/assembly_name="DemoGame4"
-project/c#_project_directory="Src"
+
+[editor]
+
+scene/scene_naming=1
 
 [importer_defaults]
 
@@ -70,11 +73,6 @@ texture={
 
 file_logging/log_path="user://logs/dev.log"
 file_logging/log_path.standalone="user://logs/game.log"
-
-[mono]
-
-project/c#_project_directory="Src"
-runtime/unhandled_exception_policy.standalone=0
 
 [rendering]
 
