@@ -6,7 +6,7 @@ using Betauer.Bus;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
-using Betauer.Loader;
+using static Betauer.Loader.Loader;
 using Godot;
 using Veronenger.Controller.Character;
 using Veronenger.Controller.Menu;
@@ -54,60 +54,37 @@ namespace Veronenger {
 
 	[Configuration]
 	public class Resources {
+
+		[Service]
+		public Texture2D Xbox360Buttons =>
+			(Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
+
+		[Service]
+		public Texture2D XboxOneButtons =>
+			(Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
+
+		[Service] public Theme MyTheme => (Theme)ResourceLoader.Load("res://Assets/UI/my_theme.tres");
+
+		[Service] public Theme DebugConsoleTheme => (Theme)ResourceLoader.Load("res://Assets/UI/DebugConsole.tres");
+
+	}
+	
+	[Configuration]
+	public class Scenes {
+		private readonly PackedScene _redefineActionButtonScene = PackedScene("res://Scenes/UI/RedefineActionButton.tscn");
+		private readonly PackedScene _world3Scene = PackedScene("res://Worlds/World3.tscn");
+		private readonly PackedScene _playerScene = PackedScene("res://Scenes/Player.tscn");
+		private readonly PackedScene _modalBoxConfirmScene = PackedScene("res://Scenes/Menu/ModalBoxConfirm.tscn");
 		
-		[Service] 
-		public Texture2D Xbox360Buttons => (Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
+		[Service(Lifetime.Transient)] public RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
+		[Service(Lifetime.Transient)] public Node World3 => _world3Scene.Instantiate<Node>();
+		[Service(Lifetime.Transient)] public PlayerController Player => _playerScene.Instantiate<PlayerController>();
+		[Service(Lifetime.Transient)] public ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
 
-		[Service]
-		public Texture2D XboxOneButtons => (Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
-
-		[Service]
-		public Theme MyTheme => (Theme)ResourceLoader.Load("res://Assets/UI/my_theme.tres");
-
-		[Service]
-		public Theme DebugConsoleTheme => (Theme)ResourceLoader.Load("res://Assets/UI/DebugConsole.tres");
-		
-		[Service]
-		[Lazy]
-		public RedefineActionButton RedefineActionButton =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/UI/RedefineActionButton.tscn"))
-			.Instantiate<RedefineActionButton>();
-
-		[Service(Lifetime.Transient)]
-		public Node World3 =>
-			((PackedScene)ResourceLoader.Load("res://Worlds/World3.tscn"))
-			.Instantiate<Node>();
-        
-		[Service(Lifetime.Transient)]
-		public PlayerController Player =>
-			((PackedScene)ResourceLoader.Load("res://cenes/Player.tscn"))
-			.Instantiate<PlayerController>();
-
-		[Service]
-		public MainMenu MainMenuScene =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/MainMenu.tscn"))
-			.Instantiate<MainMenu>();
-
-		[Service]
-		public BottomBar BottomBarScene =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/BottomBar.tscn"))
-			.Instantiate<BottomBar>();
-
-		[Service]
-		public PauseMenu PauseMenuScene =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/PauseMenu.tscn"))
-			.Instantiate<PauseMenu>();
-
-		[Service]
-		public SettingsMenu SettingsMenuScene =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/SettingsMenu.tscn"))
-			.Instantiate<SettingsMenu>();
-
-		[Service(Lifetime.Transient)]
-		public ModalBoxConfirm ModalBoxConfirm =>
-			((PackedScene)ResourceLoader.Load("res://Scenes/Menu/ModalBoxConfirm.tscn"))
-			.Instantiate<ModalBoxConfirm>();
-		
+		[Service] public MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");
+		[Service] public BottomBar BottomBarScene => Instantiate<BottomBar>("res://Scenes/Menu/BottomBar.tscn");
+		[Service] public PauseMenu PauseMenuScene => Instantiate<PauseMenu>("res://Scenes/Menu/PauseMenu.tscn");
+		[Service] public SettingsMenu SettingsMenuScene => Instantiate<SettingsMenu>("res://Scenes/Menu/SettingsMenu.tscn");
 	}
 
 	[Configuration]

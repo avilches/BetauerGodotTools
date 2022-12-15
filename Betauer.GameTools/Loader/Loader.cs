@@ -15,7 +15,9 @@ namespace Betauer.Loader {
                 Path = path;
             }
         }
-
+        public static PackedScene PackedScene(string sceneResource) => ResourceLoader.Load<PackedScene>(sceneResource);
+        public static T Instantiate<T>(string sceneResource) where T : Node => PackedScene(sceneResource).Instantiate<T>();
+        
         public static async Task<IEnumerable<Resource>> Load(IEnumerable<string> resourcePathsToLoadEnum, Func<Task> awaiter,
             Action<float>? progressAction = null) {
             progressAction?.Invoke(0f);

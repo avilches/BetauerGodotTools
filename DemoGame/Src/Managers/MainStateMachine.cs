@@ -101,10 +101,6 @@ namespace Veronenger.Managers {
                     ConfigureDebugOverlays();
                     // Never pause the pause, settings and the state machine, because they will not work!
 
-                    SceneTree.Root.AddChild(PauseMenuScene);
-                    SceneTree.Root.AddChild(SettingsMenuScene);
-                    SceneTree.Root.AddChild(MainMenuScene);
-                    SceneTree.Root.AddChild(BottomBarScene);
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
                 .OnInput((e) => {
