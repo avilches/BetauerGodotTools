@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Betauer;
 using Betauer.Application.Monitor;
@@ -6,7 +7,6 @@ using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Core.Time;
 using Godot;
@@ -69,12 +69,12 @@ namespace Veronenger.Character.Player {
         // private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
         private MonitorText? _coyoteMonitor;
         private MonitorText? _jumpHelperMonitor;
-
-        public void Start(string name, PlayerController playerController, IFlipper flippers) {
+        
+        public void Start(string name, PlayerController playerController, IFlipper flippers, List<RayCast2D> floorRaycasts) {
             _player = playerController;
             playerController.AddChild(this);
 
-            Body.Configure(name, playerController, flippers, _player.Marker2D, MotionConfig.FloorUpDirection);
+            Body.Configure(name, playerController, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
             playerController.FloorStopOnSlope = true;
             // playerController.FloorBlockOnWall = true;
             playerController.FloorConstantSpeed = true;

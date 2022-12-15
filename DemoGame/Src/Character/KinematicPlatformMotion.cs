@@ -35,9 +35,12 @@ namespace Veronenger.Character {
         // Ceiling
         private bool _isOnCeiling = false;
 
-        public void Configure(string name, CharacterBody2D body, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection) {
+        protected List<RayCast2D>? FloorRaycasts;
+
+        public void Configure(string name, CharacterBody2D body, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) {
             base.Configure(name, body, marker2D, floorUpDirection);
             _flippers = flippers;
+            FloorRaycasts = floorRaycasts;
         }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
@@ -182,21 +185,36 @@ namespace Veronenger.Character {
             }
         }
 
+        public IEnumerable<RayCast2D> GetFloorRaycastColliding() {
+            return FloorRaycasts?
+                       .Do(r => r.ForceRaycastUpdate())
+                       .Where(r => r.IsColliding())
+                   ?? Enumerable.Empty<RayCast2D>();
+        }
+
+        public IEnumerable<Node> GetFloorRaycastColliders() =>
+            GetFloorRaycastColliding().Where(r => r.GetCollisionNormal().IsFloor(FloorUpDirection))
+                .Select(r => (Node)r.GetCollider());
+
+        public IEnumerable<Node> GetFloorColliders(Func<Node, bool>? predicate = null) => GetFloorColliders<Node>(predicate); 
+        public IEnumerable<Node> GetWallColliders(Func<Node, bool>? predicate = null) => GetWallColliders<Node>(predicate); 
+        public IEnumerable<Node> GetCeilingColliders(Func<Node, bool>? predicate = null) => GetCeilingColliders<Node>(predicate); 
+        
         public IEnumerable<T> GetFloorColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetFloorColliders(FloorUpDirection, predicate); 
         public IEnumerable<T> GetWallColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetWallColliders(FloorUpDirection, predicate); 
-        public IEnumerable<T> GetCeilingColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetCeilingColliders(FloorUpDirection, predicate); 
+        public IEnumerable<T> GetCeilingColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetCeilingColliders(FloorUpDirection, predicate);
+        
         public IEnumerable<KinematicCollision2D> GetFloorCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetFloorCollisions(FloorUpDirection, predicate); 
         public IEnumerable<KinematicCollision2D> GetWallCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetWallCollisions(FloorUpDirection, predicate); 
         public IEnumerable<KinematicCollision2D> GetCeilingCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetCeilingCollisions(FloorUpDirection, predicate); 
 
         public string GetFloorCollisionInfo() {
             if (!IsOnFloor()) return "";
-            var collider = (Node)GetFloorCollisions().FirstOrDefault()?.GetCollider();
+            var collider = GetFloorColliders().FirstOrDefault();
             if (collider == null) {
-                // return "!!!!!";
-                throw new Exception("Not enough gravity on floor");
+                collider = GetFloorRaycastColliders().FirstOrDefault();
             }
-            return $"{(IsOnSlope() ? IsOnSlopeUpRight() ? "/" : "\\" : "flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{collider.GetType().Name}] {collider.Name}";
+            return $"{(IsOnSlope() ? IsOnSlopeUpRight() ? "/" : "\\" : "flat")} {GetFloorNormal().ToString("0.0")} {Mathf.RadToDeg(GetFloorNormal().Angle()):0.0}º [{collider?.GetType().Name}] {collider?.Name}";
         }
 
         public string GetWallCollisionInfo() {

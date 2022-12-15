@@ -11,10 +11,10 @@ namespace Veronenger.Character.Player {
         public float Acceleration = -1; // pixels/frame
         public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
         public float Friction = 0.9f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
-        public float FloorGravity = 7000; // enough gravity to ensure floor collider is not null when IsOnFloor() and IsOnWall() are both true 
+        public float FloorGravity = 1000;
 
         // CONFIG: air
-        public float AirGravity; // pixels/frame (it's accumulative)
+        public float AirGravity; // pixels/seconds (it's accumulative)
         public float JumpSpeed;
         public float JumpSpeedMin;
 
