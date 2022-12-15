@@ -86,7 +86,7 @@ namespace Betauer.DI {
         private void InjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
             if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)) {
                 var type = setter.Type.GetGenericArguments()[0];
-                var provider = _container.GetProvider(setter.Type);
+                var provider = _container.GetProvider(name);
                 var lazy = CreateLazyWithGeneric(_container, provider, type);
                 setter.SetValue(target, lazy);
             } else {

@@ -970,7 +970,47 @@ namespace Betauer.DI.Tests {
             Assert.That(C2.more2, Is.True);
 
         }
+
+        public class LazySingleton {
+            public static int Calls = 0;
+
+            public LazySingleton() {
+                Calls++;
+            }
+        }
         
+        [Configuration]
+        public class LazySingletonConfiguration {
+            [Service()]
+            [Lazy] 
+            public LazySingleton LazySingleton => new();
+        }
+
+        [Service]
+        public class AnotherSingleton {
+            [Inject] public Factory<LazySingleton> LazySingleton { get; set; }
+            
+        }
+
+
+        [Test(Description = "Test defining a Lazy service by name")]
+        public void LazySingletonFromConfiguration() {
+            var c = new Container();
+            var di = c.CreateBuilder();
+            di.Scan<LazySingletonConfiguration>();
+            di.Scan<AnotherSingleton>();
+            di.Build();
+
+            AnotherSingleton another = c.Resolve<AnotherSingleton>();
+
+            Assert.That(LazySingleton.Calls, Is.EqualTo(0));
+            Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
+
+            another.LazySingleton.Get();
+            Assert.That(LazySingleton.Calls, Is.EqualTo(1));
+            Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
+        }
+
         [Service]
         [Lazy]
         class LazyPostCreatedD1 {
