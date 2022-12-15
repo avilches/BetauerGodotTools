@@ -7,6 +7,7 @@ using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using static Betauer.Loader.Loader;
+using static Godot.ResourceLoader;
 using Godot;
 using Veronenger.Controller.Character;
 using Veronenger.Controller.Menu;
@@ -54,19 +55,10 @@ namespace Veronenger {
 
 	[Configuration]
 	public class Resources {
-
-		[Service]
-		public Texture2D Xbox360Buttons =>
-			(Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
-
-		[Service]
-		public Texture2D XboxOneButtons =>
-			(Texture2D)ResourceLoader.Load("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
-
-		[Service] public Theme MyTheme => (Theme)ResourceLoader.Load("res://Assets/UI/my_theme.tres");
-
-		[Service] public Theme DebugConsoleTheme => (Theme)ResourceLoader.Load("res://Assets/UI/DebugConsole.tres");
-
+		[Service] Texture2D Xbox360Buttons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
+		[Service] Texture2D XboxOneButtons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
+		[Service] Theme MyTheme => Load<Theme>("res://Assets/UI/my_theme.tres");
+		[Service] Theme DebugConsoleTheme => Load<Theme>("res://Assets/UI/DebugConsole.tres");
 	}
 	
 	[Configuration]
@@ -76,15 +68,15 @@ namespace Veronenger {
 		private readonly PackedScene _playerScene = PackedScene("res://Scenes/Player.tscn");
 		private readonly PackedScene _modalBoxConfirmScene = PackedScene("res://Scenes/Menu/ModalBoxConfirm.tscn");
 		
-		[Service(Lifetime.Transient)] public RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
-		[Service(Lifetime.Transient)] public Node World3 => _world3Scene.Instantiate<Node>();
-		[Service(Lifetime.Transient)] public PlayerController Player => _playerScene.Instantiate<PlayerController>();
-		[Service(Lifetime.Transient)] public ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
+		[Service(Lifetime.Transient)] RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
+		[Service(Lifetime.Transient)] Node World3 => _world3Scene.Instantiate<Node>();
+		[Service(Lifetime.Transient)] PlayerController Player => _playerScene.Instantiate<PlayerController>();
+		[Service(Lifetime.Transient)] ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
 
-		[Service] public MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");
-		[Service] public BottomBar BottomBarScene => Instantiate<BottomBar>("res://Scenes/Menu/BottomBar.tscn");
-		[Service] public PauseMenu PauseMenuScene => Instantiate<PauseMenu>("res://Scenes/Menu/PauseMenu.tscn");
-		[Service] public SettingsMenu SettingsMenuScene => Instantiate<SettingsMenu>("res://Scenes/Menu/SettingsMenu.tscn");
+		[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");
+		[Service] BottomBar BottomBarScene => Instantiate<BottomBar>("res://Scenes/Menu/BottomBar.tscn");
+		[Service] PauseMenu PauseMenuScene => Instantiate<PauseMenu>("res://Scenes/Menu/PauseMenu.tscn");
+		[Service] SettingsMenu SettingsMenuScene => Instantiate<SettingsMenu>("res://Scenes/Menu/SettingsMenu.tscn");
 	}
 
 	[Configuration]
