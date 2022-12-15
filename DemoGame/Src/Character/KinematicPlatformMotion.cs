@@ -185,6 +185,15 @@ namespace Veronenger.Character {
             }
         }
 
+        /// <summary>
+        /// This is needed because:
+        /// - If player collides against a wall with a tilemap, only one collision is returned withe the tilemap and the
+        /// wall normal. No floor normal collision is returned.
+        /// - If player walks through a slope, sometimes there is no collision. Increase the gravity reduces the amount
+        /// of times the slope floor collision is missing, but not at 100%... and too much gravity avoid climb the slope.
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<RayCast2D> GetFloorRaycastColliding() {
             return FloorRaycasts?
                        .Do(r => r.ForceRaycastUpdate())
