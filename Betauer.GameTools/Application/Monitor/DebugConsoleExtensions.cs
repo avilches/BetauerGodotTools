@@ -1,9 +1,8 @@
 using System;
+using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
 using Betauer.Core.Nodes;
-using Betauer.Core.Signal;
 using Betauer.Input;
 using Godot;
 
@@ -86,11 +85,11 @@ namespace Betauer.Application.Monitor {
     [color=#ffffff]timescale <float>[/color] : Set the time scale to <float>.",
                     "Error: argument must be a valid float number.")
                 .WithNoArguments(() => {
-                    console.WriteLine($"Current time scale: {Engine.TimeScale.ToString()}");
+                    console.WriteLine($"Current time scale: {Engine.TimeScale.ToString(CultureInfo.InvariantCulture)}");
                 })
                 .ArgumentIsFloat(input => {
                     var newTimeScale = input.Arguments[0];
-                    Engine.TimeScale = newTimeScale.ToFloat();
+                    Engine.TimeScale = double.Parse(newTimeScale, NumberStyles.Float, CultureInfo.InvariantCulture);
                     console.WriteLine($"New time scale: {newTimeScale}");
                 }).End();
         }

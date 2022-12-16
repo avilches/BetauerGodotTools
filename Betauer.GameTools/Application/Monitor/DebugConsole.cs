@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Input;
@@ -70,7 +71,7 @@ namespace Betauer.Application.Monitor {
             }
 
             public ConditionalCommand ArgumentIsFloat(Action<CommandInput> execute) {
-                _execute.Add((input => input.Arguments.Length > 0 && input.Arguments[0].IsValidFloat(), execute));
+                _execute.Add((input => input.Arguments.Length > 0 && double.TryParse(input.Arguments[0], NumberStyles.Float, CultureInfo.InvariantCulture, out _), execute));
                 return this;
             }
 
