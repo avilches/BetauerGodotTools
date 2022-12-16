@@ -7,7 +7,14 @@ using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
-    public class InputAction {
+    public interface IActionHandler {
+        bool IsJustPressed(bool exact = false);
+        bool IsPressed(bool exact = false);
+        bool IsReleased(bool exact = false);
+        float GetStrength(bool exact = false);
+    }
+    
+    public class InputAction : IActionHandler {
         public static NormalBuilder Create(string name) => new(name);
         public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 

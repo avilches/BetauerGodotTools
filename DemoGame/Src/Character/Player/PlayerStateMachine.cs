@@ -14,7 +14,7 @@ using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Player {
-    
+
     public enum PlayerState {
         Idle,
         Landing,
@@ -36,33 +36,31 @@ namespace Veronenger.Character.Player {
         public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", true) {
         }
 
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private PlatformManager PlatformManager { get; set;}
+        
         [Inject] public PlayerConfig PlayerConfig { get; set;}
-        [Inject] private InputAction Left { get; set;}
-        [Inject] private InputAction Up { get; set;}
-        [Inject] private InputAction Jump { get; set;}
-        [Inject] private InputAction Attack { get; set;}
-        [Inject] private InputAction Float { get; set;}
         [Inject] public KinematicPlatformMotion Body { get; set; }
+        [Inject] private GodotStopwatch LastJumpOnAirTimer { get; set; }
+        [Inject] private GodotStopwatch CoyoteFallingTimer { get; set; }
+        [Inject] private Bus Bus { get; set; }
+        [Inject] private ICharacterHandler Handler { get; set; }
 
         private PlayerController _player;
 
-        // Input from the player
-        private AxisAction LateralMotion => Left.AxisAction;
-        private AxisAction VerticalMotion => Up.AxisAction;
-        private float XInput => LateralMotion.Strength;
-        private float YInput => VerticalMotion.Strength;
-        private bool IsPressingRight => XInput > 0;
-        private bool IsPressingLeft => XInput < 0;
-        private bool IsPressingUp => YInput < 0;
-        private bool IsPressingDown => YInput > 0;
+        private float XInput => Handler.XInput;
+        private float YInput => Handler.YInput;
+        private bool IsPressingRight => Handler.IsPressingRight;
+        private bool IsPressingLeft => Handler.IsPressingLeft;
+        private bool IsPressingUp => Handler.IsPressingUp;
+        private bool IsPressingDown => Handler.IsPressingDown;
+        private IActionHandler Jump => Handler.Jump;
+        private IActionHandler Attack => Handler.Attack;
+        private IActionHandler Float => Handler.Float;
+        
         private float MotionX => Body.MotionX;
         private float MotionY => Body.MotionY;
 
-        [Inject] private GodotStopwatch LastJumpOnAirTimer { get; set; }
-        [Inject] private GodotStopwatch CoyoteFallingTimer { get; set; }
-        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private Bus Bus { get; set; }
 
         // private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
         private bool IsOnFallingPlatform() => Body.IsOnFloor() && PlatformManager.IsFallingPlatform(Body.GetFloorColliders<PhysicsBody2D>().FirstOrDefault());

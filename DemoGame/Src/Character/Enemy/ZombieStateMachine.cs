@@ -47,26 +47,24 @@ namespace Veronenger.Character.Enemy {
         }
 
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private InputAction Left { get; set;}
-        [Inject] private InputAction Up { get; set;}
-        [Inject] private InputAction Jump { get; set;}
-        private AxisAction LateralMotion => Left.AxisAction;
-        private AxisAction VerticalMotion => Up.AxisAction;
-        private float XInput => LateralMotion.Strength;
-        private float YInput => VerticalMotion.Strength;
-        private bool IsRight => XInput > 0;
-        private bool IsLeft => XInput < 0;
-
         [Inject] private CharacterManager CharacterManager { get; set; }
-        [Inject] public KinematicPlatformMotion Body { get; set; }
-        private float MotionX => Body.MotionX;
-        private float MotionY => Body.MotionY;
-        [Inject] private EnemyConfig EnemyConfig { get; set; }
-        [Inject] private PlayerConfig PlayerConfig { get; set; }
         
+        [Inject] private PlayerConfig PlayerConfig { get; set; }
+        [Inject] private EnemyConfig EnemyConfig { get; set; }
+        [Inject] public KinematicPlatformMotion Body { get; set; }
         [Inject] private GodotStopwatch StateTimer  { get; set; }
+        [Inject] private ICharacterHandler Handler { get; set; }
 
         private ZombieController _zombieController;
+
+        private float XInput => Handler.XInput;
+        private float YInput => Handler.YInput;
+        private IActionHandler Jump => Handler.Jump;
+        private IActionHandler Attack => Handler.Attack;
+        private IActionHandler Float => Handler.Float;
+
+        private float MotionX => Body.MotionX;
+        private float MotionY => Body.MotionY;
 
         public readonly EnemyStatus Status = new();
 
