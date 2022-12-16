@@ -42,9 +42,6 @@ layer_2/tile_data = PackedInt32Array(-262197, 1179650, 6, -393270, 1114114, 4, -
 layer_3/tile_data = PackedInt32Array(-131126, 458753, 7, -196662, 1, 8)
 layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -458793, 262144, 10, -589864, 327680, 8, -524328, 327680, 9, -458792, 327680, 10, -589863, 393216, 8, -524327, 393216, 9, -458791, 393216, 10)
 
-[node name="EnemyBody" parent="." instance=ExtResource("3_ailyd")]
-position = Vector2(-153, -15)
-
 [node name="EnemyBody2" parent="." instance=ExtResource("3_ailyd")]
 position = Vector2(-651, 18)
 
@@ -56,6 +53,7 @@ offset_bottom = 40.0
 
 [node name="MaxLength1" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -410.0
 offset_top = 3.0
 offset_right = -210.0
@@ -66,6 +64,7 @@ horizontal_alignment = 1
 
 [node name="MaxHeight" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -482.0
 offset_top = -45.0
 offset_right = -282.0
@@ -76,6 +75,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength2" type="Label" parent="Hints"]
 modulate = Color(1, 0.34902, 0.360784, 0.576471)
+layout_mode = 0
 offset_left = -237.0
 offset_top = -2.0
 offset_right = -57.0
@@ -86,6 +86,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength3" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -98.0
 offset_top = 7.0
 offset_right = 98.0
@@ -97,6 +98,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength4" type="Label" parent="Hints"]
 modulate = Color(1, 0.34902, 0.360784, 0.576471)
+layout_mode = 0
 offset_left = 69.0
 offset_top = 9.0
 offset_right = 265.0

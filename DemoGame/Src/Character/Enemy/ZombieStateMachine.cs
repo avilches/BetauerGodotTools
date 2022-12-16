@@ -3,10 +3,10 @@ using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Core.Time;
 using Godot;
+using Veronenger.Character.Handler;
 using Veronenger.Character.Player;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
@@ -41,6 +41,33 @@ namespace Veronenger.Character.Enemy {
         }
     }
 
+    public class ZombieIA {
+        private ICharacterHandler _handler;
+
+        public ZombieIA(ICharacterHandler handler) {
+            _handler = handler;
+        }
+
+        private int x = 0;
+        public void HandleIA(double delta) {
+            if (_handler is not ManualCharacterHandler handler) return;
+            x++;
+            if (x == 5) {
+                handler.HandlerJump.QuickPress();
+            }
+            if (x == 10) {
+                handler.HandlerJump.PressAndHold();
+            }
+            if (x == 15) {
+                handler.HandlerJump.Release();
+                x = 0;
+            }
+            GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
+                     " JustPressed:"+handler.HandlerJump.IsJustPressed()+
+                     " Released:"+handler.HandlerJump.IsReleased());
+        }
+    }
+
     [Service(Lifetime.Transient)]
     public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
@@ -53,7 +80,7 @@ namespace Veronenger.Character.Enemy {
         [Inject] private EnemyConfig EnemyConfig { get; set; }
         [Inject] public KinematicPlatformMotion Body { get; set; }
         [Inject] private GodotStopwatch StateTimer  { get; set; }
-        [Inject] private ICharacterHandler Handler { get; set; }
+        [Inject] private InputActionCharacterHandler Handler { get; set; }
 
         private ZombieController _zombieController;
 
@@ -76,6 +103,8 @@ namespace Veronenger.Character.Enemy {
             Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
         }
 
+        private ZombieIA _zombieIA;
+
         public void Start(string name, ZombieController zombie, IFlipper flippers, Marker2D marker2D) {
             _zombieController = zombie;
             zombie.AddChild(this);
@@ -86,7 +115,11 @@ namespace Veronenger.Character.Enemy {
             zombie.FloorConstantSpeed = true;
             zombie.FloorSnapLength = MotionConfig.SnapLength;
 
+            _zombieIA = new ZombieIA(Handler);
+
             AddOnExecuteStart((delta, state) => Body.SetDelta(delta));
+            AddOnExecuteStart((delta, state) => _zombieIA.HandleIA(delta));
+            AddOnExecuteEnd((state) => Handler.EndFrame());
             AddOnTransition((args) => zombie.Label.Text = args.To.ToString());
 
             var debugOverlay = DebugOverlayManager.Follow(zombie);

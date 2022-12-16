@@ -10,6 +10,7 @@ using Betauer.Input;
 using Betauer.StateMachine.Sync;
 using Betauer.Core.Time;
 using Godot;
+using Veronenger.Character.Handler;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
@@ -44,7 +45,7 @@ namespace Veronenger.Character.Player {
         [Inject] private GodotStopwatch LastJumpOnAirTimer { get; set; }
         [Inject] private GodotStopwatch CoyoteFallingTimer { get; set; }
         [Inject] private Bus Bus { get; set; }
-        [Inject] private ICharacterHandler Handler { get; set; }
+        [Inject] private InputActionCharacterHandler Handler { get; set; }
 
         private PlayerController _player;
 

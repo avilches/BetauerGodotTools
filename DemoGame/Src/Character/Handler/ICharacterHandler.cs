@@ -1,6 +1,6 @@
 using Betauer.Input;
 
-namespace Veronenger.Character.Player;
+namespace Veronenger.Character.Handler;
 
 public interface ICharacterHandler {
     public float XInput => 0f;
@@ -13,4 +13,6 @@ public interface ICharacterHandler {
     public IActionHandler Jump { get; }
     public IActionHandler Attack { get; }
     public IActionHandler Float { get; }
+
+    public void EndFrame();
 }
