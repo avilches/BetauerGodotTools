@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Betauer.Animation;
 using Betauer.Application;
 using Betauer.DI;
 using Betauer.Input;

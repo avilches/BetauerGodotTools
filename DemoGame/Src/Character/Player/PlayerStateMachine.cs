@@ -67,9 +67,11 @@ namespace Veronenger.Character.Player {
         // private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
         private MonitorText? _coyoteMonitor;
         private MonitorText? _jumpHelperMonitor;
+        private DelayedAction _delayedJump;
         
         public void Start(string name, PlayerController playerController, IFlipper flippers, List<RayCast2D> floorRaycasts) {
             _player = playerController;
+            _delayedJump = ((InputAction)Jump).CreateDelayed();
             playerController.AddChild(this);
 
             Body.Configure(name, playerController, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
@@ -116,7 +118,13 @@ namespace Veronenger.Character.Player {
         public void ApplyAirGravity(float factor = 1.0F) {
             Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
         }
-        
+
+        public override void _Notification(long what) {
+            if (what == NotificationPredelete) {
+                _delayedJump?.Dispose();
+            }
+        }
+
         public void GroundStates() {
             bool CheckGroundAttack() {
                 if (!Attack.IsJustPressed()) return false;
@@ -137,19 +145,18 @@ namespace Veronenger.Character.Player {
 
             On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
 
-            var delayedJump = ((InputAction)Jump).Delayed();
             var jumpJustInTime = false;
             State(PlayerState.Landing)
                 .Enter(() => {
                     FinishFallFromPlatform();
                     CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-                    jumpJustInTime = delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
+                    jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
                 })
                 .Execute(() => {
                     if (jumpJustInTime) {
-                        _jumpHelperMonitor?.Show($"{delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+                        _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
                     } else {
-                        _jumpHelperMonitor?.Show($"{delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
+                        _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
                     }
                 })
                 .If(() => jumpJustInTime).Set(PlayerState.Jump)

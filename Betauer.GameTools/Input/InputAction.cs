@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
-using Betauer.Core.Time;
 using Betauer.DI;
-using Betauer.Nodes;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -72,7 +70,6 @@ namespace Betauer.Input {
         private readonly string? _oppositeActionName;
         private AxisAction? _axisAction;
         private readonly bool _isConfigurable;
-        private DelayedAction? _delayedAction;
 
         private InputAction(string inputActionsContainerName, string name, string? oppositeActionName, bool keepProjectSettings,
             bool isConfigurable, string? settingsContainerName, string? settingsSection) {
@@ -85,15 +82,8 @@ namespace Betauer.Input {
             if (keepProjectSettings) LoadFromProjectSettings();
         }
 
-        public DelayedAction Delayed(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
-            if (_delayedAction != null) {
-                return _delayedAction;
-            }
-            _delayedAction = new DelayedAction(SceneTree, this, processAlways, processInPhysics, ignoreTimeScale);
-            var inputEventHandler = DefaultNodeHandler.Instance.OnInput(null, input => {
-                if (IsEventJustPressed(input)) _delayedAction.GodotStopwatch.Restart();
-            }, processAlways ? Node.ProcessModeEnum.Always : Node.ProcessModeEnum.Pausable);
-            return _delayedAction;
+        public DelayedAction CreateDelayed(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
+            return new DelayedAction(SceneTree, this, processAlways, processInPhysics, ignoreTimeScale);
         }
 
         public void LoadFromProjectSettings() {
@@ -525,18 +515,4 @@ namespace Betauer.Input {
             return e.IsActionReleased(NegativeName, echo);
         }
     }
-    
-    public class DelayedAction {
-        public readonly GodotStopwatch GodotStopwatch;
-        public readonly InputAction InputAction;
-        internal DelayedAction(SceneTree sceneTree, InputAction action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
-            InputAction = action;
-            GodotStopwatch = new GodotStopwatch(sceneTree, processAlways, processInPhysics, ignoreTimeScale);
-                
-        }
-        public double LastPressed => GodotStopwatch.Elapsed;
-        public bool WasPressed(float limit) => GodotStopwatch.IsRunning && (float)GodotStopwatch.Elapsed <= limit;
-            
-    }
-    
 }
