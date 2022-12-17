@@ -29,7 +29,7 @@ namespace Betauer.Core.Time {
 
         public bool IsRunning => _running && !_paused;
 
-        public GodotTimeout(SceneTree sceneTree, double timeout, Action onTimeout, bool processAlways = true,
+        public GodotTimeout(SceneTree sceneTree, double timeout, Action onTimeout, bool processAlways = false,
             bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
             Timeout = _timeLeft = timeout;
@@ -37,6 +37,10 @@ namespace Betauer.Core.Time {
             ProcessAlways = processAlways;
             ProcessInPhysics = processInPhysics;
             IgnoreTimeScale = ignoreTimeScale;
+        }
+
+        public GodotTimeout(double timeout, Action onTimeout, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) : 
+            this(Engine.GetMainLoop() as SceneTree, timeout, onTimeout, processAlways, processInPhysics, ignoreTimeScale) {
         }
 
         public GodotTimeout AddOnTimeout(Action action) {

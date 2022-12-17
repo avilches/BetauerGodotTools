@@ -6,7 +6,6 @@ using Betauer.Tools.Logging;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Betauer.OnReady;
-using Betauer.Core.Time;
 using Betauer.Input;
 using Betauer.Nodes;
 using Godot;
@@ -35,7 +34,6 @@ namespace Betauer.Application {
             [Service] public SceneTree SceneTree => _outer.GetTree();
             [Service] public NodeNotificationsHandler NodeNotificationsHandler => _outer.NodeNotificationsHandlerInstance;
             [Service] public DebugOverlayManager DebugOverlayManager => new();
-            [Service(Lifetime.Transient)] public GodotStopwatch GodotStopwatch => new(_outer.GetTree());
         }
 
         protected AutoConfiguration(Options? options = null) {

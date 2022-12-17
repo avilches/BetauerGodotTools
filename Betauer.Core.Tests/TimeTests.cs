@@ -1,15 +1,13 @@
-using System;
 using System.Threading.Tasks;
 using Betauer.Core.Time;
-using Betauer.TestRunner;
+using Betauer.Core.Signal;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests; 
+namespace Betauer.Core.Tests;
 
 [TestFixture]
 public partial class TimeTests : Node {
-
     [SetUp]
     public void SetUp() {
         Engine.TimeScale = 1;
@@ -18,55 +16,39 @@ public partial class TimeTests : Node {
     [Test]
     public async Task GodotSchedulerTests() {
         var steps = 0;
-        var godotScheduler = new GodotScheduler(() => steps++);
+        var godotScheduler = new GodotScheduler(GetTree(), 0.001f, () => steps++);
 
         Assert.That(godotScheduler.IsRunning(), Is.False);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
 
-        // Start every 0.1s, ignore the second start
-        godotScheduler.Start(GetTree(), 0.1f);
-        godotScheduler.Start(GetTree(), 0.0001f);
+        // Start every 0.1s, the second start reset the previous one
+        godotScheduler.Start(12f);
+        godotScheduler.Start(0.1f);
         Assert.That(godotScheduler.IsRunning(), Is.True);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
-        await Task.Delay(TimeSpan.FromSeconds(0.55));
+        await Delay(0.55f);
         Assert.That(steps, Is.GreaterThanOrEqualTo(4));
         Assert.That(steps, Is.LessThan(7));
 
         // Pause
-        godotScheduler.Pause();
-        Assert.That(godotScheduler.IsRunning(), Is.True);
-        Assert.That(godotScheduler.IsPaused(), Is.True);
+        godotScheduler.Stop();
+        Assert.That(godotScheduler.IsRunning(), Is.False);
         steps = 0;
-        await Task.Delay(TimeSpan.FromSeconds(0.4));
+        await Delay(0.4f);
         Assert.That(steps, Is.EqualTo(0));
 
         // Resume
-        godotScheduler.Resume();
+        godotScheduler.Start();
         Assert.That(godotScheduler.IsRunning(), Is.True);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
-        await Task.Delay(TimeSpan.FromSeconds(0.2));
+        await Delay(0.2f);
         Assert.That(steps, Is.GreaterThanOrEqualTo(1));
 
-        // Stop
-        steps = 0;
-        godotScheduler.Stop();
-        // It's still running, it will stop in the next execution...
-        Assert.That(godotScheduler.IsRunning(), Is.True);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
-        await Task.Delay(TimeSpan.FromSeconds(0.3));
-        Assert.That(godotScheduler.IsRunning(), Is.False);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
-        // ... but the lambda is not executed
-        Assert.That(steps, Is.EqualTo(0));
-
         // Start again every 0.1s, same behaviour
-        godotScheduler.Start(GetTree(), 0.1f);
+        godotScheduler.Start(0.05f);
         Assert.That(godotScheduler.IsRunning(), Is.True);
-        Assert.That(godotScheduler.IsPaused(), Is.False);
-        await Task.Delay(TimeSpan.FromSeconds(0.55));
-        Assert.That(steps, Is.EqualTo(5).Within(2));
+        await Delay(0.4f);
+        Assert.That(steps, Is.EqualTo(8).Within(2));
         godotScheduler.Stop();
     }
+
     [Test]
     public async Task StopwatchAlarmTests() {
         var x = new GodotStopwatch(GetTree()).Start();
@@ -95,13 +77,13 @@ public partial class TimeTests : Node {
     public async Task GodotStopwatchStartsStoppedTests() {
         var x = new GodotStopwatch(GetTree());
         // It starts and stays stopped for 0.5s
-        await Task.Delay(TimeSpan.FromSeconds(0.5));
+        await Delay((0.5f));
         Assert.That(x.Elapsed, Is.EqualTo(0));
         Assert.That(x.IsRunning, Is.False);
-            
+
         // Start and wait 0.5s
         x.Start();
-        await Task.Delay(TimeSpan.FromSeconds(0.5));
+        await Delay((0.5f));
         Assert.That(x.Elapsed, Is.EqualTo(0.5f).Within(0.1f));
         Assert.That(x.IsRunning, Is.True);
     }
@@ -218,18 +200,19 @@ public partial class TimeTests : Node {
     [Test]
     public async Task GodotTimeoutMultipleExecutionsTests() {
         var timeouts = 0;
-        var x = new GodotTimeout(GetTree(), 0.1f, () => timeouts ++).Start();
-        await Task.Delay(TimeSpan.FromSeconds(0.3));
+        var x = new GodotTimeout(GetTree(), 0.1f, () => timeouts++).Start();
+        await Delay((0.3f));
         Assert.That(x.IsRunning, Is.False);
         Assert.That(timeouts, Is.EqualTo(1));
 
         x.Start();
         Assert.That(x.IsRunning, Is.True);
-        await Task.Delay(TimeSpan.FromSeconds(0.2));
+        await Delay(0.2f);
+        Assert.That(x.Elapsed, Is.EqualTo(0.1f).Within(0.05f));
         Assert.That(x.IsRunning, Is.False);
         Assert.That(timeouts, Is.EqualTo(2));
     }
-        
+
     [Test]
     public async Task GodotTimeoutTests() {
         var timeout = false;
@@ -330,31 +313,53 @@ public partial class TimeTests : Node {
         await this.AwaitProcessFrame();
         Assert.That(x.TimeLeft, Is.LessThan(1f));
         Assert.That(x.IsRunning, Is.False);
+
         x.Reset();
-        Assert.That(x.TimeLeft, Is.EqualTo(1f));
-        Assert.That(x.IsRunning, Is.False);
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(x.TimeLeft, Is.EqualTo(1f));
-        Assert.That(x.IsRunning, Is.False);
-
-        // Set timeout is a reset;
-        x.SetTimeout(0.1f);
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(x.TimeLeft, Is.EqualTo(0.1f));
-        Assert.That(x.IsRunning, Is.False);
-
         x.Start();
-        Assert.That(timeout, Is.False);
-        Assert.That(x.TimeLeft, Is.EqualTo(0.1f));
+        Assert.That(x.TimeLeft, Is.EqualTo(1f));
         Assert.That(x.IsRunning, Is.True);
-        await this.AwaitProcessFrame();
-        await Task.Delay(200);
-        Assert.That(x.TimeLeft, Is.EqualTo(0f));
-        Assert.That(x.IsRunning, Is.False);
+        // A smaller timeout just trigger it and stops
+        timeout = false;
+        await Delay(0.3f);
+        Assert.That(x.Elapsed, Is.EqualTo(0.3f).Within(0.05f));
+        x.SetTimeout(0.1f);
         Assert.That(timeout, Is.True);
+        Assert.That(x.IsRunning, Is.False);
+
+        // A bigger timeout is ok
+        timeout = false;
+        x.Restart();
+        Assert.That(timeout, Is.False);
+        Assert.That(x.IsRunning, Is.True);
+        Assert.That(x.TimeLeft, Is.EqualTo(0.1f));
+        x.SetTimeout(0.2f);
+        Assert.That(timeout, Is.False);
+        Assert.That(x.IsRunning, Is.True);
+        Assert.That(x.TimeLeft, Is.EqualTo(0.2f));
+        await Delay(0.3f);
+        Assert.That(x.Elapsed, Is.EqualTo(0.2f).Within(0.05f));
+        Assert.That(timeout, Is.True);
+        Assert.That(x.IsRunning, Is.False);
+
+        // A bigger timeout is ok when stopped
+        timeout = false;
+        x.Restart();
+        Assert.That(timeout, Is.False);
+        Assert.That(x.IsRunning, Is.True);
+        Assert.That(x.TimeLeft, Is.EqualTo(0.2f));
+        await Delay(0.1f);
+        Assert.That(x.Elapsed, Is.EqualTo(0.1f).Within(0.05f));
+        x.Stop();
+        Assert.That(timeout, Is.False);
+        Assert.That(x.IsRunning, Is.False);
+        Assert.That(x.TimeLeft, Is.EqualTo(0.1f).Within(0.05));
+        x.SetTimeout(0.3f);
+        Assert.That(x.TimeLeft, Is.EqualTo(0.2f).Within(0.05));
+        x.Start();
+        Assert.That(x.TimeLeft, Is.EqualTo(0.2f).Within(0.05));
+    }
+
+    public SignalAwaiter Delay(float s) {
+        return GetTree().CreateTimer(s).AwaitTimeout();
     }
 }

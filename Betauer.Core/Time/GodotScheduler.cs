@@ -1,6 +1,4 @@
 using System;
-using System.Threading.Tasks;
-using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Core.Time {
@@ -19,11 +17,15 @@ namespace Betauer.Core.Time {
         private Action _action;
         private readonly GodotTimeout _godotTimeout;
 
-        public GodotScheduler(SceneTree sceneTree, double seconds, Action action, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
+        public GodotScheduler(SceneTree sceneTree, double seconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _action = action;
-            _godotTimeout = sceneTree.OnTimeout(seconds, () => _action(), processAlways, processInPhysics, ignoreTimeScale);
+            _godotTimeout = new GodotTimeout(sceneTree, seconds, () => _action(), processAlways, processInPhysics, ignoreTimeScale);
             _godotTimeout.Start().Stop();
             _Start();
+        }
+
+        public GodotScheduler(double seconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) :
+            this(Engine.GetMainLoop() as SceneTree, seconds, action, processAlways, processInPhysics, ignoreTimeScale) {
         }
 
         private async void _Start() {

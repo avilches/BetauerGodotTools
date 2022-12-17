@@ -79,7 +79,6 @@ namespace Veronenger.Character.Enemy {
         [Inject] private PlayerConfig PlayerConfig { get; set; }
         [Inject] private EnemyConfig EnemyConfig { get; set; }
         [Inject] public KinematicPlatformMotion Body { get; set; }
-        [Inject] private GodotStopwatch StateTimer  { get; set; }
         [Inject] private InputActionCharacterHandler Handler { get; set; }
 
         private ZombieController _zombieController;
@@ -94,6 +93,7 @@ namespace Veronenger.Character.Enemy {
         private float MotionY => Body.MotionY;
 
         public readonly EnemyStatus Status = new();
+        private readonly GodotStopwatch _stateTimer = new();
 
         public void ApplyFloorGravity(float factor = 1.0F) {
             Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
@@ -180,13 +180,13 @@ namespace Veronenger.Character.Enemy {
                     Body.MotionY = EnemyConfig.MiniJumpOnAttack.y;
                     Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
                     _zombieController.PlayAnimationAttacked();
-                    StateTimer.Restart().SetAlarm(1f);
+                    _stateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(() => {
                     ApplyAirGravity();
                     Body.Move();
                 })
-                .If(() => StateTimer.IsAlarm()).Pop()
+                .If(() => _stateTimer.IsAlarm()).Pop()
                 .Build();
 
             State(ZombieState.Destroy)

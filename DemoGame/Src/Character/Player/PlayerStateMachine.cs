@@ -42,7 +42,7 @@ namespace Veronenger.Character.Player {
         
         [Inject] public PlayerConfig PlayerConfig { get; set;}
         [Inject] public KinematicPlatformMotion Body { get; set; }
-        [Inject] private GodotStopwatch CoyoteFallingTimer { get; set; }
+        [Inject] private SceneTree SceneTree { get; set; }
         [Inject] private Bus Bus { get; set; }
         [Inject] private InputActionCharacterHandler Handler { get; set; }
 
@@ -68,6 +68,7 @@ namespace Veronenger.Character.Player {
         private MonitorText? _coyoteMonitor;
         private MonitorText? _jumpHelperMonitor;
         private DelayedAction _delayedJump;
+        private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
         
         public void Start(string name, PlayerController playerController, IFlipper flippers, List<RayCast2D> floorRaycasts) {
             _player = playerController;
@@ -88,7 +89,7 @@ namespace Veronenger.Character.Player {
 
             var debugOverlay = DebugOverlayManager.Overlay(_player);
             _jumpHelperMonitor = debugOverlay.Text("JumpHelper");
-            debugOverlay.Text("CoyoteFallingTimer", () => CoyoteFallingTimer.ToString());
+            debugOverlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
             _coyoteMonitor = debugOverlay.Text("Coyote");
 
             debugOverlay
@@ -149,7 +150,7 @@ namespace Veronenger.Character.Player {
             State(PlayerState.Landing)
                 .Enter(() => {
                     FinishFallFromPlatform();
-                    CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
+                    _coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
                     jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
                 })
                 .Execute(() => {
@@ -201,7 +202,7 @@ namespace Veronenger.Character.Player {
                 })
                 .If(() => !Body.IsOnFloor()).Then( 
                     context => {
-                        CoyoteFallingTimer.Restart();
+                        _coyoteFallingTimer.Restart();
                         return context.Set(PlayerState.FallShort);
                     })
                 .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
@@ -234,14 +235,14 @@ namespace Veronenger.Character.Player {
             bool CheckCoyoteJump() {
                 if (!Jump.IsJustPressed()) return false;
                 // Jump was pressed
-                if (!CoyoteFallingTimer.IsRunning) return false;
+                if (!_coyoteFallingTimer.IsRunning) return false;
                 
-                CoyoteFallingTimer.Stop();
-                if (CoyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                    _coyoteMonitor?.Show($"{CoyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
+                _coyoteFallingTimer.Stop();
+                if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
+                    _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
                     return true;
                 }
-                _coyoteMonitor?.Show($"{CoyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
+                _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
                 return false;
             }
 
