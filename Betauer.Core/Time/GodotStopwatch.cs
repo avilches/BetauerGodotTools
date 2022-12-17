@@ -27,10 +27,12 @@ namespace Betauer.Core.Time {
         public bool IsRunning => _running && !_paused;
 
         /// <summary>
-        /// Creates a new Stopwatch not running, so it needs to be started with Start() 
+        /// Creates a new Stopwatch not running, so it needs to be started with Start() or Restart() 
         /// </summary>
         /// <param name="sceneTree"></param>
-        /// </param>
+        /// <param name="processAlways">If <c>processAlways</c> is set to <c>false</c>, pausing the <see cref="T:Godot.SceneTree" /> will also pause the timer.</param>
+        /// <param name="processInPhysics">If <c>processInPhysics</c> is set to <c>true</c>, will update the <see cref="T:Godot.SceneTreeTimer" /> during the physics frame instead of the process frame (fixed framerate processing).</param>
+        /// <param name="ignoreTimeScale">If <c>ignoreTimeScale</c> is set to <c>true</c>, will ignore <see cref="P:Godot.Engine.TimeScale" /> and update the <see cref="T:Godot.SceneTreeTimer" /> with the actual frame delta.</param>
         public GodotStopwatch(SceneTree sceneTree, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
             ProcessAlways = processAlways;
