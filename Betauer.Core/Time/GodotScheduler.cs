@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Betauer.Core.Signal;
 using Godot;
 
@@ -15,52 +16,49 @@ namespace Betauer.Core.Time {
     /// </code> 
     /// </summary>
     public class GodotScheduler {
-        private readonly Action _action;
-        private bool _paused = false;
-        private bool _requestStop = false;
-        private bool _running = false;
+        private Action _action;
+        private readonly GodotTimeout _godotTimeout;
 
-        public bool ProcessAlways = true;
-        public bool ProcessInPhysics = false;
-        public bool IgnoreTimeScale = false;
-
-        public GodotScheduler(Action action, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
+        public GodotScheduler(SceneTree sceneTree, double seconds, Action action, bool processAlways = true, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _action = action;
-            ProcessAlways = processAlways;
-            ProcessInPhysics = processInPhysics;
-            IgnoreTimeScale = ignoreTimeScale;
+            _godotTimeout = sceneTree.OnTimeout(seconds, () => _action(), processAlways, processInPhysics, ignoreTimeScale);
+            _godotTimeout.Start().Stop();
+            _Start();
         }
 
-        public GodotScheduler Start(SceneTree sceneTree, float seconds) {
-            lock (this) {
-                if (_running) return this;
-                _running = true;
+        private async void _Start() {
+            while (true) {
+                await _godotTimeout.Await();
+                _godotTimeout.Restart();
             }
-            _Start(sceneTree, seconds);
+        }
+
+        public GodotScheduler Execute(Action action) {
+            _action = action;
             return this;
         }
 
-        private async void _Start(SceneTree sceneTree, float seconds) {
-            _paused = false;
-            while (true) {
-                await sceneTree.CreateTimer(seconds, ProcessAlways, ProcessInPhysics, IgnoreTimeScale).AwaitTimeout();
-                if (_requestStop) {
-                    _requestStop = false;
-                    break;
-                }
-                if (!_paused) _action();
-            }
-            lock (this) {
-                _running = false;
-            }
+        public GodotScheduler Start(double seconds) {
+            _godotTimeout.SetTimeout(seconds);
+            _godotTimeout.Start();
+            return this;
         }
 
-        public bool IsRunning() => _running;
-        public bool IsPaused() =>  _paused;
+        public GodotScheduler Start() {
+            _godotTimeout.Start();
+            return this;
+        }
 
-        public void Pause() => _paused = true;
-        public void Resume() => _paused = false;
-        
-        public void Stop() => _requestStop = true;
+        public GodotScheduler Stop() {
+            _godotTimeout.Stop();
+            return this;
+        }
+
+        public GodotScheduler Reset() {
+            _godotTimeout.Reset();
+            return this;
+        }
+
+        public bool IsRunning() => _godotTimeout.IsRunning;
     }
 }
