@@ -8,6 +8,7 @@ using Betauer.Core.Signal;
 using Betauer.OnReady;
 using Betauer.Core.Time;
 using Betauer.Input;
+using Betauer.Nodes;
 using Godot;
 using Container = Betauer.DI.Container;
 

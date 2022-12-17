@@ -1,5 +1,6 @@
 using System;
 using Betauer.Core.Nodes;
+using Betauer.Nodes;
 using Godot;
 using Object = Godot.Object;
 

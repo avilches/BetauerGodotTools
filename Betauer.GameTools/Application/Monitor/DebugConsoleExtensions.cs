@@ -4,6 +4,7 @@ using System.Linq;
 using Betauer.Application.Screen;
 using Betauer.Core.Nodes;
 using Betauer.Input;
+using Betauer.Nodes;
 using Godot;
 
 namespace Betauer.Application.Monitor {

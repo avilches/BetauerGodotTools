@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.Nodes {
+namespace Betauer.Nodes {
     public class DefaultNodeHandler {
         public static NodeHandler Instance = new();
     }
@@ -23,21 +23,22 @@ namespace Betauer.Core.Nodes {
         }
 
         public class Event<T> : INodeEvent {
-            public readonly Node Node;
+            public readonly Node? Node;
             public readonly T Delegate;
             public ProcessModeEnum ProcessMode;
             public bool IsEnabled(bool isTreePaused) {
                 return _isEnabled &&
                        ShouldProcess(isTreePaused, ProcessMode) &&
-                       Node.IsInsideTree();
+                       (Node == null || Node.IsInsideTree());
             }
 
-            public bool IsDestroyed => _isDestroyed || !IsInstanceValid(Node);
+            // Node can be null, so the Event will last forever
+            public bool IsDestroyed => _isDestroyed || (Node != null && !IsInstanceValid(Node));
             
             private bool _isEnabled = true;
             private bool _isDestroyed = false;
             
-            public Event(Node node, T @delegate, ProcessModeEnum pauseMode) {
+            public Event(Node? node, T @delegate, ProcessModeEnum pauseMode) {
                 Node = node;
                 Delegate = @delegate;
                 ProcessMode = pauseMode;
@@ -153,7 +154,7 @@ namespace Betauer.Core.Nodes {
         }
 
         public string GetStateAsString() {
-            string NodeName(Node node) => IsInstanceValid(node) ? node.Name : "disposed";
+            string NodeName(Node? node) => node == null ? "forever" : IsInstanceValid(node) ? node.Name : "disposed";
             return 
 $@"Process: {string.Join(", ", OnProcessList.Select(e => NodeName(e.Node)))}
 PhysicsProcess: {string.Join(", ", OnPhysicsProcessList.Select(e => NodeName(e.Node)))}

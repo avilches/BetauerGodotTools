@@ -6,6 +6,7 @@ using Betauer.Application.Screen;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 
