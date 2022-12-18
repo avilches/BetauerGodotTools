@@ -7,14 +7,7 @@ using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
-    public interface IActionHandler {
-        bool IsJustPressed(bool exact = false);
-        bool IsPressed(bool exact = false);
-        bool IsReleased(bool exact = false);
-        float GetStrength(bool exact = false);
-    }
-    
-    public class InputAction : IActionHandler {
+    public class InputAction : IAction {
         public static NormalBuilder Create(string name) => new(name);
         public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
@@ -469,50 +462,6 @@ namespace Betauer.Input {
                 return Build(new InputAction(_inputActionsContainerName, _name, _oppositeActionName,
                     _keepProjectSettings, true, _settingsContainerName, _settingsSection));
             }
-        }
-    }
-
-    public class AxisAction {
-        public readonly string NegativeName;
-        public readonly string PositiveName;
-
-        public float Strength => Godot.Input.GetAxis(NegativeName, PositiveName);
-
-        internal AxisAction(string negativeName, string positiveName) {
-            NegativeName = negativeName;
-            PositiveName = positiveName;
-        }
-
-        public bool IsRightEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(PositiveName, echo);
-        }
-
-        public bool IsLeftEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(NegativeName, echo);
-        }
-        
-        public bool IsRightEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(PositiveName, echo);
-        }
-
-        public bool IsLeftEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(NegativeName, echo);
-        }
-
-        public bool IsDownEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(PositiveName, echo);
-        }
-
-        public bool IsUpEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(NegativeName, echo);
-        }
-        
-        public bool IsDownEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(PositiveName, echo);
-        }
-
-        public bool IsUpEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(NegativeName, echo);
         }
     }
 }

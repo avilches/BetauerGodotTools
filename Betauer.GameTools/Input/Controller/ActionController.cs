@@ -1,8 +1,6 @@
-using Betauer.Input;
+namespace Betauer.Input.Controller; 
 
-namespace Veronenger.Character.Handler;
-
-public class ManualActionHandler : IActionHandler {
+public class ActionController : IAction {
     private bool _hold = false;
     private bool _pressed = false;
     private bool _justPressed = false;
@@ -59,5 +57,4 @@ public class ManualActionHandler : IActionHandler {
             _strength = 0f;
         }
     }
-
 }
