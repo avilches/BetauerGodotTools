@@ -36,7 +36,7 @@ public class DelayedAction : IDisposable {
         public string? Name { get; }
         public bool IsDestroyed { get; set;  }
         public bool IsEnabled(bool isTreePaused) => _processAlways || !isTreePaused;
-        public void OnInput(InputEvent inputEvent) {
+        public void Handle(InputEvent inputEvent) {
             if (_inputAction.IsEventJustPressed(inputEvent)) GodotStopwatch.Restart();
         }
     }

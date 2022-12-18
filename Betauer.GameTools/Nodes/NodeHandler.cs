@@ -29,11 +29,11 @@ namespace Betauer.Nodes {
         }
 
         public interface IInputEventHandler : IEventHandler {
-            public void OnInput(InputEvent inputEvent);
+            public void Handle(InputEvent inputEvent);
         }
 
         public interface IProcessHandler : IEventHandler {
-            public void OnProcess(double delta);
+            public void Handle(double delta);
         }
 
         private abstract class NodeEvent : INodeEvent, IEventHandler {
@@ -70,7 +70,7 @@ namespace Betauer.Nodes {
                 _delegate = @delegate;
             }
 
-            public void OnProcess(double delta) {
+            public void Handle(double delta) {
                 _delegate(delta);
             }
         }
@@ -80,7 +80,7 @@ namespace Betauer.Nodes {
                 _delegate = @delegate;
             }
 
-            public void OnInput(InputEvent delta) {
+            public void Handle(InputEvent delta) {
                 _delegate(delta);
             }
         }
@@ -88,7 +88,9 @@ namespace Betauer.Nodes {
         public readonly List<IProcessHandler> OnProcessList = new();
         public readonly List<IProcessHandler> OnPhysicsProcessList = new();
         public readonly List<IInputEventHandler> OnInputList = new();
+        public readonly List<IInputEventHandler> OnShortcutInputList = new();
         public readonly List<IInputEventHandler> OnUnhandledInputList = new();
+        public readonly List<IInputEventHandler> OnUnhandledKeyInputList = new();
         
         private SceneTree _sceneTree;
 
@@ -131,6 +133,18 @@ namespace Betauer.Nodes {
             return nodeEvent;
         }
 
+        public INodeEvent OnShortcutInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
+            var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
+            OnShortcutInput(nodeEvent);
+            return nodeEvent;
+        }
+
+        public INodeEvent OnUnhandledKeyInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
+            var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
+            OnUnhandledKeyInput(nodeEvent);
+            return nodeEvent;
+        }
+
         public void OnInput(IInputEventHandler inputEvent) {
             OnInputList.Add(inputEvent);
             SetProcessInput(true);
@@ -141,79 +155,81 @@ namespace Betauer.Nodes {
             SetProcessUnhandledInput(true);
         }
 
+        public void OnShortcutInput(IInputEventHandler inputEvent) {
+            OnShortcutInputList.Add(inputEvent);
+            SetProcessShortcutInput(true);
+        }
+
+        public void OnUnhandledKeyInput(IInputEventHandler inputEvent) {
+            OnUnhandledKeyInputList.Add(inputEvent);
+            SetProcessUnhandledKeyInput(true);
+        }
+
         public override void _Process(double delta) {
-            if (OnProcessList.Count == 0) {
-                SetProcess(false);
-                return;
-            }
-            var isTreePaused = _sceneTree.Paused;
-            OnProcessList.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed) return true;
-                if (nodeOnProcess.IsEnabled(isTreePaused)) nodeOnProcess.OnProcess(delta);
-                return false;
-            });
+            ProcessNodeEvents(OnProcessList, delta, () => SetProcess(false));
         }
 
         public override void _PhysicsProcess(double delta) {
-            if (OnPhysicsProcessList.Count == 0) {
-                SetPhysicsProcess(false);
-                return;
-            }
-            var isTreePaused = _sceneTree.Paused;
-            OnPhysicsProcessList.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed) return true;
-                if (nodeOnProcess.IsEnabled(isTreePaused)) nodeOnProcess.OnProcess(delta);
-                return false;
-            });
+            ProcessNodeEvents(OnPhysicsProcessList, delta, () => SetPhysicsProcess(false));
         }
 
-        public override void _Input(InputEvent inputEvent) {
-            if (OnInputList.Count == 0) {
-                SetProcessInput(false);
+        private void ProcessNodeEvents(List<IProcessHandler> processHandlerList, double delta, Action disabler) {
+            if (processHandlerList.Count == 0) {
+                disabler();
                 return;
             }
-            var isInputHandled = false;
             var isTreePaused = _sceneTree.Paused;
-            OnInputList.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed) return true;
-                if (nodeOnProcess.IsEnabled(isTreePaused)) {
-                    isInputHandled = isInputHandled || _sceneTree.Root.IsInputHandled();
-                    if (!isInputHandled) {
-                        nodeOnProcess.OnInput(inputEvent);
-                    }
+            processHandlerList.RemoveAll(processHandler => {
+                if (processHandler.IsDestroyed) return true;
+                if (processHandler.IsEnabled(isTreePaused)) {
+                    processHandler.Handle(delta);
                 }
                 return false;
             });
         }
 
+        public override void _Input(InputEvent inputEvent) {
+            ProcessInputEventList(OnInputList, inputEvent, () => SetProcessInput(false));
+        }
+
         public override void _UnhandledInput(InputEvent inputEvent) {
-            if (OnUnhandledInputList.Count == 0) {
-                SetProcessUnhandledInput(false);
+            ProcessInputEventList(OnUnhandledInputList, inputEvent, () => SetProcessUnhandledInput(false));
+        }
+
+        public override void _ShortcutInput(InputEvent inputEvent) {
+            ProcessInputEventList(OnShortcutInputList, inputEvent, () => SetProcessShortcutInput(false));
+        }
+
+        public override void _UnhandledKeyInput(InputEvent inputEvent) {
+            ProcessInputEventList(OnUnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
+        }
+
+        private void ProcessInputEventList(List<IInputEventHandler> inputEventHandlerList, InputEvent inputEvent, Action disabler) {
+            if (inputEventHandlerList.Count == 0) {
+                disabler();
                 return;
             }
-            var isInputHandled = false;
+            var isInputHandled = _sceneTree.Root.IsInputHandled();
             var isTreePaused = _sceneTree.Paused;
-            OnUnhandledInputList.RemoveAll(nodeOnProcess => {
-                if (nodeOnProcess.IsDestroyed) return true;
-                if (nodeOnProcess.IsEnabled(isTreePaused)) {
-                    isInputHandled = isInputHandled || _sceneTree.Root.IsInputHandled();
-                    if (!isInputHandled) {
-                        nodeOnProcess.OnInput(inputEvent);
-                    }
+            inputEventHandlerList.RemoveAll(inputEventHandler => {
+                if (inputEventHandler.IsDestroyed) return true;
+                if (!isInputHandled && inputEventHandler.IsEnabled(isTreePaused)) {
+                    inputEventHandler.Handle(inputEvent);
+                    isInputHandled = _sceneTree.Root.IsInputHandled();
                 }
                 return false;
             });
         }
 
         public string GetStateAsString() {
-            string NodeName(Node? node) => node == null ? "forever" : IsInstanceValid(node) ? node.Name : "disposed";
             return 
-$@"Process: {string.Join(", ", OnProcessList.Select(e => e.Name))}
-PhysicsProcess: {string.Join(", ", OnPhysicsProcessList.Select(e => e.Name))}
-Input: {string.Join(", ", OnInputList.Select(e => e.Name))}
-UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => e.Name))}";
+$@"{OnProcessList.Count} Process: {string.Join(", ", OnProcessList.Select(e => e.Name))}
+{OnPhysicsProcessList.Count} PhysicsProcess: {string.Join(", ", OnPhysicsProcessList.Select(e => e.Name))}
+{OnInputList.Count} Input: {string.Join(", ", OnInputList.Select(e => e.Name))}
+{OnUnhandledInputList.Count} UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => e.Name))}
+{OnShortcutInputList.Count} ShortcutInput: {string.Join(", ", OnShortcutInputList.Select(e => e.Name))}
+{OnUnhandledKeyInputList.Count} UnhandledKeyInput: {string.Join(", ", OnUnhandledKeyInputList.Select(e => e.Name))}";
         }
-        
     }
     
     public static class NodeHandlerExtensions {
@@ -228,6 +244,12 @@ UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => e.Name))}";
 
         public static INodeEvent OnUnhandledInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
             DefaultNodeHandler.Instance.OnUnhandledInput(node, action, pauseMode);
+
+        public static INodeEvent OnShortcutInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
+            DefaultNodeHandler.Instance.OnShortcutInput(node, action, pauseMode);
+
+        public static INodeEvent OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
+            DefaultNodeHandler.Instance.OnUnhandledKeyInput(node, action, pauseMode);
 
     }
  
