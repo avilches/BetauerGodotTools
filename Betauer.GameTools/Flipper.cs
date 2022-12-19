@@ -7,7 +7,6 @@ using Vector2 = Godot.Vector2;
 namespace Betauer {
     public interface IFlipper {
         public void Flip();
-        public void FaceToRight(bool right);
         public void Flip(float xInput);
         public bool IsFacingRight { get; }
     }
@@ -33,10 +32,6 @@ namespace Betauer {
             Array.ForEach(_flippers, flipper => flipper.Flip());
         }
 
-        public void FaceToRight(bool right) {
-            Array.ForEach(_flippers, flipper => flipper.FaceToRight(right));
-        }
-
         public void Flip(float xInput) {
             Array.ForEach(_flippers, flipper => flipper.Flip(xInput));
         }
@@ -57,8 +52,6 @@ namespace Betauer {
         public abstract void SetFacingRight(bool right);
 
         public void Flip() => IsFacingRight = !_isFacingRight;
-
-        public void FaceToRight(bool right) => IsFacingRight = right;
 
         public void Flip(float xInput) {
             if (xInput != 0) IsFacingRight = xInput > 0;
