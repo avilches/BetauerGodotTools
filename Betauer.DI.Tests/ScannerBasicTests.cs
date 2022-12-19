@@ -105,7 +105,6 @@ namespace Betauer.DI.Tests {
         }
 
         [Test(Description = "Inject test: properties and method")]
-        [Only]
         public void InjectTest() {
             InjectClass.n1 = new Node();
             InjectClass.n2 = new Node();
@@ -127,7 +126,6 @@ namespace Betauer.DI.Tests {
         }
 
         [Test(Description = "Inject instance not created by Container")]
-        [Only]
         public void ManualInjectTest() {
             InjectClass.n1 = new Node();
             InjectClass.n2 = new Node();
@@ -218,7 +216,14 @@ namespace Betauer.DI.Tests {
             Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
             Assert.That(c.GetProvider("primaryTag").Primary, Is.True);
             Assert.That(c.GetProvider("primary").Primary, Is.True);
-                
+        }
+        
+        [Test(Description = "Check if [Scan] works in configuration instances")]
+        public void CheckConfigurationScanAttributeWorksInConfigurationInstances() {
+            var di = new ContainerBuilder();
+            di.ScanConfiguration(new PrimaryConfiguration());
+            var c = di.Build();
+            Assert.That(c.Contains<PrimaryClass>());
         }
         
         [Service]

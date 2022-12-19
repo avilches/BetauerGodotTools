@@ -122,13 +122,7 @@ namespace Betauer.DI {
 
         private ContainerBuilder _Scan(Type type, HashSet<Type>? stack) {
             // Look up for [Scan(typeof(...)]
-            foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
-                stack ??= new HashSet<Type>();
-                stack.Add(type);
-                importAttribute.Types
-                    .Where(typeToImport => !stack.Contains(typeToImport))
-                    .ForEach(typeToImport => _Scan(typeToImport, stack));
-            }
+            ScanForScanAttributes(type, stack);
 
             var isConfiguration = type.HasAttribute<ConfigurationAttribute>();
             if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
@@ -139,7 +133,7 @@ namespace Betauer.DI {
                 
             } else if (isConfiguration) {
                 var configuration = Activator.CreateInstance(type);
-                ScanConfiguration(configuration!);
+                RegisterConfigurationServices(configuration!);
             }
             return this;
         }
@@ -148,11 +142,26 @@ namespace Betauer.DI {
 
         public ContainerBuilder ScanConfiguration(params object[] instances) {
             foreach (var configuration in instances) {
-                // No need to use GetGettersCached, this reflection scan is only done once
-                var getters = configuration.GetType().GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags);
-                foreach (var getter in getters) RegisterServiceFromConfiguration(configuration, getter);
+                ScanForScanAttributes(configuration.GetType(), null);
+                RegisterConfigurationServices(configuration);
             }
             return this;
+        }
+
+        private void ScanForScanAttributes(Type type, HashSet<Type>? stack) {
+            foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
+                stack ??= new HashSet<Type>();
+                stack.Add(type);
+                importAttribute.Types
+                    .Where(typeToImport => !stack.Contains(typeToImport))
+                    .ForEach(typeToImport => _Scan(typeToImport, stack));
+            }
+        }
+
+        private void RegisterConfigurationServices(object configuration) {
+            // No need to use GetGettersCached, this reflection scan is only done once
+            var getters = configuration.GetType().GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags);
+            foreach (var getter in getters) RegisterServiceFromConfiguration(configuration, getter);
         }
 
         private void RegisterServiceClass(Type type, ServiceAttribute serviceAttr) {
