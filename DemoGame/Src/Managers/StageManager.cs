@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using Betauer.Bus.Signal;
 using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.Tools.Logging;
@@ -17,8 +16,8 @@ namespace Veronenger.Managers {
         private Camera2D _camera2D;
         private bool IsValidStageChange => _exitedStage && _enteredStage != null;
 
-        public void ConfigureStageCamera(Camera2D stageCameraController, Area2D stageDetector) {
-            _camera2D = stageCameraController;
+        public void ConfigureStageCamera(Camera2D camera2D, Area2D stageDetector) {
+            _camera2D = camera2D;
             stageDetector.OnAreaEntered(LayerPlayerArea2DDetector, OnEnterStage);
             stageDetector.OnAreaExited(LayerPlayerArea2DDetector, OnExitStage);
         }
@@ -31,17 +30,11 @@ namespace Veronenger.Managers {
         }
 
         private void ValidateStageArea2D(Area2D area2D) {
-            var childCount = area2D.GetChildCount();
-            if (childCount != 1) {
+            var nodeChild = area2D.GetChildCount() > 0 ? area2D.GetChild<CollisionShape2D>(0) : null;
+            if (nodeChild?.Shape is not RectangleShape2D ) {
                 throw new Exception(
-                    $"Stage {area2D.Name} has {childCount} children. It should have only 1 RectangleShape2D");
+                    $"Stage {area2D.Name}/{nodeChild?.Name} is not a CollisionShape2D with a RectangleShape2D shape");
             }
-            var nodeChild = area2D.GetChild(0);
-            if (nodeChild is CollisionShape2D collisionShape2D && collisionShape2D.Shape is RectangleShape2D) {
-                return;
-            }
-            throw new Exception(
-                $"Stage {area2D.Name}/{nodeChild.Name} is not a CollisionShape2D with a RectangleShape2D shape");
         }
 
         public void OnEnterStage(Area2D stageToEnter) {
