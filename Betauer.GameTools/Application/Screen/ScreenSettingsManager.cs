@@ -33,7 +33,7 @@ namespace Betauer.Application.Screen {
             _initialScreenConfiguration = initialScreenConfiguration;
         }
 
-        [PostCreate]
+        [PostInject]
         private void ConfigureSettings() {
             _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect", 
                 () => Setting<bool>.Memory(false));

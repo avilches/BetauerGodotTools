@@ -299,10 +299,10 @@ namespace Betauer.Application.Monitor {
             FitContent();
         }
 
-        [PostCreate]
+        [PostInject]
         public void Configure() {
             _dragAndDropController = new DragAndDropController(LMB)
-                .OnlyIf(DragCondition)
+                .OnlyIf(DragPredicate)
                 .AddOnStartDrag(OnStartDrag)
                 .AddOnDrag(OnDrag);
         }
@@ -310,12 +310,6 @@ namespace Betauer.Application.Monitor {
         public override void _Input(InputEvent input) {
             if (input.IsMouseMotion()) {
                 ButtonBar.Visible = input.IsMouseInside(TitleBackground);
-            }
-            if (_dragAndDropController == null) {
-                _dragAndDropController = new DragAndDropController(LMB)
-                    .OnlyIf(DragCondition)
-                    .AddOnStartDrag(OnStartDrag)
-                    .AddOnDrag(OnDrag);
             }
             _dragAndDropController.Handle(input);
         }
@@ -341,7 +335,7 @@ namespace Betauer.Application.Monitor {
             _position = newPosition;
         }
 
-        private bool DragCondition(InputEvent input) =>
+        private bool DragPredicate(InputEvent input) =>
             input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar);
 
         public override void _Process(double delta) {

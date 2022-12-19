@@ -124,8 +124,10 @@ namespace Betauer.Application {
                 // all the dependencies injected. To avoid inject the dependencies twice (by the container and here when
                 // it's added to the tree), 
                 
-                if (IsNodeMarkedInjected(node)) {
-                    // A Node could be
+                if (!IsNodeMarkedInjected(node)) {
+                    // All nodes created by the container are marked as injected in the OnCreated event above.
+                    // So, if a node is not marked as injected is because the node has been created by Godot when
+                    // instantiating a scene, so let's inject the services here
                     Container.InjectServices(node);
                 }
             }
@@ -133,7 +135,7 @@ namespace Betauer.Application {
 
         private const string MetaInjected = "__injected";
         private static void MarkNodeAsAlreadyInjected(Node node) => node.SetMeta(MetaInjected, true);
-        private static bool IsNodeMarkedInjected(Node node) => !node.HasMeta(MetaInjected);
+        private static bool IsNodeMarkedInjected(Node node) => node.HasMeta(MetaInjected);
 
         public override void _Notification(long what) {
             NodeNotificationsHandlerInstance.Execute(what);

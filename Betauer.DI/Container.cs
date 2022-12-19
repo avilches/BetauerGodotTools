@@ -184,10 +184,10 @@ namespace Betauer.DI {
             OnCreated?.Invoke(lifetime, instance);
         }
 
-        internal static void ExecutePostCreateMethods<T>(T instance) {
+        internal static void ExecutePostInjectMethods<T>(T instance) {
             var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var method in methods) {
-                if (method.HasAttribute<PostCreateAttribute>()) {
+                if (method.HasAttribute<PostInjectAttribute>()) {
                     if (method.GetParameters().Length == 0) {
                         try {
                             method.Invoke(instance, new object[] { });
@@ -195,7 +195,7 @@ namespace Betauer.DI {
                             ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                         }
                     } else {
-                        throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
+                        throw new Exception($"Method [PostInject] {method.Name}(...) must have only 0 parameters");
                     }
                 }
             }
@@ -225,6 +225,7 @@ namespace Betauer.DI {
             var context = new ResolveContext(this);
             InjectServices(o, context);
             context.End();
+            ExecutePostInjectMethods(o);
         }
 
         internal void InjectServices(object o, ResolveContext context) {

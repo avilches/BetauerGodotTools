@@ -16,7 +16,7 @@ namespace Betauer.DI {
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public class PostCreateAttribute : Attribute {
+    public class PostInjectAttribute : Attribute {
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]

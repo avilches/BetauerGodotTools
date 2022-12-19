@@ -64,7 +64,7 @@ namespace Veronenger.Managers {
         public MainStateMachine() : base(MainState.Init) {
         }
 
-        [PostCreate]
+        [PostInject]
         private void Configure() {
             #if DEBUG
             this.OnInput((e) => {

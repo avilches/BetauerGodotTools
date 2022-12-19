@@ -42,11 +42,11 @@ namespace Betauer.DI {
 
         internal void End() {
             foreach (var instance in SingletonCache.Values) {
-                Container.ExecutePostCreateMethods(instance);
+                Container.ExecutePostInjectMethods(instance);
                 Container.ExecuteOnCreated(Lifetime.Singleton, instance);
             }
             foreach (var instance in Transients) {
-                Container.ExecutePostCreateMethods(instance);
+                Container.ExecutePostInjectMethods(instance);
                 Container.ExecuteOnCreated(Lifetime.Transient, instance);
             }
         }

@@ -99,8 +99,8 @@ namespace Betauer.Input {
             }
         }
 
-        [PostCreate]
-        private void PostCreate() {
+        [PostInject]
+        private void Configure() {
             // Configure and load settings
             if (_isConfigurable) {
                 var section = _settingsSection ?? "Controls";

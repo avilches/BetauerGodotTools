@@ -14,7 +14,7 @@ public class InputActionCharacterHandler : ICharacterHandler {
     [Inject] private InputAction Left { get; set; }
     [Inject] private InputAction Up { get; set; }
 
-    [PostCreate]
+    [PostInject]
     public void Configure() {
         Directional = new InputDirectional(Left.AxisAction!, Up.AxisAction!);
     }
