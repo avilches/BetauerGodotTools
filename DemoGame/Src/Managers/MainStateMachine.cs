@@ -96,11 +96,12 @@ namespace Veronenger.Managers {
                     PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
                     SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
                     BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
-                    SettingsMenuScene.ProcessMode = PauseMenuScene.ProcessMode = ProcessModeEnum.Always;
+                    // Never pause the pause, settings and the state machine, because they will not work!
+                    SettingsMenuScene.ProcessMode = ProcessModeEnum.Always;
+                    PauseMenuScene.ProcessMode = ProcessModeEnum.WhenPaused;
 
                     ScreenSettingsManager.Setup();
                     ConfigureDebugOverlays();
-                    // Never pause the pause, settings and the state machine, because they will not work!
 
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
