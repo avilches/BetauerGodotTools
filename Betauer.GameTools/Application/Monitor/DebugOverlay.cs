@@ -2,9 +2,12 @@ using System;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
+using Betauer.DI;
+using Betauer.Input.Controller;
 using Betauer.UI;
 using Godot;
 using Color = Godot.Color;
+using Container = Godot.Container;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
@@ -52,8 +55,10 @@ namespace Betauer.Application.Monitor {
         public bool CanFollow => Target is Node2D;
         public Func<bool>? RemoveIfFunc { get; private set; }
         public Button? FollowButton { get; private set; }
-        public bool IsDragging => _startDragPosition.HasValue;
         public bool IsPermanent { get; set; } = true;
+        
+        private DragAndDropController _dragAndDropController;
+        [Inject] public InputAction LMB { get; set; }
 
         public VisibilityStateEnum VisibilityState {
             get => _visibilityState;
@@ -294,33 +299,50 @@ namespace Betauer.Application.Monitor {
             FitContent();
         }
 
-        public override void _Input(InputEvent input) {
-            if (input.IsLeftClick()) {
-                if (input.IsJustPressed() && input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar)) {
-                    StopFollowing();
-                    GetParent().MoveChild(this, -1);
-                    _startDragPosition = _position - GetGlobalMousePosition();
-                    AcceptEvent();
-                } else if (input.IsReleased()) {
-                    _startDragPosition = null;
-                }
-            } else if (input.IsMouseMotion()) {
-                ButtonBar.Visible = input.IsMouseInside(TitleBackground);
-                if (IsDragging) {
-                    var newPosition = GetGlobalMousePosition() + _startDragPosition.Value;
-                    var origin = FollowPosition;
-                    // TODO: GetTree().Root.Size doesn't work well with scaled viewport
-                    var screenSize = GetTree().Root.Size;
-                    var limitX = Size.x >= screenSize.x ? 20 : Size.x;
-                    var limitY = Size.y >= screenSize.y ? 20 : Size.y;
-                    // Ensure the user can't drag and drop the overlay outside of the screen
-                    newPosition = new Vector2(
-                        Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
-                        Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
-                    _position = newPosition;
-                }
-            }
+        [PostCreate]
+        public void Configure() {
+            _dragAndDropController = new DragAndDropController(LMB)
+                .OnlyIf(DragCondition)
+                .AddOnStartDrag(OnStartDrag)
+                .AddOnDrag(OnDrag);
         }
+
+        public override void _Input(InputEvent input) {
+            if (input.IsMouseMotion()) {
+                ButtonBar.Visible = input.IsMouseInside(TitleBackground);
+            }
+            if (_dragAndDropController == null) {
+                _dragAndDropController = new DragAndDropController(LMB)
+                    .OnlyIf(DragCondition)
+                    .AddOnStartDrag(OnStartDrag)
+                    .AddOnDrag(OnDrag);
+            }
+            _dragAndDropController.Handle(input);
+        }
+
+        private void OnStartDrag(Vector2 position) {
+            StopFollowing();
+            GetParent().MoveChild(this, -1);
+            AcceptEvent();
+            _startDragPosition = _position;
+        }
+
+        private void OnDrag(Vector2 offset) {
+            var newPosition = _position + offset;
+            var origin = FollowPosition;
+            // TODO: GetTree().Root.Size doesn't work well with scaled viewport
+            var screenSize = GetTree().Root.Size;
+            var limitX = Size.x >= screenSize.x ? 20 : Size.x;
+            var limitY = Size.y >= screenSize.y ? 20 : Size.y;
+            // Ensure the user can't drag and drop the overlay outside of the screen
+            newPosition = new Vector2(
+                Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
+                Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
+            _position = newPosition;
+        }
+
+        private bool DragCondition(InputEvent input) =>
+            input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar);
 
         public override void _Process(double delta) {
             if ((Target != null && !IsInstanceValid(Target)) || (RemoveIfFunc != null && RemoveIfFunc())) {
