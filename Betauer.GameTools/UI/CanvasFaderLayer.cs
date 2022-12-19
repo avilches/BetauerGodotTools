@@ -94,6 +94,13 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
         _busy = false;
     }
     
+    public override void _Notification(long what) {
+        if (what == NotificationPredelete) {
+            if (IsInstanceValid(ColorRectBackground) && ColorRectBackground.GetParent() == null) ColorRectBackground.Free();
+            if (IsInstanceValid(ColorRectForeground) && ColorRectForeground.GetParent() == null) ColorRectForeground.Free();
+        }
+    }
+    
     private void CheckColorRectPosition() {
         if (ColorRectBackground.GetParent() == null) {
             ColorRectBackground.SetAnchorsPreset(Control.LayoutPreset.FullRect);
