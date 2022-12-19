@@ -12,12 +12,20 @@ collision_mask = 0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 
-[node name="FloorRaycasts" type="Node2D" parent="."]
+[node name="RayCasts" type="Node2D" parent="."]
 
-[node name="Floor1" type="RayCast2D" parent="FloorRaycasts"]
+[node name="Floor" type="RayCast2D" parent="RayCasts"]
 position = Vector2(0, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
+
+[node name="FacePlayerDetector" type="RayCast2D" parent="RayCasts"]
+position = Vector2(0, -20)
+target_position = Vector2(200, 0)
+
+[node name="BackPlayerDetector" type="RayCast2D" parent="RayCasts"]
+position = Vector2(0, -20)
+target_position = Vector2(-50, 0)
 
 [node name="AttackArea" type="Area2D" parent="."]
 collision_layer = 0
