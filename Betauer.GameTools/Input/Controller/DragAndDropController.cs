@@ -4,15 +4,24 @@ using Godot;
 namespace Betauer.Input.Controller;
 
 public class DragAndDropController {
-    public Vector2? StartDragPosition { get; private set; }
+    public Vector2? LastDragPosition { get; private set; }
 
-    public bool IsDragging => StartDragPosition.HasValue;
+    public bool IsDragging => LastDragPosition.HasValue;
     public InputAction Action { get; set; }
 
     public Func<InputEvent, bool>? Predicate;
         
+    /// <summary>
+    /// Receive the e.GetMousePosition when the drag starts
+    /// </summary>
     public event Action<Vector2>? OnStartDrag;
+    /// <summary>
+    /// Receive the offset since the last movement so you can add or subtract to your object (or camera) position
+    /// </summary>
     public event Action<Vector2>? OnDrag;
+    /// <summary>
+    /// Receive the e.GetMousePosition when the drag ends (drop)
+    /// </summary>
     public event Action<Vector2>? OnDrop;
 
     public DragAndDropController(InputAction action) {
@@ -57,16 +66,16 @@ public class DragAndDropController {
     public void Handle(InputEvent e) {
         if (Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
             if (e.IsJustPressed()) {
-                StartDragPosition = e.GetMousePosition();
-                OnStartDrag?.Invoke(StartDragPosition.Value);
+                LastDragPosition = e.GetMousePosition();
+                OnStartDrag?.Invoke(LastDragPosition.Value);
             } else if (e.IsReleased()) {
                 OnDrop?.Invoke(e.GetMousePosition());
-                StartDragPosition = null;
+                LastDragPosition = null;
             }
-        } else if (StartDragPosition.HasValue && e.IsMouseMotion()) {
-            var mouseMovement = StartDragPosition.Value - e.GetMousePosition();
-            OnDrag?.Invoke(mouseMovement);
-            StartDragPosition = e.GetMousePosition();
+        } else if (LastDragPosition.HasValue && e.IsMouseMotion()) {
+            var offset = e.GetMousePosition() - LastDragPosition.Value;
+            OnDrag?.Invoke(offset);
+            LastDragPosition = e.GetMousePosition();;
         }
     }
 }

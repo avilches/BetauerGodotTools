@@ -18,7 +18,7 @@ namespace Betauer.Input.Controller {
 
         public DragCameraController(Camera2D camera2D, InputAction action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
             DragAndDropController = new DragAndDropController(action)
-                .AddOnDrag(offset => Camera2D.Position += offset);
+                .AddOnDrag(offset => Camera2D!.Position -= offset);
             Attach(camera2D, pauseMode);
         }
         
