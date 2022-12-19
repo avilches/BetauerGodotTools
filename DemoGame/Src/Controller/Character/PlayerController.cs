@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Godot;
 using Betauer;
@@ -59,6 +58,7 @@ namespace Veronenger.Controller.Character {
 		private AnimationStack _animationStack;
 		private AnimationStack _tweenStack;
 		private Restorer _restorer;
+		private readonly FlipperList _flippers = new();
 
 		public override void _Ready() {
 			
@@ -82,21 +82,20 @@ namespace Veronenger.Controller.Character {
 			DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(_restorer.Restore);
 			SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
 
-			var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
+			_flippers
+				.AddSprite(_mainSprite)
+				.AddArea2D(_attackArea);
 			_attackArea.EnableAllShapes(false);
-			StateMachine.Start("Player", this, flippers, FloorRaycasts);
+			StateMachine.Start("Player", this, _flippers, FloorRaycasts);
 
 			CharacterManager.RegisterPlayerController(this);
-			CharacterManager.ConfigurePlayerCollisions(this);
-			CharacterManager.ConfigurePlayerAttackArea2D(_attackArea);
+			CharacterManager.PlayerConfigureCollisions(this);
+			CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
 
 			PlayerDetector.CollisionLayer = 0;
 			PlayerDetector.CollisionMask = 0;
 			
 			StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
-			
-			
-			this.AddToLayer(LayerConstants.LayerPlayer);
 			
 			_attackArea.Monitoring = false;
 			// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
@@ -174,17 +173,6 @@ namespace Veronenger.Controller.Character {
 				// _camera2D.Zoom = new Vector2(1, 1);
 			} else if (e.IsKeyPressed(Key.E)) {
 				// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
-			}
-		}
-
-		public void ChangeParent(Node? target) {
-			if (target == null) return;
-			var parent = GetParent();
-			if (target != parent) {
-				var tmp = GetGlobalTransform().BasisXform(Position);
-				parent.RemoveChild(this);
-				target.AddChild(this);
-				Position = GetGlobalTransform().BasisXformInv(tmp);
 			}
 		}
 

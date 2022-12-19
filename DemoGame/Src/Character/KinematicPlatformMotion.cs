@@ -44,9 +44,8 @@ namespace Veronenger.Character {
         }
 
         public bool IsFacingRight => _flippers.IsFacingRight;
-        public bool Flip() => _flippers.Flip();
-        public bool Flip(bool left) => _flippers.Flip(left);
-        public bool Flip(float xInput) => _flippers.Flip(xInput);
+        public void Flip() => _flippers.Flip();
+        public void Flip(float xInput) => _flippers.Flip(xInput);
         
         /**
          * node is | I'm facing  | flip?

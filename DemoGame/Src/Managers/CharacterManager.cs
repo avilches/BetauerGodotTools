@@ -22,41 +22,45 @@ namespace Veronenger.Managers {
             PlayerController = playerController;
         }
 
-        public void ConfigurePlayerCollisions(PlayerController playerController) {
+        public void PlayerConfigureCollisions(PlayerController playerController) {
             playerController.CollisionLayer = 0;
             playerController.CollisionMask = 0;
             
-            playerController.DetectLayer(LayerRegularPlatform);
+            playerController.AddToLayer(LayerPlayerBody);
+            playerController.DetectLayer(LayerBodySolid);
             playerController.FloorRaycasts.ForEach(rayCast2D => {
-                rayCast2D.DetectLayer(LayerRegularPlatform);
+                rayCast2D.DetectLayer(LayerBodySolid);
             });
-            
         }
 
-        public void ConfigurePlayerAttackArea2D(Area2D attackArea2D) {
+        public void PlayerConfigureAttackArea2D(Area2D attackArea2D) {
             attackArea2D.CollisionMask = 0;
             attackArea2D.CollisionLayer = 0;
-            attackArea2D.AddToLayer(LayerEnemy);
+            attackArea2D.AddToLayer(LayerEnemyArea2D);
         }
 
-        public void ConfigureEnemyCollisions(CharacterBody2D enemy) {
+        public void EnemyConfigureCollisions(CharacterBody2D enemy) {
             enemy.AddToGroup(GROUP_ENEMY);
             enemy.CollisionMask = 0;
             enemy.CollisionLayer = 0;                                       
-            enemy.DetectLayer(LayerRegularPlatform);
+            enemy.DetectLayer(LayerBodySolid);
         }
 
-        public void ConfigureEnemyCollisions(RayCast2D rayCast2D) {
+        public void EnemyConfigureCollisions(RayCast2D rayCast2D) {
             rayCast2D.CollisionMask = 0;
-            rayCast2D.CollisionMask = 0;
-            rayCast2D.DetectLayer(LayerRegularPlatform);
+            rayCast2D.DetectLayer(LayerBodySolid);
         }
 
-        public void ConfigureEnemyDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {
+        public void EnemyConfigurePlayerDetector(RayCast2D rayCast2D) {
+            rayCast2D.CollisionMask = 0;
+            rayCast2D.DetectLayer(LayerPlayerBody);
+        }
+
+        public void EnemyConfigureDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {
             if (enemyDamageArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
             enemyDamageArea2D.CollisionMask = 0;
             enemyDamageArea2D.CollisionLayer = 0;
-            enemyDamageArea2D.OnAreaEntered(LayerEnemy, onAttack);
+            enemyDamageArea2D.OnAreaEntered(LayerEnemyArea2D, onAttack);
         }
 
         public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
@@ -65,19 +69,5 @@ namespace Veronenger.Managers {
             return PlayerController == player;
         }
 
-        public void ConfigurePlayerDeathZone(Area2D deathArea2D) {
-            deathArea2D.CollisionLayer = 0;
-            deathArea2D.CollisionMask = 0;
-            // TODO: this should be a topic, so other places can subscribe like remove all bullets
-            deathArea2D.AddToLayer(LayerPlayerStageDetector);
-            deathArea2D.OnAreaEntered((player) => Bus.Publish(PlayerEvent.Death));
-        }
-
-        public void ConfigureSceneChange(Area2D sceneChangeArea2D, string scene) {
-            sceneChangeArea2D.CollisionLayer = 0;
-            sceneChangeArea2D.CollisionMask = 0;
-            sceneChangeArea2D.DetectLayer(LayerPlayerStageDetector);
-            sceneChangeArea2D.OnAreaEntered((player) => Game.QueueChangeSceneWithPlayer(scene));
-        }
     }
 }

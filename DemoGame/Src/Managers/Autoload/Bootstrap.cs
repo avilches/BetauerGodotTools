@@ -1,6 +1,3 @@
-using System.Linq;
-using Betauer;
-using Betauer.Animation;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Screen;
@@ -11,7 +8,6 @@ using Betauer.Core.Pool;
 using Betauer.StateMachine;
 using Godot;
 using Veronenger.Controller.Character;
-using Veronenger.Controller.Stage;
 using Container = Betauer.DI.Container;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
 

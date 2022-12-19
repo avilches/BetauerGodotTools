@@ -48,15 +48,15 @@ namespace Veronenger.Character.Player {
 
         private PlayerController _player;
 
-        private float XInput => Handler.XInput;
-        private float YInput => Handler.YInput;
-        private bool IsPressingRight => Handler.IsPressingRight;
-        private bool IsPressingLeft => Handler.IsPressingLeft;
-        private bool IsPressingUp => Handler.IsPressingUp;
-        private bool IsPressingDown => Handler.IsPressingDown;
-        private IActionHandler Jump => Handler.Jump;
-        private IActionHandler Attack => Handler.Attack;
-        private IActionHandler Float => Handler.Float;
+        private float XInput => Handler.Directional.XInput;
+        private float YInput => Handler.Directional.YInput;
+        private bool IsPressingRight => Handler.Directional.IsPressingRight;
+        private bool IsPressingLeft => Handler.Directional.IsPressingLeft;
+        private bool IsPressingUp => Handler.Directional.IsPressingUp;
+        private bool IsPressingDown => Handler.Directional.IsPressingDown;
+        private IAction Jump => Handler.Jump;
+        private IAction Attack => Handler.Attack;
+        private IAction Float => Handler.Float;
         
         private float MotionX => Body.MotionX;
         private float MotionY => Body.MotionY;

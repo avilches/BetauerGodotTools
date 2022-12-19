@@ -57,7 +57,7 @@ namespace Veronenger.Managers {
             light.ShadowEnabled = true;
             light.ShadowFilter = Light2D.ShadowFilterEnum.None;
             light.GetNode<Area2D>("Area2D")
-                ?.OnBodyEntered(LayerConstants.LayerPlayer, (PlayerController player) => CandleOn(light));
+                ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (PlayerController player) => CandleOn(light));
         }
 
         private void CandleOn(PointLight2D light) {
@@ -67,7 +67,7 @@ namespace Veronenger.Managers {
             // light.ShadowEnabled = false;
         }
 
-        public void QueueChangeSceneWithPlayer(string sceneName) {
+        private void QueueChangeSceneWithPlayer(string sceneName) {
             StageManager.ClearTransition();
             _currentGameScene.QueueFree();
             var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instantiate();

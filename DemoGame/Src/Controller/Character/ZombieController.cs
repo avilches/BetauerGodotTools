@@ -5,6 +5,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Animation;
 using Betauer.Application.Monitor;
+using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.Tools.Logging;
 using Betauer.Core.Nodes.Property;
@@ -38,7 +39,9 @@ namespace Veronenger.Controller.Character {
 		[OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
 		[OnReady("Marker2D")] public Marker2D Marker2D;
-		[OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
+		[OnReady("RayCasts/Floor")] public RayCast2D FloorRaycast;
+		[OnReady("RayCasts/FacePlayerDetector")] public RayCast2D FacePlayerDetector;
+		[OnReady("RayCasts/BackPlayerDetector")] public RayCast2D BackPlayerDetector;
 
 		[Inject] private ZombieStateMachine StateMachine { get; set; }  // Transient
 		[Inject] private CharacterManager CharacterManager { get; set; }
@@ -50,13 +53,15 @@ namespace Veronenger.Controller.Character {
 		public IOnceStatus AnimationDieLeft { get; private set; }
 
 		private Tween _sceneTreeTween;
+		private List<RayCast2D> _rayCasts;
+		private AnimationStack _animationStack;
+		private readonly FlipperList _flippers = new();
+		public bool IsFacingRight => _flippers.IsFacingRight;
 
 		public void PlayAnimationAttacked() {
 			_sceneTreeTween?.Kill();
 			_sceneTreeTween = RedFlash.Play(_mainSprite);
 		}
-
-		private AnimationStack _animationStack;
 
 		public override void _Ready() {
 			_animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
@@ -64,18 +69,26 @@ namespace Veronenger.Controller.Character {
 			AnimationStep = _animationStack.AddLoopAnimation("Step");
 			AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
 			AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
-			
-			var flippers = new FlipperList().AddSprite(_mainSprite).AddNode2D(_attackArea);
-			StateMachine.Start("Zombie", this, flippers, Marker2D);
 
-			CharacterManager.ConfigureEnemyCollisions(this);
-			FloorRaycasts.ForEach(r => CharacterManager.ConfigureEnemyCollisions(r));
+			// _rayCasts = new List<RayCast2D> { FloorRaycast, FacePlayerDetector, BackPlayerDetector };
+			_rayCasts = new List<RayCast2D> { FacePlayerDetector };
+
+			_flippers
+				.AddSprite(_mainSprite)
+				.AddArea2D(_attackArea)
+				.AddRayCast2D(FacePlayerDetector)
+				.AddRayCast2D(BackPlayerDetector);
+			StateMachine.Start("Zombie", this, _flippers, Marker2D);
+
+			CharacterManager.EnemyConfigureCollisions(this);
+			CharacterManager.EnemyConfigureCollisions(FloorRaycast);
+			CharacterManager.EnemyConfigurePlayerDetector(FacePlayerDetector);
+			CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
 			// CharacterManager.ConfigureEnemyAttackArea2D(_attack);
-			CharacterManager.ConfigureEnemyDamageArea2D(_damageArea, (playerAttackArea2D) => {
+			CharacterManager.EnemyConfigureDamageArea2D(_damageArea, (playerAttackArea2D) => {
 				GD.Print("Attacking");
 				// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
 				AttackedByPlayer(new Attack(1f));
-					
 			});
 
 			DebugOverlayManager.CreateOverlay()

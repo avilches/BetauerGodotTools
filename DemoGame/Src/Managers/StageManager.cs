@@ -19,15 +19,15 @@ namespace Veronenger.Managers {
 
         public void ConfigureStageCamera(Camera2D stageCameraController, Area2D stageDetector) {
             _camera2D = stageCameraController;
-            stageDetector.OnAreaEntered(LayerPlayerStageDetector, OnEnterStage);
-            stageDetector.OnAreaExited(LayerPlayerStageDetector, OnExitStage);
+            stageDetector.OnAreaEntered(LayerPlayerArea2DDetector, OnEnterStage);
+            stageDetector.OnAreaExited(LayerPlayerArea2DDetector, OnExitStage);
         }
 
         public void ConfigureStage(Area2D stageArea2D) {
             ValidateStageArea2D(stageArea2D);
             stageArea2D.CollisionLayer = 0;
             stageArea2D.CollisionMask = 0;
-            stageArea2D.AddToLayer(LayerPlayerStageDetector);
+            stageArea2D.AddToLayer(LayerPlayerArea2DDetector);
         }
 
         private void ValidateStageArea2D(Area2D area2D) {

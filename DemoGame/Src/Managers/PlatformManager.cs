@@ -27,17 +27,17 @@ namespace Veronenger.Managers {
         public void ConfigurePlatformCollision(PhysicsBody2D platform) {
             platform.CollisionMask = 0;
             platform.CollisionLayer = 0;
-            platform.AddToLayer(LayerRegularPlatform);
+            platform.AddToLayer(LayerBodySolid);
         }
 
         public void RemovePlatformCollision(PhysicsBody2D platform) {
-            platform.RemoveFromLayer(LayerRegularPlatform);
+            platform.RemoveFromLayer(LayerBodySolid);
         }
 
         public void ConfigureTileMapCollision(TileMap tileMap) {
             tileMap.TileSet.SetPhysicsLayerCollisionLayer(0, 0);
             tileMap.TileSet.SetPhysicsLayerCollisionMask(0, 0);
-            tileMap.AddToLayer(0, LayerRegularPlatform);
+            tileMap.AddToLayer(0, LayerBodySolid);
         }
 
         // It accepts Object so it can be used from a GetSlideCollision(x).Collider

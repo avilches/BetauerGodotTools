@@ -42,29 +42,36 @@ namespace Veronenger.Character.Enemy {
     }
 
     public class ZombieIA {
-        private ICharacterHandler _handler;
-
-        public ZombieIA(ICharacterHandler handler) {
-            _handler = handler;
+        private readonly CharacterController _handler;
+        private readonly ZombieController _controller;
+        private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
+        
+        public ZombieIA(ICharacterHandler handler, ZombieController controller) {
+            _handler = handler is CharacterController h ? h : null;
+            _controller = controller;
         }
 
-        private int x = 0;
+
         public void HandleIA(double delta) {
-            if (_handler is not ManualCharacterHandler handler) return;
-            x++;
-            if (x == 5) {
-                handler.HandlerJump.QuickPress();
+            if (_handler == null) return;
+            
+            if (_stateTimer.Elapsed > 1f) {
+                _stateTimer.Reset();
+                ChangeDirection();
+            } else {
+                KeepMoving();
             }
-            if (x == 10) {
-                handler.HandlerJump.PressAndHold();
-            }
-            if (x == 15) {
-                handler.HandlerJump.Release();
-                x = 0;
-            }
-            GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
-                     " JustPressed:"+handler.HandlerJump.IsJustPressed()+
-                     " Released:"+handler.HandlerJump.IsReleased());
+            // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
+                     // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
+                     // " Released:"+handler.HandlerJump.IsReleased());
+        }
+
+        private void ChangeDirection() {
+            _handler.DirectionalController.XInput = _controller.IsFacingRight ? -1 : 1;
+        }
+        
+        private void KeepMoving() {
+            _handler.DirectionalController.XInput = _controller.IsFacingRight ? 1 : -1;
         }
     }
 
@@ -79,15 +86,16 @@ namespace Veronenger.Character.Enemy {
         [Inject] private PlayerConfig PlayerConfig { get; set; }
         [Inject] private EnemyConfig EnemyConfig { get; set; }
         [Inject] public KinematicPlatformMotion Body { get; set; }
-        [Inject] private InputActionCharacterHandler Handler { get; set; }
+        // [Inject] private InputActionCharacterHandler Handler { get; set; }
+        [Inject] private CharacterController Handler { get; set; }
 
         private ZombieController _zombieController;
 
-        private float XInput => Handler.XInput;
-        private float YInput => Handler.YInput;
-        private IActionHandler Jump => Handler.Jump;
-        private IActionHandler Attack => Handler.Attack;
-        private IActionHandler Float => Handler.Float;
+        private float XInput => Handler.Directional.XInput;
+        private float YInput => Handler.Directional.YInput;
+        private IAction Jump => Handler.Jump;
+        private IAction Attack => Handler.Attack;
+        private IAction Float => Handler.Float;
 
         private float MotionX => Body.MotionX;
         private float MotionY => Body.MotionY;
@@ -115,7 +123,7 @@ namespace Veronenger.Character.Enemy {
             zombie.FloorConstantSpeed = true;
             zombie.FloorSnapLength = MotionConfig.SnapLength;
 
-            _zombieIA = new ZombieIA(Handler);
+            _zombieIA = new ZombieIA(Handler, zombie);
 
             AddOnExecuteStart((delta, state) => Body.SetDelta(delta));
             AddOnExecuteStart((delta, state) => _zombieIA.HandleIA(delta));
@@ -231,10 +239,7 @@ namespace Veronenger.Character.Enemy {
                 })
                 .If(Body.IsOnFloor).Set(ZombieState.Landing)
                 .Build();
-
         }
-
-        
         
         public void TriggerAttacked(Attack attack) {
             Status.Attack(attack);
