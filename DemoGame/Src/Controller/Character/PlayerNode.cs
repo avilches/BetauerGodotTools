@@ -3,7 +3,6 @@ using Godot;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Application.Camera;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Input;
@@ -11,6 +10,7 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 using Betauer.Core.Restorer;
+using Betauer.Input.Controller;
 using Betauer.Nodes;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
@@ -42,6 +42,7 @@ namespace Veronenger.Controller.Character {
 		[Inject] private PlayerStateMachine StateMachine { get; set; } // Transient!
 		[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 		[Inject] private StageManager StageManager { get; set; }
+		[Inject] private InputAction MMB { get; set; }
 
 		public ILoopStatus AnimationIdle { get; private set; }
 		public ILoopStatus AnimationRun { get; private set; }
@@ -70,8 +71,7 @@ namespace Veronenger.Controller.Character {
 			AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes()).OnEnd(() => _attackArea.EnableAllShapes(false));
 			AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-			_cameraController = new DragCameraController(_camera2D, MouseButton.Middle, 1.8f, 100f);
-			this.OnInput((e) => _cameraController.DragCamera(e));
+			_cameraController = new DragCameraController(_camera2D, MMB);
 
 			_tweenStack = new AnimationStack("Player.AnimationStack");
 			_restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)

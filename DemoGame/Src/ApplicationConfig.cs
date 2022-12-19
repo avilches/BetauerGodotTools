@@ -87,6 +87,11 @@ namespace Veronenger {
 			.Build();
 
 		[Service]
+		private InputAction MMB => InputAction.Create("MMB")
+			.Click(MouseButton.Middle)
+			.Build();
+
+		[Service]
 		private InputAction RMB => InputAction.Create("RMB")
 			.Click(MouseButton.Right)
 			.Build();
