@@ -109,12 +109,21 @@ namespace Veronenger.Controller.Character {
 			// _attackArea.CollisionMask = 0;
 		}
 
+		public override void _PhysicsProcess(double delta) {
+			QueueRedraw();
+		}
+
+		private Color[] _colors = { Colors.Red, Colors.Blue, Colors.Yellow, Colors.Green, Colors.Fuchsia };
 		public override void _Draw() {
-			// if (CharacterManager.PlayerController?._playerDetector?.Position != null) {
-			// DrawLine(ToLocal(CharacterManager.PlayerController._playerDetector.GlobalPosition),
-			// _position2D.Position, Colors.Blue, 3F);
-			// }
-			// DrawLine(_position2D.Position, GetLocalMousePosition(), Colors.Blue, 3F);
+			for (var i = 0; i < _rayCasts.Count; i++) {
+				var rayCast = _rayCasts[i];
+				var targetPosition = (rayCast.Position + rayCast.TargetPosition) * rayCast.Scale;
+				DrawLine(rayCast.Position, targetPosition, _colors[i], 3F);
+				if (rayCast.IsColliding()) {
+					targetPosition = rayCast.GetLocalCollisionPoint();
+					DrawLine(rayCast.Position, rayCast.Position + targetPosition, Colors.White, 1F);
+				}
+			}
 		}
 
 		public void AttackedByPlayer(Attack attack) {
