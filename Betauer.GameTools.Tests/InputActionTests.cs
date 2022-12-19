@@ -146,7 +146,7 @@ namespace Betauer.GameTools.Tests {
         public void InputWithoutInputActionsContainerTest() {
             var di = new ContainerBuilder();
             di.Scan<InputWithoutInputActionsContainer>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
+            Assert.Throws<InjectMemberException>(() => di.Build());
         }
         
         [Configuration]
@@ -158,6 +158,7 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
         public void ConfigurableInputWithContainerButWithoutSettingContainerTest() {
             var di = new ContainerBuilder();
+            di.Singleton<SceneTree>(GetTree);
             di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>();
             var e = Assert.Throws<KeyNotFoundException>(() => di.Build());
             Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
@@ -175,6 +176,7 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Use a custom InputActionsContainer")]
         public void InputActionContainerTests() {
             var di = new ContainerBuilder();
+            di.Singleton<SceneTree>(GetTree);
             di.Scan<InputWithContainer>();
             var c = di.Build();
             var s = c.Resolve<InputActionsContainer>();
@@ -219,6 +221,7 @@ namespace Betauer.GameTools.Tests {
             var di = new ContainerBuilder();
             di.Scan<ConfigurableInputWithContainerAndSettings>();
             di.Scan<Service4>();
+            di.Singleton<SceneTree>(GetTree);
             var c = di.Build();
             var s = c.Resolve<Service4>();
 
@@ -268,6 +271,7 @@ namespace Betauer.GameTools.Tests {
             var di = new ContainerBuilder();
             di.Scan<MultipleInputActionContainer>();
             di.Scan<Service5>();
+            di.Singleton<SceneTree>(GetTree);
             var c = di.Build();
             var s = c.Resolve<Service5>();
             
