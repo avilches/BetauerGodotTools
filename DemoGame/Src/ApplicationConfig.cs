@@ -70,7 +70,7 @@ namespace Veronenger {
 		
 		[Service(Lifetime.Transient)] RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
 		[Service(Lifetime.Transient)] Node World3 => _world3Scene.Instantiate<Node>();
-		[Service(Lifetime.Transient)] PlayerController Player => _playerScene.Instantiate<PlayerController>();
+		[Service(Lifetime.Transient)] PlayerNode Player => _playerScene.Instantiate<PlayerNode>();
 		[Service(Lifetime.Transient)] ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
 
 		[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");

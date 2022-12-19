@@ -8,7 +8,7 @@ using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller {
-	public partial class SplashScreenController : CanvasLayer {
+	public partial class SplashScreenNode : CanvasLayer {
 		[Inject] private MainStateMachine MainStateMachine { get; set; }
 		[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 		[Inject] private SettingsContainer _settingsContainer { get; set; }

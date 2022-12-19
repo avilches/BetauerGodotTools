@@ -19,7 +19,7 @@ namespace Veronenger.Controller.Character {
 	}
 	
 	
-	public partial class ZombieController : CharacterBody2D, IEnemy {
+	public partial class ZombieNode : CharacterBody2D, IEnemy {
 		private static readonly KeyframeAnimation RedFlash = KeyframeAnimation.Create()
 			.SetDuration(0.3f)
 			.AnimateKeys(Properties.Modulate)
@@ -30,7 +30,7 @@ namespace Veronenger.Controller.Character {
 			.KeyframeTo(1.00f, Colors.White)
 			.EndAnimate();
 
-		private readonly Logger _logger = LoggerFactory.GetLogger<ZombieController>();
+		private readonly Logger _logger = LoggerFactory.GetLogger<ZombieNode>();
 
 		[OnReady("Sprite2D")] private Sprite2D _mainSprite;
 		[OnReady("AttackArea")] private Area2D _attackArea;

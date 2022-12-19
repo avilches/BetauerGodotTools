@@ -25,7 +25,7 @@ namespace Veronenger.Controller.Character {
 		}
 	}
 	
-	public partial class PlayerController : CharacterBody2D {
+	public partial class PlayerNode : CharacterBody2D {
 		[OnReady("Sprite2D")] private Sprite2D _mainSprite;
 		[OnReady("AttackArea")] private Area2D _attackArea;
 		[OnReady("DamageArea")] private Area2D _damageArea;
@@ -88,7 +88,7 @@ namespace Veronenger.Controller.Character {
 			_attackArea.EnableAllShapes(false);
 			StateMachine.Start("Player", this, _flippers, FloorRaycasts);
 
-			CharacterManager.RegisterPlayerController(this);
+			CharacterManager.RegisterPlayerNode(this);
 			CharacterManager.PlayerConfigureCollisions(this);
 			CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
 

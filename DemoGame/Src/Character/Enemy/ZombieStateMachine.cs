@@ -43,12 +43,12 @@ namespace Veronenger.Character.Enemy {
 
     public class ZombieIA {
         private readonly CharacterController _handler;
-        private readonly ZombieController _controller;
+        private readonly ZombieNode _node;
         private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
         
-        public ZombieIA(ICharacterHandler handler, ZombieController controller) {
+        public ZombieIA(ICharacterHandler handler, ZombieNode node) {
             _handler = handler is CharacterController h ? h : null;
-            _controller = controller;
+            _node = node;
         }
 
 
@@ -67,11 +67,11 @@ namespace Veronenger.Character.Enemy {
         }
 
         private void ChangeDirection() {
-            _handler.DirectionalController.XInput = _controller.IsFacingRight ? -1 : 1;
+            _handler.DirectionalController.XInput = _node.IsFacingRight ? -1 : 1;
         }
         
         private void KeepMoving() {
-            _handler.DirectionalController.XInput = _controller.IsFacingRight ? 1 : -1;
+            _handler.DirectionalController.XInput = _node.IsFacingRight ? 1 : -1;
         }
     }
 
@@ -89,7 +89,7 @@ namespace Veronenger.Character.Enemy {
         // [Inject] private InputActionCharacterHandler Handler { get; set; }
         [Inject] private CharacterController Handler { get; set; }
 
-        private ZombieController _zombieController;
+        private ZombieNode _zombieNode;
 
         private float XInput => Handler.Directional.XInput;
         private float YInput => Handler.Directional.YInput;
@@ -113,8 +113,8 @@ namespace Veronenger.Character.Enemy {
 
         private ZombieIA _zombieIA;
 
-        public void Start(string name, ZombieController zombie, IFlipper flippers, Marker2D marker2D) {
-            _zombieController = zombie;
+        public void Start(string name, ZombieNode zombie, IFlipper flippers, Marker2D marker2D) {
+            _zombieNode = zombie;
             zombie.AddChild(this);
 
             Body.Configure(name, zombie, flippers, marker2D, MotionConfig.FloorUpDirection);
@@ -156,7 +156,7 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Idle)
                 .Enter(() => {
-                    _zombieController.AnimationIdle.PlayLoop();
+                    _zombieNode.AnimationIdle.PlayLoop();
                 })
                 .Execute(() => {
                     ApplyFloorGravity();
@@ -169,7 +169,7 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Run)
                 .Enter(() => {
-                    _zombieController.AnimationStep.PlayLoop();
+                    _zombieNode.AnimationStep.PlayLoop();
                 })
                 .Execute(() => {
                     Body.Flip(XInput);
@@ -184,10 +184,10 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Attacked)
                 .Enter(() => {
-                    Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
+                    Body.FaceTo(CharacterManager.PlayerNode.PlayerDetector);
                     Body.MotionY = EnemyConfig.MiniJumpOnAttack.y;
-                    Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
-                    _zombieController.PlayAnimationAttacked();
+                    Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector) ? 1 : -1);
+                    _zombieNode.PlayAnimationAttacked();
                     _stateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(() => {
@@ -199,17 +199,17 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Destroy)
                 .Enter(() => {
-                    _zombieController.DisableAll();
+                    _zombieNode.DisableAll();
 
-                    if (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector)) {
-                        _zombieController.AnimationDieLeft.PlayOnce(true);
+                    if (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector)) {
+                        _zombieNode.AnimationDieLeft.PlayOnce(true);
                     } else {
-                        _zombieController.AnimationDieRight.PlayOnce(true);
+                        _zombieNode.AnimationDieRight.PlayOnce(true);
                     }
                 })
                 .Execute(() => {
-                    if (!_zombieController.AnimationDieRight.Playing && !_zombieController.AnimationDieLeft.Playing) {
-                        _zombieController.QueueFree();
+                    if (!_zombieNode.AnimationDieRight.Playing && !_zombieNode.AnimationDieLeft.Playing) {
+                        _zombieNode.QueueFree();
                     }
                 })
                 .Build();

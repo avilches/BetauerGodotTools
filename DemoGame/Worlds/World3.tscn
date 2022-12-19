@@ -28,7 +28,6 @@ size = Vector2(960, 540)
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 visible = false
-color = Color(0.0862745, 0.0862745, 0.0862745, 1)
 
 [node name="PositionPlayer" type="Marker2D" parent="."]
 position = Vector2(-614, 17)
@@ -189,28 +188,30 @@ occluder = SubResource("OccluderPolygon2D_65pi2")
 [node name="Stages" type="Node" parent="."]
 
 [node name="Area2D1" type="Area2D" parent="Stages"]
-visible = false
 position = Vector2(-960, -540)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D1"]
 shape = SubResource("RectangleShape2D_5fj3v")
 
 [node name="Area2D3" type="Area2D" parent="Stages"]
-visible = false
 position = Vector2(0, -540)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D3"]
 shape = SubResource("RectangleShape2D_5fj3v")
 
 [node name="Area2D4" type="Area2D" parent="Stages"]
-visible = false
 position = Vector2(-960, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D4"]
 shape = SubResource("RectangleShape2D_5fj3v")
 
 [node name="Area2D5" type="Area2D" parent="Stages"]
-visible = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D5"]
+shape = SubResource("RectangleShape2D_5fj3v")
+
+[node name="Area2D6" type="Area2D" parent="Stages"]
+position = Vector2(960, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D6"]
 shape = SubResource("RectangleShape2D_5fj3v")

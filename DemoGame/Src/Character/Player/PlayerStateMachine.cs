@@ -46,7 +46,7 @@ namespace Veronenger.Character.Player {
         [Inject] private Bus Bus { get; set; }
         [Inject] private InputActionCharacterHandler Handler { get; set; }
 
-        private PlayerController _player;
+        private PlayerNode _player;
 
         private float XInput => Handler.Directional.XInput;
         private float YInput => Handler.Directional.YInput;
@@ -70,16 +70,16 @@ namespace Veronenger.Character.Player {
         private DelayedAction _delayedJump;
         private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
         
-        public void Start(string name, PlayerController playerController, IFlipper flippers, List<RayCast2D> floorRaycasts) {
-            _player = playerController;
+        public void Start(string name, PlayerNode playerNode, IFlipper flippers, List<RayCast2D> floorRaycasts) {
+            _player = playerNode;
             _delayedJump = ((InputAction)Jump).CreateDelayed();
-            playerController.AddChild(this);
+            playerNode.AddChild(this);
 
-            Body.Configure(name, playerController, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
-            playerController.FloorStopOnSlope = true;
+            Body.Configure(name, playerNode, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
+            playerNode.FloorStopOnSlope = true;
             // playerController.FloorBlockOnWall = true;
-            playerController.FloorConstantSpeed = true;
-            playerController.FloorSnapLength = MotionConfig.SnapLength;
+            playerNode.FloorConstantSpeed = true;
+            playerNode.FloorSnapLength = MotionConfig.SnapLength;
             
             AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
             AddOnTransition(args => Console.WriteLine(args.To));

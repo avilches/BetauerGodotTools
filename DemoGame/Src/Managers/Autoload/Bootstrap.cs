@@ -91,10 +91,10 @@ namespace Veronenger.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.All);
 
             // Player and enemies
-            LoggerFactory.SetTraceLevel(typeof(PlayerController), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Player.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Player.AnimationStack", TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(ZombieController), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(ZombieNode), TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Zombie.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel("Zombie.AnimationStack", TraceLevel.Error);
             

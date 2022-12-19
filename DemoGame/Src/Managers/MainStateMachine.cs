@@ -85,7 +85,7 @@ namespace Veronenger.Managers {
             
             Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
             var modalResponse = false;
-            var splashScreen = SceneTree.GetMainScene<SplashScreenController>();
+            var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
             splashScreen.Layer = int.MaxValue;
 
             var endSplash = false;

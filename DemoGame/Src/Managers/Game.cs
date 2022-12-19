@@ -15,10 +15,10 @@ namespace Veronenger.Managers {
         [Inject] private StageManager StageManager { get; set; }
         [Inject] private PlatformManager PlatformManager { get; set; }
         [Inject] private Factory<Node> World3 { get; set; }
-        [Inject] private Factory<PlayerController> Player { get; set; }
+        [Inject] private Factory<PlayerNode> Player { get; set; }
         
         private Node _currentGameScene;
-        private PlayerController _playerScene;
+        private PlayerNode _playerScene;
 
         public void Start() {
             StageManager.ClearTransition();
@@ -57,7 +57,7 @@ namespace Veronenger.Managers {
             light.ShadowEnabled = true;
             light.ShadowFilter = Light2D.ShadowFilterEnum.None;
             light.GetNode<Area2D>("Area2D")
-                ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (PlayerController player) => CandleOn(light));
+                ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (PlayerNode player) => CandleOn(light));
         }
 
         private void CandleOn(PointLight2D light) {

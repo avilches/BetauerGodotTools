@@ -12,23 +12,23 @@ namespace Veronenger.Managers {
     public class CharacterManager {
         private const string GROUP_ENEMY = "enemy";
 
-        public PlayerController PlayerController { get; private set; }
+        public PlayerNode PlayerNode { get; private set; }
         [Inject] private Game Game { get; set; }
 
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] private Bus Bus { get; set; }
 
-        public void RegisterPlayerController(PlayerController playerController) {
-            PlayerController = playerController;
+        public void RegisterPlayerNode(PlayerNode playerNode) {
+            PlayerNode = playerNode;
         }
 
-        public void PlayerConfigureCollisions(PlayerController playerController) {
-            playerController.CollisionLayer = 0;
-            playerController.CollisionMask = 0;
+        public void PlayerConfigureCollisions(PlayerNode playerNode) {
+            playerNode.CollisionLayer = 0;
+            playerNode.CollisionMask = 0;
             
-            playerController.AddToLayer(LayerPlayerBody);
-            playerController.DetectLayer(LayerBodySolid);
-            playerController.FloorRaycasts.ForEach(rayCast2D => {
+            playerNode.AddToLayer(LayerPlayerBody);
+            playerNode.DetectLayer(LayerBodySolid);
+            playerNode.FloorRaycasts.ForEach(rayCast2D => {
                 rayCast2D.DetectLayer(LayerBodySolid);
             });
         }
@@ -66,7 +66,7 @@ namespace Veronenger.Managers {
         public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
         public bool IsPlayer(CharacterBody2D player) {
-            return PlayerController == player;
+            return PlayerNode == player;
         }
 
     }

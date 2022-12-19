@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dmw5hkvxv022p" path="res://Scenes/Enemy.tscn" id="1"]
 [ext_resource type="Texture2D" uid="uid://by868r18ku0gx" path="res://Characters/Zombie/zombie-sheet.png" id="2"]
-[ext_resource type="Script" path="res://Src/Controller/Character/ZombieController.cs" id="3"]
+[ext_resource type="Script" path="res://Src/Controller/Character/ZombieNode.cs" id="3"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 resource_local_to_scene = true
