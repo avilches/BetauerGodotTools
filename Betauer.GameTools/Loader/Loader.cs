@@ -39,24 +39,22 @@ namespace Betauer.Loader {
             var resources = resourcesToLoad.Select(resourcePath => {
                 var error = ResourceLoader.LoadThreadedRequest(resourcePath);
                 if (error != Error.Ok) throw new ResourceLoaderException($"Error request loading {resourcePath}: {error}");
-                GD.Print($"Request loading {resourcePath}");
+                // GD.Print($"Request loading {resourcePath}");
                 return new ResourceProgress(resourcePath);
             }).ToArray();
-            var progressArray = new Godot.Collections.Array {
-                0f
-            };
+            var progressArray = new Godot.Collections.Array { 0f };
             var pending = true;
             while (pending) {
                 foreach (var resource in resources) {
                     if (resource.Resource == null) {
                         var status = ResourceLoader.LoadThreadedGetStatus(resource.Path, progressArray);
-                        var progress = progressArray[0].AsSingle();
+                        var progress = (float)progressArray[0];
                         if (status == ResourceLoader.ThreadLoadStatus.Loaded) {
-                            GD.Print($"...{resource.Path}: {status} progress: {progress} DONE!");
+                            // GD.Print($"DONE {resource.Path}: {progress}");
                             resource.Progress = 1f;
                             resource.Resource = ResourceLoader.LoadThreadedGet(resource.Path);
                         } else if (status == ResourceLoader.ThreadLoadStatus.InProgress) {
-                            GD.Print($"{resource.Path}: {status} progress: {progress}");
+                            // GD.Print($"... {resource.Path}: {progress}");
                             resource.Progress = progress;
                         } else {
                             throw new ResourceLoaderException($"Error get status {resource.Path}: {status}");

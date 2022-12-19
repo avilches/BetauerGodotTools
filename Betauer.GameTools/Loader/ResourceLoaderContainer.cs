@@ -87,7 +87,7 @@ namespace Betauer.Loader {
             });
             Unload();
             var resources =
-                await Loader.Load(resourcesPaths, awaiter, progress => OnProgress?.Invoke(progress));
+                await Loader.LoadThreaded(resourcesPaths, awaiter, progress => OnProgress?.Invoke(progress));
             
             // Add resources to registry by Path                
             Registry = resources.ToDictionary(r => r.ResourcePath);
