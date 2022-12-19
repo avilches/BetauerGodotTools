@@ -301,7 +301,8 @@ namespace Betauer.Application.Monitor {
 
         [PostInject]
         public void Configure() {
-            _dragAndDropController = new DragAndDropController(LMB)
+            _dragAndDropController = new DragAndDropController()
+                .WithAction(LMB)
                 .OnlyIf(DragPredicate)
                 .AddOnStartDrag(OnStartDrag)
                 .AddOnDrag(OnDrag);

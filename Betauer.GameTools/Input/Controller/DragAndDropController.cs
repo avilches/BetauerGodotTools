@@ -7,7 +7,7 @@ public class DragAndDropController {
     public Vector2? LastDragPosition { get; private set; }
 
     public bool IsDragging => LastDragPosition.HasValue;
-    public InputAction Action { get; set; }
+    public InputAction? Action { get; set; }
 
     public Func<InputEvent, bool>? Predicate;
         
@@ -24,8 +24,9 @@ public class DragAndDropController {
     /// </summary>
     public event Action<Vector2>? OnDrop;
 
-    public DragAndDropController(InputAction action) {
+    public DragAndDropController WithAction(InputAction action) {
         Action = action;
+        return this;
     }
 
     public DragAndDropController OnlyIf(Func<InputEvent, bool>? isClickPredicate) {
@@ -64,7 +65,7 @@ public class DragAndDropController {
     }
 
     public void Handle(InputEvent e) {
-        if (Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
+        if (Action != null && Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
             if (e.IsJustPressed()) {
                 LastDragPosition = e.GetMousePosition();
                 OnStartDrag?.Invoke(LastDragPosition.Value);

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Betauer.Camera;
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.Core.Nodes;
@@ -21,7 +22,7 @@ namespace Veronenger.Managers {
         private PlayerNode _playerScene;
 
         public void Start() {
-            StageManager.ClearTransition();
+            StageManager.ClearState();
             StartWorld3();
         }
 
@@ -68,7 +69,7 @@ namespace Veronenger.Managers {
         }
 
         private void QueueChangeSceneWithPlayer(string sceneName) {
-            StageManager.ClearTransition();
+            StageManager.ClearState();
             _currentGameScene.QueueFree();
             var nextScene = ResourceLoader.Load<PackedScene>(sceneName).Instantiate();
             AddPlayerToScene(nextScene);

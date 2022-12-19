@@ -4,6 +4,7 @@ using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
+using Betauer.Camera;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
@@ -55,7 +56,7 @@ namespace Veronenger.Controller.Character {
 		public ILoopStatus DangerTween;
 		public IOnceStatus SqueezeTween;
 
-		private DragCameraController _cameraController;
+		private readonly DragCameraController _cameraController = new();
 		private AnimationStack _animationStack;
 		private AnimationStack _tweenStack;
 		private Restorer _restorer;
@@ -71,7 +72,7 @@ namespace Veronenger.Controller.Character {
 			AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes()).OnEnd(() => _attackArea.EnableAllShapes(false));
 			AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-			_cameraController = new DragCameraController(_camera2D, MMB);
+			_cameraController.WithAction(MMB).Attach(_camera2D);
 
 			_tweenStack = new AnimationStack("Player.AnimationStack");
 			_restorer = this.CreateRestorer(Properties.Modulate, Properties.Scale2D)

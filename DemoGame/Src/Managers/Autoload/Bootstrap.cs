@@ -1,6 +1,7 @@
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Screen;
+using Betauer.Camera;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
@@ -88,7 +89,7 @@ namespace Veronenger.Managers.Autoload {
             // Game
             LoggerFactory.SetTraceLevel("GameManager.StateMachine", TraceLevel.Error);
             LoggerFactory.SetTraceLevel(typeof(MainStateMachine), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(StageManager), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(CameraStageLimiter), TraceLevel.All);
 
             // Player and enemies
             LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.Error);
