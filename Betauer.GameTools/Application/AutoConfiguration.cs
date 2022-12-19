@@ -109,6 +109,7 @@ namespace Betauer.Application {
         public virtual void OnBuildContainer(ContainerBuilder builder) {
             builder
                 .Scan(GetType().Assembly)
+                .Scan<MouseActions>()
                 .ScanConfiguration(new Configuration(this));
             
         }

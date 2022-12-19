@@ -80,34 +80,6 @@ namespace Veronenger {
 	}
 
 	[Configuration]
-	public class MouseActions {
-		[Service]
-		private InputAction LMB => InputAction.Create("LMB")
-			.Click(MouseButton.Left)
-			.Build();
-
-		[Service]
-		private InputAction MMB => InputAction.Create("MMB")
-			.Click(MouseButton.Middle)
-			.Build();
-
-		[Service]
-		private InputAction RMB => InputAction.Create("RMB")
-			.Click(MouseButton.Right)
-			.Build();
-
-		[Service]
-		private InputAction MWU => InputAction.Create("MWU")
-			.Click(MouseButton.WheelUp)
-			.Build();
-
-		[Service]
-		private InputAction MWD => InputAction.Create("MWD")
-			.Click(MouseButton.WheelDown)
-			.Build();
-	}
-
-	[Configuration]
 	public class UiActions {
 		[Service] public InputActionsContainer InputActionsContainer => new();
 		
