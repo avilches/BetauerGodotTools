@@ -120,8 +120,8 @@ namespace Betauer.GameTools.Tests {
             sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
             sm.OnExit += (args)  => states.Add(args.From + ":exit");
             sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-            sm.OnExecuteStart += (double delta)  => states.Add(":process.start");
-            sm.OnExecuteEnd += ()  => states.Add(":process.end");
+            sm.OnBeforeExecute += (double delta)  => states.Add(":process.start");
+            sm.OnAfterExecute += ()  => states.Add(":process.end");
 
             AddChild(sm);
 

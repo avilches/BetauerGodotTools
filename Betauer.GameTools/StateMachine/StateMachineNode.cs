@@ -5,8 +5,8 @@ namespace Betauer.StateMachine {
     public abstract partial class StateMachineNode<TStateKey> : Node 
         where TStateKey : Enum {
         
-        public event Action<double>? OnExecuteStart;
-        public event Action? OnExecuteEnd;
+        public event Action<double>? OnBeforeExecute;
+        public event Action? OnAfterExecute;
         public bool ProcessInPhysics { get; set; }
 
         public abstract IStateMachineEvents<TStateKey> GetStateMachineEvents();
@@ -32,8 +32,8 @@ namespace Betauer.StateMachine {
             remove  => GetStateMachineEvents().OnTransition -= value;
         }
 
-        protected void ExecuteStart(double delta) => OnExecuteStart?.Invoke(delta);
-        protected void ExecuteEnd() => OnExecuteEnd?.Invoke();
+        protected void ExecuteStart(double delta) => OnBeforeExecute?.Invoke(delta);
+        protected void ExecuteEnd() => OnAfterExecute?.Invoke();
         
     }
 }

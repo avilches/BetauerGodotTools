@@ -80,7 +80,7 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         playerNode.FloorConstantSpeed = true;
         playerNode.FloorSnapLength = MotionConfig.SnapLength;
 
-        OnExecuteStart += Body.SetDelta;
+        OnBeforeExecute += Body.SetDelta;
         // OnTransition += args => Console.WriteLine(args.To);
         Bus.Subscribe(Enqueue);
         GroundStates();

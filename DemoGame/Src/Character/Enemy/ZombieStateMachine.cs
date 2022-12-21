@@ -125,9 +125,9 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
 
         _zombieIA = new ZombieIA(Handler, zombie);
 
-        OnExecuteStart += Body.SetDelta;
-        OnExecuteStart += _zombieIA.HandleIA;
-        OnExecuteEnd += Handler.EndFrame;
+        OnBeforeExecute += Body.SetDelta;
+        OnBeforeExecute += _zombieIA.HandleIA;
+        OnAfterExecute += Handler.EndFrame;
         OnTransition += args => zombie.Label.Text = args.To.ToString();
 
         var debugOverlay = DebugOverlayManager.Follow(zombie);
